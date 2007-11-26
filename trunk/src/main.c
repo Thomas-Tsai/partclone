@@ -101,7 +101,7 @@ int main(int argc, char **argv){
      * open debug file in "/var/log/partclone.log" for log message 
      */
     debug = opt.debug;
-    if(opt.debug)
+    //if(opt.debug)
 	open_log();
 
     /**
