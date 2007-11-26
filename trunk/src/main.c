@@ -126,10 +126,12 @@ int main(int argc, char **argv){
 
 	log_mesg(0, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
 
+	/*
 	sf = lseek(dfw, 0, SEEK_SET);
 	log_mesg(0, 0, 0, debug, "seek %lli for writing image_head\n",sf);
         if (sf == (off_t)-1)
 	    log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
+	*/
 
 	// write image_head to image file
 	w_size = write (dfw, &image_hdr, sizeof(image_head));
@@ -182,11 +184,13 @@ int main(int argc, char **argv){
 
 	w_size = write (dfw, bitmagic, 8); /// write a magic string
 
+	/*
 	/// log the offset
         sf = lseek(dfw, 0, SEEK_CUR);
 	log_mesg(0, 0, 0, debug, "seek %lli for writing data string\n",sf); 
 	if (sf == (off_t)-1)
 	    log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
+	*/
 
 	/// read data from the first block and log the offset
 	sf = lseek(dfr, 0, SEEK_SET);
@@ -267,11 +271,13 @@ int main(int argc, char **argv){
 	if (sf == (off_t)-1)
 	    log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
     
+	/*
 	/// log the offset
         sf = lseek(dfr, 0, SEEK_CUR);
 	log_mesg(0, 0, 0, debug, "seek %lli for reading data string\n",sf);
 	if (sf == (off_t)-1)
 	    log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
+	*/
 
 	/// start restore image file to partition
         for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
