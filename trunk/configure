@@ -718,6 +718,8 @@ GREP
 EGREP
 ENABLE_XFS_TRUE
 ENABLE_XFS_FALSE
+ENABLE_REISERFS_TRUE
+ENABLE_REISERFS_FALSE
 ENABLE_REISER4_TRUE
 ENABLE_REISER4_FALSE
 ENABLE_HFSP_TRUE
@@ -1318,6 +1320,7 @@ Optional Features:
   --enable-dependency-tracking   do not reject slow dependency extractors
   --disable-rpath         do not hardcode runtime library paths
   --enable-xfs            enable XFS file system
+  --enable-reiserfs       enable REISERFS 3.6/3.6 file system
   --enable-reiser4        enable Reiser4 file system
   --enable-hfsp           enable HFS plus file system
 
@@ -7241,6 +7244,22 @@ supported_fs=$supported_fs" xfs"
 fi
 
 ##reiserfs##
+# Check whether --enable-test was given.
+if test "${enable_test+set}" = set; then
+  enableval=$enable_test; enable_reiserfs=yes
+fi
+
+ if test "$enable_reiserfs" = yes; then
+  ENABLE_REISERFS_TRUE=
+  ENABLE_REISERFS_FALSE='#'
+else
+  ENABLE_REISERFS_TRUE='#'
+  ENABLE_REISERFS_FALSE=
+fi
+
+
+if test "$enable_reiserfs" = "yes"; then
+
 { echo "$as_me:$LINENO: checking  for Reiserfs Library and Header files ... ..." >&5
 echo "$as_me: checking  for Reiserfs Library and Header files ... ..." >&6;}
 
@@ -7544,6 +7563,8 @@ echo "$as_me: error: *** Reiserfs depend library (libdal) not found" >&2;}
 fi
 
 supported_fs=$supported_fs" reiserfs"
+
+fi
 
 ##reiser4##
 # Check whether --enable-test was given.
@@ -8016,6 +8037,13 @@ if test -z "${ENABLE_XFS_TRUE}" && test -z "${ENABLE_XFS_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"ENABLE_XFS\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"ENABLE_XFS\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${ENABLE_REISERFS_TRUE}" && test -z "${ENABLE_REISERFS_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"ENABLE_REISERFS\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"ENABLE_REISERFS\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -8725,6 +8753,8 @@ GREP!$GREP$ac_delim
 EGREP!$EGREP$ac_delim
 ENABLE_XFS_TRUE!$ENABLE_XFS_TRUE$ac_delim
 ENABLE_XFS_FALSE!$ENABLE_XFS_FALSE$ac_delim
+ENABLE_REISERFS_TRUE!$ENABLE_REISERFS_TRUE$ac_delim
+ENABLE_REISERFS_FALSE!$ENABLE_REISERFS_FALSE$ac_delim
 ENABLE_REISER4_TRUE!$ENABLE_REISER4_TRUE$ac_delim
 ENABLE_REISER4_FALSE!$ENABLE_REISER4_FALSE$ac_delim
 ENABLE_HFSP_TRUE!$ENABLE_HFSP_TRUE$ac_delim
@@ -8733,7 +8763,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 12; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 14; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

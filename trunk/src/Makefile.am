@@ -1,14 +1,17 @@
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\"
 LDADD = $(LIBINTL)
-sbin_PROGRAMS=clone.extfs clone.reiserfs
+sbin_PROGRAMS=clone.extfs
 
 clone_extfs_SOURCES=main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
 clone_extfs_CFLAGS=-DEXTFS
 clone_extfs_LDFLAGS=-lext2fs
 
+if ENABLE_REISERFS
+sbin_PROGRAMS += clone.reiserfs
 clone_reiserfs_SOURCES=main.c partclone.c progress.c reiserfsclone.c reiserfsclone.h partclone.h progress.h gettext.h
 clone_reiserfs_CFLAGS=-DREISERFS
 clone_reiserfs_LDFLAGS=-lreiserfs -ldal
+endif
 
 if ENABLE_REISER4
 sbin_PROGRAMS += clone.reiser4

@@ -40,6 +40,14 @@ supported_fs=$supported_fs" xfs"
 fi
 
 ##reiserfs##
+AC_ARG_ENABLE(test,
+	AS_HELP_STRING(--enable-reiserfs,enable REISERFS 3.6/3.6 file system), 
+	enable_reiserfs=yes,
+)
+AM_CONDITIONAL(ENABLE_REISERFS, test "$enable_reiserfs" = yes)
+
+if test "$enable_reiserfs" = "yes"; then
+
 dnl Check for REISERFS
 AC_CHECKING([ for Reiserfs Library and Header files ... ])
 AC_CHECK_HEADERS([reiserfs/reiserfs.h], ,
@@ -50,6 +58,8 @@ AC_CHECK_LIB([reiserfs], [reiserfs_fs_open], ,
 AC_CHECK_LIB([dal], [file_dal_open], ,
     AC_MSG_ERROR([*** Reiserfs depend library (libdal) not found]))
 supported_fs=$supported_fs" reiserfs"
+
+fi
 
 ##reiser4##
 AC_ARG_ENABLE(test,

@@ -32,11 +32,12 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-sbin_PROGRAMS = clone.extfs$(EXEEXT) clone.reiserfs$(EXEEXT) \
-	$(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3)
-@ENABLE_REISER4_TRUE@am__append_1 = clone.reiser4
-@ENABLE_HFSP_TRUE@am__append_2 = clone.hfsp
-@ENABLE_XFS_TRUE@am__append_3 = clone.xfs
+sbin_PROGRAMS = clone.extfs$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
+	$(am__EXEEXT_3) $(am__EXEEXT_4)
+@ENABLE_REISERFS_TRUE@am__append_1 = clone.reiserfs
+@ENABLE_REISER4_TRUE@am__append_2 = clone.reiser4
+@ENABLE_HFSP_TRUE@am__append_3 = clone.hfsp
+@ENABLE_XFS_TRUE@am__append_4 = clone.xfs
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -50,9 +51,10 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-@ENABLE_REISER4_TRUE@am__EXEEXT_1 = clone.reiser4$(EXEEXT)
-@ENABLE_HFSP_TRUE@am__EXEEXT_2 = clone.hfsp$(EXEEXT)
-@ENABLE_XFS_TRUE@am__EXEEXT_3 = clone.xfs$(EXEEXT)
+@ENABLE_REISERFS_TRUE@am__EXEEXT_1 = clone.reiserfs$(EXEEXT)
+@ENABLE_REISER4_TRUE@am__EXEEXT_2 = clone.reiser4$(EXEEXT)
+@ENABLE_HFSP_TRUE@am__EXEEXT_3 = clone.hfsp$(EXEEXT)
+@ENABLE_XFS_TRUE@am__EXEEXT_4 = clone.xfs$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)"
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(sbin_PROGRAMS)
@@ -87,10 +89,14 @@ clone_reiser4_OBJECTS = $(am_clone_reiser4_OBJECTS)
 clone_reiser4_DEPENDENCIES =
 clone_reiser4_LINK = $(CCLD) $(clone_reiser4_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_clone_reiserfs_OBJECTS = clone_reiserfs-main.$(OBJEXT) \
-	clone_reiserfs-partclone.$(OBJEXT) \
-	clone_reiserfs-progress.$(OBJEXT) \
-	clone_reiserfs-reiserfsclone.$(OBJEXT)
+am__clone_reiserfs_SOURCES_DIST = main.c partclone.c progress.c \
+	reiserfsclone.c reiserfsclone.h partclone.h progress.h \
+	gettext.h
+@ENABLE_REISERFS_TRUE@am_clone_reiserfs_OBJECTS =  \
+@ENABLE_REISERFS_TRUE@	clone_reiserfs-main.$(OBJEXT) \
+@ENABLE_REISERFS_TRUE@	clone_reiserfs-partclone.$(OBJEXT) \
+@ENABLE_REISERFS_TRUE@	clone_reiserfs-progress.$(OBJEXT) \
+@ENABLE_REISERFS_TRUE@	clone_reiserfs-reiserfsclone.$(OBJEXT)
 clone_reiserfs_OBJECTS = $(am_clone_reiserfs_OBJECTS)
 clone_reiserfs_LDADD = $(LDADD)
 clone_reiserfs_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -117,7 +123,8 @@ SOURCES = $(clone_extfs_SOURCES) $(clone_hfsp_SOURCES) \
 	$(clone_reiser4_SOURCES) $(clone_reiserfs_SOURCES) \
 	$(clone_xfs_SOURCES)
 DIST_SOURCES = $(clone_extfs_SOURCES) $(am__clone_hfsp_SOURCES_DIST) \
-	$(am__clone_reiser4_SOURCES_DIST) $(clone_reiserfs_SOURCES) \
+	$(am__clone_reiser4_SOURCES_DIST) \
+	$(am__clone_reiserfs_SOURCES_DIST) \
 	$(am__clone_xfs_SOURCES_DIST)
 ETAGS = etags
 CTAGS = ctags
@@ -234,9 +241,9 @@ LDADD = $(LIBINTL)
 clone_extfs_SOURCES = main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
 clone_extfs_CFLAGS = -DEXTFS
 clone_extfs_LDFLAGS = -lext2fs
-clone_reiserfs_SOURCES = main.c partclone.c progress.c reiserfsclone.c reiserfsclone.h partclone.h progress.h gettext.h
-clone_reiserfs_CFLAGS = -DREISERFS
-clone_reiserfs_LDFLAGS = -lreiserfs -ldal
+@ENABLE_REISERFS_TRUE@clone_reiserfs_SOURCES = main.c partclone.c progress.c reiserfsclone.c reiserfsclone.h partclone.h progress.h gettext.h
+@ENABLE_REISERFS_TRUE@clone_reiserfs_CFLAGS = -DREISERFS
+@ENABLE_REISERFS_TRUE@clone_reiserfs_LDFLAGS = -lreiserfs -ldal
 @ENABLE_REISER4_TRUE@clone_reiser4_SOURCES = main.c partclone.c progress.c reiser4clone.c reiser4clone.h partclone.h progress.h gettext.h
 @ENABLE_REISER4_TRUE@clone_reiser4_CFLAGS = -DREISER4
 @ENABLE_REISER4_TRUE@clone_reiser4_LDADD = -lreiser4 -laal
