@@ -11,10 +11,12 @@
  * (at your option) any later version.
  */
 
+//##define _FILE_OFFSET_BITS 64
+#include <config.h>
 #define _LARGEFILE64_SOURCE
-#define _FILE_OFFSET_BITS 64
 #include <features.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdio.h>
@@ -25,7 +27,6 @@
 #include <string.h>
 #include <getopt.h>
 #include <locale.h>
-#include "config.h"
 #include "gettext.h"
 #define _(STRING) gettext(STRING)
 //#define PACKAGE "partclone"

@@ -107,7 +107,8 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
 
     fs_open(device);
     tb = reverseInt((int)sb.totalBlocks);
-    rb = tb/8;
+    rb = (tb/8)+1;
+    //rb = 8192;
 
     for (i = 0; i < tb; i++)
 	bitmap[i] = 1;
@@ -116,7 +117,8 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     buffer2 = (UInt8*)malloc(rb);
     r = read (ret, buffer2, rb);
     for(b = 0 ; b < tb; b++){
-        IsUsed = IsAllocationBlockUsed(b, buffer2);
+	int check_block = b;
+        IsUsed = IsAllocationBlockUsed(check_block, buffer2);
     if (IsUsed){
             bused++;
             bitmap[b] = 1;
@@ -128,6 +130,9 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
         }
     }
     
+    log_mesg(0, 0, 0, 1, "rb:%i\n", rb);
+    log_mesg(0, 0, 0, 1, "bfree:%i\n", bfree);
+    log_mesg(0, 0, 0, 1, "bused:%i\n", bused);
     if(bfree != reverseInt((int)sb.freeBlocks))
         log_mesg(0, 1, 1, debug, "bitmap free count err, free:%i\n", bfree);
 
@@ -145,12 +150,13 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     image_hdr->device_size = reverseInt(sb.totalBlocks)*reverseInt(sb.blockSize);
     image_hdr->totalblock  = reverseInt(sb.totalBlocks);
     image_hdr->usedblocks  = reverseInt(sb.totalBlocks) - reverseInt(sb.freeBlocks);
-    /*
+    log_mesg(0, 0, 0, 1, "blockSize:%i\n", reverseInt(sb.blockSize));
+    log_mesg(0, 0, 0, 1, "totalBlocks:%i\n", reverseInt(sb.totalBlocks));
+    log_mesg(0, 0, 0, 1, "freeBlocks:%i\n", reverseInt(sb.freeBlocks));
     print_fork_data(&sb.allocationFile);
     print_fork_data(&sb.extentsFile);
     print_fork_data(&sb.catalogFile);
     print_fork_data(&sb.attributesFile);
     print_fork_data(&sb.startupFile);
-    */
     fs_close();
 }

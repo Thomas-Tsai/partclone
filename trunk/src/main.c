@@ -11,9 +11,10 @@
  * (at your option) any later version.
  */
 
-#define _FILE_OFFSET_BITS 64
+#include <config.h>
 #include <features.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdio.h>
@@ -241,9 +242,9 @@ int main(int argc, char **argv){
             } else {
 		/// if the block is not used, I just skip it.
         	sf = lseek(dfr, image_hdr.block_size, SEEK_CUR);
-		log_mesg(0, 0, 0, debug, "seek=%lli, ",sf);
+		log_mesg(0, 0, 0, debug, "skip seek=%lli, ",sf);
                 if (sf == (off_t)-1)
-                    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
+                    log_mesg(0, 1, 1, debug, "clone seek error %lli errno=%i\n", (long long)offset, (int)errno);
 	    
 	    }
 	    log_mesg(0, 0, 0, debug, "end\n");

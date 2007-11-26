@@ -6,6 +6,10 @@ AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
 AC_PROG_CC
 
+# Enable large file support.
+AC_SYS_LARGEFILE
+
+
 supported_fs="ext2/3"
 ##ext2/3##
 dnl Check for EXT2/3
