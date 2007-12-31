@@ -33,3 +33,7 @@ clone_xfs_CFLAGS=-DXFS
 clone_xfs_LDFLAGS=-lrt
 clone_xfs_LDADD=-lxfs
 endif
+
+if ENABLE_STATIC
+LDFLAGS+=-static
+endif

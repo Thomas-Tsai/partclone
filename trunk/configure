@@ -724,6 +724,8 @@ ENABLE_REISER4_TRUE
 ENABLE_REISER4_FALSE
 ENABLE_HFSP_TRUE
 ENABLE_HFSP_FALSE
+ENABLE_STATIC_TRUE
+ENABLE_STATIC_FALSE
 LIBOBJS
 LTLIBOBJS'
 ac_subst_files=''
@@ -1324,6 +1326,7 @@ Optional Features:
   --enable-reiserfs       enable REISERFS 3.6/3.6 file system
   --enable-reiser4        enable Reiser4 file system
   --enable-hfsp           enable HFS plus file system
+  --enable-static         enable static linking
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -8266,6 +8269,21 @@ if test "$enable_hfsp" = yes; then
 supported_fs=$supported_fs" hfs-plus"
 fi
 
+##static linking##
+# Check whether --enable-test was given.
+if test "${enable_test+set}" = set; then
+  enableval=$enable_test; enable_static=yes
+fi
+
+ if test "$enable_static" = yes; then
+  ENABLE_STATIC_TRUE=
+  ENABLE_STATIC_FALSE='#'
+else
+  ENABLE_STATIC_TRUE='#'
+  ENABLE_STATIC_FALSE=
+fi
+
+
 ac_config_headers="$ac_config_headers config.h"
 
 ac_config_files="$ac_config_files Makefile src/Makefile po/Makefile.in docs/Makefile docs/clone.extfs.8 docs/clone.hfsp.8 docs/clone.reiserfs.8 docs/clone.reiser4.8 docs/clone.xfs.8"
@@ -8412,6 +8430,13 @@ if test -z "${ENABLE_HFSP_TRUE}" && test -z "${ENABLE_HFSP_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"ENABLE_HFSP\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"ENABLE_HFSP\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${ENABLE_STATIC_TRUE}" && test -z "${ENABLE_STATIC_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"ENABLE_STATIC\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"ENABLE_STATIC\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -9113,11 +9138,13 @@ ENABLE_REISER4_TRUE!$ENABLE_REISER4_TRUE$ac_delim
 ENABLE_REISER4_FALSE!$ENABLE_REISER4_FALSE$ac_delim
 ENABLE_HFSP_TRUE!$ENABLE_HFSP_TRUE$ac_delim
 ENABLE_HFSP_FALSE!$ENABLE_HFSP_FALSE$ac_delim
+ENABLE_STATIC_TRUE!$ENABLE_STATIC_TRUE$ac_delim
+ENABLE_STATIC_FALSE!$ENABLE_STATIC_FALSE$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 14; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 16; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

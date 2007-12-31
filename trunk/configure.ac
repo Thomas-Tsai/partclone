@@ -103,6 +103,13 @@ if test "$enable_hfsp" = yes; then
 supported_fs=$supported_fs" hfs-plus"
 fi
 
+##static linking##
+AC_ARG_ENABLE(test,
+	AS_HELP_STRING(--enable-static,enable static linking), 
+	enable_static=yes,
+)
+AM_CONDITIONAL(ENABLE_STATIC, test "$enable_static" = yes)
+
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 	Makefile
