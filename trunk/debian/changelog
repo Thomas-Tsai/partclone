@@ -1,8 +1,14 @@
+partclone (0.0.4-2) unstable; urgency=low
+
+  * Updated config by Jazz Wang so that static linking now it's better. No
+    finished.
+  * Help messages updated.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun, 1 Jan 2008 11:20:00 +0800
+
 partclone (0.0.4-1) unstable; urgency=low
 
   * Initial release.
   * modify rules
-  * 
 
  -- Yu-Chin Tsai <thomas@thomas-laptop.drbl.sf.net>  Thu, 13 Dec 2007 10:48:03 +0800
-
