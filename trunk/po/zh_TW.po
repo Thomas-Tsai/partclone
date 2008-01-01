@@ -18,12 +18,12 @@ msgstr ""
 #: src/progress.c:42
 #, c-format
 msgid "%6.2f percent completed"
-msgstr "%6.2f 已經完成"
+msgstr "%6.2f %已經完成"
 
 #: src/progress.c:45
 #, c-format
 msgid "100.00 percent completed\n"
-msgstr "100.00 已經完成！\n"
+msgstr "100.00 %已經完成！\n"
 
 #: src/partclone.c:289
 #, c-format
