@@ -1,7 +1,12 @@
+partclone (0.0.4-3) unstable; urgency=low
+
+  * A Bug about restoring image from stdin was fixed by Jazz Wang.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun, 1 Jan 2008 20:20:00 +0800
+
 partclone (0.0.4-2) unstable; urgency=low
 
-  * Updated config by Jazz Wang so that static linking now it's better. No
-    finished.
+  * Updated config by Jazz Wang so that static linking now it's better. Not finished.
   * Help messages updated.
 
  -- Steven Shiau <steven@nchc.org.tw>  Sun, 1 Jan 2008 11:20:00 +0800
