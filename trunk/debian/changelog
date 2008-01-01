@@ -1,6 +1,7 @@
 partclone (0.0.4-3) unstable; urgency=low
 
   * A Bug about restoring image from stdin was fixed by Jazz Wang.
+  * zh_TW.po was updated.
 
  -- Steven Shiau <steven@nchc.org.tw>  Sun, 1 Jan 2008 20:20:00 +0800
 
