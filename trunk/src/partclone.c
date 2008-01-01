@@ -48,9 +48,9 @@ extern void usage(void)
         "\n"
         "    -o, --output FILE      Output FILE\n"
 	"    -s, --source FILE      Source FILE\n"
-        "    -c, --clone            Back used block to the special image format\n"
+        "    -c, --clone            Save to the special image format\n"
         "    -r, --restore          Restore from the special image format\n"
-	"    -b, --dd-mode          Back device to device\n"
+	"    -b, --dd-mode          Save to sector-to-sector format\n"
         "    -d, --debug            Show debug information\n"
         "    -h, --help             Display this help\n"
     , EXECNAME);
