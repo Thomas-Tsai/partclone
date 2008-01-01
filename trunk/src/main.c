@@ -23,7 +23,6 @@
 #include <malloc.h>
 #include <stdarg.h>
 #include <string.h>
-#include <errno.h>
 
 
 /**
@@ -64,6 +63,7 @@ int main(int argc, char **argv){
     char*		buffer;			/// buffer data for malloc used
     int			dfr, dfw;		/// file descriptor for source and target
     int			r_size, w_size;		/// read and write size
+    int			r_count, w_count;	/// read and write count for syncronization
     unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
 						/// copied is copied block count
     off_t		offset = 0, sf = 0;	/// seek postition, lseek result
@@ -298,11 +298,23 @@ int main(int argc, char **argv){
             //    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
 	    buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
 
-	    /// read block from image file to buffer
-	    r_size = read (dfr, buffer, image_hdr.block_size);
-	    log_mesg(0, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
-	    if (r_size != (int)image_hdr.block_size)
-		log_mesg(0, 1, 1, debug, "read error %i \n", r_size);
+	    r_count = image_hdr.block_size;
+
+	    while (r_count > 0) {
+	    	/// read block from image file to buffer
+	    	r_size = read (dfr, buffer, r_count);
+	    	log_mesg(0, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
+	    	if (r_size <0) {
+	    	    if (errno != EAGAIN && errno != EINTR) {
+	    	    	log_mesg(0, 1, 1, debug, "read errno = %i \n", errno);
+		    }
+		} else {
+		    r_count -= r_size;
+		    buffer   = r_size + (char *) buffer;
+		}
+	    }
+
+	    buffer = - image_hdr.block_size + (char *) buffer;
 
 	    /// write block from buffer to partition
 	    w_size = write (dfw, buffer, image_hdr.block_size);
@@ -317,8 +329,8 @@ int main(int argc, char **argv){
 	    total_write += (unsigned long long) w_size;	/// count copied size
 
 	    /// read or write error
-	    if ((r_size != w_size) || (r_size != image_hdr.block_size))
-		log_mesg(0, 1, 1, debug, "read and write different\n");
+	    //if ((r_size != w_size) || (r_size != image_hdr.block_size))
+	    //	log_mesg(0, 1, 1, debug, "read and write different\n");
        	} else {
 	    /// if the block is not used, I just skip it.
 	    sf = lseek(dfw, image_hdr.block_size, SEEK_CUR);

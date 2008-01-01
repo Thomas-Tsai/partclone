@@ -19,9 +19,14 @@
 #include <malloc.h>
 #include <stdarg.h>
 #include <getopt.h>
+#include <errno.h>
 
 #define IMAGE_MAGIC "partclone-image"
 #define IMAGE_MAGIC_SIZE 15
+
+// Reference: ntfsclone.c
+#define read_all(f, p, n)  io_all((f), (p), (n), 0)
+#define write_all(f, p, n) io_all((f), (p), (n), 1)
 
 char *EXECNAME;
 

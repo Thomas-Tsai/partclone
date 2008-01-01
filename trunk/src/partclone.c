@@ -186,20 +186,32 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
 
 extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* bitmap){
     int r_size;
+    int r_count, size;
     int offset = 0;
-    char* buffer;
+    char* buffer, p;
     int i, n_used;
     unsigned long long block_id;
     unsigned long bused = 0, bfree = 0;
     int debug = opt.debug;
 
     buffer = (char*)malloc(sizeof(char)*image_hdr.totalblock);
-    r_size = read(*ret, buffer, sizeof(char)*(image_hdr.totalblock));
+    size = r_count = sizeof(char)*(image_hdr.totalblock);
+    while(r_count > 0) {
+    	r_size = read(*ret, buffer, r_count);
+    	if (r_size < 0) {
+    	    if (errno != EAGAIN && errno != EINTR) {
+    	    	log_mesg(0, 1, 1, debug, "get_image_bitmap: errno = %i\n", errno);
+	    }
+	} else {
+	    r_count -= r_size;
+	    buffer = r_size + (char *) buffer;
+	    log_mesg(0, 0, 0, debug, "get_image_bitmap: read %li, %li left.\n", r_size, r_count);
+	}
+    }
+    buffer = - size + (char *) buffer;
     memcpy(bitmap, buffer, sizeof(char)*(image_hdr.totalblock));
     free(buffer);
 
-    if (r_size == -1)
-        log_mesg(0, 1, 1, debug, "read image_bitmap error(%i)\n", image_hdr.totalblock);
     for (block_id = 0; block_id < image_hdr.totalblock; block_id++){
         if(bitmap[block_id] == 1){
 	    //printf("u = %i\n",block_id);
