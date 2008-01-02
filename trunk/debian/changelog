@@ -1,3 +1,12 @@
+partclone (0.0.4-3ubuntu1) feisty; urgency=low
+
+  * add support of static linking to configure.ac and src/Makefile.am
+  * [BUGFIX #1] fixed static linking time error while enabling XFS file system
+    support.
+  * modified debian packaginf control and rules to fix some mistakes.
+
+ -- Jazz Yao-Tsung Wang <jazz@nchc.org.tw>  Wed,  2 Jan 2008 21:23:52 +0800
+
 partclone (0.0.4-3) unstable; urgency=low
 
   * A Bug about restoring image from stdin was fixed by Jazz Wang.

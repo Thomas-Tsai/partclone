@@ -252,8 +252,8 @@ clone_extfs_LDFLAGS = -lext2fs
 @ENABLE_HFSP_TRUE@clone_hfsp_CFLAGS = -DHFSPLUS
 @ENABLE_XFS_TRUE@clone_xfs_SOURCES = main.c partclone.c progress.c xfsclone.c xfsclone.h partclone.h progress.h gettext.h
 @ENABLE_XFS_TRUE@clone_xfs_CFLAGS = -DXFS
-@ENABLE_XFS_TRUE@clone_xfs_LDFLAGS = -lrt
-@ENABLE_XFS_TRUE@clone_xfs_LDADD = -lxfs
+@ENABLE_XFS_TRUE@clone_xfs_LDFLAGS = 
+@ENABLE_XFS_TRUE@clone_xfs_LDADD = -lxfs -lrt -lpthread
 all: all-am
 
 .SUFFIXES:
