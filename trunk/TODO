@@ -2,3 +2,4 @@
 2. check target partition size
 3. [bug #1] some errors after `configure --enable-static --enable-xfs ; make`
 4. add CRC checksum to partclone
+5. check I/O syncronization while using pipe and stdin
