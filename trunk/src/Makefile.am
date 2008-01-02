@@ -30,8 +30,8 @@ if ENABLE_XFS
 sbin_PROGRAMS += clone.xfs
 clone_xfs_SOURCES=main.c partclone.c progress.c xfsclone.c xfsclone.h partclone.h progress.h gettext.h
 clone_xfs_CFLAGS=-DXFS
-clone_xfs_LDFLAGS=-lrt
-clone_xfs_LDADD=-lxfs
+clone_xfs_LDFLAGS=
+clone_xfs_LDADD=-lxfs -lrt -lpthread
 endif
 
 if ENABLE_STATIC
