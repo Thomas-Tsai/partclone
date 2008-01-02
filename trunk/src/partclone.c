@@ -19,6 +19,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/ioctl.h>
+#include <sys/mount.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -183,6 +185,19 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
         log_mesg(0, 1, 1, debug, "read image_hdr error\n");
     memcpy(image_hdr, buffer, sizeof(image_head));
     free(buffer);
+}
+
+extern void check_size(int* ret, unsigned long long size){
+
+    unsigned long long dest_size;
+    long dest_block;
+    int debug = 1;
+
+    if (ioctl(*ret, BLKGETSIZE, &dest_block) >= 0)
+	dest_size = (unsigned long long)(512*dest_block);
+
+    if (dest_size < size)
+	log_mesg(0, 1, 1, debug, "The dest partition size is small than original partition.(%lli<%lli)\n", dest_size, size);
 }
 
 extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* bitmap){

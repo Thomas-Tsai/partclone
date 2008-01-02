@@ -157,6 +157,9 @@ int main(int argc, char **argv){
 	/// read and check bitmap from image file
 	get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
+	/// check the dest partition size.
+	check_size(&dfw, image_hdr.device_size);
+
 	log_mesg(0, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
     }
 

@@ -98,6 +98,9 @@ extern void get_image_hdr(int* ret, cmd_opt opt, image_head image_hdr, char* bit
 extern int open_source(char* source, cmd_opt* opt);
 extern int open_target(char* target, cmd_opt* opt);
 
+/// check partition size
+extern void check_size(int* ret, unsigned long long size);
+
 /// print image_head
 extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt);
 
