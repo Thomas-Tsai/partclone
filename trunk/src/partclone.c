@@ -279,6 +279,7 @@ extern int io_all(int *fd, char *buf, int count, int do_write)
 {
     int i;
     int debug = 1;
+    int size = count;
 
     // for sync I/O buffer, when use stdin or pipe.
     while (count > 0) {
@@ -298,7 +299,7 @@ extern int io_all(int *fd, char *buf, int count, int do_write)
 	    log_mesg(0, 0, 0, debug, "get_image_bitmap: read %li, %li left.\n", i, count);
         }
     }
-    return 0;
+    return size;
 }
 
 
