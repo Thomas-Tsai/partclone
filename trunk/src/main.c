@@ -43,14 +43,19 @@
  */
 #ifdef EXTFS
     #include "extfsclone.h"
+    #define FS "EXTFS"
 #elif REISERFS
     #include "reiserfsclone.h"
+    #define FS "REISERFS"
 #elif REISER4
     #include "reiser4clone.h"
+    #define FS "REISER4"
 #elif XFS
     #include "xfsclone.h"
+    #define FS "XFS"
 #elif HFSPLUS
     #include "hfsplusclone.h"
+    #define FS "HFSPLUS"
 #endif
 
 /**
@@ -150,8 +155,14 @@ int main(int argc, char **argv){
 
 	/// alloc a memory to restore bitmap
 	bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+
+	/// check the image magic
 	if (memcmp(image_hdr.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE) != 0)
 	    log_mesg(0, 1, 1, debug, "The image file magic error.\n");
+
+	/// check the file system
+	if (memcmp(image_hdr.fs, FS, FS_MAGIC_SIZE) != 0)
+	    log_mesg(0, 1, 1, debug, "The image file system error.\n");
 
 	log_mesg(0, 0, 0, debug, "initial main bitmap pointer %lli\n", bitmap);
 	log_mesg(0, 0, 0, debug, "Initial image hdr: read bitmap table\n");

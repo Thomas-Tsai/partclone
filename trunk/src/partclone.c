@@ -248,7 +248,7 @@ extern int open_source(char* source, cmd_opt* opt){
 	int debug = opt->debug;
 
     if(opt->clone){
-        ret = open(source, O_RDONLY | O_LARGEFILE);
+        ret = open(source, O_RDONLY | O_LARGEFILE, S_IRUSR);
 		if (ret == -1)
 			log_mesg(0, 1, 1, debug, "clone: open %s error\n", source);
     } else if(opt->restore) {
@@ -339,6 +339,7 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
 //		log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
 //	else
 //		log_mesg(0, 0, 1, debug, "unknow mode\n");
+	log_mesg(0, 0, 1, debug, _("The filesystem is %s\n"), image_hdr.fs);
 	log_mesg(0, 0, 1, debug, _("The device size is %lli MB\n"), print_size((total*block_s), MBYTE));
 	log_mesg(0, 0, 1, debug, _("The used size is %lli MB\n"), print_size((used*block_s), MBYTE));
 	log_mesg(0, 0, 1, debug, _("The block size is %i Byte\n"), block_s);

@@ -111,6 +111,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     reiser4_alloc_extract(fs->alloc, fs_bitmap);
     free_blocks = reiser4_format_get_free(fs->format);
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
+    memcpy(image_hdr->fs, reiser4_MAGIC, FS_MAGIC_SIZE);
     image_hdr->block_size = get_ms_blksize(SUPER(fs->master));
     image_hdr->totalblock = reiser4_format_get_len(fs->format);
     image_hdr->usedblocks = reiser4_format_get_len(fs->format) - free_blocks;

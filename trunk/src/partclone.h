@@ -23,6 +23,12 @@
 
 #define IMAGE_MAGIC "partclone-image"
 #define IMAGE_MAGIC_SIZE 15
+#define FS_MAGIC_SIZE 15
+#define reiserfs_MAGIC "REISERFS"
+#define reiser4_MAGIC "REISER4"
+#define xfs_MAGIC "XFS"
+#define extfs_MAGIC "EXTFS"
+#define hfsplus_MAGIC "HFSPLUS"
 
 // Reference: ntfsclone.c
 #define MBYTE (1000 * 1000)
@@ -74,10 +80,12 @@ extern int io_all(int *fd, char *buffer, int count, int do_write, cmd_opt* opt);
 struct image_head 
 {
     char magic[IMAGE_MAGIC_SIZE];
+    char fs[FS_MAGIC_SIZE];
     int block_size;
     unsigned long long device_size;
     unsigned long long totalblock;
     unsigned long long usedblocks;
+    char buff[4096];
 };
 typedef struct image_head image_head;
 

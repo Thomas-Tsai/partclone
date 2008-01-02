@@ -148,6 +148,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 {
 
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
+    memcpy(image_hdr->fs, extfs_MAGIC, FS_MAGIC_SIZE);
     fs_open(device);
     image_hdr->block_size = block_size();
     image_hdr->device_size = device_size(device);

@@ -93,6 +93,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 {
     fs_open(device);
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
+    memcpy(image_hdr->fs, reiserfs_MAGIC, FS_MAGIC_SIZE);
     image_hdr->block_size = (int)fs->super->s_v1.sb_block_size;
     image_hdr->totalblock = (int)fs->super->s_v1.sb_block_count;
     image_hdr->usedblocks = fs->super->s_v1.sb_block_count - fs->super->s_v1.sb_free_blocks;
