@@ -180,7 +180,7 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
 
     buffer = (char*)malloc(sizeof(image_head));
     //r_size = read(*ret, buffer, sizeof(image_head));
-    r_size = read_all(ret, buffer, sizeof(image_head));
+    r_size = read_all(ret, buffer, sizeof(image_head), opt);
     if (r_size == -1)
         log_mesg(0, 1, 1, debug, "read image_hdr error\n");
     memcpy(image_hdr, buffer, sizeof(image_head));
@@ -211,7 +211,7 @@ extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* 
     size = sizeof(char)*image_hdr.totalblock;
     buffer = (char*)malloc(size);
    
-    r_size = read_all(ret, buffer, size);
+    r_size = read_all(ret, buffer, size, &opt);
     memcpy(bitmap, buffer, size);
 
     free(buffer);
@@ -290,10 +290,10 @@ extern int open_target(char* target, cmd_opt* opt){
 }
 
 /// the io function, reference from ntfsprogs(ntfsclone).
-extern int io_all(int *fd, char *buf, int count, int do_write)
+extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
 {
     int i;
-    int debug = 1;
+    int debug = opt->debug;
     int size = count;
 
     // for sync I/O buffer, when use stdin or pipe.
@@ -337,8 +337,8 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
 		log_mesg(0, 0, 1, debug, _("Starting restore image(%s) to device(%s)\n"), opt.source, opt.target);
 //	else if(opt.dd)
 //		log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
-	else
-		log_mesg(0, 0, 1, debug, "unknow mode\n");
+//	else
+//		log_mesg(0, 0, 1, debug, "unknow mode\n");
 	log_mesg(0, 0, 1, debug, _("The device size is %lli MB\n"), print_size((total*block_s), MBYTE));
 	log_mesg(0, 0, 1, debug, _("The used size is %lli MB\n"), print_size((used*block_s), MBYTE));
 	log_mesg(0, 0, 1, debug, _("The block size is %i Byte\n"), block_s);

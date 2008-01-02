@@ -1,10 +1,12 @@
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\"
 LDADD = $(LIBINTL)
-sbin_PROGRAMS=clone.extfs
+sbin_PROGRAMS=clone.extfs clone.info
 
 clone_extfs_SOURCES=main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
 clone_extfs_CFLAGS=-DEXTFS
 clone_extfs_LDFLAGS=-lext2fs
+
+clone_info_SOURCES=infoclone.c partclone.c partclone.h
 
 if ENABLE_REISERFS
 sbin_PROGRAMS += clone.reiserfs

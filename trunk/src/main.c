@@ -133,12 +133,12 @@ int main(int argc, char **argv){
 	*/
 
 	// write image_head to image file
-	w_size = write_all(&dfw, (char *)&image_hdr, sizeof(image_head));
+	w_size = write_all(&dfw, (char *)&image_hdr, sizeof(image_head), &opt);
 	if(w_size == -1)
 	   log_mesg(0, 1, 1, debug, "write image_hdr to image error\n");
 
 	// write bitmap information to image file
-    	w_size = write_all(&dfw, bitmap, sizeof(char)*image_hdr.totalblock);
+    	w_size = write_all(&dfw, bitmap, sizeof(char)*image_hdr.totalblock, &opt);
 	if(w_size == -1)
 	    log_mesg(0, 1, 1, debug, "write bitmap to image error\n");
 
@@ -150,6 +150,8 @@ int main(int argc, char **argv){
 
 	/// alloc a memory to restore bitmap
 	bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+	if (memcmp(image_hdr.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE) != 0)
+	    log_mesg(0, 1, 1, debug, "The image file magic error.\n");
 
 	log_mesg(0, 0, 0, debug, "initial main bitmap pointer %lli\n", bitmap);
 	log_mesg(0, 0, 0, debug, "Initial image hdr: read bitmap table\n");
@@ -184,7 +186,7 @@ int main(int argc, char **argv){
      */
     if (opt.clone) {
 
-	w_size = write_all(&dfw, bitmagic, 8); /// write a magic string
+	w_size = write_all(&dfw, bitmagic, 8, &opt); /// write a magic string
 
 	/*
 	/// log the offset
@@ -224,13 +226,13 @@ int main(int argc, char **argv){
         	buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
         	
 		/// read data from source to buffer
-		r_size = read_all(&dfr, buffer, image_hdr.block_size);
+		r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
 		log_mesg(0, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
 		if (r_size != (int)image_hdr.block_size)
 		    log_mesg(0, 1, 1, debug, "read error %i \n", r_size);
         	
 		/// write buffer to target
-		w_size = write_all(&dfw, buffer, image_hdr.block_size);
+		w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
 		log_mesg(0, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
 		if (w_size != (int)image_hdr.block_size)
 		    log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
@@ -262,7 +264,7 @@ int main(int argc, char **argv){
 	 * read magic string from image file
 	 * and check it.
 	 */
-	r_size = read_all(&dfr, bitmagic_r, 8); /// read a magic string
+	r_size = read_all(&dfr, bitmagic_r, 8, &opt); /// read a magic string
         cmp = memcmp(bitmagic, bitmagic_r, 8);
         if(cmp != 0)
 	    log_mesg(0, 1, 1, debug, "bitmagic error %i\n", cmp);
@@ -299,13 +301,13 @@ int main(int argc, char **argv){
             //if (sf == (off_t)-1)
             //    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
 	    buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
-	    r_size = read_all(&dfr, buffer, image_hdr.block_size);
+	    r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
 	    log_mesg(0, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
 	    if (r_size <0)
 		log_mesg(0, 1, 1, debug, "read errno = %i \n", errno);
 
 	    /// write block from buffer to partition
-	    w_size = write_all(&dfw, buffer, image_hdr.block_size);
+	    w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
 	    log_mesg(0, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
 	    if (w_size != (int)image_hdr.block_size)
 		log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
