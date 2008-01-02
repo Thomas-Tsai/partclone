@@ -177,7 +177,8 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
     int debug = opt->debug;
 
     buffer = (char*)malloc(sizeof(image_head));
-    r_size = read(*ret, buffer, sizeof(image_head));
+    //r_size = read(*ret, buffer, sizeof(image_head));
+    r_size = read_all(ret, buffer, sizeof(image_head));
     if (r_size == -1)
         log_mesg(0, 1, 1, debug, "read image_hdr error\n");
     memcpy(image_hdr, buffer, sizeof(image_head));
@@ -185,31 +186,19 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
 }
 
 extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* bitmap){
-    int r_size;
-    int r_count, size;
-    int offset = 0;
-    char* buffer, p;
-    int i, n_used;
+    int size, r_size;
+    int do_write = 0;
+    char* buffer;
     unsigned long long block_id;
     unsigned long bused = 0, bfree = 0;
     int debug = opt.debug;
 
-    buffer = (char*)malloc(sizeof(char)*image_hdr.totalblock);
-    size = r_count = sizeof(char)*(image_hdr.totalblock);
-    while(r_count > 0) {
-    	r_size = read(*ret, buffer, r_count);
-    	if (r_size < 0) {
-    	    if (errno != EAGAIN && errno != EINTR) {
-    	    	log_mesg(0, 1, 1, debug, "get_image_bitmap: errno = %i\n", errno);
-	    }
-	} else {
-	    r_count -= r_size;
-	    buffer = r_size + (char *) buffer;
-	    log_mesg(0, 0, 0, debug, "get_image_bitmap: read %li, %li left.\n", r_size, r_count);
-	}
-    }
-    buffer = - size + (char *) buffer;
-    memcpy(bitmap, buffer, sizeof(char)*(image_hdr.totalblock));
+    size = sizeof(char)*image_hdr.totalblock;
+    buffer = (char*)malloc(size);
+   
+    r_size = read_all(ret, buffer, size);
+    memcpy(bitmap, buffer, size);
+
     free(buffer);
 
     for (block_id = 0; block_id < image_hdr.totalblock; block_id++){
@@ -264,7 +253,7 @@ extern int open_source(char* source, cmd_opt* opt){
 
 extern int open_target(char* target, cmd_opt* opt){
     int ret;
-	int debug = opt->debug;
+    int debug = opt->debug;
 
     if (opt->clone){
     	if (strcmp(target, "-") == 0){ 
@@ -284,6 +273,34 @@ extern int open_target(char* target, cmd_opt* opt){
 
     return ret;
 }
+
+/// the io function, reference from ntfsprogs(ntfsclone).
+extern int io_all(int *fd, char *buf, int count, int do_write)
+{
+    int i;
+    int debug = 1;
+
+    // for sync I/O buffer, when use stdin or pipe.
+    while (count > 0) {
+	if (do_write)
+            i = write(*fd, buf, count);
+        else
+	    i = read(*fd, buf, count);
+
+	if (i < 0) {
+	    if (errno != EAGAIN && errno != EINTR){
+		log_mesg(0, 1, 1, debug, "get_image_bitmap: errno = %i\n", errno);
+                return -1;
+	    }
+        } else {
+	    count -= i;
+	    buf = i + (char *) buf;
+	    log_mesg(0, 0, 0, debug, "get_image_bitmap: read %li, %li left.\n", i, count);
+        }
+    }
+    return 0;
+}
+
 
 /// print image head
 extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){

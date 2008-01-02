@@ -25,11 +25,13 @@
 #define IMAGE_MAGIC_SIZE 15
 
 // Reference: ntfsclone.c
-#define read_all(f, p, n)  io_all((f), (p), (n), 0)
-#define write_all(f, p, n) io_all((f), (p), (n), 1)
-
 #define MBYTE (1000 * 1000)
 #define print_size(a, b) (((a) + (b - 1)) / (b))
+
+// define read and write
+#define read_all(f, b, s) io_all((f), (b), (s), 0)
+#define write_all(f, b, s) io_all((f), (b), (s), 1)
+
 
 char *EXECNAME;
 
@@ -62,7 +64,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt);
 extern void open_log();
 extern void log_mesg(int lerrno, int lexit, int only_debug, int debug, const char *fmt, ...);
 extern void close_log();
-
+extern int io_all(int *fd, char *buffer, int count, int do_write);
 
 /**
  * for restore used functions

@@ -63,7 +63,6 @@ int main(int argc, char **argv){
     char*		buffer;			/// buffer data for malloc used
     int			dfr, dfw;		/// file descriptor for source and target
     int			r_size, w_size;		/// read and write size
-    int			r_count, w_count;	/// read and write count for syncronization
     unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
 						/// copied is copied block count
     off_t		offset = 0, sf = 0;	/// seek postition, lseek result
@@ -134,12 +133,12 @@ int main(int argc, char **argv){
 	*/
 
 	// write image_head to image file
-	w_size = write (dfw, &image_hdr, sizeof(image_head));
+	w_size = write_all(&dfw, (char *)&image_hdr, sizeof(image_head));
 	if(w_size == -1)
 	   log_mesg(0, 1, 1, debug, "write image_hdr to image error\n");
 
 	// write bitmap information to image file
-    	w_size = write (dfw, bitmap, sizeof(char)*image_hdr.totalblock);
+    	w_size = write_all(&dfw, bitmap, sizeof(char)*image_hdr.totalblock);
 	if(w_size == -1)
 	    log_mesg(0, 1, 1, debug, "write bitmap to image error\n");
 
@@ -182,7 +181,7 @@ int main(int argc, char **argv){
      */
     if (opt.clone) {
 
-	w_size = write (dfw, bitmagic, 8); /// write a magic string
+	w_size = write_all(&dfw, bitmagic, 8); /// write a magic string
 
 	/*
 	/// log the offset
@@ -222,13 +221,13 @@ int main(int argc, char **argv){
         	buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
         	
 		/// read data from source to buffer
-		r_size = read (dfr, buffer, image_hdr.block_size);
+		r_size = read_all(&dfr, buffer, image_hdr.block_size);
 		log_mesg(0, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
 		if (r_size != (int)image_hdr.block_size)
 		    log_mesg(0, 1, 1, debug, "read error %i \n", r_size);
         	
 		/// write buffer to target
-		w_size = write (dfw, buffer, image_hdr.block_size);
+		w_size = write_all(&dfw, buffer, image_hdr.block_size);
 		log_mesg(0, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
 		if (w_size != (int)image_hdr.block_size)
 		    log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
@@ -260,7 +259,7 @@ int main(int argc, char **argv){
 	 * read magic string from image file
 	 * and check it.
 	 */
-	r_size = read (dfr, bitmagic_r, 8); /// read a magic string
+	r_size = read_all(&dfr, bitmagic_r, 8); /// read a magic string
         cmp = memcmp(bitmagic, bitmagic_r, 8);
         if(cmp != 0)
 	    log_mesg(0, 1, 1, debug, "bitmagic error %i\n", cmp);
@@ -297,27 +296,13 @@ int main(int argc, char **argv){
             //if (sf == (off_t)-1)
             //    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
 	    buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
-
-	    r_count = image_hdr.block_size;
-
-	    while (r_count > 0) {
-	    	/// read block from image file to buffer
-	    	r_size = read (dfr, buffer, r_count);
-	    	log_mesg(0, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
-	    	if (r_size <0) {
-	    	    if (errno != EAGAIN && errno != EINTR) {
-	    	    	log_mesg(0, 1, 1, debug, "read errno = %i \n", errno);
-		    }
-		} else {
-		    r_count -= r_size;
-		    buffer   = r_size + (char *) buffer;
-		}
-	    }
-
-	    buffer = - image_hdr.block_size + (char *) buffer;
+	    r_size = read_all(&dfr, buffer, image_hdr.block_size);
+	    log_mesg(0, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
+	    if (r_size <0)
+		log_mesg(0, 1, 1, debug, "read errno = %i \n", errno);
 
 	    /// write block from buffer to partition
-	    w_size = write (dfw, buffer, image_hdr.block_size);
+	    w_size = write_all(&dfw, buffer, image_hdr.block_size);
 	    log_mesg(0, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
 	    if (w_size != (int)image_hdr.block_size)
 		log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
