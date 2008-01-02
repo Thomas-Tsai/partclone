@@ -1,1 +1,0 @@
-shlibs:Depends=e2fslibs, libc6 (>= 2.6-1), libreiserfs0.3-0 (>= 0.3.0), libuuid1
