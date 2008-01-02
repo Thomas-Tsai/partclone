@@ -1,2 +1,3 @@
 1. add suport to transform partclone image to raw image (like dd image)
 2. check target partition size
+3. [bug #1] some errors after `configure --enable-static --enable-xfs ; make`
