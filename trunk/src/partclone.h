@@ -28,6 +28,9 @@
 #define read_all(f, p, n)  io_all((f), (p), (n), 0)
 #define write_all(f, p, n) io_all((f), (p), (n), 1)
 
+#define MBYTE (1000 * 1000)
+#define print_size(a, b) (((a) + (b - 1)) / (b))
+
 char *EXECNAME;
 
 /**

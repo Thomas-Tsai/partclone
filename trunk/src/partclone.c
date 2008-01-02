@@ -306,9 +306,9 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
 //		log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
 	else
 		log_mesg(0, 0, 1, debug, "unknow mode\n");
-	log_mesg(0, 0, 1, debug, _("The device size is %lli\n"), (total*block_s));
-	log_mesg(0, 0, 1, debug, _("The used size is %lli\n"), (used*block_s));
-	log_mesg(0, 0, 1, debug, _("The block size is %i\n"), block_s);
+	log_mesg(0, 0, 1, debug, _("The device size is %lli MB\n"), print_size((total*block_s), MBYTE));
+	log_mesg(0, 0, 1, debug, _("The used size is %lli MB\n"), print_size((used*block_s), MBYTE));
+	log_mesg(0, 0, 1, debug, _("The block size is %i Byte\n"), block_s);
 	log_mesg(0, 0, 1, debug, _("The used block count is %lli\n"), used);
 }
 
