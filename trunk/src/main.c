@@ -123,6 +123,8 @@ int main(int argc, char **argv){
 	/// get Super Block information from partition
         initial_image_hdr(source, &image_hdr);
 
+	memcpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
+
 	/// alloc a memory to restore bitmap
 	bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
 	

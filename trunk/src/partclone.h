@@ -29,6 +29,8 @@
 #define xfs_MAGIC "XFS"
 #define extfs_MAGIC "EXTFS"
 #define hfsplus_MAGIC "HFSPLUS"
+#define IMAGE_VERSION "0001"
+#define VERSION_SIZE 4
 
 // Reference: ntfsclone.c
 #define MBYTE (1000 * 1000)
@@ -81,6 +83,7 @@ struct image_head
 {
     char magic[IMAGE_MAGIC_SIZE];
     char fs[FS_MAGIC_SIZE];
+    char version[VERSION_SIZE];
     int block_size;
     unsigned long long device_size;
     unsigned long long totalblock;
