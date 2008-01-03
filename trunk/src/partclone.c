@@ -45,7 +45,7 @@ FILE* msg = NULL;
  */
 extern void usage(void)
 {
-    fprintf(stderr, "\nUsage: %s [OPTIONS]\n"
+    fprintf(stderr, "\nUsage: %s v%s [OPTIONS]\n"
         "    Efficiently clone to a image, device or standard output.\n"
         "\n"
         "    -o, --output FILE      Output FILE\n"
@@ -55,7 +55,7 @@ extern void usage(void)
 	"    -b, --dd-mode          Save to sector-to-sector format\n"
         "    -d, --debug            Show debug information\n"
         "    -h, --help             Display this help\n"
-    , EXECNAME);
+    , EXECNAME, VERSION);
     exit(0);
 }
 
