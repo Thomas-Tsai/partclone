@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2008-01-03 01:53+0800\n"
+"POT-Creation-Date: 2008-01-03 11:54+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,25 +38,25 @@ msgstr ""
 
 #: src/partclone.c:342
 #, c-format
-msgid "The filesystem is %s\n"
+msgid "File system: %s\n"
 msgstr ""
 
 #: src/partclone.c:343
 #, c-format
-msgid "The device size is %lli MB\n"
+msgid "Device size: %lli MB\n"
 msgstr ""
 
 #: src/partclone.c:344
 #, c-format
-msgid "The used size is %lli MB\n"
+msgid "Space in use: %lli MB\n"
 msgstr ""
 
 #: src/partclone.c:345
 #, c-format
-msgid "The block size is %i Byte\n"
+msgid "Block size: %i Byte\n"
 msgstr ""
 
 #: src/partclone.c:346
 #, c-format
-msgid "The used block count is %lli\n"
+msgid "Used block count: %lli\n"
 msgstr ""
