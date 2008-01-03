@@ -88,8 +88,6 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
                     usage();
                     break;
             case 'o':
-                    if (opt->target)
-                            usage();
                     opt->target = optarg;
                     break;
             case 'r':
@@ -119,6 +117,14 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     if (opt->source == NULL) {
         fprintf(stderr, "You use specify input file like stdin. or --help get more info.\n");
 	opt->source = "-";
+    }
+
+    if ((opt->clone) && (strcmp(opt->source, "-") == 0)){
+	fprintf(stderr, "You can't clone from stdin.\n");
+	usage();
+    } else if ((opt->restore) && (strcmp(opt->target, "-") == 0)){
+	fprintf(stderr, "You can't restore to stdout.\n");
+	usage();
     }
 
 }
