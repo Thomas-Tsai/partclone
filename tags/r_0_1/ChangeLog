@@ -1,6 +1,0 @@
-2007-11-01  gettextize  <bug-gnu-gettext@gnu.org>
-
-	* Makefile.am (SUBDIRS): Add po.
-	(EXTRA_DIST): Add m4/ChangeLog.
-	* configure.ac (AC_CONFIG_FILES): Add po/Makefile.in.
-
