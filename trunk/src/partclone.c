@@ -314,6 +314,46 @@ extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
     }
     return size;
 }
+ 
+/// the crc32 function, reference from libcrc. 
+/// Author is Lammert Bies  1999-2007
+/// Mail: info@lammertbies.nl
+/// http://www.lammertbies.nl/comm/info/nl_crc-calculation.html 
+/// generate crc32 code
+extern unsigned long crc32(unsigned long crc, char *buf, int size){
+    
+    unsigned long crc_tab32[256];
+    unsigned long init_crc, init_p;
+    unsigned long tmp, long_c;
+    int i, j, init = 0, s = 0 ;
+    char c;
+    init_p = 0xEDB88320L;
+
+    do{
+	memcpy(&c, buf, sizeof(char));
+	s = s + sizeof(char);
+        /// initial crc table
+	if (init == 0){
+	    for (i=0; i<256; i++) {
+		init_crc = (unsigned long) i;
+		for (j=0; j<8; j++) {
+		    if ( init_crc & 0x00000001L ) init_crc = ( init_crc >> 1 ) ^ init_p;
+		    else                     init_crc =   init_crc >> 1;
+		}
+		crc_tab32[i] = init_crc;
+	    }
+	    init = 1;
+	}
+
+        /// update crc
+	long_c = 0x000000ffL & (unsigned long) c;
+	tmp = crc ^ long_c;
+	crc = (crc >> 8) ^ crc_tab32[ tmp & 0xff ];
+    }while(s < size);
+
+    return crc;
+}
+
 
 
 /// print image head

@@ -78,6 +78,10 @@ int main(int argc, char **argv){
     int			cmp;			/// compare magic string
     char		*bitmap;		/// the point for bitmap data
     int			debug;			/// debug or not
+    unsigned long	crc = 0xffffffffL;	/// CRC32 check code for writint to image
+    unsigned long	crc_ck = 0xffffffffL;	/// CRC32 check code for checking
+    int			c_size;			/// CRC32 code size
+    char*		crc_buffer;		/// buffer data for malloc crc code
 
     progress_bar	prog;			/// progress_bar structure defined in progress.h
     cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
@@ -247,9 +251,16 @@ int main(int argc, char **argv){
 		log_mesg(0, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
 		if (w_size != (int)image_hdr.block_size)
 		    log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
+
+		/// generate crc32 code and write it.
+        	crc_buffer = (char*)malloc(sizeof(unsigned long)); ///alloc a memory to copy data
+		crc = crc32(crc, buffer, w_size);
+		memcpy(crc_buffer, &crc, sizeof(unsigned long));
+		c_size = write_all(&dfw, crc_buffer, sizeof(unsigned long), &opt);
         	
 		/// free buffer
 		free(buffer);
+		free(crc_buffer);
 
 		copied++;					/// count copied block
 		total_write += (unsigned long long)(w_size);	/// count copied size
@@ -323,8 +334,17 @@ int main(int argc, char **argv){
 	    if (w_size != (int)image_hdr.block_size)
 		log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
 
+	    /// read crc32 code and check it.
+	    crc_ck = crc32(crc_ck, buffer, r_size);
+            crc_buffer = (char*)malloc(sizeof(unsigned long)); ///alloc a memory to copy data
+	    c_size = read_all(&dfr, crc_buffer, sizeof(unsigned long), &opt);
+	    memcpy(&crc, crc_buffer, sizeof(unsigned long));
+	    if (memcmp(&crc, &crc_ck, sizeof(unsigned long)) != 0)
+		log_mesg(0, 1, 1, debug, "CRC Check  error\n OrigCRC:0x%08lX, DestCRC:0x%08lX", crc, crc_ck);
+
 	    /// free buffer
 	    free(buffer);
+	    free(crc_buffer);
 
        	    copied++;					/// count copied block
 	    total_write += (unsigned long long) w_size;	/// count copied size

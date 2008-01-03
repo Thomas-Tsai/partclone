@@ -109,6 +109,9 @@ extern int open_target(char* target, cmd_opt* opt);
 /// check partition size
 extern void check_size(int* ret, unsigned long long size);
 
+/// generate crc32 code
+extern unsigned long crc32(unsigned long crc, char *buf, int size);
+
 /// print image_head
 extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt);
 
