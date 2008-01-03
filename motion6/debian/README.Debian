@@ -1,0 +1,42 @@
+Motion for Debian
+-----------------
+
+A minimal config file is installed as /etc/motion/motion.conf
+by default. Much more verbose example config files are located
+in /usr/share/doc/motion/examples.
+
+NOTE: Any non-root user can copy /etc/motion/motion.conf to
+~/.motion/motion.conf and override system-wide settings (it
+may, for example, be necessary for a non-root user to change
+the parameter 'target_dir' to point to a place where the user
+has write permissions).
+
+Config file options, among many other things, are described in 
+/usr/share/doc/motion/motion_guide.html.
+
+/usr/share/doc/motion/xmlrpc-api.html describes the XML-RPC API 
+implemented in the Motion program which enables users to change 
+configuration settings and initiate actions while Motion is
+running.
+
+Motion now has support for ffmpeg, since ffmpeg has been
+allowed into Debian!
+
+But please notice that since the version of ffmpeg in Debian
+is newer than 0.4.8, I get this warning when I build motion
+with the new ffmpeg support:
+
+	**************************************************
+	Your version of FFmpeg is newer than version 0.4.8
+	Newer versions of ffmpeg do not support MPEG1 with
+	non-standard framerate. MPEG1 will be disabled for
+	normal video output. You can still use mpeg4 and
+	and mpeg4ms which are both better in terms of size
+	and quality. MPEG1 is always used for timelapse.
+	Please read the Motion Guide for more information.
+	Note that this is not an error message!
+	**************************************************
+
+So remember to use mpeg4 or msmpeg4, not mpeg1.
+
+ -- Frederik Dannemare <frederik@dannemare.net>  Fri,  3 Nov 2006

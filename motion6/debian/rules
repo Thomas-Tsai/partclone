@@ -1,0 +1,133 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+# GNU copyright 1997 to 1999 by Joey Hess.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# These are used for cross-compiling and for saving the configure script
+# from having to guess our platform (since we know it already)
+DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+
+
+CFLAGS = -Wall -g
+#CFLAGS += `ffmpeg-config --cflags`
+
+# upstream added an ifdef, but didn't write the ./configure.in snippet
+# to actually turn it on... see #389304
+CFLAGS += -DFFMPEG_AVWRITEFRAME_NEWAPI
+
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -O0
+else
+	CFLAGS += -O2
+endif
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+	INSTALL_PROGRAM += -s
+endif
+
+# This package uses dpatch.
+include /usr/share/dpatch/dpatch.make
+
+
+config.status: patch configure
+	dh_testdir
+	# Add here commands to configure the package.
+	CFLAGS="$(CFLAGS)" ./configure \
+		--prefix=/usr \
+		--bindir=\$${prefix}/bin \
+		--build=${DEB_BUILD_GNU_TYPE} \
+		--host=${DEB_HOST_GNU_TYPE} \
+		--datadir=\$${prefix}/share \
+		--mandir=\$${datadir}/man \
+		--infodir=\$${datadir}/info \
+		--sysconfdir=/etc/motion \
+		--with-ffmpeg \
+		--with-mysql \
+		--with-pgsql \
+		--without-optimizecpu
+
+	touch configure-stamp
+
+
+build: build-stamp
+
+build-stamp:  config.status
+	dh_testdir
+
+	# Patch the generated libtool to avoid passing -rpath when linking,
+	# and to explicitly link libraries against the libraries they
+	# depend on.
+#	sed < libtool > libtool-2 \
+#	-e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
+#	-e '/^archive_cmds="/s/"$$/ \\$$deplibs"/'
+#	mv libtool-2 libtool
+#	chmod 755 libtool
+ 
+	# Add here commands to compile the package.
+	$(MAKE)
+
+	touch build-stamp
+
+
+clean: clean-patched unpatch
+clean-patched:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp configure-stamp
+
+	# Add here commands to clean up after the build process.
+	-$(MAKE) distclean
+ifneq "$(wildcard /usr/share/misc/config.sub)" ""
+	cp -f /usr/share/misc/config.sub config.sub
+endif
+ifneq "$(wildcard /usr/share/misc/config.guess)" ""
+	cp -f /usr/share/misc/config.guess config.guess
+endif
+
+	dh_clean 
+
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k 
+	dh_installdirs
+
+	# Add here commands to install the package into debian/motion.
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/motion
+	# Offer a minimal default config file.
+	cp debian/motion.conf debian/motion/etc/motion
+	# Remove unwanted/misplaced files.
+	rm -rf $(CURDIR)/debian/motion/usr/share/doc/motion-3.2.3
+	rm -f $(CURDIR)/debian/motion/etc/motion/motion-dist.conf
+
+
+# Build architecture-independent files here.
+binary-indep: build install
+# We have nothing to do by default.
+
+# Build architecture-dependent files here.
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs CHANGELOG
+	dh_installdocs
+	dh_installman
+	dh_installmenu
+	dh_installexamples
+	dh_installdebconf
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install patch unpatch

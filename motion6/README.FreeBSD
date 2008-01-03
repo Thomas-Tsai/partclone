@@ -1,0 +1,60 @@
+The motion port to *BSD is still in very beta state, but
+has been tested with network cameras support successfully.
+This version has been tested with TV Card ( Miro PCTV pro ),
+but should work by any framegrabber supported by bktr driver. 
+
+
+To compile motion in FreeBSD ( should work in OpenBSD and NetBSD ) :
+
+   cp configure.in.FreeBSD configure.in
+   autoconf
+   ./configure
+   of
+   CC=gcc34 ./configure ( to override the default gcc version) 
+   gmake
+   gmake install
+
+Note : if you want auto-detect CPU/ARCH you need to install linux_base and 
+	enable linprocfs support, i.ex :
+	1-. mkdir -p /usr/compat/linux ; chown root.whell /usr/compat/linux ; chmod 555 /usr/compat/linux
+	2-. mkdir -p /usr/compat/linux/proc ; chown root.whell /usr/compat/linux/proc ; chmod 555 /usr/compat/linux/proc
+	3-. kldload /modules/linprocfs.ko
+	4-. Add to /etc/fstab this line -> linproc         /usr/compat/linux/proc      linprocfs       rw      0       0
+	5-. mount linproc 
+
+( ./configure --without-v4l , to work only with network cameras ).
+
+Tested in FreeBSD 4.9 and 4.1x not in 5.x .
+
+Packages needed :
+
+ - autoconf 2.5x .
+ - gcc 2.95 ( better 3.x to allow optimize macros from CPU/ARCH auto-detection ). 
+ - m4-1.4_1
+ - linuxthreads-2.2.3_15
+ - jpeg-6b_2  
+ - gmake ( GNU Make )
+ - ffmpeg-0.4.8_5 ( mpeg1/4 video encoders ).
+ - mysql-server , mysql-client ( database backend support ).
+ - postgresql-devel , postgresql ( database backend support ).
+
+ - kernel with bktr support ( GENERIC kernel has by default support ).
+
+
+* TODO *
+--------
+
+- Improve the capture method ( double buffer , async capture ). 
+- Detect pixelformat , palettes format , etc ...
+- Implement tuner capture ( now only video / svideo capture implemented ).
+- Add chroma , brightness , contrast setup. ( Implement BrightnessContrastPatch ).
+- Code clean up.
+- And many others ... 
+
+
+
+ Any question / fix / suggestion  please send it to motion mailing list.
+
+
+ Angel Carpintero
+ ack@telefonica.net

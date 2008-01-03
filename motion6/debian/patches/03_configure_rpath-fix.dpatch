@@ -1,0 +1,19 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 03_configure_rpath-fix.dpatch by Frederik Dannemare <frederik@dannemare.net>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Remove use of rpath in configure
+
+@DPATCH@
+
+--- motion-3.1.19/configure.orig	2005-03-02 20:16:03.817148008 +0100
++++ motion-3.1.19/configure	2005-03-02 20:16:15.178420832 +0100
+@@ -2566,7 +2566,7 @@
+ 	LIBS="$LIBS -L${FFMPEG} -lavformat -lavcodec -lm -lz"
+ 	FFMPEG_OBJ="ffmpeg.o"
+ 
+-	LDFLAGS="-Wl,-rpath,${FFMPEG}"
++	LDFLAGS=""
+ fi
+ fi
+ 
