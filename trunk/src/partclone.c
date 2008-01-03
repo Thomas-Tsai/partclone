@@ -79,8 +79,6 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != (char)-1) {
             switch (c) {
             case 's': 
-                    if (opt->source)
-                            opt->source = "-";
                     opt->source = optarg;
                     break;
             case 'h':
@@ -113,14 +111,14 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     }
 
     if (opt->target == NULL) {
-        fprintf(stderr, "You must specify an output file or device.\n");
-        usage();
+        fprintf(stderr, "You use specify output file like stdout. or --help get more info.\n");
+	opt->target = "-";
     }
 
 
     if (opt->source == NULL) {
-        fprintf(stderr, "You must specify an input file or device.\n");
-		usage();
+        fprintf(stderr, "You use specify input file like stdin. or --help get more info.\n");
+	opt->source = "-";
     }
 
 }
