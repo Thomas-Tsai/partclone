@@ -5,6 +5,9 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
 AC_PROG_CC
+AC_PROG_INSTALL
+AC_PATH_PROG(RM, rm, rm)
+AC_PROG_LN_S
 
 # Enable large file support.
 AC_SYS_LARGEFILE

@@ -39,3 +39,18 @@ endif
 if ENABLE_STATIC
 LDFLAGS+=-static
 endif
+
+# Extra
+install-exec-hook:
+	$(LN_S) -f clone.extfs $(sbindir)/clone.ext3
+	$(LN_S) -f clone.extfs $(sbindir)/clone.ext2
+if ENABLE_HFSP
+	$(LN_S) -f clone.hfsp $(sbindir)/clone.hfs+
+endif
+
+uninstall-local:
+	$(RM) -f $(sbindir)/clone.ext3
+	$(RM) -f $(sbindir)/clone.ext2
+if ENABLE_HFSP
+	$(RM) -f $(sbindir)/clone.hfs+
+endif

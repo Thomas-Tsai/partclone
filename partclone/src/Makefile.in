@@ -169,6 +169,7 @@ LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
+LN_S = @LN_S@
 LTLIBICONV = @LTLIBICONV@
 LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
@@ -186,6 +187,7 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 POSUB = @POSUB@
+RM = @RM@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -788,6 +790,8 @@ install-data-am:
 install-dvi: install-dvi-am
 
 install-exec-am: install-sbinPROGRAMS
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
 
 install-html: install-html-am
 
@@ -818,23 +822,35 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-sbinPROGRAMS
+uninstall-am: uninstall-local uninstall-sbinPROGRAMS
 
-.MAKE: install-am install-strip
+.MAKE: install-am install-exec-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
 	clean-sbinPROGRAMS ctags distclean distclean-compile \
 	distclean-generic distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am install-data \
 	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-sbinPROGRAMS install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-sbinPROGRAMS
+	install-exec-am install-exec-hook install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-sbinPROGRAMS \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic pdf pdf-am ps ps-am \
+	tags uninstall uninstall-am uninstall-local \
+	uninstall-sbinPROGRAMS
 
+
+# Extra
+install-exec-hook:
+	$(LN_S) -f clone.extfs $(sbindir)/clone.ext3
+	$(LN_S) -f clone.extfs $(sbindir)/clone.ext2
+@ENABLE_HFSP_TRUE@	$(LN_S) -f clone.hfsp $(sbindir)/clone.hfs+
+
+uninstall-local:
+	$(RM) -f $(sbindir)/clone.ext3
+	$(RM) -f $(sbindir)/clone.ext2
+@ENABLE_HFSP_TRUE@	$(RM) -f $(sbindir)/clone.hfs+
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
