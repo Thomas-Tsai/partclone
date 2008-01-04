@@ -54,7 +54,6 @@ clean:
 
 	# Add here commands to clean up after the build process.
 	-$(MAKE) distclean
-	rm -f config.sub config.guess
 
 	dh_clean 
 

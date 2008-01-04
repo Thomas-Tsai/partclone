@@ -15,3 +15,6 @@ Description: The utility for clone and restore partition.
  Partclone provide utilities to back up used blocks and 
  design for higher compatibility of the file system using 
  supported library like e2fslibs.
+ .
+ check the project website for more details
+ http://partclone.sf.net

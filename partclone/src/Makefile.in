@@ -843,14 +843,14 @@ uninstall-am: uninstall-local uninstall-sbinPROGRAMS
 
 # Extra
 install-exec-hook:
-	$(LN_S) -f $(DESTDIR)/$(sbindir)/clone.extfs $(DESTDIR)/$(sbindir)/clone.ext2
-	$(LN_S) -f $(DESTDIR)/$(sbindir)/clone.extfs $(DESTDIR)/$(sbindir)/clone.ext3
-@ENABLE_HFSP_TRUE@	$(LN_S) -f $(DESTDIR)/$(sbindir)/clone.hfsp $(DESTDIR)/$(sbindir)/clone.hfs+
+	$(LN_S) -f clone.extfs $(DESTDIR)$(sbindir)/clone.ext2
+	$(LN_S) -f clone.extfs $(DESTDIR)$(sbindir)/clone.ext3
+@ENABLE_HFSP_TRUE@	$(LN_S) -f clone.hfsp $(DESTDIR)$(sbindir)/clone.hfs+
 
 uninstall-local:
-	$(RM) -f $(DESTDIR)/$(sbindir)/clone.ext3
-	$(RM) -f $(DESTDIR)/$(sbindir)/clone.ext2
-@ENABLE_HFSP_TRUE@	$(RM) -f $(DESTDIR)/$(sbindir)/clone.hfs+
+	$(RM) -f $(sbindir)/clone.ext3
+	$(RM) -f $(sbindir)/clone.ext2
+@ENABLE_HFSP_TRUE@	$(RM) -f $(sbindir)/clone.hfs+
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
