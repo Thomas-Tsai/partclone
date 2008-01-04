@@ -1,3 +1,9 @@
+partclone (0.0.5-2) unstable; urgency=low
+
+  * Description for deb package was updated.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri,  4 Jan 2008 21:40:00 +0800
+
 partclone (0.0.5-1) unstable; urgency=low
 
   * [bugfix] reopen and close ticket #8 
