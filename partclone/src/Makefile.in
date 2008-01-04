@@ -843,9 +843,9 @@ uninstall-am: uninstall-local uninstall-sbinPROGRAMS
 
 # Extra
 install-exec-hook:
-	$(LN_S) -f clone.extfs $(sbindir)/clone.ext3
-	$(LN_S) -f clone.extfs $(sbindir)/clone.ext2
-@ENABLE_HFSP_TRUE@	$(LN_S) -f clone.hfsp $(sbindir)/clone.hfs+
+	$(LN_S) -f $(sbindir)/clone.extfs $(sbindir)/clone.ext2
+	$(LN_S) -f $(sbindir)/clone.extfs $(sbindir)/clone.ext3
+@ENABLE_HFSP_TRUE@	$(LN_S) -f $(sbindir)/clone.hfsp $(sbindir)/clone.hfs+
 
 uninstall-local:
 	$(RM) -f $(sbindir)/clone.ext3

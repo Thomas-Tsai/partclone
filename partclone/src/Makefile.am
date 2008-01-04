@@ -42,10 +42,10 @@ endif
 
 # Extra
 install-exec-hook:
-	$(LN_S) -f clone.extfs $(sbindir)/clone.ext3
-	$(LN_S) -f clone.extfs $(sbindir)/clone.ext2
+	$(LN_S) -f $(sbindir)/clone.extfs $(sbindir)/clone.ext2
+	$(LN_S) -f $(sbindir)/clone.extfs $(sbindir)/clone.ext3
 if ENABLE_HFSP
-	$(LN_S) -f clone.hfsp $(sbindir)/clone.hfs+
+	$(LN_S) -f $(sbindir)/clone.hfsp $(sbindir)/clone.hfs+
 endif
 
 uninstall-local:
