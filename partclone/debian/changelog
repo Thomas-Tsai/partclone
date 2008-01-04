@@ -1,3 +1,10 @@
+partclone (0.0.5-1) unstable; urgency=low
+
+  * [bugfix] reopen and close ticket #8 
+    - fix debian packaging linking permission issue.
+
+ -- Jazz Yao-Tsung Wang <jazz@nchc.org.tw>  Fri,  4 Jan 2008 11:54:14 +0800
+
 partclone (0.0.4-5) unstable; urgency=low
 
   * close ticket #8. Thomas added some alias programs when making install.
