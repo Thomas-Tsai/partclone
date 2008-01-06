@@ -1,3 +1,9 @@
+partclone (0.0.5-3) unstable; urgency=low
+
+  * Static linking was disabled in debian/rules.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun,  6 Jan 2008 16:34:00 +0800
+
 partclone (0.0.5-2) unstable; urgency=low
 
   * Description for deb package was updated.
