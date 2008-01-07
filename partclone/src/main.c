@@ -77,7 +77,7 @@ int main(int argc, char **argv){
     char		bitmagic_r[8];		/// read magic string from image
     int			cmp;			/// compare magic string
     char		*bitmap;		/// the point for bitmap data
-    int			debug;			/// debug or not
+    int			debug = 0;		/// debug or not
     unsigned long	crc = 0xffffffffL;	/// CRC32 check code for writint to image
     unsigned long	crc_ck = 0xffffffffL;	/// CRC32 check code for checking
     int			c_size;			/// CRC32 code size
@@ -92,6 +92,12 @@ int main(int argc, char **argv){
      * check parameter and read from argv
      */
     parse_options(argc, argv, &opt);
+
+    if (geteuid() != 0)
+	log_mesg(0, 1, 1, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n"); 
+    else
+	log_mesg(0, 0, 0, debug, "UID is root.\n");
+
 
     /**
      * open source and target 
@@ -111,12 +117,6 @@ int main(int argc, char **argv){
     debug = opt.debug;
     //if(opt.debug)
 	open_log();
-
-    if (geteuid() != 0)
-    log_mesg(0, 0, 0, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n"); 
-    else
-	log_mesg(0, 0, 0, debug, "UID is root.\n");
-
 
     /**
      * get partition information like super block, image_head, bitmap
@@ -286,7 +286,8 @@ int main(int argc, char **argv){
 	    
 	    }
 	    log_mesg(0, 0, 0, debug, "end\n");
-        }
+        } /// end of for    
+	sync_data(dfw, &opt);	
     
     } else if (opt.restore) {
 
@@ -367,10 +368,10 @@ int main(int argc, char **argv){
 	    if (sf == (off_t)-1)
 		log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
 	}
-	
 	log_mesg(0, 0, 0, debug, "end\n");
 
-    	}
+    	} // end of for
+	sync_data(dfw, &opt);	
     }
 
     close (dfr);    /// close source
