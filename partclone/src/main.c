@@ -55,7 +55,7 @@
     #define FS "XFS"
 #elif HFSPLUS
     #include "hfsplusclone.h"
-    #define FS "HFSPLUS"
+    #define FS "HFS Plus"
 #endif
 
 /**
@@ -111,6 +111,12 @@ int main(int argc, char **argv){
     debug = opt.debug;
     //if(opt.debug)
 	open_log();
+
+    if (geteuid() != 0)
+    log_mesg(0, 0, 0, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n"); 
+    else
+	log_mesg(0, 0, 0, debug, "UID is root.\n");
+
 
     /**
      * get partition information like super block, image_head, bitmap

@@ -28,7 +28,7 @@
 #define reiser4_MAGIC "REISER4"
 #define xfs_MAGIC "XFS"
 #define extfs_MAGIC "EXTFS"
-#define hfsplus_MAGIC "HFSPLUS"
+#define hfsplus_MAGIC "HFS Plus"
 #define IMAGE_VERSION "0001"
 #define VERSION_SIZE 4
 

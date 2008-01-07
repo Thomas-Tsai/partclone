@@ -45,14 +45,14 @@ FILE* msg = NULL;
  */
 extern void usage(void)
 {
-    fprintf(stderr, "%s v%s ($Rev$)\nUsage: %s [OPTIONS]\n"
+    fprintf(stderr, "%s v%s ($Rev$) http://partclone.sourceforge.net\nUsage: %s [OPTIONS]\n"
         "    Efficiently clone to a image, device or standard output.\n"
         "\n"
         "    -o, --output FILE      Output FILE\n"
 	"    -s, --source FILE      Source FILE\n"
         "    -c, --clone            Save to the special image format\n"
         "    -r, --restore          Restore from the special image format\n"
-	"    -b, --dd-mode          Save to sector-to-sector format\n"
+//	"    -b, --dd-mode          Save to sector-to-sector format\n"
         "    -d, --debug            Show debug information\n"
         "    -h, --help             Display this help\n"
     , EXECNAME, VERSION, EXECNAME);
@@ -68,12 +68,13 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "source",		required_argument,  NULL,   's' },
         { "restore-image",	no_argument,	    NULL,   'r' },
         { "clone-image",	no_argument,	    NULL,   'c' },
-        { "dd-mode",		no_argument,	    NULL,   'b' },
+//        { "dd-mode",		no_argument,	    NULL,   'b' },
         { "debug",		no_argument,	    NULL,   'd' },
         { NULL,			0,		    NULL,    0  }
     };
 
     char c;
+    int mode = 0;
     memset(opt, 0, sizeof(cmd_opt));
 
     while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != (char)-1) {
@@ -92,12 +93,15 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
                     break;
             case 'r':
                     opt->restore++;
+		    mode++;
                     break;
             case 'c':
                     opt->clone++;
+		    mode++;
                     break;
 /*            case 'b':
                     opt->dd++;
+		    mode++;
                     break;*/
             case 'd':
                     opt->debug++;
@@ -108,23 +112,39 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
             }
     }
 
+    if(mode != 1) {
+	//fprintf(stderr, ".\n")
+	usage();
+    }
+        
     if (opt->target == NULL) {
-        fprintf(stderr, "You use specify output file like stdout. or --help get more info.\n");
+	//fprintf(stderr, "You use specify output file like stdout. or --help get more info.\n");
 	opt->target = "-";
     }
 
-
     if (opt->source == NULL) {
-        fprintf(stderr, "You use specify input file like stdin. or --help get more info.\n");
+	//fprintf(stderr, "You use specify output file like stdout. or --help get more info.\n");
 	opt->source = "-";
     }
+	
+    if (opt->clone){
 
-    if ((opt->clone) && (strcmp(opt->source, "-") == 0)){
-	fprintf(stderr, "You can't clone from stdin.\n");
-	usage();
-    } else if ((opt->restore) && (strcmp(opt->target, "-") == 0)){
-	fprintf(stderr, "You can't restore to stdout.\n");
-	usage();
+	if ((strcmp(opt->source, "-") == 0) || (opt->source == NULL)) {
+	    fprintf(stderr, "Partclone can't clone from stdin.\nFor help, type: %s -h\n", EXECNAME);
+	    //usage();
+	    exit(0);
+	}
+    
+    }
+    
+    if (opt->restore){
+	
+	if ((strcmp(opt->target, "-") == 0) || (opt->target == NULL)) {
+	    fprintf(stderr, "Partclone can't restore to stdout.\nFor help,type: %s -h\n", EXECNAME);
+	    //usage();
+	    exit(0);
+	}
+
     }
 
 }
@@ -375,10 +395,11 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	//log_mesg(0, 0, 0, "%s v%s \n", EXEC_NAME, VERSION);
+	log_mesg(0, 0, 1, debug, _("Partclone v%s ($Rev$) http://partclone.sourceforge.net\n"), VERSION);
     if (opt.clone)
-		log_mesg(0, 0, 1, debug, _("Starting clone device(%s) to image(%s)\n"), opt.source, opt.target);	
+		log_mesg(0, 0, 1, debug, _("Starting clone device (%s) to image (%s)\n"), opt.source, opt.target);	
 	else if(opt.restore)
-		log_mesg(0, 0, 1, debug, _("Starting restore image(%s) to device(%s)\n"), opt.source, opt.target);
+		log_mesg(0, 0, 1, debug, _("Starting restore image (%s) to device (%s)\n"), opt.source, opt.target);
 //	else if(opt.dd)
 //		log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
 //	else
