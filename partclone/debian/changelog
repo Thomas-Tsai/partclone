@@ -1,3 +1,13 @@
+partclone (0.0.5-4) unstable; urgency=low
+
+  * Thomas closed these tickets: 
+    #12: Command without any option should show only short help messages.
+    #13: Change "HFSPLUS" as "HFS+" or "HFS Plus".
+    #15 (Sync after image is restored). 
+    #17: Show program name "partclone" and version number and url in the status report.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun,  7 Jan 2008 17:05:00 +0800
+
 partclone (0.0.5-3) unstable; urgency=low
 
   * Static linking was disabled in debian/rules.
