@@ -20,6 +20,7 @@ struct progress_bar {
         int stop;
         int resolution;
 	int block_size;
+	float rate;
 	time_t time;
         float unit;
 };
@@ -29,6 +30,6 @@ typedef struct progress_bar progress_bar;
 extern void progress_init(struct progress_bar *p, int start, int stop, int res, int size);
 
 /// update number
-extern void progress_update(struct progress_bar *p, int current);
+extern void progress_update(struct progress_bar *p, int current, int done);
 
 

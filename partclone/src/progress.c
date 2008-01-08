@@ -30,17 +30,19 @@ extern void progress_init(struct progress_bar *p, int start, int stop, int res, 
 	p->time = now;
 	p->block_size = size;
         p->resolution = res;
+	p->rate = 0.0;
 }
 
 /// update number
-extern void progress_update(struct progress_bar *p, int current)
+extern void progress_update(struct progress_bar *p, int current, int done)
 {
         setlocale(LC_ALL, "");
         bindtextdomain(PACKAGE, LOCALEDIR);
         textdomain(PACKAGE);
 	
 	float percent;
-        float speed;
+        double speedps = 0.0;
+        float speed = 0.0;
         int total_time;
         time_t remained;
 	time_t elapsed;
@@ -48,11 +50,14 @@ extern void progress_update(struct progress_bar *p, int current)
 	char *format = "%H:%M:%S";
 	char Rformated[10], Eformated[10], Tformated[10];
 	struct tm *Rtm, *Etm, *Ttm;
+	char *clear_buf = NULL;
 
         percent  = p->unit * current;
-        speed    = (float)p->block_size * (float)current / (float)(time(0) - p->time);
-	remained = (time_t)(p->block_size * (p->stop- current)/(int)speed);
+        speedps  = (float)p->block_size * (float)current / (float)(time(0) - p->time);
+	remained = (time_t)(p->block_size * (p->stop- current)/(int)speedps);
         elapsed  = (time(0) - p->time);
+	speed = (float)(speedps / 1000000.0 * 60.0);
+	p->rate = speed;
 
 	/// format time string
 	Rtm = gmtime(&remained);
@@ -64,16 +69,17 @@ extern void progress_update(struct progress_bar *p, int current)
         if (current != p->stop) {
                 if ((current - p->start) % p->resolution)
                         return;
+                fprintf(stderr, ("\r%81c\r"), clear_buf);
                 fprintf(stderr, _("Elapsed: %s, "), Eformated);
                 fprintf(stderr, _("Remained: %s, "), Rformated);
-                fprintf(stderr, _("Completed: %6.2f%%, "), percent);
-                fprintf(stderr, _("Rate: %6.2fMB/s"), speed/1000000.00);
-                fprintf(stderr, ("\r"));
-        } else{
+                fprintf(stderr, _("Completed:%6.2f%%, "), percent);
+                fprintf(stderr, _("Rate:%6.1fMB/min, "), (float)(p->rate));
+        } else if (done == 1){
 		total = (time(0) - p->time);
 		Ttm = gmtime(&total);
 		strftime(Tformated, sizeof(Tformated), format, Ttm);
                 fprintf(stderr, _("\nTotal Time : %s, "), Tformated);
+                fprintf(stderr, _("Ave. Rate:%6.1fMB/min, "), (float)(current*p->block_size/total/1000000*60));
                 fprintf(stderr, _("100.00%% completed!\n"));
 	}
 }
