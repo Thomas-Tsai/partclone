@@ -38,22 +38,43 @@ extern void progress_update(struct progress_bar *p, int current)
         setlocale(LC_ALL, "");
         bindtextdomain(PACKAGE, LOCALEDIR);
         textdomain(PACKAGE);
-			
-        float percent = p->unit * current;
-        float speed = (float)p->block_size * (float)current / (float)(time(0) - p->time);
-        int estime = p->block_size * (p->stop - current)/(int)speed;
-        int total_time = p->block_size * (p->stop - p->start)/(int)speed;
+	
+	float percent;
+        float speed;
+        int total_time;
+        time_t remained;
+	time_t elapsed;
+	time_t total;
+	char *format = "%H:%M:%S";
+	char Rformated[10], Eformated[10], Tformated[10];
+	struct tm *Rtm, *Etm, *Ttm;
+
+        percent  = p->unit * current;
+        speed    = (float)p->block_size * (float)current / (float)(time(0) - p->time);
+	remained = (time_t)(p->block_size * (p->stop- current)/(int)speed);
+        elapsed  = (time(0) - p->time);
+
+	/// format time string
+	Rtm = gmtime(&remained);
+	strftime(Rformated, sizeof(Rformated), format, Rtm);
+
+	Etm = gmtime(&elapsed);
+	strftime(Eformated, sizeof(Eformated), format, Etm);
 
         if (current != p->stop) {
                 if ((current - p->start) % p->resolution)
                         return;
-                fprintf(stderr, _("%6.2f%% completed, "), percent);
-                fprintf(stderr, _("Total: %05i sec., "), total_time);
-                fprintf(stderr, _("Estimated: %05i sec., "), estime);
-                fprintf(stderr, _("%7.2f MB/s"), speed/1000000.00);
+                fprintf(stderr, _("Elapsed: %s, "), Eformated);
+                fprintf(stderr, _("Remained: %s, "), Rformated);
+                fprintf(stderr, _("Completed: %6.2f%%, "), percent);
+                fprintf(stderr, _("Rate: %6.2fMB/s"), speed/1000000.00);
                 fprintf(stderr, ("\r"));
         } else{
-                fprintf(stderr, _("\n100.00%% completed\n"));
+		total = (time(0) - p->time);
+		Ttm = gmtime(&total);
+		strftime(Tformated, sizeof(Tformated), format, Ttm);
+                fprintf(stderr, _("\nTotal Time : %s, "), Tformated);
+                fprintf(stderr, _("100.00%% completed!\n"));
 	}
 }
 

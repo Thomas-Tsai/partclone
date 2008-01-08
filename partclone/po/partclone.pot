@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2008-01-08 10:09+0800\n"
+"POT-Creation-Date: 2008-01-08 11:19+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,31 +16,36 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/progress.c:50
+#: src/progress.c:67
 #, c-format
-msgid "%6.2f%% completed, "
+msgid "Elapsed: %s, "
 msgstr ""
 
-#: src/progress.c:51
+#: src/progress.c:68
 #, c-format
-msgid "Total: %05i sec., "
+msgid "Remained: %s, "
 msgstr ""
 
-#: src/progress.c:52
+#: src/progress.c:69
 #, c-format
-msgid "Estimated: %05i sec., "
+msgid "Completed: %6.2f%%, "
 msgstr ""
 
-#: src/progress.c:53
+#: src/progress.c:70
 #, c-format
-msgid "%7.2f MB/s"
+msgid "Rate: %6.2fMB/s"
 msgstr ""
 
-#: src/progress.c:56
+#: src/progress.c:76
 #, c-format
 msgid ""
 "\n"
-"100.00%% completed\n"
+"Total Time : %s, "
+msgstr ""
+
+#: src/progress.c:77
+#, c-format
+msgid "100.00%% completed!\n"
 msgstr ""
 
 #: src/partclone.c:407
