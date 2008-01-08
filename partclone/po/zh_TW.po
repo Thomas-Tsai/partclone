@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.0.4\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2008-01-07 14:11+0800\n"
+"POT-Creation-Date: 2008-01-08 10:09+0800\n"
 "PO-Revision-Date: 2007-11-01 11:35+0800\n"
 "Last-Translator: Yu-Chin Tsai <thomas@nchc.org.tw>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -15,52 +15,71 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/progress.c:42
+#: src/progress.c:50
 #, c-format
-msgid "%6.2f percent completed"
-msgstr "%6.2f 完成"
+msgid "%6.2f%% completed, "
+msgstr "%6.2f%% 完成"
 
-#: src/progress.c:45
+#: src/progress.c:51
 #, c-format
-msgid "100.00 percent completed\n"
-msgstr "100.00 已經完成！\n"
+msgid "Total: %05i sec., "
+msgstr "需要時間：%05i 秒, "
 
-#: src/partclone.c:398
+#: src/progress.c:52
+#, c-format
+msgid "Estimated: %05i sec., "
+msgstr "剩餘：%05i 秒, "
+
+#: src/progress.c:53
+#, c-format
+msgid "%6.2f MB/s"
+msgstr "%6.2f MB/s"
+
+#: src/progress.c:56
+#, c-format
+msgid ""
+"\n"
+"100.00%% completed\n"
+msgstr ""
+"\n"
+"100.00i%% 已經完成！\n"
+
+#: src/partclone.c:407
 #, c-format
 msgid "Partclone v%s ($Rev$) http://partclone.sourceforge.net\n"
 msgstr ""
 
-#: src/partclone.c:400
-#, fuzzy, c-format
+#: src/partclone.c:409
+#, c-format
 msgid "Starting clone device (%s) to image (%s)\n"
-msgstr "開始備份 裝置(%s) 到 影像檔(%s)\n"
+msgstr "開始備份 裝置 (%s) 到 影像檔 (%s)\n"
 
-#: src/partclone.c:402
-#, fuzzy, c-format
+#: src/partclone.c:411
+#, c-format
 msgid "Starting restore image (%s) to device (%s)\n"
-msgstr "開始還原影 像檔(%s) 到 裝置(%s)\n"
+msgstr "開始還原影 像檔 (%s) 到 裝置 (%s)\n"
 
-#: src/partclone.c:407
+#: src/partclone.c:416
 #, c-format
 msgid "File system: %s\n"
 msgstr "檔案系統: %s\n"
 
-#: src/partclone.c:408
+#: src/partclone.c:417
 #, c-format
 msgid "Device size: %lli MB\n"
 msgstr "裝置大小: %lli MB\n"
 
-#: src/partclone.c:409
+#: src/partclone.c:418
 #, c-format
 msgid "Space in use: %lli MB\n"
 msgstr "裝置使用到空間: %lli MB\n"
 
-#: src/partclone.c:410
+#: src/partclone.c:419
 #, c-format
 msgid "Block size: %i Byte\n"
 msgstr "裝置區塊大小: %i Byte\n"
 
-#: src/partclone.c:411
+#: src/partclone.c:420
 #, c-format
 msgid "Used block count: %lli\n"
 msgstr "裝置使用區塊數量: %lli\n"

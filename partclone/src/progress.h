@@ -12,18 +12,21 @@
  */
 
 #include <stdio.h>
+#include <time.h>
 
 /// the progress bar structure
 struct progress_bar {
         int start;
         int stop;
         int resolution;
+	int block_size;
+	time_t time;
         float unit;
 };
 typedef struct progress_bar progress_bar;
 
 /// initial progress bar
-extern void progress_init(struct progress_bar *p, int start, int stop, int res);
+extern void progress_init(struct progress_bar *p, int start, int stop, int res, int size);
 
 /// update number
 extern void progress_update(struct progress_bar *p, int current);

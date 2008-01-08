@@ -14,15 +14,15 @@
 #include <config.h>
 #include <features.h>
 #include <fcntl.h>
-#include <unistd.h>
+#include <malloc.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <malloc.h>
 #include <stdarg.h>
 #include <string.h>
+#include <unistd.h>
 
 
 /**
@@ -170,7 +170,7 @@ int main(int argc, char **argv){
 
 	/// check the image magic
 	if (memcmp(image_hdr.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE) != 0)
-	    log_mesg(0, 1, 1, debug, "The image file magic error.\n");
+	    log_mesg(0, 1, 1, debug, "This is nor partclone image.\n");
 
 	/// check the file system
 	if (memcmp(image_hdr.fs, FS, FS_MAGIC_SIZE) != 0)
@@ -201,7 +201,7 @@ int main(int argc, char **argv){
     res = 100;				/// the end of progress number
     log_mesg(0, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
-    progress_init(&prog, start, stop, res);
+    progress_init(&prog, start, stop, res, (int)image_hdr.block_size);
     copied = 1;				/// initial number is 1
 
     /**

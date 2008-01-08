@@ -327,15 +327,16 @@ extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
         else
 	    i = read(*fd, buf, count);
 
-	if (i < 0) {
+	if (i <= 0) {
 	    if (errno != EAGAIN && errno != EINTR){
-		log_mesg(0, 1, 1, debug, "get_image_bitmap: errno = %i\n", errno);
+		log_mesg(0, 1, 1, debug, "%s: errno = %i\n",__func__, errno);
                 return -1;
 	    }
+	log_mesg(0, 1, 1, debug, "%s: errno = %i\n",__func__, errno);
         } else {
 	    count -= i;
 	    buf = i + (char *) buf;
-	    log_mesg(0, 0, 0, debug, "get_image_bitmap: read %li, %li left.\n", i, count);
+	    log_mesg(0, 0, 0, debug, "%s: read %li, %li left.\n",__func__, i, count);
         }
     }
     return size;

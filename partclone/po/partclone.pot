@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2008-01-07 14:11+0800\n"
+"POT-Creation-Date: 2008-01-08 10:09+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,52 +16,69 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/progress.c:42
+#: src/progress.c:50
 #, c-format
-msgid "%6.2f percent completed"
+msgid "%6.2f%% completed, "
 msgstr ""
 
-#: src/progress.c:45
+#: src/progress.c:51
 #, c-format
-msgid "100.00 percent completed\n"
+msgid "Total: %05i sec., "
 msgstr ""
 
-#: src/partclone.c:398
+#: src/progress.c:52
 #, c-format
-msgid "Partclone v%s ($Rev$) http://partclone.sourceforge.net\n"
+msgid "Estimated: %05i sec., "
 msgstr ""
 
-#: src/partclone.c:400
+#: src/progress.c:53
 #, c-format
-msgid "Starting clone device (%s) to image (%s)\n"
+msgid "%7.2f MB/s"
 msgstr ""
 
-#: src/partclone.c:402
+#: src/progress.c:56
 #, c-format
-msgid "Starting restore image (%s) to device (%s)\n"
+msgid ""
+"\n"
+"100.00%% completed\n"
 msgstr ""
 
 #: src/partclone.c:407
 #, c-format
-msgid "File system: %s\n"
-msgstr ""
-
-#: src/partclone.c:408
-#, c-format
-msgid "Device size: %lli MB\n"
+msgid "Partclone v%s ($Rev$) http://partclone.sourceforge.net\n"
 msgstr ""
 
 #: src/partclone.c:409
 #, c-format
+msgid "Starting clone device (%s) to image (%s)\n"
+msgstr ""
+
+#: src/partclone.c:411
+#, c-format
+msgid "Starting restore image (%s) to device (%s)\n"
+msgstr ""
+
+#: src/partclone.c:416
+#, c-format
+msgid "File system: %s\n"
+msgstr ""
+
+#: src/partclone.c:417
+#, c-format
+msgid "Device size: %lli MB\n"
+msgstr ""
+
+#: src/partclone.c:418
+#, c-format
 msgid "Space in use: %lli MB\n"
 msgstr ""
 
-#: src/partclone.c:410
+#: src/partclone.c:419
 #, c-format
 msgid "Block size: %i Byte\n"
 msgstr ""
 
-#: src/partclone.c:411
+#: src/partclone.c:420
 #, c-format
 msgid "Used block count: %lli\n"
 msgstr ""
