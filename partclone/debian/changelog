@@ -1,6 +1,12 @@
+partclone (0.0.5-5) unstable; urgency=low
+
+  * Thomas Tsai closed ticket #18: Add a saving/restoring rate and estimated time to finish job in the status report.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun,  8 Jan 2008 15:12:00 +0800
+
 partclone (0.0.5-4) unstable; urgency=low
 
-  * Thomas closed these tickets: 
+  * Thomas Tsai closed these tickets: 
     #12: Command without any option should show only short help messages.
     #13: Change "HFSPLUS" as "HFS+" or "HFS Plus".
     #15 (Sync after image is restored). 
