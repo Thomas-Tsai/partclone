@@ -203,7 +203,7 @@ int main(int argc, char **argv){
     log_mesg(0, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
     progress_init(&prog, start, stop, res, (int)image_hdr.block_size);
-    //copied = 1;				/// initial number is 1
+    copied = 1;				/// initial number is 1
 
     /**
      * start read and write data between device and image file
@@ -241,7 +241,7 @@ int main(int argc, char **argv){
 
 		log_mesg(0, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 
-		//progress_update(&prog, copied);
+		progress_update(&prog, copied);
         	
 		offset = (off_t)(block_id * image_hdr.block_size);
 		//sf = lseek(dfr, offset, SEEK_SET);
@@ -287,9 +287,6 @@ int main(int argc, char **argv){
 	    
 	    }
 	    log_mesg(0, 0, 0, debug, "end\n");
-	    if((block_id + 1) == image_hdr.totalblock)
-		done = 1;
-	    progress_update(&prog, copied, done);
         } /// end of for    
 	sync_data(dfw, &opt);	
     
@@ -329,7 +326,7 @@ int main(int argc, char **argv){
 	    /// The block is used
 	    log_mesg(0, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 
-	    //progress_update(&prog, copied);
+	    progress_update(&prog, copied);
 
 	    offset = (off_t)(block_id * image_hdr.block_size);
 	    //sf = lseek(dfw, offset, SEEK_SET);
@@ -373,9 +370,6 @@ int main(int argc, char **argv){
 		log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
 	}
 	log_mesg(0, 0, 0, debug, "end\n");
-	if((block_id + 1) == image_hdr.totalblock)
-	    done = 1;
-	progress_update(&prog, copied, done);
 
     	} // end of for
 	sync_data(dfw, &opt);	

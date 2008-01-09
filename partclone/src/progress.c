@@ -34,7 +34,7 @@ extern void progress_init(struct progress_bar *p, int start, int stop, int res, 
 }
 
 /// update number
-extern void progress_update(struct progress_bar *p, int current, int done)
+extern void progress_update(struct progress_bar *p, int current)
 {
         setlocale(LC_ALL, "");
         bindtextdomain(PACKAGE, LOCALEDIR);
@@ -66,7 +66,7 @@ extern void progress_update(struct progress_bar *p, int current, int done)
 	Etm = gmtime(&elapsed);
 	strftime(Eformated, sizeof(Eformated), format, Etm);
 
-        if (current != p->stop) {
+        if (current != p->stop){
                 if ((current - p->start) % p->resolution)
                         return;
                 fprintf(stderr, ("\r%81c\r"), clear_buf);
@@ -74,8 +74,8 @@ extern void progress_update(struct progress_bar *p, int current, int done)
                 fprintf(stderr, _("Remaining: %s, "), Rformated);
                 fprintf(stderr, _("Completed:%6.2f%%, "), percent);
                 fprintf(stderr, _("Rate:%6.1fMB/min, "), (float)(p->rate));
-        } else if (done == 1){
-		total = (time(0) - p->time);
+        } else {
+		total = elapsed;
 		Ttm = gmtime(&total);
 		strftime(Tformated, sizeof(Tformated), format, Ttm);
                 fprintf(stderr, _("\nTotal Time : %s, "), Tformated);
