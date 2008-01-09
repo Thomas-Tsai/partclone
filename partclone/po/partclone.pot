@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2008-01-08 21:57+0800\n"
+"POT-Creation-Date: 2008-01-09 14:50+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,7 +23,7 @@ msgstr ""
 
 #: src/progress.c:74
 #, c-format
-msgid "Remained: %s, "
+msgid "Remaining: %s, "
 msgstr ""
 
 #: src/progress.c:75
@@ -53,42 +53,42 @@ msgstr ""
 msgid "100.00%% completed!\n"
 msgstr ""
 
-#: src/partclone.c:407
+#: src/partclone.c:410
 #, c-format
 msgid "Partclone v%s ($Rev$) http://partclone.sourceforge.net\n"
 msgstr ""
 
-#: src/partclone.c:409
+#: src/partclone.c:412
 #, c-format
 msgid "Starting clone device (%s) to image (%s)\n"
 msgstr ""
 
-#: src/partclone.c:411
+#: src/partclone.c:414
 #, c-format
 msgid "Starting restore image (%s) to device (%s)\n"
 msgstr ""
 
-#: src/partclone.c:416
+#: src/partclone.c:419
 #, c-format
 msgid "File system: %s\n"
 msgstr ""
 
-#: src/partclone.c:417
+#: src/partclone.c:420
 #, c-format
 msgid "Device size: %lli MB\n"
 msgstr ""
 
-#: src/partclone.c:418
+#: src/partclone.c:421
 #, c-format
 msgid "Space in use: %lli MB\n"
 msgstr ""
 
-#: src/partclone.c:419
+#: src/partclone.c:422
 #, c-format
 msgid "Block size: %i Byte\n"
 msgstr ""
 
-#: src/partclone.c:420
+#: src/partclone.c:423
 #, c-format
 msgid "Used block count: %lli\n"
 msgstr ""
