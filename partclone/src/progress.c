@@ -71,7 +71,7 @@ extern void progress_update(struct progress_bar *p, int current, int done)
                         return;
                 fprintf(stderr, ("\r%81c\r"), clear_buf);
                 fprintf(stderr, _("Elapsed: %s, "), Eformated);
-                fprintf(stderr, _("Remained: %s, "), Rformated);
+                fprintf(stderr, _("Remaining: %s, "), Rformated);
                 fprintf(stderr, _("Completed:%6.2f%%, "), percent);
                 fprintf(stderr, _("Rate:%6.1fMB/min, "), (float)(p->rate));
         } else if (done == 1){
@@ -79,7 +79,7 @@ extern void progress_update(struct progress_bar *p, int current, int done)
 		Ttm = gmtime(&total);
 		strftime(Tformated, sizeof(Tformated), format, Ttm);
                 fprintf(stderr, _("\nTotal Time : %s, "), Tformated);
-                fprintf(stderr, _("Ave. Rate:%6.1fMB/min, "), (float)(current*p->block_size/total/1000000*60));
+                fprintf(stderr, _("Ave. Rate:%6.1fMB/min, "), (float)(p->stop*p->block_size/total/1000000.0*60.0));
                 fprintf(stderr, _("100.00%% completed!\n"));
 	}
 }

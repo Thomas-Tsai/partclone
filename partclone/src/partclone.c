@@ -272,20 +272,23 @@ extern int open_source(char* source, cmd_opt* opt){
 	int debug = opt->debug;
 
     if(opt->clone){
+
         ret = open(source, O_RDONLY | O_LARGEFILE, S_IRUSR);
-		if (ret == -1)
-			log_mesg(0, 1, 1, debug, "clone: open %s error\n", source);
+	if (ret == -1)
+	    log_mesg(0, 1, 1, debug, "clone: open %s error\n", source);
+
     } else if(opt->restore) {
+
     	if (strcmp(source, "-") == 0){ 
-        	ret = fileno(stdin); 
-			if (ret == -1)
-				log_mesg(0, 1, 1, debug,"restore: open %s(stdin) error\n", source);
-	    } else {
+	    ret = fileno(stdin); 
+	    if (ret == -1)
+		log_mesg(0, 1, 1, debug,"restore: open %s(stdin) error\n", source);
+	} else {
     	    ret = open (source, O_RDONLY | O_LARGEFILE, S_IRWXU);
-			if (ret == -1)
-				log_mesg(0, 1, 1, debug, "restore: open %s error\n", source);
-	    }
+	    if (ret == -1)
+	        log_mesg(0, 1, 1, debug, "restore: open %s error\n", source);
 	}
+    }
 
     return ret;
 }
