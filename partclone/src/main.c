@@ -83,6 +83,7 @@ int main(int argc, char **argv){
     int			c_size;			/// CRC32 code size
     char*		crc_buffer;		/// buffer data for malloc crc code
     int			done = 0;
+    int			s_count = 0;
 
     progress_bar	prog;			/// progress_bar structure defined in progress.h
     cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
@@ -241,7 +242,7 @@ int main(int argc, char **argv){
 
 		log_mesg(0, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 
-		progress_update(&prog, copied);
+		progress_update(&prog, copied, done);
         	
 		offset = (off_t)(block_id * image_hdr.block_size);
 		//sf = lseek(dfr, offset, SEEK_SET);
@@ -279,6 +280,11 @@ int main(int argc, char **argv){
 		if (r_size != w_size)
 		    log_mesg(0, 1, 1, debug, "read and write different\n");
             } else {
+		s_count++;
+		if (s_count >=500){
+		    progress_update(&prog, copied, done);
+		    s_count = 0;
+		}
 		/// if the block is not used, I just skip it.
         	sf = lseek(dfr, image_hdr.block_size, SEEK_CUR);
 		log_mesg(0, 0, 0, debug, "skip seek=%lli, ",sf);
@@ -287,6 +293,8 @@ int main(int argc, char **argv){
 	    
 	    }
 	    log_mesg(0, 0, 0, debug, "end\n");
+	    if((block_id + 1) == image_hdr.totalblock) 
+		done = 1;
         } /// end of for    
 	sync_data(dfw, &opt);	
     
@@ -326,7 +334,7 @@ int main(int argc, char **argv){
 	    /// The block is used
 	    log_mesg(0, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 
-	    progress_update(&prog, copied);
+	    progress_update(&prog, copied, done);
 
 	    offset = (off_t)(block_id * image_hdr.block_size);
 	    //sf = lseek(dfw, offset, SEEK_SET);
@@ -363,6 +371,12 @@ int main(int argc, char **argv){
 	    //if ((r_size != w_size) || (r_size != image_hdr.block_size))
 	    //	log_mesg(0, 1, 1, debug, "read and write different\n");
        	} else {
+	    s_count++;
+	    if (s_count >=10){
+		progress_update(&prog, copied, done);
+		s_count = 0;
+	    }
+
 	    /// if the block is not used, I just skip it.
 	    sf = lseek(dfw, image_hdr.block_size, SEEK_CUR);
 	    log_mesg(0, 0, 0, debug, "seek=%lli, ",sf);
@@ -370,6 +384,9 @@ int main(int argc, char **argv){
 		log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
 	}
 	log_mesg(0, 0, 0, debug, "end\n");
+
+	if((block_id + 1) == image_hdr.totalblock) 
+	    done = 1;
 
     	} // end of for
 	sync_data(dfw, &opt);	
