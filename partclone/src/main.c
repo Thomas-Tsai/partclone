@@ -237,13 +237,14 @@ int main(int argc, char **argv){
 	    w_size = 0;
 	    log_mesg(0, 0, 0, debug, "block_id=%lli, ",block_id);
 
+	    if((image_hdr.totalblock - 1 ) == block_id) 
+		done = 1;
+
 	    if (bitmap[block_id] == 1){
 		/// if the block is used
 
 		log_mesg(0, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 
-		progress_update(&prog, copied, done);
-        	
 		offset = (off_t)(block_id * image_hdr.block_size);
 		//sf = lseek(dfr, offset, SEEK_SET);
                 //if (sf == (off_t)-1)
@@ -272,6 +273,8 @@ int main(int argc, char **argv){
 		free(buffer);
 		free(crc_buffer);
 
+		progress_update(&prog, copied, done);
+        	
 		copied++;					/// count copied block
 		total_write += (unsigned long long)(w_size);	/// count copied size
 		log_mesg(0, 0, 0, debug, "total=%lli, ", total_write);
@@ -280,21 +283,19 @@ int main(int argc, char **argv){
 		if (r_size != w_size)
 		    log_mesg(0, 1, 1, debug, "read and write different\n");
             } else {
-		s_count++;
-		if (s_count >=500){
-		    progress_update(&prog, copied, done);
-		    s_count = 0;
-		}
 		/// if the block is not used, I just skip it.
         	sf = lseek(dfr, image_hdr.block_size, SEEK_CUR);
 		log_mesg(0, 0, 0, debug, "skip seek=%lli, ",sf);
                 if (sf == (off_t)-1)
                     log_mesg(0, 1, 1, debug, "clone seek error %lli errno=%i\n", (long long)offset, (int)errno);
 	    
+		s_count++;
+		if ((s_count >=100) || (done == 1)){
+		    progress_update(&prog, copied, done);
+		    s_count = 0;
+		}
 	    }
 	    log_mesg(0, 0, 0, debug, "end\n");
-	    if((block_id + 1) == image_hdr.totalblock) 
-		done = 1;
         } /// end of for    
 	sync_data(dfw, &opt);	
     
@@ -330,11 +331,12 @@ int main(int argc, char **argv){
 	w_size = 0;
         log_mesg(0, 0, 0, debug, "block_id=%lli, ",block_id);
 
+	if((block_id + 1) == image_hdr.totalblock) 
+	    done = 1;
+
     	if (bitmap[block_id] == 1){ 
 	    /// The block is used
 	    log_mesg(0, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
-
-	    progress_update(&prog, copied, done);
 
 	    offset = (off_t)(block_id * image_hdr.block_size);
 	    //sf = lseek(dfw, offset, SEEK_SET);
@@ -364,6 +366,8 @@ int main(int argc, char **argv){
 	    free(buffer);
 	    free(crc_buffer);
 
+	    progress_update(&prog, copied, done);
+
        	    copied++;					/// count copied block
 	    total_write += (unsigned long long) w_size;	/// count copied size
 
@@ -371,26 +375,25 @@ int main(int argc, char **argv){
 	    //if ((r_size != w_size) || (r_size != image_hdr.block_size))
 	    //	log_mesg(0, 1, 1, debug, "read and write different\n");
        	} else {
-	    s_count++;
-	    if (s_count >=10){
-		progress_update(&prog, copied, done);
-		s_count = 0;
-	    }
 
 	    /// if the block is not used, I just skip it.
 	    sf = lseek(dfw, image_hdr.block_size, SEEK_CUR);
 	    log_mesg(0, 0, 0, debug, "seek=%lli, ",sf);
 	    if (sf == (off_t)-1)
 		log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
+	    s_count++;
+	    if ((s_count >=100) || (done == 1)){
+		progress_update(&prog, copied, done);
+		s_count = 0;
+	    }
 	}
 	log_mesg(0, 0, 0, debug, "end\n");
-
-	if((block_id + 1) == image_hdr.totalblock) 
-	    done = 1;
 
     	} // end of for
 	sync_data(dfw, &opt);	
     }
+
+    print_finish_info(opt);
 
     close (dfr);    /// close source
     close (dfw);    /// close target

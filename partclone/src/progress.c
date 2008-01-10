@@ -41,8 +41,8 @@ extern void progress_update(struct progress_bar *p, int current, int done)
         textdomain(PACKAGE);
 	
 	float percent;
-        double speedps = 0.0;
-        float speed = 0.0;
+        double speedps = 1.0;
+        float speed = 1.0;
         int display = 0;
         time_t remained;
 	time_t elapsed;
@@ -53,9 +53,11 @@ extern void progress_update(struct progress_bar *p, int current, int done)
 	char *clear_buf = NULL;
 
         percent  = p->unit * current;
-        speedps  = (float)p->block_size * (float)current / (float)(time(0) - p->time);
-	remained = (time_t)(p->block_size * (p->stop- current)/(int)speedps);
         elapsed  = (time(0) - p->time);
+	if (elapsed <= 0)
+	    elapsed = 1;
+        speedps  = (float)p->block_size * (float)current / (float)(elapsed);
+	remained = (time_t)(p->block_size * (p->stop- current)/(int)speedps);
 	speed = (float)(speedps / 1000000.0 * 60.0);
 	p->rate = speed;
 
@@ -66,10 +68,6 @@ extern void progress_update(struct progress_bar *p, int current, int done)
 	Etm = gmtime(&elapsed);
 	strftime(Eformated, sizeof(Eformated), format, Etm);
 
-	if (((int)(elapsed-p->time) % 2) == 0)
-	    display = 1;
-    
-	if (display == 1){
         if (done != 1){
                 if (((current - p->start) % p->resolution) && ((current != p->stop)))
                         return;
@@ -78,14 +76,13 @@ extern void progress_update(struct progress_bar *p, int current, int done)
                 fprintf(stderr, _("Remaining: %s, "), Rformated);
                 fprintf(stderr, _("Completed:%6.2f%%, "), percent);
                 fprintf(stderr, _("Rate:%6.1fMB/min, "), (float)(p->rate));
-        } else if (done == 1){
+        } else {
 		total = elapsed;
 		Ttm = gmtime(&total);
 		strftime(Tformated, sizeof(Tformated), format, Ttm);
                 fprintf(stderr, _("\nTotal Time : %s, "), Tformated);
                 fprintf(stderr, _("Ave. Rate:%6.1fMB/min, "), (float)(p->stop*p->block_size/total/1000000.0*60.0));
                 fprintf(stderr, _("100.00%% completed!\n"));
-	}
 	}
 }
 

@@ -119,3 +119,5 @@ extern unsigned long crc32(unsigned long crc, char *buf, int size);
 /// print image_head
 extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt);
 
+/// print finish mesg
+extern void print_finish_info(cmd_opt opt);

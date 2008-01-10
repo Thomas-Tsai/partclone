@@ -347,9 +347,10 @@ extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
 
 extern void sync_data(int fd, cmd_opt* opt)
 {
-    log_mesg(0, 0, 1, opt->debug, "Syncing ...\n");
+    log_mesg(0, 0, 1, opt->debug, "Syncing ...");
 	if (fsync(fd) && errno != EINVAL)
 	log_mesg(0, 1, 1, opt->debug, "fsync error: errno = %i\n", errno);
+    log_mesg(0, 0, 1, opt->debug, "OK!\n");
 }
 
  
@@ -421,5 +422,19 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
 	log_mesg(0, 0, 1, debug, _("Space in use: %lli MB\n"), print_size((used*block_s), MBYTE));
 	log_mesg(0, 0, 1, debug, _("Block size: %i Byte\n"), block_s);
 	log_mesg(0, 0, 1, debug, _("Used block count: %lli\n"), used);
+}
+
+/// print finish message
+extern void print_finish_info(cmd_opt opt){
+ 
+    int debug = opt.debug;
+
+    setlocale(LC_ALL, "");
+    bindtextdomain(PACKAGE, LOCALEDIR);
+    textdomain(PACKAGE);
+    if (opt.clone)
+		log_mesg(0, 0, 1, debug, _("Partclone successful clone device (%s) to image (%s)\n"), opt.source, opt.target);	
+	else if(opt.restore)
+		log_mesg(0, 0, 1, debug, _("Partclone successful restore image (%s) to device (%s)\n"), opt.source, opt.target);
 }
 
