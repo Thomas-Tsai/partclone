@@ -29,6 +29,9 @@
 #include <string.h>
 #include <getopt.h>
 #include <locale.h>
+#include <mntent.h>
+#include <limits.h>
+#include <stdlib.h>
 #include "gettext.h"
 #define _(STRING) gettext(STRING)
 //#define PACKAGE "partclone"
@@ -267,11 +270,52 @@ extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* 
  *
  */
 
+extern int check_mount(const char* device, char* mount_p){
+
+    char *real_file = NULL, *real_fsname = NULL;
+    FILE * f;
+    struct mntent * mnt;
+    int isMounted = 0;
+    int err = 0;
+
+    real_file = malloc(PATH_MAX + 1);
+    if (!real_file)
+            return -1;
+
+    real_fsname = malloc(PATH_MAX + 1);
+    if (!real_fsname)
+            err = errno;
+
+    if (!realpath(device, real_file))
+            err = errno;
+
+    if ((f = setmntent (MOUNTED, "r")) == 0)
+        return -1;
+
+    while ((mnt = getmntent (f)) != 0)
+    {
+        if (!realpath(mnt->mnt_fsname, real_fsname))
+            continue;
+        if (strcmp(real_file, real_fsname) == 0)
+            {
+                isMounted = 1;
+                strcpy(mount_p, mnt->mnt_dir);
+            }
+    }
+    endmntent (f);
+
+    return isMounted;
+}
+
 extern int open_source(char* source, cmd_opt* opt){
     int ret;
-	int debug = opt->debug;
+    int debug = opt->debug;
+    char *mp = malloc(PATH_MAX + 1);
 
-    if(opt->clone){
+    if(opt->clone){ /// always is device, clone from device=source
+
+	if (check_mount(source, mp) == 1)
+	    log_mesg(0, 1, 1, debug, "device (%s) is mounted at %s\n", source, mp);
 
         ret = open(source, O_RDONLY | O_LARGEFILE, S_IRUSR);
 	if (ret == -1)
@@ -296,21 +340,26 @@ extern int open_source(char* source, cmd_opt* opt){
 extern int open_target(char* target, cmd_opt* opt){
     int ret;
     int debug = opt->debug;
+    char *mp = malloc(PATH_MAX + 1);
 
     if (opt->clone){
     	if (strcmp(target, "-") == 0){ 
-        	ret = fileno(stdout);
-			if (ret == -1)
-				log_mesg(0, 1, 1, debug, "clone: open %s(stdout) error\n", target);
+	    ret = fileno(stdout);
+	    if (ret == -1)
+		log_mesg(0, 1, 1, debug, "clone: open %s(stdout) error\n", target);
     	} else { 
-        	ret = open (target, O_WRONLY | O_CREAT | O_LARGEFILE);
-			if (ret == -1)
-				log_mesg(0, 1, 1, debug, "clone: open %s error\n", target);
+            ret = open (target, O_WRONLY | O_CREAT | O_LARGEFILE);
+	    if (ret == -1)
+		log_mesg(0, 1, 1, debug, "clone: open %s error\n", target);
     	}
-    } else if(opt->restore) {
-	    	ret = open (target, O_WRONLY | O_LARGEFILE);
-			if (ret == -1)
-				log_mesg(0, 1, 1, debug, "restore: open %s error\n", target);
+    } else if(opt->restore) { /// always is device, restore to device=target
+	
+	if (check_mount(target, mp) == 1)
+	    log_mesg(0, 1, 1, debug, "device (%s) is mounted at %s\n", target, mp);
+
+	ret = open (target, O_WRONLY | O_LARGEFILE);
+	if (ret == -1)
+	    log_mesg(0, 1, 1, debug, "restore: open %s error\n", target);
     }
 
     return ret;
@@ -335,7 +384,7 @@ extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
 		log_mesg(0, 1, 1, debug, "%s: errno = %i\n",__func__, errno);
                 return -1;
 	    }
-	log_mesg(0, 1, 1, debug, "%s: errno = %i\n",__func__, errno);
+	    log_mesg(0, 1, 1, debug, "%s: errno = %i\n",__func__, errno);
         } else {
 	    count -= i;
 	    buf = i + (char *) buf;
