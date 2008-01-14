@@ -123,12 +123,12 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
                     free++;
 		    gfree++;
                     bitmap[current_block] = 0;
-		    log_mesg(0, 0, 0, 1, "free block %lu at group %i\n", (current_block), group);
+		    //log_mesg(0, 0, 0, 1, "free block %lu at group %i\n", (current_block), group);
                 } else {
                     used++;
 		    gused++;
                     bitmap[current_block] = 1;
-		    log_mesg(0, 0, 0, 1, "used block %lu at group %i\n", (current_block), group);
+		    //log_mesg(0, 0, 0, 1, "used block %lu at group %i\n", (current_block), group);
                 }
             }
         block_bitmap += fs->super->s_blocks_per_group / 8; /// update extfs bitmap
