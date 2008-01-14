@@ -32,6 +32,7 @@
 #include <mntent.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "gettext.h"
 #define _(STRING) gettext(STRING)
 //#define PACKAGE "partclone"
@@ -52,6 +53,7 @@ extern void usage(void)
         "    Efficiently clone to a image, device or standard output.\n"
         "\n"
         "    -o, --output FILE      Output FILE\n"
+	"    -O  --overwrite FILE   Output FILE, overwriting if exists\n"
 	"    -s, --source FILE      Source FILE\n"
         "    -c, --clone            Save to the special image format\n"
         "    -r, --restore          Restore from the special image format\n"
@@ -64,10 +66,11 @@ extern void usage(void)
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hdrco:s:";
+    static const char *sopt = "-hdrco:O:s:";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "output",		required_argument,  NULL,   'o' },
+	{ "overwrite",		required_argument,  NULL,   'O' },
         { "source",		required_argument,  NULL,   's' },
         { "restore-image",	no_argument,	    NULL,   'r' },
         { "clone-image",	no_argument,	    NULL,   'c' },
@@ -91,6 +94,8 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
             case '?':
                     usage();
                     break;
+	    case 'O':
+		    opt->overwrite++;
             case 'o':
                     opt->target = optarg;
                     break;
@@ -311,13 +316,14 @@ extern int open_source(char* source, cmd_opt* opt){
     int ret;
     int debug = opt->debug;
     char *mp = malloc(PATH_MAX + 1);
+    int flags = O_RDONLY | O_LARGEFILE;
 
     if(opt->clone){ /// always is device, clone from device=source
 
 	if (check_mount(source, mp) == 1)
 	    log_mesg(0, 1, 1, debug, "device (%s) is mounted at %s\n", source, mp);
 
-        ret = open(source, O_RDONLY | O_LARGEFILE, S_IRUSR);
+        ret = open(source, flags, S_IRUSR);
 	if (ret == -1)
 	    log_mesg(0, 1, 1, debug, "clone: open %s error\n", source);
 
@@ -328,7 +334,7 @@ extern int open_source(char* source, cmd_opt* opt){
 	    if (ret == -1)
 		log_mesg(0, 1, 1, debug,"restore: open %s(stdin) error\n", source);
 	} else {
-    	    ret = open (source, O_RDONLY | O_LARGEFILE, S_IRWXU);
+    	    ret = open (source, flags, S_IRWXU);
 	    if (ret == -1)
 	        log_mesg(0, 1, 1, debug, "restore: open %s error\n", source);
 	}
@@ -341,6 +347,7 @@ extern int open_target(char* target, cmd_opt* opt){
     int ret;
     int debug = opt->debug;
     char *mp = malloc(PATH_MAX + 1);
+    int flags = O_WRONLY | O_LARGEFILE;
 
     if (opt->clone){
     	if (strcmp(target, "-") == 0){ 
@@ -348,16 +355,23 @@ extern int open_target(char* target, cmd_opt* opt){
 	    if (ret == -1)
 		log_mesg(0, 1, 1, debug, "clone: open %s(stdout) error\n", target);
     	} else { 
-            ret = open (target, O_WRONLY | O_CREAT | O_LARGEFILE);
-	    if (ret == -1)
-		log_mesg(0, 1, 1, debug, "clone: open %s error\n", target);
+	    flags |= O_CREAT;		    /// new file
+	    if (!opt->overwrite)	    /// overwrite
+		flags |= O_EXCL;
+            ret = open (target, flags, S_IRUSR);
+
+	    if (ret == -1){
+		if (errno == EEXIST)
+		    log_mesg(0, 1, 1, debug, "Output file '%s' already exists.\nUse option --overwrite if you want to replace its content.\n", target);
+		log_mesg(0, 1, 1, debug, "%s: open %s error(%i)\n", __func__, target, errno);
+	    }
     	}
-    } else if(opt->restore) { /// always is device, restore to device=target
+    } else if(opt->restore) {		    /// always is device, restore to device=target
 	
 	if (check_mount(target, mp) == 1)
 	    log_mesg(0, 1, 1, debug, "device (%s) is mounted at %s\n", target, mp);
 
-	ret = open (target, O_WRONLY | O_LARGEFILE);
+	ret = open (target, flags);
 	if (ret == -1)
 	    log_mesg(0, 1, 1, debug, "restore: open %s error\n", target);
     }

@@ -57,6 +57,7 @@ struct cmd_opt
 	int debug;
         char* source;
         char* target;
+	int overwrite;
 };
 typedef struct cmd_opt cmd_opt;
 extern void usage(void);
