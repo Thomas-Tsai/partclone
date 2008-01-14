@@ -50,7 +50,7 @@ FILE* msg = NULL;
  */
 extern void usage(void)
 {
-    fprintf(stderr, "%s v%s (Rev:%s) http://partclone.sourceforge.net\nUsage: %s [OPTIONS]\n"
+    fprintf(stderr, "%s v%s (%s) http://partclone.sourceforge.net\nUsage: %s [OPTIONS]\n"
         "    Efficiently clone to a image, device or standard output.\n"
         "\n"
         "    -o, --output FILE      Output FILE\n"
