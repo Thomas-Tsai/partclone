@@ -1,6 +1,10 @@
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\"
 LDADD = $(LIBINTL)
 sbin_PROGRAMS=clone.extfs clone.info
+TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
+
+version.c: FORCE
+	$(TOOLBOX) --update-version
 
 clone_extfs_SOURCES=main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
 clone_extfs_CFLAGS=-DEXTFS
@@ -54,3 +58,5 @@ uninstall-local:
 if ENABLE_HFSP
 	$(RM) -f $(sbindir)/clone.hfs+
 endif
+
+FORCE:

@@ -186,7 +186,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = po src docs
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = m4/ChangeLog  config.rpath
+EXTRA_DIST = m4/ChangeLog  config.rpath toolbox
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.0.4\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2008-01-10 11:54+0800\n"
+"POT-Creation-Date: 2008-01-14 21:50+0800\n"
 "PO-Revision-Date: 2007-11-01 11:35+0800\n"
 "Last-Translator: Yu-Chin Tsai <thomas@nchc.org.tw>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -17,25 +17,11 @@ msgstr ""
 
 #: src/progress.c:75
 #, c-format
-msgid "Elapsed: %s, "
-msgstr "經過：%s, "
+msgid ""
+"\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate:%6.2fMB/min, "
+msgstr "\r%81c\r經過：%s, 剩餘： %s, 完成：%6.2f%%, 速率：%6.2fMB/min, "
 
-#: src/progress.c:76
-#, c-format
-msgid "Remaining: %s, "
-msgstr "剩餘：%s, "
-
-#: src/progress.c:77
-#, c-format
-msgid "Completed:%6.2f%%, "
-msgstr "完成：%6.2f%%, "
-
-#: src/progress.c:78
-#, c-format
-msgid "Rate:%6.1fMB/min, "
-msgstr "速率：%6.1fMB/min, "
-
-#: src/progress.c:83
+#: src/progress.c:87
 #, c-format
 msgid ""
 "\n"
@@ -44,65 +30,77 @@ msgstr ""
 "\n"
 "全部時間：%s, "
 
-#: src/progress.c:84
+#: src/progress.c:88
 #, c-format
 msgid "Ave. Rate:%6.1fMB/min, "
 msgstr "平均速率：%6.1fMB/min, "
 
-#: src/progress.c:85
+#: src/progress.c:89
 #, c-format
 msgid "100.00%% completed!\n"
 msgstr "100.00%% 已經完成！\n"
 
-#: src/partclone.c:411
+#: src/partclone.c:475
 #, c-format
 msgid "Partclone v%s ($Rev$) http://partclone.sourceforge.net\n"
 msgstr ""
 
-#: src/partclone.c:413
+#: src/partclone.c:477
 #, c-format
 msgid "Starting clone device (%s) to image (%s)\n"
 msgstr "開始備份 裝置 (%s) 到 影像檔 (%s)\n"
 
-#: src/partclone.c:415
+#: src/partclone.c:479
 #, c-format
 msgid "Starting restore image (%s) to device (%s)\n"
 msgstr "開始還原影 像檔 (%s) 到 裝置 (%s)\n"
 
-#: src/partclone.c:420
+#: src/partclone.c:484
 #, c-format
 msgid "File system: %s\n"
 msgstr "檔案系統: %s\n"
 
-#: src/partclone.c:421
+#: src/partclone.c:485
 #, c-format
 msgid "Device size: %lli MB\n"
 msgstr "裝置大小: %lli MB\n"
 
-#: src/partclone.c:422
+#: src/partclone.c:486
 #, c-format
 msgid "Space in use: %lli MB\n"
 msgstr "裝置使用到空間: %lli MB\n"
 
-#: src/partclone.c:423
+#: src/partclone.c:487
 #, c-format
 msgid "Block size: %i Byte\n"
 msgstr "裝置區塊大小: %i Byte\n"
 
-#: src/partclone.c:424
+#: src/partclone.c:488
 #, c-format
 msgid "Used block count: %lli\n"
 msgstr "裝置使用區塊數量: %lli\n"
 
-#: src/partclone.c:436
+#: src/partclone.c:500
 #, c-format
 msgid "Partclone successful clone device (%s) to image (%s)\n"
 msgstr "備份 裝置 (%s) 到 影像檔 (%s) 完成\n"
 
-#: src/partclone.c:438
+#: src/partclone.c:502
 #, c-format
 msgid "Partclone successful restore image (%s) to device (%s)\n"
 msgstr "還原影 像檔 (%s) 到 裝置 (%s) 完成\n"
+
+#~ msgid "Elapsed: %s, "
+#~ msgstr "經過：%s, "
+
+#~ msgid "Remaining: %s, "
+#~ msgstr "剩餘：%s, "
+
+#~ msgid "Completed:%6.2f%%, "
+#~ msgstr "完成：%6.2f%%, "
+
+#~ msgid "Rate:%6.1fMB/min, "
+#~ msgstr "速率：%6.1fMB/min, "
 
 #~ msgid "%6.2f%% completed, "
 #~ msgstr "%6.2f%% 完成"

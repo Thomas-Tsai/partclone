@@ -246,6 +246,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\"
 LDADD = $(LIBINTL)
+TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 clone_extfs_SOURCES = main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
 clone_extfs_CFLAGS = -DEXTFS
 clone_extfs_LDFLAGS = -lext2fs
@@ -841,6 +842,9 @@ uninstall-am: uninstall-local uninstall-sbinPROGRAMS
 	uninstall-sbinPROGRAMS
 
 
+version.c: FORCE
+	$(TOOLBOX) --update-version
+
 # Extra
 install-exec-hook:
 	$(LN_S) -f clone.extfs $(DESTDIR)$(sbindir)/clone.ext2
@@ -851,6 +855,8 @@ uninstall-local:
 	$(RM) -f $(sbindir)/clone.ext3
 	$(RM) -f $(sbindir)/clone.ext2
 @ENABLE_HFSP_TRUE@	$(RM) -f $(sbindir)/clone.hfs+
+
+FORCE:
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
