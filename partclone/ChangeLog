@@ -1,3 +1,17 @@
+2008-01-14 13:48  thomas
+
+	* Makefile.am, Makefile.in, po/partclone.pot, po/zh_TW.gmo,
+	  po/zh_TW.po, src/Makefile.am, src/Makefile.in, src/partclone.c:
+	  
+	  translation zh-TW.po fix SVN Revision string
+
+2008-01-14 10:40  thomas
+
+	* ChangeLog:
+	  
+	  import GNU-Style Changelog from svn. svn2cl --reparagraph
+	  --break-before-msg=2 The tool svn2cl is part of subversion-tools.
+
 2008-01-14 10:06  thomas
 
 	* src/partclone.c, src/partclone.h:
