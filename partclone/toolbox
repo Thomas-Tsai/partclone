@@ -72,11 +72,18 @@ fi
 ##
 if test "${action}" = "changelog"
 then
-  if which svn2cl 2>&1 >/dev/null; then
-    svn2cl --reparagraph --break-before-msg=2
-  else
-    echo "WARNING: you should install subversion-tools firstly."
-  fi
+  echo "Would you want to export svn log to ChangeLog(y/N)?"
+  read log
+  case "$log" in  
+    [yY] | [Yy][Ee][Ss] )
+      if which svn2cl 2>&1 >/dev/null ; then
+        echo "please input svn password to export svn log."
+        svn2cl --reparagraph --break-before-msg=2
+      else
+        echo "WARNING: you should install subversion-tools firstly."
+      fi
+      ;;
+    esac
   exit $?
 fi
 
