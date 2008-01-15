@@ -12,6 +12,7 @@
  */
 
 #include <config.h>
+#include <errno.h>
 #include <features.h>
 #include <fcntl.h>
 #include <malloc.h>
@@ -84,6 +85,14 @@ int main(int argc, char **argv){
     char*		crc_buffer;		/// buffer data for malloc crc code
     int			done = 0;
     int			s_count = 0;
+    int			rescue_num = 0;
+    char *bad_sectors_warning_msg =
+    "*************************************************************************\n"
+    "* WARNING: The disk has bad sector. This means physical damage on the   *\n"
+    "* disk surface caused by deterioration, manufacturing faults or other   *\n"
+    "* reason. The reliability of the disk may stay stable or degrade fast.  *\n"
+    "* Use the --rescue option to efficiently save as much data as possible! *\n"
+    "*************************************************************************\n";
 
     progress_bar	prog;			/// progress_bar structure defined in progress.h
     cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
@@ -95,11 +104,18 @@ int main(int argc, char **argv){
      */
     parse_options(argc, argv, &opt);
 
+    /**
+     * if "-d / --debug" given
+     * open debug file in "/var/log/partclone.log" for log message 
+     */
+    debug = opt.debug;
+    //if(opt.debug)
+	open_log();
+
     if (geteuid() != 0)
 	log_mesg(0, 1, 1, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n"); 
     else
 	log_mesg(0, 0, 0, debug, "UID is root.\n");
-
 
     /**
      * open source and target 
@@ -110,15 +126,14 @@ int main(int argc, char **argv){
     source = opt.source;
     target = opt.target;
     dfr = open_source(source, &opt);
-    dfw = open_target(target, &opt);
+    if (dfr == -1) {
+	log_mesg(0, 1, 1, debug, "Error Exit (%i).\n", errno);
+    }
 
-    /**
-     * if "-d / --debug" given
-     * open debug file in "/var/log/partclone.log" for log message 
-     */
-    debug = opt.debug;
-    //if(opt.debug)
-	open_log();
+    dfw = open_target(target, &opt);
+    if (dfw == -1) {
+	log_mesg(0, 1, 1, debug, "Error Exit(%i).\n", errno);
+    }
 
     /**
      * get partition information like super block, image_head, bitmap
@@ -254,8 +269,19 @@ int main(int argc, char **argv){
 		/// read data from source to buffer
 		r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
 		log_mesg(0, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
-		if (r_size != (int)image_hdr.block_size)
+		if (r_size != (int)image_hdr.block_size){
+
+		    if ((r_size == -1) && (errno == EIO)){
+			if (opt.rescue){
+			    for (rescue_num = 0; rescue_num < image_hdr.block_size; rescue_num += SECTOR_SIZE)
+				 rescue_sector(&dfr, buffer + rescue_num, &opt);
+			}else
+                             log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
+			
+		    }
+
 		    log_mesg(0, 1, 1, debug, "read error %i \n", r_size);
+		}
         	
 		/// write buffer to target
 		w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);

@@ -60,6 +60,7 @@ extern void usage(void)
         "    -r, --restore          Restore from the special image format\n"
 //	"    -b, --dd-mode          Save to sector-to-sector format\n"
         "    -d, --debug            Show debug information\n"
+        "    -R, --rescue	    Continue after disk read errors\n"
         "    -h, --help             Display this help\n"
     , EXECNAME, VERSION, svn_version, EXECNAME);
     exit(0);
@@ -67,7 +68,7 @@ extern void usage(void)
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hdrco:O:s:";
+    static const char *sopt = "-hdrco:O:s:R";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "output",		required_argument,  NULL,   'o' },
@@ -77,6 +78,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "clone-image",	no_argument,	    NULL,   'c' },
 //        { "dd-mode",		no_argument,	    NULL,   'b' },
         { "debug",		no_argument,	    NULL,   'd' },
+        { "rescue",		no_argument,	    NULL,   'R' },
         { NULL,			0,		    NULL,    0  }
     };
 
@@ -115,6 +117,9 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
             case 'd':
                     opt->debug++;
                     break;
+	    case 'R':
+		    opt->rescue++;
+		    break;
             default:
                     fprintf(stderr, "Unknown option '%s'.\n", argv[optind-1]);
                     usage();
@@ -194,7 +199,7 @@ extern void log_mesg(int log_errno, int log_exit, int log_stderr, int debug, con
 
     /// exit if lexit true
     if (log_exit)
-	exit(1);
+    	exit(1);
 }
  
 extern void close_log(){
@@ -328,6 +333,7 @@ extern int open_source(char* source, cmd_opt* opt){
 	if (ret == -1)
 	    log_mesg(0, 1, 1, debug, "clone: open %s error\n", source);
 
+
     } else if(opt->restore) {
 
     	if (strcmp(source, "-") == 0){ 
@@ -362,9 +368,10 @@ extern int open_target(char* target, cmd_opt* opt){
             ret = open (target, flags, S_IRUSR);
 
 	    if (ret == -1){
-		if (errno == EEXIST)
-		    log_mesg(0, 1, 1, debug, "Output file '%s' already exists.\nUse option --overwrite if you want to replace its content.\n", target);
-		log_mesg(0, 1, 1, debug, "%s: open %s error(%i)\n", __func__, target, errno);
+		if (errno == EEXIST){
+		    log_mesg(0, 0, 1, debug, "Output file '%s' already exists.\nUse option --overwrite if you want to replace its content.\n", target);
+		}
+		log_mesg(0, 0, 1, debug, "%s: open %s error(%i)\n", __func__, target, errno);
 	    }
     	}
     } else if(opt->restore) {		    /// always is device, restore to device=target
@@ -376,7 +383,6 @@ extern int open_target(char* target, cmd_opt* opt){
 	if (ret == -1)
 	    log_mesg(0, 1, 1, debug, "restore: open %s error\n", target);
     }
-
     return ret;
 }
 
@@ -394,7 +400,7 @@ extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
         else
 	    i = read(*fd, buf, count);
 
-	if (i <= 0) {
+	if (i < 0) {
 	    if (errno != EAGAIN && errno != EINTR){
 		log_mesg(0, 1, 1, debug, "%s: errno = %i\n",__func__, errno);
                 return -1;
@@ -417,7 +423,24 @@ extern void sync_data(int fd, cmd_opt* opt)
     log_mesg(0, 0, 1, opt->debug, "OK!\n");
 }
 
- 
+extern void rescue_sector(int *fd, char *buff, cmd_opt *opt)
+{
+    const char *badsector_magic = "BADSECTOR\0";
+    off_t pos = 0;
+
+    pos = lseek(*fd, 0, SEEK_CUR);
+
+    if (lseek(*fd, SECTOR_SIZE, SEEK_CUR) == (off_t)-1)
+        log_mesg(0, 1, 1, opt->debug, "lseek error\n");
+
+    if (io_all(fd, buff, SECTOR_SIZE, 0, opt) == -1) { /// read_all
+	log_mesg(0, 0, 1, opt->debug, "WARNING: Can't read sector at %llu, lost data.\n", (unsigned long long)pos);
+        memset(buff, '?', SECTOR_SIZE);
+        memmove(buff, badsector_magic, sizeof(badsector_magic));
+    }
+}
+
+
 /// the crc32 function, reference from libcrc. 
 /// Author is Lammert Bies  1999-2007
 /// Mail: info@lammertbies.nl

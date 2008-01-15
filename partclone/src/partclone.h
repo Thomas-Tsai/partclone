@@ -31,6 +31,7 @@
 #define hfsplus_MAGIC "HFS Plus"
 #define IMAGE_VERSION "0001"
 #define VERSION_SIZE 4
+#define SECTOR_SIZE 512
 
 // Reference: ntfsclone.c
 #define MBYTE (1000 * 1000)
@@ -58,6 +59,7 @@ struct cmd_opt
         char* source;
         char* target;
 	int overwrite;
+	int rescue;
 };
 typedef struct cmd_opt cmd_opt;
 extern void usage(void);
@@ -73,9 +75,9 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt);
 extern void open_log();
 extern void log_mesg(int lerrno, int lexit, int only_debug, int debug, const char *fmt, ...);
 extern void close_log();
-extern int io_all(int *fd, char *buffer, int count, int do_write, cmd_opt* opt);
+extern int io_all(int *fd, char *buffer, int count, int do_write, cmd_opt *opt);
 extern void sync_data(int fd, cmd_opt* opt);
-
+extern void rescue_sector(int *fd, char *buff, cmd_opt *opt);
 /**
  * for restore used functions
  * restore_image_hdr	- get image_head from image file 
