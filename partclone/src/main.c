@@ -205,6 +205,25 @@ int main(int argc, char **argv){
 	check_size(&dfw, image_hdr.device_size);
 
 	log_mesg(0, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
+    } else if (opt.dd){
+	log_mesg(0, 0, 0, debug, "Initial image hdr: get Super Block from partition\n");
+
+	/// get Super Block information from partition
+	initial_image_hdr(source, &image_hdr);
+
+	memcpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
+
+	/// alloc a memory to restore bitmap
+	bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+
+	log_mesg(0, 0, 0, debug, "initial main bitmap pointer %i\n", bitmap);
+	log_mesg(0, 0, 0, debug, "Initial image hdr: read bitmap table\n");
+
+	/// read and check bitmap from partition
+	log_mesg(0, 0, 0, debug, "Calculating bitmap ...\n");
+	readbitmap(source, image_hdr, bitmap);
+
+	log_mesg(0, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
     }
 
     log_mesg(0, 0, 0, debug, "print image_head\n");
@@ -419,6 +438,78 @@ int main(int argc, char **argv){
 
     	} // end of for
 	sync_data(dfw, &opt);	
+    } else if (opt.dd){
+	sf = lseek(dfr, 0, SEEK_SET);
+	log_mesg(0, 0, 0, debug, "seek %lli for reading data string\n",sf);
+	if (sf == (off_t)-1)
+	    log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
+
+	log_mesg(0, 0, 0, debug, "Total block %i\n", image_hdr.totalblock);
+
+	/// start clone partition to image file
+        for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
+	    r_size = 0;
+	    w_size = 0;
+	    log_mesg(0, 0, 0, debug, "block_id=%lli, ",block_id);
+
+	    if((image_hdr.totalblock - 1 ) == block_id)
+		done = 1;
+
+	    if (bitmap[block_id] == 1){
+		/// if the block is used
+
+		log_mesg(0, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
+		offset = (off_t)(block_id * image_hdr.block_size);
+		buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
+		/// read data from source to buffer
+		r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
+		log_mesg(0, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
+		if (r_size != (int)image_hdr.block_size){
+		    if ((r_size == -1) && (errno == EIO)){
+			if (opt.rescue){
+			    for (rescue_num = 0; rescue_num < image_hdr.block_size; rescue_num += SECTOR_SIZE)
+				rescue_sector(&dfr, buffer + rescue_num, &opt);
+			}else
+			    log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
+
+		    }
+
+		    log_mesg(0, 1, 1, debug, "read error %i \n", r_size);
+		}
+
+		/// write buffer to target
+		w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
+		log_mesg(0, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
+		if (w_size != (int)image_hdr.block_size)
+		    log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
+
+		/// free buffer
+		free(buffer);
+		progress_update(&prog, copied, done);
+		copied++;                                       /// count copied block
+		total_write += (unsigned long long)(w_size);    /// count copied size
+		log_mesg(0, 0, 0, debug, "total=%lli, ", total_write);
+		/// read or write error
+		if (r_size != w_size)
+		    log_mesg(0, 1, 1, debug, "read and write different\n");
+	    } else {
+		/// if the block is not used, I just skip it.
+		sf = lseek(dfr, image_hdr.block_size, SEEK_CUR);
+		log_mesg(0, 0, 0, debug, "skip source seek=%lli, ",sf);
+		sf = lseek(dfw, image_hdr.block_size, SEEK_CUR);
+		log_mesg(0, 0, 0, debug, "skip target seek=%lli, ",sf);
+		if (sf == (off_t)-1)
+		    log_mesg(0, 1, 1, debug, "clone seek error %lli errno=%i\n", (long long)offset, (int)errno);
+		s_count++;
+		if ((s_count >=100) || (done == 1)){
+		    progress_update(&prog, copied, done);
+		     s_count = 0;
+		}
+
+	    }
+	    log_mesg(0, 0, 0, debug, "end\n");
+	} /// end of for
+	sync_data(dfw, &opt);
     }
 
     print_finish_info(opt);

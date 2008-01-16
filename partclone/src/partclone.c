@@ -58,7 +58,7 @@ extern void usage(void)
 	"    -s, --source FILE      Source FILE\n"
         "    -c, --clone            Save to the special image format\n"
         "    -r, --restore          Restore from the special image format\n"
-//	"    -b, --dd-mode          Save to sector-to-sector format\n"
+	"    -b, --dd-mode          Save to sector-to-sector format\n"
         "    -d, --debug            Show debug information\n"
         "    -R, --rescue	    Continue after disk read errors\n"
         "    -h, --help             Display this help\n"
@@ -68,7 +68,7 @@ extern void usage(void)
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hdrco:O:s:R";
+    static const char *sopt = "-hdcbro:O:s:R";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "output",		required_argument,  NULL,   'o' },
@@ -76,7 +76,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "source",		required_argument,  NULL,   's' },
         { "restore-image",	no_argument,	    NULL,   'r' },
         { "clone-image",	no_argument,	    NULL,   'c' },
-//        { "dd-mode",		no_argument,	    NULL,   'b' },
+        { "dd-mode",		no_argument,	    NULL,   'b' },
         { "debug",		no_argument,	    NULL,   'd' },
         { "rescue",		no_argument,	    NULL,   'R' },
         { NULL,			0,		    NULL,    0  }
@@ -110,10 +110,10 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
                     opt->clone++;
 		    mode++;
                     break;
-/*            case 'b':
+            case 'b':
                     opt->dd++;
 		    mode++;
-                    break;*/
+                    break;
             case 'd':
                     opt->debug++;
                     break;
@@ -324,7 +324,7 @@ extern int open_source(char* source, cmd_opt* opt){
     char *mp = malloc(PATH_MAX + 1);
     int flags = O_RDONLY | O_LARGEFILE;
 
-    if(opt->clone){ /// always is device, clone from device=source
+    if((opt->clone) || (opt->dd)){ /// always is device, clone from device=source
 
 	if (check_mount(source, mp) == 1)
 	    log_mesg(0, 1, 1, debug, "device (%s) is mounted at %s\n", source, mp);
@@ -374,7 +374,7 @@ extern int open_target(char* target, cmd_opt* opt){
 		log_mesg(0, 0, 1, debug, "%s: open %s error(%i)\n", __func__, target, errno);
 	    }
     	}
-    } else if(opt->restore) {		    /// always is device, restore to device=target
+    } else if((opt->restore) || (opt->dd)){		    /// always is device, restore to device=target
 	
 	if (check_mount(target, mp) == 1)
 	    log_mesg(0, 1, 1, debug, "device (%s) is mounted at %s\n", target, mp);
@@ -500,10 +500,10 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
 		log_mesg(0, 0, 1, debug, _("Starting clone device (%s) to image (%s)\n"), opt.source, opt.target);	
 	else if(opt.restore)
 		log_mesg(0, 0, 1, debug, _("Starting restore image (%s) to device (%s)\n"), opt.source, opt.target);
-//	else if(opt.dd)
-//		log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
-//	else
-//		log_mesg(0, 0, 1, debug, "unknow mode\n");
+	else if(opt.dd)
+		log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
+	else
+		log_mesg(0, 0, 1, debug, "unknow mode\n");
 	log_mesg(0, 0, 1, debug, _("File system: %s\n"), image_hdr.fs);
 	log_mesg(0, 0, 1, debug, _("Device size: %lli MB\n"), print_size((total*block_s), MBYTE));
 	log_mesg(0, 0, 1, debug, _("Space in use: %lli MB\n"), print_size((used*block_s), MBYTE));

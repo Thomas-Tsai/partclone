@@ -54,7 +54,7 @@ struct cmd_opt
 {
         int clone;
         int restore;
-//	int dd;
+	int dd;
 	int debug;
         char* source;
         char* target;
