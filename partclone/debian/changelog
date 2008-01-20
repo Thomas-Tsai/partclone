@@ -1,3 +1,12 @@
+partclone (0.0.5-9) unstable; urgency=low
+
+  * Thomas Tsai added:
+    New function rescue_sector.
+    UNSTALBE feature, support device to device.
+    Some other minor changes.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun,  20 Jan 2008 14:15:00 +0800
+
 partclone (0.0.5-8) unstable; urgency=low
 
   * Some minor changes on ticket #18 from Thomas Tsai.
