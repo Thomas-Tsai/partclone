@@ -40,7 +40,7 @@ char *EXECNAME = "clone.reiser4";
 
 /// open device
 static void fs_open(char* device){
-    int debug=1;
+    int debug = 2;
 
     if (libreiser4_init()) {
             log_mesg(0, 1, 1, debug, "Can't initialize libreiser4.\n");
@@ -76,7 +76,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap)
 {
     reiser4_bitmap_t       *fs_bitmap;
     unsigned long long     bit, block, bused = 0, bfree = 0;
-    int                    debug;
+    int                    debug = 2;
     
     fs_open(device);
     fs_bitmap = reiser4_bitmap_create(reiser4_format_get_len(fs->format));
@@ -87,9 +87,11 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap)
         if(reiser4_bitmap_test(fs_bitmap, bit)){
             bused++;
 	    bitmap[block] = 1;
+	    log_mesg(3, 0, 0, debug, "bitmap is used %lli", block);
         } else {
 	    bitmap[block] = 0;
 	    bfree++;
+	    log_mesg(3, 0, 0, debug, "bitmap is free %lli", block);
         }
     }
 

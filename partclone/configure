@@ -718,6 +718,8 @@ LN_S
 CPP
 GREP
 EGREP
+ENABLE_ALL_TRUE
+ENABLE_ALL_FALSE
 ENABLE_XFS_TRUE
 ENABLE_XFS_FALSE
 ENABLE_REISERFS_TRUE
@@ -1324,6 +1326,7 @@ Optional Features:
   --enable-dependency-tracking   do not reject slow dependency extractors
   --disable-rpath         do not hardcode runtime library paths
   --disable-largefile     omit support for large files
+  --enable-all            enable all supported file system
   --enable-xfs            enable XFS file system
   --enable-reiserfs       enable REISERFS 3.6/3.6 file system
   --enable-reiser4        enable Reiser4 file system
@@ -7484,6 +7487,26 @@ echo "$as_me: error: *** EXT2/3 library (libext2fs) not found" >&2;}
 fi
 
 
+##enable-all##
+# Check whether --enable-test was given.
+if test "${enable_test+set}" = set; then
+  enableval=$enable_test; enable_all=yes
+fi
+
+ if test "$enable_all" = yes; then
+  ENABLE_ALL_TRUE=
+  ENABLE_ALL_FALSE='#'
+else
+  ENABLE_ALL_TRUE='#'
+  ENABLE_ALL_FALSE=
+fi
+
+if test "$enable_all" = "yes"; then
+enable_xfs="yes"
+enable_reiserfs="yes"
+enable_reiser4="yes"
+enable_hfsp="yes"
+fi
 
 ##XFS##
 # Check whether --enable-test was given.
@@ -8539,6 +8562,13 @@ echo "$as_me: error: conditional \"am__fastdepCC\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
+if test -z "${ENABLE_ALL_TRUE}" && test -z "${ENABLE_ALL_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"ENABLE_ALL\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"ENABLE_ALL\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
 if test -z "${ENABLE_XFS_TRUE}" && test -z "${ENABLE_XFS_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"ENABLE_XFS\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
@@ -9266,6 +9296,8 @@ LN_S!$LN_S$ac_delim
 CPP!$CPP$ac_delim
 GREP!$GREP$ac_delim
 EGREP!$EGREP$ac_delim
+ENABLE_ALL_TRUE!$ENABLE_ALL_TRUE$ac_delim
+ENABLE_ALL_FALSE!$ENABLE_ALL_FALSE$ac_delim
 ENABLE_XFS_TRUE!$ENABLE_XFS_TRUE$ac_delim
 ENABLE_XFS_FALSE!$ENABLE_XFS_FALSE$ac_delim
 ENABLE_REISERFS_TRUE!$ENABLE_REISERFS_TRUE$ac_delim
@@ -9280,7 +9312,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 18; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 20; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

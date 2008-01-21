@@ -65,7 +65,7 @@ int main(int argc, char **argv){
     /// get image information from image file
     restore_image_hdr(&dfr, &opt, &image_hdr);
     if (memcmp(image_hdr.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE) != 0)
-	log_mesg(0, 1, 1, debug, "The Image magic error\n");
+	log_mesg(0, 1, 1, debug, "The Image magic error. This file is NOT partclone Image\n");
 
     /// alloc a memory to restore bitmap
     bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);

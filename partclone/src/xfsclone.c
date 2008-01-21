@@ -33,14 +33,15 @@ static void addToHist(int dwAgNo, int dwAgBlockNo, int qwLen, char* bitmap)
 {
     int bit;
     int qwBase, i;
+    int debug = 2;
 
     qwBase = (dwAgNo * mp->m_sb.sb_agblocks) + dwAgBlockNo;
-    //log_mesg(0, 0, 0, debug, "addTohits:%i,\t%i,\t%i,\t%i\n",dwAgNo, dwAgBlockNo, qwLen, qwBase);
+    log_mesg(2, 0, 0, debug, "addTohits:%i,\t%i,\t%i,\t%i\n",dwAgNo, dwAgBlockNo, qwLen, qwBase);
     for (i = 0; i < qwLen; i++)
     {
 	bit = qwBase + i -1;
 	bitmap[bit] = 0;
-	//log_mesg(0, 0, 0, debug, "add bit%i\n",bit);
+	log_mesg(3, 0, 0, debug, "add bit%i\n",bit);
     }
 
 }
@@ -51,12 +52,13 @@ static void scanfunc_bno(xfs_btree_sblock_t* ablock,  int level, xfs_agf_t* agf,
     int			i;
     xfs_alloc_ptr_t 	*pp;
     xfs_alloc_rec_t	*rp;
+    int			debug = 2;
 
     if (level == 0) 
     {
 	rp = XFS_BTREE_REC_ADDR(mp->m_sb.sb_blocksize, xfs_alloc, block, 1, mp->m_alloc_mxr[0]);
 	for (i = 0; i < INT_GET(block->bb_numrecs, ARCH_CONVERT); i++){
-	    //log_mesg(0, 0, 0, debug, "scan:%i,\t%i,\t%i\n", (int)INT_GET(agf->agf_seqno, ARCH_CONVERT), (int)INT_GET(rp[i].ar_startblock, ARCH_CONVERT), (int)INT_GET(rp[i].ar_blockcount, ARCH_CONVERT));
+	    log_mesg(2, 0, 0, debug, "scan:%i,\t%i,\t%i\n", (int)INT_GET(agf->agf_seqno, ARCH_CONVERT), (int)INT_GET(rp[i].ar_startblock, ARCH_CONVERT), (int)INT_GET(rp[i].ar_blockcount, ARCH_CONVERT));
 	    addToHist((int)INT_GET(agf->agf_seqno, ARCH_CONVERT), (int)INT_GET(rp[i].ar_startblock, ARCH_CONVERT), (int)INT_GET(rp[i].ar_blockcount, ARCH_CONVERT), bitmap);
 	}
 	return;
@@ -74,7 +76,7 @@ static void scan_sbtree(xfs_agf_t* agf, xfs_agblock_t root, int nlevels, char* b
     void                *btree_bufp = NULL;
     xfs_btree_sblock_t  *data;
     int                 c, i;
-    int			debug = 1;
+    int			debug = 2;
 
     //read_bbs
     c = BBTOB(1 << mp->m_blkbb_log);
@@ -99,7 +101,7 @@ static void fs_open(char* device)
     xfs_agnumber_t  agno = 0;
     void            *bufp = NULL;
     int             c, i;
-    int		    debug = 1;
+    int		    debug = 2;
 
     x.dname = device;
     if (!libxfs_init(&x)) 
@@ -175,7 +177,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
     xfs_agblock_t   bno;
     xfs_agnumber_t  agno = 0;
     int             bfree = 0,  bused = 0;
-    int		    debug = 0;
+    int		    debug = 2;
 
 
     fs_open(device);
@@ -185,7 +187,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
 	log_mesg(0, 1, 1, debug, "mkfs not completed successfully\n");
     }
 
-    log_mesg(0, 0, 0, debug, "initial bitmap as used\n");
+    log_mesg(2, 0, 0, debug, "initial bitmap as used\n");
     for(bit = 0; bit < mp->m_sb.sb_dblocks; bit++)
     {
 	bitmap[bit] = 1;
@@ -212,7 +214,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
 	    {
 		bno = INT_GET(agfl->agfl_bno[b], ARCH_CONVERT);
 		addToHist((int)seqno, (int)bno, 1, bitmap);
-		//log_mesg(0, 0, 0, debug, "main:%i,\t%i,\t%i\n",(int)seqno, (int)bno, 1);
+		log_mesg(2, 0, 0, debug, "%i,\t%i,\t%i\n",(int)seqno, (int)bno, 1);
 
 		if (b == (int)INT_GET(agf->agf_fllast, ARCH_CONVERT))
 		{
@@ -234,10 +236,10 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
         if (bitmap[bit] == 1)
 	{
 	    bused++;
-	    //log_mesg(0, 0, 0, debug, "used b= %i\n", bit);
+	    log_mesg(3, 0, 0, debug, "used b= %i\n", bit);
 	} else {
 	    bfree++;
-	    //log_mesg(0, 0, 0, debug, "free b= %i\n", bit);
+	    log_mesg(3, 0, 0, debug, "free b= %i\n", bit);
 	}
     }
     //log_mesg(0, 0, 0, debug, "used = %i, free = %i\n", bused, bfree);

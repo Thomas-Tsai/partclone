@@ -23,6 +23,18 @@ AC_CHECK_HEADERS([ext2fs/ext2fs.h], ,
 AC_CHECK_LIB([ext2fs], [ext2fs_initialize], ,
     AC_MSG_ERROR([*** EXT2/3 library (libext2fs) not found]))
 
+##enable-all##
+AC_ARG_ENABLE(test,
+	        AS_HELP_STRING(--enable-all,enable all supported file system),
+	        enable_all=yes,
+)
+AM_CONDITIONAL(ENABLE_ALL, test "$enable_all" = yes)
+if test "$enable_all" = "yes"; then
+enable_xfs="yes"
+enable_reiserfs="yes"
+enable_reiser4="yes"
+enable_hfsp="yes"
+fi
 
 ##XFS##
 AC_ARG_ENABLE(test,

@@ -180,18 +180,23 @@ extern void open_log(){
 	}
 }
 
-extern void log_mesg(int log_errno, int log_exit, int log_stderr, int debug, const char *fmt, ...){
+extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, const char *fmt, ...){
 
     va_list args;
     va_start(args, fmt);
+
 	
     /// write log to stderr if log_stderr true
-    if(log_stderr)
+    if((log_stderr) && (log_level <= debug)){
         vfprintf(stderr, fmt, args);
+    }
 
     /// write log to log file if debug true
-    if(debug)
+    if(log_level <= debug){
 	vfprintf(msg, fmt, args);
+	//if (errno != 0)
+	//    fprintf(msg, "%s(%i), ", strerror(errno), errno);
+    }
     va_end(args);
 
     /// clear message
@@ -371,7 +376,7 @@ extern int open_target(char* target, cmd_opt* opt){
 		if (errno == EEXIST){
 		    log_mesg(0, 0, 1, debug, "Output file '%s' already exists.\nUse option --overwrite if you want to replace its content.\n", target);
 		}
-		log_mesg(0, 0, 1, debug, "%s: open %s error(%i)\n", __func__, target, errno);
+		log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
 	    }
     	}
     } else if((opt->restore) || (opt->dd)){		    /// always is device, restore to device=target
@@ -409,7 +414,7 @@ extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
         } else {
 	    count -= i;
 	    buf = i + (char *) buf;
-	    log_mesg(0, 0, 0, debug, "%s: read %li, %li left.\n",__func__, i, count);
+	    log_mesg(2, 0, 0, debug, "%s: read %li, %li left.\n",__func__, i, count);
         }
     }
     return size;
@@ -520,8 +525,11 @@ extern void print_finish_info(cmd_opt opt){
     bindtextdomain(PACKAGE, LOCALEDIR);
     textdomain(PACKAGE);
     if (opt.clone)
-		log_mesg(0, 0, 1, debug, _("Partclone successful clone device (%s) to image (%s)\n"), opt.source, opt.target);	
-	else if(opt.restore)
-		log_mesg(0, 0, 1, debug, _("Partclone successful restore image (%s) to device (%s)\n"), opt.source, opt.target);
+	log_mesg(0, 0, 1, debug, _("Partclone successful clone device (%s) to image (%s)\n"), opt.source, opt.target);	
+    else if(opt.restore)
+	log_mesg(0, 0, 1, debug, _("Partclone successful restore image (%s) to device (%s)\n"), opt.source, opt.target);
+    else if(opt.dd)
+	log_mesg(0, 0, 1, debug, _("Partclone successful clone device (%s) to device (%s)\n"), opt.source, opt.target);
+	    
 }
 

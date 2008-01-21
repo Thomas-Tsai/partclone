@@ -62,16 +62,16 @@ static int IsAllocationBlockUsed(UInt32 thisAllocationBlock, UInt8* allocationFi
 
 static void print_fork_data(HFSPlusForkData* fork){
     int i = 0;
-    int debug = 1;
+    int debug = 2;
 
     HFSPlusExtentDescriptor* exten;
-    log_mesg(0, 0, 0, debug, "logicalSize: %#lx\n", fork->logicalSize);
-    log_mesg(0, 0, 0, debug, "clumpSize: %i\n", reverseInt(fork->clumpSize));
-    log_mesg(0, 0, 0, debug, "totalBlocks: %i\n", reverseInt(fork->totalBlocks));
+    log_mesg(2, 0, 0, debug, "logicalSize: %#lx\n", fork->logicalSize);
+    log_mesg(2, 0, 0, debug, "clumpSize: %i\n", reverseInt(fork->clumpSize));
+    log_mesg(2, 0, 0, debug, "totalBlocks: %i\n", reverseInt(fork->totalBlocks));
     for (i = 0; i < 8; i++ ){
         exten = &fork->extents[i];
-        log_mesg(0, 0, 0, debug, "\texten %i startBlock: %i\n", i, reverseInt(exten->startBlock));
-        log_mesg(0, 0, 0, debug, "\texten %i blockCount: %i\n", i, reverseInt(fork->extents[i].blockCount));
+        log_mesg(2, 0, 0, debug, "\texten %i startBlock: %i\n", i, reverseInt(exten->startBlock));
+        log_mesg(2, 0, 0, debug, "\texten %i blockCount: %i\n", i, reverseInt(fork->extents[i].blockCount));
 
     }
 }
@@ -103,7 +103,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     UInt8 *buffer2;
     long int tb = 0, rb = 0, bused = 0, bfree = 0;
     UInt32 b;
-    int debug = 1;
+    int debug = 2;
 
     fs_open(device);
     tb = reverseInt((int)sb.totalBlocks);
@@ -122,17 +122,17 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     if (IsUsed){
             bused++;
             bitmap[b] = 1;
-	    //log_mesg(0, 0, 0, debug, "used b = %i\n", b);
+	    log_mesg(3, 0, 0, debug, "used b = %i\n", b);
         }else{
             bfree++;
             bitmap[b] = 0;
-	    //log_mesg(0, 0, 0, debug, "free b = %i\n", b);
+	    log_mesg(3, 0, 0, debug, "free b = %i\n", b);
         }
     }
     
-    log_mesg(0, 0, 0, 1, "rb:%i\n", rb);
-    log_mesg(0, 0, 0, 1, "bfree:%i\n", bfree);
-    log_mesg(0, 0, 0, 1, "bused:%i\n", bused);
+    log_mesg(2, 0, 0, 1, "rb:%i\n", rb);
+    log_mesg(2, 0, 0, 1, "bfree:%i\n", bfree);
+    log_mesg(2, 0, 0, 1, "bused:%i\n", bused);
     if(bfree != reverseInt((int)sb.freeBlocks))
         log_mesg(0, 1, 1, debug, "bitmap free count err, free:%i\n", bfree);
 
@@ -151,9 +151,9 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     image_hdr->device_size = reverseInt(sb.totalBlocks)*reverseInt(sb.blockSize);
     image_hdr->totalblock  = reverseInt(sb.totalBlocks);
     image_hdr->usedblocks  = reverseInt(sb.totalBlocks) - reverseInt(sb.freeBlocks);
-    log_mesg(0, 0, 0, 1, "blockSize:%i\n", reverseInt(sb.blockSize));
-    log_mesg(0, 0, 0, 1, "totalBlocks:%i\n", reverseInt(sb.totalBlocks));
-    log_mesg(0, 0, 0, 1, "freeBlocks:%i\n", reverseInt(sb.freeBlocks));
+    log_mesg(2, 0, 0, 2, "blockSize:%i\n", reverseInt(sb.blockSize));
+    log_mesg(2, 0, 0, 2, "totalBlocks:%i\n", reverseInt(sb.totalBlocks));
+    log_mesg(2, 0, 0, 2, "freeBlocks:%i\n", reverseInt(sb.freeBlocks));
     print_fork_data(&sb.allocationFile);
     print_fork_data(&sb.extentsFile);
     print_fork_data(&sb.catalogFile);

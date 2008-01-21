@@ -35,7 +35,7 @@ static void fs_open(char* device){
     int use_superblock = 0;
     int use_blocksize = 0;
     int flags;
-    int debug = 1;
+    int debug = 2;
 
     if (use_superblock && !use_blocksize)
     	use_blocksize = 1024;
@@ -83,9 +83,9 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     unsigned long long offset, current_block, block;
     unsigned long long free, used, gfree, gused;
     char *block_bitmap=NULL;
-    int debug = 1;
+    int debug = 2;
 
-    log_mesg(0, 0, 0, debug, "readbitmap %i\n",bitmap);
+    log_mesg(2, 0, 0, debug, "readbitmap %i\n",bitmap);
 
     fs_open(device);
 
@@ -123,12 +123,12 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
                     free++;
 		    gfree++;
                     bitmap[current_block] = 0;
-		    //log_mesg(0, 0, 0, 1, "free block %lu at group %i\n", (current_block), group);
+		    log_mesg(3, 0, 0, 1, "free block %lu at group %i\n", (current_block), group);
                 } else {
                     used++;
 		    gused++;
                     bitmap[current_block] = 1;
-		    //log_mesg(0, 0, 0, 1, "used block %lu at group %i\n", (current_block), group);
+		    log_mesg(3, 0, 0, 1, "used block %lu at group %i\n", (current_block), group);
                 }
             }
         block_bitmap += fs->super->s_blocks_per_group / 8; /// update extfs bitmap

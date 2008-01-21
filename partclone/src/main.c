@@ -115,7 +115,7 @@ int main(int argc, char **argv){
     if (geteuid() != 0)
 	log_mesg(0, 1, 1, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n"); 
     else
-	log_mesg(0, 0, 0, debug, "UID is root.\n");
+	log_mesg(1, 0, 0, debug, "UID is root.\n");
 
     /**
      * open source and target 
@@ -127,12 +127,12 @@ int main(int argc, char **argv){
     target = opt.target;
     dfr = open_source(source, &opt);
     if (dfr == -1) {
-	log_mesg(0, 1, 1, debug, "Error Exit (%i).\n", errno);
+	log_mesg(0, 1, 1, debug, "Erro EXIT.\n");
     }
 
     dfw = open_target(target, &opt);
     if (dfw == -1) {
-	log_mesg(0, 1, 1, debug, "Error Exit(%i).\n", errno);
+	log_mesg(0, 1, 1, debug, "Error Exit.\n");
     }
 
     /**
@@ -141,7 +141,7 @@ int main(int argc, char **argv){
      */
     if (opt.clone){
 
-	log_mesg(0, 0, 0, debug, "Initial image hdr: get Super Block from partition\n");
+	log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
 	
 	/// get Super Block information from partition
         initial_image_hdr(source, &image_hdr);
@@ -151,14 +151,14 @@ int main(int argc, char **argv){
 	/// alloc a memory to restore bitmap
 	bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
 	
-	log_mesg(0, 0, 0, debug, "initial main bitmap pointer %i\n", bitmap);
-	log_mesg(0, 0, 0, debug, "Initial image hdr: read bitmap table\n");
+	log_mesg(2, 0, 0, debug, "initial main bitmap pointer %i\n", bitmap);
+	log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
 	/// read and check bitmap from partition
-	log_mesg(0, 0, 0, debug, "Calculating bitmap ...\n");
+	log_mesg(1, 0, 0, debug, "Calculating bitmap ...\n");
 	readbitmap(source, image_hdr, bitmap);
 
-	log_mesg(0, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
+	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
 
 	/*
 	sf = lseek(dfw, 0, SEEK_SET);
@@ -179,7 +179,7 @@ int main(int argc, char **argv){
 
     } else if (opt.restore){
 
-	log_mesg(0, 0, 0, debug, "restore image hdr: get image_head from image file\n");
+	log_mesg(1, 0, 0, debug, "restore image hdr - get image_head from image file\n");
         /// get image information from image file
 	restore_image_hdr(&dfr, &opt, &image_hdr);
 
@@ -188,25 +188,25 @@ int main(int argc, char **argv){
 
 	/// check the image magic
 	if (memcmp(image_hdr.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE) != 0)
-	    log_mesg(0, 1, 1, debug, "This is nor partclone image.\n");
+	    log_mesg(0, 1, 1, debug, "This is not partclone image.\n");
 
 	/// check the file system
 	if (memcmp(image_hdr.fs, FS, FS_MAGIC_SIZE) != 0)
 	    log_mesg(0, 1, 1, debug, "The image file system error.\n");
 
-	log_mesg(0, 0, 0, debug, "initial main bitmap pointer %lli\n", bitmap);
-	log_mesg(0, 0, 0, debug, "Initial image hdr: read bitmap table\n");
+	log_mesg(2, 0, 0, debug, "initial main bitmap pointer %lli\n", bitmap);
+	log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
 	/// read and check bitmap from image file
-	log_mesg(0, 0, 0, debug, "Calculating bitmap ...\n");
+	log_mesg(1, 0, 0, debug, "Calculating bitmap ...\n");
 	get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
 	/// check the dest partition size.
 	check_size(&dfw, image_hdr.device_size);
 
-	log_mesg(0, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
+	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
     } else if (opt.dd){
-	log_mesg(0, 0, 0, debug, "Initial image hdr: get Super Block from partition\n");
+	log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
 
 	/// get Super Block information from partition
 	initial_image_hdr(source, &image_hdr);
@@ -216,17 +216,17 @@ int main(int argc, char **argv){
 	/// alloc a memory to restore bitmap
 	bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
 
-	log_mesg(0, 0, 0, debug, "initial main bitmap pointer %i\n", bitmap);
-	log_mesg(0, 0, 0, debug, "Initial image hdr: read bitmap table\n");
+	log_mesg(2, 0, 0, debug, "initial main bitmap pointer %i\n", bitmap);
+	log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
 	/// read and check bitmap from partition
-	log_mesg(0, 0, 0, debug, "Calculating bitmap ...\n");
+	log_mesg(1, 0, 0, debug, "Calculating bitmap ...\n");
 	readbitmap(source, image_hdr, bitmap);
 
-	log_mesg(0, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
+	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
     }
 
-    log_mesg(0, 0, 0, debug, "print image_head\n");
+    log_mesg(1, 0, 0, debug, "print image_head\n");
 
     /// print image_head
     print_image_hdr_info(image_hdr, opt);
@@ -237,7 +237,7 @@ int main(int argc, char **argv){
     start = 0;				/// start number of progress bar
     stop = (int)image_hdr.usedblocks;	/// get the end of progress number, only used block
     res = 100;				/// the end of progress number
-    log_mesg(0, 0, 0, debug, "Initial Progress bar\n");
+    log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
     progress_init(&prog, start, stop, res, (int)image_hdr.block_size);
     copied = 1;				/// initial number is 1
@@ -259,7 +259,7 @@ int main(int argc, char **argv){
 
 	/// read data from the first block and log the offset
 	sf = lseek(dfr, 0, SEEK_SET);
-	log_mesg(0, 0, 0, debug, "seek %lli for reading data string\n",sf);
+	log_mesg(1, 0, 0, debug, "seek %lli for reading data string\n",sf);
         if (sf == (off_t)-1)
 	    log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
 
@@ -271,15 +271,14 @@ int main(int argc, char **argv){
 	    
 	    r_size = 0;
 	    w_size = 0;
-	    log_mesg(0, 0, 0, debug, "block_id=%lli, ",block_id);
 
 	    if((image_hdr.totalblock - 1 ) == block_id) 
 		done = 1;
 
 	    if (bitmap[block_id] == 1){
 		/// if the block is used
-
-		log_mesg(0, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
+		log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
+		log_mesg(1, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 
 		offset = (off_t)(block_id * image_hdr.block_size);
 		//sf = lseek(dfr, offset, SEEK_SET);
@@ -289,7 +288,7 @@ int main(int argc, char **argv){
         	
 		/// read data from source to buffer
 		r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
-		log_mesg(0, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
+		log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
 		if (r_size != (int)image_hdr.block_size){
 
 		    if ((r_size == -1) && (errno == EIO)){
@@ -306,7 +305,7 @@ int main(int argc, char **argv){
         	
 		/// write buffer to target
 		w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
-		log_mesg(0, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
+		log_mesg(2, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
 		if (w_size != (int)image_hdr.block_size)
 		    log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
 
@@ -324,15 +323,17 @@ int main(int argc, char **argv){
         	
 		copied++;					/// count copied block
 		total_write += (unsigned long long)(w_size);	/// count copied size
-		log_mesg(0, 0, 0, debug, "total=%lli, ", total_write);
+		log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
 		
 		/// read or write error
 		if (r_size != w_size)
 		    log_mesg(0, 1, 1, debug, "read and write different\n");
+		log_mesg(1, 0, 0, debug, "end\n");
             } else {
 		/// if the block is not used, I just skip it.
+		log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
         	sf = lseek(dfr, image_hdr.block_size, SEEK_CUR);
-		log_mesg(0, 0, 0, debug, "skip seek=%lli, ",sf);
+		log_mesg(2, 0, 0, debug, "skip seek=%lli, ",sf);
                 if (sf == (off_t)-1)
                     log_mesg(0, 1, 1, debug, "clone seek error %lli errno=%i\n", (long long)offset, (int)errno);
 	    
@@ -341,8 +342,8 @@ int main(int argc, char **argv){
 		    progress_update(&prog, copied, done);
 		    s_count = 0;
 		}
+		log_mesg(2, 0, 0, debug, "end\n");
 	    }
-	    log_mesg(0, 0, 0, debug, "end\n");
         } /// end of for    
 	sync_data(dfw, &opt);	
     
@@ -359,7 +360,7 @@ int main(int argc, char **argv){
 
 	/// seek to the first
         sf = lseek(dfw, 0, SEEK_SET);
-	log_mesg(0, 0, 0, debug, "seek %lli for writing dtat string\n",sf);
+	log_mesg(1, 0, 0, debug, "seek %lli for writing dtat string\n",sf);
 	if (sf == (off_t)-1)
 	    log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
     
@@ -374,73 +375,75 @@ int main(int argc, char **argv){
 	/// start restore image file to partition
         for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
 
-	r_size = 0;
-	w_size = 0;
-        log_mesg(0, 0, 0, debug, "block_id=%lli, ",block_id);
+	    r_size = 0;
+	    w_size = 0;
 
-	if((block_id + 1) == image_hdr.totalblock) 
-	    done = 1;
+	    if((block_id + 1) == image_hdr.totalblock) 
+		done = 1;
 
-    	if (bitmap[block_id] == 1){ 
-	    /// The block is used
-	    log_mesg(0, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
+	    if (bitmap[block_id] == 1){ 
+		/// The block is used
+		log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
+		log_mesg(1, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 
-	    offset = (off_t)(block_id * image_hdr.block_size);
-	    //sf = lseek(dfw, offset, SEEK_SET);
-            //if (sf == (off_t)-1)
-            //    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
-	    buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
-	    r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
-	    log_mesg(0, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
-	    if (r_size <0)
-		log_mesg(0, 1, 1, debug, "read errno = %i \n", errno);
+		offset = (off_t)(block_id * image_hdr.block_size);
+		//sf = lseek(dfw, offset, SEEK_SET);
+		//if (sf == (off_t)-1)
+		//    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
+		buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
+		r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
+		log_mesg(0, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
+		if (r_size <0)
+		    log_mesg(0, 1, 1, debug, "read errno = %i \n", errno);
 
-	    /// write block from buffer to partition
-	    w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
-	    log_mesg(0, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
-	    if (w_size != (int)image_hdr.block_size)
-		log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
+		/// write block from buffer to partition
+		w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
+		log_mesg(1, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
+		if (w_size != (int)image_hdr.block_size)
+		    log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
 
-	    /// read crc32 code and check it.
-	    crc_ck = crc32(crc_ck, buffer, r_size);
-            crc_buffer = (char*)malloc(sizeof(unsigned long)); ///alloc a memory to copy data
-	    c_size = read_all(&dfr, crc_buffer, sizeof(unsigned long), &opt);
-	    memcpy(&crc, crc_buffer, sizeof(unsigned long));
-	    if (memcmp(&crc, &crc_ck, sizeof(unsigned long)) != 0)
-		log_mesg(0, 1, 1, debug, "CRC Check  error\n OrigCRC:0x%08lX, DestCRC:0x%08lX", crc, crc_ck);
+		/// read crc32 code and check it.
+		crc_ck = crc32(crc_ck, buffer, r_size);
+		crc_buffer = (char*)malloc(sizeof(unsigned long)); ///alloc a memory to copy data
+		c_size = read_all(&dfr, crc_buffer, sizeof(unsigned long), &opt);
+		memcpy(&crc, crc_buffer, sizeof(unsigned long));
+		if (memcmp(&crc, &crc_ck, sizeof(unsigned long)) != 0)
+		    log_mesg(0, 1, 1, debug, "CRC Check  error\n OrigCRC:0x%08lX, DestCRC:0x%08lX", crc, crc_ck);
 
-	    /// free buffer
-	    free(buffer);
-	    free(crc_buffer);
+		/// free buffer
+		free(buffer);
+		free(crc_buffer);
 
-	    progress_update(&prog, copied, done);
-
-       	    copied++;					/// count copied block
-	    total_write += (unsigned long long) w_size;	/// count copied size
-
-	    /// read or write error
-	    //if ((r_size != w_size) || (r_size != image_hdr.block_size))
-	    //	log_mesg(0, 1, 1, debug, "read and write different\n");
-       	} else {
-
-	    /// if the block is not used, I just skip it.
-	    sf = lseek(dfw, image_hdr.block_size, SEEK_CUR);
-	    log_mesg(0, 0, 0, debug, "seek=%lli, ",sf);
-	    if (sf == (off_t)-1)
-		log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
-	    s_count++;
-	    if ((s_count >=100) || (done == 1)){
 		progress_update(&prog, copied, done);
-		s_count = 0;
+
+		copied++;					/// count copied block
+		total_write += (unsigned long long) w_size;	/// count copied size
+
+		/// read or write error
+		//if ((r_size != w_size) || (r_size != image_hdr.block_size))
+		//	log_mesg(0, 1, 1, debug, "read and write different\n");
+		log_mesg(1, 0, 0, debug, "end\n");
+	    } else {
+
+		/// if the block is not used, I just skip it.
+		log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
+		sf = lseek(dfw, image_hdr.block_size, SEEK_CUR);
+		log_mesg(2, 0, 0, debug, "seek=%lli, ",sf);
+		if (sf == (off_t)-1)
+		    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
+		s_count++;
+		if ((s_count >=100) || (done == 1)){
+		    progress_update(&prog, copied, done);
+		    s_count = 0;
+		}
+		log_mesg(2, 0, 0, debug, "end\n");
 	    }
-	}
-	log_mesg(0, 0, 0, debug, "end\n");
 
     	} // end of for
 	sync_data(dfw, &opt);	
     } else if (opt.dd){
 	sf = lseek(dfr, 0, SEEK_SET);
-	log_mesg(0, 0, 0, debug, "seek %lli for reading data string\n",sf);
+	log_mesg(1, 0, 0, debug, "seek %lli for reading data string\n",sf);
 	if (sf == (off_t)-1)
 	    log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
 
@@ -450,7 +453,6 @@ int main(int argc, char **argv){
         for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
 	    r_size = 0;
 	    w_size = 0;
-	    log_mesg(0, 0, 0, debug, "block_id=%lli, ",block_id);
 
 	    if((image_hdr.totalblock - 1 ) == block_id)
 		done = 1;
@@ -458,12 +460,13 @@ int main(int argc, char **argv){
 	    if (bitmap[block_id] == 1){
 		/// if the block is used
 
-		log_mesg(0, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
+		log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
+		log_mesg(1, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 		offset = (off_t)(block_id * image_hdr.block_size);
 		buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
 		/// read data from source to buffer
 		r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
-		log_mesg(0, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
+		log_mesg(2, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
 		if (r_size != (int)image_hdr.block_size){
 		    if ((r_size == -1) && (errno == EIO)){
 			if (opt.rescue){
@@ -479,7 +482,7 @@ int main(int argc, char **argv){
 
 		/// write buffer to target
 		w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
-		log_mesg(0, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
+		log_mesg(1, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
 		if (w_size != (int)image_hdr.block_size)
 		    log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
 
@@ -488,16 +491,18 @@ int main(int argc, char **argv){
 		progress_update(&prog, copied, done);
 		copied++;                                       /// count copied block
 		total_write += (unsigned long long)(w_size);    /// count copied size
-		log_mesg(0, 0, 0, debug, "total=%lli, ", total_write);
+		log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
 		/// read or write error
 		if (r_size != w_size)
 		    log_mesg(0, 1, 1, debug, "read and write different\n");
+		log_mesg(1, 0, 0, debug, "end\n");
 	    } else {
 		/// if the block is not used, I just skip it.
+		log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
 		sf = lseek(dfr, image_hdr.block_size, SEEK_CUR);
-		log_mesg(0, 0, 0, debug, "skip source seek=%lli, ",sf);
+		log_mesg(2, 0, 0, debug, "skip source seek=%lli, ",sf);
 		sf = lseek(dfw, image_hdr.block_size, SEEK_CUR);
-		log_mesg(0, 0, 0, debug, "skip target seek=%lli, ",sf);
+		log_mesg(2, 0, 0, debug, "skip target seek=%lli, ",sf);
 		if (sf == (off_t)-1)
 		    log_mesg(0, 1, 1, debug, "clone seek error %lli errno=%i\n", (long long)offset, (int)errno);
 		s_count++;
@@ -506,8 +511,8 @@ int main(int argc, char **argv){
 		     s_count = 0;
 		}
 
+		log_mesg(2, 0, 0, debug, "end\n");
 	    }
-	    log_mesg(0, 0, 0, debug, "end\n");
 	} /// end of for
 	sync_data(dfw, &opt);
     }
