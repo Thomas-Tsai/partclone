@@ -60,7 +60,7 @@ extern void usage(void)
         "    -r, --restore          Restore from the special image format\n"
 	"    -b, --dd-mode          Save to sector-to-sector format\n"
         "    -d, --debug            Show debug information\n"
-        "    -R, --rescu            Continue after disk read errors\n"
+        "    -R, --rescue           Continue after disk read errors\n"
         "    -h, --help             Display this help\n"
     , EXECNAME, VERSION, svn_version, EXECNAME);
     exit(0);
