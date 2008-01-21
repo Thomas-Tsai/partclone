@@ -53,22 +53,22 @@ extern void usage(void)
     fprintf(stderr, "%s v%s (%s) http://partclone.sourceforge.net\nUsage: %s [OPTIONS]\n"
         "    Efficiently clone to a image, device or standard output.\n"
         "\n"
-        "    -o, --output FILE      Output FILE\n"
-	"    -O  --overwrite FILE   Output FILE, overwriting if exists\n"
-	"    -s, --source FILE      Source FILE\n"
-        "    -c, --clone            Save to the special image format\n"
-        "    -r, --restore          Restore from the special image format\n"
-	"    -b, --dd-mode          Save to sector-to-sector format\n"
-        "    -d, --debug            Show debug information\n"
-        "    -R, --rescue           Continue after disk read errors\n"
-        "    -h, --help             Display this help\n"
+        "    -o,  --output FILE      Output FILE\n"
+	"    -O   --overwrite FILE   Output FILE, overwriting if exists\n"
+	"    -s,  --source FILE      Source FILE\n"
+        "    -c,  --clone            Save to the special image format\n"
+        "    -r,  --restore          Restore from the special image format\n"
+	"    -b,  --dd-mode          Save to sector-to-sector format\n"
+        "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
+        "    -R,  --rescue           Continue after disk read errors\n"
+        "    -h,  --help             Display this help\n"
     , EXECNAME, VERSION, svn_version, EXECNAME);
     exit(0);
 }
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hdcbro:O:s:R";
+    static const char *sopt = "-hd::cbro:O:s:R";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "output",		required_argument,  NULL,   'o' },
@@ -77,7 +77,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "restore-image",	no_argument,	    NULL,   'r' },
         { "clone-image",	no_argument,	    NULL,   'c' },
         { "dd-mode",		no_argument,	    NULL,   'b' },
-        { "debug",		no_argument,	    NULL,   'd' },
+        { "debug",		optional_argument,  NULL,   'd' },
         { "rescue",		no_argument,	    NULL,   'R' },
         { NULL,			0,		    NULL,    0  }
     };
@@ -85,6 +85,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     char c;
     int mode = 0;
     memset(opt, 0, sizeof(cmd_opt));
+    opt->debug = 0;
 
     while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != (char)-1) {
             switch (c) {
@@ -115,7 +116,10 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 		    mode++;
                     break;
             case 'd':
-                    opt->debug++;
+		    if (optarg)
+			opt->debug = atol(optarg);
+		    else
+			opt->debug = 1;
                     break;
 	    case 'R':
 		    opt->rescue++;
@@ -130,6 +134,11 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 	//fprintf(stderr, ".\n")
 	usage();
     }
+
+    if (!opt->debug){
+	opt->debug = 0;
+    }
+    //printf("debug %i\n", opt->debug);
         
     if (opt->target == NULL) {
 	//fprintf(stderr, "You use specify output file like stdout. or --help get more info.\n");
@@ -485,7 +494,24 @@ extern unsigned long crc32(unsigned long crc, char *buf, int size){
     return crc;
 }
 
+/// print options to log file
+extern void print_opt(cmd_opt opt){
+    int debug = opt.debug;
+    
+    if (opt.clone)
+	log_mesg(1, 0, 0, debug, "MODE: clone\n");
+    else if (opt.restore)
+	log_mesg(1, 0, 0, debug, "MODE: restore\n");
+    else if (opt.dd)
+	log_mesg(1, 0, 0, debug, "MODE: device to device\n");
 
+    log_mesg(1, 0, 0, debug, "DEBUG: %i\n", opt.debug);
+    log_mesg(1, 0, 0, debug, "SOURCE: %s\n", opt.source);
+    log_mesg(1, 0, 0, debug, "TARGET: %s\n", opt.target);
+    log_mesg(1, 0, 0, debug, "OVERWRITE: %i\n", opt.overwrite);
+    log_mesg(1, 0, 0, debug, "RESCUE: %i\n", opt.rescue);
+
+}
 
 /// print image head
 extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){

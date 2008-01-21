@@ -228,6 +228,10 @@ int main(int argc, char **argv){
 
     log_mesg(1, 0, 0, debug, "print image_head\n");
 
+    /// print option to log file
+    if (debug)
+	print_opt(opt);
+
     /// print image_head
     print_image_hdr_info(image_hdr, opt);
 	
@@ -392,7 +396,7 @@ int main(int argc, char **argv){
 		//    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
 		buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
 		r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
-		log_mesg(0, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
+		log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
 		if (r_size <0)
 		    log_mesg(0, 1, 1, debug, "read errno = %i \n", errno);
 
@@ -466,7 +470,7 @@ int main(int argc, char **argv){
 		buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
 		/// read data from source to buffer
 		r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
-		log_mesg(2, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
+		log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
 		if (r_size != (int)image_hdr.block_size){
 		    if ((r_size == -1) && (errno == EIO)){
 			if (opt.rescue){

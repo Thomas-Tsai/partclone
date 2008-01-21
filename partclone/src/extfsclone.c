@@ -83,7 +83,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     unsigned long long offset, current_block, block;
     unsigned long long free, used, gfree, gused;
     char *block_bitmap=NULL;
-    int debug = 2;
+    int debug = 1;
 
     log_mesg(2, 0, 0, debug, "readbitmap %i\n",bitmap);
 
