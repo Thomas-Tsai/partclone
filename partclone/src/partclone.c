@@ -18,6 +18,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/mount.h>
@@ -239,6 +240,7 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
     free(buffer);
 }
 
+/// check partition size
 extern void check_size(int* ret, unsigned long long size){
 
     unsigned long long dest_size;
@@ -249,8 +251,40 @@ extern void check_size(int* ret, unsigned long long size){
 	dest_size = (unsigned long long)(512*dest_block);
 
     if (dest_size < size)
-	log_mesg(0, 1, 1, debug, "The dest partition size is small than original partition.(%lli<%lli)\n", dest_size, size);
+	log_mesg(0, 1, 1, debug, "The dest partition size is small than original partition.(%lliMB < %lliMB)\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
 }
+
+/// chech free space 
+extern void check_free_space(int* ret, unsigned long long size){
+
+    unsigned long long dest_size;
+    struct statvfs stvfs;
+    struct stat stat;
+    int debug = 1;
+
+    if (fstatvfs(*ret, &stvfs) == -1) {
+        printf("WARNING: Unknown free space on the destination: %s\n",
+        strerror(errno));
+        return;
+    }
+    /* if file is a FIFO there is no point in checking the size */
+    if (!fstat(*ret, &stat)) {
+        if (S_ISFIFO(stat.st_mode))
+            return;
+    } else {
+        printf("WARNING: Couldn't get file info because of the following error: %s\n",
+        strerror(errno));
+    }
+
+    dest_size = (unsigned long long)stvfs.f_frsize * stvfs.f_bfree;
+    if (!dest_size)
+            dest_size = (unsigned long long)stvfs.f_bsize * stvfs.f_bfree;
+
+    if (dest_size < size)
+            log_mesg(0, 1, 1, debug, "Destination doesn't have enough free space: %llu MB < %llu MB\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
+//            log_mesg(0, 1, 1, debug, "Destination doesn't have enough free space: %llu MB < %llu MB\n", dest_size, size);
+}
+
 
 extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* bitmap){
     int size, r_size;

@@ -74,6 +74,7 @@ int main(int argc, char **argv){
     off_t		offset = 0, sf = 0;	/// seek postition, lseek result
     int			start, res, stop;	/// start, range, stop number for progress bar
     unsigned long long	total_write = 0;	/// the copied size 
+    unsigned long long	needed_size = 0;	/// the copied size 
     char		bitmagic[8] = "BiTmAgIc";// only for check postition
     char		bitmagic_r[8];		/// read magic string from image
     int			cmp;			/// compare magic string
@@ -158,6 +159,9 @@ int main(int argc, char **argv){
 	log_mesg(1, 0, 0, debug, "Calculating bitmap ...\n");
 	readbitmap(source, image_hdr, bitmap);
 
+	needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
+	check_free_space(&dfw, needed_size);
+
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
 
 	/*
@@ -192,7 +196,7 @@ int main(int argc, char **argv){
 
 	/// check the file system
 	if (memcmp(image_hdr.fs, FS, FS_MAGIC_SIZE) != 0)
-	    log_mesg(0, 1, 1, debug, "The image file system error.\n");
+	    log_mesg(0, 1, 1, debug, "Partclone can't restore partition from the image because the file system is different.\n");
 
 	log_mesg(2, 0, 0, debug, "initial main bitmap pointer %lli\n", bitmap);
 	log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");

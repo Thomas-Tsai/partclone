@@ -34,7 +34,7 @@
 #define SECTOR_SIZE 512
 
 // Reference: ntfsclone.c
-#define MBYTE (1000 * 1000)
+#define MBYTE (1024 * 1024)
 #define print_size(a, b) (((a) + (b - 1)) / (b))
 
 // define read and write
@@ -115,6 +115,9 @@ extern int open_target(char* target, cmd_opt* opt);
 
 /// check partition size
 extern void check_size(int* ret, unsigned long long size);
+
+/// check free space
+extern void check_free_space(int* ret, unsigned long long size);
 
 /// generate crc32 code
 extern unsigned long crc32(unsigned long crc, char *buf, int size);
