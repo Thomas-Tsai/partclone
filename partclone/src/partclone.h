@@ -34,7 +34,7 @@
 #define SECTOR_SIZE 512
 
 // Reference: ntfsclone.c
-#define MBYTE (1024 * 1024)
+#define MBYTE (1000 * 1000)
 #define print_size(a, b) (((a) + (b - 1)) / (b))
 
 // define read and write
