@@ -75,6 +75,7 @@ int main(int argc, char **argv){
     int			start, res, stop;	/// start, range, stop number for progress bar
     unsigned long long	total_write = 0;	/// the copied size 
     unsigned long long	needed_size = 0;	/// the copied size 
+    unsigned long long	needed_mem  = 0;	/// the copied size 
     char		bitmagic[8] = "BiTmAgIc";// only for check postition
     char		bitmagic_r[8];		/// read magic string from image
     int			cmp;			/// compare magic string
@@ -147,17 +148,25 @@ int main(int argc, char **argv){
 	/// get Super Block information from partition
         initial_image_hdr(source, &image_hdr);
 
+        /// check memory size
+        if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
+            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
+            
 	memcpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
 	/// alloc a memory to restore bitmap
 	bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+        if(bitmap == NULL){
+            log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+        }
 	
 	log_mesg(2, 0, 0, debug, "initial main bitmap pointer %i\n", bitmap);
 	log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
 	/// read and check bitmap from partition
-	log_mesg(1, 0, 0, debug, "Calculating bitmap ...\n");
+	log_mesg(1, 0, 0, debug, "Calculating bitmap ...");
 	readbitmap(source, image_hdr, bitmap);
+	log_mesg(1, 0, 0, debug, "done\n");
 
 	needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
 	check_free_space(&dfw, needed_size);
@@ -186,9 +195,16 @@ int main(int argc, char **argv){
 	log_mesg(1, 0, 0, debug, "restore image hdr - get image_head from image file\n");
         /// get image information from image file
 	restore_image_hdr(&dfr, &opt, &image_hdr);
+        
+        /// check memory size
+        if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
+            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
 
 	/// alloc a memory to restore bitmap
 	bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+        if(bitmap == NULL){
+            log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+        }
 
 	/// check the image magic
 	if (memcmp(image_hdr.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE) != 0)
@@ -215,10 +231,17 @@ int main(int argc, char **argv){
 	/// get Super Block information from partition
 	initial_image_hdr(source, &image_hdr);
 
+        /// check memory size
+        if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
+            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
+
 	memcpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
 	/// alloc a memory to restore bitmap
 	bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+        if(bitmap == NULL){
+            log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+        }
 
 	log_mesg(2, 0, 0, debug, "initial main bitmap pointer %i\n", bitmap);
 	log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
@@ -293,6 +316,9 @@ int main(int argc, char **argv){
                 //if (sf == (off_t)-1)
                 //    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
         	buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
+                if(buffer == NULL){
+                    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+                }
         	
 		/// read data from source to buffer
 		r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
@@ -319,6 +345,9 @@ int main(int argc, char **argv){
 
 		/// generate crc32 code and write it.
         	crc_buffer = (char*)malloc(sizeof(unsigned long)); ///alloc a memory to copy data
+                if(crc_buffer == NULL){
+                    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+                }
 		crc = crc32(crc, buffer, w_size);
 		memcpy(crc_buffer, &crc, sizeof(unsigned long));
 		c_size = write_all(&dfw, crc_buffer, sizeof(unsigned long), &opt);
@@ -399,6 +428,9 @@ int main(int argc, char **argv){
 		//if (sf == (off_t)-1)
 		//    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
 		buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
+                if(buffer == NULL){
+                    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+                }
 		r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
 		log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
 		if (r_size <0)
@@ -413,6 +445,9 @@ int main(int argc, char **argv){
 		/// read crc32 code and check it.
 		crc_ck = crc32(crc_ck, buffer, r_size);
 		crc_buffer = (char*)malloc(sizeof(unsigned long)); ///alloc a memory to copy data
+                if(crc_buffer == NULL){
+                    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+                }
 		c_size = read_all(&dfr, crc_buffer, sizeof(unsigned long), &opt);
 		memcpy(&crc, crc_buffer, sizeof(unsigned long));
 		if (memcmp(&crc, &crc_ck, sizeof(unsigned long)) != 0)
@@ -472,6 +507,9 @@ int main(int argc, char **argv){
 		log_mesg(1, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 		offset = (off_t)(block_id * image_hdr.block_size);
 		buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
+                if(buffer == NULL){
+                    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+                }
 		/// read data from source to buffer
 		r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
 		log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);

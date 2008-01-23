@@ -285,7 +285,29 @@ extern void check_free_space(int* ret, unsigned long long size){
 //            log_mesg(0, 1, 1, debug, "Destination doesn't have enough free space: %llu MB < %llu MB\n", dest_size, size);
 }
 
+/// check free memory size
+extern int check_mem_size(image_head image_hdr, cmd_opt opt, unsigned long long *mem_size){
+    unsigned long long image_head_size = 0;
+    unsigned long long bitmap_size = 0;
+    int crc_io_size = 0;
+    void *test_mem;
 
+    image_head_size = sizeof(image_head);
+    bitmap_size = (sizeof(char)*image_hdr.totalblock);
+    crc_io_size = sizeof(unsigned long)+image_hdr.block_size;
+    *mem_size = image_head_size + bitmap_size + crc_io_size;
+
+    test_mem = malloc(*mem_size);
+    if (test_mem == NULL){
+        free(test_mem);
+        return -1;
+    } else {
+        free(test_mem);
+    }
+    return 1;
+}
+
+/// get bitmap from image file to restore data
 extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* bitmap){
     int size, r_size;
     int do_write = 0;

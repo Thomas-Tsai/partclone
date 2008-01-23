@@ -119,6 +119,9 @@ extern void check_size(int* ret, unsigned long long size);
 /// check free space
 extern void check_free_space(int* ret, unsigned long long size);
 
+/// check free memory size
+extern int check_mem_size(image_head image_hdr, cmd_opt opt, unsigned long long *mem_size);
+
 /// generate crc32 code
 extern unsigned long crc32(unsigned long crc, char *buf, int size);
 
