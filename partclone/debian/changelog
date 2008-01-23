@@ -1,3 +1,9 @@
+partclone (0.0.5-10) unstable; urgency=low
+
+  * Functions to check memory size, check_free_space were added by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed,  23 Jan 2008 22:57:00 +0800
+
 partclone (0.0.5-9) unstable; urgency=low
 
   * Thomas Tsai added:
