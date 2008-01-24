@@ -487,7 +487,7 @@ extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
 
 extern void sync_data(int fd, cmd_opt* opt)
 {
-    log_mesg(0, 0, 1, opt->debug, "Syncing ...");
+    log_mesg(0, 0, 1, opt->debug, "Syncing... ");
 	if (fsync(fd) && errno != EINVAL)
 	log_mesg(0, 1, 1, opt->debug, "fsync error: errno = %i\n", errno);
     log_mesg(0, 0, 1, opt->debug, "OK!\n");
