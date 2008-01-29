@@ -1,3 +1,9 @@
+partclone (0.0.5-11) unstable; urgency=low
+
+  * Bug fixed by Thomas Tsai: Partition size checking failed
+
+ -- Steven Shiau <steven@nchc.org.tw>  Tue,  29 Jan 2008 16:47:00 +0800
+
 partclone (0.0.5-10) unstable; urgency=low
 
   * Functions to check memory size, check_free_space were added by Thomas Tsai.
