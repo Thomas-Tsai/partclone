@@ -244,14 +244,14 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
 extern void check_size(int* ret, unsigned long long size){
 
     unsigned long long dest_size;
-    long dest_block;
+    unsigned long long dest_block;
     int debug = 1;
 
     if (ioctl(*ret, BLKGETSIZE, &dest_block) >= 0)
 	dest_size = (unsigned long long)(512*dest_block);
 
     if (dest_size < size)
-	log_mesg(0, 1, 1, debug, "The dest partition size is small than original partition.(%lliMB < %lliMB)\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
+	log_mesg(0, 1, 1, debug, "The dest partition size is smaller than original partition. (Target: %lliMB < Original: %lliMB)\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
 }
 
 /// chech free space 
