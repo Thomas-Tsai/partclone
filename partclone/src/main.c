@@ -311,6 +311,10 @@ int main(int argc, char **argv){
 	    if((image_hdr.totalblock - 1 ) == block_id) 
 		done = 1;
 
+#ifdef _FILE_OFFSET_BITS
+	    if( copied == image_hdr.usedblocks ) 
+		done = 1;
+#endif
 	    if (bitmap[block_id] == 1){
 		/// if the block is used
 		log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
@@ -389,7 +393,6 @@ int main(int argc, char **argv){
 		}
 		log_mesg(2, 0, 0, debug, "end\n");
 #endif
-		progress_update(&prog, copied, done);
 	    }
         } /// end of for    
 	sync_data(dfw, &opt);	
@@ -428,6 +431,10 @@ int main(int argc, char **argv){
 	    if((block_id + 1) == image_hdr.totalblock) 
 		done = 1;
 
+#ifdef _FILE_OFFSET_BITS
+	    if( copied == image_hdr.usedblocks ) 
+		done = 1;
+#endif
 	    if (bitmap[block_id] == 1){ 
 		/// The block is used
 		log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
@@ -493,7 +500,6 @@ int main(int argc, char **argv){
 		}
 		log_mesg(2, 0, 0, debug, "end\n");
 #endif
-		progress_update(&prog, copied, done);
 	    }
 
     	} // end of for
@@ -514,6 +520,10 @@ int main(int argc, char **argv){
 	    if((image_hdr.totalblock - 1 ) == block_id)
 		done = 1;
 
+#ifdef _FILE_OFFSET_BITS
+	    if( copied == image_hdr.usedblocks ) 
+		done = 1;
+#endif
 	    if (bitmap[block_id] == 1){
 		/// if the block is used
 
@@ -582,7 +592,6 @@ int main(int argc, char **argv){
 
 		log_mesg(2, 0, 0, debug, "end\n");
 #endif
-		progress_update(&prog, copied, done);
 	    }
 	} /// end of for
 	sync_data(dfw, &opt);
