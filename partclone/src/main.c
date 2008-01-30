@@ -25,7 +25,6 @@
 #include <string.h>
 #include <unistd.h>
 
-
 /**
  * progress.h - only for progress bar
  */
@@ -125,6 +124,9 @@ int main(int argc, char **argv){
      * restore mode, source is image file/stdin and target is device
      * dd mode, source is device and target is device !!not complete
      */
+#ifdef _FILE_OFFSET_BITS
+    log_mesg(1, 0, 0, debug, "enable _FILE_OFFSET_BITS %i\n", _FILE_OFFSET_BITS);
+#endif
     source = opt.source;
     target = opt.target;
     dfr = open_source(source, &opt);
@@ -312,9 +314,11 @@ int main(int argc, char **argv){
 		log_mesg(1, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 
 		offset = (off_t)(block_id * image_hdr.block_size);
-		//sf = lseek(dfr, offset, SEEK_SET);
-                //if (sf == (off_t)-1)
-                //    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
+#ifdef _FILE_OFFSET_BITS
+		sf = lseek(dfr, offset, SEEK_SET);
+		if (sf == -1)
+		    log_mesg(1, 0, 0, debug, "source seek error = %lli, ",sf);
+#endif
         	buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
                 if(buffer == NULL){
                     log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
@@ -367,6 +371,7 @@ int main(int argc, char **argv){
 		    log_mesg(0, 1, 1, debug, "read and write different\n");
 		log_mesg(1, 0, 0, debug, "end\n");
             } else {
+#ifndef _FILE_OFFSET_BITS
 		/// if the block is not used, I just skip it.
 		log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
         	sf = lseek(dfr, image_hdr.block_size, SEEK_CUR);
@@ -380,6 +385,7 @@ int main(int argc, char **argv){
 		    s_count = 0;
 		}
 		log_mesg(2, 0, 0, debug, "end\n");
+#endif
 	    }
         } /// end of for    
 	sync_data(dfw, &opt);	
@@ -424,9 +430,11 @@ int main(int argc, char **argv){
 		log_mesg(1, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 
 		offset = (off_t)(block_id * image_hdr.block_size);
-		//sf = lseek(dfw, offset, SEEK_SET);
-		//if (sf == (off_t)-1)
-		//    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
+#ifdef _FILE_OFFSET_BITS
+		sf = lseek(dfw, offset, SEEK_SET);
+		if (sf == -1)
+		    log_mesg(1, 0, 0, debug, "target seek error = %lli, ",sf);
+#endif
 		buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
                 if(buffer == NULL){
                     log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
@@ -467,7 +475,7 @@ int main(int argc, char **argv){
 		//	log_mesg(0, 1, 1, debug, "read and write different\n");
 		log_mesg(1, 0, 0, debug, "end\n");
 	    } else {
-
+#ifndef _FILE_OFFSET_BITS
 		/// if the block is not used, I just skip it.
 		log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
 		sf = lseek(dfw, image_hdr.block_size, SEEK_CUR);
@@ -480,6 +488,7 @@ int main(int argc, char **argv){
 		    s_count = 0;
 		}
 		log_mesg(2, 0, 0, debug, "end\n");
+#endif
 	    }
 
     	} // end of for
@@ -506,6 +515,14 @@ int main(int argc, char **argv){
 		log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
 		log_mesg(1, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 		offset = (off_t)(block_id * image_hdr.block_size);
+#ifdef _FILE_OFFSET_BITS
+		sf = lseek(dfr, offset, SEEK_SET);
+		if (sf == -1)
+		    log_mesg(1, 0, 0, debug, "source seek error = %lli, ",sf);
+		sf = lseek(dfw, offset, SEEK_SET);
+		if (sf == -1)
+		    log_mesg(1, 0, 0, debug, "target seek error = %lli, ",sf);
+#endif
 		buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
                 if(buffer == NULL){
                     log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
@@ -543,6 +560,7 @@ int main(int argc, char **argv){
 		    log_mesg(0, 1, 1, debug, "read and write different\n");
 		log_mesg(1, 0, 0, debug, "end\n");
 	    } else {
+#ifndef _FILE_OFFSET_BITS
 		/// if the block is not used, I just skip it.
 		log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
 		sf = lseek(dfr, image_hdr.block_size, SEEK_CUR);
@@ -558,6 +576,7 @@ int main(int argc, char **argv){
 		}
 
 		log_mesg(2, 0, 0, debug, "end\n");
+#endif
 	    }
 	} /// end of for
 	sync_data(dfw, &opt);
