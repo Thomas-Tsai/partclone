@@ -148,8 +148,8 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
     memcpy(image_hdr->fs, hfsplus_MAGIC, FS_MAGIC_SIZE);
     image_hdr->block_size  = reverseInt(sb.blockSize);
-    image_hdr->device_size = reverseInt(sb.totalBlocks)*reverseInt(sb.blockSize);
     image_hdr->totalblock  = reverseInt(sb.totalBlocks);
+    image_hdr->device_size = (unsigned long long)(image_hdr->block_size * image_hdr->totalblock);
     image_hdr->usedblocks  = reverseInt(sb.totalBlocks) - reverseInt(sb.freeBlocks);
     log_mesg(2, 0, 0, 2, "blockSize:%i\n", reverseInt(sb.blockSize));
     log_mesg(2, 0, 0, 2, "totalBlocks:%i\n", reverseInt(sb.totalBlocks));

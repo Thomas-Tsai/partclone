@@ -229,6 +229,7 @@ extern void close_log(){
 extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
     int r_size;
     char* buffer;
+    unsigned long long dev_size;
     int debug = opt->debug;
 
     buffer = (char*)malloc(sizeof(image_head));
@@ -238,6 +239,9 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
         log_mesg(0, 1, 1, debug, "read image_hdr error\n");
     memcpy(image_hdr, buffer, sizeof(image_head));
     free(buffer);
+    dev_size = (unsigned long long)(image_hdr->totalblock * image_hdr->block_size);
+    if (image_hdr->device_size != dev_size)
+	image_hdr->device_size = dev_size;
 }
 
 /// check partition size
