@@ -21,13 +21,13 @@ static void fs_close();
 static int block_size();
 
 /// get device size
-static int device_size(char* device);
+static unsigned long long device_size(char* device);
 
 /// get total block from super block
-static int block_count();
+static unsigned long long block_count();
 
 /// get used blocks ( total - free ) from super block
-static int get_used_blocks();
+static unsigned long long get_used_blocks();
 
 /// readbitmap - cread and heck bitmap, reference dumpe2fs
 extern void readbitmap(char* device, image_head image_hdr, char* bitmap);

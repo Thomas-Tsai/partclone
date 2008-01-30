@@ -60,6 +60,7 @@ struct cmd_opt
         char* target;
 	int overwrite;
 	int rescue;
+	int no_check;
 };
 typedef struct cmd_opt cmd_opt;
 extern void usage(void);

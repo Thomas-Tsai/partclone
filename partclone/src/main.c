@@ -171,7 +171,8 @@ int main(int argc, char **argv){
 	log_mesg(1, 0, 0, debug, "done\n");
 
 	needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
-	check_free_space(&dfw, needed_size);
+	if (!opt.no_check)
+	    check_free_space(&dfw, needed_size);
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
 
@@ -224,7 +225,8 @@ int main(int argc, char **argv){
 	get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
 	/// check the dest partition size.
-	check_size(&dfw, image_hdr.device_size);
+	if(!opt.no_check)
+	    check_size(&dfw, image_hdr.device_size);
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
     } else if (opt.dd){
@@ -253,7 +255,8 @@ int main(int argc, char **argv){
 	readbitmap(source, image_hdr, bitmap);
 	
 	/// check the dest partition size.
-	check_size(&dfw, image_hdr.device_size);
+	if(!opt.no_check)
+	    check_size(&dfw, image_hdr.device_size);
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
     }
@@ -312,7 +315,7 @@ int main(int argc, char **argv){
 		done = 1;
 
 #ifdef _FILE_OFFSET_BITS
-	    if( copied == image_hdr.usedblocks ) 
+	    if(copied == image_hdr.usedblocks) 
 		done = 1;
 #endif
 	    if (bitmap[block_id] == 1){
@@ -432,7 +435,7 @@ int main(int argc, char **argv){
 		done = 1;
 
 #ifdef _FILE_OFFSET_BITS
-	    if( copied == image_hdr.usedblocks ) 
+	    if(copied == image_hdr.usedblocks) 
 		done = 1;
 #endif
 	    if (bitmap[block_id] == 1){ 
@@ -521,7 +524,7 @@ int main(int argc, char **argv){
 		done = 1;
 
 #ifdef _FILE_OFFSET_BITS
-	    if( copied == image_hdr.usedblocks ) 
+	    if(copied == image_hdr.usedblocks) 
 		done = 1;
 #endif
 	    if (bitmap[block_id] == 1){

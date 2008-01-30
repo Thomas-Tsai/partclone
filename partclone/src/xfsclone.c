@@ -158,10 +158,10 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     fs_open(device);
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
     memcpy(image_hdr->fs, xfs_MAGIC, FS_MAGIC_SIZE);
-    image_hdr->block_size = mp->m_sb.sb_blocksize;
-    image_hdr->totalblock = mp->m_sb.sb_dblocks;
-    image_hdr->usedblocks = mp->m_sb.sb_dblocks - mp->m_sb.sb_fdblocks;
-    image_hdr->device_size = mp->m_sb.sb_dblocks * mp->m_sb.sb_blocksize;
+    image_hdr->block_size = (int)mp->m_sb.sb_blocksize;
+    image_hdr->totalblock = (unsigned long long)mp->m_sb.sb_dblocks;
+    image_hdr->usedblocks = (unsigned long long)(mp->m_sb.sb_dblocks - mp->m_sb.sb_fdblocks);
+    image_hdr->device_size = (unsigned long long)(mp->m_sb.sb_dblocks * mp->m_sb.sb_blocksize);
     fs_close();
 
 }

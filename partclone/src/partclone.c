@@ -62,6 +62,7 @@ extern void usage(void)
 	"    -b,  --dd-mode          Save to sector-to-sector format\n"
         "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
         "    -R,  --rescue           Continue after disk read errors\n"
+        "    -C,  --no_check         Don't check device size and free space\n"
         "    -h,  --help             Display this help\n"
     , EXECNAME, VERSION, svn_version, EXECNAME);
     exit(0);
@@ -69,7 +70,7 @@ extern void usage(void)
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hd::cbro:O:s:R";
+    static const char *sopt = "-hd::cbro:O:s:RC";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "output",		required_argument,  NULL,   'o' },
@@ -80,6 +81,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "dd-mode",		no_argument,	    NULL,   'b' },
         { "debug",		optional_argument,  NULL,   'd' },
         { "rescue",		no_argument,	    NULL,   'R' },
+        { "no_check",		no_argument,	    NULL,   'C' },
         { NULL,			0,		    NULL,    0  }
     };
 
@@ -124,6 +126,9 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
                     break;
 	    case 'R':
 		    opt->rescue++;
+		    break;
+	    case 'C':
+		    opt->no_check++;
 		    break;
             default:
                     fprintf(stderr, "Unknown option '%s'.\n", argv[optind-1]);

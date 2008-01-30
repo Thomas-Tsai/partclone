@@ -58,7 +58,7 @@ static int block_size(){
 }
 
 /// get device size
-static int device_size(char* device){
+static unsigned long long device_size(char* device){
     int size;
     unsigned long long dev_size;
     ext2fs_get_device_size(device, EXT2_BLOCK_SIZE(fs->super), &size);
@@ -67,13 +67,13 @@ static int device_size(char* device){
 }
 
 /// get total block from super block
-static int block_count(){
-    return fs->super->s_blocks_count;
+static unsigned long long block_count(){
+    return (unsigned long long)fs->super->s_blocks_count;
 }
 
 /// get used blocks ( total - free ) from super block
-static int get_used_blocks(){
-    return (fs->super->s_blocks_count-fs->super->s_free_blocks_count);
+static unsigned long long get_used_blocks(){
+    return (unsigned long long)(fs->super->s_blocks_count - fs->super->s_free_blocks_count);
 }
 
 /// readbitmap - cread and heck bitmap, reference dumpe2fs
@@ -150,10 +150,10 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
     memcpy(image_hdr->fs, extfs_MAGIC, FS_MAGIC_SIZE);
     fs_open(device);
-    image_hdr->block_size = block_size();
-    image_hdr->device_size = device_size(device);
-    image_hdr->totalblock = block_count();
-    image_hdr->usedblocks = get_used_blocks();
+    image_hdr->block_size = (int)block_size();
+    image_hdr->device_size = (unsigned long long)device_size(device);
+    image_hdr->totalblock = (unsigned long long)block_count();
+    image_hdr->usedblocks = (unsigned long long)get_used_blocks();
     fs_close();
 }
 
