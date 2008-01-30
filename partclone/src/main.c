@@ -251,6 +251,9 @@ int main(int argc, char **argv){
 	/// read and check bitmap from partition
 	log_mesg(1, 0, 0, debug, "Calculating bitmap ...\n");
 	readbitmap(source, image_hdr, bitmap);
+	
+	/// check the dest partition size.
+	check_size(&dfw, image_hdr.device_size);
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
     }
@@ -386,6 +389,7 @@ int main(int argc, char **argv){
 		}
 		log_mesg(2, 0, 0, debug, "end\n");
 #endif
+		progress_update(&prog, copied, done);
 	    }
         } /// end of for    
 	sync_data(dfw, &opt);	
@@ -489,6 +493,7 @@ int main(int argc, char **argv){
 		}
 		log_mesg(2, 0, 0, debug, "end\n");
 #endif
+		progress_update(&prog, copied, done);
 	    }
 
     	} // end of for
@@ -577,6 +582,7 @@ int main(int argc, char **argv){
 
 		log_mesg(2, 0, 0, debug, "end\n");
 #endif
+		progress_update(&prog, copied, done);
 	    }
 	} /// end of for
 	sync_data(dfw, &opt);
