@@ -60,7 +60,7 @@ struct cmd_opt
         char* target;
 	int overwrite;
 	int rescue;
-	int no_check;
+	int check;
 };
 typedef struct cmd_opt cmd_opt;
 extern void usage(void);
@@ -115,7 +115,7 @@ extern int open_source(char* source, cmd_opt* opt);
 extern int open_target(char* target, cmd_opt* opt);
 
 /// check partition size
-extern void check_size(int* ret, unsigned long long size);
+extern int check_size(int* ret, unsigned long long size);
 
 /// check free space
 extern void check_free_space(int* ret, unsigned long long size);

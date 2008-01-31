@@ -81,7 +81,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "dd-mode",		no_argument,	    NULL,   'b' },
         { "debug",		optional_argument,  NULL,   'd' },
         { "rescue",		no_argument,	    NULL,   'R' },
-        { "no_check",		no_argument,	    NULL,   'C' },
+        { "check",		no_argument,	    NULL,   'C' },
         { NULL,			0,		    NULL,    0  }
     };
 
@@ -89,6 +89,8 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     int mode = 0;
     memset(opt, 0, sizeof(cmd_opt));
     opt->debug = 0;
+    opt->rescue = 0;
+    opt->check = 1;
 
     while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != (char)-1) {
             switch (c) {
@@ -128,7 +130,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 		    opt->rescue++;
 		    break;
 	    case 'C':
-		    opt->no_check++;
+		    opt->check = 0;
 		    break;
             default:
                     fprintf(stderr, "Unknown option '%s'.\n", argv[optind-1]);
@@ -250,17 +252,34 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
 }
 
 /// check partition size
-extern void check_size(int* ret, unsigned long long size){
+extern int check_size(int* ret, unsigned long long size){
 
     unsigned long long dest_size;
-    unsigned long long dest_block;
+    unsigned long dest_block;
     int debug = 1;
 
-    if (ioctl(*ret, BLKGETSIZE, &dest_block) >= 0)
-	dest_size = (unsigned long long)(512*dest_block);
-
+#ifdef BLKGETSIZE64
+    if (ioctl(*ret, BLKGETSIZE64, &dest_size) < 0) {
+        log_mesg(0, 0, 0, debug, "get device size error\n");
+    }
+    log_mesg(0, 0, 0, debug, "Device - Target size: %lliMB  Original size: %lliMB\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
     if (dest_size < size)
 	log_mesg(0, 1, 1, debug, "The dest partition size is smaller than original partition. (Target: %lliMB < Original: %lliMB)\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
+    return 1;
+#endif
+
+#ifdef BLKGETSIZE
+    if (ioctl(*ret, BLKGETSIZE, &dest_block) >= 0) {
+            dest_size = (unsigned long long)(dest_block * 512);
+    }
+    log_mesg(0, 0, 0, debug, "Device - Target size: %lliMB  Original size: %lliMB\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
+    if (dest_size < size)
+	log_mesg(0, 1, 1, debug, "The dest partition size is smaller than original partition. (Target: %lliMB < Original: %lliMB)\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
+    return 1;
+#endif
+
+    return 0;
+
 }
 
 /// chech free space 
@@ -575,6 +594,7 @@ extern void print_opt(cmd_opt opt){
     log_mesg(1, 0, 0, debug, "TARGET: %s\n", opt.target);
     log_mesg(1, 0, 0, debug, "OVERWRITE: %i\n", opt.overwrite);
     log_mesg(1, 0, 0, debug, "RESCUE: %i\n", opt.rescue);
+    log_mesg(1, 0, 0, debug, "CHECK: %i\n", opt.check);
 
 }
 

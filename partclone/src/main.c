@@ -171,7 +171,7 @@ int main(int argc, char **argv){
 	log_mesg(1, 0, 0, debug, "done\n");
 
 	needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
-	if (!opt.no_check)
+	if (opt.check)
 	    check_free_space(&dfw, needed_size);
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
@@ -225,8 +225,8 @@ int main(int argc, char **argv){
 	get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
 	/// check the dest partition size.
-	if(!opt.no_check)
-	    check_size(&dfw, image_hdr.device_size);
+	if((opt.check) && (check_size(&dfw, image_hdr.device_size) != 0))
+            log_mesg(0, 0, 1, debug, "Can't get device size, use option -C to disable size checkinh.\n");
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
     } else if (opt.dd){
@@ -255,8 +255,8 @@ int main(int argc, char **argv){
 	readbitmap(source, image_hdr, bitmap);
 	
 	/// check the dest partition size.
-	if(!opt.no_check)
-	    check_size(&dfw, image_hdr.device_size);
+	if((opt.check) && (check_size(&dfw, image_hdr.device_size) != 0))
+            log_mesg(0, 0, 1, debug, "Can't get device size, use option -C to disable size checkinh.\n");
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
     }
@@ -327,7 +327,7 @@ int main(int argc, char **argv){
 #ifdef _FILE_OFFSET_BITS
 		sf = lseek(dfr, offset, SEEK_SET);
 		if (sf == -1)
-		    log_mesg(1, 0, 0, debug, "source seek error = %lli, ",sf);
+		    log_mesg(0, 1, 1, debug, "source seek error = %lli, ",sf);
 #endif
         	buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
                 if(buffer == NULL){
@@ -447,7 +447,7 @@ int main(int argc, char **argv){
 #ifdef _FILE_OFFSET_BITS
 		sf = lseek(dfw, offset, SEEK_SET);
 		if (sf == -1)
-		    log_mesg(1, 0, 0, debug, "target seek error = %lli, ",sf);
+		    log_mesg(0, 1, 1, debug, "target seek error = %lli, ",sf);
 #endif
 		buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
                 if(buffer == NULL){
@@ -536,10 +536,10 @@ int main(int argc, char **argv){
 #ifdef _FILE_OFFSET_BITS
 		sf = lseek(dfr, offset, SEEK_SET);
 		if (sf == -1)
-		    log_mesg(1, 0, 0, debug, "source seek error = %lli, ",sf);
+		    log_mesg(0, 1, 1, debug, "source seek error = %lli, ",sf);
 		sf = lseek(dfw, offset, SEEK_SET);
 		if (sf == -1)
-		    log_mesg(1, 0, 0, debug, "target seek error = %lli, ",sf);
+		    log_mesg(0, 1, 1, debug, "target seek error = %lli, ",sf);
 #endif
 		buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
                 if(buffer == NULL){
