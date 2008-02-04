@@ -1,3 +1,9 @@
+partclone (0.0.5-15) unstable; urgency=low
+
+    # partclone.nchc.org.tw was put without http:// in usage.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Mon,  04 Feb 2008 13:47:00 +0800
+
 partclone (0.0.5-14) unstable; urgency=low
 
     # Some minor bugs fixed by Thomas Tsai.
