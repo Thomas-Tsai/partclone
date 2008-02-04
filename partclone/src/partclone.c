@@ -51,7 +51,7 @@ FILE* msg = NULL;
  */
 extern void usage(void)
 {
-    fprintf(stderr, "%s v%s (%s) partclone.sourceforge.net partclone.nchc.org.tw\nUsage: %s [OPTIONS]\n"
+    fprintf(stderr, "%s v%s (%s) partclone.sourceforge.net, partclone.nchc.org.tw\nUsage: %s [OPTIONS]\n"
         "    Efficiently clone to a image, device or standard output.\n"
         "\n"
         "    -o,  --output FILE      Output FILE\n"
@@ -611,7 +611,7 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 	//log_mesg(0, 0, 0, "%s v%s \n", EXEC_NAME, VERSION);
-	log_mesg(0, 0, 1, debug, _("Partclone v%s (%s) partclone.sourceforge.net partclone.nchc.org.tw\n"), VERSION, svn_version);
+	log_mesg(0, 0, 1, debug, _("Partclone v%s (%s) partclone.sourceforge.net, partclone.nchc.org.tw\n"), VERSION, svn_version);
     if (opt.clone)
 		log_mesg(0, 0, 1, debug, _("Starting clone device (%s) to image (%s)\n"), opt.source, opt.target);	
 	else if(opt.restore)
