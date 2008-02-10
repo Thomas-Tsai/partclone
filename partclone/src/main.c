@@ -226,7 +226,7 @@ int main(int argc, char **argv){
 
 	/// check the dest partition size.
 	if((opt.check) && (check_size(&dfw, image_hdr.device_size) != 0))
-            log_mesg(0, 0, 1, debug, "Can't get device size, use option -C to disable size checkinh.\n");
+            log_mesg(0, 0, 1, debug, "Can't get device size, use option -C to disable size checking.\n");
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
     } else if (opt.dd){
@@ -256,7 +256,7 @@ int main(int argc, char **argv){
 	
 	/// check the dest partition size.
 	if((opt.check) && (check_size(&dfw, image_hdr.device_size) != 0))
-            log_mesg(0, 0, 1, debug, "Can't get device size, use option -C to disable size checkinh.\n");
+            log_mesg(0, 0, 1, debug, "Can't get device size, use option -C to disable size checking.\n");
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
     }
