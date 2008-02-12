@@ -161,7 +161,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     image_hdr->block_size = (int)mp->m_sb.sb_blocksize;
     image_hdr->totalblock = (unsigned long long)mp->m_sb.sb_dblocks;
     image_hdr->usedblocks = (unsigned long long)(mp->m_sb.sb_dblocks - mp->m_sb.sb_fdblocks);
-    image_hdr->device_size = (unsigned long long)(mp->m_sb.sb_dblocks * mp->m_sb.sb_blocksize);
+    image_hdr->device_size = (unsigned long long)(image_hdr->totalblock * image_hdr->block_size);
     fs_close();
 
 }

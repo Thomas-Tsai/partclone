@@ -117,7 +117,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     image_hdr->block_size = (int)get_ms_blksize(SUPER(fs->master));
     image_hdr->totalblock = (unsigned long long)reiser4_format_get_len(fs->format);
     image_hdr->usedblocks = (unsigned long long)(reiser4_format_get_len(fs->format) - free_blocks);
-    image_hdr->device_size = (unsigned long long)((get_ms_blksize(SUPER(fs->master))*reiser4_format_get_len(fs->format)));
+    image_hdr->device_size =(unsigned long long)(image_hdr->block_size * image_hdr->totalblock);
     fs_close();
 }
 

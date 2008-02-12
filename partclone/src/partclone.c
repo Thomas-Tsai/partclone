@@ -41,6 +41,13 @@
 
 #include "partclone.h"
 
+#if defined(linux) && defined(_IO) && !defined(BLKGETSIZE)
+#define BLKGETSIZE      _IO(0x12,96)  /* Get device size in 512-byte blocks. */
+#endif
+#if defined(linux) && defined(_IOR) && !defined(BLKGETSIZE64)
+#define BLKGETSIZE64    _IOR(0x12,114,size_t)   /* Get device size in bytes. */
+#endif
+
 
 FILE* msg = NULL;
 
@@ -262,7 +269,7 @@ extern int check_size(int* ret, unsigned long long size){
     if (ioctl(*ret, BLKGETSIZE64, &dest_size) < 0) {
         log_mesg(0, 0, 0, debug, "get device size error\n");
     }
-    log_mesg(0, 0, 0, debug, "Device - Target size: %lliMB  Original size: %lliMB\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
+    log_mesg(0, 0, 0, debug, "Device(64) - Target size: %lliMB  Original size: %lliMB\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
     if (dest_size < size)
 	log_mesg(0, 1, 1, debug, "The dest partition size is smaller than original partition. (Target: %lliMB < Original: %lliMB)\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
     return 1;

@@ -151,9 +151,10 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     memcpy(image_hdr->fs, extfs_MAGIC, FS_MAGIC_SIZE);
     fs_open(device);
     image_hdr->block_size = (int)block_size();
-    image_hdr->device_size = (unsigned long long)device_size(device);
     image_hdr->totalblock = (unsigned long long)block_count();
     image_hdr->usedblocks = (unsigned long long)get_used_blocks();
+    //image_hdr->device_size = (unsigned long long)device_size(device);
+    image_hdr->device_size = (unsigned long long)(image_hdr->block_size * image_hdr->totalblock);
     fs_close();
 }
 
