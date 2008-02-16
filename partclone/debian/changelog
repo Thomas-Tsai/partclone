@@ -1,3 +1,10 @@
+partclone (0.0.5-16) unstable; urgency=low
+
+    # Typos fixed.
+    # Bug fixed: partition to partition clone size checking failed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sat,  16 Feb 2008 10:02:00 +0800
+
 partclone (0.0.5-15) unstable; urgency=low
 
     # partclone.nchc.org.tw was put without http:// in usage.
