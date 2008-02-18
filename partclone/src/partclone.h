@@ -29,6 +29,7 @@
 #define xfs_MAGIC "XFS"
 #define extfs_MAGIC "EXTFS"
 #define hfsplus_MAGIC "HFS Plus"
+#define fat_MAGIC "FAT"
 #define IMAGE_VERSION "0001"
 #define VERSION_SIZE 4
 #define SECTOR_SIZE 512

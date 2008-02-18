@@ -40,6 +40,12 @@ clone_xfs_LDFLAGS=
 clone_xfs_LDADD=-lxfs -lrt -lpthread
 endif
 
+if ENABLE_FAT
+sbin_PROGRAMS += clone.fat
+clone_fat_SOURCES=main.c partclone.c progress.c fatclone.c fatclone.h partclone.h progress.h gettext.h
+clone_fat_CFLAGS=-DFAT
+endif
+
 if ENABLE_STATIC
 LDFLAGS+=-static
 endif
@@ -51,12 +57,22 @@ install-exec-hook:
 if ENABLE_HFSP
 	$(LN_S) -f clone.hfsp $(DESTDIR)$(sbindir)/clone.hfs+
 endif
+if ENABLE_FAT
+	$(LN_S) -f clone.fat $(DESTDIR)$(sbindir)/clone.fat16
+	$(LN_S) -f clone.fat $(DESTDIR)$(sbindir)/clone.fat32
+	$(LN_S) -f clone.fat $(DESTDIR)$(sbindir)/clone.vfat
+endif
 
 uninstall-local:
 	$(RM) -f $(sbindir)/clone.ext3
 	$(RM) -f $(sbindir)/clone.ext2
 if ENABLE_HFSP
 	$(RM) -f $(sbindir)/clone.hfs+
+endif
+if ENABLE_FAT
+	$(RM) -f $(sbindir)/clone.fat16
+	$(RM) -f $(sbindir)/clone.fat32
+	$(RM) -f $(sbindir)/clone.vfat
 endif
 
 FORCE:

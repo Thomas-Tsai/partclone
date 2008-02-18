@@ -34,12 +34,13 @@ build_triplet = @build@
 host_triplet = @host@
 sbin_PROGRAMS = clone.extfs$(EXEEXT) clone.info$(EXEEXT) \
 	$(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
-	$(am__EXEEXT_4)
+	$(am__EXEEXT_4) $(am__EXEEXT_5)
 @ENABLE_REISERFS_TRUE@am__append_1 = clone.reiserfs
 @ENABLE_REISER4_TRUE@am__append_2 = clone.reiser4
 @ENABLE_HFSP_TRUE@am__append_3 = clone.hfsp
 @ENABLE_XFS_TRUE@am__append_4 = clone.xfs
-@ENABLE_STATIC_TRUE@am__append_5 = -static
+@ENABLE_FAT_TRUE@am__append_5 = clone.fat
+@ENABLE_STATIC_TRUE@am__append_6 = -static
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -57,6 +58,7 @@ CONFIG_CLEAN_FILES =
 @ENABLE_REISER4_TRUE@am__EXEEXT_2 = clone.reiser4$(EXEEXT)
 @ENABLE_HFSP_TRUE@am__EXEEXT_3 = clone.hfsp$(EXEEXT)
 @ENABLE_XFS_TRUE@am__EXEEXT_4 = clone.xfs$(EXEEXT)
+@ENABLE_FAT_TRUE@am__EXEEXT_5 = clone.fat$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)"
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(sbin_PROGRAMS)
@@ -69,6 +71,17 @@ am__DEPENDENCIES_1 =
 clone_extfs_DEPENDENCIES = $(am__DEPENDENCIES_1)
 clone_extfs_LINK = $(CCLD) $(clone_extfs_CFLAGS) $(CFLAGS) \
 	$(clone_extfs_LDFLAGS) $(LDFLAGS) -o $@
+am__clone_fat_SOURCES_DIST = main.c partclone.c progress.c fatclone.c \
+	fatclone.h partclone.h progress.h gettext.h
+@ENABLE_FAT_TRUE@am_clone_fat_OBJECTS = clone_fat-main.$(OBJEXT) \
+@ENABLE_FAT_TRUE@	clone_fat-partclone.$(OBJEXT) \
+@ENABLE_FAT_TRUE@	clone_fat-progress.$(OBJEXT) \
+@ENABLE_FAT_TRUE@	clone_fat-fatclone.$(OBJEXT)
+clone_fat_OBJECTS = $(am_clone_fat_OBJECTS)
+clone_fat_LDADD = $(LDADD)
+clone_fat_DEPENDENCIES = $(am__DEPENDENCIES_1)
+clone_fat_LINK = $(CCLD) $(clone_fat_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am__clone_hfsp_SOURCES_DIST = main.c partclone.c progress.c \
 	hfsplusclone.c hfsplusclone.h partclone.h progress.h gettext.h
 @ENABLE_HFSP_TRUE@am_clone_hfsp_OBJECTS = clone_hfsp-main.$(OBJEXT) \
@@ -125,11 +138,13 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(clone_extfs_SOURCES) $(clone_hfsp_SOURCES) \
-	$(clone_info_SOURCES) $(clone_reiser4_SOURCES) \
-	$(clone_reiserfs_SOURCES) $(clone_xfs_SOURCES)
-DIST_SOURCES = $(clone_extfs_SOURCES) $(am__clone_hfsp_SOURCES_DIST) \
-	$(clone_info_SOURCES) $(am__clone_reiser4_SOURCES_DIST) \
+SOURCES = $(clone_extfs_SOURCES) $(clone_fat_SOURCES) \
+	$(clone_hfsp_SOURCES) $(clone_info_SOURCES) \
+	$(clone_reiser4_SOURCES) $(clone_reiserfs_SOURCES) \
+	$(clone_xfs_SOURCES)
+DIST_SOURCES = $(clone_extfs_SOURCES) $(am__clone_fat_SOURCES_DIST) \
+	$(am__clone_hfsp_SOURCES_DIST) $(clone_info_SOURCES) \
+	$(am__clone_reiser4_SOURCES_DIST) \
 	$(am__clone_reiserfs_SOURCES_DIST) \
 	$(am__clone_xfs_SOURCES_DIST)
 ETAGS = etags
@@ -164,7 +179,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTLLIBS = @INTLLIBS@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
-LDFLAGS = @LDFLAGS@ $(am__append_5)
+LDFLAGS = @LDFLAGS@ $(am__append_6)
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBOBJS = @LIBOBJS@
@@ -263,6 +278,8 @@ clone_info_SOURCES = infoclone.c partclone.c partclone.h
 @ENABLE_XFS_TRUE@clone_xfs_CFLAGS = -DXFS
 @ENABLE_XFS_TRUE@clone_xfs_LDFLAGS = 
 @ENABLE_XFS_TRUE@clone_xfs_LDADD = -lxfs -lrt -lpthread
+@ENABLE_FAT_TRUE@clone_fat_SOURCES = main.c partclone.c progress.c fatclone.c fatclone.h partclone.h progress.h gettext.h
+@ENABLE_FAT_TRUE@clone_fat_CFLAGS = -DFAT
 all: all-am
 
 .SUFFIXES:
@@ -322,6 +339,9 @@ clean-sbinPROGRAMS:
 clone.extfs$(EXEEXT): $(clone_extfs_OBJECTS) $(clone_extfs_DEPENDENCIES) 
 	@rm -f clone.extfs$(EXEEXT)
 	$(clone_extfs_LINK) $(clone_extfs_OBJECTS) $(clone_extfs_LDADD) $(LIBS)
+clone.fat$(EXEEXT): $(clone_fat_OBJECTS) $(clone_fat_DEPENDENCIES) 
+	@rm -f clone.fat$(EXEEXT)
+	$(clone_fat_LINK) $(clone_fat_OBJECTS) $(clone_fat_LDADD) $(LIBS)
 clone.hfsp$(EXEEXT): $(clone_hfsp_OBJECTS) $(clone_hfsp_DEPENDENCIES) 
 	@rm -f clone.hfsp$(EXEEXT)
 	$(clone_hfsp_LINK) $(clone_hfsp_OBJECTS) $(clone_hfsp_LDADD) $(LIBS)
@@ -348,6 +368,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_extfs-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_extfs-partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_extfs-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_fat-fatclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_fat-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_fat-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_fat-progress.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_hfsp-hfsplusclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_hfsp-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_hfsp-partclone.Po@am__quote@
@@ -436,6 +460,62 @@ clone_extfs-extfsclone.obj: extfsclone.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='extfsclone.c' object='clone_extfs-extfsclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -c -o clone_extfs-extfsclone.obj `if test -f 'extfsclone.c'; then $(CYGPATH_W) 'extfsclone.c'; else $(CYGPATH_W) '$(srcdir)/extfsclone.c'; fi`
+
+clone_fat-main.o: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-main.o -MD -MP -MF $(DEPDIR)/clone_fat-main.Tpo -c -o clone_fat-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-main.Tpo $(DEPDIR)/clone_fat-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='clone_fat-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+
+clone_fat-main.obj: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-main.obj -MD -MP -MF $(DEPDIR)/clone_fat-main.Tpo -c -o clone_fat-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-main.Tpo $(DEPDIR)/clone_fat-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='clone_fat-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+
+clone_fat-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-partclone.o -MD -MP -MF $(DEPDIR)/clone_fat-partclone.Tpo -c -o clone_fat-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-partclone.Tpo $(DEPDIR)/clone_fat-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='clone_fat-partclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+
+clone_fat-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-partclone.obj -MD -MP -MF $(DEPDIR)/clone_fat-partclone.Tpo -c -o clone_fat-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-partclone.Tpo $(DEPDIR)/clone_fat-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='clone_fat-partclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+
+clone_fat-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-progress.o -MD -MP -MF $(DEPDIR)/clone_fat-progress.Tpo -c -o clone_fat-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-progress.Tpo $(DEPDIR)/clone_fat-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='clone_fat-progress.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+
+clone_fat-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-progress.obj -MD -MP -MF $(DEPDIR)/clone_fat-progress.Tpo -c -o clone_fat-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-progress.Tpo $(DEPDIR)/clone_fat-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='clone_fat-progress.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+
+clone_fat-fatclone.o: fatclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-fatclone.o -MD -MP -MF $(DEPDIR)/clone_fat-fatclone.Tpo -c -o clone_fat-fatclone.o `test -f 'fatclone.c' || echo '$(srcdir)/'`fatclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-fatclone.Tpo $(DEPDIR)/clone_fat-fatclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fatclone.c' object='clone_fat-fatclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-fatclone.o `test -f 'fatclone.c' || echo '$(srcdir)/'`fatclone.c
+
+clone_fat-fatclone.obj: fatclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-fatclone.obj -MD -MP -MF $(DEPDIR)/clone_fat-fatclone.Tpo -c -o clone_fat-fatclone.obj `if test -f 'fatclone.c'; then $(CYGPATH_W) 'fatclone.c'; else $(CYGPATH_W) '$(srcdir)/fatclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-fatclone.Tpo $(DEPDIR)/clone_fat-fatclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fatclone.c' object='clone_fat-fatclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-fatclone.obj `if test -f 'fatclone.c'; then $(CYGPATH_W) 'fatclone.c'; else $(CYGPATH_W) '$(srcdir)/fatclone.c'; fi`
 
 clone_hfsp-main.o: main.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -MT clone_hfsp-main.o -MD -MP -MF $(DEPDIR)/clone_hfsp-main.Tpo -c -o clone_hfsp-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
@@ -850,11 +930,17 @@ install-exec-hook:
 	$(LN_S) -f clone.extfs $(DESTDIR)$(sbindir)/clone.ext2
 	$(LN_S) -f clone.extfs $(DESTDIR)$(sbindir)/clone.ext3
 @ENABLE_HFSP_TRUE@	$(LN_S) -f clone.hfsp $(DESTDIR)$(sbindir)/clone.hfs+
+@ENABLE_FAT_TRUE@	$(LN_S) -f clone.fat $(DESTDIR)$(sbindir)/clone.fat16
+@ENABLE_FAT_TRUE@	$(LN_S) -f clone.fat $(DESTDIR)$(sbindir)/clone.fat32
+@ENABLE_FAT_TRUE@	$(LN_S) -f clone.fat $(DESTDIR)$(sbindir)/clone.vfat
 
 uninstall-local:
 	$(RM) -f $(sbindir)/clone.ext3
 	$(RM) -f $(sbindir)/clone.ext2
 @ENABLE_HFSP_TRUE@	$(RM) -f $(sbindir)/clone.hfs+
+@ENABLE_FAT_TRUE@	$(RM) -f $(sbindir)/clone.fat16
+@ENABLE_FAT_TRUE@	$(RM) -f $(sbindir)/clone.fat32
+@ENABLE_FAT_TRUE@	$(RM) -f $(sbindir)/clone.vfat
 
 FORCE:
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

@@ -33,9 +33,9 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = docs
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/clone.extfs.8.in $(srcdir)/clone.hfsp.8.in \
-	$(srcdir)/clone.reiser4.8.in $(srcdir)/clone.reiserfs.8.in \
-	$(srcdir)/clone.xfs.8.in
+	$(srcdir)/clone.extfs.8.in $(srcdir)/clone.fat.8.in \
+	$(srcdir)/clone.hfsp.8.in $(srcdir)/clone.reiser4.8.in \
+	$(srcdir)/clone.reiserfs.8.in $(srcdir)/clone.xfs.8.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
 	$(top_srcdir)/m4/iconv.m4 $(top_srcdir)/m4/lib-ld.m4 \
@@ -46,8 +46,8 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES = clone.extfs.8 clone.hfsp.8 clone.reiserfs.8 \
-	clone.reiser4.8 clone.xfs.8
+CONFIG_CLEAN_FILES = clone.extfs.8 clone.hfsp.8 clone.fat.8 \
+	clone.reiserfs.8 clone.reiser4.8 clone.xfs.8
 SOURCES =
 DIST_SOURCES =
 man8dir = $(mandir)/man8
@@ -200,6 +200,8 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 clone.extfs.8: $(top_builddir)/config.status $(srcdir)/clone.extfs.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 clone.hfsp.8: $(top_builddir)/config.status $(srcdir)/clone.hfsp.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+clone.fat.8: $(top_builddir)/config.status $(srcdir)/clone.fat.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 clone.reiserfs.8: $(top_builddir)/config.status $(srcdir)/clone.reiserfs.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@

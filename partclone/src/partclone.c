@@ -369,7 +369,7 @@ extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* 
 	}
     }
     if(image_hdr.usedblocks != bused)
-        log_mesg(0, 1, 1, debug, "restore block %li, and free %li", bused, bfree);
+        log_mesg(0, 1, 1, debug, "bitmap [used %li, and free %li] and image_head used %i is different\n", bused, bfree, image_hdr.usedblocks);
     
 }
 

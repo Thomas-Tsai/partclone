@@ -56,6 +56,9 @@
 #elif HFSPLUS
     #include "hfsplusclone.h"
     #define FS "HFS Plus"
+#elif FAT
+    #include "fatclone.h"
+    #define FS "FAT"
 #endif
 
 /**

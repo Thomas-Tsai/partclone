@@ -34,6 +34,7 @@ enable_xfs="yes"
 enable_reiserfs="yes"
 enable_reiser4="yes"
 enable_hfsp="yes"
+enable_fat="yes"
 fi
 
 ##XFS##
@@ -118,6 +119,17 @@ if test "$enable_hfsp" = yes; then
 supported_fs=$supported_fs" hfs-plus"
 fi
 
+##fat plus##
+AC_ARG_ENABLE(test,
+	AS_HELP_STRING(--enable-fat,enable FAT file system), 
+	enable_fat=yes,
+)
+AM_CONDITIONAL(ENABLE_FAT, test "$enable_fat" = yes)
+
+if test "$enable_fat" = yes; then
+supported_fs=$supported_fs" FAT"
+fi
+
 ##static linking##
 AC_ARG_ENABLE(test,
 	AS_HELP_STRING(--enable-static,enable static linking), 
@@ -133,6 +145,7 @@ AC_CONFIG_FILES([
 	docs/Makefile
 	docs/clone.extfs.8
 	docs/clone.hfsp.8
+	docs/clone.fat.8
 	docs/clone.reiserfs.8
 	docs/clone.reiser4.8
 	docs/clone.xfs.8
