@@ -1,3 +1,9 @@
+partclone (0.0.6-2) unstable; urgency=low
+
+    # Bug fixed: clone.fat was not complied.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 20 Feb 2008 22:47:00 +0800
+
 partclone (0.0.6-1) unstable; urgency=low
 
     # clone.fat was added by Thomas Tsai.
