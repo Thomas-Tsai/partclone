@@ -1,3 +1,9 @@
+partclone (0.0.6-3) unstable; urgency=low
+
+    # Bug fixed: version was not changed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 21 Feb 2008 13:40:00 +0800
+
 partclone (0.0.6-2) unstable; urgency=low
 
     # Bug fixed: clone.fat was not complied.
