@@ -130,6 +130,25 @@ if test "$enable_fat" = yes; then
 supported_fs=$supported_fs" FAT"
 fi
 
+##libncurses##
+AC_ARG_ENABLE(test,
+	AS_HELP_STRING(--enable-ncurses,enable TEXT User Interface), 
+	enable_ncurses=yes,
+)
+AM_CONDITIONAL(ENABLE_NCURSES, test "$enable_ncurses" = yes)
+
+if test "$enable_ncurses" = "yes"; then
+
+dnl Check for NCURSES
+AC_CHECKING([ for Ncurses Library and Header files ... ])
+AC_CHECK_HEADERS([ncurses.h], ,
+    AC_MSG_ERROR([*** ncurses header files (ncurses.h) not found])
+)
+AC_CHECK_LIB([ncurses], [initscr], ,
+    AC_MSG_ERROR([*** Ncurses library (libncurses5) not found]))
+fi
+
+
 ##static linking##
 AC_ARG_ENABLE(test,
 	AS_HELP_STRING(--enable-static,enable static linking), 

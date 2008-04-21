@@ -70,6 +70,7 @@ extern void usage(void)
         "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
         "    -R,  --rescue           Continue after disk read errors\n"
         "    -C,  --no_check         Don't check device size and free space\n"
+        "    -X,  --tui              Using Text User Interface\n"
         "    -h,  --help             Display this help\n"
     , EXECNAME, VERSION, svn_version, EXECNAME);
     exit(0);
@@ -77,7 +78,7 @@ extern void usage(void)
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hd::cbro:O:s:RC";
+    static const char *sopt = "-hd::cbro:O:s:RCX";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "output",		required_argument,  NULL,   'o' },
@@ -89,6 +90,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "debug",		optional_argument,  NULL,   'd' },
         { "rescue",		no_argument,	    NULL,   'R' },
         { "check",		no_argument,	    NULL,   'C' },
+        { "tui",		no_argument,	    NULL,   'X' },
         { NULL,			0,		    NULL,    0  }
     };
 
@@ -135,6 +137,9 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
                     break;
 	    case 'R':
 		    opt->rescue++;
+		    break;
+	    case 'X':
+		    opt->tui = 1;
 		    break;
 	    case 'C':
 		    opt->check = 0;
@@ -187,7 +192,19 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 
 }
 
+/**
+ * Text User Interface
+ * open_tui	- open text window
+ * close_tui	- close test window
+ */
+extern int open_tui(){
+    initscr();
+    return 1;
+}
 
+extern void close_tui(){
+    endwin();
+}
 /**
  * debug message
  * open_log	- to open file /var/log/partclone.log
@@ -208,14 +225,13 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
 
     va_list args;
     va_start(args, fmt);
-
 	
-    /// write log to stderr if log_stderr true
+    /// write log to stderr if log_stderr is true
     if((log_stderr) && (log_level <= debug)){
         vfprintf(stderr, fmt, args);
     }
 
-    /// write log to log file if debug true
+    /// write log to logfile if debug is true
     if(log_level <= debug){
 	vfprintf(msg, fmt, args);
 	//if (errno != 0)

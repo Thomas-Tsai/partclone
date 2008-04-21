@@ -90,6 +90,7 @@ int main(int argc, char **argv){
     int			done = 0;
     int			s_count = 0;
     int			rescue_num = 0;
+    int			tui = 0;		/// text user interface
     char *bad_sectors_warning_msg =
     "*************************************************************************\n"
     "* WARNING: The disk has bad sector. This means physical damage on the   *\n"
@@ -115,6 +116,17 @@ int main(int argc, char **argv){
     debug = opt.debug;
     //if(opt.debug)
 	open_log();
+
+    /**
+     * using Text User Interface
+     */
+    if (opt.tui){
+	log_mesg(1, 0, 0, debug, "Using TUI mode.\n");
+	tui = open_tui();
+	if (!tui){
+	    log_mesg(0, 1, 1, debug, "Open TUI Error.\n");
+	}
+    }
 
     if (geteuid() != 0)
 	log_mesg(0, 1, 1, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n"); 
@@ -373,7 +385,10 @@ int main(int argc, char **argv){
 		free(buffer);
 		free(crc_buffer);
 
-		progress_update(&prog, copied, done);
+		if (!tui)
+		    progress_update(&prog, copied, done);
+		else
+		    TUI_progress_update(&prog, copied, done);
         	
 		copied++;					/// count copied block
 		total_write += (unsigned long long)(w_size);	/// count copied size
@@ -394,7 +409,11 @@ int main(int argc, char **argv){
 	    
 		s_count++;
 		if ((s_count >=100) || (done == 1)){
-		    progress_update(&prog, copied, done);
+		    if (!tui)
+			progress_update(&prog, copied, done);
+		    else
+			TUI_progress_update(&prog, copied, done);
+
 		    s_count = 0;
 		}
 		log_mesg(2, 0, 0, debug, "end\n");
@@ -482,7 +501,10 @@ int main(int argc, char **argv){
 		free(buffer);
 		free(crc_buffer);
 
-		progress_update(&prog, copied, done);
+		if (!tui)
+		    progress_update(&prog, copied, done);
+		else
+		    TUI_progress_update(&prog, copied, done);
 
 		copied++;					/// count copied block
 		total_write += (unsigned long long) w_size;	/// count copied size
@@ -501,7 +523,10 @@ int main(int argc, char **argv){
 		    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
 		s_count++;
 		if ((s_count >=100) || (done == 1)){
-		    progress_update(&prog, copied, done);
+		    if (!tui)
+			progress_update(&prog, copied, done);
+		    else
+			TUI_progress_update(&prog, copied, done);
 		    s_count = 0;
 		}
 		log_mesg(2, 0, 0, debug, "end\n");
@@ -572,7 +597,10 @@ int main(int argc, char **argv){
 
 		/// free buffer
 		free(buffer);
-		progress_update(&prog, copied, done);
+		if (!tui)
+		    progress_update(&prog, copied, done);
+		else
+		    TUI_progress_update(&prog, copied, done);
 		copied++;                                       /// count copied block
 		total_write += (unsigned long long)(w_size);    /// count copied size
 		log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
@@ -592,8 +620,11 @@ int main(int argc, char **argv){
 		    log_mesg(0, 1, 1, debug, "clone seek error %lli errno=%i\n", (long long)offset, (int)errno);
 		s_count++;
 		if ((s_count >=100) || (done == 1)){
-		    progress_update(&prog, copied, done);
-		     s_count = 0;
+		    if (!tui)
+			progress_update(&prog, copied, done);
+		    else
+			TUI_progress_update(&prog, copied, done);
+		    s_count = 0;
 		}
 
 		log_mesg(2, 0, 0, debug, "end\n");
@@ -608,6 +639,8 @@ int main(int argc, char **argv){
     close (dfr);    /// close source
     close (dfw);    /// close target
     free(bitmap);   /// free bitmp
+    if(opt.tui)
+	close_tui();
     if(opt.debug)
 	close_log();
     return 0;	    /// finish

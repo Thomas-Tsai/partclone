@@ -62,10 +62,19 @@ struct cmd_opt
 	int overwrite;
 	int rescue;
 	int check;
+	int tui;
 };
 typedef struct cmd_opt cmd_opt;
 extern void usage(void);
 extern void parse_options(int argc, char **argv, cmd_opt* opt);
+
+/** 
+ * Text User Interface
+ * open_tui	- open text window
+ * close_tui	- close text window
+ */
+extern int open_tui();
+extern void close_tui();
 
 /**
  * debug message
