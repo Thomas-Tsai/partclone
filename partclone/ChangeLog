@@ -1,3 +1,279 @@
+2008-02-21 05:51  c00jhs00
+
+	* Makefile.in, aclocal.m4, configure, configure.ac,
+	  debian/changelog, docs/Makefile.in, src/Makefile.in,
+	  src/version.c:
+	  
+	  Version now is 0.0.6
+
+2008-02-20 14:47  c00jhs00
+
+	* debian/changelog, debian/rules, src/version.c:
+	  
+	  clone.fat was not compiled.
+
+2008-02-20 14:42  c00jhs00
+
+	* debian/changelog:
+	  
+	  updated for 0.0.6-1
+
+2008-02-18 08:44  thomas
+
+	* docs/Makefile.am, docs/Makefile.in, docs/clone.fat.8.in,
+	  src/version.c:
+	  
+	  add manual for clone.fat
+
+2008-02-18 06:24  thomas
+
+	* configure, configure.ac, docs/Makefile.in, po/partclone.pot,
+	  po/zh_TW.gmo, po/zh_TW.po, src/Makefile.am, src/Makefile.in,
+	  src/fatclone.c, src/fatclone.h, src/main.c, src/partclone.c,
+	  src/partclone.h, src/version.c:
+	  
+	  Unstable version. add new filesystem: FAT16/32 add --enable-fat
+	  to compile clone.fat. add --enable-all to compile all supported
+	  filesystem utilities.
+
+2008-02-16 02:05  c00jhs00
+
+	* debian/changelog, src/version.c:
+	  
+	  changelog updated for 0.0.5-16
+
+2008-02-12 11:37  thomas
+
+	* src/extfsclone.c, src/main.c, src/partclone.c,
+	  src/reiser4clone.c, src/reiserfsclone.c, src/version.c,
+	  src/xfsclone.c:
+	  
+	  fix #28, get right partition size when running partition to
+	  partition clone.
+
+2008-02-10 15:16  c00jhs00
+
+	* src/main.c:
+	  
+	  Typo checkinh was fixed as checking.
+
+2008-02-04 11:24  c00jhs00
+
+	* src/partclone.c:
+	  
+	  "," was added between partclone.sf.net and partclone.nchc.org.tw
+
+2008-02-04 05:51  c00jhs00
+
+	* src/version.c:
+	  
+	  version automatically updated by svn.
+
+2008-02-04 05:48  c00jhs00
+
+	* debian/changelog, src/partclone.c:
+	  
+	  # partclone.nchc.org.tw was put without http:// in usage.
+
+2008-02-04 05:45  c00jhs00
+
+	* debian/changelog, src/partclone.c, src/version.c:
+	  
+	  http://partclone.nchc.org.tw was added in usage.
+
+2008-02-04 03:48  c00jhs00
+
+	* src/partclone.c:
+	  
+	  Update the output messages when clone is finished
+
+2008-01-31 12:46  thomas
+
+	* src/main.c, src/partclone.c, src/partclone.h, src/version.c:
+	  
+	  fix about device size use BLKGETSIZE64 to get large partition
+	  size fix seek error stop when seek error
+
+2008-01-31 02:40  c00jhs00
+
+	* src/version.c:
+	  
+	  updated automatically.
+
+2008-01-30 15:11  c00jhs00
+
+	* debian/changelog:
+	  
+	  Changelog updted for 0.0.5-13
+
+2008-01-30 14:28  thomas
+
+	* src/extfsclone.c, src/extfsclone.h, src/hfsplusclone.c,
+	  src/main.c, src/partclone.c, src/partclone.h, src/progress.c,
+	  src/reiser4clone.c, src/reiserfsclone.c, src/version.c,
+	  src/xfsclone.c:
+	  
+	  * reduce seek time * fix number of Ave.Rate * check every
+	  filesystem's image_head data... * add new option to disable
+	  device and free space checking
+
+2008-01-30 13:29  thomas
+
+	* src/main.c, src/version.c:
+	  
+	  update last fix
+
+2008-01-30 13:12  c00jhs00
+
+	* debian/changelog:
+	  
+	  Changelog updated for 0.0.5-12.
+
+2008-01-30 12:50  thomas
+
+	* src/main.c:
+	  
+	  fix stats info
+
+2008-01-30 12:17  thomas
+
+	* src/main.c:
+	  
+	  try to fix long seeking time problem. not test
+
+2008-01-30 11:57  thomas
+
+	* src/hfsplusclone.c, src/partclone.c, src/version.c:
+	  
+	  fix a bug at clone hfsp get wrong device size
+
+2008-01-29 08:47  c00jhs00
+
+	* debian/changelog:
+	  
+	  changelog udpated for 0.0.5-11.
+
+2008-01-29 07:41  thomas
+
+	* src/partclone.c, src/version.c:
+	  
+	  fix bug to get right destination partition size which bigger than
+	  78GB.
+
+2008-01-24 13:17  c00jhs00
+
+	* src/partclone.c, src/progress.c, src/version.c:
+	  
+	  Format the output: Syncing ...OK -> Syncing... OK Rate:%6.2MB/min
+	  -> Rate: %6.2MB/min
+
+2008-01-23 15:01  c00jhs00
+
+	* debian/changelog:
+	  
+	  updated for 0.0.5-10.
+
+2008-01-23 09:05  thomas
+
+	* src/main.c, src/partclone.c, src/partclone.h:
+	  
+	  add function to check memory size. function "check_mem" can make
+	  sure you have enough memory and report how many size partclone
+	  needed if there is no enough size.
+
+2008-01-22 09:44  thomas
+
+	* src/partclone.h, src/version.c:
+	  
+	  fix real size of MB.
+
+2008-01-22 01:57  thomas
+
+	* src/main.c, src/partclone.c, src/partclone.h, src/version.c:
+	  
+	  add function "check_free_space" to make sure the free space is
+	  enough to save image file.
+
+2008-01-21 17:44  thomas
+
+	* src/extfsclone.c, src/main.c, src/partclone.c, src/partclone.h,
+	  src/version.c:
+	  
+	  Changeset 84 and 85 * set debug level, set -dX or --debug=X. X =
+	  0 is no debug X = 1 is normal debug X = 2 is large log messgae *
+	  update log_mesg for different debug level. * add new function
+	  "print_option" to print options and argument at debug=1. *
+	  configure --enable-all to enable alll supported file systems.
+
+2008-01-21 10:58  thomas
+
+	* configure, configure.ac, src/extfsclone.c, src/hfsplusclone.c,
+	  src/infoclone.c, src/main.c, src/partclone.c, src/reiser4clone.c,
+	  src/version.c, src/xfsclone.c:
+	  
+	  update debug message mode but not finish.
+
+2008-01-21 05:21  thomas
+
+	* src/partclone.c:
+	  
+	  fix #24
+
+2008-01-20 19:03  thomas
+
+	* src/partclone.c, src/version.c:
+	  
+	  fix #24, Remove extra space.
+
+2008-01-20 06:22  c00jhs00
+
+	* debian/changelog:
+	  
+	  Updated for 0.0.5-9.
+
+2008-01-16 06:51  thomas
+
+	* src/main.c, src/partclone.c, src/partclone.h, src/version.c:
+	  
+	  UNSTALBE feature, support device to device. clone.reiserfs -b -s
+	  /dev/sda1 -o /dev/sdb1 clone.reiserfs --dd-mode --source
+	  /dev/sda1 --output /dev/sdb1
+
+2008-01-15 08:53  thomas
+
+	* Makefile.am, Makefile.in, po/partclone.pot, po/zh_TW.gmo,
+	  po/zh_TW.po, src/version.c, toolbox:
+	  
+	  updat atoobox and makefile.am to update ChangeLog every "make
+	  dist" automatically.
+
+2008-01-15 06:15  thomas
+
+	* src/main.c, src/partclone.c, src/version.c:
+	  
+	  add log mesg for bitmap. update svn version string at
+	  print_image_ info.
+
+2008-01-15 05:46  thomas
+
+	* src/main.c, src/partclone.c, src/partclone.h, src/version.c:
+	  
+	  add new function rescue_sector like ntfsclone to backup bad
+	  blocks. clone.ext3 -d -c -R -s /dev/hda1 -o hda1.img clone.ext3
+	  --clone --rescue --source /dev/hda1 --output hda1.img
+
+2008-01-14 13:55  thomas
+
+	* ChangeLog, src/version.c, toolbox:
+	  
+	  add file toolbox, src/version.c for svn version string
+
+2008-01-14 13:53  thomas
+
+	* src/partclone.c:
+	  
+	  fix svn string
+
 2008-01-14 13:48  thomas
 
 	* Makefile.am, Makefile.in, po/partclone.pot, po/zh_TW.gmo,
