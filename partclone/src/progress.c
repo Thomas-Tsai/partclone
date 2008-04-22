@@ -93,10 +93,10 @@ extern void progress_update(struct progress_bar *p, int current, int done)
 	}
 }
 
-
 /// update information at ncurses mode
 extern void TUI_progress_update(struct progress_bar *p, int current, int done)
 {
+#ifdef HAVE_LIBNCURSES
         setlocale(LC_ALL, "");
         bindtextdomain(PACKAGE, LOCALEDIR);
         textdomain(PACKAGE);
@@ -151,5 +151,5 @@ extern void TUI_progress_update(struct progress_bar *p, int current, int done)
 		refresh();
 		sleep(10);
 	}
+#endif
 }
-

@@ -198,13 +198,19 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
  * close_tui	- close test window
  */
 extern int open_tui(){
+#ifdef HAVE_LIBNCURSES
     initscr();
+#endif
     return 1;
 }
 
 extern void close_tui(){
+#ifdef HAVE_LIBNCURSES
     endwin();
+#endif
 }
+
+
 /**
  * debug message
  * open_log	- to open file /var/log/partclone.log
