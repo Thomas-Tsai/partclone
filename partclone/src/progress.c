@@ -112,6 +112,7 @@ extern void TUI_progress_update(struct progress_bar *p, int current, int done)
 	char Rformated[10], Eformated[10], Tformated[10];
 	struct tm *Rtm, *Etm, *Ttm;
 	char *clear_buf = NULL;
+	char *p_block;
 
         percent  = p->unit * current;
         elapsed  = (time(0) - p->time);
@@ -130,26 +131,54 @@ extern void TUI_progress_update(struct progress_bar *p, int current, int done)
 	Etm = gmtime(&elapsed);
 	strftime(Eformated, sizeof(Eformated), format, Etm);
 
+	/// check color pair
+	if(!has_colors()){
+	    endwin();
+	    //printf("error, no colors\n");
+	}
+
+	if (start_color() != OK){
+	    endwin();
+	    //printf("error, no init color\n");
+	}
+
+	init_pair(1, COLOR_WHITE, COLOR_BLACK);
+	init_pair(2, COLOR_WHITE, COLOR_RED);
+	init_pair(3, COLOR_WHITE, COLOR_GREEN);
+
         if (done != 1){
                 if (((current - p->start) % p->resolution) && ((current != p->stop)))
                         return;
-                mvprintw(4, 10, "copying");
                 mvprintw(5, 10, "Elapsed: %s" , Eformated);
-                mvprintw(6, 10, "Remaining: %s", Rformated);
-                mvprintw(7, 10, "Completed:%6.2f%%", percent);
-                mvprintw(8, 10, "Rate: %6.2fMB/min", (float)(speed));
+                mvprintw(7, 10, "Remaining: %s", Rformated);
+                mvprintw(9, 10, "Rate: %6.2fMB/min", (float)(speed));
+                mvprintw(11, 10, "Completed:%6.2f%%", percent);
+		attrset(COLOR_PAIR(2));
+		mvprintw(15, 10, "%60s", " ");
+		attrset(COLOR_PAIR(3));
+		p_block = malloc(60);
+		memset(p_block, 0, 60);
+		memset(p_block, ' ', (size_t)(percent*0.6));
+		mvprintw(15, 10, "%s", p_block);
+		free(p_block);
+		attrset(COLOR_PAIR(1));
 		refresh();
         } else {
 		total = elapsed;
 		Ttm = gmtime(&total);
 		strftime(Tformated, sizeof(Tformated), format, Ttm);
-		sleep(10);
-                mvprintw(4, 10, "done");
-                mvprintw(6, 10, "Total Time: %s", Tformated);
-                mvprintw(7, 10, "Ave. Rate: %6.1fMB/min", (float)(p->rate/p->stop));
-                mvprintw(8, 10, "100.00%% completed!");
+                mvprintw(5, 10, "Total Time: %s", Tformated);
+                mvprintw(7, 10, "Remaining: 0");
+                mvprintw(9, 10, "Ave. Rate: %6.1fMB/min", (float)(p->rate/p->stop));
+                mvprintw(11, 10, "100.00%% completed!");
+		attrset(COLOR_PAIR(2));
+		mvprintw(15, 10, "%60s", " ");
+		attrset(COLOR_PAIR(3));
+		mvprintw(15, 10, "%60s", " ");
+		attrset(COLOR_PAIR(1));
 		refresh();
-		sleep(10);
+		sleep(1);
 	}
+
 #endif
 }

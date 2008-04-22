@@ -1,3 +1,21 @@
+2008-04-22 06:44  thomas
+
+	* src/main.c:
+	  
+	  fix last change for log_level only.
+
+2008-04-22 06:39  thomas
+
+	* ChangeLog, src/main.c, src/version.c:
+	  
+	  update memcmp size.
+
+2008-04-21 10:47  thomas
+
+	* ChangeLog:
+	  
+	  update Changelog
+
 2008-04-21 10:36  thomas
 
 	* Makefile.in, aclocal.m4, config.h.in, configure, configure.ac,

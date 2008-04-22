@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <ncurses.h>
 #include <malloc.h>
 #include <stdarg.h>
 #include <string.h>
@@ -231,7 +232,15 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
 
     va_list args;
     va_start(args, fmt);
+    char msg_tui[1024];
 	
+#ifdef HAVE_LIBNCURSES
+    if((log_stderr) && (log_level <= debug)){
+	vsnprintf(msg_tui, 1024, fmt, args);
+	mvprintw(20, 10, "%s", msg_tui);
+	refresh();
+    }
+#endif
     /// write log to stderr if log_stderr is true
     if((log_stderr) && (log_level <= debug)){
         vfprintf(stderr, fmt, args);
