@@ -1,3 +1,21 @@
+2008-04-21 10:36  thomas
+
+	* Makefile.in, aclocal.m4, config.h.in, configure, configure.ac,
+	  docs/Makefile.in, src/Makefile.in, src/main.c, src/partclone.c,
+	  src/partclone.h, src/progress.c, src/progress.h, src/version.c:
+	  
+	  try to add new function for #14 "TUI of status reports" add
+	  --enable-ncurses to enable TUI and check libncurses add add new
+	  option to use TUI, ex: -X or --tui add function open_tui to open
+	  text window close_tui to close window TUI_progress_update to show
+	  status The option(TUI) is unstable.
+
+2008-04-21 10:30  jazz
+
+	* AUTHORS:
+	  
+	  
+
 2008-02-21 05:51  c00jhs00
 
 	* Makefile.in, aclocal.m4, configure, configure.ac,
