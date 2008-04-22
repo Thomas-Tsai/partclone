@@ -230,7 +230,7 @@ int main(int argc, char **argv){
 
 	/// check the file system
 	if (memcmp(image_hdr.fs, FS, sizeof(FS)) != 0)
-	    log_mesg(1, 1, 1, debug, "Partclone can't restore partition from the image because the filesystem is %s\n", image_hdr.fs);
+	    log_mesg(0, 1, 1, debug, "Partclone can't restore partition from the image because the filesystem is %s\n", image_hdr.fs);
 
 	log_mesg(2, 0, 0, debug, "initial main bitmap pointer %lli\n", bitmap);
 	log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
