@@ -730,8 +730,8 @@ ENABLE_HFSP_TRUE
 ENABLE_HFSP_FALSE
 ENABLE_FAT_TRUE
 ENABLE_FAT_FALSE
-ENABLE_NCURSES_TRUE
-ENABLE_NCURSES_FALSE
+ENABLE_NCURSESW_TRUE
+ENABLE_NCURSESW_FALSE
 ENABLE_STATIC_TRUE
 ENABLE_STATIC_FALSE
 LIBOBJS
@@ -1336,7 +1336,7 @@ Optional Features:
   --enable-reiser4        enable Reiser4 file system
   --enable-hfsp           enable HFS plus file system
   --enable-fat            enable FAT file system
-  --enable-ncurses        enable TEXT User Interface
+  --enable-ncursesw       enable TEXT User Interface
   --enable-static         enable static linking
 
 Optional Packages:
@@ -8452,27 +8452,27 @@ if test "$enable_fat" = yes; then
 supported_fs=$supported_fs" FAT"
 fi
 
-##libncurses##
+##libncursesw##
 # Check whether --enable-test was given.
 if test "${enable_test+set}" = set; then
-  enableval=$enable_test; enable_ncurses=yes
+  enableval=$enable_test; enable_ncursesw=yes
 fi
 
- if test "$enable_ncurses" = yes; then
-  ENABLE_NCURSES_TRUE=
-  ENABLE_NCURSES_FALSE='#'
+ if test "$enable_ncursesw" = yes; then
+  ENABLE_NCURSESW_TRUE=
+  ENABLE_NCURSESW_FALSE='#'
 else
-  ENABLE_NCURSES_TRUE='#'
-  ENABLE_NCURSES_FALSE=
+  ENABLE_NCURSESW_TRUE='#'
+  ENABLE_NCURSESW_FALSE=
 fi
 
 
-if test "$enable_ncurses" = "yes"; then
+if test "$enable_ncursesw" = "yes"; then
 
-{ echo "$as_me:$LINENO: checking  for Ncurses Library and Header files ... ..." >&5
-echo "$as_me: checking  for Ncurses Library and Header files ... ..." >&6;}
+{ echo "$as_me:$LINENO: checking  for Ncursesw Library and Header files ... ..." >&5
+echo "$as_me: checking  for Ncursesw Library and Header files ... ..." >&6;}
 
-for ac_header in ncurses.h
+for ac_header in ncursesw/ncurses.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -8613,8 +8613,8 @@ if test `eval echo '${'$as_ac_Header'}'` = yes; then
 _ACEOF
 
 else
-  { { echo "$as_me:$LINENO: error: *** ncurses header files (ncurses.h) not found" >&5
-echo "$as_me: error: *** ncurses header files (ncurses.h) not found" >&2;}
+  { { echo "$as_me:$LINENO: error: *** ncurses header files (ncursesw/ncurses.h) not found" >&5
+echo "$as_me: error: *** ncurses header files (ncursesw/ncurses.h) not found" >&2;}
    { (exit 1); exit 1; }; }
 
 fi
@@ -8622,13 +8622,13 @@ fi
 done
 
 
-{ echo "$as_me:$LINENO: checking for initscr in -lncurses" >&5
-echo $ECHO_N "checking for initscr in -lncurses... $ECHO_C" >&6; }
-if test "${ac_cv_lib_ncurses_initscr+set}" = set; then
+{ echo "$as_me:$LINENO: checking for initscr in -lncursesw" >&5
+echo $ECHO_N "checking for initscr in -lncursesw... $ECHO_C" >&6; }
+if test "${ac_cv_lib_ncursesw_initscr+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lncurses  $LIBS"
+LIBS="-lncursesw  $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -8669,30 +8669,30 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
-  ac_cv_lib_ncurses_initscr=yes
+  ac_cv_lib_ncursesw_initscr=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-	ac_cv_lib_ncurses_initscr=no
+	ac_cv_lib_ncursesw_initscr=no
 fi
 
 rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ echo "$as_me:$LINENO: result: $ac_cv_lib_ncurses_initscr" >&5
-echo "${ECHO_T}$ac_cv_lib_ncurses_initscr" >&6; }
-if test $ac_cv_lib_ncurses_initscr = yes; then
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_ncursesw_initscr" >&5
+echo "${ECHO_T}$ac_cv_lib_ncursesw_initscr" >&6; }
+if test $ac_cv_lib_ncursesw_initscr = yes; then
   cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBNCURSES 1
+#define HAVE_LIBNCURSESW 1
 _ACEOF
 
-  LIBS="-lncurses $LIBS"
+  LIBS="-lncursesw $LIBS"
 
 else
-  { { echo "$as_me:$LINENO: error: *** Ncurses library (libncurses5) not found" >&5
-echo "$as_me: error: *** Ncurses library (libncurses5) not found" >&2;}
+  { { echo "$as_me:$LINENO: error: *** Ncursesw library (libncursesw5) not found" >&5
+echo "$as_me: error: *** Ncursesw library (libncursesw5) not found" >&2;}
    { (exit 1); exit 1; }; }
 fi
 
@@ -8877,10 +8877,10 @@ echo "$as_me: error: conditional \"ENABLE_FAT\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
-if test -z "${ENABLE_NCURSES_TRUE}" && test -z "${ENABLE_NCURSES_FALSE}"; then
-  { { echo "$as_me:$LINENO: error: conditional \"ENABLE_NCURSES\" was never defined.
+if test -z "${ENABLE_NCURSESW_TRUE}" && test -z "${ENABLE_NCURSESW_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"ENABLE_NCURSESW\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
-echo "$as_me: error: conditional \"ENABLE_NCURSES\" was never defined.
+echo "$as_me: error: conditional \"ENABLE_NCURSESW\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -9596,8 +9596,8 @@ ENABLE_HFSP_TRUE!$ENABLE_HFSP_TRUE$ac_delim
 ENABLE_HFSP_FALSE!$ENABLE_HFSP_FALSE$ac_delim
 ENABLE_FAT_TRUE!$ENABLE_FAT_TRUE$ac_delim
 ENABLE_FAT_FALSE!$ENABLE_FAT_FALSE$ac_delim
-ENABLE_NCURSES_TRUE!$ENABLE_NCURSES_TRUE$ac_delim
-ENABLE_NCURSES_FALSE!$ENABLE_NCURSES_FALSE$ac_delim
+ENABLE_NCURSESW_TRUE!$ENABLE_NCURSESW_TRUE$ac_delim
+ENABLE_NCURSESW_FALSE!$ENABLE_NCURSESW_FALSE$ac_delim
 ENABLE_STATIC_TRUE!$ENABLE_STATIC_TRUE$ac_delim
 ENABLE_STATIC_FALSE!$ENABLE_STATIC_FALSE$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
@@ -10005,21 +10005,22 @@ echo "$as_me: $ac_file is unchanged" >&6;}
   fi
   rm -f "$tmp/out12"
 # Compute $ac_file's index in $config_headers.
+_am_arg=$ac_file
 _am_stamp_count=1
 for _am_header in $config_headers :; do
   case $_am_header in
-    $ac_file | $ac_file:* )
+    $_am_arg | $_am_arg:* )
       break ;;
     * )
       _am_stamp_count=`expr $_am_stamp_count + 1` ;;
   esac
 done
-echo "timestamp for $ac_file" >`$as_dirname -- $ac_file ||
-$as_expr X$ac_file : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
-	 X$ac_file : 'X\(//\)[^/]' \| \
-	 X$ac_file : 'X\(//\)$' \| \
-	 X$ac_file : 'X\(/\)' \| . 2>/dev/null ||
-echo X$ac_file |
+echo "timestamp for $_am_arg" >`$as_dirname -- "$_am_arg" ||
+$as_expr X"$_am_arg" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
+	 X"$_am_arg" : 'X\(//\)[^/]' \| \
+	 X"$_am_arg" : 'X\(//\)$' \| \
+	 X"$_am_arg" : 'X\(/\)' \| . 2>/dev/null ||
+echo X"$_am_arg" |
     sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
 	    s//\1/
 	    q
@@ -10169,7 +10170,7 @@ echo "$as_me: executing $ac_file commands" >&6;}
   # each Makefile.in and add a new line on top of each file to say so.
   # Grep'ing the whole file is not good either: AIX grep has a line
   # limit of 2048, but all sed's we know have understand at least 4000.
-  if sed 10q "$mf" | grep '^#.*generated by automake' > /dev/null 2>&1; then
+  if sed -n 's,^#.*generated by automake.*,X,p' "$mf" | grep X >/dev/null 2>&1; then
     dirpart=`$as_dirname -- "$mf" ||
 $as_expr X"$mf" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
 	 X"$mf" : 'X\(//\)[^/]' \| \

@@ -33,4 +33,5 @@ extern void progress_init(struct progress_bar *p, int start, int stop, int res, 
 extern void progress_update(struct progress_bar *p, int current, int done);
 extern void TUI_progress_update(struct progress_bar *p, int current, int done);
 
-
+static open_p_tui();
+static close_p_tui();

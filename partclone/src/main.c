@@ -61,6 +61,9 @@
     #define FS "FAT"
 #endif
 
+/// global variable
+cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
+
 /**
  * main functiom - for colne or restore data
  */
@@ -100,7 +103,6 @@ int main(int argc, char **argv){
     "*************************************************************************\n";
 
     progress_bar	prog;			/// progress_bar structure defined in progress.h
-    cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
     image_head		image_hdr;		/// image_head structure defined in partclone.h
 
     /**

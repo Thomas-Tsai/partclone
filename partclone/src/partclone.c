@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <ncurses.h>
 #include <malloc.h>
 #include <stdarg.h>
 #include <string.h>
@@ -51,6 +50,12 @@
 
 
 FILE* msg = NULL;
+#ifdef HAVE_LIBNCURSESW
+    #include <ncursesw/ncurses.h>
+    WINDOW *log_win;
+    WINDOW *log_box_win;
+    int log_y_line = 0;
+#endif
 
 /**
  * options - 
@@ -71,7 +76,9 @@ extern void usage(void)
         "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
         "    -R,  --rescue           Continue after disk read errors\n"
         "    -C,  --no_check         Don't check device size and free space\n"
+#ifdef HAVE_LIBNCURSESW
         "    -X,  --tui              Using Text User Interface\n"
+#endif
         "    -h,  --help             Display this help\n"
     , EXECNAME, VERSION, svn_version, EXECNAME);
     exit(0);
@@ -199,14 +206,44 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
  * close_tui	- close test window
  */
 extern int open_tui(){
-#ifdef HAVE_LIBNCURSES
+#ifdef HAVE_LIBNCURSESW
+    int log_line = 10;
+    int log_row = 60;
+    int log_y_pos = 2;
+    int log_x_pos = 5;
     initscr();
+
+    /// init log window
+    log_box_win = subwin(stdscr, log_line+2, log_row+2, log_y_pos-1, log_x_pos-1);
+    box(log_box_win, ACS_VLINE, ACS_HLINE);
+    log_win = subwin(stdscr, log_line, log_row, log_y_pos, log_x_pos);
+    scrollok(log_win, TRUE);
+
+    touchwin(stdscr);
+
+    /// check color pair
+    if(!has_colors()){
+        endwin();
+    }
+
+    if (start_color() != OK){
+        endwin();
+    }
+
+    clear();
+
+    refresh();
+
 #endif
     return 1;
 }
 
 extern void close_tui(){
-#ifdef HAVE_LIBNCURSES
+#ifdef HAVE_LIBNCURSESW
+    sleep(3);
+    delwin(log_win);
+    delwin(log_box_win);
+    touchwin(stdscr);
     endwin();
 #endif
 }
@@ -232,18 +269,38 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
 
     va_list args;
     va_start(args, fmt);
-    char msg_tui[1024];
+    extern cmd_opt opt;
 	
-#ifdef HAVE_LIBNCURSES
-    if((log_stderr) && (log_level <= debug)){
-	vsnprintf(msg_tui, 1024, fmt, args);
-	mvprintw(20, 10, "%s", msg_tui);
-	refresh();
-    }
+    if (opt.tui) {
+#ifdef HAVE_LIBNCURSESW
+	setlocale(LC_ALL, "");
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
+	char *msg_tui;
+	msg_tui = malloc(256);
+	memset(msg_tui, 0, 256);
+	if((log_stderr) && (log_level <= debug)){
+	    //mvwprintw(log_win, log_y_line, 0, "%256s", " ");
+	    //vsnprintf(msg_tui, 256, fmt, args);
+	    if(log_exit){
+		wattron(log_win, A_STANDOUT);
+	    }
+	    vwprintw(log_win, fmt, args);
+	    if(log_exit){
+		wattroff(log_win, A_STANDOUT);
+		sleep(3);
+	    }
+	    wrefresh(log_win);
+	    //refresh();
+	    log_y_line++;
+	}
+	free(msg_tui);
 #endif
-    /// write log to stderr if log_stderr is true
-    if((log_stderr) && (log_level <= debug)){
-        vfprintf(stderr, fmt, args);
+    } else {
+	/// write log to stderr if log_stderr is true
+	if((log_stderr) && (log_level <= debug)){
+	    vfprintf(stderr, fmt, args);
+	}
     }
 
     /// write log to logfile if debug is true
@@ -258,8 +315,11 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
     fflush(msg);
 
     /// exit if lexit true
-    if (log_exit)
+    if (log_exit){
+	close_tui();
+	close_log();
     	exit(1);
+    }
 }
  
 extern void close_log(){

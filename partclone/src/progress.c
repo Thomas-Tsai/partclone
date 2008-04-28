@@ -16,11 +16,17 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <ncurses.h>
 #include "config.h"
 #include "progress.h"
 #include "gettext.h"
 #define _(STRING) gettext(STRING)
+
+#ifdef HAVE_LIBNCURSESW
+    #include <ncursesw/ncurses.h>
+    WINDOW *progress_win;
+    WINDOW *progress_box_win;
+    int window_f = 0;
+#endif
 
 /// initial progress bar
 extern void progress_init(struct progress_bar *p, int start, int stop, int res, int size)
@@ -96,7 +102,7 @@ extern void progress_update(struct progress_bar *p, int current, int done)
 /// update information at ncurses mode
 extern void TUI_progress_update(struct progress_bar *p, int current, int done)
 {
-#ifdef HAVE_LIBNCURSES
+#ifdef HAVE_LIBNCURSESW
         setlocale(LC_ALL, "");
         bindtextdomain(PACKAGE, LOCALEDIR);
         textdomain(PACKAGE);
@@ -131,54 +137,83 @@ extern void TUI_progress_update(struct progress_bar *p, int current, int done)
 	Etm = gmtime(&elapsed);
 	strftime(Eformated, sizeof(Eformated), format, Etm);
 
-	/// check color pair
-	if(!has_colors()){
-	    endwin();
-	    //printf("error, no colors\n");
+
+	if(window_f == 0){
+	    window_f = open_p_tui();
 	}
 
-	if (start_color() != OK){
-	    endwin();
-	    //printf("error, no init color\n");
-	}
-
-	init_pair(1, COLOR_WHITE, COLOR_BLACK);
-	init_pair(2, COLOR_WHITE, COLOR_RED);
-	init_pair(3, COLOR_WHITE, COLOR_GREEN);
+	init_pair(1, COLOR_RED, COLOR_GREEN);
+	init_pair(2, COLOR_GREEN, COLOR_RED);
 
         if (done != 1){
                 if (((current - p->start) % p->resolution) && ((current != p->stop)))
                         return;
-                mvprintw(5, 10, "Elapsed: %s" , Eformated);
-                mvprintw(7, 10, "Remaining: %s", Rformated);
-                mvprintw(9, 10, "Rate: %6.2fMB/min", (float)(speed));
-                mvprintw(11, 10, "Completed:%6.2f%%", percent);
-		attrset(COLOR_PAIR(2));
-		mvprintw(15, 10, "%60s", " ");
-		attrset(COLOR_PAIR(3));
+                mvwprintw(progress_win, 0, 0, "Elapsed: %s" , Eformated);
+                mvwprintw(progress_win, 1, 0, "Remaining: %s", Rformated);
+                mvwprintw(progress_win, 2, 0, "Rate: %6.2fMB/min", (float)(speed));
+                mvwprintw(progress_win, 3, 0, "Completed:%6.2f%%", percent);
+		wattrset(progress_win, COLOR_PAIR(1));
+		mvwprintw(progress_win, 5, 0, "%60s", " ");
+		wattroff(progress_win, COLOR_PAIR(1));
 		p_block = malloc(60);
 		memset(p_block, 0, 60);
 		memset(p_block, ' ', (size_t)(percent*0.6));
-		mvprintw(15, 10, "%s", p_block);
+		wattrset(progress_win, COLOR_PAIR(2));
+		mvwprintw(progress_win, 5, 0, "%s", p_block);
+		wattroff(progress_win, COLOR_PAIR(2));
+		wrefresh(progress_win);
 		free(p_block);
-		attrset(COLOR_PAIR(1));
-		refresh();
         } else {
 		total = elapsed;
 		Ttm = gmtime(&total);
 		strftime(Tformated, sizeof(Tformated), format, Ttm);
-                mvprintw(5, 10, "Total Time: %s", Tformated);
-                mvprintw(7, 10, "Remaining: 0");
-                mvprintw(9, 10, "Ave. Rate: %6.1fMB/min", (float)(p->rate/p->stop));
-                mvprintw(11, 10, "100.00%% completed!");
-		attrset(COLOR_PAIR(2));
-		mvprintw(15, 10, "%60s", " ");
-		attrset(COLOR_PAIR(3));
-		mvprintw(15, 10, "%60s", " ");
-		attrset(COLOR_PAIR(1));
+                mvwprintw(progress_win, 0, 0, "Total Time: %s", Tformated);
+                mvwprintw(progress_win, 1, 0, "Remaining: 0");
+                mvwprintw(progress_win, 2, 0, "Ave. Rate: %6.1fMB/min", (float)(p->rate/p->stop));
+                mvwprintw(progress_win, 3, 0, "100.00%% completed!");
+		wattrset(progress_win, COLOR_PAIR(1));
+		mvwprintw(progress_win, 5, 0, "%60s", " ");
+		wattroff(progress_win, COLOR_PAIR(1));
+		wattrset(progress_win, COLOR_PAIR(2));
+		mvwprintw(progress_win, 5, 0, "%60s", " ");
+		wattroff(progress_win, COLOR_PAIR(2));
+		wrefresh(progress_win);
 		refresh();
 		sleep(1);
 	}
 
+	if(done == 1){
+	    window_f = close_p_tui();
+	}
+
 #endif
+}
+
+static int open_p_tui(){
+
+#ifdef HAVE_LIBNCURSESW
+    int p_line = 10;
+    int p_row = 60;
+    int p_y_pos = 15;
+    int p_x_pos = 5;
+
+    progress_box_win = subwin(stdscr, p_line+2, p_row+2, p_y_pos-1, p_x_pos-1);
+    box(progress_box_win, ACS_VLINE, ACS_HLINE);
+    progress_win = subwin(stdscr, p_line, p_row, p_y_pos, p_x_pos);
+
+    touchwin(stdscr);
+    refresh();
+#endif
+
+    return 1;
+}
+
+static int close_p_tui(){
+#ifdef HAVE_LIBNCURSESW
+    delwin(progress_win);
+    delwin(progress_box_win);
+    touchwin(stdscr);
+#endif
+
+    return 1;
 }

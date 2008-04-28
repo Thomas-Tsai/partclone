@@ -30,6 +30,8 @@
  */
 #include "partclone.h"
 
+cmd_opt             opt;                    /// cmd_opt structure defined in partclone.h
+
 /**
  * main functiom - print Image file metadata.
  */
@@ -38,7 +40,6 @@ int main(int argc, char **argv){
     char*		source;			/// source data
     int			dfr;			/// file descriptor for source and target
     char		*bitmap;		/// the point for bitmap data
-    cmd_opt             opt;                    /// cmd_opt structure defined in partclone.h
     image_head		image_hdr;		/// image_head structure defined in partclone.h
     int debug = 1;
 
