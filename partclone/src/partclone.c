@@ -76,9 +76,8 @@ extern void usage(void)
         "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
         "    -R,  --rescue           Continue after disk read errors\n"
         "    -C,  --no_check         Don't check device size and free space\n"
-#ifdef HAVE_LIBNCURSESW
-        "    -X,  --tui              Using Text User Interface\n"
-#endif
+        "    -N,  --ncurses          Using Ncurses User Interface\n"
+        "    -X,  --dialog           Using Dialog User Interface\n"
         "    -h,  --help             Display this help\n"
     , EXECNAME, VERSION, svn_version, EXECNAME);
     exit(0);
@@ -86,7 +85,7 @@ extern void usage(void)
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hd::cbro:O:s:RCX";
+    static const char *sopt = "-hd::cbro:O:s:RCXN";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "output",		required_argument,  NULL,   'o' },
@@ -98,7 +97,8 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "debug",		optional_argument,  NULL,   'd' },
         { "rescue",		no_argument,	    NULL,   'R' },
         { "check",		no_argument,	    NULL,   'C' },
-        { "tui",		no_argument,	    NULL,   'X' },
+        { "dialog",		no_argument,	    NULL,   'X' },
+        { "ncurses",		no_argument,	    NULL,   'N' },
         { NULL,			0,		    NULL,    0  }
     };
 
@@ -147,7 +147,10 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 		    opt->rescue++;
 		    break;
 	    case 'X':
-		    opt->tui = 1;
+		    opt->dialog = 1;
+		    break;
+	    case 'N':
+		    opt->ncurses = 1;
 		    break;
 	    case 'C':
 		    opt->check = 0;
@@ -177,7 +180,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 	//fprintf(stderr, "You use specify output file like stdout. or --help get more info.\n");
 	opt->source = "-";
     }
-	
+
     if (opt->clone){
 
 	if ((strcmp(opt->source, "-") == 0) || (opt->source == NULL)) {
@@ -200,12 +203,14 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 
 }
 
+
 /**
- * Text User Interface
- * open_tui	- open text window
- * close_tui	- close test window
+ * Ncurses Text User Interface
+ * open_ncurses	    - open text window
+ * close_ncurses    - close text window
  */
-extern int open_tui(){
+extern int open_ncurses(){
+
 #ifdef HAVE_LIBNCURSESW
     int log_line = 10;
     int log_row = 60;
@@ -238,7 +243,7 @@ extern int open_tui(){
     return 1;
 }
 
-extern void close_tui(){
+extern void close_ncurses(){
 #ifdef HAVE_LIBNCURSESW
     sleep(3);
     delwin(log_win);
@@ -270,32 +275,36 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
     va_list args;
     va_start(args, fmt);
     extern cmd_opt opt;
+    extern p_dialog_mesg m_dialog;
+    char tmp_str[128];
 	
-    if (opt.tui) {
+    if (opt.ncurses) {
 #ifdef HAVE_LIBNCURSESW
 	setlocale(LC_ALL, "");
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
-	char *msg_tui;
-	msg_tui = malloc(256);
-	memset(msg_tui, 0, 256);
 	if((log_stderr) && (log_level <= debug)){
-	    //mvwprintw(log_win, log_y_line, 0, "%256s", " ");
-	    //vsnprintf(msg_tui, 256, fmt, args);
 	    if(log_exit){
 		wattron(log_win, A_STANDOUT);
 	    }
+
 	    vwprintw(log_win, fmt, args);
+	    
 	    if(log_exit){
 		wattroff(log_win, A_STANDOUT);
 		sleep(3);
 	    }
 	    wrefresh(log_win);
-	    //refresh();
 	    log_y_line++;
 	}
-	free(msg_tui);
 #endif
+    } else if (opt.dialog) {
+	/// write log to stderr if log_stderr is true
+	if((log_stderr) && (log_level <= debug)){
+	    vsprintf(tmp_str, fmt, args);
+	    strncat(m_dialog.data, tmp_str, strlen(tmp_str));
+	    fprintf(stderr, "XXX\n%i\n%s\nXXX\n", m_dialog.percent, m_dialog.data);
+	}
     } else {
 	/// write log to stderr if log_stderr is true
 	if((log_stderr) && (log_level <= debug)){
@@ -316,8 +325,8 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
 
     /// exit if lexit true
     if (log_exit){
-	close_tui();
-	close_log();
+	close_ncurses();
+	close_ncurses();
     	exit(1);
     }
 }

@@ -63,6 +63,7 @@
 
 /// global variable
 cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
+p_dialog_mesg	m_dialog;			/// dialog format string
 
 /**
  * main functiom - for colne or restore data
@@ -122,12 +123,16 @@ int main(int argc, char **argv){
     /**
      * using Text User Interface
      */
-    if (opt.tui){
-	log_mesg(1, 0, 0, debug, "Using TUI mode.\n");
-	tui = open_tui();
+    if (opt.ncurses){
+	log_mesg(1, 0, 0, debug, "Using Ncurses User Interface mode.\n");
+	tui = open_ncurses();
 	if (!tui){
-	    log_mesg(0, 1, 1, debug, "Open TUI Error.\n");
+	    log_mesg(0, 1, 1, debug, "Open Ncurses User Interface Error.\n");
 	}
+    } else if (opt.dialog){
+	log_mesg(1, 0, 0, debug, "Using Dialog User Interface mode.\n");
+	m_dialog.percent = 1;
+	tui = 1;
     }
 
     if (geteuid() != 0)
@@ -387,10 +392,12 @@ int main(int argc, char **argv){
 		free(buffer);
 		free(crc_buffer);
 
-		if (!tui)
-		    progress_update(&prog, copied, done);
+		if (opt.ncurses)
+		    Ncurses_progress_update(&prog, copied, done);
+		else if (opt.dialog)
+		    Dialog_progress_update(&prog, copied, done);
 		else
-		    TUI_progress_update(&prog, copied, done);
+		    progress_update(&prog, copied, done);
         	
 		copied++;					/// count copied block
 		total_write += (unsigned long long)(w_size);	/// count copied size
@@ -411,10 +418,12 @@ int main(int argc, char **argv){
 	    
 		s_count++;
 		if ((s_count >=100) || (done == 1)){
-		    if (!tui)
-			progress_update(&prog, copied, done);
+		    if (opt.ncurses)
+			Ncurses_progress_update(&prog, copied, done);
+		    else if (opt.dialog)
+			Dialog_progress_update(&prog, copied, done);
 		    else
-			TUI_progress_update(&prog, copied, done);
+			progress_update(&prog, copied, done);
 
 		    s_count = 0;
 		}
@@ -503,10 +512,12 @@ int main(int argc, char **argv){
 		free(buffer);
 		free(crc_buffer);
 
-		if (!tui)
-		    progress_update(&prog, copied, done);
+		if (opt.ncurses)
+		    Ncurses_progress_update(&prog, copied, done);
+		else if (opt.dialog)
+		    Dialog_progress_update(&prog, copied, done);
 		else
-		    TUI_progress_update(&prog, copied, done);
+		    progress_update(&prog, copied, done);
 
 		copied++;					/// count copied block
 		total_write += (unsigned long long) w_size;	/// count copied size
@@ -525,10 +536,12 @@ int main(int argc, char **argv){
 		    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
 		s_count++;
 		if ((s_count >=100) || (done == 1)){
-		    if (!tui)
-			progress_update(&prog, copied, done);
+		    if (opt.ncurses)
+			Ncurses_progress_update(&prog, copied, done);
+		    else if (opt.dialog)
+			Dialog_progress_update(&prog, copied, done);
 		    else
-			TUI_progress_update(&prog, copied, done);
+			progress_update(&prog, copied, done);
 		    s_count = 0;
 		}
 		log_mesg(2, 0, 0, debug, "end\n");
@@ -599,10 +612,12 @@ int main(int argc, char **argv){
 
 		/// free buffer
 		free(buffer);
-		if (!tui)
-		    progress_update(&prog, copied, done);
+		if (opt.ncurses)
+		    Ncurses_progress_update(&prog, copied, done);
+		else if (opt.dialog)
+		    Dialog_progress_update(&prog, copied, done);
 		else
-		    TUI_progress_update(&prog, copied, done);
+		    progress_update(&prog, copied, done);
 		copied++;                                       /// count copied block
 		total_write += (unsigned long long)(w_size);    /// count copied size
 		log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
@@ -622,10 +637,12 @@ int main(int argc, char **argv){
 		    log_mesg(0, 1, 1, debug, "clone seek error %lli errno=%i\n", (long long)offset, (int)errno);
 		s_count++;
 		if ((s_count >=100) || (done == 1)){
-		    if (!tui)
-			progress_update(&prog, copied, done);
+		    if (opt.ncurses)
+			Ncurses_progress_update(&prog, copied, done);
+		    else if (opt.dialog)
+			Dialog_progress_update(&prog, copied, done);
 		    else
-			TUI_progress_update(&prog, copied, done);
+			progress_update(&prog, copied, done);
 		    s_count = 0;
 		}
 
@@ -641,8 +658,8 @@ int main(int argc, char **argv){
     close (dfr);    /// close source
     close (dfw);    /// close target
     free(bitmap);   /// free bitmp
-    if(opt.tui)
-	close_tui();
+    if(opt.ncurses)
+	close_ncurses();
     if(opt.debug)
 	close_log();
     return 0;	    /// finish

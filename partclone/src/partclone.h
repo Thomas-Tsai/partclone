@@ -62,20 +62,26 @@ struct cmd_opt
 	int overwrite;
 	int rescue;
 	int check;
-	int tui;
+	int ncurses;
+	int dialog;
 };
 typedef struct cmd_opt cmd_opt;
 extern void usage(void);
 extern void parse_options(int argc, char **argv, cmd_opt* opt);
 
 /** 
- * Text User Interface
- * open_tui	- open text window
- * close_tui	- close text window
+ * Ncurses Text User Interface
+ * open_ncurses		- open text window
+ * close_ncurses	- close text window
  */
-extern int open_tui();
-extern void close_tui();
-
+extern int open_ncurses();
+extern void close_ncurses();
+struct dialog_mesg
+{
+    int	    percent;
+    char    data[1024];
+};
+typedef struct dialog_mesg p_dialog_mesg;
 /**
  * debug message
  * open_log	- to open file /var/log/partclone.log
