@@ -225,6 +225,10 @@ static int close_p_ncurses(){
 
     return 1;
 }
+/// update information as dialog format, refernece source code of dialog
+/// # mkfifo pipe
+/// # (./clone.extfs -d -c -X -s /dev/loop0 2>pipe | cat - > test.img) | ./gauge < pipe
+/// # (cat test - |./clone.extfs -d -X -r -s - -o /dev/loop0 2>pipe) | ./gauge < pipe
 extern void Dialog_progress_update(struct progress_bar *p, int current, int done){
         setlocale(LC_ALL, "");
         bindtextdomain(PACKAGE, LOCALEDIR);

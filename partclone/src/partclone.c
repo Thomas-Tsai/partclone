@@ -76,8 +76,10 @@ extern void usage(void)
         "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
         "    -R,  --rescue           Continue after disk read errors\n"
         "    -C,  --no_check         Don't check device size and free space\n"
+#ifdef HAVE_LIBNCURSESW
         "    -N,  --ncurses          Using Ncurses User Interface\n"
-        "    -X,  --dialog           Using Dialog User Interface\n"
+#endif
+        "    -X,  --dialog           output message as Dialog Format\n"
         "    -h,  --help             Display this help\n"
     , EXECNAME, VERSION, svn_version, EXECNAME);
     exit(0);
@@ -147,6 +149,9 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 		    opt->rescue++;
 		    break;
 	    case 'X':
+		    /// output message as dialog format, reference
+		    /// dialog --guage is text height width percent
+		    ///    A guage box displays a meter along the bottom of the box. The meter indicates the percentage. New percentages are read from standard input, one integer per line. The meter is updated to reflect each new percentage. If stdin is XXX, then the first line following is taken as an integer percentage, then subsequent lines up to another XXX are used for a new prompt. The guage exits when EOF is reached on stdin. 
 		    opt->dialog = 1;
 		    break;
 	    case 'N':
