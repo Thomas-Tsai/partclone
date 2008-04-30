@@ -20,6 +20,7 @@
 #include "progress.h"
 #include "gettext.h"
 #define _(STRING) gettext(STRING)
+#include "partclone.h"
 
 #ifdef HAVE_LIBNCURSESW
     #include <ncursesw/ncurses.h>
@@ -28,7 +29,6 @@
     int window_f = 0;
 #endif
 
-#include <partclone.h>
 /// initial progress bar
 extern void progress_init(struct progress_bar *p, int start, int stop, int res, int size)
 {
@@ -104,9 +104,6 @@ extern void progress_update(struct progress_bar *p, int current, int done)
 extern void Ncurses_progress_update(struct progress_bar *p, int current, int done)
 {
 #ifdef HAVE_LIBNCURSESW
-        setlocale(LC_ALL, "");
-        bindtextdomain(PACKAGE, LOCALEDIR);
-        textdomain(PACKAGE);
 	
 	float percent;
         double speedps = 1.0;
@@ -196,12 +193,22 @@ static int open_p_ncurses(){
     int p_row = 60;
     int p_y_pos = 15;
     int p_x_pos = 5;
+    
+    initscr();
 
     progress_box_win = subwin(stdscr, p_line+2, p_row+2, p_y_pos-1, p_x_pos-1);
     box(progress_box_win, ACS_VLINE, ACS_HLINE);
     progress_win = subwin(stdscr, p_line, p_row, p_y_pos, p_x_pos);
 
     touchwin(stdscr);
+    /// check color pair
+    if(!has_colors()){
+        endwin();
+    }
+
+    if (start_color() != OK){
+        endwin();
+    }
     refresh();
 #endif
 
@@ -213,6 +220,7 @@ static int close_p_ncurses(){
     delwin(progress_win);
     delwin(progress_box_win);
     touchwin(stdscr);
+    endwin();
 #endif
 
     return 1;
@@ -257,14 +265,14 @@ extern void Dialog_progress_update(struct progress_bar *p, int current, int done
                 if (((current - p->start) % p->resolution) && ((current != p->stop)))
                         return;
 		m_dialog.percent = (int)percent;
-                sprintf(tmp_str, _("Elapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "), Eformated, Rformated, percent, (float)(speed));
+                sprintf(tmp_str, _("  Elapsed: %s\n  Remaining: %s\n  Completed:%6.2f%%\n  Rate: %6.2fMB/min, "), Eformated, Rformated, percent, (float)(speed));
 		fprintf(stderr, "XXX\n%i\n%s\n%s\nXXX\n", m_dialog.percent, m_dialog.data, tmp_str);
         } else {
 		total = elapsed;
 		Ttm = gmtime(&total);
 		strftime(Tformated, sizeof(Tformated), format, Ttm);
 		m_dialog.percent = 100;
-                sprintf(tmp_str, _("\nTotal Time: %s, Ave. Rate: %6.1fMB/min, 100.00%% completed!\n"), Tformated, (float)(p->rate/p->stop));
+                sprintf(tmp_str, _("  Total Time: %s\n  Ave. Rate: %6.1fMB/min\n 100.00%%  completed!\n"), Tformated, (float)(p->rate/p->stop));
 		fprintf(stderr, "XXX\n%i\n%s\n%s\nXXX\n", m_dialog.percent, m_dialog.data, tmp_str);
 	}
 

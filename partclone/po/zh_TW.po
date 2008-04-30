@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.0.4\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2008-04-30 11:01+0800\n"
+"POT-Creation-Date: 2008-04-30 13:54+0800\n"
 "PO-Revision-Date: 2007-11-01 11:35+0800\n"
 "Last-Translator: Yu-Chin Tsai <thomas@nchc.org.tw>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -17,7 +17,8 @@ msgstr ""
 
 #: src/progress.c:85
 #, c-format
-msgid "\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "
+msgid ""
+"\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "
 msgstr "\r%81c\r經過：%s, 剩餘： %s, 完成：%6.2f%%, 速率：%6.2fMB/min, "
 
 #: src/progress.c:97
@@ -65,7 +66,6 @@ msgid "Total Time: %s"
 msgstr "全部時間：%s"
 
 #: src/progress.c:171
-#, 
 msgid "Remaining: 0"
 msgstr "剩餘：0"
 
@@ -79,12 +79,12 @@ msgstr "平均速率：%6.1fMB/min"
 msgid "100.00%% completed!"
 msgstr "100.00%% 已經完成！"
 
-#: src/progress.c:260
+#: src/progress.c:263
 #, c-format
 msgid "Elapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "
 msgstr "經過：%s, 剩餘： %s, 完成：%6.2f%%, 速率：%6.2fMB/min, "
 
-#: src/progress.c:267
+#: src/progress.c:270
 #, c-format
 msgid ""
 "\n"

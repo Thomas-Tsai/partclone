@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2008-04-30 11:01+0800\n"
+"POT-Creation-Date: 2008-04-30 13:54+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -78,12 +78,12 @@ msgstr ""
 msgid "100.00%% completed!"
 msgstr ""
 
-#: src/progress.c:260
+#: src/progress.c:263
 #, c-format
 msgid "Elapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "
 msgstr ""
 
-#: src/progress.c:267
+#: src/progress.c:270
 #, c-format
 msgid ""
 "\n"

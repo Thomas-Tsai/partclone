@@ -1,3 +1,67 @@
+2008-04-30 03:15  thomas
+
+	* po/partclone.pot, po/zh_TW.gmo, po/zh_TW.po, src/partclone.c,
+	  src/progress.c, src/version.c:
+	  
+	  * update po files * update progress.c for i18n * update
+	  partclone.c to fix bug at save stdout with ncurses
+
+2008-04-29 12:39  thomas
+
+	* src/gauge, src/version.c:
+	  
+	  add restore description at gauge
+
+2008-04-29 12:19  thomas
+
+	* src/gauge, src/infoclone.c, src/main.c, src/partclone.c,
+	  src/partclone.h, src/progress.c, src/progress.h, src/version.c:
+	  
+	  fix Text User Intereface and add dialog format string. -N
+	  --ncurses, Ncurses Interface, but can't save partition data to
+	  stdout -X --dialog, output dialog gauge format string, if you
+	  want to use dialog mkfifo pipe; (./clone.extfs -d -c -X -s
+	  /dev/loop0 2>pipe | cat - > test3_stderr.img) | ./gauge < pipe
+
+2008-04-28 13:33  thomas
+
+	* Makefile.in, aclocal.m4, config.h.in, configure, configure.ac,
+	  docs/Makefile.in, src/Makefile.in, src/infoclone.c, src/main.c,
+	  src/partclone.c, src/progress.c, src/progress.h, src/version.c:
+	  
+	  add TUI mode for partclone. * use ncursesw to display text user
+	  interface with i18n support * user interface status * user
+	  interface progress bar * configure option --enable-ncursesw for
+	  TUI mode
+	  
+	  Using -X or --tui to display text user interface like ex.
+	  clone.extfs -d -c -X -s /dev/loop0 -o test.img
+
+2008-04-22 14:29  thomas
+
+	* ChangeLog, po/partclone.pot, po/zh_TW.gmo, po/zh_TW.po,
+	  src/partclone.c, src/progress.c, src/version.c:
+	  
+	  keep fixing TUI mode.
+
+2008-04-22 08:17  thomas
+
+	* src/main.c, src/version.c:
+	  
+	  update FS check, use strcmp to replace memcmp.
+
+2008-04-22 06:59  c00jhs00
+
+	* debian/changelog:
+	  
+	  changelog for version 0.0.6-4.
+
+2008-04-22 06:58  thomas
+
+	* src/partclone.c, src/progress.c, src/version.c:
+	  
+	  add ifdef for tui mode
+
 2008-04-22 06:44  thomas
 
 	* src/main.c:
@@ -526,32 +590,32 @@
 
 2008-01-03 11:35  jazz
 
-	* ., trunk:
+	* .:
 	  
 	  * change repository name from trunk to partclone
 
 2008-01-03 09:19  thomas
 
-	* trunk/src/partclone.c:
+	* :
 	  
 	  add print version information at --help.
 
 2008-01-03 09:14  thomas
 
-	* trunk/src/partclone.c:
+	* :
 	  
 	  check stdin/stdout User can't clone from stdin or restore to
 	  stdout.
 
 2008-01-03 08:56  thomas
 
-	* trunk/src/main.c, trunk/src/partclone.h:
+	* :
 	  
 	  add image version control.
 
 2008-01-03 08:47  thomas
 
-	* trunk/src/main.c, trunk/src/partclone.c, trunk/src/partclone.h:
+	* :
 	  
 	  add crc check function to avoid data I/O error. reference libcrc
 	  which mainatined by Lammert Bies 1999-2007
@@ -559,62 +623,45 @@
 
 2008-01-03 05:45  thomas
 
-	* trunk/src/partclone.c:
+	* :
 	  
 	  add default source is -/stdin. default target is -/stdout.
 
 2008-01-03 03:58  thomas
 
-	* trunk/po/partclone.pot, trunk/po/zh_TW.gmo, trunk/po/zh_TW.po,
-	  trunk/src/partclone.c:
+	* :
 	  
 	  fix the ticke about "The better informatio at clone/restore"
 
 2008-01-02 19:31  thomas
 
-	* trunk/po/zh_TW.gmo:
+	* :
 	  
 	  update zh_tw.gmo
 
 2008-01-02 18:30  thomas
 
-	* trunk/TODO, trunk/po/partclone.pot, trunk/po/zh_TW.po,
-	  trunk/src/extfsclone.c, trunk/src/hfsplusclone.c,
-	  trunk/src/main.c, trunk/src/partclone.c, trunk/src/partclone.h,
-	  trunk/src/reiser4clone.c, trunk/src/reiserfsclone.c,
-	  trunk/src/xfsclone.c:
+	* :
 	  
 	  Change Image metadata format! add filesystem information in
 	  image_head add buff[4096] in image_head for use in the future.
 
 2008-01-02 14:04  jazz
 
-	* trunk/debian/README.Debian, trunk/debian/cron.d.ex,
-	  trunk/debian/emacsen-install.ex, trunk/debian/emacsen-remove.ex,
-	  trunk/debian/emacsen-startup.ex, trunk/debian/init.d.ex,
-	  trunk/debian/manpage.1.ex, trunk/debian/manpage.sgml.ex,
-	  trunk/debian/manpage.xml.ex, trunk/debian/menu.ex,
-	  trunk/debian/partclone-default.ex,
-	  trunk/debian/partclone.doc-base.EX,
-	  trunk/debian/partclone.substvars, trunk/debian/postinst.ex,
-	  trunk/debian/postrm.ex, trunk/debian/preinst.ex,
-	  trunk/debian/prerm.ex, trunk/debian/watch.ex:
+	* :
 	  
 	  * These template files is not necessary for current packaging
 	  usage.
 
 2008-01-02 13:59  thomas
 
-	* trunk/src/Makefile.am, trunk/src/Makefile.in,
-	  trunk/src/infoclone.c, trunk/src/main.c, trunk/src/partclone.c,
-	  trunk/src/partclone.h:
+	* :
 	  
 	  add infoclone.c to print Image file information.
 
 2008-01-02 13:37  jazz
 
-	* trunk/debian/changelog, trunk/debian/control, trunk/debian/rules,
-	  trunk/src/Makefile.in:
+	* :
 	  
 	  * modified debian/[control, changelog, rules] - to build debian
 	  package with static linking binary as default
@@ -625,104 +672,102 @@
 
 2008-01-02 12:22  jazz
 
-	* trunk/src/Makefile.am:
+	* :
 	  
 	  * [BUGFIX][BUG #1] fixed linking time error while enabling
 	  support of xfs.
 
 2008-01-02 09:29  thomas
 
-	* trunk/src/main.c, trunk/src/partclone.c, trunk/src/partclone.h:
+	* :
 	  
 	  add function check_size to check dest partition size. make sure
 	  the size is enough.
 
 2008-01-02 08:40  thomas
 
-	* trunk/src/partclone.c:
+	* :
 	  
 	  fix a bug in partclone.c. to make sure it return the I/O size.
 
 2008-01-02 08:15  thomas
 
-	* trunk/src/main.c, trunk/src/partclone.c, trunk/src/partclone.h:
+	* :
 	  
 	  check I/O syncronization while using pipe and stdin I use
 	  read_all and write_all to replace read and write.
 
 2008-01-02 05:02  jazz
 
-	* trunk/TODO:
+	* :
 	  
 	  add ToDo List: I/O syncronization
 
 2008-01-02 04:55  jazz
 
-	* trunk/TODO:
+	* :
 	  
 	  add ToDo list: checksum
 
 2008-01-02 04:46  jazz
 
-	* trunk/TODO:
+	* :
 	  
 	  update ToDo List: new bug #1
 
 2008-01-02 04:40  jazz
 
-	* trunk/TODO:
+	* :
 	  
 	  add ToDo List
 
 2008-01-02 03:26  thomas
 
-	* trunk/po/partclone.pot, trunk/po/zh_TW.gmo, trunk/po/zh_TW.po,
-	  trunk/src/partclone.c, trunk/src/partclone.h:
+	* :
 	  
 	  add more information about the size, xxx MB, xxx Byte... update
 	  zh_tw.po
 
 2008-01-01 13:22  c00jhs00
 
-	* trunk/debian/changelog:
+	* :
 	  
 	  ...
 
 2008-01-01 13:10  c00jhs00
 
-	* trunk/po/zh_TW.po:
+	* :
 	  
 	  add % for status report.
 
 2008-01-01 13:03  c00jhs00
 
-	* trunk/debian/changelog:
+	* :
 	  
 	  ...
 
 2008-01-01 11:30  jazz
 
-	* trunk/src/main.c, trunk/src/partclone.c, trunk/src/partclone.h:
+	* :
 	  
 	  * fix pipe syncronization problem - reference from ntfsclone.c
 	  io_all() function
 
 2008-01-01 04:08  c00jhs00
 
-	* trunk/debian/changelog:
+	* :
 	  
 	  ...
 
 2008-01-01 03:49  c00jhs00
 
-	* trunk/src/partclone.c:
+	* :
 	  
 	  Update the descriptions in help.
 
 2007-12-31 10:06  jazz
 
-	* trunk/Makefile.in, trunk/configure, trunk/configure.ac,
-	  trunk/src/Makefile.am, trunk/src/Makefile.in:
+	* :
 	  
 	  * modified configure.ac and src/Makefile.am to add support to
 	  compile static linking programs * Makefile.in, configure and
@@ -730,109 +775,68 @@
 
 2007-12-31 07:55  c00jhs00
 
-	* trunk/partclone.spec:
+	* :
 	  
 	  spec for rpm package.
 
 2007-12-31 07:36  jazz
 
-	* trunk/TODO:
+	* :
 	  
 	  testing http://free.nchc.org.tw/cvs2rss.php
 
 2007-12-13 07:35  thomas
 
-	* trunk/INSTALL, trunk/NEWS, trunk/README:
+	* :
 	  
 	  dd files for debian
 
 2007-12-13 07:25  thomas
 
-	* trunk/debian, trunk/debian/README.Debian, trunk/debian/changelog,
-	  trunk/debian/compat, trunk/debian/control,
-	  trunk/debian/copyright, trunk/debian/cron.d.ex,
-	  trunk/debian/dirs, trunk/debian/docs,
-	  trunk/debian/emacsen-install.ex, trunk/debian/emacsen-remove.ex,
-	  trunk/debian/emacsen-startup.ex, trunk/debian/files,
-	  trunk/debian/init.d.ex, trunk/debian/manpage.1.ex,
-	  trunk/debian/manpage.sgml.ex, trunk/debian/manpage.xml.ex,
-	  trunk/debian/menu.ex, trunk/debian/partclone-default.ex,
-	  trunk/debian/partclone.doc-base.EX,
-	  trunk/debian/partclone.substvars, trunk/debian/postinst.ex,
-	  trunk/debian/postrm.ex, trunk/debian/preinst.ex,
-	  trunk/debian/prerm.ex, trunk/debian/rules, trunk/debian/watch.ex:
+	* :
 	  
 	  add debian for make debian package
 
 2007-12-10 15:44  c00jhs00
 
-	* trunk/AUTHORS, trunk/COPYING:
+	* :
 	  
 	  ...
 
 2007-11-26 09:10  thomas
 
-	* trunk/src/main.c:
+	* :
 	  
 	  fix stdout/stdin bug
 
 2007-11-26 08:40  thomas
 
-	* trunk/src/main.c:
+	* :
 	  
 	  fix no --debug error make partclone always open log file
 
 2007-11-26 07:07  thomas
 
-	* trunk/config.h.in, trunk/configure, trunk/configure.ac,
-	  trunk/src/hfsplusclone.c, trunk/src/main.c,
-	  trunk/src/partclone.c:
+	* :
 	  
 	  fix large file support and hfsp get free bitmap error
 
 2007-11-26 00:31  thomas
 
-	* trunk/configure, trunk/configure.ac, trunk/src/Makefile.am,
-	  trunk/src/Makefile.in:
+	* :
 	  
 	  default not enable reiserfs, until progsreiserfs can get from
 	  debian
 
 2007-11-25 06:46  thomas
 
-	* trunk/ABOUT-NLS, trunk/ChangeLog, trunk/Makefile.am,
-	  trunk/Makefile.in, trunk/aclocal.m4, trunk/config.guess,
-	  trunk/config.h.in, trunk/config.rpath, trunk/config.sub,
-	  trunk/configure, trunk/configure.ac, trunk/depcomp, trunk/docs,
-	  trunk/docs/Makefile.am, trunk/docs/Makefile.in,
-	  trunk/docs/clone.extfs.8.in, trunk/docs/clone.hfsp.8.in,
-	  trunk/docs/clone.reiser4.8.in, trunk/docs/clone.reiserfs.8.in,
-	  trunk/docs/clone.xfs.8.in, trunk/install-sh, trunk/m4,
-	  trunk/m4/ChangeLog, trunk/m4/gettext.m4, trunk/m4/iconv.m4,
-	  trunk/m4/lib-ld.m4, trunk/m4/lib-link.m4, trunk/m4/lib-prefix.m4,
-	  trunk/m4/nls.m4, trunk/m4/po.m4, trunk/m4/progtest.m4,
-	  trunk/missing, trunk/po, trunk/po/ChangeLog, trunk/po/LINGUAS,
-	  trunk/po/Makefile.in.in, trunk/po/Makevars, trunk/po/POTFILES.in,
-	  trunk/po/Rules-quot, trunk/po/boldquot.sed,
-	  trunk/po/en@boldquot.header, trunk/po/en@quot.header,
-	  trunk/po/insert-header.sin, trunk/po/partclone.pot,
-	  trunk/po/quot.sed, trunk/po/remove-potcdate.sin,
-	  trunk/po/stamp-po, trunk/po/zh_TW.gmo, trunk/po/zh_TW.po,
-	  trunk/src, trunk/src/Makefile.am, trunk/src/Makefile.in,
-	  trunk/src/extfsclone.c, trunk/src/extfsclone.h,
-	  trunk/src/gettext.h, trunk/src/hfsplusclone.c,
-	  trunk/src/hfsplusclone.h, trunk/src/main.c,
-	  trunk/src/partclone.c, trunk/src/partclone.h,
-	  trunk/src/progress.c, trunk/src/progress.h,
-	  trunk/src/reiser4clone.c, trunk/src/reiser4clone.h,
-	  trunk/src/reiserfsclone.c, trunk/src/reiserfsclone.h,
-	  trunk/src/xfsclone.c, trunk/src/xfsclone.h:
+	* :
 	  
 	  Initial revision
 
 2007-11-25 06:46  
 
-	* branches, tags, trunk:
+	* :
 	  
 	  New repository initialized by cvs2svn.
 
