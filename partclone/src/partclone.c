@@ -188,6 +188,14 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 	    //usage();
 	    exit(0);
 	}
+
+	if ((strcmp(opt->target, "-") == 0) || (opt->target == NULL)) {
+	    if (opt->ncurses){
+		fprintf(stderr, "Warning: Partclone can't save output to stdout with ncurses interface.\n");
+		opt->ncurses = 0;
+	    }
+	    
+	}
     
     }
     

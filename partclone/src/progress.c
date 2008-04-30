@@ -148,10 +148,10 @@ extern void Ncurses_progress_update(struct progress_bar *p, int current, int don
         if (done != 1){
                 if (((current - p->start) % p->resolution) && ((current != p->stop)))
                         return;
-                mvwprintw(progress_win, 0, 0, "Elapsed: %s" , Eformated);
-                mvwprintw(progress_win, 1, 0, "Remaining: %s", Rformated);
-                mvwprintw(progress_win, 2, 0, "Rate: %6.2fMB/min", (float)(speed));
-                mvwprintw(progress_win, 3, 0, "Completed:%6.2f%%", percent);
+                mvwprintw(progress_win, 0, 0, _("Elapsed: %s") , Eformated);
+                mvwprintw(progress_win, 1, 0, _("Remaining: %s"), Rformated);
+                mvwprintw(progress_win, 2, 0, _("Rate: %6.2fMB/min"), (float)(speed));
+                mvwprintw(progress_win, 3, 0, _("Completed:%6.2f%%"), percent);
 		wattrset(progress_win, COLOR_PAIR(1));
 		mvwprintw(progress_win, 5, 0, "%60s", " ");
 		wattroff(progress_win, COLOR_PAIR(1));
@@ -167,10 +167,10 @@ extern void Ncurses_progress_update(struct progress_bar *p, int current, int don
 		total = elapsed;
 		Ttm = gmtime(&total);
 		strftime(Tformated, sizeof(Tformated), format, Ttm);
-                mvwprintw(progress_win, 0, 0, "Total Time: %s", Tformated);
-                mvwprintw(progress_win, 1, 0, "Remaining: 0");
-                mvwprintw(progress_win, 2, 0, "Ave. Rate: %6.1fMB/min", (float)(p->rate/p->stop));
-                mvwprintw(progress_win, 3, 0, "100.00%% completed!");
+                mvwprintw(progress_win, 0, 0, _("Total Time: %s"), Tformated);
+                mvwprintw(progress_win, 1, 0, _("Remaining: 0"));
+                mvwprintw(progress_win, 2, 0, _("Ave. Rate: %6.1fMB/min"), (float)(p->rate/p->stop));
+                mvwprintw(progress_win, 3, 0, _("100.00%% completed!"));
 		wattrset(progress_win, COLOR_PAIR(1));
 		mvwprintw(progress_win, 5, 0, "%60s", " ");
 		wattroff(progress_win, COLOR_PAIR(1));
