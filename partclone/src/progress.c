@@ -27,6 +27,7 @@
     WINDOW *progress_win;
     WINDOW *progress_box_win;
     int window_f = 0;
+    int color_support = 1;
 #endif
 
 /// initial progress bar
@@ -138,9 +139,10 @@ extern void Ncurses_progress_update(struct progress_bar *p, int current, int don
 	if(window_f == 0){
 	    window_f = open_p_ncurses();
 	}
-
-	init_pair(1, COLOR_RED, COLOR_GREEN);
-	init_pair(2, COLOR_GREEN, COLOR_RED);
+        if (color_support){
+	    init_pair(1, COLOR_RED, COLOR_GREEN);
+	    init_pair(2, COLOR_GREEN, COLOR_RED);
+	}
 
         if (done != 1){
                 if (((current - p->start) % p->resolution) && ((current != p->stop)))
@@ -149,15 +151,23 @@ extern void Ncurses_progress_update(struct progress_bar *p, int current, int don
                 mvwprintw(progress_win, 1, 0, _("Remaining: %s"), Rformated);
                 mvwprintw(progress_win, 2, 0, _("Rate: %6.2fMB/min"), (float)(speed));
                 mvwprintw(progress_win, 3, 0, _("Completed:%6.2f%%"), percent);
-		wattrset(progress_win, COLOR_PAIR(1));
-		mvwprintw(progress_win, 5, 0, "%60s", " ");
-		wattroff(progress_win, COLOR_PAIR(1));
-		p_block = malloc(60);
-		memset(p_block, 0, 60);
-		memset(p_block, ' ', (size_t)(percent*0.6));
-		wattrset(progress_win, COLOR_PAIR(2));
-		mvwprintw(progress_win, 5, 0, "%s", p_block);
-		wattroff(progress_win, COLOR_PAIR(2));
+		if (color_support){
+		    wattrset(progress_win, COLOR_PAIR(1));
+		    mvwprintw(progress_win, 5, 0, "%60s", " ");
+		    wattroff(progress_win, COLOR_PAIR(1));
+		    p_block = malloc(60);
+		    memset(p_block, 0, 60);
+		    memset(p_block, ' ', (size_t)(percent*0.6));
+		    wattrset(progress_win, COLOR_PAIR(2));
+		    mvwprintw(progress_win, 5, 0, "%s", p_block);
+		    wattroff(progress_win, COLOR_PAIR(2));
+		} else {
+		    mvwprintw(progress_win, 5, 0, "%60s", " ");
+		    p_block = malloc(60);
+		    memset(p_block, 0, 60);
+		    memset(p_block, '-', (size_t)(percent*0.6));
+		    mvwprintw(progress_win, 5, 0, "%s", p_block);
+		}
 		wrefresh(progress_win);
 		free(p_block);
         } else {
@@ -168,12 +178,17 @@ extern void Ncurses_progress_update(struct progress_bar *p, int current, int don
                 mvwprintw(progress_win, 1, 0, _("Remaining: 0"));
                 mvwprintw(progress_win, 2, 0, _("Ave. Rate: %6.1fMB/min"), (float)(p->rate/p->stop));
                 mvwprintw(progress_win, 3, 0, _("100.00%% completed!"));
-		wattrset(progress_win, COLOR_PAIR(1));
-		mvwprintw(progress_win, 5, 0, "%60s", " ");
-		wattroff(progress_win, COLOR_PAIR(1));
-		wattrset(progress_win, COLOR_PAIR(2));
-		mvwprintw(progress_win, 5, 0, "%60s", " ");
-		wattroff(progress_win, COLOR_PAIR(2));
+		if (color_support) {
+		    wattrset(progress_win, COLOR_PAIR(1));
+		    mvwprintw(progress_win, 5, 0, "%60s", " ");
+		    wattroff(progress_win, COLOR_PAIR(1));
+		    wattrset(progress_win, COLOR_PAIR(2));
+		    mvwprintw(progress_win, 5, 0, "%60s", " ");
+		    wattroff(progress_win, COLOR_PAIR(2));
+		} else {
+		    mvwprintw(progress_win, 5, 0, "%60s", " ");
+		    mvwprintw(progress_win, 5, 0, "%60s", "-");
+		}
 		wrefresh(progress_win);
 		refresh();
 		sleep(1);
@@ -203,11 +218,11 @@ static int open_p_ncurses(){
     touchwin(stdscr);
     /// check color pair
     if(!has_colors()){
-        endwin();
+        color_support = 0;
     }
 
-    if (start_color() != OK){
-        endwin();
+    if (!start_color() == OK){
+        color_support = 0;
     }
     refresh();
 #endif
