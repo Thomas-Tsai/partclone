@@ -1,3 +1,15 @@
+partclone (0.0.7-2) unstable; urgency=low
+
+    # Use --enable-ncursesw by default.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 01 May 2008 11:13:00 +0800
+
+partclone (0.0.7-1) unstable; urgency=low
+
+    # New functions: TUI mode for output done by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 01 May 2008 11:08:00 +0800
+
 partclone (0.0.6-4) unstable; urgency=low
 
     # Some new function for #14 "TUI of status reports" from Thomas Tsai.
