@@ -1,3 +1,46 @@
+2008-05-01 08:21  thomas
+
+	* src/progress.c, src/version.c:
+	  
+	  * update progress bar when the terminal not work at color style
+
+2008-05-01 03:23  c00jhs00
+
+	* src/version.c:
+	  
+	  auto updated.
+
+2008-05-01 03:21  c00jhs00
+
+	* debian/control:
+	  
+	  libncursesw5-dev was added for Build-Depends.
+
+2008-05-01 03:14  c00jhs00
+
+	* debian/changelog, debian/rules:
+	  
+	  # Use --enable-ncursesw by default.
+
+2008-05-01 02:55  thomas
+
+	* configure, configure.ac, src/version.c:
+	  
+	  * update version number
+
+2008-04-30 06:31  thomas
+
+	* src/partclone.c, src/progress.c:
+	  
+	  * add more information for dialog
+
+2008-04-30 06:13  thomas
+
+	* ChangeLog, po/partclone.pot, po/zh_TW.gmo, po/zh_TW.po,
+	  src/progress.c, src/version.c:
+	  
+	  * update ncurses mode bug
+
 2008-04-30 03:15  thomas
 
 	* po/partclone.pot, po/zh_TW.gmo, po/zh_TW.po, src/partclone.c,

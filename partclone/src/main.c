@@ -126,8 +126,10 @@ int main(int argc, char **argv){
     if (opt.ncurses){
 	log_mesg(1, 0, 0, debug, "Using Ncurses User Interface mode.\n");
 	tui = open_ncurses();
-	if (!tui){
-	    log_mesg(0, 1, 1, debug, "Open Ncurses User Interface Error.\n");
+	if (tui == 0){
+	    log_mesg(1, 0, 0, debug, "Open Ncurses User Interface Error.\n");
+	    opt.ncurses = 0;
+	    close_ncurses();
 	}
     } else if (opt.dialog){
 	log_mesg(1, 0, 0, debug, "Using Dialog User Interface mode.\n");

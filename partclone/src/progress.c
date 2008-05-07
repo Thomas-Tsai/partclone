@@ -24,8 +24,7 @@
 
 #ifdef HAVE_LIBNCURSESW
     #include <ncursesw/ncurses.h>
-    WINDOW *progress_win;
-    WINDOW *progress_box_win;
+    extern WINDOW *p_win;
     int window_f = 0;
     int color_support = 1;
 #endif
@@ -136,9 +135,6 @@ extern void Ncurses_progress_update(struct progress_bar *p, int current, int don
 	Etm = gmtime(&elapsed);
 	strftime(Eformated, sizeof(Eformated), format, Etm);
 
-	if(window_f == 0){
-	    window_f = open_p_ncurses();
-	}
         if (color_support){
 	    init_pair(1, COLOR_RED, COLOR_GREEN);
 	    init_pair(2, COLOR_GREEN, COLOR_RED);
@@ -147,49 +143,49 @@ extern void Ncurses_progress_update(struct progress_bar *p, int current, int don
         if (done != 1){
                 if (((current - p->start) % p->resolution) && ((current != p->stop)))
                         return;
-                mvwprintw(progress_win, 0, 0, _("Elapsed: %s") , Eformated);
-                mvwprintw(progress_win, 1, 0, _("Remaining: %s"), Rformated);
-                mvwprintw(progress_win, 2, 0, _("Rate: %6.2fMB/min"), (float)(speed));
-                mvwprintw(progress_win, 3, 0, _("Completed:%6.2f%%"), percent);
+                mvwprintw(p_win, 0, 0, _("Elapsed: %s") , Eformated);
+                mvwprintw(p_win, 1, 0, _("Remaining: %s"), Rformated);
+                mvwprintw(p_win, 2, 0, _("Rate: %6.2fMB/min"), (float)(speed));
+                mvwprintw(p_win, 3, 0, _("Completed:%6.2f%%"), percent);
 		if (color_support){
-		    wattrset(progress_win, COLOR_PAIR(1));
-		    mvwprintw(progress_win, 5, 0, "%60s", " ");
-		    wattroff(progress_win, COLOR_PAIR(1));
+		    wattrset(p_win, COLOR_PAIR(1));
+		    mvwprintw(p_win, 5, 0, "%60s", " ");
+		    wattroff(p_win, COLOR_PAIR(1));
 		    p_block = malloc(60);
 		    memset(p_block, 0, 60);
 		    memset(p_block, ' ', (size_t)(percent*0.6));
-		    wattrset(progress_win, COLOR_PAIR(2));
-		    mvwprintw(progress_win, 5, 0, "%s", p_block);
-		    wattroff(progress_win, COLOR_PAIR(2));
+		    wattrset(p_win, COLOR_PAIR(2));
+		    mvwprintw(p_win, 5, 0, "%s", p_block);
+		    wattroff(p_win, COLOR_PAIR(2));
 		} else {
-		    mvwprintw(progress_win, 5, 0, "%60s", " ");
+		    mvwprintw(p_win, 5, 0, "%60s", " ");
 		    p_block = malloc(60);
 		    memset(p_block, 0, 60);
 		    memset(p_block, '-', (size_t)(percent*0.6));
-		    mvwprintw(progress_win, 5, 0, "%s", p_block);
+		    mvwprintw(p_win, 5, 0, "%s", p_block);
 		}
-		wrefresh(progress_win);
+		wrefresh(p_win);
 		free(p_block);
         } else {
 		total = elapsed;
 		Ttm = gmtime(&total);
 		strftime(Tformated, sizeof(Tformated), format, Ttm);
-                mvwprintw(progress_win, 0, 0, _("Total Time: %s"), Tformated);
-                mvwprintw(progress_win, 1, 0, _("Remaining: 0"));
-                mvwprintw(progress_win, 2, 0, _("Ave. Rate: %6.1fMB/min"), (float)(p->rate/p->stop));
-                mvwprintw(progress_win, 3, 0, _("100.00%% completed!"));
+                mvwprintw(p_win, 0, 0, _("Total Time: %s"), Tformated);
+                mvwprintw(p_win, 1, 0, _("Remaining: 0"));
+                mvwprintw(p_win, 2, 0, _("Ave. Rate: %6.1fMB/min"), (float)(p->rate/p->stop));
+                mvwprintw(p_win, 3, 0, _("100.00%% completed!"));
 		if (color_support) {
-		    wattrset(progress_win, COLOR_PAIR(1));
-		    mvwprintw(progress_win, 5, 0, "%60s", " ");
-		    wattroff(progress_win, COLOR_PAIR(1));
-		    wattrset(progress_win, COLOR_PAIR(2));
-		    mvwprintw(progress_win, 5, 0, "%60s", " ");
-		    wattroff(progress_win, COLOR_PAIR(2));
+		    wattrset(p_win, COLOR_PAIR(1));
+		    mvwprintw(p_win, 5, 0, "%60s", " ");
+		    wattroff(p_win, COLOR_PAIR(1));
+		    wattrset(p_win, COLOR_PAIR(2));
+		    mvwprintw(p_win, 5, 0, "%60s", " ");
+		    wattroff(p_win, COLOR_PAIR(2));
 		} else {
-		    mvwprintw(progress_win, 5, 0, "%60s", " ");
-		    mvwprintw(progress_win, 5, 0, "%60s", "-");
+		    mvwprintw(p_win, 5, 0, "%60s", " ");
+		    mvwprintw(p_win, 5, 0, "%60s", "-");
 		}
-		wrefresh(progress_win);
+		wrefresh(p_win);
 		refresh();
 		sleep(1);
 	}
@@ -203,40 +199,10 @@ extern void Ncurses_progress_update(struct progress_bar *p, int current, int don
 
 static int open_p_ncurses(){
 
-#ifdef HAVE_LIBNCURSESW
-    int p_line = 10;
-    int p_row = 60;
-    int p_y_pos = 15;
-    int p_x_pos = 5;
-    
-    initscr();
-
-    progress_box_win = subwin(stdscr, p_line+2, p_row+2, p_y_pos-1, p_x_pos-1);
-    box(progress_box_win, ACS_VLINE, ACS_HLINE);
-    progress_win = subwin(stdscr, p_line, p_row, p_y_pos, p_x_pos);
-
-    touchwin(stdscr);
-    /// check color pair
-    if(!has_colors()){
-        color_support = 0;
-    }
-
-    if (!start_color() == OK){
-        color_support = 0;
-    }
-    refresh();
-#endif
-
     return 1;
 }
 
 static int close_p_ncurses(){
-#ifdef HAVE_LIBNCURSESW
-    delwin(progress_win);
-    delwin(progress_box_win);
-    touchwin(stdscr);
-    endwin();
-#endif
 
     return 1;
 }

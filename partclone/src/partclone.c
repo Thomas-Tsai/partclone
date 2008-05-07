@@ -54,6 +54,8 @@ FILE* msg = NULL;
     #include <ncursesw/ncurses.h>
     WINDOW *log_win;
     WINDOW *log_box_win;
+    WINDOW *p_win;
+    WINDOW *p_box_win;
     int log_y_line = 0;
 #endif
 
@@ -223,29 +225,75 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
  * close_ncurses    - close text window
  */
 extern int open_ncurses(){
+    int debug = 1;
 
 #ifdef HAVE_LIBNCURSESW
+    extern cmd_opt opt;
     int log_line = 10;
     int log_row = 60;
     int log_y_pos = 2;
     int log_x_pos = 5;
+
+    int p_line = 10;
+    int p_row = 60;
+    int p_y_pos = 14;
+    int p_x_pos = 5;
+
+    int terminal_x = 0;
+    int terminal_y = 0;
+    int size_ok = 1;
     initscr();
 
-    /// init log window
-    log_box_win = subwin(stdscr, log_line+2, log_row+2, log_y_pos-1, log_x_pos-1);
-    box(log_box_win, ACS_VLINE, ACS_HLINE);
-    log_win = subwin(stdscr, log_line, log_row, log_y_pos, log_x_pos);
-    scrollok(log_win, TRUE);
+    // check terminal width and height
+    getmaxyx(stdscr, terminal_y, terminal_x);
+    if(terminal_y < (log_line+log_y_pos))
+	size_ok = 0;
+    if(terminal_x < (log_x_pos+log_row))
+	size_ok = 0;
+    if(terminal_y < (p_line+p_y_pos))
+	size_ok = 0;
+    if(terminal_x < (p_x_pos+p_row))
+	size_ok = 0;
 
-    touchwin(stdscr);
+    if (size_ok == 0){
+	log_mesg(0, 0, 0, debug, "Terminal width(%i) or height(%i) too small\n", terminal_x, terminal_y);
+	return 0;
+    }
 
     /// check color pair
     if(!has_colors()){
-        endwin();
+	log_mesg(0, 0, 0, debug, "Terminal color error\n");
+	return 0;
     }
 
     if (start_color() != OK){
-        endwin();
+	log_mesg(0, 0, 0, debug, "Terminal can't start color mode\n");
+	return 0;
+    }
+
+    /// init log window
+    touchwin(stdscr);
+    log_box_win = subwin(stdscr, log_line+2, log_row+2, log_y_pos-1, log_x_pos-1);
+    touchwin(stdscr);
+    box(log_box_win, ACS_VLINE, ACS_HLINE);
+    touchwin(stdscr);
+    log_win = subwin(stdscr, log_line, log_row, log_y_pos, log_x_pos);
+    touchwin(stdscr);
+
+    // init progress window
+    touchwin(stdscr);
+    p_box_win = subwin(stdscr, (p_line+2), (p_row+2), (p_y_pos-1), (p_x_pos-1));
+    touchwin(stdscr);
+    box(p_box_win, ACS_VLINE, ACS_HLINE);
+    touchwin(stdscr);
+    p_win = subwin(stdscr, p_line, p_row, p_y_pos, p_x_pos);
+    touchwin(stdscr);
+
+    scrollok(log_win, TRUE);
+    touchwin(stdscr);
+
+    if( touchwin(stdscr) == ERR ){
+	return 0;
     }
 
     clear();
@@ -261,6 +309,8 @@ extern void close_ncurses(){
     sleep(3);
     delwin(log_win);
     delwin(log_box_win);
+    delwin(p_box_win);
+    delwin(p_win);
     touchwin(stdscr);
     endwin();
 #endif
