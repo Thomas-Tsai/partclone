@@ -1,3 +1,9 @@
+partclone (0.0.7-3) unstable; urgency=low
+   
+    # Some bugs about ncursesw were fixed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 06 May 2008 23:00:00 +0800
+
 partclone (0.0.7-2) unstable; urgency=low
 
     # Use --enable-ncursesw by default.
