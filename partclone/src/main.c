@@ -662,6 +662,7 @@ int main(int argc, char **argv){
     free(bitmap);   /// free bitmp
     if(opt.ncurses)
 	close_ncurses();
+	printf("clone successfully\n");
     if(opt.debug)
 	close_log();
     return 0;	    /// finish

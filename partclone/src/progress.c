@@ -136,8 +136,8 @@ extern void Ncurses_progress_update(struct progress_bar *p, int current, int don
 	strftime(Eformated, sizeof(Eformated), format, Etm);
 
         if (color_support){
-	    init_pair(1, COLOR_RED, COLOR_GREEN);
-	    init_pair(2, COLOR_GREEN, COLOR_RED);
+	    init_pair(5, COLOR_WHITE, COLOR_CYAN);
+	    init_pair(6, COLOR_CYAN, COLOR_WHITE);
 	}
 
         if (done != 1){
@@ -148,15 +148,15 @@ extern void Ncurses_progress_update(struct progress_bar *p, int current, int don
                 mvwprintw(p_win, 2, 0, _("Rate: %6.2fMB/min"), (float)(speed));
                 mvwprintw(p_win, 3, 0, _("Completed:%6.2f%%"), percent);
 		if (color_support){
-		    wattrset(p_win, COLOR_PAIR(1));
+		    wattrset(p_win, COLOR_PAIR(5));
 		    mvwprintw(p_win, 5, 0, "%60s", " ");
-		    wattroff(p_win, COLOR_PAIR(1));
+		    wattroff(p_win, COLOR_PAIR(5));
 		    p_block = malloc(60);
 		    memset(p_block, 0, 60);
 		    memset(p_block, ' ', (size_t)(percent*0.6));
-		    wattrset(p_win, COLOR_PAIR(2));
+		    wattrset(p_win, COLOR_PAIR(6));
 		    mvwprintw(p_win, 5, 0, "%s", p_block);
-		    wattroff(p_win, COLOR_PAIR(2));
+		    wattroff(p_win, COLOR_PAIR(6));
 		} else {
 		    mvwprintw(p_win, 5, 0, "%60s", " ");
 		    p_block = malloc(60);
@@ -175,12 +175,12 @@ extern void Ncurses_progress_update(struct progress_bar *p, int current, int don
                 mvwprintw(p_win, 2, 0, _("Ave. Rate: %6.1fMB/min"), (float)(p->rate/p->stop));
                 mvwprintw(p_win, 3, 0, _("100.00%% completed!"));
 		if (color_support) {
-		    wattrset(p_win, COLOR_PAIR(1));
+		    wattrset(p_win, COLOR_PAIR(5));
 		    mvwprintw(p_win, 5, 0, "%60s", " ");
-		    wattroff(p_win, COLOR_PAIR(1));
-		    wattrset(p_win, COLOR_PAIR(2));
+		    wattroff(p_win, COLOR_PAIR(5));
+		    wattrset(p_win, COLOR_PAIR(6));
 		    mvwprintw(p_win, 5, 0, "%60s", " ");
-		    wattroff(p_win, COLOR_PAIR(2));
+		    wattroff(p_win, COLOR_PAIR(6));
 		} else {
 		    mvwprintw(p_win, 5, 0, "%60s", " ");
 		    mvwprintw(p_win, 5, 0, "%60s", "-");

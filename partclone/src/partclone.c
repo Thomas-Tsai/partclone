@@ -229,30 +229,29 @@ extern int open_ncurses(){
 
 #ifdef HAVE_LIBNCURSESW
     extern cmd_opt opt;
-    int log_line = 10;
-    int log_row = 60;
-    int log_y_pos = 2;
-    int log_x_pos = 5;
-
-    int p_line = 10;
-    int p_row = 60;
-    int p_y_pos = 14;
-    int p_x_pos = 5;
-
     int terminal_x = 0;
     int terminal_y = 0;
-    int size_ok = 1;
     initscr();
 
     // check terminal width and height
     getmaxyx(stdscr, terminal_y, terminal_x);
-    if(terminal_y < (log_line+log_y_pos))
+
+    // set window position
+    int log_line = 12;
+    int log_row = 60;
+    int log_y_pos = (terminal_y-24)/2+2;
+    int log_x_pos = (terminal_x-log_row)/2;
+    int gap = 2;
+    int p_line = 8;
+    int p_row = log_row;
+    int p_y_pos = log_y_pos+log_line+gap;
+    int p_x_pos = log_x_pos;
+
+    int size_ok = 1;
+ 
+    if(terminal_y < (log_line+p_line+gap+2+2))
 	size_ok = 0;
-    if(terminal_x < (log_x_pos+log_row))
-	size_ok = 0;
-    if(terminal_y < (p_line+p_y_pos))
-	size_ok = 0;
-    if(terminal_x < (p_x_pos+p_row))
+    if(terminal_x < (log_x_pos+log_row+2))
 	size_ok = 0;
 
     if (size_ok == 0){
@@ -271,32 +270,32 @@ extern int open_ncurses(){
 	return 0;
     }
 
+    /// write background color
+    init_pair(1, COLOR_WHITE, COLOR_BLUE);
+    attrset(COLOR_PAIR(1));
+    bkgd(COLOR_PAIR(1));
+    touchwin(stdscr);
+    mvprintw((log_y_pos-2), ((terminal_x-9)/2), "Partclone");
+    refresh();
+
     /// init log window
-    touchwin(stdscr);
     log_box_win = subwin(stdscr, log_line+2, log_row+2, log_y_pos-1, log_x_pos-1);
-    touchwin(stdscr);
     box(log_box_win, ACS_VLINE, ACS_HLINE);
-    touchwin(stdscr);
     log_win = subwin(stdscr, log_line, log_row, log_y_pos, log_x_pos);
-    touchwin(stdscr);
+    wprintw(log_win, "Calculating bitmap...\n");
 
     // init progress window
-    touchwin(stdscr);
     p_box_win = subwin(stdscr, (p_line+2), (p_row+2), (p_y_pos-1), (p_x_pos-1));
-    touchwin(stdscr);
     box(p_box_win, ACS_VLINE, ACS_HLINE);
-    touchwin(stdscr);
     p_win = subwin(stdscr, p_line, p_row, p_y_pos, p_x_pos);
-    touchwin(stdscr);
 
     scrollok(log_win, TRUE);
-    touchwin(stdscr);
 
     if( touchwin(stdscr) == ERR ){
 	return 0;
     }
 
-    clear();
+    //clear();
 
     refresh();
 
@@ -307,6 +306,7 @@ extern int open_ncurses(){
 extern void close_ncurses(){
 #ifdef HAVE_LIBNCURSESW
     sleep(3);
+    attroff(COLOR_PAIR(1));
     delwin(log_win);
     delwin(log_box_win);
     delwin(p_box_win);
@@ -351,7 +351,9 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
 		wattron(log_win, A_STANDOUT);
 	    }
 
+	    wattrset(log_win, COLOR_PAIR(1));
 	    vwprintw(log_win, fmt, args);
+	    wattroff(log_win, COLOR_PAIR(1));
 	    
 	    if(log_exit){
 		wattroff(log_win, A_STANDOUT);
@@ -389,7 +391,7 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
     /// exit if lexit true
     if (log_exit){
 	close_ncurses();
-	close_ncurses();
+	fprintf(stderr, "Partclone fail, please check /var/log/partclone.log !\n");
     	exit(1);
     }
 }
