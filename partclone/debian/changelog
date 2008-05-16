@@ -1,6 +1,12 @@
+partclone (0.0.7-4) unstable; urgency=low
+   
+    # Some bugs about ncursesw were fixed by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri, 16 May 2008 04:18:00 +0800
+
 partclone (0.0.7-3) unstable; urgency=low
    
-    # Some bugs about ncursesw were fixed.
+    # Some bugs about ncursesw were fixed by Thomas Tsai.
 
  -- Steven Shiau <steven@nchc.org.tw>  Thu, 06 May 2008 23:00:00 +0800
 
