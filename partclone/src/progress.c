@@ -25,6 +25,7 @@
 #ifdef HAVE_LIBNCURSESW
     #include <ncursesw/ncurses.h>
     extern WINDOW *p_win;
+    extern WINDOW *bar_win;
     int window_f = 0;
     int color_support = 1;
 #endif
@@ -135,57 +136,54 @@ extern void Ncurses_progress_update(struct progress_bar *p, int current, int don
 	Etm = gmtime(&elapsed);
 	strftime(Eformated, sizeof(Eformated), format, Etm);
 
-        if (color_support){
-	    init_pair(5, COLOR_WHITE, COLOR_CYAN);
-	    init_pair(6, COLOR_CYAN, COLOR_WHITE);
-	}
+	/// set bar color
+	init_pair(4, COLOR_RED, COLOR_RED);
+	init_pair(5, COLOR_WHITE, COLOR_BLUE);
+	init_pair(6, COLOR_WHITE, COLOR_RED);
 
         if (done != 1){
                 if (((current - p->start) % p->resolution) && ((current != p->stop)))
                         return;
-                mvwprintw(p_win, 0, 0, _("Elapsed: %s") , Eformated);
-                mvwprintw(p_win, 1, 0, _("Remaining: %s"), Rformated);
-                mvwprintw(p_win, 2, 0, _("Rate: %6.2fMB/min"), (float)(speed));
-                mvwprintw(p_win, 3, 0, _("Completed:%6.2f%%"), percent);
-		if (color_support){
+                mvwprintw(p_win, 1, 0, _("Elapsed: %s") , Eformated);
+                mvwprintw(p_win, 2, 0, _("Remaining: %s"), Rformated);
+                mvwprintw(p_win, 3, 0, _("Rate: %6.2fMB/min"), (float)(speed));
+                //mvwprintw(p_win, 3, 0, _("Completed:%6.2f%%"), percent);
+		p_block = malloc(50);
+		memset(p_block, 0, 50);
+		memset(p_block, ' ', (size_t)(percent*0.5));
+		wattrset(bar_win, COLOR_PAIR(4));
+		mvwprintw(bar_win, 0, 0, "%s", p_block);
+		wattroff(bar_win, COLOR_PAIR(4));
+		if(percent <= 50){
 		    wattrset(p_win, COLOR_PAIR(5));
-		    mvwprintw(p_win, 5, 0, "%60s", " ");
+		    mvwprintw(p_win, 5, 25, "%3.0f%%", percent);
 		    wattroff(p_win, COLOR_PAIR(5));
-		    p_block = malloc(60);
-		    memset(p_block, 0, 60);
-		    memset(p_block, ' ', (size_t)(percent*0.6));
+		}else{
 		    wattrset(p_win, COLOR_PAIR(6));
-		    mvwprintw(p_win, 5, 0, "%s", p_block);
+		    mvwprintw(p_win, 5, 25, "%3.0f%%", percent);
 		    wattroff(p_win, COLOR_PAIR(6));
-		} else {
-		    mvwprintw(p_win, 5, 0, "%60s", " ");
-		    p_block = malloc(60);
-		    memset(p_block, 0, 60);
-		    memset(p_block, '-', (size_t)(percent*0.6));
-		    mvwprintw(p_win, 5, 0, "%s", p_block);
 		}
+		mvwprintw(p_win, 5, 52, "%6.2f%%", percent);
 		wrefresh(p_win);
+		wrefresh(bar_win);
 		free(p_block);
         } else {
 		total = elapsed;
 		Ttm = gmtime(&total);
 		strftime(Tformated, sizeof(Tformated), format, Ttm);
-                mvwprintw(p_win, 0, 0, _("Total Time: %s"), Tformated);
-                mvwprintw(p_win, 1, 0, _("Remaining: 0"));
-                mvwprintw(p_win, 2, 0, _("Ave. Rate: %6.1fMB/min"), (float)(p->rate/p->stop));
-                mvwprintw(p_win, 3, 0, _("100.00%% completed!"));
-		if (color_support) {
-		    wattrset(p_win, COLOR_PAIR(5));
-		    mvwprintw(p_win, 5, 0, "%60s", " ");
-		    wattroff(p_win, COLOR_PAIR(5));
-		    wattrset(p_win, COLOR_PAIR(6));
-		    mvwprintw(p_win, 5, 0, "%60s", " ");
-		    wattroff(p_win, COLOR_PAIR(6));
-		} else {
-		    mvwprintw(p_win, 5, 0, "%60s", " ");
-		    mvwprintw(p_win, 5, 0, "%60s", "-");
-		}
+                mvwprintw(p_win, 1, 0, _("Total Time: %s"), Tformated);
+                mvwprintw(p_win, 2, 0, _("Remaining: 0"));
+                mvwprintw(p_win, 3, 0, _("Ave. Rate: %6.1fMB/min"), (float)(p->rate/p->stop));
+                //mvwprintw(p_win, 3, 0, _("100.00%% completed!"));
+		wattrset(bar_win, COLOR_PAIR(4));
+		mvwprintw(bar_win, 0, 0, "%50s", " ");
+		wattroff(bar_win, COLOR_PAIR(4));
+		wattrset(p_win, COLOR_PAIR(6));
+		mvwprintw(p_win, 5, 22, "%6.2f%%", percent);
+		wattroff(p_win, COLOR_PAIR(6));
+		mvwprintw(p_win, 5, 52, "%6.2f%%", percent);
 		wrefresh(p_win);
+		wrefresh(bar_win);
 		refresh();
 		sleep(1);
 	}

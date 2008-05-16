@@ -53,9 +53,9 @@ FILE* msg = NULL;
 #ifdef HAVE_LIBNCURSESW
     #include <ncursesw/ncurses.h>
     WINDOW *log_win;
-    WINDOW *log_box_win;
     WINDOW *p_win;
-    WINDOW *p_box_win;
+    WINDOW *box_win;
+    WINDOW *bar_win;
     int log_y_line = 0;
 #endif
 
@@ -102,7 +102,9 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "rescue",		no_argument,	    NULL,   'R' },
         { "check",		no_argument,	    NULL,   'C' },
         { "dialog",		no_argument,	    NULL,   'X' },
+#ifdef HAVE_LIBNCURSESW
         { "ncurses",		no_argument,	    NULL,   'N' },
+#endif
         { NULL,			0,		    NULL,    0  }
     };
 
@@ -156,9 +158,11 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 		    ///    A guage box displays a meter along the bottom of the box. The meter indicates the percentage. New percentages are read from standard input, one integer per line. The meter is updated to reflect each new percentage. If stdin is XXX, then the first line following is taken as an integer percentage, then subsequent lines up to another XXX are used for a new prompt. The guage exits when EOF is reached on stdin. 
 		    opt->dialog = 1;
 		    break;
+#ifdef HAVE_LIBNCURSESW
 	    case 'N':
 		    opt->ncurses = 1;
 		    break;
+#endif
 	    case 'C':
 		    opt->check = 0;
 		    break;
@@ -237,7 +241,7 @@ extern int open_ncurses(){
     getmaxyx(stdscr, terminal_y, terminal_x);
 
     // set window position
-    int log_line = 12;
+    int log_line = 10;
     int log_row = 60;
     int log_y_pos = (terminal_y-24)/2+2;
     int log_x_pos = (terminal_x-log_row)/2;
@@ -249,9 +253,9 @@ extern int open_ncurses(){
 
     int size_ok = 1;
  
-    if(terminal_y < (log_line+p_line+gap+2+2))
+    if(terminal_y < (log_line+gap+p_line+3))
 	size_ok = 0;
-    if(terminal_x < (log_x_pos+log_row+2))
+    if(terminal_x < (log_row+2))
 	size_ok = 0;
 
     if (size_ok == 0){
@@ -270,24 +274,39 @@ extern int open_ncurses(){
 	return 0;
     }
 
+    /// define color
+    init_pair(1, COLOR_WHITE, COLOR_BLUE); ///stdscr
+    init_pair(2, COLOR_RED, COLOR_WHITE); ///sub window
+    init_pair(3, COLOR_BLUE, COLOR_WHITE); ///sub window
+
     /// write background color
-    init_pair(1, COLOR_WHITE, COLOR_BLUE);
-    attrset(COLOR_PAIR(1));
     bkgd(COLOR_PAIR(1));
     touchwin(stdscr);
-    mvprintw((log_y_pos-2), ((terminal_x-9)/2), "Partclone");
     refresh();
 
+    /// init main box
+    attrset(COLOR_PAIR(2));
+    box_win = subwin(stdscr, (log_line+gap+p_line+2), log_row+2, log_y_pos-1, log_x_pos-1);
+    box(box_win, ACS_VLINE, ACS_HLINE);
+    wbkgd(box_win, COLOR_PAIR(2));
+    mvprintw((log_y_pos-1), ((terminal_x-9)/2), " Partclone ");
+    attroff(COLOR_PAIR(2));
+
+    attrset(COLOR_PAIR(3));
+
     /// init log window
-    log_box_win = subwin(stdscr, log_line+2, log_row+2, log_y_pos-1, log_x_pos-1);
-    box(log_box_win, ACS_VLINE, ACS_HLINE);
     log_win = subwin(stdscr, log_line, log_row, log_y_pos, log_x_pos);
+    wbkgd(log_win, COLOR_PAIR(3));
     wprintw(log_win, "Calculating bitmap...\n");
 
     // init progress window
-    p_box_win = subwin(stdscr, (p_line+2), (p_row+2), (p_y_pos-1), (p_x_pos-1));
-    box(p_box_win, ACS_VLINE, ACS_HLINE);
     p_win = subwin(stdscr, p_line, p_row, p_y_pos, p_x_pos);
+    wbkgd(p_win, COLOR_PAIR(3));
+    mvwprintw(p_win, 5, 52, "  0.00%%\n");
+
+    // init progress window
+    bar_win = subwin(stdscr, 1, p_row-10, p_y_pos+5, p_x_pos);
+    wbkgd(bar_win, COLOR_PAIR(1));
 
     scrollok(log_win, TRUE);
 
@@ -306,11 +325,11 @@ extern int open_ncurses(){
 extern void close_ncurses(){
 #ifdef HAVE_LIBNCURSESW
     sleep(3);
-    attroff(COLOR_PAIR(1));
+    attroff(COLOR_PAIR(3));
     delwin(log_win);
-    delwin(log_box_win);
-    delwin(p_box_win);
     delwin(p_win);
+    delwin(bar_win);
+    delwin(box_win);
     touchwin(stdscr);
     endwin();
 #endif
@@ -351,9 +370,7 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
 		wattron(log_win, A_STANDOUT);
 	    }
 
-	    wattrset(log_win, COLOR_PAIR(1));
 	    vwprintw(log_win, fmt, args);
-	    wattroff(log_win, COLOR_PAIR(1));
 	    
 	    if(log_exit){
 		wattroff(log_win, A_STANDOUT);
