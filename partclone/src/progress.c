@@ -140,7 +140,8 @@ extern void Ncurses_progress_update(struct progress_bar *p, int current, int don
 	init_pair(4, COLOR_RED, COLOR_RED);
 	init_pair(5, COLOR_WHITE, COLOR_BLUE);
 	init_pair(6, COLOR_WHITE, COLOR_RED);
-	//werase(p_win);
+	werase(p_win);
+	werase(bar_win);
 
         if (done != 1){
                 if (((current - p->start) % p->resolution) && ((current != p->stop)))
