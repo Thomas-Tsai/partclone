@@ -32,14 +32,14 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-sbin_PROGRAMS = clone.extfs$(EXEEXT) clone.info$(EXEEXT) \
+sbin_PROGRAMS = partclone.extfs$(EXEEXT) partclone.info$(EXEEXT) \
 	$(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 	$(am__EXEEXT_4) $(am__EXEEXT_5)
-@ENABLE_REISERFS_TRUE@am__append_1 = clone.reiserfs
-@ENABLE_REISER4_TRUE@am__append_2 = clone.reiser4
-@ENABLE_HFSP_TRUE@am__append_3 = clone.hfsp
-@ENABLE_XFS_TRUE@am__append_4 = clone.xfs
-@ENABLE_FAT_TRUE@am__append_5 = clone.fat
+@ENABLE_REISERFS_TRUE@am__append_1 = partclone.reiserfs
+@ENABLE_REISER4_TRUE@am__append_2 = partclone.reiser4
+@ENABLE_HFSP_TRUE@am__append_3 = partclone.hfsp
+@ENABLE_XFS_TRUE@am__append_4 = partclone.xfs
+@ENABLE_FAT_TRUE@am__append_5 = partclone.fat
 @ENABLE_STATIC_TRUE@am__append_6 = -static
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -54,83 +54,87 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-@ENABLE_REISERFS_TRUE@am__EXEEXT_1 = clone.reiserfs$(EXEEXT)
-@ENABLE_REISER4_TRUE@am__EXEEXT_2 = clone.reiser4$(EXEEXT)
-@ENABLE_HFSP_TRUE@am__EXEEXT_3 = clone.hfsp$(EXEEXT)
-@ENABLE_XFS_TRUE@am__EXEEXT_4 = clone.xfs$(EXEEXT)
-@ENABLE_FAT_TRUE@am__EXEEXT_5 = clone.fat$(EXEEXT)
+@ENABLE_REISERFS_TRUE@am__EXEEXT_1 = partclone.reiserfs$(EXEEXT)
+@ENABLE_REISER4_TRUE@am__EXEEXT_2 = partclone.reiser4$(EXEEXT)
+@ENABLE_HFSP_TRUE@am__EXEEXT_3 = partclone.hfsp$(EXEEXT)
+@ENABLE_XFS_TRUE@am__EXEEXT_4 = partclone.xfs$(EXEEXT)
+@ENABLE_FAT_TRUE@am__EXEEXT_5 = partclone.fat$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)"
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(sbin_PROGRAMS)
-am_clone_extfs_OBJECTS = clone_extfs-main.$(OBJEXT) \
-	clone_extfs-partclone.$(OBJEXT) clone_extfs-progress.$(OBJEXT) \
-	clone_extfs-extfsclone.$(OBJEXT)
-clone_extfs_OBJECTS = $(am_clone_extfs_OBJECTS)
-clone_extfs_LDADD = $(LDADD)
+am_partclone_extfs_OBJECTS = partclone_extfs-main.$(OBJEXT) \
+	partclone_extfs-partclone.$(OBJEXT) \
+	partclone_extfs-progress.$(OBJEXT) \
+	partclone_extfs-extfsclone.$(OBJEXT)
+partclone_extfs_OBJECTS = $(am_partclone_extfs_OBJECTS)
+partclone_extfs_LDADD = $(LDADD)
 am__DEPENDENCIES_1 =
-clone_extfs_DEPENDENCIES = $(am__DEPENDENCIES_1)
-clone_extfs_LINK = $(CCLD) $(clone_extfs_CFLAGS) $(CFLAGS) \
-	$(clone_extfs_LDFLAGS) $(LDFLAGS) -o $@
-am__clone_fat_SOURCES_DIST = main.c partclone.c progress.c fatclone.c \
-	fatclone.h partclone.h progress.h gettext.h
-@ENABLE_FAT_TRUE@am_clone_fat_OBJECTS = clone_fat-main.$(OBJEXT) \
-@ENABLE_FAT_TRUE@	clone_fat-partclone.$(OBJEXT) \
-@ENABLE_FAT_TRUE@	clone_fat-progress.$(OBJEXT) \
-@ENABLE_FAT_TRUE@	clone_fat-fatclone.$(OBJEXT)
-clone_fat_OBJECTS = $(am_clone_fat_OBJECTS)
-clone_fat_LDADD = $(LDADD)
-clone_fat_DEPENDENCIES = $(am__DEPENDENCIES_1)
-clone_fat_LINK = $(CCLD) $(clone_fat_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
-am__clone_hfsp_SOURCES_DIST = main.c partclone.c progress.c \
-	hfsplusclone.c hfsplusclone.h partclone.h progress.h gettext.h
-@ENABLE_HFSP_TRUE@am_clone_hfsp_OBJECTS = clone_hfsp-main.$(OBJEXT) \
-@ENABLE_HFSP_TRUE@	clone_hfsp-partclone.$(OBJEXT) \
-@ENABLE_HFSP_TRUE@	clone_hfsp-progress.$(OBJEXT) \
-@ENABLE_HFSP_TRUE@	clone_hfsp-hfsplusclone.$(OBJEXT)
-clone_hfsp_OBJECTS = $(am_clone_hfsp_OBJECTS)
-clone_hfsp_LDADD = $(LDADD)
-clone_hfsp_DEPENDENCIES = $(am__DEPENDENCIES_1)
-clone_hfsp_LINK = $(CCLD) $(clone_hfsp_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
-am_clone_info_OBJECTS = infoclone.$(OBJEXT) partclone.$(OBJEXT)
-clone_info_OBJECTS = $(am_clone_info_OBJECTS)
-clone_info_LDADD = $(LDADD)
-clone_info_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am__clone_reiser4_SOURCES_DIST = main.c partclone.c progress.c \
-	reiser4clone.c reiser4clone.h partclone.h progress.h gettext.h
-@ENABLE_REISER4_TRUE@am_clone_reiser4_OBJECTS =  \
-@ENABLE_REISER4_TRUE@	clone_reiser4-main.$(OBJEXT) \
-@ENABLE_REISER4_TRUE@	clone_reiser4-partclone.$(OBJEXT) \
-@ENABLE_REISER4_TRUE@	clone_reiser4-progress.$(OBJEXT) \
-@ENABLE_REISER4_TRUE@	clone_reiser4-reiser4clone.$(OBJEXT)
-clone_reiser4_OBJECTS = $(am_clone_reiser4_OBJECTS)
-clone_reiser4_DEPENDENCIES =
-clone_reiser4_LINK = $(CCLD) $(clone_reiser4_CFLAGS) $(CFLAGS) \
+partclone_extfs_DEPENDENCIES = $(am__DEPENDENCIES_1)
+partclone_extfs_LINK = $(CCLD) $(partclone_extfs_CFLAGS) $(CFLAGS) \
+	$(partclone_extfs_LDFLAGS) $(LDFLAGS) -o $@
+am__partclone_fat_SOURCES_DIST = main.c partclone.c progress.c \
+	fatclone.c fatclone.h partclone.h progress.h gettext.h
+@ENABLE_FAT_TRUE@am_partclone_fat_OBJECTS =  \
+@ENABLE_FAT_TRUE@	partclone_fat-main.$(OBJEXT) \
+@ENABLE_FAT_TRUE@	partclone_fat-partclone.$(OBJEXT) \
+@ENABLE_FAT_TRUE@	partclone_fat-progress.$(OBJEXT) \
+@ENABLE_FAT_TRUE@	partclone_fat-fatclone.$(OBJEXT)
+partclone_fat_OBJECTS = $(am_partclone_fat_OBJECTS)
+partclone_fat_LDADD = $(LDADD)
+partclone_fat_DEPENDENCIES = $(am__DEPENDENCIES_1)
+partclone_fat_LINK = $(CCLD) $(partclone_fat_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__clone_reiserfs_SOURCES_DIST = main.c partclone.c progress.c \
+am__partclone_hfsp_SOURCES_DIST = main.c partclone.c progress.c \
+	hfsplusclone.c hfsplusclone.h partclone.h progress.h gettext.h
+@ENABLE_HFSP_TRUE@am_partclone_hfsp_OBJECTS =  \
+@ENABLE_HFSP_TRUE@	partclone_hfsp-main.$(OBJEXT) \
+@ENABLE_HFSP_TRUE@	partclone_hfsp-partclone.$(OBJEXT) \
+@ENABLE_HFSP_TRUE@	partclone_hfsp-progress.$(OBJEXT) \
+@ENABLE_HFSP_TRUE@	partclone_hfsp-hfsplusclone.$(OBJEXT)
+partclone_hfsp_OBJECTS = $(am_partclone_hfsp_OBJECTS)
+partclone_hfsp_LDADD = $(LDADD)
+partclone_hfsp_DEPENDENCIES = $(am__DEPENDENCIES_1)
+partclone_hfsp_LINK = $(CCLD) $(partclone_hfsp_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_partclone_info_OBJECTS = infoclone.$(OBJEXT) partclone.$(OBJEXT)
+partclone_info_OBJECTS = $(am_partclone_info_OBJECTS)
+partclone_info_LDADD = $(LDADD)
+partclone_info_DEPENDENCIES = $(am__DEPENDENCIES_1)
+am__partclone_reiser4_SOURCES_DIST = main.c partclone.c progress.c \
+	reiser4clone.c reiser4clone.h partclone.h progress.h gettext.h
+@ENABLE_REISER4_TRUE@am_partclone_reiser4_OBJECTS =  \
+@ENABLE_REISER4_TRUE@	partclone_reiser4-main.$(OBJEXT) \
+@ENABLE_REISER4_TRUE@	partclone_reiser4-partclone.$(OBJEXT) \
+@ENABLE_REISER4_TRUE@	partclone_reiser4-progress.$(OBJEXT) \
+@ENABLE_REISER4_TRUE@	partclone_reiser4-reiser4clone.$(OBJEXT)
+partclone_reiser4_OBJECTS = $(am_partclone_reiser4_OBJECTS)
+partclone_reiser4_DEPENDENCIES =
+partclone_reiser4_LINK = $(CCLD) $(partclone_reiser4_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__partclone_reiserfs_SOURCES_DIST = main.c partclone.c progress.c \
 	reiserfsclone.c reiserfsclone.h partclone.h progress.h \
 	gettext.h
-@ENABLE_REISERFS_TRUE@am_clone_reiserfs_OBJECTS =  \
-@ENABLE_REISERFS_TRUE@	clone_reiserfs-main.$(OBJEXT) \
-@ENABLE_REISERFS_TRUE@	clone_reiserfs-partclone.$(OBJEXT) \
-@ENABLE_REISERFS_TRUE@	clone_reiserfs-progress.$(OBJEXT) \
-@ENABLE_REISERFS_TRUE@	clone_reiserfs-reiserfsclone.$(OBJEXT)
-clone_reiserfs_OBJECTS = $(am_clone_reiserfs_OBJECTS)
-clone_reiserfs_LDADD = $(LDADD)
-clone_reiserfs_DEPENDENCIES = $(am__DEPENDENCIES_1)
-clone_reiserfs_LINK = $(CCLD) $(clone_reiserfs_CFLAGS) $(CFLAGS) \
-	$(clone_reiserfs_LDFLAGS) $(LDFLAGS) -o $@
-am__clone_xfs_SOURCES_DIST = main.c partclone.c progress.c xfsclone.c \
-	xfsclone.h partclone.h progress.h gettext.h
-@ENABLE_XFS_TRUE@am_clone_xfs_OBJECTS = clone_xfs-main.$(OBJEXT) \
-@ENABLE_XFS_TRUE@	clone_xfs-partclone.$(OBJEXT) \
-@ENABLE_XFS_TRUE@	clone_xfs-progress.$(OBJEXT) \
-@ENABLE_XFS_TRUE@	clone_xfs-xfsclone.$(OBJEXT)
-clone_xfs_OBJECTS = $(am_clone_xfs_OBJECTS)
-clone_xfs_DEPENDENCIES =
-clone_xfs_LINK = $(CCLD) $(clone_xfs_CFLAGS) $(CFLAGS) \
-	$(clone_xfs_LDFLAGS) $(LDFLAGS) -o $@
+@ENABLE_REISERFS_TRUE@am_partclone_reiserfs_OBJECTS =  \
+@ENABLE_REISERFS_TRUE@	partclone_reiserfs-main.$(OBJEXT) \
+@ENABLE_REISERFS_TRUE@	partclone_reiserfs-partclone.$(OBJEXT) \
+@ENABLE_REISERFS_TRUE@	partclone_reiserfs-progress.$(OBJEXT) \
+@ENABLE_REISERFS_TRUE@	partclone_reiserfs-reiserfsclone.$(OBJEXT)
+partclone_reiserfs_OBJECTS = $(am_partclone_reiserfs_OBJECTS)
+partclone_reiserfs_LDADD = $(LDADD)
+partclone_reiserfs_DEPENDENCIES = $(am__DEPENDENCIES_1)
+partclone_reiserfs_LINK = $(CCLD) $(partclone_reiserfs_CFLAGS) \
+	$(CFLAGS) $(partclone_reiserfs_LDFLAGS) $(LDFLAGS) -o $@
+am__partclone_xfs_SOURCES_DIST = main.c partclone.c progress.c \
+	xfsclone.c xfsclone.h partclone.h progress.h gettext.h
+@ENABLE_XFS_TRUE@am_partclone_xfs_OBJECTS =  \
+@ENABLE_XFS_TRUE@	partclone_xfs-main.$(OBJEXT) \
+@ENABLE_XFS_TRUE@	partclone_xfs-partclone.$(OBJEXT) \
+@ENABLE_XFS_TRUE@	partclone_xfs-progress.$(OBJEXT) \
+@ENABLE_XFS_TRUE@	partclone_xfs-xfsclone.$(OBJEXT)
+partclone_xfs_OBJECTS = $(am_partclone_xfs_OBJECTS)
+partclone_xfs_DEPENDENCIES =
+partclone_xfs_LINK = $(CCLD) $(partclone_xfs_CFLAGS) $(CFLAGS) \
+	$(partclone_xfs_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -138,15 +142,16 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(clone_extfs_SOURCES) $(clone_fat_SOURCES) \
-	$(clone_hfsp_SOURCES) $(clone_info_SOURCES) \
-	$(clone_reiser4_SOURCES) $(clone_reiserfs_SOURCES) \
-	$(clone_xfs_SOURCES)
-DIST_SOURCES = $(clone_extfs_SOURCES) $(am__clone_fat_SOURCES_DIST) \
-	$(am__clone_hfsp_SOURCES_DIST) $(clone_info_SOURCES) \
-	$(am__clone_reiser4_SOURCES_DIST) \
-	$(am__clone_reiserfs_SOURCES_DIST) \
-	$(am__clone_xfs_SOURCES_DIST)
+SOURCES = $(partclone_extfs_SOURCES) $(partclone_fat_SOURCES) \
+	$(partclone_hfsp_SOURCES) $(partclone_info_SOURCES) \
+	$(partclone_reiser4_SOURCES) $(partclone_reiserfs_SOURCES) \
+	$(partclone_xfs_SOURCES)
+DIST_SOURCES = $(partclone_extfs_SOURCES) \
+	$(am__partclone_fat_SOURCES_DIST) \
+	$(am__partclone_hfsp_SOURCES_DIST) $(partclone_info_SOURCES) \
+	$(am__partclone_reiser4_SOURCES_DIST) \
+	$(am__partclone_reiserfs_SOURCES_DIST) \
+	$(am__partclone_xfs_SOURCES_DIST)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -262,24 +267,24 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\"
 LDADD = $(LIBINTL)
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
-clone_extfs_SOURCES = main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
-clone_extfs_CFLAGS = -DEXTFS
-clone_extfs_LDFLAGS = -lext2fs
-clone_info_SOURCES = infoclone.c partclone.c partclone.h
-@ENABLE_REISERFS_TRUE@clone_reiserfs_SOURCES = main.c partclone.c progress.c reiserfsclone.c reiserfsclone.h partclone.h progress.h gettext.h
-@ENABLE_REISERFS_TRUE@clone_reiserfs_CFLAGS = -DREISERFS
-@ENABLE_REISERFS_TRUE@clone_reiserfs_LDFLAGS = -lreiserfs -ldal
-@ENABLE_REISER4_TRUE@clone_reiser4_SOURCES = main.c partclone.c progress.c reiser4clone.c reiser4clone.h partclone.h progress.h gettext.h
-@ENABLE_REISER4_TRUE@clone_reiser4_CFLAGS = -DREISER4
-@ENABLE_REISER4_TRUE@clone_reiser4_LDADD = -lreiser4 -laal
-@ENABLE_HFSP_TRUE@clone_hfsp_SOURCES = main.c partclone.c progress.c hfsplusclone.c hfsplusclone.h partclone.h progress.h gettext.h
-@ENABLE_HFSP_TRUE@clone_hfsp_CFLAGS = -DHFSPLUS
-@ENABLE_XFS_TRUE@clone_xfs_SOURCES = main.c partclone.c progress.c xfsclone.c xfsclone.h partclone.h progress.h gettext.h
-@ENABLE_XFS_TRUE@clone_xfs_CFLAGS = -DXFS
-@ENABLE_XFS_TRUE@clone_xfs_LDFLAGS = 
-@ENABLE_XFS_TRUE@clone_xfs_LDADD = -lxfs -lrt -lpthread
-@ENABLE_FAT_TRUE@clone_fat_SOURCES = main.c partclone.c progress.c fatclone.c fatclone.h partclone.h progress.h gettext.h
-@ENABLE_FAT_TRUE@clone_fat_CFLAGS = -DFAT
+partclone_extfs_SOURCES = main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
+partclone_extfs_CFLAGS = -DEXTFS
+partclone_extfs_LDFLAGS = -lext2fs
+partclone_info_SOURCES = infoclone.c partclone.c partclone.h
+@ENABLE_REISERFS_TRUE@partclone_reiserfs_SOURCES = main.c partclone.c progress.c reiserfsclone.c reiserfsclone.h partclone.h progress.h gettext.h
+@ENABLE_REISERFS_TRUE@partclone_reiserfs_CFLAGS = -DREISERFS
+@ENABLE_REISERFS_TRUE@partclone_reiserfs_LDFLAGS = -lreiserfs -ldal
+@ENABLE_REISER4_TRUE@partclone_reiser4_SOURCES = main.c partclone.c progress.c reiser4clone.c reiser4clone.h partclone.h progress.h gettext.h
+@ENABLE_REISER4_TRUE@partclone_reiser4_CFLAGS = -DREISER4
+@ENABLE_REISER4_TRUE@partclone_reiser4_LDADD = -lreiser4 -laal
+@ENABLE_HFSP_TRUE@partclone_hfsp_SOURCES = main.c partclone.c progress.c hfsplusclone.c hfsplusclone.h partclone.h progress.h gettext.h
+@ENABLE_HFSP_TRUE@partclone_hfsp_CFLAGS = -DHFSPLUS
+@ENABLE_XFS_TRUE@partclone_xfs_SOURCES = main.c partclone.c progress.c xfsclone.c xfsclone.h partclone.h progress.h gettext.h
+@ENABLE_XFS_TRUE@partclone_xfs_CFLAGS = -DXFS
+@ENABLE_XFS_TRUE@partclone_xfs_LDFLAGS = 
+@ENABLE_XFS_TRUE@partclone_xfs_LDADD = -lxfs -lrt -lpthread
+@ENABLE_FAT_TRUE@partclone_fat_SOURCES = main.c partclone.c progress.c fatclone.c fatclone.h partclone.h progress.h gettext.h
+@ENABLE_FAT_TRUE@partclone_fat_CFLAGS = -DFAT
 all: all-am
 
 .SUFFIXES:
@@ -336,27 +341,27 @@ uninstall-sbinPROGRAMS:
 
 clean-sbinPROGRAMS:
 	-test -z "$(sbin_PROGRAMS)" || rm -f $(sbin_PROGRAMS)
-clone.extfs$(EXEEXT): $(clone_extfs_OBJECTS) $(clone_extfs_DEPENDENCIES) 
-	@rm -f clone.extfs$(EXEEXT)
-	$(clone_extfs_LINK) $(clone_extfs_OBJECTS) $(clone_extfs_LDADD) $(LIBS)
-clone.fat$(EXEEXT): $(clone_fat_OBJECTS) $(clone_fat_DEPENDENCIES) 
-	@rm -f clone.fat$(EXEEXT)
-	$(clone_fat_LINK) $(clone_fat_OBJECTS) $(clone_fat_LDADD) $(LIBS)
-clone.hfsp$(EXEEXT): $(clone_hfsp_OBJECTS) $(clone_hfsp_DEPENDENCIES) 
-	@rm -f clone.hfsp$(EXEEXT)
-	$(clone_hfsp_LINK) $(clone_hfsp_OBJECTS) $(clone_hfsp_LDADD) $(LIBS)
-clone.info$(EXEEXT): $(clone_info_OBJECTS) $(clone_info_DEPENDENCIES) 
-	@rm -f clone.info$(EXEEXT)
-	$(LINK) $(clone_info_OBJECTS) $(clone_info_LDADD) $(LIBS)
-clone.reiser4$(EXEEXT): $(clone_reiser4_OBJECTS) $(clone_reiser4_DEPENDENCIES) 
-	@rm -f clone.reiser4$(EXEEXT)
-	$(clone_reiser4_LINK) $(clone_reiser4_OBJECTS) $(clone_reiser4_LDADD) $(LIBS)
-clone.reiserfs$(EXEEXT): $(clone_reiserfs_OBJECTS) $(clone_reiserfs_DEPENDENCIES) 
-	@rm -f clone.reiserfs$(EXEEXT)
-	$(clone_reiserfs_LINK) $(clone_reiserfs_OBJECTS) $(clone_reiserfs_LDADD) $(LIBS)
-clone.xfs$(EXEEXT): $(clone_xfs_OBJECTS) $(clone_xfs_DEPENDENCIES) 
-	@rm -f clone.xfs$(EXEEXT)
-	$(clone_xfs_LINK) $(clone_xfs_OBJECTS) $(clone_xfs_LDADD) $(LIBS)
+partclone.extfs$(EXEEXT): $(partclone_extfs_OBJECTS) $(partclone_extfs_DEPENDENCIES) 
+	@rm -f partclone.extfs$(EXEEXT)
+	$(partclone_extfs_LINK) $(partclone_extfs_OBJECTS) $(partclone_extfs_LDADD) $(LIBS)
+partclone.fat$(EXEEXT): $(partclone_fat_OBJECTS) $(partclone_fat_DEPENDENCIES) 
+	@rm -f partclone.fat$(EXEEXT)
+	$(partclone_fat_LINK) $(partclone_fat_OBJECTS) $(partclone_fat_LDADD) $(LIBS)
+partclone.hfsp$(EXEEXT): $(partclone_hfsp_OBJECTS) $(partclone_hfsp_DEPENDENCIES) 
+	@rm -f partclone.hfsp$(EXEEXT)
+	$(partclone_hfsp_LINK) $(partclone_hfsp_OBJECTS) $(partclone_hfsp_LDADD) $(LIBS)
+partclone.info$(EXEEXT): $(partclone_info_OBJECTS) $(partclone_info_DEPENDENCIES) 
+	@rm -f partclone.info$(EXEEXT)
+	$(LINK) $(partclone_info_OBJECTS) $(partclone_info_LDADD) $(LIBS)
+partclone.reiser4$(EXEEXT): $(partclone_reiser4_OBJECTS) $(partclone_reiser4_DEPENDENCIES) 
+	@rm -f partclone.reiser4$(EXEEXT)
+	$(partclone_reiser4_LINK) $(partclone_reiser4_OBJECTS) $(partclone_reiser4_LDADD) $(LIBS)
+partclone.reiserfs$(EXEEXT): $(partclone_reiserfs_OBJECTS) $(partclone_reiserfs_DEPENDENCIES) 
+	@rm -f partclone.reiserfs$(EXEEXT)
+	$(partclone_reiserfs_LINK) $(partclone_reiserfs_OBJECTS) $(partclone_reiserfs_LDADD) $(LIBS)
+partclone.xfs$(EXEEXT): $(partclone_xfs_OBJECTS) $(partclone_xfs_DEPENDENCIES) 
+	@rm -f partclone.xfs$(EXEEXT)
+	$(partclone_xfs_LINK) $(partclone_xfs_OBJECTS) $(partclone_xfs_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -364,32 +369,32 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_extfs-extfsclone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_extfs-main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_extfs-partclone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_extfs-progress.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_fat-fatclone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_fat-main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_fat-partclone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_fat-progress.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_hfsp-hfsplusclone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_hfsp-main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_hfsp-partclone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_hfsp-progress.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_reiser4-main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_reiser4-partclone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_reiser4-progress.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_reiser4-reiser4clone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_reiserfs-main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_reiserfs-partclone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_reiserfs-progress.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_reiserfs-reiserfsclone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_xfs-main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_xfs-partclone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_xfs-progress.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clone_xfs-xfsclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/infoclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-extfsclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_fat-fatclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_fat-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_fat-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_fat-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-hfsplusclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_reiser4-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_reiser4-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_reiser4-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_reiser4-reiser4clone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_reiserfs-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_reiserfs-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_reiserfs-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_reiserfs-reiserfsclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_xfs-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_xfs-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_xfs-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_xfs-xfsclone.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -405,341 +410,341 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
 
-clone_extfs-main.o: main.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -MT clone_extfs-main.o -MD -MP -MF $(DEPDIR)/clone_extfs-main.Tpo -c -o clone_extfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_extfs-main.Tpo $(DEPDIR)/clone_extfs-main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='clone_extfs-main.o' libtool=no @AMDEPBACKSLASH@
+partclone_extfs-main.o: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -MT partclone_extfs-main.o -MD -MP -MF $(DEPDIR)/partclone_extfs-main.Tpo -c -o partclone_extfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_extfs-main.Tpo $(DEPDIR)/partclone_extfs-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_extfs-main.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -c -o clone_extfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -c -o partclone_extfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
 
-clone_extfs-main.obj: main.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -MT clone_extfs-main.obj -MD -MP -MF $(DEPDIR)/clone_extfs-main.Tpo -c -o clone_extfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_extfs-main.Tpo $(DEPDIR)/clone_extfs-main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='clone_extfs-main.obj' libtool=no @AMDEPBACKSLASH@
+partclone_extfs-main.obj: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -MT partclone_extfs-main.obj -MD -MP -MF $(DEPDIR)/partclone_extfs-main.Tpo -c -o partclone_extfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_extfs-main.Tpo $(DEPDIR)/partclone_extfs-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_extfs-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -c -o clone_extfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -c -o partclone_extfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
 
-clone_extfs-partclone.o: partclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -MT clone_extfs-partclone.o -MD -MP -MF $(DEPDIR)/clone_extfs-partclone.Tpo -c -o clone_extfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_extfs-partclone.Tpo $(DEPDIR)/clone_extfs-partclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='clone_extfs-partclone.o' libtool=no @AMDEPBACKSLASH@
+partclone_extfs-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -MT partclone_extfs-partclone.o -MD -MP -MF $(DEPDIR)/partclone_extfs-partclone.Tpo -c -o partclone_extfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_extfs-partclone.Tpo $(DEPDIR)/partclone_extfs-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_extfs-partclone.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -c -o clone_extfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -c -o partclone_extfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
 
-clone_extfs-partclone.obj: partclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -MT clone_extfs-partclone.obj -MD -MP -MF $(DEPDIR)/clone_extfs-partclone.Tpo -c -o clone_extfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_extfs-partclone.Tpo $(DEPDIR)/clone_extfs-partclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='clone_extfs-partclone.obj' libtool=no @AMDEPBACKSLASH@
+partclone_extfs-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -MT partclone_extfs-partclone.obj -MD -MP -MF $(DEPDIR)/partclone_extfs-partclone.Tpo -c -o partclone_extfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_extfs-partclone.Tpo $(DEPDIR)/partclone_extfs-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_extfs-partclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -c -o clone_extfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -c -o partclone_extfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
 
-clone_extfs-progress.o: progress.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -MT clone_extfs-progress.o -MD -MP -MF $(DEPDIR)/clone_extfs-progress.Tpo -c -o clone_extfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_extfs-progress.Tpo $(DEPDIR)/clone_extfs-progress.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='clone_extfs-progress.o' libtool=no @AMDEPBACKSLASH@
+partclone_extfs-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -MT partclone_extfs-progress.o -MD -MP -MF $(DEPDIR)/partclone_extfs-progress.Tpo -c -o partclone_extfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_extfs-progress.Tpo $(DEPDIR)/partclone_extfs-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_extfs-progress.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -c -o clone_extfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -c -o partclone_extfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
 
-clone_extfs-progress.obj: progress.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -MT clone_extfs-progress.obj -MD -MP -MF $(DEPDIR)/clone_extfs-progress.Tpo -c -o clone_extfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_extfs-progress.Tpo $(DEPDIR)/clone_extfs-progress.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='clone_extfs-progress.obj' libtool=no @AMDEPBACKSLASH@
+partclone_extfs-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -MT partclone_extfs-progress.obj -MD -MP -MF $(DEPDIR)/partclone_extfs-progress.Tpo -c -o partclone_extfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_extfs-progress.Tpo $(DEPDIR)/partclone_extfs-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_extfs-progress.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -c -o clone_extfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -c -o partclone_extfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
 
-clone_extfs-extfsclone.o: extfsclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -MT clone_extfs-extfsclone.o -MD -MP -MF $(DEPDIR)/clone_extfs-extfsclone.Tpo -c -o clone_extfs-extfsclone.o `test -f 'extfsclone.c' || echo '$(srcdir)/'`extfsclone.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_extfs-extfsclone.Tpo $(DEPDIR)/clone_extfs-extfsclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='extfsclone.c' object='clone_extfs-extfsclone.o' libtool=no @AMDEPBACKSLASH@
+partclone_extfs-extfsclone.o: extfsclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -MT partclone_extfs-extfsclone.o -MD -MP -MF $(DEPDIR)/partclone_extfs-extfsclone.Tpo -c -o partclone_extfs-extfsclone.o `test -f 'extfsclone.c' || echo '$(srcdir)/'`extfsclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_extfs-extfsclone.Tpo $(DEPDIR)/partclone_extfs-extfsclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='extfsclone.c' object='partclone_extfs-extfsclone.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -c -o clone_extfs-extfsclone.o `test -f 'extfsclone.c' || echo '$(srcdir)/'`extfsclone.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -c -o partclone_extfs-extfsclone.o `test -f 'extfsclone.c' || echo '$(srcdir)/'`extfsclone.c
 
-clone_extfs-extfsclone.obj: extfsclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -MT clone_extfs-extfsclone.obj -MD -MP -MF $(DEPDIR)/clone_extfs-extfsclone.Tpo -c -o clone_extfs-extfsclone.obj `if test -f 'extfsclone.c'; then $(CYGPATH_W) 'extfsclone.c'; else $(CYGPATH_W) '$(srcdir)/extfsclone.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_extfs-extfsclone.Tpo $(DEPDIR)/clone_extfs-extfsclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='extfsclone.c' object='clone_extfs-extfsclone.obj' libtool=no @AMDEPBACKSLASH@
+partclone_extfs-extfsclone.obj: extfsclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -MT partclone_extfs-extfsclone.obj -MD -MP -MF $(DEPDIR)/partclone_extfs-extfsclone.Tpo -c -o partclone_extfs-extfsclone.obj `if test -f 'extfsclone.c'; then $(CYGPATH_W) 'extfsclone.c'; else $(CYGPATH_W) '$(srcdir)/extfsclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_extfs-extfsclone.Tpo $(DEPDIR)/partclone_extfs-extfsclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='extfsclone.c' object='partclone_extfs-extfsclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_extfs_CFLAGS) $(CFLAGS) -c -o clone_extfs-extfsclone.obj `if test -f 'extfsclone.c'; then $(CYGPATH_W) 'extfsclone.c'; else $(CYGPATH_W) '$(srcdir)/extfsclone.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -c -o partclone_extfs-extfsclone.obj `if test -f 'extfsclone.c'; then $(CYGPATH_W) 'extfsclone.c'; else $(CYGPATH_W) '$(srcdir)/extfsclone.c'; fi`
 
-clone_fat-main.o: main.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-main.o -MD -MP -MF $(DEPDIR)/clone_fat-main.Tpo -c -o clone_fat-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-main.Tpo $(DEPDIR)/clone_fat-main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='clone_fat-main.o' libtool=no @AMDEPBACKSLASH@
+partclone_fat-main.o: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -MT partclone_fat-main.o -MD -MP -MF $(DEPDIR)/partclone_fat-main.Tpo -c -o partclone_fat-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_fat-main.Tpo $(DEPDIR)/partclone_fat-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_fat-main.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -c -o partclone_fat-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
 
-clone_fat-main.obj: main.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-main.obj -MD -MP -MF $(DEPDIR)/clone_fat-main.Tpo -c -o clone_fat-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-main.Tpo $(DEPDIR)/clone_fat-main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='clone_fat-main.obj' libtool=no @AMDEPBACKSLASH@
+partclone_fat-main.obj: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -MT partclone_fat-main.obj -MD -MP -MF $(DEPDIR)/partclone_fat-main.Tpo -c -o partclone_fat-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_fat-main.Tpo $(DEPDIR)/partclone_fat-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_fat-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -c -o partclone_fat-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
 
-clone_fat-partclone.o: partclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-partclone.o -MD -MP -MF $(DEPDIR)/clone_fat-partclone.Tpo -c -o clone_fat-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-partclone.Tpo $(DEPDIR)/clone_fat-partclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='clone_fat-partclone.o' libtool=no @AMDEPBACKSLASH@
+partclone_fat-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -MT partclone_fat-partclone.o -MD -MP -MF $(DEPDIR)/partclone_fat-partclone.Tpo -c -o partclone_fat-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_fat-partclone.Tpo $(DEPDIR)/partclone_fat-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_fat-partclone.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -c -o partclone_fat-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
 
-clone_fat-partclone.obj: partclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-partclone.obj -MD -MP -MF $(DEPDIR)/clone_fat-partclone.Tpo -c -o clone_fat-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-partclone.Tpo $(DEPDIR)/clone_fat-partclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='clone_fat-partclone.obj' libtool=no @AMDEPBACKSLASH@
+partclone_fat-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -MT partclone_fat-partclone.obj -MD -MP -MF $(DEPDIR)/partclone_fat-partclone.Tpo -c -o partclone_fat-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_fat-partclone.Tpo $(DEPDIR)/partclone_fat-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_fat-partclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -c -o partclone_fat-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
 
-clone_fat-progress.o: progress.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-progress.o -MD -MP -MF $(DEPDIR)/clone_fat-progress.Tpo -c -o clone_fat-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-progress.Tpo $(DEPDIR)/clone_fat-progress.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='clone_fat-progress.o' libtool=no @AMDEPBACKSLASH@
+partclone_fat-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -MT partclone_fat-progress.o -MD -MP -MF $(DEPDIR)/partclone_fat-progress.Tpo -c -o partclone_fat-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_fat-progress.Tpo $(DEPDIR)/partclone_fat-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_fat-progress.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -c -o partclone_fat-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
 
-clone_fat-progress.obj: progress.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-progress.obj -MD -MP -MF $(DEPDIR)/clone_fat-progress.Tpo -c -o clone_fat-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-progress.Tpo $(DEPDIR)/clone_fat-progress.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='clone_fat-progress.obj' libtool=no @AMDEPBACKSLASH@
+partclone_fat-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -MT partclone_fat-progress.obj -MD -MP -MF $(DEPDIR)/partclone_fat-progress.Tpo -c -o partclone_fat-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_fat-progress.Tpo $(DEPDIR)/partclone_fat-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_fat-progress.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -c -o partclone_fat-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
 
-clone_fat-fatclone.o: fatclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-fatclone.o -MD -MP -MF $(DEPDIR)/clone_fat-fatclone.Tpo -c -o clone_fat-fatclone.o `test -f 'fatclone.c' || echo '$(srcdir)/'`fatclone.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-fatclone.Tpo $(DEPDIR)/clone_fat-fatclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fatclone.c' object='clone_fat-fatclone.o' libtool=no @AMDEPBACKSLASH@
+partclone_fat-fatclone.o: fatclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -MT partclone_fat-fatclone.o -MD -MP -MF $(DEPDIR)/partclone_fat-fatclone.Tpo -c -o partclone_fat-fatclone.o `test -f 'fatclone.c' || echo '$(srcdir)/'`fatclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_fat-fatclone.Tpo $(DEPDIR)/partclone_fat-fatclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fatclone.c' object='partclone_fat-fatclone.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-fatclone.o `test -f 'fatclone.c' || echo '$(srcdir)/'`fatclone.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -c -o partclone_fat-fatclone.o `test -f 'fatclone.c' || echo '$(srcdir)/'`fatclone.c
 
-clone_fat-fatclone.obj: fatclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -MT clone_fat-fatclone.obj -MD -MP -MF $(DEPDIR)/clone_fat-fatclone.Tpo -c -o clone_fat-fatclone.obj `if test -f 'fatclone.c'; then $(CYGPATH_W) 'fatclone.c'; else $(CYGPATH_W) '$(srcdir)/fatclone.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_fat-fatclone.Tpo $(DEPDIR)/clone_fat-fatclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fatclone.c' object='clone_fat-fatclone.obj' libtool=no @AMDEPBACKSLASH@
+partclone_fat-fatclone.obj: fatclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -MT partclone_fat-fatclone.obj -MD -MP -MF $(DEPDIR)/partclone_fat-fatclone.Tpo -c -o partclone_fat-fatclone.obj `if test -f 'fatclone.c'; then $(CYGPATH_W) 'fatclone.c'; else $(CYGPATH_W) '$(srcdir)/fatclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_fat-fatclone.Tpo $(DEPDIR)/partclone_fat-fatclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fatclone.c' object='partclone_fat-fatclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_fat_CFLAGS) $(CFLAGS) -c -o clone_fat-fatclone.obj `if test -f 'fatclone.c'; then $(CYGPATH_W) 'fatclone.c'; else $(CYGPATH_W) '$(srcdir)/fatclone.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -c -o partclone_fat-fatclone.obj `if test -f 'fatclone.c'; then $(CYGPATH_W) 'fatclone.c'; else $(CYGPATH_W) '$(srcdir)/fatclone.c'; fi`
 
-clone_hfsp-main.o: main.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -MT clone_hfsp-main.o -MD -MP -MF $(DEPDIR)/clone_hfsp-main.Tpo -c -o clone_hfsp-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_hfsp-main.Tpo $(DEPDIR)/clone_hfsp-main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='clone_hfsp-main.o' libtool=no @AMDEPBACKSLASH@
+partclone_hfsp-main.o: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -MT partclone_hfsp-main.o -MD -MP -MF $(DEPDIR)/partclone_hfsp-main.Tpo -c -o partclone_hfsp-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_hfsp-main.Tpo $(DEPDIR)/partclone_hfsp-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_hfsp-main.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -c -o clone_hfsp-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -c -o partclone_hfsp-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
 
-clone_hfsp-main.obj: main.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -MT clone_hfsp-main.obj -MD -MP -MF $(DEPDIR)/clone_hfsp-main.Tpo -c -o clone_hfsp-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_hfsp-main.Tpo $(DEPDIR)/clone_hfsp-main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='clone_hfsp-main.obj' libtool=no @AMDEPBACKSLASH@
+partclone_hfsp-main.obj: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -MT partclone_hfsp-main.obj -MD -MP -MF $(DEPDIR)/partclone_hfsp-main.Tpo -c -o partclone_hfsp-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_hfsp-main.Tpo $(DEPDIR)/partclone_hfsp-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_hfsp-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -c -o clone_hfsp-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -c -o partclone_hfsp-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
 
-clone_hfsp-partclone.o: partclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -MT clone_hfsp-partclone.o -MD -MP -MF $(DEPDIR)/clone_hfsp-partclone.Tpo -c -o clone_hfsp-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_hfsp-partclone.Tpo $(DEPDIR)/clone_hfsp-partclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='clone_hfsp-partclone.o' libtool=no @AMDEPBACKSLASH@
+partclone_hfsp-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -MT partclone_hfsp-partclone.o -MD -MP -MF $(DEPDIR)/partclone_hfsp-partclone.Tpo -c -o partclone_hfsp-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_hfsp-partclone.Tpo $(DEPDIR)/partclone_hfsp-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_hfsp-partclone.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -c -o clone_hfsp-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -c -o partclone_hfsp-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
 
-clone_hfsp-partclone.obj: partclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -MT clone_hfsp-partclone.obj -MD -MP -MF $(DEPDIR)/clone_hfsp-partclone.Tpo -c -o clone_hfsp-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_hfsp-partclone.Tpo $(DEPDIR)/clone_hfsp-partclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='clone_hfsp-partclone.obj' libtool=no @AMDEPBACKSLASH@
+partclone_hfsp-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -MT partclone_hfsp-partclone.obj -MD -MP -MF $(DEPDIR)/partclone_hfsp-partclone.Tpo -c -o partclone_hfsp-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_hfsp-partclone.Tpo $(DEPDIR)/partclone_hfsp-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_hfsp-partclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -c -o clone_hfsp-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -c -o partclone_hfsp-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
 
-clone_hfsp-progress.o: progress.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -MT clone_hfsp-progress.o -MD -MP -MF $(DEPDIR)/clone_hfsp-progress.Tpo -c -o clone_hfsp-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_hfsp-progress.Tpo $(DEPDIR)/clone_hfsp-progress.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='clone_hfsp-progress.o' libtool=no @AMDEPBACKSLASH@
+partclone_hfsp-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -MT partclone_hfsp-progress.o -MD -MP -MF $(DEPDIR)/partclone_hfsp-progress.Tpo -c -o partclone_hfsp-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_hfsp-progress.Tpo $(DEPDIR)/partclone_hfsp-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_hfsp-progress.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -c -o clone_hfsp-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -c -o partclone_hfsp-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
 
-clone_hfsp-progress.obj: progress.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -MT clone_hfsp-progress.obj -MD -MP -MF $(DEPDIR)/clone_hfsp-progress.Tpo -c -o clone_hfsp-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_hfsp-progress.Tpo $(DEPDIR)/clone_hfsp-progress.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='clone_hfsp-progress.obj' libtool=no @AMDEPBACKSLASH@
+partclone_hfsp-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -MT partclone_hfsp-progress.obj -MD -MP -MF $(DEPDIR)/partclone_hfsp-progress.Tpo -c -o partclone_hfsp-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_hfsp-progress.Tpo $(DEPDIR)/partclone_hfsp-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_hfsp-progress.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -c -o clone_hfsp-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -c -o partclone_hfsp-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
 
-clone_hfsp-hfsplusclone.o: hfsplusclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -MT clone_hfsp-hfsplusclone.o -MD -MP -MF $(DEPDIR)/clone_hfsp-hfsplusclone.Tpo -c -o clone_hfsp-hfsplusclone.o `test -f 'hfsplusclone.c' || echo '$(srcdir)/'`hfsplusclone.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_hfsp-hfsplusclone.Tpo $(DEPDIR)/clone_hfsp-hfsplusclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='hfsplusclone.c' object='clone_hfsp-hfsplusclone.o' libtool=no @AMDEPBACKSLASH@
+partclone_hfsp-hfsplusclone.o: hfsplusclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -MT partclone_hfsp-hfsplusclone.o -MD -MP -MF $(DEPDIR)/partclone_hfsp-hfsplusclone.Tpo -c -o partclone_hfsp-hfsplusclone.o `test -f 'hfsplusclone.c' || echo '$(srcdir)/'`hfsplusclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_hfsp-hfsplusclone.Tpo $(DEPDIR)/partclone_hfsp-hfsplusclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='hfsplusclone.c' object='partclone_hfsp-hfsplusclone.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -c -o clone_hfsp-hfsplusclone.o `test -f 'hfsplusclone.c' || echo '$(srcdir)/'`hfsplusclone.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -c -o partclone_hfsp-hfsplusclone.o `test -f 'hfsplusclone.c' || echo '$(srcdir)/'`hfsplusclone.c
 
-clone_hfsp-hfsplusclone.obj: hfsplusclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -MT clone_hfsp-hfsplusclone.obj -MD -MP -MF $(DEPDIR)/clone_hfsp-hfsplusclone.Tpo -c -o clone_hfsp-hfsplusclone.obj `if test -f 'hfsplusclone.c'; then $(CYGPATH_W) 'hfsplusclone.c'; else $(CYGPATH_W) '$(srcdir)/hfsplusclone.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_hfsp-hfsplusclone.Tpo $(DEPDIR)/clone_hfsp-hfsplusclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='hfsplusclone.c' object='clone_hfsp-hfsplusclone.obj' libtool=no @AMDEPBACKSLASH@
+partclone_hfsp-hfsplusclone.obj: hfsplusclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -MT partclone_hfsp-hfsplusclone.obj -MD -MP -MF $(DEPDIR)/partclone_hfsp-hfsplusclone.Tpo -c -o partclone_hfsp-hfsplusclone.obj `if test -f 'hfsplusclone.c'; then $(CYGPATH_W) 'hfsplusclone.c'; else $(CYGPATH_W) '$(srcdir)/hfsplusclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_hfsp-hfsplusclone.Tpo $(DEPDIR)/partclone_hfsp-hfsplusclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='hfsplusclone.c' object='partclone_hfsp-hfsplusclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_hfsp_CFLAGS) $(CFLAGS) -c -o clone_hfsp-hfsplusclone.obj `if test -f 'hfsplusclone.c'; then $(CYGPATH_W) 'hfsplusclone.c'; else $(CYGPATH_W) '$(srcdir)/hfsplusclone.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -c -o partclone_hfsp-hfsplusclone.obj `if test -f 'hfsplusclone.c'; then $(CYGPATH_W) 'hfsplusclone.c'; else $(CYGPATH_W) '$(srcdir)/hfsplusclone.c'; fi`
 
-clone_reiser4-main.o: main.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -MT clone_reiser4-main.o -MD -MP -MF $(DEPDIR)/clone_reiser4-main.Tpo -c -o clone_reiser4-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiser4-main.Tpo $(DEPDIR)/clone_reiser4-main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='clone_reiser4-main.o' libtool=no @AMDEPBACKSLASH@
+partclone_reiser4-main.o: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -MT partclone_reiser4-main.o -MD -MP -MF $(DEPDIR)/partclone_reiser4-main.Tpo -c -o partclone_reiser4-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiser4-main.Tpo $(DEPDIR)/partclone_reiser4-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_reiser4-main.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -c -o clone_reiser4-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -c -o partclone_reiser4-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
 
-clone_reiser4-main.obj: main.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -MT clone_reiser4-main.obj -MD -MP -MF $(DEPDIR)/clone_reiser4-main.Tpo -c -o clone_reiser4-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiser4-main.Tpo $(DEPDIR)/clone_reiser4-main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='clone_reiser4-main.obj' libtool=no @AMDEPBACKSLASH@
+partclone_reiser4-main.obj: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -MT partclone_reiser4-main.obj -MD -MP -MF $(DEPDIR)/partclone_reiser4-main.Tpo -c -o partclone_reiser4-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiser4-main.Tpo $(DEPDIR)/partclone_reiser4-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_reiser4-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -c -o clone_reiser4-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -c -o partclone_reiser4-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
 
-clone_reiser4-partclone.o: partclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -MT clone_reiser4-partclone.o -MD -MP -MF $(DEPDIR)/clone_reiser4-partclone.Tpo -c -o clone_reiser4-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiser4-partclone.Tpo $(DEPDIR)/clone_reiser4-partclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='clone_reiser4-partclone.o' libtool=no @AMDEPBACKSLASH@
+partclone_reiser4-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -MT partclone_reiser4-partclone.o -MD -MP -MF $(DEPDIR)/partclone_reiser4-partclone.Tpo -c -o partclone_reiser4-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiser4-partclone.Tpo $(DEPDIR)/partclone_reiser4-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_reiser4-partclone.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -c -o clone_reiser4-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -c -o partclone_reiser4-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
 
-clone_reiser4-partclone.obj: partclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -MT clone_reiser4-partclone.obj -MD -MP -MF $(DEPDIR)/clone_reiser4-partclone.Tpo -c -o clone_reiser4-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiser4-partclone.Tpo $(DEPDIR)/clone_reiser4-partclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='clone_reiser4-partclone.obj' libtool=no @AMDEPBACKSLASH@
+partclone_reiser4-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -MT partclone_reiser4-partclone.obj -MD -MP -MF $(DEPDIR)/partclone_reiser4-partclone.Tpo -c -o partclone_reiser4-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiser4-partclone.Tpo $(DEPDIR)/partclone_reiser4-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_reiser4-partclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -c -o clone_reiser4-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -c -o partclone_reiser4-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
 
-clone_reiser4-progress.o: progress.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -MT clone_reiser4-progress.o -MD -MP -MF $(DEPDIR)/clone_reiser4-progress.Tpo -c -o clone_reiser4-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiser4-progress.Tpo $(DEPDIR)/clone_reiser4-progress.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='clone_reiser4-progress.o' libtool=no @AMDEPBACKSLASH@
+partclone_reiser4-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -MT partclone_reiser4-progress.o -MD -MP -MF $(DEPDIR)/partclone_reiser4-progress.Tpo -c -o partclone_reiser4-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiser4-progress.Tpo $(DEPDIR)/partclone_reiser4-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_reiser4-progress.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -c -o clone_reiser4-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -c -o partclone_reiser4-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
 
-clone_reiser4-progress.obj: progress.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -MT clone_reiser4-progress.obj -MD -MP -MF $(DEPDIR)/clone_reiser4-progress.Tpo -c -o clone_reiser4-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiser4-progress.Tpo $(DEPDIR)/clone_reiser4-progress.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='clone_reiser4-progress.obj' libtool=no @AMDEPBACKSLASH@
+partclone_reiser4-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -MT partclone_reiser4-progress.obj -MD -MP -MF $(DEPDIR)/partclone_reiser4-progress.Tpo -c -o partclone_reiser4-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiser4-progress.Tpo $(DEPDIR)/partclone_reiser4-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_reiser4-progress.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -c -o clone_reiser4-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -c -o partclone_reiser4-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
 
-clone_reiser4-reiser4clone.o: reiser4clone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -MT clone_reiser4-reiser4clone.o -MD -MP -MF $(DEPDIR)/clone_reiser4-reiser4clone.Tpo -c -o clone_reiser4-reiser4clone.o `test -f 'reiser4clone.c' || echo '$(srcdir)/'`reiser4clone.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiser4-reiser4clone.Tpo $(DEPDIR)/clone_reiser4-reiser4clone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='reiser4clone.c' object='clone_reiser4-reiser4clone.o' libtool=no @AMDEPBACKSLASH@
+partclone_reiser4-reiser4clone.o: reiser4clone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -MT partclone_reiser4-reiser4clone.o -MD -MP -MF $(DEPDIR)/partclone_reiser4-reiser4clone.Tpo -c -o partclone_reiser4-reiser4clone.o `test -f 'reiser4clone.c' || echo '$(srcdir)/'`reiser4clone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiser4-reiser4clone.Tpo $(DEPDIR)/partclone_reiser4-reiser4clone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='reiser4clone.c' object='partclone_reiser4-reiser4clone.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -c -o clone_reiser4-reiser4clone.o `test -f 'reiser4clone.c' || echo '$(srcdir)/'`reiser4clone.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -c -o partclone_reiser4-reiser4clone.o `test -f 'reiser4clone.c' || echo '$(srcdir)/'`reiser4clone.c
 
-clone_reiser4-reiser4clone.obj: reiser4clone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -MT clone_reiser4-reiser4clone.obj -MD -MP -MF $(DEPDIR)/clone_reiser4-reiser4clone.Tpo -c -o clone_reiser4-reiser4clone.obj `if test -f 'reiser4clone.c'; then $(CYGPATH_W) 'reiser4clone.c'; else $(CYGPATH_W) '$(srcdir)/reiser4clone.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiser4-reiser4clone.Tpo $(DEPDIR)/clone_reiser4-reiser4clone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='reiser4clone.c' object='clone_reiser4-reiser4clone.obj' libtool=no @AMDEPBACKSLASH@
+partclone_reiser4-reiser4clone.obj: reiser4clone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -MT partclone_reiser4-reiser4clone.obj -MD -MP -MF $(DEPDIR)/partclone_reiser4-reiser4clone.Tpo -c -o partclone_reiser4-reiser4clone.obj `if test -f 'reiser4clone.c'; then $(CYGPATH_W) 'reiser4clone.c'; else $(CYGPATH_W) '$(srcdir)/reiser4clone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiser4-reiser4clone.Tpo $(DEPDIR)/partclone_reiser4-reiser4clone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='reiser4clone.c' object='partclone_reiser4-reiser4clone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiser4_CFLAGS) $(CFLAGS) -c -o clone_reiser4-reiser4clone.obj `if test -f 'reiser4clone.c'; then $(CYGPATH_W) 'reiser4clone.c'; else $(CYGPATH_W) '$(srcdir)/reiser4clone.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -c -o partclone_reiser4-reiser4clone.obj `if test -f 'reiser4clone.c'; then $(CYGPATH_W) 'reiser4clone.c'; else $(CYGPATH_W) '$(srcdir)/reiser4clone.c'; fi`
 
-clone_reiserfs-main.o: main.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -MT clone_reiserfs-main.o -MD -MP -MF $(DEPDIR)/clone_reiserfs-main.Tpo -c -o clone_reiserfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiserfs-main.Tpo $(DEPDIR)/clone_reiserfs-main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='clone_reiserfs-main.o' libtool=no @AMDEPBACKSLASH@
+partclone_reiserfs-main.o: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -MT partclone_reiserfs-main.o -MD -MP -MF $(DEPDIR)/partclone_reiserfs-main.Tpo -c -o partclone_reiserfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiserfs-main.Tpo $(DEPDIR)/partclone_reiserfs-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_reiserfs-main.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -c -o clone_reiserfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -c -o partclone_reiserfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
 
-clone_reiserfs-main.obj: main.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -MT clone_reiserfs-main.obj -MD -MP -MF $(DEPDIR)/clone_reiserfs-main.Tpo -c -o clone_reiserfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiserfs-main.Tpo $(DEPDIR)/clone_reiserfs-main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='clone_reiserfs-main.obj' libtool=no @AMDEPBACKSLASH@
+partclone_reiserfs-main.obj: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -MT partclone_reiserfs-main.obj -MD -MP -MF $(DEPDIR)/partclone_reiserfs-main.Tpo -c -o partclone_reiserfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiserfs-main.Tpo $(DEPDIR)/partclone_reiserfs-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_reiserfs-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -c -o clone_reiserfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -c -o partclone_reiserfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
 
-clone_reiserfs-partclone.o: partclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -MT clone_reiserfs-partclone.o -MD -MP -MF $(DEPDIR)/clone_reiserfs-partclone.Tpo -c -o clone_reiserfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiserfs-partclone.Tpo $(DEPDIR)/clone_reiserfs-partclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='clone_reiserfs-partclone.o' libtool=no @AMDEPBACKSLASH@
+partclone_reiserfs-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -MT partclone_reiserfs-partclone.o -MD -MP -MF $(DEPDIR)/partclone_reiserfs-partclone.Tpo -c -o partclone_reiserfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiserfs-partclone.Tpo $(DEPDIR)/partclone_reiserfs-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_reiserfs-partclone.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -c -o clone_reiserfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -c -o partclone_reiserfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
 
-clone_reiserfs-partclone.obj: partclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -MT clone_reiserfs-partclone.obj -MD -MP -MF $(DEPDIR)/clone_reiserfs-partclone.Tpo -c -o clone_reiserfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiserfs-partclone.Tpo $(DEPDIR)/clone_reiserfs-partclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='clone_reiserfs-partclone.obj' libtool=no @AMDEPBACKSLASH@
+partclone_reiserfs-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -MT partclone_reiserfs-partclone.obj -MD -MP -MF $(DEPDIR)/partclone_reiserfs-partclone.Tpo -c -o partclone_reiserfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiserfs-partclone.Tpo $(DEPDIR)/partclone_reiserfs-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_reiserfs-partclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -c -o clone_reiserfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -c -o partclone_reiserfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
 
-clone_reiserfs-progress.o: progress.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -MT clone_reiserfs-progress.o -MD -MP -MF $(DEPDIR)/clone_reiserfs-progress.Tpo -c -o clone_reiserfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiserfs-progress.Tpo $(DEPDIR)/clone_reiserfs-progress.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='clone_reiserfs-progress.o' libtool=no @AMDEPBACKSLASH@
+partclone_reiserfs-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -MT partclone_reiserfs-progress.o -MD -MP -MF $(DEPDIR)/partclone_reiserfs-progress.Tpo -c -o partclone_reiserfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiserfs-progress.Tpo $(DEPDIR)/partclone_reiserfs-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_reiserfs-progress.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -c -o clone_reiserfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -c -o partclone_reiserfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
 
-clone_reiserfs-progress.obj: progress.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -MT clone_reiserfs-progress.obj -MD -MP -MF $(DEPDIR)/clone_reiserfs-progress.Tpo -c -o clone_reiserfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiserfs-progress.Tpo $(DEPDIR)/clone_reiserfs-progress.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='clone_reiserfs-progress.obj' libtool=no @AMDEPBACKSLASH@
+partclone_reiserfs-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -MT partclone_reiserfs-progress.obj -MD -MP -MF $(DEPDIR)/partclone_reiserfs-progress.Tpo -c -o partclone_reiserfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiserfs-progress.Tpo $(DEPDIR)/partclone_reiserfs-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_reiserfs-progress.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -c -o clone_reiserfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -c -o partclone_reiserfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
 
-clone_reiserfs-reiserfsclone.o: reiserfsclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -MT clone_reiserfs-reiserfsclone.o -MD -MP -MF $(DEPDIR)/clone_reiserfs-reiserfsclone.Tpo -c -o clone_reiserfs-reiserfsclone.o `test -f 'reiserfsclone.c' || echo '$(srcdir)/'`reiserfsclone.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiserfs-reiserfsclone.Tpo $(DEPDIR)/clone_reiserfs-reiserfsclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='reiserfsclone.c' object='clone_reiserfs-reiserfsclone.o' libtool=no @AMDEPBACKSLASH@
+partclone_reiserfs-reiserfsclone.o: reiserfsclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -MT partclone_reiserfs-reiserfsclone.o -MD -MP -MF $(DEPDIR)/partclone_reiserfs-reiserfsclone.Tpo -c -o partclone_reiserfs-reiserfsclone.o `test -f 'reiserfsclone.c' || echo '$(srcdir)/'`reiserfsclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiserfs-reiserfsclone.Tpo $(DEPDIR)/partclone_reiserfs-reiserfsclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='reiserfsclone.c' object='partclone_reiserfs-reiserfsclone.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -c -o clone_reiserfs-reiserfsclone.o `test -f 'reiserfsclone.c' || echo '$(srcdir)/'`reiserfsclone.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -c -o partclone_reiserfs-reiserfsclone.o `test -f 'reiserfsclone.c' || echo '$(srcdir)/'`reiserfsclone.c
 
-clone_reiserfs-reiserfsclone.obj: reiserfsclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -MT clone_reiserfs-reiserfsclone.obj -MD -MP -MF $(DEPDIR)/clone_reiserfs-reiserfsclone.Tpo -c -o clone_reiserfs-reiserfsclone.obj `if test -f 'reiserfsclone.c'; then $(CYGPATH_W) 'reiserfsclone.c'; else $(CYGPATH_W) '$(srcdir)/reiserfsclone.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_reiserfs-reiserfsclone.Tpo $(DEPDIR)/clone_reiserfs-reiserfsclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='reiserfsclone.c' object='clone_reiserfs-reiserfsclone.obj' libtool=no @AMDEPBACKSLASH@
+partclone_reiserfs-reiserfsclone.obj: reiserfsclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -MT partclone_reiserfs-reiserfsclone.obj -MD -MP -MF $(DEPDIR)/partclone_reiserfs-reiserfsclone.Tpo -c -o partclone_reiserfs-reiserfsclone.obj `if test -f 'reiserfsclone.c'; then $(CYGPATH_W) 'reiserfsclone.c'; else $(CYGPATH_W) '$(srcdir)/reiserfsclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_reiserfs-reiserfsclone.Tpo $(DEPDIR)/partclone_reiserfs-reiserfsclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='reiserfsclone.c' object='partclone_reiserfs-reiserfsclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_reiserfs_CFLAGS) $(CFLAGS) -c -o clone_reiserfs-reiserfsclone.obj `if test -f 'reiserfsclone.c'; then $(CYGPATH_W) 'reiserfsclone.c'; else $(CYGPATH_W) '$(srcdir)/reiserfsclone.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiserfs_CFLAGS) $(CFLAGS) -c -o partclone_reiserfs-reiserfsclone.obj `if test -f 'reiserfsclone.c'; then $(CYGPATH_W) 'reiserfsclone.c'; else $(CYGPATH_W) '$(srcdir)/reiserfsclone.c'; fi`
 
-clone_xfs-main.o: main.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -MT clone_xfs-main.o -MD -MP -MF $(DEPDIR)/clone_xfs-main.Tpo -c -o clone_xfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_xfs-main.Tpo $(DEPDIR)/clone_xfs-main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='clone_xfs-main.o' libtool=no @AMDEPBACKSLASH@
+partclone_xfs-main.o: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT partclone_xfs-main.o -MD -MP -MF $(DEPDIR)/partclone_xfs-main.Tpo -c -o partclone_xfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_xfs-main.Tpo $(DEPDIR)/partclone_xfs-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_xfs-main.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -c -o clone_xfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o partclone_xfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
 
-clone_xfs-main.obj: main.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -MT clone_xfs-main.obj -MD -MP -MF $(DEPDIR)/clone_xfs-main.Tpo -c -o clone_xfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_xfs-main.Tpo $(DEPDIR)/clone_xfs-main.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='clone_xfs-main.obj' libtool=no @AMDEPBACKSLASH@
+partclone_xfs-main.obj: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT partclone_xfs-main.obj -MD -MP -MF $(DEPDIR)/partclone_xfs-main.Tpo -c -o partclone_xfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_xfs-main.Tpo $(DEPDIR)/partclone_xfs-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_xfs-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -c -o clone_xfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o partclone_xfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
 
-clone_xfs-partclone.o: partclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -MT clone_xfs-partclone.o -MD -MP -MF $(DEPDIR)/clone_xfs-partclone.Tpo -c -o clone_xfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_xfs-partclone.Tpo $(DEPDIR)/clone_xfs-partclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='clone_xfs-partclone.o' libtool=no @AMDEPBACKSLASH@
+partclone_xfs-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT partclone_xfs-partclone.o -MD -MP -MF $(DEPDIR)/partclone_xfs-partclone.Tpo -c -o partclone_xfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_xfs-partclone.Tpo $(DEPDIR)/partclone_xfs-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_xfs-partclone.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -c -o clone_xfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o partclone_xfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
 
-clone_xfs-partclone.obj: partclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -MT clone_xfs-partclone.obj -MD -MP -MF $(DEPDIR)/clone_xfs-partclone.Tpo -c -o clone_xfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_xfs-partclone.Tpo $(DEPDIR)/clone_xfs-partclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='clone_xfs-partclone.obj' libtool=no @AMDEPBACKSLASH@
+partclone_xfs-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT partclone_xfs-partclone.obj -MD -MP -MF $(DEPDIR)/partclone_xfs-partclone.Tpo -c -o partclone_xfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_xfs-partclone.Tpo $(DEPDIR)/partclone_xfs-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_xfs-partclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -c -o clone_xfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o partclone_xfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
 
-clone_xfs-progress.o: progress.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -MT clone_xfs-progress.o -MD -MP -MF $(DEPDIR)/clone_xfs-progress.Tpo -c -o clone_xfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_xfs-progress.Tpo $(DEPDIR)/clone_xfs-progress.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='clone_xfs-progress.o' libtool=no @AMDEPBACKSLASH@
+partclone_xfs-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT partclone_xfs-progress.o -MD -MP -MF $(DEPDIR)/partclone_xfs-progress.Tpo -c -o partclone_xfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_xfs-progress.Tpo $(DEPDIR)/partclone_xfs-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_xfs-progress.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -c -o clone_xfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o partclone_xfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
 
-clone_xfs-progress.obj: progress.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -MT clone_xfs-progress.obj -MD -MP -MF $(DEPDIR)/clone_xfs-progress.Tpo -c -o clone_xfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_xfs-progress.Tpo $(DEPDIR)/clone_xfs-progress.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='clone_xfs-progress.obj' libtool=no @AMDEPBACKSLASH@
+partclone_xfs-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT partclone_xfs-progress.obj -MD -MP -MF $(DEPDIR)/partclone_xfs-progress.Tpo -c -o partclone_xfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_xfs-progress.Tpo $(DEPDIR)/partclone_xfs-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_xfs-progress.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -c -o clone_xfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o partclone_xfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
 
-clone_xfs-xfsclone.o: xfsclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -MT clone_xfs-xfsclone.o -MD -MP -MF $(DEPDIR)/clone_xfs-xfsclone.Tpo -c -o clone_xfs-xfsclone.o `test -f 'xfsclone.c' || echo '$(srcdir)/'`xfsclone.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_xfs-xfsclone.Tpo $(DEPDIR)/clone_xfs-xfsclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='xfsclone.c' object='clone_xfs-xfsclone.o' libtool=no @AMDEPBACKSLASH@
+partclone_xfs-xfsclone.o: xfsclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT partclone_xfs-xfsclone.o -MD -MP -MF $(DEPDIR)/partclone_xfs-xfsclone.Tpo -c -o partclone_xfs-xfsclone.o `test -f 'xfsclone.c' || echo '$(srcdir)/'`xfsclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_xfs-xfsclone.Tpo $(DEPDIR)/partclone_xfs-xfsclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='xfsclone.c' object='partclone_xfs-xfsclone.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -c -o clone_xfs-xfsclone.o `test -f 'xfsclone.c' || echo '$(srcdir)/'`xfsclone.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o partclone_xfs-xfsclone.o `test -f 'xfsclone.c' || echo '$(srcdir)/'`xfsclone.c
 
-clone_xfs-xfsclone.obj: xfsclone.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -MT clone_xfs-xfsclone.obj -MD -MP -MF $(DEPDIR)/clone_xfs-xfsclone.Tpo -c -o clone_xfs-xfsclone.obj `if test -f 'xfsclone.c'; then $(CYGPATH_W) 'xfsclone.c'; else $(CYGPATH_W) '$(srcdir)/xfsclone.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/clone_xfs-xfsclone.Tpo $(DEPDIR)/clone_xfs-xfsclone.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='xfsclone.c' object='clone_xfs-xfsclone.obj' libtool=no @AMDEPBACKSLASH@
+partclone_xfs-xfsclone.obj: xfsclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT partclone_xfs-xfsclone.obj -MD -MP -MF $(DEPDIR)/partclone_xfs-xfsclone.Tpo -c -o partclone_xfs-xfsclone.obj `if test -f 'xfsclone.c'; then $(CYGPATH_W) 'xfsclone.c'; else $(CYGPATH_W) '$(srcdir)/xfsclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_xfs-xfsclone.Tpo $(DEPDIR)/partclone_xfs-xfsclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='xfsclone.c' object='partclone_xfs-xfsclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(clone_xfs_CFLAGS) $(CFLAGS) -c -o clone_xfs-xfsclone.obj `if test -f 'xfsclone.c'; then $(CYGPATH_W) 'xfsclone.c'; else $(CYGPATH_W) '$(srcdir)/xfsclone.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o partclone_xfs-xfsclone.obj `if test -f 'xfsclone.c'; then $(CYGPATH_W) 'xfsclone.c'; else $(CYGPATH_W) '$(srcdir)/xfsclone.c'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -926,20 +931,20 @@ version.c: FORCE
 
 # Extra
 install-exec-hook:
-	$(LN_S) -f clone.extfs $(DESTDIR)$(sbindir)/clone.ext2
-	$(LN_S) -f clone.extfs $(DESTDIR)$(sbindir)/clone.ext3
-@ENABLE_HFSP_TRUE@	$(LN_S) -f clone.hfsp $(DESTDIR)$(sbindir)/clone.hfs+
-@ENABLE_FAT_TRUE@	$(LN_S) -f clone.fat $(DESTDIR)$(sbindir)/clone.fat16
-@ENABLE_FAT_TRUE@	$(LN_S) -f clone.fat $(DESTDIR)$(sbindir)/clone.fat32
-@ENABLE_FAT_TRUE@	$(LN_S) -f clone.fat $(DESTDIR)$(sbindir)/clone.vfat
+	$(LN_S) -f partclone.extfs $(DESTDIR)$(sbindir)/partclone.ext2
+	$(LN_S) -f partclone.extfs $(DESTDIR)$(sbindir)/partclone.ext3
+@ENABLE_HFSP_TRUE@	$(LN_S) -f partclone.hfsp $(DESTDIR)$(sbindir)/partclone.hfs+
+@ENABLE_FAT_TRUE@	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.fat16
+@ENABLE_FAT_TRUE@	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.fat32
+@ENABLE_FAT_TRUE@	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.vfat
 
 uninstall-local:
-	$(RM) -f $(sbindir)/clone.ext3
-	$(RM) -f $(sbindir)/clone.ext2
-@ENABLE_HFSP_TRUE@	$(RM) -f $(sbindir)/clone.hfs+
-@ENABLE_FAT_TRUE@	$(RM) -f $(sbindir)/clone.fat16
-@ENABLE_FAT_TRUE@	$(RM) -f $(sbindir)/clone.fat32
-@ENABLE_FAT_TRUE@	$(RM) -f $(sbindir)/clone.vfat
+	$(RM) -f $(sbindir)/partclone.ext3
+	$(RM) -f $(sbindir)/partclone.ext2
+@ENABLE_HFSP_TRUE@	$(RM) -f $(sbindir)/partclone.hfs+
+@ENABLE_FAT_TRUE@	$(RM) -f $(sbindir)/partclone.fat16
+@ENABLE_FAT_TRUE@	$(RM) -f $(sbindir)/partclone.fat32
+@ENABLE_FAT_TRUE@	$(RM) -f $(sbindir)/partclone.vfat
 
 FORCE:
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

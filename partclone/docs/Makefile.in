@@ -33,9 +33,9 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = docs
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/clone.extfs.8.in $(srcdir)/clone.fat.8.in \
-	$(srcdir)/clone.hfsp.8.in $(srcdir)/clone.reiser4.8.in \
-	$(srcdir)/clone.reiserfs.8.in $(srcdir)/clone.xfs.8.in
+	$(srcdir)/partclone.extfs.8.in $(srcdir)/partclone.fat.8.in \
+	$(srcdir)/partclone.hfsp.8.in $(srcdir)/partclone.reiser4.8.in \
+	$(srcdir)/partclone.reiserfs.8.in $(srcdir)/partclone.xfs.8.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
 	$(top_srcdir)/m4/iconv.m4 $(top_srcdir)/m4/lib-ld.m4 \
@@ -46,8 +46,9 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES = clone.extfs.8 clone.hfsp.8 clone.fat.8 \
-	clone.reiserfs.8 clone.reiser4.8 clone.xfs.8
+CONFIG_CLEAN_FILES = partclone.extfs.8 partclone.hfsp.8 \
+	partclone.fat.8 partclone.reiserfs.8 partclone.reiser4.8 \
+	partclone.xfs.8
 SOURCES =
 DIST_SOURCES =
 man8dir = $(mandir)/man8
@@ -164,7 +165,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-man_MANS = clone.extfs.8 clone.reiserfs.8 clone.reiser4.8 clone.xfs.8 clone.hfsp.8 clone.fat.8
+man_MANS = partclone.extfs.8 partclone.reiserfs.8 partclone.reiser4.8 partclone.xfs.8 partclone.hfsp.8 partclone.fat.8
 all: all-am
 
 .SUFFIXES:
@@ -197,17 +198,17 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-clone.extfs.8: $(top_builddir)/config.status $(srcdir)/clone.extfs.8.in
+partclone.extfs.8: $(top_builddir)/config.status $(srcdir)/partclone.extfs.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-clone.hfsp.8: $(top_builddir)/config.status $(srcdir)/clone.hfsp.8.in
+partclone.hfsp.8: $(top_builddir)/config.status $(srcdir)/partclone.hfsp.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-clone.fat.8: $(top_builddir)/config.status $(srcdir)/clone.fat.8.in
+partclone.fat.8: $(top_builddir)/config.status $(srcdir)/partclone.fat.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-clone.reiserfs.8: $(top_builddir)/config.status $(srcdir)/clone.reiserfs.8.in
+partclone.reiserfs.8: $(top_builddir)/config.status $(srcdir)/partclone.reiserfs.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-clone.reiser4.8: $(top_builddir)/config.status $(srcdir)/clone.reiser4.8.in
+partclone.reiser4.8: $(top_builddir)/config.status $(srcdir)/partclone.reiser4.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-clone.xfs.8: $(top_builddir)/config.status $(srcdir)/clone.xfs.8.in
+partclone.xfs.8: $(top_builddir)/config.status $(srcdir)/partclone.xfs.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 install-man8: $(man8_MANS) $(man_MANS)
 	@$(NORMAL_INSTALL)

@@ -162,12 +162,12 @@ AC_CONFIG_FILES([
 	src/Makefile
 	po/Makefile.in
 	docs/Makefile
-	docs/clone.extfs.8
-	docs/clone.hfsp.8
-	docs/clone.fat.8
-	docs/clone.reiserfs.8
-	docs/clone.reiser4.8
-	docs/clone.xfs.8
+	docs/partclone.extfs.8
+	docs/partclone.hfsp.8
+	docs/partclone.fat.8
+	docs/partclone.reiserfs.8
+	docs/partclone.reiser4.8
+	docs/partclone.xfs.8
 	])
 AC_OUTPUT
 

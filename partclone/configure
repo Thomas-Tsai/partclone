@@ -8716,7 +8716,7 @@ fi
 
 ac_config_headers="$ac_config_headers config.h"
 
-ac_config_files="$ac_config_files Makefile src/Makefile po/Makefile.in docs/Makefile docs/clone.extfs.8 docs/clone.hfsp.8 docs/clone.fat.8 docs/clone.reiserfs.8 docs/clone.reiser4.8 docs/clone.xfs.8"
+ac_config_files="$ac_config_files Makefile src/Makefile po/Makefile.in docs/Makefile docs/partclone.extfs.8 docs/partclone.hfsp.8 docs/partclone.fat.8 docs/partclone.reiserfs.8 docs/partclone.reiser4.8 docs/partclone.xfs.8"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -9372,12 +9372,12 @@ do
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "po/Makefile.in") CONFIG_FILES="$CONFIG_FILES po/Makefile.in" ;;
     "docs/Makefile") CONFIG_FILES="$CONFIG_FILES docs/Makefile" ;;
-    "docs/clone.extfs.8") CONFIG_FILES="$CONFIG_FILES docs/clone.extfs.8" ;;
-    "docs/clone.hfsp.8") CONFIG_FILES="$CONFIG_FILES docs/clone.hfsp.8" ;;
-    "docs/clone.fat.8") CONFIG_FILES="$CONFIG_FILES docs/clone.fat.8" ;;
-    "docs/clone.reiserfs.8") CONFIG_FILES="$CONFIG_FILES docs/clone.reiserfs.8" ;;
-    "docs/clone.reiser4.8") CONFIG_FILES="$CONFIG_FILES docs/clone.reiser4.8" ;;
-    "docs/clone.xfs.8") CONFIG_FILES="$CONFIG_FILES docs/clone.xfs.8" ;;
+    "docs/partclone.extfs.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.extfs.8" ;;
+    "docs/partclone.hfsp.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.hfsp.8" ;;
+    "docs/partclone.fat.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.fat.8" ;;
+    "docs/partclone.reiserfs.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.reiserfs.8" ;;
+    "docs/partclone.reiser4.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.reiser4.8" ;;
+    "docs/partclone.xfs.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.xfs.8" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
