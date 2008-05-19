@@ -138,13 +138,14 @@ extern void Ncurses_progress_update(struct progress_bar *p, int current, int don
 
 	/// set bar color
 	init_pair(4, COLOR_RED, COLOR_RED);
-	init_pair(5, COLOR_WHITE, COLOR_BLUE);
+	init_pair(5, COLOR_BLUE, COLOR_WHITE);
 	init_pair(6, COLOR_WHITE, COLOR_RED);
 	werase(p_win);
 
         if (done != 1){
                 if (((current - p->start) % p->resolution) && ((current != p->stop)))
                         return;
+                mvwprintw(p_win, 0, 0, _(" "));
                 mvwprintw(p_win, 1, 0, _("Elapsed: %s") , Eformated);
                 mvwprintw(p_win, 2, 0, _("Remaining: %s"), Rformated);
                 mvwprintw(p_win, 3, 0, _("Rate: %6.2fMB/min"), (float)(speed));
