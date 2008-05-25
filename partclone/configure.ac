@@ -141,8 +141,8 @@ if test "$enable_ncursesw" = "yes"; then
 
 dnl Check for NCURSESW
 AC_CHECKING([ for Ncursesw Library and Header files ... ])
-AC_CHECK_HEADERS([ncursesw/ncurses.h], ,
-    AC_MSG_ERROR([*** ncurses header files (ncursesw/ncurses.h) not found])
+AC_CHECK_HEADERS([ncurses.h], ,
+    AC_MSG_ERROR([*** ncurses header files (ncurses.h) not found])
 )
 AC_CHECK_LIB([ncursesw], [initscr], ,
     AC_MSG_ERROR([*** Ncursesw library (libncursesw5) not found]))

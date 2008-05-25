@@ -52,8 +52,8 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
-/* Define to 1 if you have the <ncursesw/ncurses.h> header file. */
-#undef HAVE_NCURSESW_NCURSES_H
+/* Define to 1 if you have the <ncurses.h> header file. */
+#undef HAVE_NCURSES_H
 
 /* Define to 1 if you have the <reiser4/libreiser4.h> header file. */
 #undef HAVE_REISER4_LIBREISER4_H

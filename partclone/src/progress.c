@@ -23,7 +23,7 @@
 #include "partclone.h"
 
 #ifdef HAVE_LIBNCURSESW
-    #include <ncursesw/ncurses.h>
+    #include <ncurses.h>
     extern WINDOW *p_win;
     extern WINDOW *bar_win;
     int window_f = 0;

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.0.4\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2008-05-07 14:49+0800\n"
+"POT-Creation-Date: 2008-05-25 18:27+0800\n"
 "PO-Revision-Date: 2007-11-01 11:35+0800\n"
 "Last-Translator: Yu-Chin Tsai <thomas@nchc.org.tw>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -15,13 +15,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/progress.c:85
+#: src/progress.c:86
 #, c-format
 msgid ""
 "\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "
 msgstr "\r%81c\r經過：%s, 剩餘： %s, 完成：%6.2f%%, 速率：%6.2fMB/min, "
 
-#: src/progress.c:97
+#: src/progress.c:98
 #, c-format
 msgid ""
 "\n"
@@ -30,133 +30,138 @@ msgstr ""
 "\n"
 "全部時間：%s, "
 
-#: src/progress.c:98
+#: src/progress.c:99
 #, c-format
 msgid "Ave. Rate: %6.1fMB/min, "
 msgstr "平均速率：%6.1fMB/min, "
 
-#: src/progress.c:99
+#: src/progress.c:100
 #, c-format
 msgid "100.00%% completed!\n"
 msgstr "100.00%% 已經完成！\n"
 
-#: src/progress.c:146
+#: src/progress.c:149
+msgid " "
+msgstr ""
+
+#: src/progress.c:150
 #, c-format
 msgid "Elapsed: %s"
 msgstr "經過：%s"
 
-#: src/progress.c:147
+#: src/progress.c:151
 #, c-format
 msgid "Remaining: %s"
 msgstr "剩餘：%s"
 
-#: src/progress.c:148
+#: src/progress.c:152
 #, c-format
 msgid "Rate: %6.2fMB/min"
 msgstr "速率：%6.1fMB/min"
 
-#: src/progress.c:149
-#, c-format
-msgid "Completed:%6.2f%%"
-msgstr "完成：%6.2f%%"
-
-#: src/progress.c:173
+#: src/progress.c:177
 #, c-format
 msgid "Total Time: %s"
 msgstr "全部時間：%s"
 
-#: src/progress.c:174
+#: src/progress.c:178
 msgid "Remaining: 0"
 msgstr "剩餘：0"
 
-#: src/progress.c:175
+#: src/progress.c:179
 #, c-format
 msgid "Ave. Rate: %6.1fMB/min"
 msgstr "平均速率：%6.1fMB/min"
 
-#: src/progress.c:176
+#: src/progress.c:254
 #, c-format
-msgid "100.00%% completed!"
-msgstr "100.00%% 已經完成！"
-
-#: src/progress.c:253
-#, fuzzy, c-format
 msgid ""
 "  Elapsed: %s\n"
 "  Remaining: %s\n"
 "  Completed:%6.2f%%\n"
 "  Rate: %6.2fMB/min, "
-msgstr "經過：%s, 剩餘： %s, 完成：%6.2f%%, 速率：%6.2fMB/min, "
+msgstr ""
+"經過：%s\n"
+" 剩餘： %s\n"
+" 完成：%6.2f%%\n"
+" 速率：%6.2fMB/min"
 
-#: src/progress.c:260
-#, fuzzy, c-format
+#: src/progress.c:261
+#, c-format
 msgid ""
 "  Total Time: %s\n"
 "  Ave. Rate: %6.1fMB/min\n"
 " 100.00%%  completed!\n"
 msgstr ""
-"\n"
-"全部時間: %s, 平均速率: %6.1fMB/min, 100.00%% 已經完成！\n"
+"全部時間: %s\n"
+" 平均速率: %6.1fMB/min\n"
+" 100.00%% 已經完成！\n"
 
-#: src/partclone.c:784
+#: src/partclone.c:803
 #, c-format
 msgid "Partclone v%s (%s) partclone.sourceforge.net, partclone.nchc.org.tw\n"
 msgstr ""
 
-#: src/partclone.c:786
+#: src/partclone.c:805
 #, c-format
 msgid "Starting clone device (%s) to image (%s)\n"
 msgstr "開始備份 裝置 (%s) 到 影像檔 (%s)\n"
 
-#: src/partclone.c:788
+#: src/partclone.c:807
 #, c-format
 msgid "Starting restore image (%s) to device (%s)\n"
 msgstr "開始還原影 像檔 (%s) 到 裝置 (%s)\n"
 
-#: src/partclone.c:790
+#: src/partclone.c:809
 #, c-format
 msgid "Starting back up device(%s) to device(%s)\n"
 msgstr "開始備份 裝置 (%s) 到 裝置 (%s)\n"
 
-#: src/partclone.c:793
+#: src/partclone.c:812
 #, c-format
 msgid "File system: %s\n"
 msgstr "檔案系統: %s\n"
 
-#: src/partclone.c:794
+#: src/partclone.c:813
 #, c-format
 msgid "Device size: %lli MB\n"
 msgstr "裝置大小: %lli MB\n"
 
-#: src/partclone.c:795
+#: src/partclone.c:814
 #, c-format
 msgid "Space in use: %lli MB\n"
 msgstr "裝置使用到空間: %lli MB\n"
 
-#: src/partclone.c:796
+#: src/partclone.c:815
 #, c-format
 msgid "Block size: %i Byte\n"
 msgstr "裝置區塊大小: %i Byte\n"
 
-#: src/partclone.c:797
+#: src/partclone.c:816
 #, c-format
 msgid "Used block count: %lli\n"
 msgstr "裝置使用區塊數量: %lli\n"
 
-#: src/partclone.c:809
+#: src/partclone.c:828
 #, c-format
 msgid "Partclone successfully clone the device (%s) to the image (%s)\n"
 msgstr "備份 裝置 (%s) 到 影像檔 (%s) 完成\n"
 
-#: src/partclone.c:811
+#: src/partclone.c:830
 #, c-format
 msgid "Partclone successfully restore the image (%s) to the device (%s)\n"
 msgstr "還原影 像檔 (%s) 到 裝置 (%s) 完成\n"
 
-#: src/partclone.c:813
+#: src/partclone.c:832
 #, c-format
 msgid "Partclone successfully clone the device (%s) to the device (%s)\n"
 msgstr "備份 裝置 (%s) 到 影像檔 (%s) 完成\n"
+
+#~ msgid "Completed:%6.2f%%"
+#~ msgstr "完成：%6.2f%%"
+
+#~ msgid "100.00%% completed!"
+#~ msgstr "100.00%% 已經完成！"
 
 #~ msgid "%6.2f%% completed, "
 #~ msgstr "%6.2f%% 完成"

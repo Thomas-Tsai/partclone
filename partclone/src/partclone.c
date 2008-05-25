@@ -51,7 +51,7 @@
 
 FILE* msg = NULL;
 #ifdef HAVE_LIBNCURSESW
-    #include <ncursesw/ncurses.h>
+    #include <ncurses.h>
     WINDOW *log_win;
     WINDOW *p_win;
     WINDOW *box_win;
