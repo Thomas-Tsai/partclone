@@ -3,5 +3,5 @@
  * WHETHER THEY ARE BUILT BY OTHERS OR DURING DEVELOPMENT OR FOR THE
  * OFFICIAL PARTCLONE RELEASES.
  */
-const char svn_version[] = "Rev:145M";
+const char svn_version[] = "Rev:148M";
 

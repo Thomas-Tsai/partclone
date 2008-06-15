@@ -297,7 +297,7 @@ extern int open_ncurses(){
     /// init log window
     log_win = subwin(stdscr, log_line, log_row, log_y_pos, log_x_pos);
     wbkgd(log_win, COLOR_PAIR(3));
-    wprintw(log_win, "Calculating bitmap...\n");
+    wprintw(log_win, "Calculating bitmap...\nPlease wait...\n");
 
     // init progress window
     p_win = subwin(stdscr, p_line, p_row, p_y_pos, p_x_pos);
@@ -825,11 +825,11 @@ extern void print_finish_info(cmd_opt opt){
     bindtextdomain(PACKAGE, LOCALEDIR);
     textdomain(PACKAGE);
     if (opt.clone)
-	log_mesg(0, 0, 1, debug, _("Partclone successfully clone the device (%s) to the image (%s)\n"), opt.source, opt.target);	
+	log_mesg(0, 0, 1, debug, _("Partclone successfully cloned the device (%s) to the image (%s)\n"), opt.source, opt.target);	
     else if(opt.restore)
-	log_mesg(0, 0, 1, debug, _("Partclone successfully restore the image (%s) to the device (%s)\n"), opt.source, opt.target);
+	log_mesg(0, 0, 1, debug, _("Partclone successfully restored the image (%s) to the device (%s)\n"), opt.source, opt.target);
     else if(opt.dd)
-	log_mesg(0, 0, 1, debug, _("Partclone successfully clone the device (%s) to the device (%s)\n"), opt.source, opt.target);
+	log_mesg(0, 0, 1, debug, _("Partclone successfully cloned the device (%s) to the device (%s)\n"), opt.source, opt.target);
 	    
 }
 
