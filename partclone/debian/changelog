@@ -1,3 +1,9 @@
+partclone (0.0.8-4) unstable; urgency=low
+    
+    # Enable static linking.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sat, 28 Jun 2008 10:22:00 +0800
+
 partclone (0.0.8-3) unstable; urgency=low
     
     # Some minor updates about messages by Thomas Tsai.
