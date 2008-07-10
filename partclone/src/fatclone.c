@@ -74,7 +74,13 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     fs_open(device);
 
     if (fat_sb.u.fat16.ext_signature == 0x29){
-	FS = FAT_16;
+        if (fat_sb.u.fat16.fat_name[4] == '6'){
+                FS = FAT_16;
+        } else if (fat_sb.u.fat16.fat_name[4] == '2'){
+                FS = FAT_12;
+        } else {
+                FS = FAT_16;
+        }
     } else {
 	FS = FAT_32;
     }
@@ -162,7 +168,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
     FatReservedBytes = fat_sb.sector_size * fat_sb.reserved;
 
     /// skip reserved data and two first FAT entries
-    if (FS == FAT_16)
+    if ((FS == FAT_16) || (FS == FAT_12))
         lseek(ret, FatReservedBytes+(2*2), SEEK_SET);
     else if (FS == FAT_32)
         lseek(ret, FatReservedBytes+(2*4), SEEK_SET);
@@ -192,6 +198,26 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
             }
             log_mesg(2, 0, 0, 2, "status: %x, block: %i, bitmap: %x\n", Fat16_Entry, block, bitmap[block]);
 
+        } else if (FS == FAT_32){ /// FAT12
+            rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
+            if (rd == -1)
+		log_mesg(2, 0, 0, 2, "read Fat12_Entry error\n");
+            if (Fat16_Entry  == 0xFF7) { /// bad FAT12 cluster
+                DamagedClusters++;
+                log_mesg(2, 0, 0, 2, "bad sec %i\n", block);
+                for (j=0; j < fat_sb.cluster_size; j++,block++)
+                    bitmap[block] = 0;
+            } else if (Fat16_Entry == 0x000){ /// free
+                bfree++;
+                for (j=0; j < fat_sb.cluster_size; j++,block++)
+                    bitmap[block] = 0;
+            } else {
+                bused++;
+                for (j=0; j < fat_sb.cluster_size; j++,block++)
+                    bitmap[block] = 1;
+            }
+            log_mesg(2, 0, 0, 2, "status: %x, block: %i, bitmap: %x\n", Fat16_Entry, block, bitmap[block]);
+
         } else if (FS == FAT_32){ /// FAT32
             rd = read(ret, &Fat32_Entry, sizeof(Fat32_Entry));
             if (rd == -1)
@@ -201,7 +227,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
                 log_mesg(2, 0, 0, 2, "bad sec %i\n", block);
                 for (j=0; j < fat_sb.cluster_size; j++,block++)
                     bitmap[block] = 0;
-            } else if (Fat32_Entry == 0x0000){ /// free
+            } else if (Fat32_Entry == 0x00000000){ /// free
                 bfree++;
                 for (j=0; j < fat_sb.cluster_size; j++,block++)
                     bitmap[block] = 0;
