@@ -58,6 +58,7 @@ if ENABLE_HFSP
 	$(LN_S) -f partclone.hfsp $(DESTDIR)$(sbindir)/partclone.hfs+
 endif
 if ENABLE_FAT
+	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.fat12
 	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.fat16
 	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.fat32
 	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.vfat
@@ -70,6 +71,7 @@ if ENABLE_HFSP
 	$(RM) -f $(sbindir)/partclone.hfs+
 endif
 if ENABLE_FAT
+	$(RM) -f $(sbindir)/partclone.fat12
 	$(RM) -f $(sbindir)/partclone.fat16
 	$(RM) -f $(sbindir)/partclone.fat32
 	$(RM) -f $(sbindir)/partclone.vfat
