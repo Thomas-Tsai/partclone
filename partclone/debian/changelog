@@ -1,3 +1,9 @@
+partclone (0.0.8-5) unstable; urgency=low
+    
+    # fat12 was added by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri, 11 Jul 2008 15:03:00 +0800
+
 partclone (0.0.8-4) unstable; urgency=low
     
     # Enable static linking.
