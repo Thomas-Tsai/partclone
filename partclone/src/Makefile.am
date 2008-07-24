@@ -8,7 +8,7 @@ version.c: FORCE
 
 partclone_extfs_SOURCES=main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
 partclone_extfs_CFLAGS=-DEXTFS
-partclone_extfs_LDFLAGS=-lext2fs
+partclone_extfs_LDADD=-lext2fs -lcom_err
 
 partclone_info_SOURCES=infoclone.c partclone.c partclone.h
 
@@ -16,7 +16,7 @@ if ENABLE_REISERFS
 sbin_PROGRAMS += partclone.reiserfs
 partclone_reiserfs_SOURCES=main.c partclone.c progress.c reiserfsclone.c reiserfsclone.h partclone.h progress.h gettext.h
 partclone_reiserfs_CFLAGS=-DREISERFS
-partclone_reiserfs_LDFLAGS=-lreiserfs -ldal
+partclone_reiserfs_LDADD=-lreiserfs -ldal
 endif
 
 if ENABLE_REISER4
@@ -47,7 +47,7 @@ partclone_fat_CFLAGS=-DFAT
 endif
 
 if ENABLE_STATIC
-LDFLAGS+=-static
+LDFLAGS+=-static 
 endif
 
 # Extra

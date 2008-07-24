@@ -40,7 +40,7 @@ sbin_PROGRAMS = partclone.extfs$(EXEEXT) partclone.info$(EXEEXT) \
 @ENABLE_HFSP_TRUE@am__append_3 = partclone.hfsp
 @ENABLE_XFS_TRUE@am__append_4 = partclone.xfs
 @ENABLE_FAT_TRUE@am__append_5 = partclone.fat
-@ENABLE_STATIC_TRUE@am__append_6 = -static
+@ENABLE_STATIC_TRUE@am__append_6 = -static 
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -67,11 +67,9 @@ am_partclone_extfs_OBJECTS = partclone_extfs-main.$(OBJEXT) \
 	partclone_extfs-progress.$(OBJEXT) \
 	partclone_extfs-extfsclone.$(OBJEXT)
 partclone_extfs_OBJECTS = $(am_partclone_extfs_OBJECTS)
-partclone_extfs_LDADD = $(LDADD)
-am__DEPENDENCIES_1 =
-partclone_extfs_DEPENDENCIES = $(am__DEPENDENCIES_1)
+partclone_extfs_DEPENDENCIES =
 partclone_extfs_LINK = $(CCLD) $(partclone_extfs_CFLAGS) $(CFLAGS) \
-	$(partclone_extfs_LDFLAGS) $(LDFLAGS) -o $@
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__partclone_fat_SOURCES_DIST = main.c partclone.c progress.c \
 	fatclone.c fatclone.h partclone.h progress.h gettext.h
 @ENABLE_FAT_TRUE@am_partclone_fat_OBJECTS =  \
@@ -81,6 +79,7 @@ am__partclone_fat_SOURCES_DIST = main.c partclone.c progress.c \
 @ENABLE_FAT_TRUE@	partclone_fat-fatclone.$(OBJEXT)
 partclone_fat_OBJECTS = $(am_partclone_fat_OBJECTS)
 partclone_fat_LDADD = $(LDADD)
+am__DEPENDENCIES_1 =
 partclone_fat_DEPENDENCIES = $(am__DEPENDENCIES_1)
 partclone_fat_LINK = $(CCLD) $(partclone_fat_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
@@ -120,10 +119,9 @@ am__partclone_reiserfs_SOURCES_DIST = main.c partclone.c progress.c \
 @ENABLE_REISERFS_TRUE@	partclone_reiserfs-progress.$(OBJEXT) \
 @ENABLE_REISERFS_TRUE@	partclone_reiserfs-reiserfsclone.$(OBJEXT)
 partclone_reiserfs_OBJECTS = $(am_partclone_reiserfs_OBJECTS)
-partclone_reiserfs_LDADD = $(LDADD)
-partclone_reiserfs_DEPENDENCIES = $(am__DEPENDENCIES_1)
+partclone_reiserfs_DEPENDENCIES =
 partclone_reiserfs_LINK = $(CCLD) $(partclone_reiserfs_CFLAGS) \
-	$(CFLAGS) $(partclone_reiserfs_LDFLAGS) $(LDFLAGS) -o $@
+	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__partclone_xfs_SOURCES_DIST = main.c partclone.c progress.c \
 	xfsclone.c xfsclone.h partclone.h progress.h gettext.h
 @ENABLE_XFS_TRUE@am_partclone_xfs_OBJECTS =  \
@@ -269,11 +267,11 @@ LDADD = $(LIBINTL)
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 partclone_extfs_SOURCES = main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
 partclone_extfs_CFLAGS = -DEXTFS
-partclone_extfs_LDFLAGS = -lext2fs
+partclone_extfs_LDADD = -lext2fs -lcom_err
 partclone_info_SOURCES = infoclone.c partclone.c partclone.h
 @ENABLE_REISERFS_TRUE@partclone_reiserfs_SOURCES = main.c partclone.c progress.c reiserfsclone.c reiserfsclone.h partclone.h progress.h gettext.h
 @ENABLE_REISERFS_TRUE@partclone_reiserfs_CFLAGS = -DREISERFS
-@ENABLE_REISERFS_TRUE@partclone_reiserfs_LDFLAGS = -lreiserfs -ldal
+@ENABLE_REISERFS_TRUE@partclone_reiserfs_LDADD = -lreiserfs -ldal
 @ENABLE_REISER4_TRUE@partclone_reiser4_SOURCES = main.c partclone.c progress.c reiser4clone.c reiser4clone.h partclone.h progress.h gettext.h
 @ENABLE_REISER4_TRUE@partclone_reiser4_CFLAGS = -DREISER4
 @ENABLE_REISER4_TRUE@partclone_reiser4_LDADD = -lreiser4 -laal
