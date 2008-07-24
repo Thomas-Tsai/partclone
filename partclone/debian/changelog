@@ -1,3 +1,9 @@
+partclone (0.0.8-7) unstable; urgency=low
+    
+    # partclone.hfsplus link was added by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 24 Jul 2008 11:53:00 +0800
+
 partclone (0.0.8-6) unstable; urgency=low
     
     # Bug fixed: partclone.fat12 link was not done.
