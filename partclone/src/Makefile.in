@@ -934,6 +934,7 @@ install-exec-hook:
 	$(LN_S) -f partclone.extfs $(DESTDIR)$(sbindir)/partclone.ext2
 	$(LN_S) -f partclone.extfs $(DESTDIR)$(sbindir)/partclone.ext3
 @ENABLE_HFSP_TRUE@	$(LN_S) -f partclone.hfsp $(DESTDIR)$(sbindir)/partclone.hfs+
+@ENABLE_HFSP_TRUE@	$(LN_S) -f partclone.hfsp $(DESTDIR)$(sbindir)/partclone.hfsplus
 @ENABLE_FAT_TRUE@	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.fat12
 @ENABLE_FAT_TRUE@	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.fat16
 @ENABLE_FAT_TRUE@	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.fat32
@@ -943,6 +944,7 @@ uninstall-local:
 	$(RM) -f $(sbindir)/partclone.ext3
 	$(RM) -f $(sbindir)/partclone.ext2
 @ENABLE_HFSP_TRUE@	$(RM) -f $(sbindir)/partclone.hfs+
+@ENABLE_HFSP_TRUE@	$(RM) -f $(sbindir)/partclone.hfsplus
 @ENABLE_FAT_TRUE@	$(RM) -f $(sbindir)/partclone.fat12
 @ENABLE_FAT_TRUE@	$(RM) -f $(sbindir)/partclone.fat16
 @ENABLE_FAT_TRUE@	$(RM) -f $(sbindir)/partclone.fat32
