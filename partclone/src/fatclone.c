@@ -28,6 +28,7 @@ struct FatBootSector fat_sb;
 struct FatFsInfo fatfs_info;
 int ret;
 int FS;
+char *fat_type = "FATXX";
 char *EXECNAME = "clone.fat";
 
 /// open device
@@ -78,11 +79,17 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
                 FS = FAT_16;
         } else if (fat_sb.u.fat16.fat_name[4] == '2'){
                 FS = FAT_12;
+		fat_type = "FAT12";
+                log_mesg(2, 0, 0, 2, "FAT Type : FAT 12\n");
         } else {
                 FS = FAT_16;
+		fat_type = "FAT16";
+                log_mesg(2, 0, 0, 2, "FAT Type : FAT 16\n");
         }
     } else {
 	FS = FAT_32;
+	fat_type = "FAT32";
+        log_mesg(2, 0, 0, 2, "FAT Type : FAT 32\n");
     }
 
     if (fat_sb.sectors != 0)
@@ -104,7 +111,8 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     bused = get_used_block();
 
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    memcpy(image_hdr->fs, fat_MAGIC, FS_MAGIC_SIZE);
+    //memcpy(image_hdr->fs, fat_MAGIC, FS_MAGIC_SIZE);
+    memcpy(image_hdr->fs, fat_type, FS_MAGIC_SIZE);
     image_hdr->block_size  = (int)fat_sb.sector_size;
     image_hdr->totalblock  = (unsigned long long)total_sector;
     image_hdr->device_size = (unsigned long long)(total_sector * image_hdr->block_size);
@@ -118,7 +126,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     log_mesg(2, 0, 0, 2, "initial_image down\n");
 }
 
-/// readbitmap - cread and heck bitmap, reference dumpe2fs
+/// readbitmap - read and check bitmap
 extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
 {
     int i = 0, j = 0;
@@ -198,7 +206,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
             }
             log_mesg(2, 0, 0, 2, "status: %x, block: %i, bitmap: %x\n", Fat16_Entry, block, bitmap[block]);
 
-        } else if (FS == FAT_32){ /// FAT12
+        } else if (FS == FAT_12){ /// FAT12
             rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
             if (rd == -1)
 		log_mesg(2, 0, 0, 2, "read Fat12_Entry error\n");
