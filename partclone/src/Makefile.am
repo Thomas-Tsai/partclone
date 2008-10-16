@@ -46,6 +46,14 @@ partclone_fat_SOURCES=main.c partclone.c progress.c fatclone.c fatclone.h partcl
 partclone_fat_CFLAGS=-DFAT
 endif
 
+if ENABLE_NTFS
+sbin_PROGRAMS += partclone.ntfs
+partclone_ntfs_SOURCES=main.c partclone.c progress.c ntfsclone-ng.c ntfsclone-ng.h partclone.h progress.h gettext.h
+partclone_ntfs_CFLAGS=-DNTFS
+partclone_ntfs_LDADD=-lntfs
+endif
+
+
 if ENABLE_STATIC
 LDFLAGS+=-static 
 endif

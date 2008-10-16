@@ -40,6 +40,9 @@
 /* Define to 1 if you have the `ncursesw' library (-lncursesw). */
 #undef HAVE_LIBNCURSESW
 
+/* Define to 1 if you have the `ntfs' library (-lntfs). */
+#undef HAVE_LIBNTFS
+
 /* Define to 1 if you have the `reiserfs' library (-lreiserfs). */
 #undef HAVE_LIBREISERFS
 
@@ -54,6 +57,9 @@
 
 /* Define to 1 if you have the <ncurses.h> header file. */
 #undef HAVE_NCURSES_H
+
+/* Define to 1 if you have the <ntfs/version.h> header file. */
+#undef HAVE_NTFS_VERSION_H
 
 /* Define to 1 if you have the <reiser4/libreiser4.h> header file. */
 #undef HAVE_REISER4_LIBREISER4_H

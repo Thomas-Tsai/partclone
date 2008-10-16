@@ -35,6 +35,7 @@ enable_reiserfs="yes"
 enable_reiser4="yes"
 enable_hfsp="yes"
 enable_fat="yes"
+enable_ntfs="yes"
 fi
 
 ##XFS##
@@ -129,6 +130,27 @@ AM_CONDITIONAL(ENABLE_FAT, test "$enable_fat" = yes)
 if test "$enable_fat" = yes; then
 supported_fs=$supported_fs" FAT"
 fi
+
+##NTFS##
+AC_ARG_ENABLE(test,
+	AS_HELP_STRING(--enable-ntfs,enable NTFS file system), 
+	enable_ntfs=yes,
+)
+AM_CONDITIONAL(ENABLE_NTFS, test "$enable_ntfs" = yes)
+
+if test "$enable_ntfs" = "yes"; then
+#check library of some filesystems
+
+dnl Check for NTFS 
+AC_CHECKING([ for NTFS Library and Header files ... ])
+AC_CHECK_HEADERS([ntfs/version.h], ,
+   AC_MSG_ERROR([*** NTFS header not found])
+AC_CHECK_LIB([ntfs], [ntfs_mount], ,
+        AC_MSG_ERROR([*** ntfs depend library (libntfs) not found]))
+)
+supported_fs=$supported_fs" ntfs"
+fi
+
 
 ##libncursesw##
 AC_ARG_ENABLE(test,

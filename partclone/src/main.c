@@ -59,6 +59,9 @@
 #elif FAT
     #include "fatclone.h"
     #define FS "FAT"
+#elif NTFS
+    #include "ntfsclone-ng.h"
+    #define FS "NTFS"
 #endif
 
 /// global variable

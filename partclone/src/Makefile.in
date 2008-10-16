@@ -34,13 +34,14 @@ build_triplet = @build@
 host_triplet = @host@
 sbin_PROGRAMS = partclone.extfs$(EXEEXT) partclone.info$(EXEEXT) \
 	$(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
-	$(am__EXEEXT_4) $(am__EXEEXT_5)
+	$(am__EXEEXT_4) $(am__EXEEXT_5) $(am__EXEEXT_6)
 @ENABLE_REISERFS_TRUE@am__append_1 = partclone.reiserfs
 @ENABLE_REISER4_TRUE@am__append_2 = partclone.reiser4
 @ENABLE_HFSP_TRUE@am__append_3 = partclone.hfsp
 @ENABLE_XFS_TRUE@am__append_4 = partclone.xfs
 @ENABLE_FAT_TRUE@am__append_5 = partclone.fat
-@ENABLE_STATIC_TRUE@am__append_6 = -static 
+@ENABLE_NTFS_TRUE@am__append_6 = partclone.ntfs
+@ENABLE_STATIC_TRUE@am__append_7 = -static 
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -59,6 +60,7 @@ CONFIG_CLEAN_FILES =
 @ENABLE_HFSP_TRUE@am__EXEEXT_3 = partclone.hfsp$(EXEEXT)
 @ENABLE_XFS_TRUE@am__EXEEXT_4 = partclone.xfs$(EXEEXT)
 @ENABLE_FAT_TRUE@am__EXEEXT_5 = partclone.fat$(EXEEXT)
+@ENABLE_NTFS_TRUE@am__EXEEXT_6 = partclone.ntfs$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)"
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(sbin_PROGRAMS)
@@ -99,6 +101,17 @@ am_partclone_info_OBJECTS = infoclone.$(OBJEXT) partclone.$(OBJEXT)
 partclone_info_OBJECTS = $(am_partclone_info_OBJECTS)
 partclone_info_LDADD = $(LDADD)
 partclone_info_DEPENDENCIES = $(am__DEPENDENCIES_1)
+am__partclone_ntfs_SOURCES_DIST = main.c partclone.c progress.c \
+	ntfsclone-ng.c ntfsclone-ng.h partclone.h progress.h gettext.h
+@ENABLE_NTFS_TRUE@am_partclone_ntfs_OBJECTS =  \
+@ENABLE_NTFS_TRUE@	partclone_ntfs-main.$(OBJEXT) \
+@ENABLE_NTFS_TRUE@	partclone_ntfs-partclone.$(OBJEXT) \
+@ENABLE_NTFS_TRUE@	partclone_ntfs-progress.$(OBJEXT) \
+@ENABLE_NTFS_TRUE@	partclone_ntfs-ntfsclone-ng.$(OBJEXT)
+partclone_ntfs_OBJECTS = $(am_partclone_ntfs_OBJECTS)
+partclone_ntfs_DEPENDENCIES =
+partclone_ntfs_LINK = $(CCLD) $(partclone_ntfs_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__partclone_reiser4_SOURCES_DIST = main.c partclone.c progress.c \
 	reiser4clone.c reiser4clone.h partclone.h progress.h gettext.h
 @ENABLE_REISER4_TRUE@am_partclone_reiser4_OBJECTS =  \
@@ -142,11 +155,12 @@ CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(partclone_extfs_SOURCES) $(partclone_fat_SOURCES) \
 	$(partclone_hfsp_SOURCES) $(partclone_info_SOURCES) \
-	$(partclone_reiser4_SOURCES) $(partclone_reiserfs_SOURCES) \
-	$(partclone_xfs_SOURCES)
+	$(partclone_ntfs_SOURCES) $(partclone_reiser4_SOURCES) \
+	$(partclone_reiserfs_SOURCES) $(partclone_xfs_SOURCES)
 DIST_SOURCES = $(partclone_extfs_SOURCES) \
 	$(am__partclone_fat_SOURCES_DIST) \
 	$(am__partclone_hfsp_SOURCES_DIST) $(partclone_info_SOURCES) \
+	$(am__partclone_ntfs_SOURCES_DIST) \
 	$(am__partclone_reiser4_SOURCES_DIST) \
 	$(am__partclone_reiserfs_SOURCES_DIST) \
 	$(am__partclone_xfs_SOURCES_DIST)
@@ -182,7 +196,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTLLIBS = @INTLLIBS@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
-LDFLAGS = @LDFLAGS@ $(am__append_6)
+LDFLAGS = @LDFLAGS@ $(am__append_7)
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBOBJS = @LIBOBJS@
@@ -283,6 +297,9 @@ partclone_info_SOURCES = infoclone.c partclone.c partclone.h
 @ENABLE_XFS_TRUE@partclone_xfs_LDADD = -lxfs -lrt -lpthread
 @ENABLE_FAT_TRUE@partclone_fat_SOURCES = main.c partclone.c progress.c fatclone.c fatclone.h partclone.h progress.h gettext.h
 @ENABLE_FAT_TRUE@partclone_fat_CFLAGS = -DFAT
+@ENABLE_NTFS_TRUE@partclone_ntfs_SOURCES = main.c partclone.c progress.c ntfsclone-ng.c ntfsclone-ng.h partclone.h progress.h gettext.h
+@ENABLE_NTFS_TRUE@partclone_ntfs_CFLAGS = -DNTFS
+@ENABLE_NTFS_TRUE@partclone_ntfs_LDADD = -lntfs
 all: all-am
 
 .SUFFIXES:
@@ -351,6 +368,9 @@ partclone.hfsp$(EXEEXT): $(partclone_hfsp_OBJECTS) $(partclone_hfsp_DEPENDENCIES
 partclone.info$(EXEEXT): $(partclone_info_OBJECTS) $(partclone_info_DEPENDENCIES) 
 	@rm -f partclone.info$(EXEEXT)
 	$(LINK) $(partclone_info_OBJECTS) $(partclone_info_LDADD) $(LIBS)
+partclone.ntfs$(EXEEXT): $(partclone_ntfs_OBJECTS) $(partclone_ntfs_DEPENDENCIES) 
+	@rm -f partclone.ntfs$(EXEEXT)
+	$(partclone_ntfs_LINK) $(partclone_ntfs_OBJECTS) $(partclone_ntfs_LDADD) $(LIBS)
 partclone.reiser4$(EXEEXT): $(partclone_reiser4_OBJECTS) $(partclone_reiser4_DEPENDENCIES) 
 	@rm -f partclone.reiser4$(EXEEXT)
 	$(partclone_reiser4_LINK) $(partclone_reiser4_OBJECTS) $(partclone_reiser4_LDADD) $(LIBS)
@@ -381,6 +401,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ntfs-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ntfs-ntfsclone-ng.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ntfs-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ntfs-progress.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_reiser4-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_reiser4-partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_reiser4-progress.Po@am__quote@
@@ -575,6 +599,62 @@ partclone_hfsp-hfsplusclone.obj: hfsplusclone.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='hfsplusclone.c' object='partclone_hfsp-hfsplusclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -c -o partclone_hfsp-hfsplusclone.obj `if test -f 'hfsplusclone.c'; then $(CYGPATH_W) 'hfsplusclone.c'; else $(CYGPATH_W) '$(srcdir)/hfsplusclone.c'; fi`
+
+partclone_ntfs-main.o: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -MT partclone_ntfs-main.o -MD -MP -MF $(DEPDIR)/partclone_ntfs-main.Tpo -c -o partclone_ntfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ntfs-main.Tpo $(DEPDIR)/partclone_ntfs-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_ntfs-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -c -o partclone_ntfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+
+partclone_ntfs-main.obj: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -MT partclone_ntfs-main.obj -MD -MP -MF $(DEPDIR)/partclone_ntfs-main.Tpo -c -o partclone_ntfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ntfs-main.Tpo $(DEPDIR)/partclone_ntfs-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_ntfs-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -c -o partclone_ntfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+
+partclone_ntfs-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -MT partclone_ntfs-partclone.o -MD -MP -MF $(DEPDIR)/partclone_ntfs-partclone.Tpo -c -o partclone_ntfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ntfs-partclone.Tpo $(DEPDIR)/partclone_ntfs-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_ntfs-partclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -c -o partclone_ntfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+
+partclone_ntfs-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -MT partclone_ntfs-partclone.obj -MD -MP -MF $(DEPDIR)/partclone_ntfs-partclone.Tpo -c -o partclone_ntfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ntfs-partclone.Tpo $(DEPDIR)/partclone_ntfs-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_ntfs-partclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -c -o partclone_ntfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+
+partclone_ntfs-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -MT partclone_ntfs-progress.o -MD -MP -MF $(DEPDIR)/partclone_ntfs-progress.Tpo -c -o partclone_ntfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ntfs-progress.Tpo $(DEPDIR)/partclone_ntfs-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_ntfs-progress.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -c -o partclone_ntfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+
+partclone_ntfs-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -MT partclone_ntfs-progress.obj -MD -MP -MF $(DEPDIR)/partclone_ntfs-progress.Tpo -c -o partclone_ntfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ntfs-progress.Tpo $(DEPDIR)/partclone_ntfs-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_ntfs-progress.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -c -o partclone_ntfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+
+partclone_ntfs-ntfsclone-ng.o: ntfsclone-ng.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -MT partclone_ntfs-ntfsclone-ng.o -MD -MP -MF $(DEPDIR)/partclone_ntfs-ntfsclone-ng.Tpo -c -o partclone_ntfs-ntfsclone-ng.o `test -f 'ntfsclone-ng.c' || echo '$(srcdir)/'`ntfsclone-ng.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ntfs-ntfsclone-ng.Tpo $(DEPDIR)/partclone_ntfs-ntfsclone-ng.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ntfsclone-ng.c' object='partclone_ntfs-ntfsclone-ng.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -c -o partclone_ntfs-ntfsclone-ng.o `test -f 'ntfsclone-ng.c' || echo '$(srcdir)/'`ntfsclone-ng.c
+
+partclone_ntfs-ntfsclone-ng.obj: ntfsclone-ng.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -MT partclone_ntfs-ntfsclone-ng.obj -MD -MP -MF $(DEPDIR)/partclone_ntfs-ntfsclone-ng.Tpo -c -o partclone_ntfs-ntfsclone-ng.obj `if test -f 'ntfsclone-ng.c'; then $(CYGPATH_W) 'ntfsclone-ng.c'; else $(CYGPATH_W) '$(srcdir)/ntfsclone-ng.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ntfs-ntfsclone-ng.Tpo $(DEPDIR)/partclone_ntfs-ntfsclone-ng.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ntfsclone-ng.c' object='partclone_ntfs-ntfsclone-ng.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -c -o partclone_ntfs-ntfsclone-ng.obj `if test -f 'ntfsclone-ng.c'; then $(CYGPATH_W) 'ntfsclone-ng.c'; else $(CYGPATH_W) '$(srcdir)/ntfsclone-ng.c'; fi`
 
 partclone_reiser4-main.o: main.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_reiser4_CFLAGS) $(CFLAGS) -MT partclone_reiser4-main.o -MD -MP -MF $(DEPDIR)/partclone_reiser4-main.Tpo -c -o partclone_reiser4-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
