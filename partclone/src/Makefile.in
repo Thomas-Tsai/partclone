@@ -40,7 +40,7 @@ sbin_PROGRAMS = partclone.extfs$(EXEEXT) partclone.info$(EXEEXT) \
 @ENABLE_HFSP_TRUE@am__append_3 = partclone.hfsp
 @ENABLE_XFS_TRUE@am__append_4 = partclone.xfs
 @ENABLE_FAT_TRUE@am__append_5 = partclone.fat
-@ENABLE_NTFS_TRUE@am__append_6 = partclone.ntfs
+@ENABLE_NTFS_TRUE@am__append_6 = partclone.ntfs partclone.ntfsreloc
 @ENABLE_STATIC_TRUE@am__append_7 = -static 
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -60,7 +60,8 @@ CONFIG_CLEAN_FILES =
 @ENABLE_HFSP_TRUE@am__EXEEXT_3 = partclone.hfsp$(EXEEXT)
 @ENABLE_XFS_TRUE@am__EXEEXT_4 = partclone.xfs$(EXEEXT)
 @ENABLE_FAT_TRUE@am__EXEEXT_5 = partclone.fat$(EXEEXT)
-@ENABLE_NTFS_TRUE@am__EXEEXT_6 = partclone.ntfs$(EXEEXT)
+@ENABLE_NTFS_TRUE@am__EXEEXT_6 = partclone.ntfs$(EXEEXT) \
+@ENABLE_NTFS_TRUE@	partclone.ntfsreloc$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)"
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(sbin_PROGRAMS)
@@ -112,6 +113,12 @@ partclone_ntfs_OBJECTS = $(am_partclone_ntfs_OBJECTS)
 partclone_ntfs_DEPENDENCIES =
 partclone_ntfs_LINK = $(CCLD) $(partclone_ntfs_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__partclone_ntfsreloc_SOURCES_DIST = ntfsreloc.c
+@ENABLE_NTFS_TRUE@am_partclone_ntfsreloc_OBJECTS =  \
+@ENABLE_NTFS_TRUE@	ntfsreloc.$(OBJEXT)
+partclone_ntfsreloc_OBJECTS = $(am_partclone_ntfsreloc_OBJECTS)
+partclone_ntfsreloc_LDADD = $(LDADD)
+partclone_ntfsreloc_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__partclone_reiser4_SOURCES_DIST = main.c partclone.c progress.c \
 	reiser4clone.c reiser4clone.h partclone.h progress.h gettext.h
 @ENABLE_REISER4_TRUE@am_partclone_reiser4_OBJECTS =  \
@@ -155,12 +162,14 @@ CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(partclone_extfs_SOURCES) $(partclone_fat_SOURCES) \
 	$(partclone_hfsp_SOURCES) $(partclone_info_SOURCES) \
-	$(partclone_ntfs_SOURCES) $(partclone_reiser4_SOURCES) \
-	$(partclone_reiserfs_SOURCES) $(partclone_xfs_SOURCES)
+	$(partclone_ntfs_SOURCES) $(partclone_ntfsreloc_SOURCES) \
+	$(partclone_reiser4_SOURCES) $(partclone_reiserfs_SOURCES) \
+	$(partclone_xfs_SOURCES)
 DIST_SOURCES = $(partclone_extfs_SOURCES) \
 	$(am__partclone_fat_SOURCES_DIST) \
 	$(am__partclone_hfsp_SOURCES_DIST) $(partclone_info_SOURCES) \
 	$(am__partclone_ntfs_SOURCES_DIST) \
+	$(am__partclone_ntfsreloc_SOURCES_DIST) \
 	$(am__partclone_reiser4_SOURCES_DIST) \
 	$(am__partclone_reiserfs_SOURCES_DIST) \
 	$(am__partclone_xfs_SOURCES_DIST)
@@ -300,6 +309,7 @@ partclone_info_SOURCES = infoclone.c partclone.c partclone.h
 @ENABLE_NTFS_TRUE@partclone_ntfs_SOURCES = main.c partclone.c progress.c ntfsclone-ng.c ntfsclone-ng.h partclone.h progress.h gettext.h
 @ENABLE_NTFS_TRUE@partclone_ntfs_CFLAGS = -DNTFS
 @ENABLE_NTFS_TRUE@partclone_ntfs_LDADD = -lntfs
+@ENABLE_NTFS_TRUE@partclone_ntfsreloc_SOURCES = ntfsreloc.c
 all: all-am
 
 .SUFFIXES:
@@ -371,6 +381,9 @@ partclone.info$(EXEEXT): $(partclone_info_OBJECTS) $(partclone_info_DEPENDENCIES
 partclone.ntfs$(EXEEXT): $(partclone_ntfs_OBJECTS) $(partclone_ntfs_DEPENDENCIES) 
 	@rm -f partclone.ntfs$(EXEEXT)
 	$(partclone_ntfs_LINK) $(partclone_ntfs_OBJECTS) $(partclone_ntfs_LDADD) $(LIBS)
+partclone.ntfsreloc$(EXEEXT): $(partclone_ntfsreloc_OBJECTS) $(partclone_ntfsreloc_DEPENDENCIES) 
+	@rm -f partclone.ntfsreloc$(EXEEXT)
+	$(LINK) $(partclone_ntfsreloc_OBJECTS) $(partclone_ntfsreloc_LDADD) $(LIBS)
 partclone.reiser4$(EXEEXT): $(partclone_reiser4_OBJECTS) $(partclone_reiser4_DEPENDENCIES) 
 	@rm -f partclone.reiser4$(EXEEXT)
 	$(partclone_reiser4_LINK) $(partclone_reiser4_OBJECTS) $(partclone_reiser4_LDADD) $(LIBS)
@@ -388,6 +401,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/infoclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ntfsreloc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-extfsclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-main.Po@am__quote@
