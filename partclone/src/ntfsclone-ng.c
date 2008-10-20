@@ -152,7 +152,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     memcpy(image_hdr->fs, ntfs_MAGIC, FS_MAGIC_SIZE);
     image_hdr->block_size  = ntfs->cluster_size;
     image_hdr->totalblock  = ntfs->nr_clusters;
-    image_hdr->usedblocks  = ntfs->nr_free_clusters;
+    image_hdr->usedblocks  = (ntfs->nr_clusters - ntfs->nr_free_clusters - 1);
     image_hdr->device_size = ntfs_device_size_get(ntfs->dev, 1);
     fs_close();
 }

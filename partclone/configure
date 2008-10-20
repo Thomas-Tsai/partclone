@@ -8618,8 +8618,8 @@ if test `eval echo '${'$as_ac_Header'}'` = yes; then
 _ACEOF
 
 else
-  { { echo "$as_me:$LINENO: error: *** NTFS header not found" >&5
-echo "$as_me: error: *** NTFS header not found" >&2;}
+  { { echo "$as_me:$LINENO: error: *** NTFS(ntfsprog) header not found" >&5
+echo "$as_me: error: *** NTFS(ntfsprog) header not found" >&2;}
    { (exit 1); exit 1; }; }
 
 { echo "$as_me:$LINENO: checking for ntfs_mount in -lntfs" >&5

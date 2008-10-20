@@ -144,7 +144,7 @@ if test "$enable_ntfs" = "yes"; then
 dnl Check for NTFS 
 AC_CHECKING([ for NTFS Library and Header files ... ])
 AC_CHECK_HEADERS([ntfs/version.h], ,
-   AC_MSG_ERROR([*** NTFS header not found])
+   AC_MSG_ERROR([*** NTFS(ntfsprog) header not found])
 AC_CHECK_LIB([ntfs], [ntfs_mount], ,
         AC_MSG_ERROR([*** ntfs depend library (libntfs) not found]))
 )
