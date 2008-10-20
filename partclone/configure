@@ -8701,6 +8701,29 @@ fi
 
 done
 
+{ echo "$as_me:$LINENO: checking version of libntfs" >&5
+echo $ECHO_N "checking version of libntfs... $ECHO_C" >&6; }
+ntfs_version=`$srcdir/get_ntfs_version | cut -d':' -f1`
+ntfs_version_major=`$srcdir/get_ntfs_version | cut -d':' -f2`
+ntfs_version_minor=`$srcdir/get_ntfs_version | cut -d':' -f3`
+if test -z "$ntfs_version"; then
+        ntfs_version="?"
+	ntfs_version_major="?"
+	ntfs_version_minor="?"
+fi
+
+if test $ntfs_version -lt 10 ; then
+ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; bad"
+{ echo "$as_me:$LINENO: result: $ntfs_version" >&5
+echo "${ECHO_T}$ntfs_version" >&6; }
+{ { echo "$as_me:$LINENO: error: Please upgrade your libntfs to 10:0:0 or newer version!" >&5
+echo "$as_me: error: Please upgrade your libntfs to 10:0:0 or newer version!" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; ok!"
+{ echo "$as_me:$LINENO: result: $ntfs_version" >&5
+echo "${ECHO_T}$ntfs_version" >&6; }
+
 supported_fs=$supported_fs" ntfs"
 fi
 

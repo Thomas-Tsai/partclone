@@ -148,6 +148,24 @@ AC_CHECK_HEADERS([ntfs/version.h], ,
 AC_CHECK_LIB([ntfs], [ntfs_mount], ,
         AC_MSG_ERROR([*** ntfs depend library (libntfs) not found]))
 )
+AC_MSG_CHECKING(version of libntfs)
+ntfs_version=`$srcdir/get_ntfs_version | cut -d':' -f1`
+ntfs_version_major=`$srcdir/get_ntfs_version | cut -d':' -f2`
+ntfs_version_minor=`$srcdir/get_ntfs_version | cut -d':' -f3`
+if test -z "$ntfs_version"; then
+        ntfs_version="?"
+	ntfs_version_major="?"
+	ntfs_version_minor="?"
+fi
+
+if test $ntfs_version -lt 10 ; then
+ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; bad"
+AC_MSG_RESULT($ntfs_version)
+AC_MSG_ERROR(Please upgrade your libntfs to 10:0:0 or newer version!)
+fi
+ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; ok!"
+AC_MSG_RESULT($ntfs_version)
+
 supported_fs=$supported_fs" ntfs"
 fi
 
