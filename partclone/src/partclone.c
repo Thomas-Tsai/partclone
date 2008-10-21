@@ -11,7 +11,6 @@
  * (at your option) any later version.
  */
 
-//##define _FILE_OFFSET_BITS 64
 #include <config.h>
 #define _LARGEFILE64_SOURCE
 #include <features.h>
@@ -389,14 +388,15 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
 	}
     } else {
 	/// write log to stderr if log_stderr is true
-	if((log_stderr) && (log_level <= debug)){
-	    vfprintf(stderr, fmt, args);
+	if((log_stderr == 1) && (log_level <= debug)){
+	    vsprintf(tmp_str, fmt, args);
+	    fprintf(stderr, "%s", tmp_str);
 	}
     }
 
     /// write log to logfile if debug is true
     if(log_level <= debug){
-	vfprintf(msg, fmt, args);
+	fprintf(msg, "%s", tmp_str);
 	//if (errno != 0)
 	//    fprintf(msg, "%s(%i), ", strerror(errno), errno);
     }

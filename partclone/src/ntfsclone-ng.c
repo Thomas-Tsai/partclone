@@ -101,7 +101,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
 {
     unsigned char	ntfs_bitmap[NTFS_BUF_SIZE];
     unsigned long long	current_block, used_block, free_block, count, pos;
-    unsigned long	bitmap_size;
+    unsigned long	bitmap_size = (ntfs->nr_clusters + 7) / 8;
     int			i;
 
     fs_open(device);
