@@ -65,6 +65,7 @@ struct cmd_opt
 	int check;
 	int ncurses;
 	int dialog;
+	int force;
 };
 typedef struct cmd_opt cmd_opt;
 extern void usage(void);

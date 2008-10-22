@@ -99,47 +99,38 @@ static void fs_close(){
 ///  readbitmap - read bitmap
 extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
 {
-    unsigned char	ntfs_bitmap[NTFS_BUF_SIZE];
+    unsigned char	*ntfs_bitmap;
     unsigned long long	current_block, used_block, free_block, count, pos;
     unsigned long	bitmap_size = (ntfs->nr_clusters + 7) / 8;
     int			i;
 
     fs_open(device);
+    ntfs_bitmap = (char*)malloc(bitmap_size);
 
-    if (bitmap == NULL) {
+    if ((bitmap == NULL) || (ntfs_bitmap == NULL)) {
 	log_mesg(0, 1, 1, debug, "bitmap alloc error\n");
     }
 
     pos = 0;
     used_block = 0;
     free_block = 0;
-    while (1) {
-	count = ntfs_attr_pread(ntfs->lcnbmp_na, pos, NTFS_BUF_SIZE, ntfs_bitmap);
-	if (count == -1)
-	    log_mesg(0, 1, 1, debug, "Couldn't get $Bitmap $DATA");
-	if (count == 0) {
-	    if(bitmap_size > pos)
-		log_mesg(0, 1, 1, debug, "Bitmap size is smaller than expected (%lld != %lld)\n", bitmap_size, pos);
-	    break;
+    count = ntfs_attr_pread(ntfs->lcnbmp_na, pos, bitmap_size, ntfs_bitmap);
+    for (current_block = 0; current_block <= ntfs->nr_clusters; current_block++)
+    {
+	char bit;
+	bit = ntfs_bit_get(ntfs_bitmap, current_block);
+	if (bit){
+	    bitmap[current_block] = 1;
+	    used_block++;
+	} else {
+	    bitmap[current_block] = 0;
+           free_block++;
 	}
-	for (i = 0; i < count; i++, pos++) {
-	    if (bitmap_size <= pos)
-		break;
-	    for (current_block = pos * 8; current_block < (pos + 1) * 8; current_block++){
-		if (ntfs_bit_get(ntfs_bitmap, current_block)){
-		    bitmap[current_block] = 1;
-		    used_block++;
-		} else {
-		    bitmap[current_block] = 0;
-		    free_block++;
-		}
-	    }
-	}
-    }
+}
 
     log_mesg(3, 0, 0, debug, "\nUsed Block\t: %lld\n", used_block);
     log_mesg(3, 0, 0, debug, "Free Block\t: %lld\n", free_block);
-
+    free(ntfs_bitmap);
     fs_close();
 
 }
@@ -150,10 +141,10 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     fs_open(device);
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
     memcpy(image_hdr->fs, ntfs_MAGIC, FS_MAGIC_SIZE);
-    image_hdr->block_size  = ntfs->cluster_size;
-    image_hdr->totalblock  = ntfs->nr_clusters;
-    image_hdr->usedblocks  = (ntfs->nr_clusters - ntfs->nr_free_clusters - 1);
-    image_hdr->device_size = ntfs_device_size_get(ntfs->dev, 1);
+    image_hdr->block_size  = (int)ntfs->cluster_size;
+    image_hdr->totalblock  = (unsigned long long)ntfs->nr_clusters;
+    image_hdr->usedblocks  = (unsigned long long)(ntfs->nr_clusters - ntfs->nr_free_clusters - 1);
+    image_hdr->device_size = (unsigned long long)ntfs_device_size_get(ntfs->dev, 1);
     fs_close();
 }
 

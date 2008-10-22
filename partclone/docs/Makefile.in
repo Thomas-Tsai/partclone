@@ -34,7 +34,8 @@ host_triplet = @host@
 subdir = docs
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/partclone.extfs.8.in $(srcdir)/partclone.fat.8.in \
-	$(srcdir)/partclone.hfsp.8.in $(srcdir)/partclone.reiser4.8.in \
+	$(srcdir)/partclone.hfsp.8.in $(srcdir)/partclone.ntfs.8.in \
+	$(srcdir)/partclone.reiser4.8.in \
 	$(srcdir)/partclone.reiserfs.8.in $(srcdir)/partclone.xfs.8.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
@@ -47,8 +48,8 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES = partclone.extfs.8 partclone.hfsp.8 \
-	partclone.fat.8 partclone.reiserfs.8 partclone.reiser4.8 \
-	partclone.xfs.8
+	partclone.fat.8 partclone.ntfs.8 partclone.reiserfs.8 \
+	partclone.reiser4.8 partclone.xfs.8
 SOURCES =
 DIST_SOURCES =
 man8dir = $(mandir)/man8
@@ -165,7 +166,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-man_MANS = partclone.extfs.8 partclone.reiserfs.8 partclone.reiser4.8 partclone.xfs.8 partclone.hfsp.8 partclone.fat.8
+man_MANS = partclone.extfs.8 partclone.reiserfs.8 partclone.reiser4.8 partclone.xfs.8 partclone.hfsp.8 partclone.fat.8 partclone.ntfs.8
 all: all-am
 
 .SUFFIXES:
@@ -203,6 +204,8 @@ partclone.extfs.8: $(top_builddir)/config.status $(srcdir)/partclone.extfs.8.in
 partclone.hfsp.8: $(top_builddir)/config.status $(srcdir)/partclone.hfsp.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 partclone.fat.8: $(top_builddir)/config.status $(srcdir)/partclone.fat.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.ntfs.8: $(top_builddir)/config.status $(srcdir)/partclone.ntfs.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 partclone.reiserfs.8: $(top_builddir)/config.status $(srcdir)/partclone.reiserfs.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@

@@ -81,6 +81,7 @@ extern void usage(void)
         "    -N,  --ncurses          Using Ncurses User Interface\n"
 #endif
         "    -X,  --dialog           output message as Dialog Format\n"
+        "    -F,  --force            force progress\n"
         "    -h,  --help             Display this help\n"
     , EXECNAME, VERSION, svn_version, EXECNAME);
     exit(0);
@@ -88,7 +89,7 @@ extern void usage(void)
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hd::cbro:O:s:RCXN";
+    static const char *sopt = "-hd::cbro:O:s:RCXFN";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "output",		required_argument,  NULL,   'o' },
@@ -101,6 +102,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "rescue",		no_argument,	    NULL,   'R' },
         { "check",		no_argument,	    NULL,   'C' },
         { "dialog",		no_argument,	    NULL,   'X' },
+        { "force",		no_argument,	    NULL,   'F' },
 #ifdef HAVE_LIBNCURSESW
         { "ncurses",		no_argument,	    NULL,   'N' },
 #endif
@@ -148,6 +150,9 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 		    else
 			opt->debug = 1;
                     break;
+	    case 'F':
+		    opt->force++;
+		    break;
 	    case 'R':
 		    opt->rescue++;
 		    break;
@@ -530,8 +535,9 @@ extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* 
     int do_write = 0;
     char* buffer;
     unsigned long long block_id;
-    unsigned long bused = 0, bfree = 0;
+    unsigned long long bused = 0, bfree = 0;
     int debug = opt.debug;
+    int err_exit = 1;
 
     size = sizeof(char)*image_hdr.totalblock;
     buffer = (char*)malloc(size);
@@ -550,8 +556,13 @@ extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* 
             bfree++;
 	}
     }
-    if(image_hdr.usedblocks != bused)
-        log_mesg(0, 1, 1, debug, "bitmap [used %li, and free %li] and image_head used %i is different\n", bused, bfree, image_hdr.usedblocks);
+    if(image_hdr.usedblocks != bused){
+        if (opt.force)
+            err_exit = 0;
+        else
+            err_exit = 1;
+        log_mesg(0, err_exit, 1, debug, "The Used Block count is different.(bitmap %lli != image_head %lli)\nTry to use --force to skip the metadata error.\n", bused, image_hdr.usedblocks);
+    }
     
 }
 

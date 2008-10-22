@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.0.8], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.0.9], [thomas@nchc.org.tw])
 #AC_CONFIG_AUX_DIR([build-aux])
 #AC CONFIG SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -128,7 +128,7 @@ AC_ARG_ENABLE(test,
 AM_CONDITIONAL(ENABLE_FAT, test "$enable_fat" = yes)
 
 if test "$enable_fat" = yes; then
-supported_fs=$supported_fs" FAT"
+supported_fs=$supported_fs" fat"
 fi
 
 ##NTFS##
@@ -205,6 +205,7 @@ AC_CONFIG_FILES([
 	docs/partclone.extfs.8
 	docs/partclone.hfsp.8
 	docs/partclone.fat.8
+	docs/partclone.ntfs.8
 	docs/partclone.reiserfs.8
 	docs/partclone.reiser4.8
 	docs/partclone.xfs.8
