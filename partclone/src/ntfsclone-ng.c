@@ -151,6 +151,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     memcpy(image_hdr->fs, ntfs_MAGIC, FS_MAGIC_SIZE);
     image_hdr->block_size  = (int)ntfs->cluster_size;
     image_hdr->totalblock  = (unsigned long long)ntfs->nr_clusters;
+    image_hdr->usedblocks  = 0;
 
 #ifdef LIBNTFS_VER_10
         image_hdr->usedblocks  = (unsigned long long)(ntfs->nr_clusters - ntfs->nr_free_clusters - 1);

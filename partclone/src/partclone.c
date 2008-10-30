@@ -556,14 +556,15 @@ extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* 
             bfree++;
 	}
     }
-    if(image_hdr.usedblocks != bused){
-        if (opt.force)
-            err_exit = 0;
-        else
-            err_exit = 1;
-        log_mesg(0, err_exit, 1, debug, "The Used Block count is different.(bitmap %lli != image_head %lli)\nTry to use --force to skip the metadata error.\n", bused, image_hdr.usedblocks);
-    }
-    
+    if (debug >= 2) {
+	if(image_hdr.usedblocks != bused){
+	    if (opt.force)
+		err_exit = 0;
+	    else
+		err_exit = 1;
+	    log_mesg(0, err_exit, 1, debug, "The Used Block count is different.(bitmap %lli != image_head %lli)\nTry to use --force to skip the metadata error.\n", bused, image_hdr.usedblocks);
+	}	
+    } 
 }
 
 
