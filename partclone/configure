@@ -8703,6 +8703,7 @@ done
 
 { echo "$as_me:$LINENO: checking version of libntfs" >&5
 echo $ECHO_N "checking version of libntfs... $ECHO_C" >&6; }
+ntfs_version=`gcc $srcdir/src/ntfs_version.c -o $srcdir/get_ntfs_version -lntfs`
 ntfs_version=`$srcdir/get_ntfs_version | cut -d':' -f1`
 ntfs_version_major=`$srcdir/get_ntfs_version | cut -d':' -f2`
 ntfs_version_minor=`$srcdir/get_ntfs_version | cut -d':' -f3`

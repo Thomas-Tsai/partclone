@@ -149,6 +149,7 @@ AC_CHECK_LIB([ntfs], [ntfs_mount], ,
         AC_MSG_ERROR([*** ntfs depend library (libntfs) not found]))
 )
 AC_MSG_CHECKING(version of libntfs)
+ntfs_version=`gcc $srcdir/src/ntfs_version.c -o $srcdir/get_ntfs_version -lntfs`
 ntfs_version=`$srcdir/get_ntfs_version | cut -d':' -f1`
 ntfs_version_major=`$srcdir/get_ntfs_version | cut -d':' -f2`
 ntfs_version_minor=`$srcdir/get_ntfs_version | cut -d':' -f3`
