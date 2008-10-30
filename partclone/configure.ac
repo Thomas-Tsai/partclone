@@ -159,13 +159,17 @@ if test -z "$ntfs_version"; then
 	ntfs_version_minor="?"
 fi
 
-if test $ntfs_version -lt 10 ; then
+if test $ntfs_version -lt 9 ; then
 ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; bad"
 AC_MSG_RESULT($ntfs_version)
-AC_MSG_ERROR(Please upgrade your libntfs to 10:0:0 or newer version!)
-fi
+AC_MSG_ERROR(Please upgrade your libntfs to 9:0:0 or newer version!)
+elif test $ntfs_version -eq 9 ; then
+ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; suggest you upgrade the library!"
+AC_MSG_RESULT($ntfs_version)
+else
 ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; ok!"
 AC_MSG_RESULT($ntfs_version)
+fi
 
 supported_fs=$supported_fs" ntfs"
 fi
