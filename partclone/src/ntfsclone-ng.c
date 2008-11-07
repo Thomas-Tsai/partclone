@@ -59,7 +59,7 @@ static void fs_open(char* device){
 	log_mesg(0, 1, 1, debug, "ntfs mount error %i\n", err);
     } else {
 	if (ntfs->flags & VOLUME_IS_DIRTY) {
-	    log_mesg(0, 1, 1, debug, "NTFS Volume '%s' is scheduled for a check or it was shutdown\nuncleanly. Please boot Windows or use the --force option to progress.\n", device);
+	    log_mesg(0, 1, 1, debug, "NTFS Volume '%s' is scheduled for a check or it was shutdown\nuncleanly. Please boot Windows.\n", device);
 	} else {
 	    log_mesg(3, 0, 0, debug, "NTFS Volume '%s' is clean\n", device);
 	}
