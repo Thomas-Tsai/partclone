@@ -33,18 +33,23 @@ char *EXECNAME = "clone.reiserfs";
 
 /// open device
 static void fs_open(char* device){
-     if (!(dal = (dal_t*)file_dal_open(device, DEFAULT_BLOCK_SIZE, O_RDONLY))) {
+    int debug = 2;
+
+    if (!(dal = (dal_t*)file_dal_open(device, DEFAULT_BLOCK_SIZE, O_RDONLY))) {
 	libreiserfs_exception_throw(EXCEPTION_ERROR, EXCEPTION_CANCEL,
-				    "Couldn't create device abstraction "
-				    "for %s.", device);
+		"Couldn't create device abstraction "
+		"for %s.", device);
     }
 
     if (!(fs = reiserfs_fs_open(dal, dal))) {
-        libreiserfs_exception_throw(EXCEPTION_ERROR, EXCEPTION_CANCEL,
-				    "Couldn't open filesystem on %s.",
+	libreiserfs_exception_throw(EXCEPTION_ERROR, EXCEPTION_CANCEL,
+		"Couldn't open filesystem on %s.",
 				    device);
     }
-   
+
+    if (get_sb_umount_state(fs->super) != FS_CLEAN)
+	log_mesg(0, 1, 1, debug, "Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n");
+
 }
 
 /// close device

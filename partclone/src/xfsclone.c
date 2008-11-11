@@ -104,9 +104,9 @@ static void fs_open(char* device)
     int		    debug = 2;
 
     x.dname = device;
-    if (!libxfs_init(&x)) 
+    if (libxfs_init(&x) == 0) 
     {
-	log_mesg(0, 1, 1, debug, "SUPER: libxfs_init error\n");
+	log_mesg(0, 1, 1, debug, "SUPER: libxfs_init error. Please repaire %s partition.\n", device);
     }
 
     c = BBTOB(1);

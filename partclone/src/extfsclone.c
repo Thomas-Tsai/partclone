@@ -42,9 +42,16 @@ static void fs_open(char* device){
     flags = EXT2_FLAG_JOURNAL_DEV_OK;
 
     retval = ext2fs_open (device, flags, use_superblock, use_blocksize, unix_io_manager, &fs);
+
     if (retval) 
         log_mesg(0, 1, 1, debug, "Couldn't find valid filesystem superblock.\n");
-    
+
+    //if (!force && ((fs->super->s_lastcheck < fs->super->s_mtime) ||
+    if ((fs->super->s_lastcheck < fs->super->s_mtime) ||
+		(fs->super->s_state & EXT2_ERROR_FS) ||
+		((fs->super->s_state & EXT2_VALID_FS) == 0)) {
+        log_mesg(0, 1, 1, debug, "Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n", device);
+    }
 }
 
 /// close device

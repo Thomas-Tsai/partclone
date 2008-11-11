@@ -401,6 +401,7 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
 
     /// write log to logfile if debug is true
     if(log_level <= debug){
+	vsprintf(tmp_str, fmt, args);
 	fprintf(msg, "%s", tmp_str);
 	//if (errno != 0)
 	//    fprintf(msg, "%s(%i), ", strerror(errno), errno);

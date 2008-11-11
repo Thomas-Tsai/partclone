@@ -41,6 +41,7 @@ char *EXECNAME = "clone.reiser4";
 /// open device
 static void fs_open(char* device){
     int debug = 2;
+    unsigned long long int state, extended;
 
     if (libreiser4_init()) {
             log_mesg(0, 1, 1, debug, "Can't initialize libreiser4.\n");
@@ -61,6 +62,21 @@ static void fs_open(char* device){
            log_mesg(0, 1, 1, debug, "Can't open journal on %s", device);
    }
    
+   state = get_ss_status(STATUS(fs->status));
+   extended = get_ss_extended(STATUS(fs->status));
+
+   if (!state)
+       log_mesg(0, 1, 1, debug, "REISER4 can't get status\n");
+
+   if (state) 
+       log_mesg(3, 0, 0, debug, "REISER4 stat : \n", state);
+
+   if (state != FS_OK)
+       log_mesg(0, 1, 1, debug, "Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n");
+
+   if (extended)
+       log_mesg(3, 0, 0, debug, "Extended status: %0xllx\n", extended);
+
    //reiser4_opset_profile(fs->tree->ent.opset);
    fs->format = reiser4_format_open(fs);
 }
@@ -77,22 +93,22 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap)
     reiser4_bitmap_t       *fs_bitmap;
     unsigned long long     bit, block, bused = 0, bfree = 0;
     int                    debug = 2;
-    
+
     fs_open(device);
     fs_bitmap = reiser4_bitmap_create(reiser4_format_get_len(fs->format));
     reiser4_alloc_extract(fs->alloc, fs_bitmap);
 
     for(bit = 0; bit < reiser4_format_get_len(fs->format); bit++){
 	block = bit ;
-        if(reiser4_bitmap_test(fs_bitmap, bit)){
-            bused++;
+	if(reiser4_bitmap_test(fs_bitmap, bit)){
+	    bused++;
 	    bitmap[block] = 1;
 	    log_mesg(3, 0, 0, debug, "bitmap is used %lli", block);
-        } else {
+	} else {
 	    bitmap[block] = 0;
 	    bfree++;
 	    log_mesg(3, 0, 0, debug, "bitmap is free %lli", block);
-        }
+	}
     }
 
     if(bfree != reiser4_format_get_free(fs->format))
@@ -107,7 +123,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     int                    debug=1;
     reiser4_bitmap_t       *fs_bitmap;
     unsigned long long free_blocks=0;
-    
+
     fs_open(device);
     fs_bitmap = reiser4_bitmap_create(reiser4_format_get_len(fs->format));
     reiser4_alloc_extract(fs->alloc, fs_bitmap);
