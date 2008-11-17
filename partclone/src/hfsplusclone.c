@@ -81,12 +81,32 @@ static void fs_open(char* device){
 
     int s, r;
     char *buffer;
+    int debug = 3;
+    short HFS_Version;
+    char HFS_Signature[2];
+    int HFS_Clean = 0;
 
     ret = open(device, O_RDONLY);
     s = lseek(ret, 1024, SEEK_SET);
     buffer = (char*)malloc(sizeof(HFSPlusVolumeHeader));
     r = read (ret, buffer, sizeof(HFSPlusVolumeHeader));
     memcpy(&sb, buffer, sizeof(HFSPlusVolumeHeader));
+
+    HFS_Signature[0] = (char)sb.signature;
+    HFS_Signature[1] = (char)(sb.signature>>8);
+    HFS_Version = (short)reverseShort(sb.version);
+    HFS_Clean = (reverseInt(sb.attributes)>>8) & 1;
+
+    log_mesg(3, 0, 0, debug, "Signature=%c%c\n", HFS_Signature[0], HFS_Signature[1]);
+    log_mesg(3, 0, 0, debug, "Version=%i\n", HFS_Version);
+    log_mesg(3, 0, 0, debug, "Attr-Unmounted=%i(1 is clean, 0 is dirty)\n", HFS_Clean);
+    log_mesg(3, 0, 0, debug, "Attr-Inconsistent=%i\n", (reverseInt(sb.attributes)>>11) & 1);
+
+    if (HFS_Clean)
+	log_mesg(3, 0, 0, debug, "HFS_Plus '%s' is clean\n", device);
+    else 
+	log_mesg(0, 1, 1, debug, "HFS_Plus Volume '%s' is scheduled for a check or it was shutdown\nuncleanly. Please fix it by fsck.\n", device);
+
     free(buffer);
 
 }
