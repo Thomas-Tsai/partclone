@@ -97,4 +97,34 @@ extern void initial_image_hdr(char* device, image_head* image_hdr);
 /// readbitmap - cread and heck bitmap, reference dumpe2fs
 extern void readbitmap(char* device, image_head image_hdr, char* bitmap);
 
-extern unsigned long long get_used_block();
+/// return used block count
+static unsigned long long get_used_block();
+
+///get fat type
+static  void get_fat_type();
+
+/// return total sectors
+unsigned long long get_total_sector();
+
+///return sec_per_fat
+unsigned long long get_sec_per_fat();
+
+///return root sec
+unsigned long long get_root_sec();
+
+/// return cluster count
+unsigned long long get_cluster_count();
+
+/// check fat status
+static void check_fat_status();
+
+/// mark reserved sectors as used
+static unsigned long long mark_reserved_sectors(char* fat_bitmap, unsigned long long block);
+
+
+/// check per FAT32 entry
+unsigned long long check_fat32_entry(char* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters);
+
+
+/// check per FAT16 entry
+unsigned long long check_fat16_entry(char* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters);
