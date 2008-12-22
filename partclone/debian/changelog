@@ -1,3 +1,13 @@
+partclone (0.0.9-2) unstable; urgency=low
+
+    [Thomas Tsai ]
+    * Update dirty message for ntfsclone-ng.
+    * Check filesystem before cloning partition. Partclone will make sure that.
+    * Add check hfs_plus filesystem before cloning volume.
+    * Update fatclone.c fatclone.h clearly. update dirty message for extfs.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Mon, 22 Dec 2008 09:46:00 +0800
+
 partclone (0.0.9-1) unstable; urgency=low
     
     # New features: partclone.ntfsreloc and partclone.ntfs were added. 
