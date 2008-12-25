@@ -1,12 +1,12 @@
 /*
 ntfsreloc - deals with braindeadness with moving NTFS filesystems.
-version 0.7
+version 0.8
 
 Copyright (C) 2006  Daniel J. Grace
 Modified 2008 by Orgad Shaneh
 
 This program modifies the geometry settings on an NTFS partition
-as described in <http://thestarman.pcministry.com/asm/mbr/NTLDR.htm>.
+as described in <http://thestarman.pcministry.com/asm/mbr/NTFSBR.htm>.
 It is needed for booting, as described in libntfs <http://www.linux-ntfs.org/doku.php?id=libntfs>
 
 It will NOT work for Windows NT v3.5 and below.
@@ -41,6 +41,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdint.h>
 
 int flip(void *p, int size) {
 	ushort test;
@@ -124,10 +125,10 @@ off64_t last_sector(int device)
 }
 
 struct ntfs_geometry {
-	unsigned short sectors;
-	unsigned short heads;
-	unsigned long start;
-};
+	uint16_t sectors;
+	uint16_t heads;
+	uint32_t start;
+} __attribute__((packed));
 
 void flip_all(struct ntfs_geometry *geo) {
 	flip(&geo->heads, 2);
@@ -239,7 +240,7 @@ int main(int argc, char *argv[]) {
 	struct ntfs_geometry set_geom = {0, 0, 0};
 	const int geomsize = sizeof(struct ntfs_geometry);
 
-	puts("ntfsreloc version 0.7");
+	puts("ntfsreloc version 0.8");
 
 	// read program options (into global variables)
 	opt_res = read_options(argc, argv);
