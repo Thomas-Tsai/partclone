@@ -47,10 +47,12 @@ static void get_fat_type(){
 	} else {
 	    log_mesg(2, 1, 1, 2, "FAT Type : unknow\n");
 	}
-    } else {
+    } else if (fat_sb.u.fat32.fat_name[4] == '2'){
 	FS = FAT_32;
 	fat_type = "FAT32";
 	log_mesg(2, 0, 0, 2, "FAT Type : FAT 32\n");
+    } else {
+	log_mesg(2, 0, 0, 2, "unknow fat type!!\n");
     }
     log_mesg(2, 0, 0, 2, "FS = %i\n", FS);
 
@@ -115,7 +117,7 @@ static void check_fat_status(){
 
     /// fix. 1.check ret; 
 
-    if ((FS == FAT_16) || (FS == FAT_12)){
+    if (FS == FAT_16){
 	/// FAT[0] contains BPB_Media code
 	rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
 	log_mesg(2, 0, 0, 2, "Media %x\n", Fat16_Entry);
@@ -153,7 +155,13 @@ static void check_fat_status(){
 	    log_mesg(2, 0, 0, 2, "I/O correct!\n");
 	else
 	    log_mesg(0, 1, 1, 2, "I/O error! %X\n");
-
+    } else if (FS == FAT_12){
+	/// FAT[0] contains BPB_Media code
+	rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
+	log_mesg(2, 0, 0, 2, "Media %x\n", Fat16_Entry);
+	if (rd == -1)
+	    log_mesg(2, 0, 0, 2, "read Fat12_Entry error\n");
+	rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
     } else
         log_mesg(2, 0, 0, 2, "ERR_WRONG_FS\n");
 
@@ -268,6 +276,34 @@ unsigned long long check_fat16_entry(char* fat_bitmap, unsigned long long block,
     return block;
 }
 
+/// check per FAT12 entry
+unsigned long long check_fat12_entry(char* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters)
+{
+    uint16_t Fat16_Entry = 0;
+    uint16_t Fat12_Entry = 0;
+    int rd = 0;
+    int i = 0, j = 0;
+    rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
+    if (rd == -1)
+	log_mesg(2, 0, 0, 2, "read Fat12_Entry error\n");
+    Fat12_Entry = Fat16_Entry>>4;
+    if (Fat12_Entry  == 0xFFF7) { /// bad FAT12 cluster
+	DamagedClusters++;
+	log_mesg(2, 0, 0, 2, "bad sec %i\n", block);
+	for (j=0; j < fat_sb.cluster_size; j++,block++)
+	    fat_bitmap[block] = 0;
+    } else if (Fat12_Entry == 0x0000){ /// free
+	bfree++;
+	for (j=0; j < fat_sb.cluster_size; j++,block++)
+	    fat_bitmap[block] = 0;
+    } else {
+	bused++;
+	for (j=0; j < fat_sb.cluster_size; j++,block++)
+	    fat_bitmap[block] = 1;
+    }
+    return block;
+}
+
 /// read super block and write to image head
 extern void initial_image_hdr(char* device, image_head* image_hdr)
 {
@@ -342,6 +378,8 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
 	    block = check_fat16_entry(bitmap, block, &bfree, &bused, &DamagedClusters);
         } else if (FS == FAT_32){ /// FAT32
 	    block = check_fat32_entry(bitmap, block, &bfree, &bused, &DamagedClusters);
+        } else if (FS == FAT_12){ /// FAT12
+	    block = check_fat12_entry(bitmap, block, &bfree, &bused, &DamagedClusters);
         } else 
             log_mesg(2, 0, 0, 2, "error fs\n");
     }
@@ -390,6 +428,8 @@ static unsigned long long get_used_block()
 	    block = check_fat16_entry(fat_bitmap, block, &bfree, &bused, &DamagedClusters);
         } else if (FS == FAT_32){ /// FAT32
 	    block = check_fat32_entry(fat_bitmap, block, &bfree, &bused, &DamagedClusters);
+        } else if (FS == FAT_12){ /// FAT12
+	    block = check_fat12_entry(fat_bitmap, block, &bfree, &bused, &DamagedClusters);
         } else 
             log_mesg(2, 0, 0, 2, "error fs\n");
     }
