@@ -1,6 +1,13 @@
-partclone (0.0.9-3) unstable; urgency=low
+partclone (0.0.9-4) unstable; urgency=low
 
     [ Thomas Tsai ]
+    * A bug about FAT12 was fixed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Tue, 30 Dec 2008 13:41:00 +0800
+
+partclone (0.0.9-3) unstable; urgency=low
+
+    [ Steven Shiau ]
     * New upstream ntfsreloc.c 0.8.
 
  -- Steven Shiau <steven@nchc.org.tw>  Thu, 25 Dec 2008 15:32:00 +0800
