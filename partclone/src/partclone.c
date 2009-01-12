@@ -60,8 +60,8 @@ FILE* msg = NULL;
 
 /**
  * options - 
- * usage	    - print message "how to use this"
- * parse_options    - get parameter from agrc, argv
+ * usage		    - print message "how to use this"
+ * parse_options	    - get parameter from agrc, argv
  */
 extern void usage(void)
 {
@@ -71,11 +71,13 @@ extern void usage(void)
         "    -o,  --output FILE      Output FILE\n"
 	"    -O   --overwrite FILE   Output FILE, overwriting if exists\n"
 	"    -s,  --source FILE      Source FILE\n"
+#ifndef	RESTORE
         "    -c,  --clone            Save to the special image format\n"
         "    -r,  --restore          Restore from the special image format\n"
 	"    -b,  --dd-mode          Save to sector-to-sector format\n"
-        "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
         "    -R,  --rescue           Continue after disk read errors\n"
+#endif
+        "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
         "    -C,  --no_check         Don't check device size and free space\n"
 #ifdef HAVE_LIBNCURSESW
         "    -N,  --ncurses          Using Ncurses User Interface\n"
@@ -115,7 +117,10 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     opt->debug = 0;
     opt->rescue = 0;
     opt->check = 1;
-
+#ifdef RESTORE
+    opt->restore++;
+    mode++;
+#endif
     while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != (char)-1) {
             switch (c) {
             case 's': 
@@ -186,6 +191,11 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     }
     //printf("debug %i\n", opt->debug);
         
+    if ((opt->target == NULL) && (opt->source == NULL)){
+	fprintf(stderr, "There is no image name. or --help get more info.\n");
+	exit(0);
+    }
+
     if (opt->target == NULL) {
 	//fprintf(stderr, "You use specify output file like stdout. or --help get more info.\n");
 	opt->target = "-";
@@ -412,7 +422,7 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
     fflush(msg);
 
     /// exit if lexit true
-    if (log_exit){
+    if ((!opt.force) && (log_exit)){
 	close_ncurses();
 	fprintf(stderr, "Partclone fail, please check /var/log/partclone.log !\n");
     	exit(1);

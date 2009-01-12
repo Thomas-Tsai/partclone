@@ -109,10 +109,16 @@ unsigned long long get_cluster_count()
 }
 
 /// check fat status
-static void check_fat_status(){
+//return - 0 Filesystem is in valid state.
+//return - 1 Filesystem isn't in valid state.
+//return - 2 other error.
+extern int check_fat_status(){
     int rd = 0;
     uint16_t Fat16_Entry;
     uint32_t Fat32_Entry;
+    int fs_error = 2;
+    int fs_good = 0;
+    int fs_bad = 1;
 
 
     /// fix. 1.check ret; 
@@ -130,12 +136,12 @@ static void check_fat_status(){
 	if (Fat16_Entry & 0x8000)
 	    log_mesg(2, 0, 0, 2, "Volume clean!\n");
 	else
-	    log_mesg(0, 1, 1, 2, "Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n");
+	    return fs_bad;
 
 	if (Fat16_Entry & 0x4000)
 	    log_mesg(2, 0, 0, 2, "I/O correct!\n");
 	else 
-	    log_mesg(0, 1, 1, 2, "I/O error! %X\n");
+	    return fs_error;
 
     } else if (FS == FAT_32) {
 	/// FAT[0] contains BPB_Media
@@ -149,12 +155,12 @@ static void check_fat_status(){
 	if (Fat32_Entry & 0x08000000)
 	    log_mesg(2, 0, 0, 2, "Volume clean!\n");
 	else
-	    log_mesg(0, 1, 1, 2, "Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n");
+	    return fs_bad;
 
 	if (Fat32_Entry & 0x04000000)
 	    log_mesg(2, 0, 0, 2, "I/O correct!\n");
 	else
-	    log_mesg(0, 1, 1, 2, "I/O error! %X\n");
+	    return fs_error;
     } else if (FS == FAT_12){
 	/// FAT[0] contains BPB_Media code
 	rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
@@ -164,6 +170,7 @@ static void check_fat_status(){
 	rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
     } else
         log_mesg(2, 0, 0, 2, "ERR_WRONG_FS\n");
+    return fs_good;
 
 }
 
@@ -350,6 +357,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
     int FatReservedBytes = 0;
     uint16_t Fat16_Entry = 0;
     uint32_t Fat32_Entry = 0;
+    extern cmd_opt opt;
 
     fs_open(device);
 
@@ -370,7 +378,10 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
     lseek(ret, FatReservedBytes, SEEK_SET);
 
     /// The second used to check FAT status
-    check_fat_status();
+    if (check_fat_status() == 1)
+	log_mesg(0, 1, 1, 2, "Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n");
+    else if (check_fat_status() == 2)
+	log_mesg(0, 1, 1, 2, "I/O error! %X\n");
 
     for (i=0; i < cluster_count; i++){
         /// If FAT16
@@ -420,7 +431,10 @@ static unsigned long long get_used_block()
     lseek(ret, FatReservedBytes, SEEK_SET);
 
     /// The second fat is used to check FAT status
-    check_fat_status();
+    if (check_fat_status() == 1)
+	log_mesg(0, 1, 1, 2, "Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n");
+    else if (check_fat_status() == 2)
+	log_mesg(0, 1, 1, 2, "I/O error! %X\n");
 
     for (i=0; i < cluster_count; i++){
         /// If FAT16

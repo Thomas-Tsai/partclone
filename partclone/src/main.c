@@ -36,6 +36,10 @@
  */
 #include "partclone.h"
 
+/// global variable
+cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
+p_dialog_mesg	m_dialog;			/// dialog format string
+
 /**
  * Include different filesystem header depend on what flag you want.
  * If cflag is _EXTFS, output to extfsclone.
@@ -63,10 +67,6 @@
     #include "ntfsclone-ng.h"
     #define FS "NTFS"
 #endif
-
-/// global variable
-cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
-p_dialog_mesg	m_dialog;			/// dialog format string
 
 /**
  * main functiom - for colne or restore data

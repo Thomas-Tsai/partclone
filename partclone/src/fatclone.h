@@ -115,8 +115,8 @@ unsigned long long get_root_sec();
 /// return cluster count
 unsigned long long get_cluster_count();
 
-/// check fat status
-static void check_fat_status();
+/// check fat statu
+extern int check_fat_status();
 
 /// mark reserved sectors as used
 static unsigned long long mark_reserved_sectors(char* fat_bitmap, unsigned long long block);

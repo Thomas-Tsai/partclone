@@ -10,7 +10,12 @@ partclone_extfs_SOURCES=main.c partclone.c progress.c extfsclone.c extfsclone.h 
 partclone_extfs_CFLAGS=-DEXTFS
 partclone_extfs_LDADD=-lext2fs -lcom_err
 
+sbin_PROGRAMS += partclone.info
 partclone_info_SOURCES=infoclone.c partclone.c partclone.h
+
+sbin_PROGRAMS += partclone.restore
+partclone_restore_SOURCES=partclone.c partclone.h progress.c progress.h gettext.h restore.c
+partclone_restore_CFLAGS=-DRESTORE
 
 if ENABLE_REISERFS
 sbin_PROGRAMS += partclone.reiserfs
