@@ -70,6 +70,7 @@ int main(int argc, char **argv){
     int			s_count = 0;
     int			rescue_num = 0;
     int			tui = 0;		/// text user interface
+    int			raw = 0;
 
     progress_bar	prog;			/// progress_bar structure defined in progress.h
     image_head		image_hdr;		/// image_head structure defined in partclone.h
@@ -139,39 +140,75 @@ int main(int argc, char **argv){
     if (opt.restore){
 
 	log_mesg(1, 0, 0, debug, "restore image hdr - get image_head from image file\n");
-        /// get image information from image file
+	/// get image information from image file
 	restore_image_hdr(&dfr, &opt, &image_hdr);
-        
-        /// check memory size
-        if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
-            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
-
-	/// alloc a memory to restore bitmap
-	bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
-        if(bitmap == NULL){
-            log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-        }
 
 	/// check the image magic
-	if (memcmp(image_hdr.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE) != 0)
-	    log_mesg(0, 1, 1, debug, "This is not partclone image.\n");
+	if (memcmp(image_hdr.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE) == 0){
 
-	/// check the file system
-	//if (strcmp(image_hdr.fs, FS) != 0)
-	//    log_mesg(0, 1, 1, debug, "%s can't restore from the image which filesystem is %s not %s\n", argv[0], image_hdr.fs, FS);
+	    /// check memory size
+	    if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
+		log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
 
-	log_mesg(2, 0, 0, debug, "initial main bitmap pointer %lli\n", bitmap);
-	log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
+	    /// alloc a memory to restore bitmap
+	    bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+	    if(bitmap == NULL){
+		log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+	    }
 
-	/// read and check bitmap from image file
-	log_mesg(1, 0, 0, debug, "Calculating bitmap ...\n");
-	get_image_bitmap(&dfr, opt, image_hdr, bitmap);
+	    /// check the file system
+	    //if (strcmp(image_hdr.fs, FS) != 0)
+	    //    log_mesg(0, 1, 1, debug, "%s can't restore from the image which filesystem is %s not %s\n", argv[0], image_hdr.fs, FS);
 
-	/// check the dest partition size.
-	if((opt.check) && (check_size(&dfw, image_hdr.device_size) != 1))
-            log_mesg(0, 1, 1, debug, "Can't get device size, use option -C to disable size checking.\n");
+	    log_mesg(2, 0, 0, debug, "initial main bitmap pointer %lli\n", bitmap);
+	    log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
-	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
+	    /// read and check bitmap from image file
+	    log_mesg(1, 0, 0, debug, "Calculating bitmap ...\n");
+	    get_image_bitmap(&dfr, opt, image_hdr, bitmap);
+
+	    /// check the dest partition size.
+	    if((opt.check) && (check_size(&dfw, image_hdr.device_size) != 1))
+		log_mesg(0, 1, 1, debug, "Can't get device size, use option -C to disable size checking.\n");
+
+	    log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
+	}else{
+	    log_mesg(1, 0, 0, debug, "This is not partclone image.\n");
+	    raw = 1;
+	    /// seek to the first
+	    sf = lseek(dfr, 0, SEEK_SET);
+	    log_mesg(1, 0, 0, debug, "seek %lli for reading raw dtat string\n",sf);
+
+	    log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
+
+	    /// get Super Block information from partition
+	    initial_dd_hdr(dfr, &image_hdr);
+
+	    /// check memory size
+	    if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
+		log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
+
+	    /// alloc a memory to restore bitmap
+	    bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+	    if(bitmap == NULL){
+		log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+	    }
+
+	    log_mesg(2, 0, 0, debug, "initial main bitmap pointer %i\n", bitmap);
+	    log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
+
+	    /// read and check bitmap from partition
+	    log_mesg(1, 0, 0, debug, "Calculating bitmap ...");
+	    dd_bitmap(image_hdr, bitmap);
+	    log_mesg(1, 0, 0, debug, "done\n");
+
+	    needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
+	    if (opt.check)
+		check_free_space(&dfw, needed_size);
+
+	    log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
+
+	}
     }
 
     log_mesg(1, 0, 0, debug, "print image_head\n");
@@ -182,7 +219,7 @@ int main(int argc, char **argv){
 
     /// print image_head
     print_image_hdr_info(image_hdr, opt);
-	
+
     /**
      * initial progress bar
      */
@@ -199,14 +236,16 @@ int main(int argc, char **argv){
      */
     if (opt.restore) {
 
-	/**
-	 * read magic string from image file
-	 * and check it.
-	 */
-	r_size = read_all(&dfr, bitmagic_r, 8, &opt); /// read a magic string
-        cmp = memcmp(bitmagic, bitmagic_r, 8);
-        if(cmp != 0)
-	    log_mesg(0, 1, 1, debug, "bitmagic error %i\n", cmp);
+	if(!raw){
+	    /**
+	     * read magic string from image file
+	     * and check it.
+	     */
+	    r_size = read_all(&dfr, bitmagic_r, 8, &opt); /// read a magic string
+	    cmp = memcmp(bitmagic, bitmagic_r, 8);
+	    if(cmp != 0)
+		log_mesg(0, 1, 1, debug, "bitmagic error %i\n", cmp);
+	}
 
 	/// seek to the first
         sf = lseek(dfw, 0, SEEK_SET);
@@ -214,14 +253,6 @@ int main(int argc, char **argv){
 	if (sf == (off_t)-1)
 	    log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
     
-	/*
-	/// log the offset
-        sf = lseek(dfr, 0, SEEK_CUR);
-	log_mesg(0, 0, 0, debug, "seek %lli for reading data string\n",sf);
-	if (sf == (off_t)-1)
-	    log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
-	*/
-
 	/// start restore image file to partition
         for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
 
@@ -261,16 +292,18 @@ int main(int argc, char **argv){
 		if (w_size != (int)image_hdr.block_size)
 		    log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
 
-		/// read crc32 code and check it.
-		crc_ck = crc32(crc_ck, buffer, r_size);
-		crc_buffer = (char*)malloc(sizeof(unsigned long)); ///alloc a memory to copy data
-                if(crc_buffer == NULL){
-                    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-                }
-		c_size = read_all(&dfr, crc_buffer, sizeof(unsigned long), &opt);
-		memcpy(&crc, crc_buffer, sizeof(unsigned long));
-		if (memcmp(&crc, &crc_ck, sizeof(unsigned long)) != 0)
-		    log_mesg(0, 1, 1, debug, "CRC Check  error\n OrigCRC:0x%08lX, DestCRC:0x%08lX", crc, crc_ck);
+		if (!raw){
+		    /// read crc32 code and check it.
+		    crc_ck = crc32(crc_ck, buffer, r_size);
+		    crc_buffer = (char*)malloc(sizeof(unsigned long)); ///alloc a memory to copy data
+		    if(crc_buffer == NULL){
+			log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+		    }
+		    c_size = read_all(&dfr, crc_buffer, sizeof(unsigned long), &opt);
+		    memcpy(&crc, crc_buffer, sizeof(unsigned long));
+		    if (memcmp(&crc, &crc_ck, sizeof(unsigned long)) != 0)
+			log_mesg(0, 1, 1, debug, "CRC Check  error\n OrigCRC:0x%08lX, DestCRC:0x%08lX", crc, crc_ck);
+		}
 
 		/// free buffer
 		free(buffer);

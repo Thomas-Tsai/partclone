@@ -35,6 +35,7 @@
 #include <errno.h>
 #include "gettext.h"
 #include "version.c"
+#include <linux/fs.h>
 #define _(STRING) gettext(STRING)
 //#define PACKAGE "partclone"
 
@@ -487,7 +488,43 @@ extern int check_size(int* ret, unsigned long long size){
 
 }
 
-/// chech free space 
+/// get partition size
+extern unsigned long long get_partition_size(int* ret){
+
+    unsigned long long dest_size;
+    unsigned long dest_block;
+    struct stat stat;
+    int debug = 1;
+
+    if (!fstat(*ret, &stat)) {
+        if (S_ISFIFO(stat.st_mode)){
+            dest_size = 0;
+	} else if (S_ISREG(stat.st_mode)){
+	    dest_size = stat.st_size;
+	} else {
+
+#ifdef BLKGETSIZE64
+	    if (ioctl(*ret, BLKGETSIZE64, &dest_size) < 0) {
+		log_mesg(0, 0, 0, debug, "get device size error\n");
+	    }
+#endif
+
+#ifdef BLKGETSIZE
+	    if (ioctl(*ret, BLKGETSIZE, &dest_block) >= 0) {
+		dest_size = (unsigned long long)(dest_block * 512);
+	    }
+#endif
+	}
+    } else {
+	log_mesg(0, 0, 0, debug, "fstat size error\n");
+    
+    }
+
+    return dest_size;
+
+}
+
+/// check free space 
 extern void check_free_space(int* ret, unsigned long long size){
 
     unsigned long long dest_size;
@@ -819,24 +856,24 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
     unsigned long long dev_size = image_hdr.device_size;
     int debug = opt.debug;
 
-	setlocale(LC_ALL, "");
-	bindtextdomain(PACKAGE, LOCALEDIR);
-	textdomain(PACKAGE);
-	//log_mesg(0, 0, 0, "%s v%s \n", EXEC_NAME, VERSION);
-	log_mesg(0, 0, 1, debug, _("Partclone v%s (%s) www.partclone.org, partclone.nchc.org.tw\n"), VERSION, svn_version);
+    setlocale(LC_ALL, "");
+    bindtextdomain(PACKAGE, LOCALEDIR);
+    textdomain(PACKAGE);
+    //log_mesg(0, 0, 0, "%s v%s \n", EXEC_NAME, VERSION);
+    log_mesg(0, 0, 1, debug, _("Partclone v%s (%s) www.partclone.org, partclone.nchc.org.tw\n"), VERSION, svn_version);
     if (opt.clone)
-		log_mesg(0, 0, 1, debug, _("Starting clone device (%s) to image (%s)\n"), opt.source, opt.target);	
-	else if(opt.restore)
-		log_mesg(0, 0, 1, debug, _("Starting restore image (%s) to device (%s)\n"), opt.source, opt.target);
-	else if(opt.dd)
-		log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
-	else
-		log_mesg(0, 0, 1, debug, "unknow mode\n");
-	log_mesg(0, 0, 1, debug, _("File system: %s\n"), image_hdr.fs);
-	log_mesg(0, 0, 1, debug, _("Device size: %lli MB\n"), print_size((total*block_s), MBYTE));
-	log_mesg(0, 0, 1, debug, _("Space in use: %lli MB\n"), print_size((used*block_s), MBYTE));
-	log_mesg(0, 0, 1, debug, _("Block size: %i Byte\n"), block_s);
-	log_mesg(0, 0, 1, debug, _("Used block count: %lli\n"), used);
+	log_mesg(0, 0, 1, debug, _("Starting clone device (%s) to image (%s)\n"), opt.source, opt.target);	
+    else if(opt.restore)
+	log_mesg(0, 0, 1, debug, _("Starting restore image (%s) to device (%s)\n"), opt.source, opt.target);
+    else if(opt.dd)
+	log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
+    else
+	log_mesg(0, 0, 1, debug, "unknow mode\n");
+    log_mesg(0, 0, 1, debug, _("File system: %s\n"), image_hdr.fs);
+    log_mesg(0, 0, 1, debug, _("Device size: %lli MB\n"), print_size((total*block_s), MBYTE));
+    log_mesg(0, 0, 1, debug, _("Space in use: %lli MB\n"), print_size((used*block_s), MBYTE));
+    log_mesg(0, 0, 1, debug, _("Block size: %i Byte\n"), block_s);
+    log_mesg(0, 0, 1, debug, _("Used block count: %lli\n"), used);
 }
 
 /// print finish message
@@ -856,3 +893,37 @@ extern void print_finish_info(cmd_opt opt){
 	    
 }
 
+/// block_count
+static unsigned long long block_count(unsigned long long partition_size, int block_size){
+    unsigned long long blocks;
+    int sectors;
+    blocks  = partition_size / block_size;
+    sectors = partition_size % block_size;
+    if (sectors)
+	return (blocks+1);
+    else
+	return blocks;
+
+}
+
+/// initial dd hdr
+extern void initial_dd_hdr(int ret, image_head* image_hdr){
+
+    memset(image_hdr ,(int )NULL, sizeof(image_head));
+    memcpy(image_hdr->fs, raw_MAGIC, FS_MAGIC_SIZE);
+    image_hdr->block_size  = 512;
+    image_hdr->device_size = get_partition_size(&ret);
+    image_hdr->totalblock  = block_count(image_hdr->device_size, image_hdr->block_size);
+    image_hdr->usedblocks  = image_hdr->totalblock;
+}
+
+/// initial bitmap
+extern void dd_bitmap(image_head image_hdr, char* bitmap){
+
+    int block;
+
+    /// initial image bitmap as 1 (all block are used)
+    for(block = 0; block < image_hdr.totalblock; block++)
+	bitmap[block] = 1; 
+
+}

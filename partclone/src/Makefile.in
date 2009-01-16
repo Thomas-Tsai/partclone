@@ -34,8 +34,9 @@ build_triplet = @build@
 host_triplet = @host@
 sbin_PROGRAMS = partclone.extfs$(EXEEXT) partclone.info$(EXEEXT) \
 	partclone.info$(EXEEXT) partclone.restore$(EXEEXT) \
-	$(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
-	$(am__EXEEXT_4) $(am__EXEEXT_5) $(am__EXEEXT_6)
+	partclone.dd$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
+	$(am__EXEEXT_3) $(am__EXEEXT_4) $(am__EXEEXT_5) \
+	$(am__EXEEXT_6)
 @ENABLE_REISERFS_TRUE@am__append_1 = partclone.reiserfs
 @ENABLE_REISER4_TRUE@am__append_2 = partclone.reiser4
 @ENABLE_HFSP_TRUE@am__append_3 = partclone.hfsp
@@ -66,6 +67,12 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(sbindir)"
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(sbin_PROGRAMS)
+am_partclone_dd_OBJECTS = partclone.$(OBJEXT) progress.$(OBJEXT) \
+	ddclone.$(OBJEXT)
+partclone_dd_OBJECTS = $(am_partclone_dd_OBJECTS)
+partclone_dd_LDADD = $(LDADD)
+am__DEPENDENCIES_1 =
+partclone_dd_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_partclone_extfs_OBJECTS = partclone_extfs-main.$(OBJEXT) \
 	partclone_extfs-partclone.$(OBJEXT) \
 	partclone_extfs-progress.$(OBJEXT) \
@@ -83,7 +90,6 @@ am__partclone_fat_SOURCES_DIST = main.c partclone.c progress.c \
 @ENABLE_FAT_TRUE@	partclone_fat-fatclone.$(OBJEXT)
 partclone_fat_OBJECTS = $(am_partclone_fat_OBJECTS)
 partclone_fat_LDADD = $(LDADD)
-am__DEPENDENCIES_1 =
 partclone_fat_DEPENDENCIES = $(am__DEPENDENCIES_1)
 partclone_fat_LINK = $(CCLD) $(partclone_fat_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
@@ -169,12 +175,13 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(partclone_extfs_SOURCES) $(partclone_fat_SOURCES) \
-	$(partclone_hfsp_SOURCES) $(partclone_info_SOURCES) \
-	$(partclone_ntfs_SOURCES) $(partclone_ntfsreloc_SOURCES) \
-	$(partclone_reiser4_SOURCES) $(partclone_reiserfs_SOURCES) \
-	$(partclone_restore_SOURCES) $(partclone_xfs_SOURCES)
-DIST_SOURCES = $(partclone_extfs_SOURCES) \
+SOURCES = $(partclone_dd_SOURCES) $(partclone_extfs_SOURCES) \
+	$(partclone_fat_SOURCES) $(partclone_hfsp_SOURCES) \
+	$(partclone_info_SOURCES) $(partclone_ntfs_SOURCES) \
+	$(partclone_ntfsreloc_SOURCES) $(partclone_reiser4_SOURCES) \
+	$(partclone_reiserfs_SOURCES) $(partclone_restore_SOURCES) \
+	$(partclone_xfs_SOURCES)
+DIST_SOURCES = $(partclone_dd_SOURCES) $(partclone_extfs_SOURCES) \
 	$(am__partclone_fat_SOURCES_DIST) \
 	$(am__partclone_hfsp_SOURCES_DIST) $(partclone_info_SOURCES) \
 	$(am__partclone_ntfs_SOURCES_DIST) \
@@ -303,6 +310,7 @@ partclone_extfs_LDADD = -lext2fs -lcom_err
 partclone_info_SOURCES = infoclone.c partclone.c partclone.h
 partclone_restore_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h restore.c
 partclone_restore_CFLAGS = -DRESTORE
+partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h ddclone.c
 @ENABLE_REISERFS_TRUE@partclone_reiserfs_SOURCES = main.c partclone.c progress.c reiserfsclone.c reiserfsclone.h partclone.h progress.h gettext.h
 @ENABLE_REISERFS_TRUE@partclone_reiserfs_CFLAGS = -DREISERFS
 @ENABLE_REISERFS_TRUE@partclone_reiserfs_LDADD = -lreiserfs -ldal
@@ -377,6 +385,9 @@ uninstall-sbinPROGRAMS:
 
 clean-sbinPROGRAMS:
 	-test -z "$(sbin_PROGRAMS)" || rm -f $(sbin_PROGRAMS)
+partclone.dd$(EXEEXT): $(partclone_dd_OBJECTS) $(partclone_dd_DEPENDENCIES) 
+	@rm -f partclone.dd$(EXEEXT)
+	$(LINK) $(partclone_dd_OBJECTS) $(partclone_dd_LDADD) $(LIBS)
 partclone.extfs$(EXEEXT): $(partclone_extfs_OBJECTS) $(partclone_extfs_DEPENDENCIES) 
 	@rm -f partclone.extfs$(EXEEXT)
 	$(partclone_extfs_LINK) $(partclone_extfs_OBJECTS) $(partclone_extfs_LDADD) $(LIBS)
@@ -414,6 +425,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/infoclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ntfsreloc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone.Po@am__quote@
@@ -448,6 +460,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_xfs-partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_xfs-progress.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_xfs-xfsclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/progress.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

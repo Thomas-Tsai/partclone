@@ -17,6 +17,9 @@ sbin_PROGRAMS += partclone.restore
 partclone_restore_SOURCES=partclone.c partclone.h progress.c progress.h gettext.h restore.c
 partclone_restore_CFLAGS=-DRESTORE
 
+sbin_PROGRAMS += partclone.dd
+partclone_dd_SOURCES=partclone.c partclone.h progress.c progress.h gettext.h ddclone.c
+
 if ENABLE_REISERFS
 sbin_PROGRAMS += partclone.reiserfs
 partclone_reiserfs_SOURCES=main.c partclone.c progress.c reiserfsclone.c reiserfsclone.h partclone.h progress.h gettext.h

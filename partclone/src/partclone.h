@@ -23,6 +23,7 @@
 
 #define IMAGE_MAGIC "partclone-image"
 #define IMAGE_MAGIC_SIZE 15
+
 #define FS_MAGIC_SIZE 15
 #define reiserfs_MAGIC "REISERFS"
 #define reiser4_MAGIC "REISER4"
@@ -31,6 +32,8 @@
 #define hfsplus_MAGIC "HFS Plus"
 #define fat_MAGIC "FAT"
 #define ntfs_MAGIC "NTFS"
+#define raw_MAGIC "raw"
+
 #define IMAGE_VERSION "0001"
 #define VERSION_SIZE 4
 #define SECTOR_SIZE 512
@@ -149,3 +152,9 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt);
 extern void print_opt(cmd_opt opt);
 /// print finish mesg
 extern void print_finish_info(cmd_opt opt);
+
+/// initial dd hdr
+extern void initial_dd_hdr(int ret, image_head* image_hdr);
+
+/// initial bitmap
+extern void dd_bitmap(image_head image_hdr, char* bitmap);
