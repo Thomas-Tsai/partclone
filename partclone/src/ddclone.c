@@ -51,7 +51,7 @@ int main(int argc, char **argv){
     int			dfr, dfw;		/// file descriptor for source and target
     int			r_size, w_size;		/// read and write size
     unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
-						/// copied is copied block count
+    /// copied is copied block count
     off_t		offset = 0, sf = 0;	/// seek postition, lseek result
     int			start, res, stop;	/// start, range, stop number for progress bar
     unsigned long long	total_write = 0;	/// the copied size 
@@ -60,7 +60,6 @@ int main(int argc, char **argv){
     char		bitmagic[8] = "BiTmAgIc";// only for check postition
     char		bitmagic_r[8];		/// read magic string from image
     int			cmp;			/// compare magic string
-    char		*bitmap;		/// the point for bitmap data
     int			debug = 0;		/// debug or not
     unsigned long	crc = 0xffffffffL;	/// CRC32 check code for writint to image
     unsigned long	crc_ck = 0xffffffffL;	/// CRC32 check code for checking
@@ -71,12 +70,12 @@ int main(int argc, char **argv){
     int			rescue_num = 0;
     int			tui = 0;		/// text user interface
     char *bad_sectors_warning_msg =
-    "*************************************************************************\n"
-    "* WARNING: The disk has bad sector. This means physical damage on the   *\n"
-    "* disk surface caused by deterioration, manufacturing faults or other   *\n"
-    "* reason. The reliability of the disk may stay stable or degrade fast.  *\n"
-    "* Use the --rescue option to efficiently save as much data as possible! *\n"
-    "*************************************************************************\n";
+	"*************************************************************************\n"
+	"* WARNING: The disk has bad sector. This means physical damage on the   *\n"
+	"* disk surface caused by deterioration, manufacturing faults or other   *\n"
+	"* reason. The reliability of the disk may stay stable or degrade fast.  *\n"
+	"* Use the --rescue option to efficiently save as much data as possible! *\n"
+	"*************************************************************************\n";
 
     progress_bar	prog;			/// progress_bar structure defined in progress.h
     image_head		image_hdr;		/// image_head structure defined in partclone.h
@@ -93,7 +92,7 @@ int main(int argc, char **argv){
      */
     debug = opt.debug;
     //if(opt.debug)
-	open_log();
+    open_log();
 
     /**
      * using Text User Interface
@@ -152,26 +151,9 @@ int main(int argc, char **argv){
     if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
 	log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
 
-    /// alloc a memory to restore bitmap
-    bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
-    if(bitmap == NULL){
-	log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-    }
-
-    log_mesg(2, 0, 0, debug, "initial main bitmap pointer %i\n", bitmap);
-    log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
-
-    /// read and check bitmap from partition
-    log_mesg(1, 0, 0, debug, "Calculating bitmap ...");
-    dd_bitmap(image_hdr, bitmap);
-    log_mesg(1, 0, 0, debug, "done\n");
-
     needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
     if (opt.check)
 	check_free_space(&dfw, needed_size);
-
-    log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
-
 
     log_mesg(1, 0, 0, debug, "print image_head\n");
 
@@ -198,116 +180,74 @@ int main(int argc, char **argv){
      */
 
     /// read data from the first block and log the offset
-    /*
-    sf = lseek(dfr, 0, SEEK_SET); 
-    log_mesg(1, 0, 0, debug, "seek %lli for reading data string\n",sf);
-    if (sf == (off_t)-1)
-	log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
-    */
     log_mesg(0, 0, 0, debug, "Total block %i\n", image_hdr.totalblock);
-    //        log_mesg(0, 0, 0, debug, "blockid,\tbitmap,\tread,\twrite,\tsize,\tseek,\tcopied,\terror\n");
 
     /// start clone partition to image file
-    for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
+    block_id = 0;
+    do {
 
 	r_size = 0;
 	w_size = 0;
 
-	if((image_hdr.totalblock - 1 ) == block_id) 
-	    done = 1;
+	log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
 
-#ifdef _FILE_OFFSET_BITS
-	if(copied == image_hdr.usedblocks) 
-	    done = 1;
-#endif
-	if (bitmap[block_id] == 1){
-	    /// if the block is used
-	    log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
-	    log_mesg(1, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
+	buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
+	if(buffer == NULL){
+	    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+	}
 
-	    offset = (off_t)(block_id * image_hdr.block_size);
-#ifdef _FILE_OFFSET_BITS
-	    sf = lseek(dfr, offset, SEEK_SET);
-	    if (sf == -1)
-		log_mesg(0, 1, 1, debug, "source seek error = %lli, ",sf);
-#endif
-	    buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
-	    if(buffer == NULL){
-		log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-	    }
+	/// read data from source to buffer
+	r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
+	log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
+	if (r_size != (int)image_hdr.block_size){
 
-	    /// read data from source to buffer
-	    r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
-	    log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
-	    if (r_size != (int)image_hdr.block_size){
+	    if ((r_size == -1) && (errno == EIO)){
+		if (opt.rescue){
+		    for (rescue_num = 0; rescue_num < image_hdr.block_size; rescue_num += SECTOR_SIZE)
+			rescue_sector(&dfr, buffer + rescue_num, &opt);
+		}else
+		    log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
 
-		if ((r_size == -1) && (errno == EIO)){
-		    if (opt.rescue){
-			for (rescue_num = 0; rescue_num < image_hdr.block_size; rescue_num += SECTOR_SIZE)
-			    rescue_sector(&dfr, buffer + rescue_num, &opt);
-		    }else
-			log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
+	    } else if (r_size == 0)
+		done = 1; //EOF
+	}
 
-		}
-
-		log_mesg(0, 1, 1, debug, "read error %i \n", r_size);
-	    }
-
+	if (r_size == image_hdr.block_size){
 	    /// write buffer to target
 	    w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
 	    log_mesg(2, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
 	    if (w_size != (int)image_hdr.block_size)
 		log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
-
-	    /// free buffer
-	    free(buffer);
-
-	    if (opt.ncurses)
-		Ncurses_progress_update(&prog, copied, done);
-	    else if (opt.dialog)
-		Dialog_progress_update(&prog, copied, done);
-	    else
-		progress_update(&prog, copied, done);
-
-	    copied++;					/// count copied block
-	    total_write += (unsigned long long)(w_size);	/// count copied size
-	    log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
-
-	    /// read or write error
-	    if (r_size != w_size)
-		log_mesg(0, 1, 1, debug, "read and write different\n");
-	    log_mesg(1, 0, 0, debug, "end\n");
 	} else {
-#ifndef _FILE_OFFSET_BITS
-	    /// if the block is not used, I just skip it.
-	    log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
-	    sf = lseek(dfr, image_hdr.block_size, SEEK_CUR);
-	    log_mesg(2, 0, 0, debug, "skip seek=%lli, ",sf);
-	    if (sf == (off_t)-1)
-		log_mesg(0, 1, 1, debug, "clone seek error %lli errno=%i\n", (long long)offset, (int)errno);
-
-	    s_count++;
-	    if ((s_count >=100) || (done == 1)){
-		if (opt.ncurses)
-		    Ncurses_progress_update(&prog, copied, done);
-		else if (opt.dialog)
-		    Dialog_progress_update(&prog, copied, done);
-		else
-		    progress_update(&prog, copied, done);
-
-		s_count = 0;
-	    }
-	    log_mesg(2, 0, 0, debug, "end\n");
-#endif
+	    w_size = 0;
 	}
-    } /// end of for    
+
+	/// free buffer
+	free(buffer);
+
+	if (opt.ncurses)
+	    Ncurses_progress_update(&prog, copied, done);
+	else if (opt.dialog)
+	    Dialog_progress_update(&prog, copied, done);
+	else
+	    progress_update(&prog, copied, done);
+
+	copied++;					/// count copied block
+	total_write += (unsigned long long)(w_size);	/// count copied size
+	log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
+
+	/// read or write error
+	if (r_size != w_size)
+	    log_mesg(0, 1, 1, debug, "read and write different\n");
+	log_mesg(1, 0, 0, debug, "end\n");
+	block_id++;
+    } while (done == 0);/// end of for    
     sync_data(dfw, &opt);	
 
     print_finish_info(opt);
 
     close (dfr);    /// close source
     close (dfw);    /// close target
-    free(bitmap);   /// free bitmp
     if(opt.ncurses)
 	close_ncurses();
     printf("clone successfully\n");

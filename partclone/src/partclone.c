@@ -491,7 +491,7 @@ extern int check_size(int* ret, unsigned long long size){
 /// get partition size
 extern unsigned long long get_partition_size(int* ret){
 
-    unsigned long long dest_size;
+    unsigned long long dest_size = 0;
     unsigned long dest_block;
     struct stat stat;
     int debug = 1;
@@ -753,6 +753,8 @@ extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
                 return -1;
 	    }
 	    log_mesg(0, 1, 1, debug, "%s: errno = %i\n",__func__, errno);
+	} else if (i == 0){
+	    return 0; //EOF
         } else {
 	    count -= i;
 	    buf = i + (char *) buf;
