@@ -100,7 +100,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     blk_t super_blk, old_desc_blk, new_desc_blk;
     int bg_flags = 0;
 
-    int debug = 1;
+    int debug = 3;
 
     log_mesg(2, 0, 0, debug, "readbitmap %i\n",bitmap);
 
@@ -135,7 +135,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
 
 	    /// each block in group
 	    for (block = 0; block < fs->super->s_blocks_per_group; block++) {
-		current_block = block + (group * fs->super->s_blocks_per_group);
+		current_block = block + blk_itr;
 		if (fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM)
 		    bg_flags = fs->group_desc[group].bg_flags;
 
@@ -144,12 +144,12 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
 		    free++;
 		    gfree++;
 		    bitmap[current_block] = 0;
-		    log_mesg(3, 0, 0, 1, "free block %lu at group %i\n", (current_block), group);
+		    log_mesg(3, 0, 0, debug, "free block %lu at group %i\n", (current_block), group);
 		} else {
 		    used++;
 		    gused++;
 		    bitmap[current_block] = 1;
-		    log_mesg(3, 0, 0, 1, "used block %lu at group %i\n", (current_block), group);
+		    log_mesg(3, 0, 0, debug, "used block %lu at group %i\n", (current_block), group);
 		}
 	    }
 	    blk_itr += fs->super->s_blocks_per_group;

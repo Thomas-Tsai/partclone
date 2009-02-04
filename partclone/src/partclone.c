@@ -753,8 +753,6 @@ extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
                 return -1;
 	    }
 	    log_mesg(0, 1, 1, debug, "%s: errno = %i\n",__func__, errno);
-	} else if (i == 0){
-	    return 0; //EOF
         } else {
 	    count -= i;
 	    buf = i + (char *) buf;
