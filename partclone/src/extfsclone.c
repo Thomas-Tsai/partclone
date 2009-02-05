@@ -50,15 +50,15 @@ static void fs_open(char* device){
     if (retval) 
 	log_mesg(0, 1, 1, debug, "Couldn't find valid filesystem superblock.\n");
 
-    ext2fs_mark_valid (fs);
+    ext2fs_mark_valid(fs);
 
     if ((fs->super->s_state & EXT2_ERROR_FS) || !ext2fs_test_valid(fs))
-	log_mesg(0, 1, 1, debug, "%s contains a file system with errors\n", device);
+	log_mesg(0, 1, 1, debug, "FS contains a file system with errors\n");
     else if ((fs->super->s_state & EXT2_VALID_FS) == 0)
-	log_mesg(0, 1, 1, debug, "%s was not cleanly unmounted\n", device);
+	log_mesg(0, 1, 1, debug, "FS was not cleanly unmounted\n");
     else if ((fs->super->s_max_mnt_count > 0) && (fs->super->s_mnt_count >= (unsigned) fs->super->s_max_mnt_count)) {
-	log_mesg(0, 1, 1, debug, "%s has been mounted %u times without being checked\n", device);
-     }
+	log_mesg(0, 1, 1, debug, "FS has been mounted %u times without being checked\n");
+    }
 
 }
 
@@ -99,9 +99,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     unsigned long long free, used, gfree, gused;
     char *block_bitmap=NULL;
     int block_nbytes;
-    blk_t blk_itr;
-    blk_t first_block, last_block;
-    blk_t super_blk, old_desc_blk, new_desc_blk;
+    unsigned long long blk_itr;
     int bg_flags = 0;
 
     int debug = 3;
@@ -116,8 +114,6 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     block_nbytes = EXT2_BLOCKS_PER_GROUP(fs->super) / 8;
     if (fs->block_map)
 	block_bitmap = malloc(block_nbytes);
-
-    first_block = fs->super->s_first_data_block;
 
     /// initial image bitmap as 1 (all block are used)
     for(block = 0; block < image_hdr.totalblock; block++)
@@ -138,7 +134,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
 	    ext2fs_get_block_bitmap_range(fs->block_map, blk_itr, block_nbytes << 3, block_bitmap);
 
 	    /// each block in group
-	    for (block = 0; block < fs->super->s_blocks_per_group; block++) {
+	    for (block = 0; ((block < fs->super->s_blocks_per_group) && (current_block < (image_hdr.totalblock-1))); block++) {
 		current_block = block + blk_itr;
 		if (fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM)
 		    bg_flags = fs->group_desc[group].bg_flags;
