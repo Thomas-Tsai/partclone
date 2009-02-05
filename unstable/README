@@ -1,0 +1,21 @@
+Partclone is a project similar to the well-known backup utility "Partition Image" a.k.a partimage. Partclone provides utilities to back up and restore used-blocks of a partition and it is designed for higher compatibility of the file system by using existing library, e.g. e2fslibs is used to read and write the ext2 partition.
+
+Partclone supports ext2, ext3, hfs+, reiser3.5, reiser3.6, reiser4 and ext4 now. We plan to develop zfs and jfs file system. We made some utilies:
+
+* partclone.ext2, partclone.ext3, partclone.extfs
+* partclone.ext4
+* partclone.reiserfs
+* partclone.reiser4
+* partclone.xfs
+* partclone.fat
+* partclone.hfsp
+* partclone.info 
+...
+
+Some programs were included here to make clone better:
+*  ntfsreloc: A GPL program for adjusting FS geometry on NTFS partitions
+   Ref: http://www.linux-ntfs.org/doku.php?id=contrib:ntfsreloc
+   It's renamed as partclone.ntfsreloc in partclone.
+
+
+For more info about partclone, check our website http://partclone.org.

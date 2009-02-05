@@ -1,0 +1,8 @@
+#!/bin/sh
+# if you want to use dialog interface 
+# mkfifo pipe
+# (./clone.extfs -d -c -X -s /dev/loop0 2>pipe | cat - > test.img) | ./gauge < pipe
+# (cat test - |./clone.extfs -d -X -r -s - -o /dev/loop0 2>pipe) | ./gauge < pipe
+#
+: ${DIALOG=dialog}
+$DIALOG --title "Partclone" --gauge "Hi, this is a gauge widget" 20 70 0
