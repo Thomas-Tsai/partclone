@@ -102,7 +102,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     unsigned long long blk_itr;
     int bg_flags = 0;
 
-    int debug = 3;
+    int debug = 2;
 
     log_mesg(2, 0, 0, debug, "readbitmap %i\n",bitmap);
 
