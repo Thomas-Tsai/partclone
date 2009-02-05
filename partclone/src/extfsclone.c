@@ -50,12 +50,16 @@ static void fs_open(char* device){
     if (retval) 
 	log_mesg(0, 1, 1, debug, "Couldn't find valid filesystem superblock.\n");
 
-    //if (!force && ((fs->super->s_lastcheck < fs->super->s_mtime) ||
-    if ((fs->super->s_lastcheck < fs->super->s_mtime) ||
-	    (fs->super->s_state & EXT2_ERROR_FS) ||
-	    ((fs->super->s_state & EXT2_VALID_FS) == 0)) {
-	log_mesg(0, 1, 1, debug, "Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n");
-    }
+    ext2fs_mark_valid (fs);
+
+    if ((fs->super->s_state & EXT2_ERROR_FS) || !ext2fs_test_valid(fs))
+	log_mesg(0, 1, 1, debug, "%s contains a file system with errors\n", device);
+    else if ((fs->super->s_state & EXT2_VALID_FS) == 0)
+	log_mesg(0, 1, 1, debug, "%s was not cleanly unmounted\n", device);
+    else if ((fs->super->s_max_mnt_count > 0) && (fs->super->s_mnt_count >= (unsigned) fs->super->s_max_mnt_count)) {
+	log_mesg(0, 1, 1, debug, "%s has been mounted %u times without being checked\n", device);
+     }
+
 }
 
 /// close device
