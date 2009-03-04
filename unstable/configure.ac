@@ -98,6 +98,7 @@ AC_CHECK_HEADERS([xfs/libxfs.h], ,
 )
 supported_fs=$supported_fs" xfs"
 fi
+xfs_version="Unknow"
 #end of check xfs
 
 ##reiserfs##
@@ -214,6 +215,7 @@ AM_CONDITIONAL(ENABLE_HFSP, test "$enable_hfsp" = yes)
 if test "$enable_hfsp" = yes; then
 supported_fs=$supported_fs" hfs-plus"
 fi
+hfs_plus_version="build-in"
 #end of check hfsplus
 
 ##fat##
@@ -226,6 +228,7 @@ AM_CONDITIONAL(ENABLE_FAT, test "$enable_fat" = yes)
 if test "$enable_fat" = yes; then
 supported_fs=$supported_fs" fat"
 fi
+fat_version="build-in"
 #end of check fat
 
 ##NTFS##
@@ -320,4 +323,11 @@ AC_OUTPUT
 
 echo ""
 echo "Support File System:"
-echo $supported_fs
+echo "ext2/3/4......$enable_extfs $extfs_version"
+echo "reiserfs......$enable_extfs $reiserfs_version"
+echo "reiser4.......$enable_extfs $reiser4_version"
+echo "xfs...........$enable_extfs $xfs_version"
+echo "ntfs..........$enable_extfs $ntfs_version"
+echo "fat12/16/32...$enable_extfs $fat_version"
+echo "hfs plus......$enable_extfs $hfs_plus_version"
+#echo $supported_fs
