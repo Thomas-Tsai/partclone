@@ -48,9 +48,6 @@ p_dialog_mesg	m_dialog;			/// dialog format string
 #ifdef EXTFS
     #include "extfsclone.h"
     #define FS "EXTFS"
-#elif EXT4
-    #include "ext4clone.h"
-    #define FS "EXT4"
 #elif REISERFS
     #include "reiserfsclone.h"
     #define FS "REISERFS"

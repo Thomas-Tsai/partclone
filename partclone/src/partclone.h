@@ -29,7 +29,6 @@
 #define reiser4_MAGIC "REISER4"
 #define xfs_MAGIC "XFS"
 #define extfs_MAGIC "EXTFS"
-#define ext4_MAGIC "EXT4"
 #define hfsplus_MAGIC "HFS Plus"
 #define fat_MAGIC "FAT"
 #define ntfs_MAGIC "NTFS"
