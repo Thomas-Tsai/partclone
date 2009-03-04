@@ -15,8 +15,14 @@
 
 int main(int argc, char **argv){
     char *libfs;
-    libfs = argv[1];
     int err=0;
+
+    if(argv[1]){
+        libfs = argv[1];
+    } else {
+        libfs="xxx";
+    }
+
     //printf("%s\n", libfs);
     if (strcmp(libfs, "ntfs") == 0){
 	err = libntfs_version();
@@ -29,11 +35,12 @@ int main(int argc, char **argv){
     }
 
     if(err == 1){
-	printf("Unknow %s lib version\n", libfs);
+	printf("0\n");
     }
     return 0;
 
 }
+
 int libntfs_version(){
 #ifdef NTFS
     printf("%s\n", ntfs_libntfs_version());
