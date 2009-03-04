@@ -5,7 +5,7 @@
 #elif REISERFS
     #include <reiserfs/reiserfs.h>
 #elif REISER4
-    #include <reiser4/reiser4.h>
+    #include <reiser4/libreiser4.h>
 #elif XFS
 #elif HFSPLUS
 #elif FAT
