@@ -375,6 +375,7 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
     extern p_dialog_mesg m_dialog;
     char tmp_str[128];
 	
+    vsprintf(tmp_str, fmt, args);
     if (opt.ncurses) {
 #ifdef HAVE_LIBNCURSESW
 	setlocale(LC_ALL, "");
@@ -385,7 +386,8 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
 		wattron(log_win, A_STANDOUT);
 	    }
 
-	    vwprintw(log_win, fmt, args);
+	    wprintw(log_win, tmp_str);
+
 	    
 	    if(log_exit){
 		wattroff(log_win, A_STANDOUT);
@@ -398,21 +400,21 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
     } else if (opt.dialog) {
 	/// write log to stderr if log_stderr is true
 	if((log_stderr) && (log_level <= debug)){
-	    vsprintf(tmp_str, fmt, args);
+	    //vsprintf(tmp_str, fmt, args);
 	    strncat(m_dialog.data, tmp_str, strlen(tmp_str));
 	    fprintf(stderr, "XXX\n%i\n%s\nXXX\n", m_dialog.percent, m_dialog.data);
 	}
     } else {
 	/// write log to stderr if log_stderr is true
 	if((log_stderr == 1) && (log_level <= debug)){
-	    vsprintf(tmp_str, fmt, args);
+	    //vsprintf(tmp_str, fmt, args);
 	    fprintf(stderr, "%s", tmp_str);
 	}
     }
 
     /// write log to logfile if debug is true
     if(log_level <= debug){
-	vsprintf(tmp_str, fmt, args);
+	//vsprintf(tmp_str, fmt, args);
 	fprintf(msg, "%s", tmp_str);
 	//if (errno != 0)
 	//    fprintf(msg, "%s(%i), ", strerror(errno), errno);
@@ -749,10 +751,13 @@ extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
 
 	if (i < 0) {
 	    if (errno != EAGAIN && errno != EINTR){
-		log_mesg(0, 1, 1, debug, "%s: errno = %i\n",__func__, errno);
+		log_mesg(0, 1, 1, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
                 return -1;
 	    }
-	    log_mesg(0, 1, 1, debug, "%s: errno = %i\n",__func__, errno);
+	    log_mesg(0, 1, 1, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
+	} else if (i == 0){
+	    log_mesg(2, 0, 0, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
+	    return 0;
         } else {
 	    count -= i;
 	    buf = i + (char *) buf;
