@@ -10,6 +10,13 @@ partclone_extfs_SOURCES=main.c partclone.c progress.c extfsclone.c extfsclone.h 
 partclone_extfs_CFLAGS=-DEXTFS
 partclone_extfs_LDADD=-lext2fs -lcom_err
 
+if ENABLE_EXT4
+sbin_PROGRAMS += partclone.ext4
+partclone_ext4_SOURCES=main.c partclone.c progress.c ext4clone.c ext4clone.h partclone.h progress.h gettext.h
+partclone_ext4_CFLAGS=-DEXT4
+partclone_ext4_LDADD=-lext2fs -lcom_err
+endif
+
 sbin_PROGRAMS += partclone.info
 partclone_info_SOURCES=infoclone.c partclone.c partclone.h
 

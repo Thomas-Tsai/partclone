@@ -30,12 +30,37 @@ AC_ARG_ENABLE(test,
 )
 AM_CONDITIONAL(ENABLE_ALL, test "$enable_all" = yes)
 if test "$enable_all" = "yes"; then
+enable_ext4="yes"
 enable_xfs="yes"
 enable_reiserfs="yes"
 enable_reiser4="yes"
 enable_hfsp="yes"
 enable_fat="yes"
 enable_ntfs="yes"
+fi
+##enable-all##
+AC_ARG_ENABLE(test,
+	        AS_HELP_STRING(--enable-all,enable all supported file system),
+	        enable_all=yes,
+)
+AM_CONDITIONAL(ENABLE_ALL, test "$enable_all" = yes)
+
+##ext4##
+dnl Check for EXT4
+AC_ARG_ENABLE(test,
+	AS_HELP_STRING(--enable-ext4,enable EXT4 file system(testing)),
+	enable_ext4=yes,
+	)
+AM_CONDITIONAL(ENABLE_EXT4, test "$enable_ext4" = yes)
+
+if test "$enable_xfs" = "yes"; then
+AC_CHECKING([ for EXT4 Library and Header files ... ])
+AC_CHECK_HEADERS([ext2fs/ext2fs.h], ,
+  AC_MSG_ERROR([*** EXT4 header files (ext2fs/ext2fs.h) not found])
+)
+AC_CHECK_LIB([ext2fs], [ext2fs_initialize], ,
+    AC_MSG_ERROR([*** EXT4 library (libext2fs) not found]))
+supported_fs=$supported_fs" ext4"
 fi
 
 ##XFS##
