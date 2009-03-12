@@ -51,7 +51,7 @@ ntfs_volume *ntfs;
 static void fs_open(char* device){
    
     int	    err;
-    int	    device_size, volume_size;
+    unsigned long long int	    device_size, volume_size;
 
     ntfs = ntfs_mount(device, NTFS_MNT_RDONLY);
     if (!ntfs) {
