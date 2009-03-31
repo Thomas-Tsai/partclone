@@ -32,18 +32,18 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-sbin_PROGRAMS = partclone.extfs$(EXEEXT) partclone.info$(EXEEXT) \
-	partclone.info$(EXEEXT) partclone.restore$(EXEEXT) \
-	partclone.dd$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
+sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
+	partclone.restore$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
 	$(am__EXEEXT_3) $(am__EXEEXT_4) $(am__EXEEXT_5) \
-	$(am__EXEEXT_6)
-@ENABLE_REISERFS_TRUE@am__append_1 = partclone.reiserfs
-@ENABLE_REISER4_TRUE@am__append_2 = partclone.reiser4
-@ENABLE_HFSP_TRUE@am__append_3 = partclone.hfsp
-@ENABLE_XFS_TRUE@am__append_4 = partclone.xfs
-@ENABLE_FAT_TRUE@am__append_5 = partclone.fat
-@ENABLE_NTFS_TRUE@am__append_6 = partclone.ntfs partclone.ntfsreloc
-@ENABLE_STATIC_TRUE@am__append_7 = -static 
+	$(am__EXEEXT_6) $(am__EXEEXT_7)
+@ENABLE_EXTFS_TRUE@am__append_1 = partclone.extfs
+@ENABLE_REISERFS_TRUE@am__append_2 = partclone.reiserfs
+@ENABLE_REISER4_TRUE@am__append_3 = partclone.reiser4
+@ENABLE_HFSP_TRUE@am__append_4 = partclone.hfsp
+@ENABLE_XFS_TRUE@am__append_5 = partclone.xfs
+@ENABLE_FAT_TRUE@am__append_6 = partclone.fat
+@ENABLE_NTFS_TRUE@am__append_7 = partclone.ntfs partclone.ntfsreloc
+@ENABLE_STATIC_TRUE@am__append_8 = -static 
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -57,12 +57,13 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-@ENABLE_REISERFS_TRUE@am__EXEEXT_1 = partclone.reiserfs$(EXEEXT)
-@ENABLE_REISER4_TRUE@am__EXEEXT_2 = partclone.reiser4$(EXEEXT)
-@ENABLE_HFSP_TRUE@am__EXEEXT_3 = partclone.hfsp$(EXEEXT)
-@ENABLE_XFS_TRUE@am__EXEEXT_4 = partclone.xfs$(EXEEXT)
-@ENABLE_FAT_TRUE@am__EXEEXT_5 = partclone.fat$(EXEEXT)
-@ENABLE_NTFS_TRUE@am__EXEEXT_6 = partclone.ntfs$(EXEEXT) \
+@ENABLE_EXTFS_TRUE@am__EXEEXT_1 = partclone.extfs$(EXEEXT)
+@ENABLE_REISERFS_TRUE@am__EXEEXT_2 = partclone.reiserfs$(EXEEXT)
+@ENABLE_REISER4_TRUE@am__EXEEXT_3 = partclone.reiser4$(EXEEXT)
+@ENABLE_HFSP_TRUE@am__EXEEXT_4 = partclone.hfsp$(EXEEXT)
+@ENABLE_XFS_TRUE@am__EXEEXT_5 = partclone.xfs$(EXEEXT)
+@ENABLE_FAT_TRUE@am__EXEEXT_6 = partclone.fat$(EXEEXT)
+@ENABLE_NTFS_TRUE@am__EXEEXT_7 = partclone.ntfs$(EXEEXT) \
 @ENABLE_NTFS_TRUE@	partclone.ntfsreloc$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)"
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
@@ -73,10 +74,13 @@ partclone_dd_OBJECTS = $(am_partclone_dd_OBJECTS)
 partclone_dd_LDADD = $(LDADD)
 am__DEPENDENCIES_1 =
 partclone_dd_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am_partclone_extfs_OBJECTS = partclone_extfs-main.$(OBJEXT) \
-	partclone_extfs-partclone.$(OBJEXT) \
-	partclone_extfs-progress.$(OBJEXT) \
-	partclone_extfs-extfsclone.$(OBJEXT)
+am__partclone_extfs_SOURCES_DIST = main.c partclone.c progress.c \
+	extfsclone.c extfsclone.h partclone.h progress.h gettext.h
+@ENABLE_EXTFS_TRUE@am_partclone_extfs_OBJECTS =  \
+@ENABLE_EXTFS_TRUE@	partclone_extfs-main.$(OBJEXT) \
+@ENABLE_EXTFS_TRUE@	partclone_extfs-partclone.$(OBJEXT) \
+@ENABLE_EXTFS_TRUE@	partclone_extfs-progress.$(OBJEXT) \
+@ENABLE_EXTFS_TRUE@	partclone_extfs-extfsclone.$(OBJEXT)
 partclone_extfs_OBJECTS = $(am_partclone_extfs_OBJECTS)
 partclone_extfs_DEPENDENCIES =
 partclone_extfs_LINK = $(CCLD) $(partclone_extfs_CFLAGS) $(CFLAGS) \
@@ -181,7 +185,8 @@ SOURCES = $(partclone_dd_SOURCES) $(partclone_extfs_SOURCES) \
 	$(partclone_ntfsreloc_SOURCES) $(partclone_reiser4_SOURCES) \
 	$(partclone_reiserfs_SOURCES) $(partclone_restore_SOURCES) \
 	$(partclone_xfs_SOURCES)
-DIST_SOURCES = $(partclone_dd_SOURCES) $(partclone_extfs_SOURCES) \
+DIST_SOURCES = $(partclone_dd_SOURCES) \
+	$(am__partclone_extfs_SOURCES_DIST) \
 	$(am__partclone_fat_SOURCES_DIST) \
 	$(am__partclone_hfsp_SOURCES_DIST) $(partclone_info_SOURCES) \
 	$(am__partclone_ntfs_SOURCES_DIST) \
@@ -221,7 +226,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTLLIBS = @INTLLIBS@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
-LDFLAGS = @LDFLAGS@ $(am__append_7)
+LDFLAGS = @LDFLAGS@ $(am__append_8)
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBOBJS = @LIBOBJS@
@@ -304,13 +309,13 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\"
 LDADD = $(LIBINTL)
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
-partclone_extfs_SOURCES = main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
-partclone_extfs_CFLAGS = -DEXTFS
-partclone_extfs_LDADD = -lext2fs -lcom_err
 partclone_info_SOURCES = infoclone.c partclone.c partclone.h
 partclone_restore_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h restore.c
 partclone_restore_CFLAGS = -DRESTORE
 partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h ddclone.c
+@ENABLE_EXTFS_TRUE@partclone_extfs_SOURCES = main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
+@ENABLE_EXTFS_TRUE@partclone_extfs_CFLAGS = -DEXTFS
+@ENABLE_EXTFS_TRUE@partclone_extfs_LDADD = -lext2fs -lcom_err
 @ENABLE_REISERFS_TRUE@partclone_reiserfs_SOURCES = main.c partclone.c progress.c reiserfsclone.c reiserfsclone.h partclone.h progress.h gettext.h
 @ENABLE_REISERFS_TRUE@partclone_reiserfs_CFLAGS = -DREISERFS
 @ENABLE_REISERFS_TRUE@partclone_reiserfs_LDADD = -lreiserfs -ldal

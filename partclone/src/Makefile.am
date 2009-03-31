@@ -1,24 +1,24 @@
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\"
 LDADD = $(LIBINTL)
-sbin_PROGRAMS=partclone.extfs partclone.info
+sbin_PROGRAMS=partclone.info partclone.dd partclone.restore
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 
 version.c: FORCE
 	$(TOOLBOX) --update-version
 
-partclone_extfs_SOURCES=main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
-partclone_extfs_CFLAGS=-DEXTFS
-partclone_extfs_LDADD=-lext2fs -lcom_err
-
-sbin_PROGRAMS += partclone.info
 partclone_info_SOURCES=infoclone.c partclone.c partclone.h
 
-sbin_PROGRAMS += partclone.restore
 partclone_restore_SOURCES=partclone.c partclone.h progress.c progress.h gettext.h restore.c
 partclone_restore_CFLAGS=-DRESTORE
 
-sbin_PROGRAMS += partclone.dd
 partclone_dd_SOURCES=partclone.c partclone.h progress.c progress.h gettext.h ddclone.c
+
+if ENABLE_EXTFS
+sbin_PROGRAMS += partclone.extfs
+partclone_extfs_SOURCES=main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
+partclone_extfs_CFLAGS=-DEXTFS
+partclone_extfs_LDADD=-lext2fs -lcom_err
+endif
 
 if ENABLE_REISERFS
 sbin_PROGRAMS += partclone.reiserfs
