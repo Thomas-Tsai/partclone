@@ -1,0 +1,2 @@
+* add support to back up broken hard drive, like --rescue
+* add suport to transform partclone image to raw image (like dd image)

@@ -1,0 +1,54 @@
+.TH partclone.fat 8 "Nov 2007" "partclone 0.0.5"
+.SH NAME
+partclone.fat \- The utility for clone and restore an etx2/ext3 partition.
+.SH SYNOPSIS
+partclone.fat [options]... [MODE] [SOURCE FILE] [OUTPUT FILE]
+.SH DESCRIPTION
+.B partclone.fat
+is a part of Partclone project for hfs plus file system.
+Partclone is a project like the well-known backup utility "Partition Image" a.k.a partimage. Partclone provide utilities to back up used blocks and design for higher compatibility of the file system using supported library like e2fslibs.
+.SH OPTIONS
+.TP
+.B -V, --version
+prints program version.
+.TP
+.B -c, --clone
+Back used block to the special image format.
+.TP
+.B -r, --restore
+Restore from the special image format.
+.TP
+.B -d, --debug
+Show debug information.
+.TP
+.B -h, --help
+Display help information.
+.TP
+.B -s, --source
+Source FILE can be a partition or image file.
+.TP
+.B -o, --output
+Output FILE can be a partition
+.sp 1
+Examples:
+.sp 1
+clone /dev/hda1 to hda1.img and display debug information.
+.sp 1
+partclone.fat -c -d -s /dev/hda1 -o hda1.img
+.sp 1
+restore /dev/hda1 from hda1.img and display debug information.
+.sp 1
+partclone.fat -r -d -s hda1.img -o /dev/hda1
+.RS
+.SH REPORTING BUGS
+Report bugs to <thomas@nchc.org.tw>
+.SH SUPPORT
+You can get support at http://partclone.sf.net
+.SH SEE ALSO
+.BR partclone.reiser4(8),
+.BR partclone.reiserfs(8),
+.BR partclone.extfs(8),
+.BR partclone.xfs(8)
+.SH AUTHOR
+This manual page was written by Thomas Tsai <thomas@nchc.org.tw>
+

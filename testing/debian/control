@@ -1,0 +1,20 @@
+Source: partclone
+Section: admin
+Priority: extra
+Maintainer: Yu-Chin Tsai <thomas@nchc.org.tw>, Jazz Yao-Tsung Wang <jazz@nchc.org.tw>
+Build-Depends: debhelper (>= 5), autotools-dev, e2fslibs-dev, xfslibs-dev, libreiserfs0.3-dev, libreiser4-dev, libncursesw5-dev, libntfs-dev
+Standards-Version: 3.7.2
+
+Package: partclone
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: The utility to clone and restore a partition.
+ Partclone is a project like the well-known backup utility 
+ "Partition Image" a.k.a partimage. 
+ .
+ Partclone provides utilities to back up used blocks and 
+ design for higher compatibility of the file system using 
+ supported library like e2fslibs.
+ .
+ check the project website for more details
+ http://partclone.sf.net
