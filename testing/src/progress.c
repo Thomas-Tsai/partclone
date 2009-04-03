@@ -45,7 +45,7 @@ extern void progress_init(struct progress_bar *p, int start, int stop, int res, 
 }
 
 /// update information at progress bar
-extern void progress_update(struct progress_bar *p, int current, int done)
+extern void progress_update(struct progress_bar *p, int current, int done, int limit)
 {
         setlocale(LC_ALL, "");
         bindtextdomain(PACKAGE, LOCALEDIR);
@@ -62,55 +62,58 @@ extern void progress_update(struct progress_bar *p, int current, int done)
 	char Rformated[10], Eformated[10], Tformated[10];
 	struct tm *Rtm, *Etm, *Ttm;
 	char *clear_buf = NULL;
+	limit = current % limit;
 
-        percent  = p->unit * current;
-        elapsed  = (time(0) - p->time);
-	if (elapsed <= 0)
-	    elapsed = 1;
-        speedps  = (float)p->block_size * (float)current / (float)(elapsed);
-	//remained = (time_t)(p->block_size * (p->stop- current)/(int)speedps);
-	remained = (time_t)((elapsed/percent*100) - elapsed);
-	speed = (float)(speedps / 1000000.0 * 60.0);
-	p->rate = p->rate+speed;
+	if ((limit == 0) || (done == 1)){
+	    percent  = p->unit * current;
+	    elapsed  = (time(0) - p->time);
+	    if (elapsed <= 0)
+		elapsed = 1;
+	    speedps  = (float)p->block_size * (float)current / (float)(elapsed);
+	    //remained = (time_t)(p->block_size * (p->stop- current)/(int)speedps);
+	    remained = (time_t)((elapsed/percent*100) - elapsed);
+	    speed = (float)(speedps / 1000000.0 * 60.0);
+	    p->rate = p->rate+speed;
 
-	/// format time string
-	Rtm = gmtime(&remained);
-	strftime(Rformated, sizeof(Rformated), format, Rtm);
+	    /// format time string
+	    Rtm = gmtime(&remained);
+	    strftime(Rformated, sizeof(Rformated), format, Rtm);
 
-	Etm = gmtime(&elapsed);
-	strftime(Eformated, sizeof(Eformated), format, Etm);
+	    Etm = gmtime(&elapsed);
+	    strftime(Eformated, sizeof(Eformated), format, Etm);
 
-        if (done != 1){
-                if (((current - p->start) % p->resolution) && ((current != p->stop)))
-                        return;
-                fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "), clear_buf, Eformated, Rformated, percent, (float)(speed));
-                /*
-                fprintf(stderr, ("\r%81c\r"), clear_buf);
-                fprintf(stderr, _("Elapsed: %s, "), Eformated);
-                fprintf(stderr, _("Remaining: %s, "), Rformated);
-                fprintf(stderr, _("Completed:%6.2f%%, "), percent);
-                fprintf(stderr, _("Rate:%6.1fMB/min, "), (float)(p->rate));
-                */
-        } else {
+	    if (done != 1){
+		if (((current - p->start) % p->resolution) && ((current != p->stop)))
+		    return;
+		fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "), clear_buf, Eformated, Rformated, percent, (float)(speed));
+		/*
+		   fprintf(stderr, ("\r%81c\r"), clear_buf);
+		   fprintf(stderr, _("Elapsed: %s, "), Eformated);
+		   fprintf(stderr, _("Remaining: %s, "), Rformated);
+		   fprintf(stderr, _("Completed:%6.2f%%, "), percent);
+		   fprintf(stderr, _("Rate:%6.1fMB/min, "), (float)(p->rate));
+		   */
+	    } else {
 		total = elapsed;
 		Ttm = gmtime(&total);
 		strftime(Tformated, sizeof(Tformated), format, Ttm);
-                fprintf(stderr, _("\nTotal Time: %s, "), Tformated);
-                fprintf(stderr, _("Ave. Rate: %6.1fMB/min, "), (float)(p->rate/p->stop));
-                fprintf(stderr, _("100.00%% completed!\n"));
+		fprintf(stderr, _("\nTotal Time: %s, "), Tformated);
+		fprintf(stderr, _("Ave. Rate: %6.1fMB/min, "), (float)(p->rate/p->stop));
+		fprintf(stderr, _("100.00%% completed!\n"));
+	    }
 	}
 }
 
 /// update information at ncurses mode
-extern void Ncurses_progress_update(struct progress_bar *p, int current, int done)
+extern void Ncurses_progress_update(struct progress_bar *p, int current, int done, int limit)
 {
 #ifdef HAVE_LIBNCURSESW
-	
-	float percent;
-        double speedps = 1.0;
-        float speed = 1.0;
-        int display = 0;
-        time_t remained;
+
+    float percent;
+    double speedps = 1.0;
+    float speed = 1.0;
+    int display = 0;
+    time_t remained;
 	time_t elapsed;
 	time_t total;
 	char *format = "%H:%M:%S";
@@ -211,7 +214,7 @@ static int close_p_ncurses(){
 /// # mkfifo pipe
 /// # (./clone.extfs -d -c -X -s /dev/loop0 2>pipe | cat - > test.img) | ./gauge < pipe
 /// # (cat test - |./clone.extfs -d -X -r -s - -o /dev/loop0 2>pipe) | ./gauge < pipe
-extern void Dialog_progress_update(struct progress_bar *p, int current, int done){
+extern void Dialog_progress_update(struct progress_bar *p, int current, int done, int limit){
         setlocale(LC_ALL, "");
         bindtextdomain(PACKAGE, LOCALEDIR);
         textdomain(PACKAGE);

@@ -92,7 +92,7 @@ extern void usage(void)
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hd::cbro:O:s:RCXFN";
+    static const char *sopt = "-hd::cbro:O:s:RCXFp:N";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "output",		required_argument,  NULL,   'o' },
@@ -106,6 +106,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "check",		no_argument,	    NULL,   'C' },
         { "dialog",		no_argument,	    NULL,   'X' },
         { "force",		no_argument,	    NULL,   'F' },
+        { "p_limit",		no_argument,	    NULL,   'p' },
 #ifdef HAVE_LIBNCURSESW
         { "ncurses",		no_argument,	    NULL,   'N' },
 #endif
@@ -158,6 +159,12 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
                     break;
 	    case 'F':
 		    opt->force++;
+		    break;
+	    case 'p':
+		    if (optarg)
+			opt->p_limit = atol(optarg);
+		    else
+			opt->p_limit = 1;
 		    break;
 	    case 'R':
 		    opt->rescue++;

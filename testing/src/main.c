@@ -398,11 +398,11 @@ int main(int argc, char **argv){
 		free(crc_buffer);
 
 		if (opt.ncurses)
-		    Ncurses_progress_update(&prog, copied, done);
+		    Ncurses_progress_update(&prog, copied, done, opt.p_limit);
 		else if (opt.dialog)
-		    Dialog_progress_update(&prog, copied, done);
+		    Dialog_progress_update(&prog, copied, done, opt.p_limit);
 		else
-		    progress_update(&prog, copied, done);
+		    progress_update(&prog, copied, done, opt.p_limit);
         	
 		copied++;					/// count copied block
 		total_write += (unsigned long long)(w_size);	/// count copied size
@@ -424,11 +424,11 @@ int main(int argc, char **argv){
 		s_count++;
 		if ((s_count >=100) || (done == 1)){
 		    if (opt.ncurses)
-			Ncurses_progress_update(&prog, copied, done);
+			Ncurses_progress_update(&prog, copied, done, opt.p_limit);
 		    else if (opt.dialog)
-			Dialog_progress_update(&prog, copied, done);
+			Dialog_progress_update(&prog, copied, done, opt.p_limit);
 		    else
-			progress_update(&prog, copied, done);
+			progress_update(&prog, copied, done, opt.p_limit);
 
 		    s_count = 0;
 		}
@@ -518,11 +518,11 @@ int main(int argc, char **argv){
 		free(crc_buffer);
 
 		if (opt.ncurses)
-		    Ncurses_progress_update(&prog, copied, done);
+		    Ncurses_progress_update(&prog, copied, done, opt.p_limit);
 		else if (opt.dialog)
-		    Dialog_progress_update(&prog, copied, done);
+		    Dialog_progress_update(&prog, copied, done, opt.p_limit);
 		else
-		    progress_update(&prog, copied, done);
+		    progress_update(&prog, copied, done, opt.p_limit);
 
 		copied++;					/// count copied block
 		total_write += (unsigned long long) w_size;	/// count copied size
@@ -542,11 +542,11 @@ int main(int argc, char **argv){
 		s_count++;
 		if ((s_count >=100) || (done == 1)){
 		    if (opt.ncurses)
-			Ncurses_progress_update(&prog, copied, done);
+			Ncurses_progress_update(&prog, copied, done, opt.p_limit);
 		    else if (opt.dialog)
-			Dialog_progress_update(&prog, copied, done);
+			Dialog_progress_update(&prog, copied, done, opt.p_limit);
 		    else
-			progress_update(&prog, copied, done);
+			progress_update(&prog, copied, done, opt.p_limit);
 		    s_count = 0;
 		}
 		log_mesg(2, 0, 0, debug, "end\n");
@@ -618,11 +618,11 @@ int main(int argc, char **argv){
 		/// free buffer
 		free(buffer);
 		if (opt.ncurses)
-		    Ncurses_progress_update(&prog, copied, done);
+		    Ncurses_progress_update(&prog, copied, done, opt.p_limit);
 		else if (opt.dialog)
-		    Dialog_progress_update(&prog, copied, done);
+		    Dialog_progress_update(&prog, copied, done, opt.p_limit);
 		else
-		    progress_update(&prog, copied, done);
+		    progress_update(&prog, copied, done, opt.p_limit);
 		copied++;                                       /// count copied block
 		total_write += (unsigned long long)(w_size);    /// count copied size
 		log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
@@ -643,11 +643,11 @@ int main(int argc, char **argv){
 		s_count++;
 		if ((s_count >=100) || (done == 1)){
 		    if (opt.ncurses)
-			Ncurses_progress_update(&prog, copied, done);
+			Ncurses_progress_update(&prog, copied, done, opt.p_limit);
 		    else if (opt.dialog)
-			Dialog_progress_update(&prog, copied, done);
+			Dialog_progress_update(&prog, copied, done, opt.p_limit);
 		    else
-			progress_update(&prog, copied, done);
+			progress_update(&prog, copied, done, opt.p_limit);
 		    s_count = 0;
 		}
 
