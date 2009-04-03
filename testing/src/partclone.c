@@ -119,6 +119,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     opt->debug = 0;
     opt->rescue = 0;
     opt->check = 1;
+    opt->p_limit = 10;
 #ifdef RESTORE
     opt->restore++;
     mode++;
@@ -164,7 +165,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 		    if (optarg)
 			opt->p_limit = atol(optarg);
 		    else
-			opt->p_limit = 1;
+			opt->p_limit = 10;
 		    break;
 	    case 'R':
 		    opt->rescue++;
