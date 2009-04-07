@@ -1,3 +1,483 @@
+2009-03-31 03:58  thomas
+
+	* src/Makefile.am, src/Makefile.in, src/version.c:
+	  
+	  update make file * add partclone.ext4 link
+
+2009-03-04 19:17  thomas
+
+	* src/partclone.c, src/version.c:
+	  
+	  merger from unstable
+
+2009-03-04 17:41  thomas
+
+	* src/partclone.c:
+	  
+	  update for va_start, make sure vsprintf is right for x86_64
+
+2009-03-04 05:54  thomas
+
+	* src/deplib_version.c:
+	  
+	  update deplib_version.c to check library version
+
+2009-03-04 04:14  thomas
+
+	* configure, configure.ac, src/deplib_version.c:
+	  
+	  update configure for ext4
+
+2009-03-04 04:00  thomas
+
+	* configure, configure.ac, src/Makefile.am, src/Makefile.in,
+	  src/deplib_version.c, src/ext4clone.c, src/ext4clone.h,
+	  src/extfsclone.c, src/main.c, src/partclone.h, src/version.c:
+	  
+	  back to r198
+
+2009-03-04 03:54  thomas
+
+	* TODO:
+	  
+	  
+
+2009-03-04 03:37  thomas
+
+	* src/deplib_version.c:
+	  
+	  update for lib reiser4
+
+2009-03-04 03:35  thomas
+
+	* configure, configure.ac, src/Makefile.am, src/Makefile.in,
+	  src/ext4clone.c, src/ext4clone.h, src/extfsclone.c, src/main.c,
+	  src/partclone.h, src/version.c:
+	  
+	  add partclone.ext4
+
+2009-03-04 02:04  thomas
+
+	* configure, configure.ac:
+	  
+	  update confiure
+
+2009-03-02 08:38  thomas
+
+	* src/deplib_version.c, src/ntfs_version.c:
+	  
+	  add src/deplib_version.c to check library version for
+	  configuration. remove src/ntfs_version.c and cheange to use
+	  src/deplib_version.c .
+
+2009-02-05 08:20  thomas
+
+	* src/extfsclone.c, src/version.c:
+	  
+	  update debug level
+
+2009-02-05 08:18  thomas
+
+	* src/extfsclone.c, src/version.c:
+	  
+	  fix bug for bitmap
+
+2009-02-05 07:39  thomas
+
+	* src/extfsclone.c, src/version.c:
+	  
+	  fix check_valid fs
+
+2009-02-04 10:36  thomas
+
+	* src/extfsclone.c, src/partclone.c, src/version.c:
+	  
+	  try to fix bug of ext4
+
+2009-01-20 02:29  thomas
+
+	* src/restore.c:
+	  
+	  update restore.c to support restore stdin raw file
+
+2009-01-19 08:07  thomas
+
+	* src/ddclone.c, src/partclone.c, src/version.c:
+	  
+	  make partclone.dd can read stdin to restore date
+
+2009-01-19 07:40  thomas
+
+	* src/extfsclone.c:
+	  
+	  update for ext4
+
+2009-01-16 07:15  thomas
+
+	* src/Makefile.am, src/Makefile.in, src/ddclone.c, src/partclone.c,
+	  src/partclone.h, src/restore.c, src/version.c:
+	  
+	  add partclone.dd and partclone.restore. partclone.dd set all
+	  block as used and save/restore device to/from raw data.
+	  partclone.restore is used to restore device from raw data or
+	  image build from partclone.
+
+2009-01-12 02:16  thomas
+
+	* src/Makefile.am, src/Makefile.in, src/fatclone.c, src/fatclone.h,
+	  src/main.c, src/partclone.c, src/restore.c, src/version.c:
+	  
+	  * add option force progress! use -F/--force to keep progress and
+	  just warrning for memory, disk and FS problem but dangerous. *
+	  add restore utility to restore any image which is made by
+	  partclone.
+
+2008-12-30 05:44  steven
+
+	* debian/changelog, src/version.c:
+	  
+	  * A bug about FAT12 was fixed.
+
+2008-12-29 02:17  thomas
+
+	* src/fatclone.c:
+	  
+	  update fat12 bug. The Fat 12 is ready now!
+
+2008-12-25 07:39  steven
+
+	* debian/changelog, src/ntfsreloc.c, src/version.c:
+	  
+	  * New upstream ntfsreloc.c 0.8.
+
+2008-12-22 03:16  steven
+
+	* partclone.spec:
+	  
+	  updated with 0.0.9-2.
+
+2008-12-22 01:54  steven
+
+	* debian/changelog:
+	  
+	  Updated for 0.0.9-2
+
+2008-12-03 08:05  thomas
+
+	* src/extfsclone.c, src/fatclone.c, src/fatclone.h, src/version.c:
+	  
+	  update fatclone.c fatclone.h clearly. update dirty message for
+	  extfs.
+
+2008-11-18 08:38  thomas
+
+	* src/fatclone.c:
+	  
+	  add check FAT filesystem before clone volume.
+
+2008-11-17 10:02  thomas
+
+	* src/hfsplusclone.c:
+	  
+	  add check hfs_plus filesystem before clone volume.
+
+2008-11-11 13:33  thomas
+
+	* src/extfsclone.c, src/ntfsclone-ng.c, src/partclone.c,
+	  src/reiser4clone.c, src/reiserfsclone.c, src/version.c,
+	  src/xfsclone.c:
+	  
+	  check filesystem before clone partition. Partclone will make sure
+	  reiserfs, ext2/3/4, reiser4 and ntfs is clean before copy data.
+	  The check of fat, xfs and hfsplus is developing.
+
+2008-11-07 05:28  thomas
+
+	* src/ntfsclone-ng.c:
+	  
+	  update dirty message for ntfsclone-ng
+
+2008-10-30 10:49  thomas
+
+	* Makefile.in, aclocal.m4, configure, docs/Makefile.in,
+	  get_ntfs_version, src/Makefile.in, src/ntfsclone-ng.c,
+	  src/partclone.c, src/version.c:
+	  
+	  * remove get_ntfs_version, and always compile get_ntfs_version by
+	  configure * make ntfsclone-ng.c support libntfs version 9 and 10
+	  * never check used block between bitmap and super_block except
+	  option "-d2"
+
+2008-10-30 09:01  thomas
+
+	* Makefile.in, aclocal.m4, configure, configure.ac,
+	  docs/Makefile.in, get_ntfs_version, src/Makefile.in,
+	  src/ntfsclone-ng.c, src/version.c:
+	  
+	  update for old libntfs(9) at debian etch
+
+2008-10-30 07:02  thomas
+
+	* configure, configure.ac:
+	  
+	  update configure to check ntfs_version
+
+2008-10-30 06:44  thomas
+
+	* get_ntfs_version:
+	  
+	  fix get_ntfs_version to get right version number
+
+2008-10-30 03:10  steven
+
+	* README, debian/changelog:
+	  
+	  debian/changelog and README were updated.
+
+2008-10-30 02:58  thomas
+
+	* docs/partclone.ntfs.8.in:
+	  
+	  add man for ntfs
+
+2008-10-22 07:56  thomas
+
+	* configure, configure.ac, docs/Makefile.am, docs/Makefile.in,
+	  po/partclone.pot, po/zh_TW.gmo, po/zh_TW.po, src/ntfsclone-ng.c,
+	  src/partclone.c, src/partclone.h, src/version.c:
+	  
+	  update ntfsclone upgrade version to 0.0.9
+
+2008-10-21 07:55  thomas
+
+	* src/ntfsreloc.c:
+	  
+	  add src/ntfsreloc.c for partclone.ntfsreloc.
+
+2008-10-21 07:42  thomas
+
+	* src/ntfsclone-ng.c, src/partclone.c, src/version.c:
+	  
+	  update segmentation fail for log_mesg in X86_64.
+
+2008-10-20 08:03  thomas
+
+	* configure, configure.ac, src/version.c:
+	  
+	  update configure to check libntfs version.
+
+2008-10-20 05:44  thomas
+
+	* configure, configure.ac, debian/control, get_ntfs_version,
+	  src/ntfs_version.c, src/ntfsclone-ng.c:
+	  
+	  Add get_ntfs_version, src/ntfs_version.c to check libntfs
+	  version. update src/ntfsclone-ng.c for bitmap bug
+
+2008-10-16 08:08  thomas
+
+	* src/Makefile.am, src/Makefile.in, src/version.c:
+	  
+	  add ntfsreloc.c from linux-ntfs.
+
+2008-10-16 06:50  thomas
+
+	* src/ntfsclone-ng.c, src/ntfsclone-ng.h:
+	  
+	  try to support ntfs, the ntfsclone-ng is unstable now.
+
+2008-10-16 06:47  thomas
+
+	* config.h.in, configure, configure.ac, src/Makefile.am,
+	  src/Makefile.in, src/main.c, src/partclone.h, src/version.c:
+	  
+	  try to support NTFS filesystem. unstable!!!
+
+2008-07-30 01:21  c00jhs00
+
+	* debian/changelog, src/version.c:
+	  
+	  update for 0.8.8 release.
+
+2008-07-29 12:01  thomas
+
+	* src/fatclone.c, src/version.c:
+	  
+	  fix-bug for fat 32 file system. The error will calculate wrong
+	  bitmap number.
+
+2008-07-24 07:09  thomas
+
+	* src/Makefile.am, src/Makefile.in, src/version.c:
+	  
+	  update Makefile.am for amd64 compile with static problem. I add
+	  -lcom_err to fix "undefined reference tp 'com_err ". see #16
+
+2008-07-24 03:58  c00jhs00
+
+	* debian/changelog, src/version.c:
+	  
+	  updated notes for 0.0.8-7.
+
+2008-07-24 03:52  thomas
+
+	* src/Makefile.am, src/Makefile.in, src/version.c:
+	  
+	  add partclone.pfsplus link.
+
+2008-07-11 08:14  c00jhs00
+
+	* debian/changelog, src/version.c:
+	  
+	  # Bug fixed: partclone.fat12 link was not done.
+
+2008-07-11 08:10  thomas
+
+	* src/Makefile.am, src/Makefile.in, src/version.c:
+	  
+	  update makefile to link fat12
+
+2008-07-11 07:08  c00jhs00
+
+	* debian/changelog, src/version.c:
+	  
+	  # fat12 was added by Thomas Tsai.
+
+2008-07-10 11:21  thomas
+
+	* src/fatclone.c, src/version.c:
+	  
+	  try to make partclone support fat12
+
+2008-06-28 02:24  c00jhs00
+
+	* debian/changelog, debian/rules, src/version.c:
+	  
+	  # Enable static linking.
+
+2008-06-15 14:50  c00jhs00
+
+	* debian/changelog, src/version.c:
+	  
+	  Changelog updated for 0.8.2-3.
+
+2008-06-15 05:36  thomas
+
+	* po/partclone.pot, po/zh_TW.gmo, po/zh_TW.po, src/partclone.c,
+	  src/version.c:
+	  
+	  update for net TUI tickets: #35, Add a message like "Waiting for
+	  image" or "Please wait..." after "Calculating bitmap..." #37,
+	  Make all the words in Chinese the same - 印象檔 #38, typos
+
+2008-05-25 10:42  thomas
+
+	* Makefile.in, aclocal.m4, config.h.in, configure, configure.ac,
+	  docs/Makefile.in, po/partclone.pot, po/zh_TW.gmo, po/zh_TW.po,
+	  src/Makefile.in, src/partclone.c, src/progress.c:
+	  
+	  * update configure.ac to check ncurses well at different dists.
+
+2008-05-25 01:49  c00jhs00
+
+	* src/partclone.c:
+	  
+	  - partclone.sourceforge.net is replaced by www.partclone.org.
+
+2008-05-25 01:22  c00jhs00
+
+	* Makefile.in, aclocal.m4, configure, configure.ac,
+	  debian/changelog, docs/Makefile.in, src/Makefile.in,
+	  src/version.c:
+	  
+	  # clone.$FS was renamed as partclone.$FS by Thomas Tsai. #
+	  Version number now is 0.0.8.
+
+2008-05-22 01:35  thomas
+
+	* docs/partclone.extfs.8.in, docs/partclone.fat.8.in,
+	  docs/partclone.hfsp.8.in, docs/partclone.reiser4.8.in,
+	  docs/partclone.reiserfs.8.in, docs/partclone.xfs.8.in,
+	  src/version.c:
+	  
+	  * update dics files
+
+2008-05-20 13:58  thomas
+
+	* docs/clone.extfs.8.in, docs/clone.fat.8.in, docs/clone.hfsp.8.in,
+	  docs/clone.reiser4.8.in, docs/clone.reiserfs.8.in,
+	  docs/clone.xfs.8.in, docs/partclone.extfs.8.in,
+	  docs/partclone.fat.8.in, docs/partclone.hfsp.8.in,
+	  docs/partclone.reiser4.8.in, docs/partclone.reiserfs.8.in,
+	  docs/partclone.xfs.8.in:
+	  
+	  * rename man file for partclone
+
+2008-05-19 09:21  thomas
+
+	* src/progress.c, src/version.c:
+	  
+	  * erase window to make terminal clean
+
+2008-05-19 09:16  thomas
+
+	* src/progress.c, src/version.c:
+	  
+	  * fix color for probress bar
+
+2008-05-19 07:42  thomas
+
+	* src/progress.c, src/version.c:
+	  
+	  * try to fix strange bug for
+	  ncurses.(http://www.stevenshiau.org/misc/partclone/partclone2.png)
+
+2008-05-19 06:18  thomas
+
+	* configure, configure.ac, docs/Makefile.am, docs/Makefile.in,
+	  src/Makefile.am, src/Makefile.in, src/main.c, src/progress.c,
+	  src/version.c:
+	  
+	  * accept ticket #33, and update configure, *am, *in files. * make
+	  all clone tools can restore any image which is created by
+	  partclone.
+
+2008-05-16 08:21  c00jhs00
+
+	* debian/changelog, src/version.c:
+	  
+	  change updated for 0.0.7-4
+
+2008-05-16 08:06  thomas
+
+	* src/partclone.c, src/progress.c, src/version.c:
+	  
+	  * fix the latest terminal(64*24) size for ncurses * chage the
+	  color to partimage style.
+
+2008-05-14 10:13  thomas
+
+	* src/main.c, src/partclone.c, src/progress.c, src/version.c:
+	  
+	  update TUI * set background and font color * set window postition
+	  always at center * leave message on stderr when clone fail or
+	  success * If you want to use TUI, the latest terminal size should
+	  be 64x26
+
+2008-05-11 13:48  c00jhs00
+
+	* debian/changelog:
+	  
+	  changelog for version 0.0.7-3
+
+2008-05-07 07:08  thomas
+
+	* ChangeLog, po/partclone.pot, po/zh_TW.gmo, po/zh_TW.po,
+	  src/main.c, src/partclone.c, src/progress.c, src/version.c:
+	  
+	  fix bug for #30 * change to txet mode if terminal color error *
+	  change to text mode if terminal width and height too small
+
 2008-05-01 08:21  thomas
 
 	* src/progress.c, src/version.c:
@@ -639,26 +1119,26 @@
 
 2008-01-03 09:19  thomas
 
-	* :
+	* 
 	  
 	  add print version information at --help.
 
 2008-01-03 09:14  thomas
 
-	* :
+	* 
 	  
 	  check stdin/stdout User can't clone from stdin or restore to
 	  stdout.
 
 2008-01-03 08:56  thomas
 
-	* :
+	* 
 	  
 	  add image version control.
 
 2008-01-03 08:47  thomas
 
-	* :
+	* 
 	  
 	  add crc check function to avoid data I/O error. reference libcrc
 	  which mainatined by Lammert Bies 1999-2007
@@ -666,45 +1146,45 @@
 
 2008-01-03 05:45  thomas
 
-	* :
+	* 
 	  
 	  add default source is -/stdin. default target is -/stdout.
 
 2008-01-03 03:58  thomas
 
-	* :
+	* 
 	  
 	  fix the ticke about "The better informatio at clone/restore"
 
 2008-01-02 19:31  thomas
 
-	* :
+	* 
 	  
 	  update zh_tw.gmo
 
 2008-01-02 18:30  thomas
 
-	* :
+	* 
 	  
 	  Change Image metadata format! add filesystem information in
 	  image_head add buff[4096] in image_head for use in the future.
 
 2008-01-02 14:04  jazz
 
-	* :
+	* 
 	  
 	  * These template files is not necessary for current packaging
 	  usage.
 
 2008-01-02 13:59  thomas
 
-	* :
+	* 
 	  
 	  add infoclone.c to print Image file information.
 
 2008-01-02 13:37  jazz
 
-	* :
+	* 
 	  
 	  * modified debian/[control, changelog, rules] - to build debian
 	  package with static linking binary as default
@@ -715,102 +1195,102 @@
 
 2008-01-02 12:22  jazz
 
-	* :
+	* 
 	  
 	  * [BUGFIX][BUG #1] fixed linking time error while enabling
 	  support of xfs.
 
 2008-01-02 09:29  thomas
 
-	* :
+	* 
 	  
 	  add function check_size to check dest partition size. make sure
 	  the size is enough.
 
 2008-01-02 08:40  thomas
 
-	* :
+	* 
 	  
 	  fix a bug in partclone.c. to make sure it return the I/O size.
 
 2008-01-02 08:15  thomas
 
-	* :
+	* 
 	  
 	  check I/O syncronization while using pipe and stdin I use
 	  read_all and write_all to replace read and write.
 
 2008-01-02 05:02  jazz
 
-	* :
+	* 
 	  
 	  add ToDo List: I/O syncronization
 
 2008-01-02 04:55  jazz
 
-	* :
+	* 
 	  
 	  add ToDo list: checksum
 
 2008-01-02 04:46  jazz
 
-	* :
+	* 
 	  
 	  update ToDo List: new bug #1
 
 2008-01-02 04:40  jazz
 
-	* :
+	* 
 	  
 	  add ToDo List
 
 2008-01-02 03:26  thomas
 
-	* :
+	* 
 	  
 	  add more information about the size, xxx MB, xxx Byte... update
 	  zh_tw.po
 
 2008-01-01 13:22  c00jhs00
 
-	* :
+	* 
 	  
 	  ...
 
 2008-01-01 13:10  c00jhs00
 
-	* :
+	* 
 	  
 	  add % for status report.
 
 2008-01-01 13:03  c00jhs00
 
-	* :
+	* 
 	  
 	  ...
 
 2008-01-01 11:30  jazz
 
-	* :
+	* 
 	  
 	  * fix pipe syncronization problem - reference from ntfsclone.c
 	  io_all() function
 
 2008-01-01 04:08  c00jhs00
 
-	* :
+	* 
 	  
 	  ...
 
 2008-01-01 03:49  c00jhs00
 
-	* :
+	* 
 	  
 	  Update the descriptions in help.
 
 2007-12-31 10:06  jazz
 
-	* :
+	* 
 	  
 	  * modified configure.ac and src/Makefile.am to add support to
 	  compile static linking programs * Makefile.in, configure and
@@ -818,68 +1298,68 @@
 
 2007-12-31 07:55  c00jhs00
 
-	* :
+	* 
 	  
 	  spec for rpm package.
 
 2007-12-31 07:36  jazz
 
-	* :
+	* 
 	  
 	  testing http://free.nchc.org.tw/cvs2rss.php
 
 2007-12-13 07:35  thomas
 
-	* :
+	* 
 	  
 	  dd files for debian
 
 2007-12-13 07:25  thomas
 
-	* :
+	* 
 	  
 	  add debian for make debian package
 
 2007-12-10 15:44  c00jhs00
 
-	* :
+	* 
 	  
 	  ...
 
 2007-11-26 09:10  thomas
 
-	* :
+	* 
 	  
 	  fix stdout/stdin bug
 
 2007-11-26 08:40  thomas
 
-	* :
+	* 
 	  
 	  fix no --debug error make partclone always open log file
 
 2007-11-26 07:07  thomas
 
-	* :
+	* 
 	  
 	  fix large file support and hfsp get free bitmap error
 
 2007-11-26 00:31  thomas
 
-	* :
+	* 
 	  
 	  default not enable reiserfs, until progsreiserfs can get from
 	  debian
 
 2007-11-25 06:46  thomas
 
-	* :
+	* 
 	  
 	  Initial revision
 
 2007-11-25 06:46  
 
-	* :
+	* 
 	  
 	  New repository initialized by cvs2svn.
 
