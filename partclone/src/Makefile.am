@@ -17,7 +17,7 @@ if ENABLE_EXTFS
 sbin_PROGRAMS += partclone.extfs
 partclone_extfs_SOURCES=main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
 partclone_extfs_CFLAGS=-DEXTFS
-partclone_extfs_LDADD=-lext2fs -lcom_err
+partclone_extfs_LDADD=-lext2fs -lcom_err -lpthread
 endif
 
 if ENABLE_REISERFS
