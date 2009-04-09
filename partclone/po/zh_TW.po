@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.0.4\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2008-10-22 15:16+0800\n"
+"POT-Creation-Date: 2009-04-09 23:56+0800\n"
 "PO-Revision-Date: 2007-11-01 11:35+0800\n"
 "Last-Translator: Yu-Chin Tsai <thomas@nchc.org.tw>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -97,62 +97,62 @@ msgstr ""
 " 平均速率: %6.1fMB/min\n"
 " 100.00%% 已經完成！\n"
 
-#: src/partclone.c:814
+#: src/partclone.c:868
 #, c-format
 msgid "Partclone v%s (%s) www.partclone.org, partclone.nchc.org.tw\n"
 msgstr ""
 
-#: src/partclone.c:816
+#: src/partclone.c:870
 #, c-format
 msgid "Starting clone device (%s) to image (%s)\n"
 msgstr "開始備份 裝置 (%s) 到 印像檔 (%s)\n"
 
-#: src/partclone.c:818
+#: src/partclone.c:872
 #, c-format
 msgid "Starting restore image (%s) to device (%s)\n"
 msgstr "開始還原印 像檔 (%s) 到 裝置 (%s)\n"
 
-#: src/partclone.c:820
+#: src/partclone.c:874
 #, c-format
 msgid "Starting back up device(%s) to device(%s)\n"
 msgstr "開始備份 裝置 (%s) 到 裝置 (%s)\n"
 
-#: src/partclone.c:823
+#: src/partclone.c:877
 #, c-format
 msgid "File system: %s\n"
 msgstr "檔案系統: %s\n"
 
-#: src/partclone.c:824
+#: src/partclone.c:878
 #, c-format
 msgid "Device size: %lli MB\n"
 msgstr "裝置大小: %lli MB\n"
 
-#: src/partclone.c:825
+#: src/partclone.c:879
 #, c-format
 msgid "Space in use: %lli MB\n"
 msgstr "裝置使用到空間: %lli MB\n"
 
-#: src/partclone.c:826
+#: src/partclone.c:880
 #, c-format
 msgid "Block size: %i Byte\n"
 msgstr "裝置區塊大小: %i Byte\n"
 
-#: src/partclone.c:827
+#: src/partclone.c:881
 #, c-format
 msgid "Used block count: %lli\n"
 msgstr "裝置使用區塊數量: %lli\n"
 
-#: src/partclone.c:839
+#: src/partclone.c:893
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr "備份 裝置 (%s) 到 印像檔 (%s) 完成\n"
 
-#: src/partclone.c:841
+#: src/partclone.c:895
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr "還原印 像檔 (%s) 到 裝置 (%s) 完成\n"
 
-#: src/partclone.c:843
+#: src/partclone.c:897
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr "備份 裝置 (%s) 到 印像檔 (%s) 完成\n"
