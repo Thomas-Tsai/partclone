@@ -1,3 +1,10 @@
+partclone (0.1.0-3) unstable; urgency=low
+
+    [ Thomas Tsai ]
+    * Bug fixed: partclone.ntfs statistics data was wrong when doing partition to partition clone.
+    
+ -- Steven Shiau <steven@nchc.org.tw>  Tue, 15 Apr 2009 10:52:00 +0800
+
 partclone (0.1.0-2) unstable; urgency=low
 
     [ Steven Shiau ]
