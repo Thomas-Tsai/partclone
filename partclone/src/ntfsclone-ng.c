@@ -33,9 +33,9 @@
 #include <ntfs/bitmap.h>
 
 #include "partclone.h"
-#include "reiserfsclone.h"
+#include "ntfsclone.h"
 
-//define mount flag
+/// define mount flag
 #ifdef NTFS_MNT_RDONLY
     #define LIBNTFS_VER_10 1
 #else
@@ -151,11 +151,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     memcpy(image_hdr->fs, ntfs_MAGIC, FS_MAGIC_SIZE);
     image_hdr->block_size  = (int)ntfs->cluster_size;
     image_hdr->totalblock  = (unsigned long long)ntfs->nr_clusters;
-    image_hdr->usedblocks  = 0;
-
-#ifdef LIBNTFS_VER_10
-        image_hdr->usedblocks  = (unsigned long long)(ntfs->nr_clusters - ntfs->nr_free_clusters - 1);
-#endif
+    image_hdr->usedblocks  = (unsigned long long)(ntfs->nr_clusters - ntfs->nr_free_clusters - 1);
     image_hdr->device_size = (unsigned long long)ntfs_device_size_get(ntfs->dev, 1);
     fs_close();
 }

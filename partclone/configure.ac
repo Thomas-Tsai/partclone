@@ -47,7 +47,7 @@ AC_CHECK_HEADERS([ext2fs/ext2fs.h], ,
 AC_CHECK_LIB([ext2fs], [ext2fs_initialize], ,
     AC_MSG_ERROR([*** EXT2/3 library (libext2fs) not found]))
 AC_MSG_CHECKING(version of libextfs)
-extfs_version=`gcc $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lext2fs -DEXTFS`
+extfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lext2fs -DEXTFS`
 extfs_version=`$srcdir/get_lib_version extfs | cut -d'.' -f1`
 extfs_version_major=`$srcdir/get_lib_version extfs | cut -d'.' -f2`
 extfs_version_minor=`$srcdir/get_lib_version extfs | cut -d'.' -f3`
@@ -120,7 +120,7 @@ AC_CHECK_LIB([reiserfs], [reiserfs_fs_open], ,
 AC_CHECK_LIB([dal], [file_dal_open], ,
     AC_MSG_ERROR([*** Reiserfs depend library (libdal) not found]))
 AC_MSG_CHECKING(version of libreiserfs)
-reiserfs_version=`gcc $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiserfs -DREISERFS`
+reiserfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiserfs -DREISERFS`
 reiserfs_version=`$srcdir/get_lib_version reiserfs | cut -d'.' -f1`
 reiserfs_version_major=`$srcdir/get_lib_version reiserfs | cut -d'.' -f2`
 reiserfs_version_minor=`$srcdir/get_lib_version reiserfs | cut -d'.' -f3`
@@ -176,7 +176,7 @@ AC_CHECK_HEADERS([reiser4/libreiser4.h], ,
 AC_CHECK_LIB([aal], [aal_device_open], ,
     AC_MSG_ERROR([*** Reiser4 depend library (libaal) not found]))
 AC_MSG_CHECKING(version of libreiser4)
-reiser4_version=`gcc $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiser4 -laal -DREISER4`
+reiser4_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiser4 -laal -DREISER4`
 reiser4_version=`$srcdir/get_lib_version reiser4 | cut -d'.' -f1`
 reiser4_version_major=`$srcdir/get_lib_version reiser4 | cut -d'.' -f2`
 reiser4_version_minor=`$srcdir/get_lib_version reiser4 | cut -d'.' -f3`
@@ -249,7 +249,7 @@ AC_CHECK_LIB([ntfs], [ntfs_mount], ,
         AC_MSG_ERROR([*** ntfs depend library (libntfs) not found]))
 )
 AC_MSG_CHECKING(version of libntfs)
-ntfs_version=`gcc $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lntfs -DNTFS`
+ntfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lntfs -DNTFS`
 ntfs_version=`$srcdir/get_lib_version ntfs | cut -d':' -f1`
 ntfs_version_major=`$srcdir/get_lib_version ntfs | cut -d':' -f2`
 ntfs_version_minor=`$srcdir/get_lib_version ntfs | cut -d':' -f3`

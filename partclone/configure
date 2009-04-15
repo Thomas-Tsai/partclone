@@ -7540,7 +7540,7 @@ fi
 
 { echo "$as_me:$LINENO: checking version of libextfs" >&5
 echo $ECHO_N "checking version of libextfs... $ECHO_C" >&6; }
-extfs_version=`gcc $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lext2fs -DEXTFS`
+extfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lext2fs -DEXTFS`
 extfs_version=`$srcdir/get_lib_version extfs | cut -d'.' -f1`
 extfs_version_major=`$srcdir/get_lib_version extfs | cut -d'.' -f2`
 extfs_version_minor=`$srcdir/get_lib_version extfs | cut -d'.' -f3`
@@ -8152,7 +8152,7 @@ fi
 
 { echo "$as_me:$LINENO: checking version of libreiserfs" >&5
 echo $ECHO_N "checking version of libreiserfs... $ECHO_C" >&6; }
-reiserfs_version=`gcc $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiserfs -DREISERFS`
+reiserfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiserfs -DREISERFS`
 reiserfs_version=`$srcdir/get_lib_version reiserfs | cut -d'.' -f1`
 reiserfs_version_major=`$srcdir/get_lib_version reiserfs | cut -d'.' -f2`
 reiserfs_version_minor=`$srcdir/get_lib_version reiserfs | cut -d'.' -f3`
@@ -8519,7 +8519,7 @@ fi
 
 { echo "$as_me:$LINENO: checking version of libreiser4" >&5
 echo $ECHO_N "checking version of libreiser4... $ECHO_C" >&6; }
-reiser4_version=`gcc $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiser4 -laal -DREISER4`
+reiser4_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiser4 -laal -DREISER4`
 reiser4_version=`$srcdir/get_lib_version reiser4 | cut -d'.' -f1`
 reiser4_version_major=`$srcdir/get_lib_version reiser4 | cut -d'.' -f2`
 reiser4_version_minor=`$srcdir/get_lib_version reiser4 | cut -d'.' -f3`
@@ -8847,7 +8847,7 @@ done
 
 { echo "$as_me:$LINENO: checking version of libntfs" >&5
 echo $ECHO_N "checking version of libntfs... $ECHO_C" >&6; }
-ntfs_version=`gcc $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lntfs -DNTFS`
+ntfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lntfs -DNTFS`
 ntfs_version=`$srcdir/get_lib_version ntfs | cut -d':' -f1`
 ntfs_version_major=`$srcdir/get_lib_version ntfs | cut -d':' -f2`
 ntfs_version_minor=`$srcdir/get_lib_version ntfs | cut -d':' -f3`
