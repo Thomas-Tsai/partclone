@@ -27,7 +27,7 @@
 #include "extfsclone.h"
 
 ext2_filsys  fs;
-char *EXECNAME = "clone.extfs";
+char *EXECNAME = "partclone.extfs";
 
 /// open device
 static void fs_open(char* device){

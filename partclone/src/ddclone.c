@@ -39,6 +39,7 @@
 /// global variable
 cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
 p_dialog_mesg	m_dialog;			/// dialog format string
+char *EXECNAME = "partclone.dd";
 
 /**
  * main functiom - for colne or restore data
@@ -152,8 +153,14 @@ int main(int argc, char **argv){
 	log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
 
     needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
-    if (opt.check)
-	check_free_space(&dfw, needed_size);
+
+    if (opt.check){
+	if (opt.clone){
+	    check_free_space(&dfw, needed_size);
+	} else {
+	    check_size(&dfw, image_hdr.device_size);
+	}
+    }
 
     log_mesg(1, 0, 0, debug, "print image_head\n");
 

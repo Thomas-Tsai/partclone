@@ -29,7 +29,7 @@
 
 struct HFSPlusVolumeHeader sb;
 int ret;
-char *EXECNAME = "clone.hfsplus";
+char *EXECNAME = "partclone.hfsp";
 
 static short reverseShort(short s){
     unsigned char c1, c2;

@@ -75,7 +75,7 @@ extern void usage(void)
 #ifndef	RESTORE
         "    -c,  --clone            Save to the special image format\n"
         "    -r,  --restore          Restore from the special image format\n"
-	"    -b,  --dd-mode          Save to sector-to-sector format\n"
+	"    -b,  --dev-to-dev       Local device to device copy mode\n"
         "    -R,  --rescue           Continue after disk read errors\n"
 #endif
         "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
@@ -100,7 +100,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "source",		required_argument,  NULL,   's' },
         { "restore-image",	no_argument,	    NULL,   'r' },
         { "clone-image",	no_argument,	    NULL,   'c' },
-        { "dd-mode",		no_argument,	    NULL,   'b' },
+        { "dev-to-dev",		no_argument,	    NULL,   'b' },
         { "debug",		optional_argument,  NULL,   'd' },
         { "rescue",		no_argument,	    NULL,   'R' },
         { "check",		no_argument,	    NULL,   'C' },
@@ -459,37 +459,6 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
 	image_hdr->device_size = dev_size;
 }
 
-/// check partition size
-extern int check_size(int* ret, unsigned long long size){
-
-    unsigned long long dest_size;
-    unsigned long dest_block;
-    int debug = 1;
-
-#ifdef BLKGETSIZE64
-    if (ioctl(*ret, BLKGETSIZE64, &dest_size) < 0) {
-        log_mesg(0, 0, 0, debug, "get device size error\n");
-    }
-    log_mesg(0, 0, 0, debug, "Device(64) - Target size: %lliMB  Original size: %lliMB\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
-    if (dest_size < size)
-	log_mesg(0, 1, 1, debug, "The dest partition size is smaller than original partition. (Target: %lliMB < Original: %lliMB)\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
-    return 1;
-#endif
-
-#ifdef BLKGETSIZE
-    if (ioctl(*ret, BLKGETSIZE, &dest_block) >= 0) {
-            dest_size = (unsigned long long)(dest_block * 512);
-    }
-    log_mesg(0, 0, 0, debug, "Device - Target size: %lliMB  Original size: %lliMB\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
-    if (dest_size < size)
-	log_mesg(0, 1, 1, debug, "The dest partition size is smaller than original partition. (Target: %lliMB < Original: %lliMB)\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
-    return 1;
-#endif
-
-    return 0;
-
-}
-
 /// get partition size
 extern unsigned long long get_partition_size(int* ret){
 
@@ -509,12 +478,16 @@ extern unsigned long long get_partition_size(int* ret){
 	    if (ioctl(*ret, BLKGETSIZE64, &dest_size) < 0) {
 		log_mesg(0, 0, 0, debug, "get device size error\n");
 	    }
+	    log_mesg(1, 0, 0, debug, "get device size %lli by ioctl BLKGETSIZE64,\n", dest_size);
+	    return dest_size;
 #endif
 
 #ifdef BLKGETSIZE
 	    if (ioctl(*ret, BLKGETSIZE, &dest_block) >= 0) {
 		dest_size = (unsigned long long)(dest_block * 512);
 	    }
+	    log_mesg(1, 0, 0, debug, "get block %li and device size %lli by ioctl BLKGETSIZE,\n", dest_block, dest_size);
+	    return dest_size;
 #endif
 	}
     } else {
@@ -523,6 +496,21 @@ extern unsigned long long get_partition_size(int* ret){
     }
 
     return dest_size;
+
+}
+/// check partition size
+extern int check_size(int* ret, unsigned long long size){
+
+    unsigned long long dest_size;
+    int debug = 1;
+
+    dest_size = get_partition_size(ret);
+    if (dest_size < size){
+	log_mesg(0, 1, 1, debug, "Target partition size(%lli MB) is smaller than source(%lli MB).\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
+	return 1;
+    }
+
+    return 0;
 
 }
 

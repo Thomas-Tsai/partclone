@@ -23,7 +23,7 @@
 #include "partclone.h"
 #include "xfsclone.h"
 
-char *EXECNAME = "clone.xfs";
+char *EXECNAME = "partclone.xfs";
 
 libxfs_init_t   x;
 xfs_mount_t     xmount;
