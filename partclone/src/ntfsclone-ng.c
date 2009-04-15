@@ -33,7 +33,7 @@
 #include <ntfs/bitmap.h>
 
 #include "partclone.h"
-#include "ntfsclone.h"
+#include "ntfsclone-ng.h"
 
 /// define mount flag
 #ifdef NTFS_MNT_RDONLY
