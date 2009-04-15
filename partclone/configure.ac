@@ -98,7 +98,7 @@ AC_CHECK_HEADERS([xfs/libxfs.h], ,
 )
 supported_fs=$supported_fs" xfs"
 fi
-xfs_version="Unknow"
+xfs_version="unknown"
 #end of check xfs
 
 ##reiserfs##
