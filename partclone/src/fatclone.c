@@ -52,7 +52,7 @@ static void get_fat_type(){
 	fat_type = "FAT32";
 	log_mesg(2, 0, 0, 2, "FAT Type : FAT 32\n");
     } else {
-	log_mesg(2, 0, 0, 2, "unknow fat type!!\n");
+	log_mesg(0, 1, 1, 2, "Unknown fat type!!\n");
     }
     log_mesg(2, 0, 0, 2, "FS = %i\n", FS);
 

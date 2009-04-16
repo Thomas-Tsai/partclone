@@ -53,7 +53,7 @@ static void fs_open(char* device){
     }
 
     if (!(fs = reiser4_fs_open(fs_device, 0))) {
-            log_mesg(0, 1, 1, debug, "Can't open reiser4 on %s", device);
+            log_mesg(0, 1, 1, debug, "Can't open reiser4 on %s\n", device);
     }
 
    //reiser4_opset_profile(fs->tree->ent.opset);

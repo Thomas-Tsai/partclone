@@ -126,7 +126,7 @@ static void fs_open(char* device)
     sbp = &xmount.m_sb;
     if (sbp->sb_magicnum != XFS_SB_MAGIC) 
     {
-	log_mesg(0, 1, 1, debug, "magic(0x%08x) error\n", sbp->sb_magicnum);
+	log_mesg(0, 1, 1, debug, "NOT XFS partition, the magic(0x%08x) error\n", sbp->sb_magicnum);
     }
     
     if (!XFS_SB_GOOD_VERSION(sbp)) 

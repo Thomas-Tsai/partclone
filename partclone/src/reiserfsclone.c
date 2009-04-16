@@ -36,15 +36,11 @@ static void fs_open(char* device){
     int debug = 2;
 
     if (!(dal = (dal_t*)file_dal_open(device, DEFAULT_BLOCK_SIZE, O_RDONLY))) {
-	libreiserfs_exception_throw(EXCEPTION_ERROR, EXCEPTION_CANCEL,
-		"Couldn't create device abstraction "
-		"for %s.", device);
+	log_mesg(0, 1, 1, debug, "Couldn't create device abstraction for %s.\n", device);
     }
 
     if (!(fs = reiserfs_fs_open(dal, dal))) {
-	libreiserfs_exception_throw(EXCEPTION_ERROR, EXCEPTION_CANCEL,
-		"Couldn't open filesystem on %s.",
-				    device);
+	log_mesg(0, 1, 1, debug, "Couldn't open filesystem on %s.\n",device);
     }
 
     if (get_sb_umount_state(fs->super) != FS_CLEAN)

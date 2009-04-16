@@ -56,7 +56,7 @@ static void fs_open(char* device){
     ntfs = ntfs_mount(device, NTFS_MNT_RDONLY);
     if (!ntfs) {
 	err = errno;
-	log_mesg(0, 1, 1, debug, "ntfs mount error %i\n", err);
+	log_mesg(0, 1, 1, debug, "NOT NTFS partition, ntfs mount error %i\n", err);
     } else {
 	if (ntfs->flags & VOLUME_IS_DIRTY) {
 	    log_mesg(0, 1, 1, debug, "NTFS Volume '%s' is scheduled for a check or it was shutdown\nuncleanly. Please boot Windows or fix it by fsck.\n", device);
