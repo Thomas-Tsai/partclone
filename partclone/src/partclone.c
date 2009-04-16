@@ -476,7 +476,7 @@ extern unsigned long long get_partition_size(int* ret){
 
 #ifdef BLKGETSIZE64
 	    if (ioctl(*ret, BLKGETSIZE64, &dest_size) < 0) {
-		log_mesg(0, 0, 0, debug, "get device size error\n");
+		log_mesg(0, 0, 0, debug, "get device size error, Use option -C to disable size checking(Dangerous).\n");
 	    }
 	    log_mesg(1, 0, 0, debug, "get device size %lli by ioctl BLKGETSIZE64,\n", dest_size);
 	    return dest_size;
@@ -491,7 +491,7 @@ extern unsigned long long get_partition_size(int* ret){
 #endif
 	}
     } else {
-	log_mesg(0, 0, 0, debug, "fstat size error\n");
+	log_mesg(0, 0, 0, debug, "fstat size error, Use option -C to disable size checking(Dangerous).\n");
     
     }
 
@@ -506,7 +506,7 @@ extern int check_size(int* ret, unsigned long long size){
 
     dest_size = get_partition_size(ret);
     if (dest_size < size){
-	log_mesg(0, 1, 1, debug, "Target partition size(%lli MB) is smaller than source(%lli MB).\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
+	log_mesg(0, 1, 1, debug, "Target partition size(%lli MB) is smaller than source(%lli MB). Use option -C to disable size checking(Dangerous).\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
 	return 1;
     }
 

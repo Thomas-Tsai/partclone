@@ -164,10 +164,32 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     fs_close();
 }
 
+/// get extfs type
+static int test_extfs_type(char* device){
+    int debug = 1;
+    int ext2 = 1;
+    int ext3 = 2;
+    int ext4 = 3;
+    fs_open(device);
+    if(fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM){
+	log_mesg(1, 0, 0, debug, "test feature as EXT4\n");
+	return ext4;
+    } else if (fs->super->s_feature_compat & EXT3_FEATURE_COMPAT_HAS_JOURNAL){
+	log_mesg(1, 0, 0, debug, "test feature as EXT3\n");
+	return ext3;
+    } else {
+	log_mesg(1, 0, 0, debug, "test feature as EXT2\n");
+	return ext2;
+    }
+    fs_close();
+    return 0;
+}
+
 /// read super block and write to image head
 extern void initial_image_hdr(char* device, image_head* image_hdr)
 {
-
+    int fs_type = 0;
+    fs_type = test_extfs_type(device);
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
     memcpy(image_hdr->fs, extfs_MAGIC, FS_MAGIC_SIZE);
     fs_open(device);

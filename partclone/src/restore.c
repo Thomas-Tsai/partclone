@@ -179,8 +179,9 @@ int main(int argc, char **argv){
 		get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
 		/// check the dest partition size.
-		if((opt.check) && (check_size(&dfw, image_hdr.device_size) != 1))
-		    log_mesg(0, 1, 1, debug, "Can't get device size, use option -C to disable size checking.\n");
+		if(opt.check){
+		    check_size(&dfw, image_hdr.device_size);
+		}
 
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
 	    }else{

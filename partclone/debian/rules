@@ -53,7 +53,7 @@ clean:
 	rm -f build-stamp 
 
 	# Add here commands to clean up after the build process.
-	-$(MAKE) distclean
+	-$(MAKE) dist clean
 
 	dh_clean 
 
