@@ -154,8 +154,7 @@ int main(int argc, char **argv){
 
 	    /// check the image magic
 	    if (memcmp(image_hdr_magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE) == 0){
-		sf = lseek(dfr, 0, SEEK_SET);
-		restore_image_hdr(&dfr, &opt, &image_hdr);
+		restore_image_hdr_sp(&dfr, &opt, &image_hdr, &image_hdr_magic);
 
 		/// check memory size
 		if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
@@ -194,13 +193,10 @@ int main(int argc, char **argv){
 		/// get Super Block information from partition
 		initial_dd_hdr(dfr, &image_hdr);
 
-		/// check memory size
-		if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
-		    log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
-
-		needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
-		if (opt.check)
-		    check_free_space(&dfw, needed_size);
+		/// check the dest partition size.
+		if(opt.check){
+		    check_size(&dfw, image_hdr.device_size);
+		}
 	    }
     }
 

@@ -439,6 +439,7 @@ extern void close_log(){
 /**
  * for restore used functions
  * restore_image_hdr	- get image_head from image file 
+ * restore_image_hdr_sp	- get image_head from image file 
  * get_image_bitmap	- read bitmap data from image file
  */
 extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
@@ -458,7 +459,24 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
     if (image_hdr->device_size != dev_size)
 	image_hdr->device_size = dev_size;
 }
+extern void restore_image_hdr_sp(int* ret, cmd_opt* opt, image_head* image_hdr, char* first_sec){
+    int r_size;
+    char* buffer;
+    unsigned long long dev_size;
+    int debug = opt->debug;
 
+    buffer = (char*)malloc(sizeof(image_head));
+    //r_size = read(*ret, buffer, sizeof(image_head));
+    memcpy(buffer, first_sec, 512);
+    r_size = read_all(ret, (buffer+512), (sizeof(image_head)-512), opt);
+    if (r_size == -1)
+        log_mesg(0, 1, 1, debug, "read image_hdr error\n");
+    memcpy(image_hdr, buffer, sizeof(image_head));
+    free(buffer);
+    dev_size = (unsigned long long)(image_hdr->totalblock * image_hdr->block_size);
+    if (image_hdr->device_size != dev_size)
+	image_hdr->device_size = dev_size;
+}
 /// get partition size
 extern unsigned long long get_partition_size(int* ret){
 

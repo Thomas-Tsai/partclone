@@ -122,6 +122,7 @@ struct image_head
 typedef struct image_head image_head;
 
 extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr);
+extern void restore_image_hdr_sp(int* ret, cmd_opt* opt, image_head* image_hdr, char* first_sec);
 extern void get_image_hdr(int* ret, cmd_opt opt, image_head image_hdr, char* bitmap);
 
 /**
