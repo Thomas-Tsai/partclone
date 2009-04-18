@@ -1,3 +1,10 @@
+partclone (0.1.0-6) unstable; urgency=low
+
+    [ Thomas Tsai ]
+    * A bug about partclone.restore used to restore known file systems was fixed.
+    
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 18 Apr 2009 09:59:00 +0800
+
 partclone (0.1.0-5) unstable; urgency=low
 
     [ Thomas Tsai ]
