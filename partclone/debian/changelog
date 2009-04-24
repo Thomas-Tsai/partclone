@@ -1,3 +1,13 @@
+partclone (0.1.0-8) unstable; urgency=low
+
+    [ Steven Shiau ]
+    * Minor updates for output messages.
+
+    [ Thomas Tsai ]
+    * EXECNAME was added for partclone.restore.
+    
+ -- Steven Shiau <steven@nchc.org.tw>  Fri, 24 Apr 2009 14:07:00 +0800
+
 partclone (0.1.0-7) unstable; urgency=low
 
     [ Thomas Tsai ]

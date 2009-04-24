@@ -1,3 +1,156 @@
+2009-04-24 02:45  thomas
+
+	* src/restore.c:
+	  
+	  add EXECNAME
+
+2009-04-24 02:20  steven
+
+	* src/restore.c, src/version.c:
+	  
+	  "clone successfully" was changed to "Successfully cloned."
+
+2009-04-23 11:03  steven
+
+	* debian/changelog:
+	  
+	  updated for 0.1.0-7
+
+2009-04-23 07:16  thomas
+
+	* src/Makefile.am, src/Makefile.in, src/version.c:
+	  
+	  add link partclone.ext4dev
+
+2009-04-18 02:42  steven
+
+	* po/zh_TW.po:
+	  
+	  Updated.
+
+2009-04-18 02:09  steven
+
+	* debian/changelog, src/version.c:
+	  
+	  Updated for version 0.1.0-6.
+
+2009-04-17 11:20  thomas
+
+	* src/partclone.c, src/partclone.h, src/restore.c, src/version.c:
+	  
+	  fix partclone.restore can't get source data from pipe which is
+	  organized FS.
+
+2009-04-17 08:57  thomas
+
+	* po/partclone.pot, po/zh_TW.gmo, po/zh_TW.po:
+	  
+	  update po files
+
+2009-04-16 07:32  thomas
+
+	* src/fatclone.c, src/ntfsclone-ng.c, src/reiser4clone.c,
+	  src/reiserfsclone.c, src/xfsclone.c:
+	  
+	  update check fs type and error message for reiser4, reiserfs,
+	  xfs, ntfs and extfs.
+
+2009-04-16 07:19  steven
+
+	* src/partclone.c, src/version.c:
+	  
+	  www.partclone.org was changed to partclone.org.
+
+2009-04-16 07:10  steven
+
+	* debian/changelog:
+	  
+	  Updated for partclone 0.1.0-5
+
+2009-04-16 06:59  thomas
+
+	* debian/rules, src/extfsclone.c, src/extfsclone.h, src/main.c,
+	  src/partclone.c, src/partclone.h, src/restore.c:
+	  
+	  * update ext2/3/4 message * fix bug, update check_size return
+	  value
+
+2009-04-16 04:19  steven
+
+	* debian/changelog, src/version.c:
+	  
+	  Update chnagelog for release 0.1.0-4
+
+2009-04-15 16:24  thomas
+
+	* po/partclone.pot, po/zh_TW.gmo, po/zh_TW.po, src/ddclone.c,
+	  src/extfsclone.c, src/hfsplusclone.c, src/partclone.c,
+	  src/reiser4clone.c, src/reiserfsclone.c, src/version.c,
+	  src/xfsclone.c:
+	  
+	  update * EXECNAME in xxxclone.c * change description of dd-mode
+	  as dev-to-dev Local copy... * fix bug about get_partition size
+
+2009-04-15 03:30  steven
+
+	* debian/changelog:
+	  
+	  [ Thomas Tsai ] * Bug fixed: partclone.ntfs statistics data was
+	  wrong when doing partition to partition clone.
+
+2009-04-15 02:47  thomas
+
+	* configure, configure.ac:
+	  
+	  update xfs unknow to unknown
+
+2009-04-15 02:14  thomas
+
+	* src/ntfsclone-ng.c:
+	  
+	  update #include
+
+2009-04-15 02:12  thomas
+
+	* configure, configure.ac, src/ntfsclone-ng.c:
+	  
+	  * update for #49, configure error with FC10 * try to fix ntfs
+	  used space
+
+2009-04-10 03:49  steven
+
+	* debian/changelog, debian/rules:
+	  
+	  * --enable-static is on again.
+
+2009-04-09 16:16  steven
+
+	* debian/changelog, debian/control, debian/rules:
+	  
+	  * Disable static linking * e2fslibs-dev (>= 1.41.3) is required
+	  for partclone.ext4.
+
+2009-04-09 16:02  thomas
+
+	* config.guess, config.sub, po/partclone.pot, po/zh_TW.gmo,
+	  po/zh_TW.po, src/Makefile.am, src/Makefile.in, src/version.c:
+	  
+	  add ext4 link again....
+
+2009-04-07 15:10  thomas
+
+	* src/Makefile.am, src/Makefile.in:
+	  
+	  r341@T-X61: thomas | 2009-04-07 23:06:22 +0800 update
+	  Makefile.am: add pthread link for build static partclone.extfs
+	  with Debiab/lenny.
+
+2009-04-07 06:54  thomas
+
+	* ChangeLog:
+	  
+	  update ChangeLog
+
 2009-03-31 03:58  thomas
 
 	* src/Makefile.am, src/Makefile.in, src/version.c:
