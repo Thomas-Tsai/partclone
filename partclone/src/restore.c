@@ -39,6 +39,7 @@
 /// global variable
 cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
 p_dialog_mesg	m_dialog;			/// dialog format string
+char *EXECNAME="partclone.restore";
 
 /**
  * main functiom - for colne or restore data
