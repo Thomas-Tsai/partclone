@@ -257,7 +257,7 @@ int main(int argc, char **argv){
     close (dfw);    /// close target
     if(opt.ncurses)
 	close_ncurses();
-    printf("clone successfully\n");
+    printf("Cloned successfully.\n");
     if(opt.debug)
 	close_log();
     return 0;	    /// finish
