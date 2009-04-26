@@ -1,3 +1,16 @@
+2009-04-25 15:39  steven
+
+	* src/ddclone.c, src/main.c, src/restore.c, src/version.c:
+	  
+	  Output message "clone successfully" was changed as "Cloned
+	  successfully.".
+
+2009-04-24 06:09  steven
+
+	* ChangeLog, debian/changelog:
+	  
+	  Updated for 0.1.0-8.
+
 2009-04-24 02:45  thomas
 
 	* src/restore.c:
