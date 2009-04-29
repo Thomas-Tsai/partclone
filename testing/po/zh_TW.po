@@ -157,17 +157,3 @@ msgstr "還原印 像檔 (%s) 到 裝置 (%s) 完成\n"
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr "備份 裝置 (%s) 到 印像檔 (%s) 完成\n"
 
-#~ msgid "Completed:%6.2f%%"
-#~ msgstr "完成：%6.2f%%"
-
-#~ msgid "100.00%% completed!"
-#~ msgstr "100.00%% 已經完成！"
-
-#~ msgid "%6.2f%% completed, "
-#~ msgstr "%6.2f%% 完成"
-
-#~ msgid "Total: %05i sec., "
-#~ msgstr "需要時間：%05i 秒, "
-
-#~ msgid "Estimated: %05i sec., "
-#~ msgstr "剩餘：%05i 秒, "
