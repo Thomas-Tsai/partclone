@@ -1,3 +1,10 @@
+partclone (0.1.0-10) unstable; urgency=low
+
+    [ Thomas Tsai ]
+    * Bug fixed: clonezilla-Bugs-2784676. Thanks to njorl _at_ users sourceforge net.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri, 01 May 2009 10:55:00 +0800
+
 partclone (0.1.0-9) unstable; urgency=low
 
     [ Steven Shiau ]
