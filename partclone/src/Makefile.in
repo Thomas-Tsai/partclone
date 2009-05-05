@@ -42,8 +42,7 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 @ENABLE_HFSP_TRUE@am__append_4 = partclone.hfsp
 @ENABLE_XFS_TRUE@am__append_5 = partclone.xfs
 @ENABLE_FAT_TRUE@am__append_6 = partclone.fat
-@ENABLE_NTFS_TRUE@am__append_7 = partclone.ntfs partclone.ntfsreloc \
-@ENABLE_NTFS_TRUE@	partclone.ntfsfixboot
+@ENABLE_NTFS_TRUE@am__append_7 = partclone.ntfs partclone.ntfsfixboot
 @ENABLE_STATIC_TRUE@am__append_8 = -static 
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -65,7 +64,6 @@ CONFIG_CLEAN_FILES =
 @ENABLE_XFS_TRUE@am__EXEEXT_5 = partclone.xfs$(EXEEXT)
 @ENABLE_FAT_TRUE@am__EXEEXT_6 = partclone.fat$(EXEEXT)
 @ENABLE_NTFS_TRUE@am__EXEEXT_7 = partclone.ntfs$(EXEEXT) \
-@ENABLE_NTFS_TRUE@	partclone.ntfsreloc$(EXEEXT) \
 @ENABLE_NTFS_TRUE@	partclone.ntfsfixboot$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)"
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
@@ -132,12 +130,6 @@ am__partclone_ntfsfixboot_SOURCES_DIST = ntfsfixboot.c
 partclone_ntfsfixboot_OBJECTS = $(am_partclone_ntfsfixboot_OBJECTS)
 partclone_ntfsfixboot_LDADD = $(LDADD)
 partclone_ntfsfixboot_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am__partclone_ntfsreloc_SOURCES_DIST = ntfsreloc.c
-@ENABLE_NTFS_TRUE@am_partclone_ntfsreloc_OBJECTS =  \
-@ENABLE_NTFS_TRUE@	ntfsreloc.$(OBJEXT)
-partclone_ntfsreloc_OBJECTS = $(am_partclone_ntfsreloc_OBJECTS)
-partclone_ntfsreloc_LDADD = $(LDADD)
-partclone_ntfsreloc_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__partclone_reiser4_SOURCES_DIST = main.c partclone.c progress.c \
 	reiser4clone.c reiser4clone.h partclone.h progress.h gettext.h
 @ENABLE_REISER4_TRUE@am_partclone_reiser4_OBJECTS =  \
@@ -190,8 +182,7 @@ LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(partclone_dd_SOURCES) $(partclone_extfs_SOURCES) \
 	$(partclone_fat_SOURCES) $(partclone_hfsp_SOURCES) \
 	$(partclone_info_SOURCES) $(partclone_ntfs_SOURCES) \
-	$(partclone_ntfsfixboot_SOURCES) \
-	$(partclone_ntfsreloc_SOURCES) $(partclone_reiser4_SOURCES) \
+	$(partclone_ntfsfixboot_SOURCES) $(partclone_reiser4_SOURCES) \
 	$(partclone_reiserfs_SOURCES) $(partclone_restore_SOURCES) \
 	$(partclone_xfs_SOURCES)
 DIST_SOURCES = $(partclone_dd_SOURCES) \
@@ -200,7 +191,6 @@ DIST_SOURCES = $(partclone_dd_SOURCES) \
 	$(am__partclone_hfsp_SOURCES_DIST) $(partclone_info_SOURCES) \
 	$(am__partclone_ntfs_SOURCES_DIST) \
 	$(am__partclone_ntfsfixboot_SOURCES_DIST) \
-	$(am__partclone_ntfsreloc_SOURCES_DIST) \
 	$(am__partclone_reiser4_SOURCES_DIST) \
 	$(am__partclone_reiserfs_SOURCES_DIST) \
 	$(partclone_restore_SOURCES) $(am__partclone_xfs_SOURCES_DIST)
@@ -343,7 +333,6 @@ partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h d
 @ENABLE_NTFS_TRUE@partclone_ntfs_SOURCES = main.c partclone.c progress.c ntfsclone-ng.c ntfsclone-ng.h partclone.h progress.h gettext.h
 @ENABLE_NTFS_TRUE@partclone_ntfs_CFLAGS = -DNTFS
 @ENABLE_NTFS_TRUE@partclone_ntfs_LDADD = -lntfs
-@ENABLE_NTFS_TRUE@partclone_ntfsreloc_SOURCES = ntfsreloc.c
 @ENABLE_NTFS_TRUE@partclone_ntfsfixboot_SOURCES = ntfsfixboot.c
 all: all-am
 
@@ -422,9 +411,6 @@ partclone.ntfs$(EXEEXT): $(partclone_ntfs_OBJECTS) $(partclone_ntfs_DEPENDENCIES
 partclone.ntfsfixboot$(EXEEXT): $(partclone_ntfsfixboot_OBJECTS) $(partclone_ntfsfixboot_DEPENDENCIES) 
 	@rm -f partclone.ntfsfixboot$(EXEEXT)
 	$(LINK) $(partclone_ntfsfixboot_OBJECTS) $(partclone_ntfsfixboot_LDADD) $(LIBS)
-partclone.ntfsreloc$(EXEEXT): $(partclone_ntfsreloc_OBJECTS) $(partclone_ntfsreloc_DEPENDENCIES) 
-	@rm -f partclone.ntfsreloc$(EXEEXT)
-	$(LINK) $(partclone_ntfsreloc_OBJECTS) $(partclone_ntfsreloc_LDADD) $(LIBS)
 partclone.reiser4$(EXEEXT): $(partclone_reiser4_OBJECTS) $(partclone_reiser4_DEPENDENCIES) 
 	@rm -f partclone.reiser4$(EXEEXT)
 	$(partclone_reiser4_LINK) $(partclone_reiser4_OBJECTS) $(partclone_reiser4_LDADD) $(LIBS)
@@ -447,7 +433,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/infoclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ntfsfixboot.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ntfsreloc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-extfsclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-main.Po@am__quote@

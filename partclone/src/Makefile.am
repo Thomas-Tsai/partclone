@@ -59,8 +59,6 @@ sbin_PROGRAMS += partclone.ntfs
 partclone_ntfs_SOURCES=main.c partclone.c progress.c ntfsclone-ng.c ntfsclone-ng.h partclone.h progress.h gettext.h
 partclone_ntfs_CFLAGS=-DNTFS
 partclone_ntfs_LDADD=-lntfs
-sbin_PROGRAMS += partclone.ntfsreloc
-partclone_ntfsreloc_SOURCES=ntfsreloc.c
 sbin_PROGRAMS += partclone.ntfsfixboot
 partclone_ntfsfixboot_SOURCES=ntfsfixboot.c
 endif
