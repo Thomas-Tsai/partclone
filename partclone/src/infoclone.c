@@ -55,6 +55,9 @@ int main(int argc, char **argv){
     opt.restore = 0;
     open_log();
 
+    /// print partclone info
+    print_partclone_info(opt);
+
     /**
      * open Image file
      */

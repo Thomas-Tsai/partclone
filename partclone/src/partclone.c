@@ -860,13 +860,9 @@ extern void print_opt(cmd_opt opt){
 
 }
 
-/// print image head
-extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
+/// print partclone info
+extern void print_partclone_info(cmd_opt opt){
  
-    int block_s  = image_hdr.block_size;
-    unsigned long long total    = image_hdr.totalblock;
-    unsigned long long used     = image_hdr.usedblocks;
-    unsigned long long dev_size = image_hdr.device_size;
     int debug = opt.debug;
 
     setlocale(LC_ALL, "");
@@ -882,6 +878,31 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
 	log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
     else
 	log_mesg(0, 0, 1, debug, "unknow mode\n");
+}
+
+/// print image head
+extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
+ 
+    int block_s  = image_hdr.block_size;
+    unsigned long long total    = image_hdr.totalblock;
+    unsigned long long used     = image_hdr.usedblocks;
+    unsigned long long dev_size = image_hdr.device_size;
+    int debug = opt.debug;
+
+    setlocale(LC_ALL, "");
+    bindtextdomain(PACKAGE, LOCALEDIR);
+    textdomain(PACKAGE);
+    //log_mesg(0, 0, 0, "%s v%s \n", EXEC_NAME, VERSION);
+    /*log_mesg(0, 0, 1, debug, _("Partclone v%s (%s) partclone.org, partclone.nchc.org.tw\n"), VERSION, svn_version);
+    if (opt.clone)
+	log_mesg(0, 0, 1, debug, _("Starting clone device (%s) to image (%s)\n"), opt.source, opt.target);	
+    else if(opt.restore)
+	log_mesg(0, 0, 1, debug, _("Starting restore image (%s) to device (%s)\n"), opt.source, opt.target);
+    else if(opt.dd)
+	log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
+    else
+	log_mesg(0, 0, 1, debug, "unknow mode\n");
+    */
     log_mesg(0, 0, 1, debug, _("File system: %s\n"), image_hdr.fs);
     log_mesg(0, 0, 1, debug, _("Device size: %lli MB\n"), print_size((total*block_s), MBYTE));
     log_mesg(0, 0, 1, debug, _("Space in use: %lli MB\n"), print_size((used*block_s), MBYTE));

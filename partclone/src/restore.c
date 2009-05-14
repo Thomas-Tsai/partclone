@@ -206,6 +206,8 @@ int main(int argc, char **argv){
     /// print option to log file
     if (debug)
 	print_opt(opt);
+    /// print partclone info
+    print_partclone_info(opt);
 
     /// print image_head
     print_image_hdr_info(image_hdr, opt);

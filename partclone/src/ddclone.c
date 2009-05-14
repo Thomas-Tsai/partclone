@@ -95,6 +95,9 @@ int main(int argc, char **argv){
     //if(opt.debug)
     open_log();
 
+    /// print partclone info
+    print_partclone_info(opt);
+
     /**
      * using Text User Interface
      */

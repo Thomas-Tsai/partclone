@@ -151,8 +151,11 @@ extern int check_mem_size(image_head image_hdr, cmd_opt opt, unsigned long long 
 /// generate crc32 code
 extern unsigned long crc32(unsigned long crc, char *buf, int size);
 
+/// print partclone info
+extern void print_partclone_info(cmd_opt opt);
 /// print image_head
 extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt);
+/// print option
 extern void print_opt(cmd_opt opt);
 /// print finish mesg
 extern void print_finish_info(cmd_opt opt);

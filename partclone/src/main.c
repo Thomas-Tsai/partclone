@@ -114,7 +114,7 @@ int main(int argc, char **argv){
      * check parameter and read from argv
      */
     parse_options(argc, argv, &opt);
-
+    
     /**
      * if "-d / --debug" given
      * open debug file in "/var/log/partclone.log" for log message 
@@ -122,6 +122,10 @@ int main(int argc, char **argv){
     debug = opt.debug;
     //if(opt.debug)
 	open_log();
+
+    /// print partclone info
+    print_partclone_info(opt);
+
 
     /**
      * using Text User Interface
