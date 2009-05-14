@@ -679,6 +679,7 @@ extern int open_source(char* source, cmd_opt* opt){
     char *mp = malloc(PATH_MAX + 1);
     int flags = O_RDONLY | O_LARGEFILE;
 
+    log_mesg(1, 0, 0, debug, "open source file/device\n");
     if((opt->clone) || (opt->dd)){ /// always is device, clone from device=source
 
 	if (check_mount(source, mp) == 1)
@@ -711,6 +712,7 @@ extern int open_target(char* target, cmd_opt* opt){
     char *mp = malloc(PATH_MAX + 1);
     int flags = O_WRONLY | O_LARGEFILE;
 
+    log_mesg(1, 0, 0, debug, "open target file/device\n");
     if (opt->clone){
     	if (strcmp(target, "-") == 0){ 
 	    ret = fileno(stdout);

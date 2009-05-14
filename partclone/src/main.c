@@ -173,10 +173,12 @@ int main(int argc, char **argv){
     if (opt.clone){
 
 	log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
+	log_mesg(1, 0, 1, debug, "Reading Super Block\n");
 	
 	/// get Super Block information from partition
         initial_image_hdr(source, &image_hdr);
 
+	log_mesg(1, 0, 1, debug, "Calculating bitmap ...\nPlease wait...");
         /// check memory size
         if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
             log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
@@ -193,9 +195,7 @@ int main(int argc, char **argv){
 	log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
 	/// read and check bitmap from partition
-	log_mesg(1, 0, 0, debug, "Calculating bitmap ...");
 	readbitmap(source, image_hdr, bitmap);
-	log_mesg(1, 0, 0, debug, "done\n");
 
 	needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
 	if (opt.check)
@@ -220,9 +220,11 @@ int main(int argc, char **argv){
 	if(w_size == -1)
 	    log_mesg(0, 1, 1, debug, "write bitmap to image error\n");
 
+	log_mesg(1, 0, 1, debug, "done\n");
     } else if (opt.restore){
 
 	log_mesg(1, 0, 0, debug, "restore image hdr - get image_head from image file\n");
+	log_mesg(1, 0, 1, debug, "Reading Super Block\n");
         /// get image information from image file
 	restore_image_hdr(&dfr, &opt, &image_hdr);
         
@@ -248,7 +250,7 @@ int main(int argc, char **argv){
 	log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
 	/// read and check bitmap from image file
-	log_mesg(1, 0, 0, debug, "Calculating bitmap ...\n");
+	log_mesg(1, 0, 1, debug, "Calculating bitmap ...\nPlease wait...");
 	get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
 	/// check the dest partition size.
@@ -257,8 +259,10 @@ int main(int argc, char **argv){
 	}
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
+	log_mesg(1, 0, 1, debug, "done\n");
     } else if (opt.dd){
 	log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
+	log_mesg(1, 0, 1, debug, "Reading Super Block\n");
 
 	/// get Super Block information from partition
 	initial_image_hdr(source, &image_hdr);
@@ -279,8 +283,9 @@ int main(int argc, char **argv){
 	log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
 	/// read and check bitmap from partition
-	log_mesg(1, 0, 0, debug, "Calculating bitmap ...\n");
+	log_mesg(1, 0, 1, debug, "Calculating bitmap ...\nPlease wait...");
 	readbitmap(source, image_hdr, bitmap);
+	log_mesg(1, 0, 0, debug, "done\n");
 	
 	/// check the dest partition size.
 	if(opt.check){
@@ -288,6 +293,7 @@ int main(int argc, char **argv){
 	}
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
+	log_mesg(1, 0, 1, debug, "done\n");
     }
 
     log_mesg(1, 0, 0, debug, "print image_head\n");
@@ -335,6 +341,7 @@ int main(int argc, char **argv){
 //        log_mesg(0, 0, 0, debug, "blockid,\tbitmap,\tread,\twrite,\tsize,\tseek,\tcopied,\terror\n");
 
 	/// start clone partition to image file
+	log_mesg(1, 0, 0, debug, "start backup data...\n");
         for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
 	    
 	    r_size = 0;
@@ -466,6 +473,7 @@ int main(int argc, char **argv){
 	*/
 
 	/// start restore image file to partition
+	log_mesg(1, 0, 0, debug, "start restore data...\n");
         for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
 
 	    r_size = 0;
@@ -566,6 +574,7 @@ int main(int argc, char **argv){
 	log_mesg(0, 0, 0, debug, "Total block %i\n", image_hdr.totalblock);
 
 	/// start clone partition to image file
+	log_mesg(1, 0, 0, debug, "start backup data device-to-device...\n");
         for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
 	    r_size = 0;
 	    w_size = 0;
