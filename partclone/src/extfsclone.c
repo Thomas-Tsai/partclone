@@ -24,8 +24,8 @@
 #define in_use(m, x)    (ext2fs_test_bit ((x), (m)))
 
 #include "partclone.h"
-#include "progress.h"
 #include "extfsclone.h"
+#include "progress.h"
 
 ext2_filsys  fs;
 char *EXECNAME = "partclone.extfs";
@@ -102,7 +102,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     int block_nbytes;
     unsigned long long blk_itr;
     int bg_flags = 0;
-    int	start, res, stop, done;	/// start, range, stop number for progress bar
+    int	start, res, stop;	/// start, range, stop number for progress bar
 
     int debug = 2;
 
@@ -130,8 +130,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     progress_bar	prog;		/// progress_bar structure defined in progress.h
     start = 0;				/// start number of progress bar
     stop = (int)image_hdr.totalblock;	/// get the end of progress number, only used block
-    res = 100;				/// the end of progress number
-    done = 0;
+    res = image_hdr.totalblock>>10;	/// the end of progress number
     progress_init(&prog, start, stop, res, 1);
 
     /// each group
@@ -161,22 +160,21 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
 		    bitmap[current_block] = 1;
 		    log_mesg(3, 0, 0, debug, "used block %lu at group %i\n", (current_block), group);
 		}
+		/// update progress
+		progress_update(&prog, current_block, 0);
 	    }
 	    blk_itr += fs->super->s_blocks_per_group;
 	}
 	/// check free blocks in group
 	if (gfree != fs->group_desc[group].bg_free_blocks_count)
 	    log_mesg(0, 1, 1, debug, "bitmap erroe at %i group.\n", group);
-	/// update progress
-	if ((current_block+1) == image_hdr.totalblock) {
-	    done = 1;
-	}
-	progress_update(&prog, current_block, done);
     }
     /// check all free blocks in partition
     if (free != fs->super->s_free_blocks_count)
 	log_mesg(0, 1, 1, debug, "bitmap free count err, free:%i\n", free);
     fs_close();
+    /// update progress
+    progress_update(&prog, 1, 1);
 }
 
 /// get extfs type

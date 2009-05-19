@@ -63,35 +63,36 @@ extern void progress_update(struct progress_bar *p, int current, int done)
 	struct tm *Rtm, *Etm, *Ttm;
 	char *clear_buf = NULL;
 
-        percent  = p->unit * current;
-        elapsed  = (time(0) - p->time);
-	if (elapsed <= 0)
-	    elapsed = 1;
-        speedps  = (float)p->block_size * (float)current / (float)(elapsed);
-	//remained = (time_t)(p->block_size * (p->stop- current)/(int)speedps);
-	remained = (time_t)((elapsed/percent*100) - elapsed);
-	speed = (float)(speedps / 1000000.0 * 60.0);
-	p->rate = p->rate+speed;
-
-	/// format time string
-	Rtm = gmtime(&remained);
-	strftime(Rformated, sizeof(Rformated), format, Rtm);
-
-	Etm = gmtime(&elapsed);
-	strftime(Eformated, sizeof(Eformated), format, Etm);
-
         if (done != 1){
                 if (((current - p->start) % p->resolution) && ((current != p->stop)))
                         return;
-                fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "), clear_buf, Eformated, Rformated, percent, (float)(speed));
-                /*
-                fprintf(stderr, ("\r%81c\r"), clear_buf);
+		percent  = p->unit * current;
+		elapsed  = (time(0) - p->time);
+		if (elapsed <= 0)
+		    elapsed = 1;
+		speedps  = (float)p->block_size * (float)current / (float)(elapsed);
+		//remained = (time_t)(p->block_size * (p->stop- current)/(int)speedps);
+		remained = (time_t)((elapsed/percent*100) - elapsed);
+		speed = (float)(speedps / 1000000.0 * 60.0);
+		p->rate = p->rate+speed;
+
+		/// format time string
+		Rtm = gmtime(&remained);
+		strftime(Rformated, sizeof(Rformated), format, Rtm);
+
+		Etm = gmtime(&elapsed);
+		strftime(Eformated, sizeof(Eformated), format, Etm);
+
+		fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "), clear_buf, Eformated, Rformated, percent, (float)(speed));
+		/*
+		   fprintf(stderr, ("\r%81c\r"), clear_buf);
                 fprintf(stderr, _("Elapsed: %s, "), Eformated);
                 fprintf(stderr, _("Remaining: %s, "), Rformated);
                 fprintf(stderr, _("Completed:%6.2f%%, "), percent);
                 fprintf(stderr, _("Rate:%6.1fMB/min, "), (float)(p->rate));
                 */
         } else {
+		elapsed  = (time(0) - p->time);
 		total = elapsed;
 		Ttm = gmtime(&total);
 		strftime(Tformated, sizeof(Tformated), format, Ttm);

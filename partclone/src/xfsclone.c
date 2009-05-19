@@ -183,11 +183,10 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
     xfs_agnumber_t  agno = 0;
     int             bfree = 0,  bused = 0;
     int		    debug = 2;
-    int start, res, stop, done; /// start, range, stop number for progre
+    int start, res, stop; /// start, range, stop number for progre
     start = 0;		    /// start number of progress bar
     stop = (int)image_hdr.totalblock;	/// get the end of progress number, only used block
-    res = 100;		    /// the end of progress number
-    done = 0;
+    res = image_hdr.totalblock>>10;		    /// the end of progress number
     progress_init(&prog, start, stop, res, 1);
 
 
@@ -242,7 +241,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
       free(agf_bufp);
     }
     /// finish
-    progress_update(&prog, mp->m_sb.sb_dblocks, 1);
+    progress_update(&prog, 1, 1);
 
     for(bit = 0; bit < mp->m_sb.sb_dblocks; bit++)
     {

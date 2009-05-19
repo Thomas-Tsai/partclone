@@ -93,7 +93,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap)
     reiser4_bitmap_t       *fs_bitmap;
     unsigned long long     bit, block, bused = 0, bfree = 0;
     int                    debug = 2;
-    int    start, res, stop, done; /// start, range, stop number for progre
+    int    start, res, stop; /// start, range, stop number for progre
 
     fs_open(device);
     fs_bitmap = reiser4_bitmap_create(reiser4_format_get_len(fs->format));
@@ -103,8 +103,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap)
     progress_bar   prog;	/// progress_bar structure defined in progress.h
     start = 0;		    /// start number of progress bar
     stop = (int)image_hdr.totalblock;	/// get the end of progress number, only used block
-    res = 100;		    /// the end of progress number
-    done = 0;
+    res = image_hdr.totalblock>>2;		    /// the end of progress number
     progress_init(&prog, start, stop, res, 1);
 
 
@@ -120,10 +119,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap)
 	    log_mesg(3, 0, 0, debug, "bitmap is free %lli", block);
 	}
 	/// update progress
-	if ((bit+1) == image_hdr.totalblock) {
-	    done = 1;
-	}
-	progress_update(&prog, bit, done);
+	progress_update(&prog, bit, 0);
 
     }
 
@@ -131,6 +127,8 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap)
 	log_mesg(0, 1, 1, debug, "bitmap free count err, bfree:%lli, sfree=%lli\n", bfree, reiser4_format_get_free(fs->format));
 
     fs_close();
+    /// update progress
+    progress_update(&prog, bit, 1);
 }
 
 /// read super block and write to image head

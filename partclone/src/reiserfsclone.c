@@ -66,7 +66,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
     blk_t		 blk;
     unsigned long long 	 bused = 0, bfree = 0;
     int debug = 1;
-    int	start, res, stop, done;	/// start, range, stop number for progre
+    int	start, res, stop;	/// start, range, stop number for progre
     //printf("start initial image hdr\n");
     
     fs_open(device);
@@ -77,8 +77,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
     progress_bar   prog;	/// progress_bar structure defined in progress.h
     start = 0;		    /// start number of progress bar
     stop = (int)image_hdr.totalblock;	/// get the end of progress number, only used block
-    res = 100;		    /// the end of progress number
-    done = 0;
+    res = image_hdr.totalblock>>10;		    /// the end of progress number
     progress_init(&prog, start, stop, res, 1);
 
     for(blk = 0 ; (int)blk < fs->super->s_v1.sb_block_count; blk++){
@@ -90,10 +89,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
 	    bitmap[blk] = 0;
 	}
 	/// update progress
-	if ((blk+1) == image_hdr.totalblock) {
-	    done = 1;
-	}
-	progress_update(&prog, blk, done);
+	progress_update(&prog, blk, 0);
 
     }
 
@@ -101,6 +97,8 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
 	log_mesg(0, 1, 1, debug, "bitmap free count err, free:%i\n", bfree);
 
     fs_close();
+    /// update progress
+    progress_update(&prog, blk, 1);
 
 }
 
