@@ -22,12 +22,14 @@
 #include <xfs/libxfs.h>
 #include "partclone.h"
 #include "xfsclone.h"
+#include "progress.h"
 
 char *EXECNAME = "partclone.xfs";
 
 libxfs_init_t   x;
 xfs_mount_t     xmount;
 xfs_mount_t     *mp;
+progress_bar	prog;	    /// progress_bar structure defined in progress.h
 
 static void addToHist(int dwAgNo, int dwAgBlockNo, int qwLen, char* bitmap)
 {
@@ -42,6 +44,9 @@ static void addToHist(int dwAgNo, int dwAgBlockNo, int qwLen, char* bitmap)
 	bit = qwBase + i -1;
 	bitmap[bit] = 0;
 	log_mesg(3, 0, 0, debug, "add bit%i\n",bit);
+	/// update progress
+	progress_update(&prog, bit, 0);
+
     }
 
 }
@@ -178,6 +183,12 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
     xfs_agnumber_t  agno = 0;
     int             bfree = 0,  bused = 0;
     int		    debug = 2;
+    int start, res, stop, done; /// start, range, stop number for progre
+    start = 0;		    /// start number of progress bar
+    stop = (int)image_hdr.totalblock;	/// get the end of progress number, only used block
+    res = 100;		    /// the end of progress number
+    done = 0;
+    progress_init(&prog, start, stop, res, 1);
 
 
     fs_open(device);
@@ -230,6 +241,8 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
       scan_sbtree(agf, INT_GET(agf->agf_roots[XFS_BTNUM_BNO], ARCH_CONVERT), INT_GET(agf->agf_levels[XFS_BTNUM_BNO],ARCH_CONVERT), bitmap);
       free(agf_bufp);
     }
+    /// finish
+    progress_update(&prog, mp->m_sb.sb_dblocks, 1);
 
     for(bit = 0; bit < mp->m_sb.sb_dblocks; bit++)
     {

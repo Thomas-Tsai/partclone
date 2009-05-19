@@ -23,6 +23,7 @@
 
 #include "partclone.h"
 #include "fatclone.h"
+#include "progress.h"
 
 struct FatBootSector fat_sb;
 struct FatFsInfo fatfs_info;
@@ -358,11 +359,20 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
     uint16_t Fat16_Entry = 0;
     uint32_t Fat32_Entry = 0;
     extern cmd_opt opt;
+    int start, res, stop, done; /// start, range, stop number for progre
 
     fs_open(device);
 
     total_sector = get_total_sector();
     cluster_count = get_cluster_count();
+
+    /// init progress
+    progress_bar   prog;	/// progress_bar structure defined in progress.h
+    start = 0;		    /// start number of progress bar
+    stop = cluster_count;	/// get the end of progress number, only used block
+    res = 100;		    /// the end of progress number
+    done = 0;
+    progress_init(&prog, start, stop, res, 1);
     
     /// init bitmap
     for (i = 0 ; i < total_sector ; i++)
@@ -393,8 +403,12 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
 	    block = check_fat12_entry(bitmap, block, &bfree, &bused, &DamagedClusters);
         } else 
             log_mesg(2, 0, 0, 2, "error fs\n");
+	/// update progress
+	if ((i+1) == image_hdr.totalblock) {
+	    done = 1;
+	}
+	progress_update(&prog, i, done);
     }
-
 
     log_mesg(2, 0, 0, 2, "done\n");
     fs_close();

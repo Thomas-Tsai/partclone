@@ -31,7 +31,7 @@
 
 #include "partclone.h"
 #include "reiser4clone.h"
-
+#include "progress.h"
 
 aal_device_t           *fs_device;
 reiser4_fs_t           *fs = NULL;
@@ -93,10 +93,20 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap)
     reiser4_bitmap_t       *fs_bitmap;
     unsigned long long     bit, block, bused = 0, bfree = 0;
     int                    debug = 2;
+    int    start, res, stop, done; /// start, range, stop number for progre
 
     fs_open(device);
     fs_bitmap = reiser4_bitmap_create(reiser4_format_get_len(fs->format));
     reiser4_alloc_extract(fs->alloc, fs_bitmap);
+
+    /// init progress
+    progress_bar   prog;	/// progress_bar structure defined in progress.h
+    start = 0;		    /// start number of progress bar
+    stop = (int)image_hdr.totalblock;	/// get the end of progress number, only used block
+    res = 100;		    /// the end of progress number
+    done = 0;
+    progress_init(&prog, start, stop, res, 1);
+
 
     for(bit = 0; bit < reiser4_format_get_len(fs->format); bit++){
 	block = bit ;
@@ -109,6 +119,12 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap)
 	    bfree++;
 	    log_mesg(3, 0, 0, debug, "bitmap is free %lli", block);
 	}
+	/// update progress
+	if ((bit+1) == image_hdr.totalblock) {
+	    done = 1;
+	}
+	progress_update(&prog, bit, done);
+
     }
 
     if(bfree != reiser4_format_get_free(fs->format))

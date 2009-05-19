@@ -26,6 +26,7 @@
 #include <reiserfs/reiserfs.h>
 #include "partclone.h"
 #include "reiserfsclone.h"
+#include "progress.h"
 
 dal_t		 *dal;
 reiserfs_fs_t	 *fs;
@@ -63,23 +64,37 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
     reiserfs_tree_t	 *tree;
     reiserfs_block_t	 *node;
     blk_t		 blk;
-    unsigned long long 	 res, bused = 0, bfree = 0;
+    unsigned long long 	 bused = 0, bfree = 0;
     int debug = 1;
+    int	start, res, stop, done;	/// start, range, stop number for progre
     //printf("start initial image hdr\n");
     
     fs_open(device);
     tree = reiserfs_fs_tree(fs);
     fs_bitmap = tree->fs->bitmap;
     
-//    for(blk = 0 ; (int)blk <= ((int)fs->super->s_v1.sb_block_size*(int)fs->super->s_v1.sb_bmap_nr*8); blk++){
+    /// init progress
+    progress_bar   prog;	/// progress_bar structure defined in progress.h
+    start = 0;		    /// start number of progress bar
+    stop = (int)image_hdr.totalblock;	/// get the end of progress number, only used block
+    res = 100;		    /// the end of progress number
+    done = 0;
+    progress_init(&prog, start, stop, res, 1);
+
     for(blk = 0 ; (int)blk < fs->super->s_v1.sb_block_count; blk++){
-        if(reiserfs_tools_test_bit(blk, fs_bitmap->bm_map)){
-            bused++;
+	if(reiserfs_tools_test_bit(blk, fs_bitmap->bm_map)){
+	    bused++;
 	    bitmap[blk] = 1;
-        }else{
-            bfree++;
+	}else{
+	    bfree++;
 	    bitmap[blk] = 0;
-        }
+	}
+	/// update progress
+	if ((blk+1) == image_hdr.totalblock) {
+	    done = 1;
+	}
+	progress_update(&prog, blk, done);
+
     }
 
     if(bfree != fs->super->s_v1.sb_free_blocks)

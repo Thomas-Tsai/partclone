@@ -26,6 +26,7 @@
 
 #include "partclone.h"
 #include "hfsplusclone.h"
+#include "progress.h"
 
 struct HFSPlusVolumeHeader sb;
 int ret;
@@ -124,11 +125,21 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     long int tb = 0, rb = 0, bused = 0, bfree = 0;
     UInt32 b;
     int debug = 2;
+    int start, res, stop, done; /// start, range, stop number for progre
 
     fs_open(device);
     tb = reverseInt((int)sb.totalBlocks);
     rb = (tb/8)+1;
     //rb = 8192;
+
+    /// init progress
+    progress_bar   prog;	/// progress_bar structure defined in progress.h
+    start = 0;		    /// start number of progress bar
+    stop = (int)image_hdr.totalblock;	/// get the end of progress number, only used block
+    res = 100;		    /// the end of progress number
+    done = 0;
+    progress_init(&prog, start, stop, res, 1);
+
 
     for (i = 0; i < tb; i++)
 	bitmap[i] = 1;
@@ -138,18 +149,24 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     r = read (ret, buffer2, rb);
     for(b = 0 ; b < tb; b++){
 	int check_block = b;
-        IsUsed = IsAllocationBlockUsed(check_block, buffer2);
-    if (IsUsed){
-            bused++;
-            bitmap[b] = 1;
+	IsUsed = IsAllocationBlockUsed(check_block, buffer2);
+	if (IsUsed){
+	    bused++;
+	    bitmap[b] = 1;
 	    log_mesg(3, 0, 0, debug, "used b = %i\n", b);
-        }else{
-            bfree++;
-            bitmap[b] = 0;
+	}else{
+	    bfree++;
+	    bitmap[b] = 0;
 	    log_mesg(3, 0, 0, debug, "free b = %i\n", b);
-        }
+	}
+	/// update progress
+	if ((b+1) == image_hdr.totalblock) {
+	    done = 1;
+	}
+	progress_update(&prog, b, done);
+
     }
-    
+
     log_mesg(2, 0, 0, 1, "rb:%i\n", rb);
     log_mesg(2, 0, 0, 1, "bfree:%i\n", bfree);
     log_mesg(2, 0, 0, 1, "bused:%i\n", bused);

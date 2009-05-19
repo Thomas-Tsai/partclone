@@ -34,6 +34,7 @@
 
 #include "partclone.h"
 #include "ntfsclone-ng.h"
+#include "progress.h"
 
 /// define mount flag
 #ifdef NTFS_MNT_RDONLY
@@ -111,6 +112,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
     unsigned long long	current_block, used_block, free_block, count, pos;
     unsigned long	bitmap_size = (ntfs->nr_clusters + 7) / 8;
     int			i;
+    int start, res, stop, done; /// start, range, stop number for progress bar
 
     fs_open(device);
     ntfs_bitmap = (char*)malloc(bitmap_size);
@@ -118,6 +120,15 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
     if ((bitmap == NULL) || (ntfs_bitmap == NULL)) {
 	log_mesg(0, 1, 1, debug, "bitmap alloc error\n");
     }
+
+    /// init progress
+    progress_bar   prog;	/// progress_bar structure defined in progress.h
+    start = 0;		    /// start number of progress bar
+    stop = (int)image_hdr.totalblock;	/// get the end of progress number, only used block
+    res = 100;		    /// the end of progress number
+    done = 0;
+    progress_init(&prog, start, stop, res, 1);
+
 
     pos = 0;
     used_block = 0;
@@ -132,9 +143,15 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
 	    used_block++;
 	} else {
 	    bitmap[current_block] = 0;
-           free_block++;
+	    free_block++;
 	}
-}
+	/// update progress
+	if ((current_block+1) == image_hdr.totalblock) {
+	    done = 1;
+	}
+	progress_update(&prog, current_block, done);
+
+    }
 
     log_mesg(3, 0, 0, debug, "\nUsed Block\t: %lld\n", used_block);
     log_mesg(3, 0, 0, debug, "Free Block\t: %lld\n", free_block);
