@@ -118,7 +118,7 @@ static void fs_close(){
 
 }
 
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
+extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui){
 
     int r, IsUsed = 0, s, i;
     UInt8 *buffer2;

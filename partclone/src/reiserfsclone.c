@@ -58,7 +58,7 @@ static void fs_close(){
 }
 
 ///  readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
+extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui)
 {
     reiserfs_bitmap_t    *fs_bitmap;
     reiserfs_tree_t	 *tree;

@@ -88,7 +88,7 @@ static void fs_close(){
 }
 
 /// readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, char*bitmap)
+extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 {
     reiser4_bitmap_t       *fs_bitmap;
     unsigned long long     bit, block, bused = 0, bfree = 0;

@@ -106,7 +106,7 @@ static void fs_close(){
 }
 
 ///  readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
+extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui)
 {
     unsigned char	*ntfs_bitmap;
     unsigned long long	current_block, used_block, free_block, count, pos;

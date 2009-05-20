@@ -348,7 +348,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 }
 
 /// readbitmap - read and check bitmap
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
+extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui)
 {
     int i = 0, j = 0;
     int rd = 0;

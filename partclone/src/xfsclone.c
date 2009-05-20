@@ -171,7 +171,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 
 }
 
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
+extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui)
 {
     void            *agf_bufp = NULL;
     void            *agfl_bufp = NULL;
