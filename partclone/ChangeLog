@@ -1,3 +1,83 @@
+2009-05-20 11:03  thomas
+
+	* src/main.c, src/restore.c, src/version.c:
+	  
+	  * Before this commit, partclone restore fail from 64 bit img to
+	  32 bit. It's because the size of Unsigned long is 8 bytes in 64
+	  bit, and 4 bytes in 32 bit partclone.
+
+2009-05-20 09:52  thomas
+
+	* src/main.c, src/partclone.h, src/restore.c, src/version.c:
+	  
+	  update crc test
+
+2009-05-19 10:57  thomas
+
+	* src/extfsclone.c, src/fatclone.c, src/hfsplusclone.c,
+	  src/ntfsclone-ng.c, src/progress.c, src/reiser4clone.c,
+	  src/reiserfsclone.c, src/version.c, src/xfsclone.c:
+	  
+	  * display progress bar when readbitmap * normalize update time,
+	  but could be better
+
+2009-05-19 09:07  thomas
+
+	* src/extfsclone.c, src/fatclone.c, src/hfsplusclone.c,
+	  src/ntfsclone-ng.c, src/reiser4clone.c, src/reiserfsclone.c,
+	  src/xfsclone.c:
+	  
+	  test progress of bitmap
+
+2009-05-14 08:28  thomas
+
+	* src/ddclone.c, src/infoclone.c, src/main.c, src/partclone.c,
+	  src/partclone.h, src/restore.c, src/version.c:
+	  
+	  * add print_partclone_info() * add more informatio to stderr *
+	  check all utilities work right
+
+2009-05-14 07:43  thomas
+
+	* src/main.c, src/partclone.c:
+	  
+	  add more information to know the process
+	  
+	  modified: main.c modified: partclone.c
+
+2009-05-05 09:16  thomas
+
+	* src/Makefile.am, src/Makefile.in, src/ntfsreloc.c:
+	  
+	  remove ntfsreloc
+
+2009-05-05 09:13  thomas
+
+	* src/Makefile.am, src/Makefile.in, src/ntfsfixboot.c,
+	  src/version.c:
+	  
+	  add ntfsfixboot.c from http://cc.jct.ac.il/~shaneh/ntfsfixboot.c
+
+2009-05-01 03:01  steven
+
+	* src/version.c:
+	  
+	  updated for 0.1.0-10.
+
+2009-05-01 02:57  steven
+
+	* ChangeLog:
+	  
+	  * Bug fixed: clonezilla-Bugs-2784676. Thanks to njorl _at_ users
+	  sourceforge net.
+
+2009-05-01 02:56  steven
+
+	* debian/changelog:
+	  
+	  changelog updated for bug fixed: clonezilla-Bugs-2784676. Thanks
+	  to njorl _at_ users sourceforge net.
+
 2009-05-01 02:00  thomas
 
 	* src/ntfsclone-ng.c:

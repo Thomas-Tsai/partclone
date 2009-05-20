@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.0.4\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2009-04-27 18:55+0800\n"
+"POT-Creation-Date: 2009-05-21 03:35+0800\n"
 "PO-Revision-Date: 2007-11-01 11:35+0800\n"
 "Last-Translator: Yu-Chin Tsai <thomas@nchc.org.tw>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -15,13 +15,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/progress.c:86
+#: src/progress.c:121
 #, c-format
 msgid ""
 "\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "
 msgstr "\r%81c\r經過：%s, 剩餘： %s, 完成：%6.2f%%, 速率：%6.2fMB/min, "
 
-#: src/progress.c:98
+#: src/progress.c:134
 #, c-format
 msgid ""
 "\n"
@@ -30,50 +30,50 @@ msgstr ""
 "\n"
 "全部時間：%s, "
 
-#: src/progress.c:99
+#: src/progress.c:135
 #, c-format
 msgid "Ave. Rate: %6.1fMB/min, "
 msgstr "平均速率：%6.1fMB/min, "
 
-#: src/progress.c:100
+#: src/progress.c:136
 #, c-format
 msgid "100.00%% completed!\n"
 msgstr "100.00%% 已經完成！\n"
 
-#: src/progress.c:149
+#: src/progress.c:187
 msgid " "
 msgstr ""
 
-#: src/progress.c:150
+#: src/progress.c:188
 #, c-format
 msgid "Elapsed: %s"
 msgstr "經過：%s"
 
-#: src/progress.c:151
+#: src/progress.c:189
 #, c-format
 msgid "Remaining: %s"
 msgstr "剩餘：%s"
 
-#: src/progress.c:152
+#: src/progress.c:190
 #, c-format
 msgid "Rate: %6.2fMB/min"
 msgstr "速率：%6.1fMB/min"
 
-#: src/progress.c:177
+#: src/progress.c:215
 #, c-format
 msgid "Total Time: %s"
 msgstr "全部時間：%s"
 
-#: src/progress.c:178
+#: src/progress.c:216
 msgid "Remaining: 0"
 msgstr "剩餘：0"
 
-#: src/progress.c:179
+#: src/progress.c:217
 #, c-format
 msgid "Ave. Rate: %6.1fMB/min"
 msgstr "平均速率：%6.1fMB/min"
 
-#: src/progress.c:254
+#: src/progress.c:293
 #, c-format
 msgid ""
 "  Elapsed: %s\n"
@@ -86,7 +86,7 @@ msgstr ""
 " 完成：%6.2f%%\n"
 " 速率：%6.2fMB/min"
 
-#: src/progress.c:261
+#: src/progress.c:300
 #, c-format
 msgid ""
 "  Total Time: %s\n"
@@ -97,77 +97,62 @@ msgstr ""
 " 平均速率: %6.1fMB/min\n"
 " 100.00%% 已經完成！\n"
 
-#: src/partclone.c:874
+#: src/partclone.c:872
 #, c-format
 msgid "Partclone v%s (%s) partclone.org, partclone.nchc.org.tw\n"
 msgstr ""
 
-#: src/partclone.c:876
+#: src/partclone.c:874
 #, c-format
 msgid "Starting clone device (%s) to image (%s)\n"
 msgstr "開始備份 裝置 (%s) 到 印象檔 (%s)\n"
 
-#: src/partclone.c:878
+#: src/partclone.c:876
 #, c-format
 msgid "Starting restore image (%s) to device (%s)\n"
 msgstr "開始還原 印象檔 (%s) 到 裝置 (%s)\n"
 
-#: src/partclone.c:880
+#: src/partclone.c:878
 #, c-format
 msgid "Starting back up device(%s) to device(%s)\n"
 msgstr "開始備份 裝置 (%s) 到 裝置 (%s)\n"
 
-#: src/partclone.c:883
+#: src/partclone.c:906
 #, c-format
 msgid "File system: %s\n"
 msgstr "檔案系統: %s\n"
 
-#: src/partclone.c:884
+#: src/partclone.c:907
 #, c-format
 msgid "Device size: %lli MB\n"
 msgstr "裝置大小: %lli MB\n"
 
-#: src/partclone.c:885
+#: src/partclone.c:908
 #, c-format
 msgid "Space in use: %lli MB\n"
 msgstr "裝置使用到空間: %lli MB\n"
 
-#: src/partclone.c:886
+#: src/partclone.c:909
 #, c-format
 msgid "Block size: %i Byte\n"
 msgstr "裝置區塊大小: %i Byte\n"
 
-#: src/partclone.c:887
+#: src/partclone.c:910
 #, c-format
 msgid "Used block count: %lli\n"
 msgstr "裝置使用區塊數量: %lli\n"
 
-#: src/partclone.c:899
+#: src/partclone.c:922
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr "備份 裝置 (%s) 到 印象檔 (%s) 完成\n"
 
-#: src/partclone.c:901
+#: src/partclone.c:924
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr "還原 印象檔 (%s) 到 裝置 (%s) 完成\n"
 
-#: src/partclone.c:903
+#: src/partclone.c:926
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr "備份 裝置 (%s) 到 印象檔 (%s) 完成\n"
-
-#~ msgid "Completed:%6.2f%%"
-#~ msgstr "完成：%6.2f%%"
-
-#~ msgid "100.00%% completed!"
-#~ msgstr "100.00%% 已經完成！"
-
-#~ msgid "%6.2f%% completed, "
-#~ msgstr "%6.2f%% 完成"
-
-#~ msgid "Total: %05i sec., "
-#~ msgstr "需要時間：%05i 秒, "
-
-#~ msgid "Estimated: %05i sec., "
-#~ msgstr "剩餘：%05i 秒, "
