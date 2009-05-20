@@ -41,6 +41,7 @@ cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
 p_dialog_mesg	m_dialog;			/// dialog format string
 char *EXECNAME="partclone.restore";
 
+
 /**
  * main functiom - for colne or restore data
  */
@@ -293,7 +294,24 @@ int main(int argc, char **argv){
 		c_size = read_all(&dfr, crc_buffer, CRC_SIZE, &opt);
 		memcpy(&crc, crc_buffer, CRC_SIZE);
 		if (memcmp(&crc, &crc_ck, CRC_SIZE) != 0){
-		    log_mesg(1, 0, 0, debug, "CRC Check  error, 64bit bug before v245, enlarge crc size and recheck again....\n OrigCRC:0x%08lX, DestCRC:0x%08lX\n", crc, crc_ck);
+		    log_mesg(1, 0, 0, debug, "CRC Check  error, 64bit bug before v0.1.0 (Rev:252:253M), enlarge crc size and recheck again....\n OrigCRC:0x%08lX, DestCRC:0x%08lX\n", crc, crc_ck);
+		    /// check again
+		    crc_buffer2 = (char*)malloc(CRC_SIZE);
+		    if(crc_buffer2 == NULL){
+			log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+		    }
+		    crc_buffer3 = (char*)malloc(CRC_SIZE*2);
+		    if(crc_buffer3 == NULL){
+			log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+		    }
+		    c_size = read_all(&dfr, crc_buffer2, CRC_SIZE, &opt);
+		    memcpy(crc_buffer3+CRC_SIZE, crc_buffer, CRC_SIZE);
+		    memcpy(crc_buffer3, crc_buffer2, CRC_SIZE);
+		    memcpy(&crc, crc_buffer3, CRC_SIZE-4);
+		    if (memcmp(&crc, &crc_ck, CRC_SIZE-4) != 0){
+			log_mesg(0, 1, 1, debug, "CRC Check  error, \n OrigCRC:0x%08lX, DestCRC:0x%08lX\n", crc, crc_ck);
+		    } else {
+		    }
 		}
 
 		/// free buffer
