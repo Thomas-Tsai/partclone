@@ -93,7 +93,7 @@ static unsigned long long get_used_blocks(){
 }
 
 /// readbitmap - cread and heck bitmap, reference dumpe2fs
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
+extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui){
     errcode_t retval;
     unsigned long group;
     unsigned long long current_block, block;
@@ -161,7 +161,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
 		    log_mesg(3, 0, 0, debug, "used block %lu at group %i\n", (current_block), group);
 		}
 		/// update progress
-		progress_update(&prog, current_block, 0);
+		update_pui(&prog, current_block, 0);
 	    }
 	    blk_itr += fs->super->s_blocks_per_group;
 	}
@@ -174,7 +174,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
 	log_mesg(0, 1, 1, debug, "bitmap free count err, free:%i\n", free);
     fs_close();
     /// update progress
-    progress_update(&prog, 1, 1);
+    update_pui(&prog, 1, 1);
 }
 
 /// get extfs type

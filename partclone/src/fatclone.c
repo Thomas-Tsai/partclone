@@ -403,14 +403,14 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
         } else 
             log_mesg(2, 0, 0, 2, "error fs\n");
 	/// update progress
-	progress_update(&prog, i, 0);
+	update_pui(&prog, i, 0);
     }
 
     log_mesg(2, 0, 0, 2, "done\n");
     fs_close();
 
     /// update progress
-    progress_update(&prog, 1, 1);
+    update_pui(&prog, 1, 1);
 }
 
 /// get_used_block - get FAT used blocks

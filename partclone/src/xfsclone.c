@@ -45,7 +45,7 @@ static void addToHist(int dwAgNo, int dwAgBlockNo, int qwLen, char* bitmap)
 	bitmap[bit] = 0;
 	log_mesg(3, 0, 0, debug, "add bit%i\n",bit);
 	/// update progress
-	progress_update(&prog, bit, 0);
+	update_pui(&prog, bit, 0);
 
     }
 
@@ -241,7 +241,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap)
       free(agf_bufp);
     }
     /// finish
-    progress_update(&prog, 1, 1);
+    update_pui(&prog, 1, 1);
 
     for(bit = 0; bit < mp->m_sb.sb_dblocks; bit++)
     {

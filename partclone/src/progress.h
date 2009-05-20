@@ -14,6 +14,12 @@
 #include <stdio.h>
 #include <time.h>
 
+// progress display mode
+#define TEXT 0
+#define NCURSES 1
+#define DIALOG 2
+
+
 /// the progress bar structure
 struct progress_bar {
         int start;
@@ -23,8 +29,13 @@ struct progress_bar {
 	float rate;
 	time_t time;
         float unit;
+	int pui;
 };
 typedef struct progress_bar progress_bar;
+
+extern int open_pui(int pui);
+extern void close_pui(int pui);
+extern int update_pui(struct progress_bar *prog, int copied, int done);
 
 /// initial progress bar
 extern void progress_init(struct progress_bar *p, int start, int stop, int res, int size);

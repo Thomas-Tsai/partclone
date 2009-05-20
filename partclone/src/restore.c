@@ -74,6 +74,7 @@ int main(int argc, char **argv){
     int			s_count = 0;
     int			rescue_num = 0;
     int			tui = 0;		/// text user interface
+    int			pui = 0;		/// progress mode(default text)
     int			raw = 0;
     char		image_hdr_magic[512];
     char *bad_sectors_warning_msg =
@@ -106,18 +107,22 @@ int main(int argc, char **argv){
      * using Text User Interface
      */
     if (opt.ncurses){
+	pui = NCURSES;
 	log_mesg(1, 0, 0, debug, "Using Ncurses User Interface mode.\n");
-	tui = open_ncurses();
-	if (tui == 0){
-	    log_mesg(1, 0, 0, debug, "Open Ncurses User Interface Error.\n");
-	    opt.ncurses = 0;
-	    close_ncurses();
-	}
     } else if (opt.dialog){
+	pui = DIALOG;
 	log_mesg(1, 0, 0, debug, "Using Dialog User Interface mode.\n");
+    } else
+	pui = TEXT;
+
+    tui = open_pui(pui);
+    if ((opt.ncurses) && (tui == 0)){
+	opt.ncurses = 0;
+	log_mesg(1, 0, 0, debug, "Open Ncurses User Interface Error.\n");
+    } else if ((opt.dialog) && (tui == 1)){
 	m_dialog.percent = 1;
-	tui = 1;
     }
+
 
     if (geteuid() != 0)
 	log_mesg(0, 1, 1, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n"); 
@@ -318,12 +323,7 @@ int main(int argc, char **argv){
 		free(buffer);
 		free(crc_buffer);
 
-		if (opt.ncurses)
-		    Ncurses_progress_update(&prog, copied, done);
-		else if (opt.dialog)
-		    Dialog_progress_update(&prog, copied, done);
-		else
-		    progress_update(&prog, copied, done);
+		update_pui(&prog, copied, done);
 
 		copied++;					/// count copied block
 		total_write += (unsigned long long) w_size;	/// count copied size
@@ -342,12 +342,7 @@ int main(int argc, char **argv){
 		    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
 		s_count++;
 		if ((s_count >=100) || (done == 1)){
-		    if (opt.ncurses)
-			Ncurses_progress_update(&prog, copied, done);
-		    else if (opt.dialog)
-			Dialog_progress_update(&prog, copied, done);
-		    else
-			progress_update(&prog, copied, done);
+		    update_pui(&prog, copied, done);
 		    s_count = 0;
 		}
 		log_mesg(2, 0, 0, debug, "end\n");
@@ -405,12 +400,7 @@ int main(int argc, char **argv){
 	    /// free buffer
 	    free(buffer);
 
-	    if (opt.ncurses)
-		Ncurses_progress_update(&prog, copied, done);
-	    else if (opt.dialog)
-		Dialog_progress_update(&prog, copied, done);
-	    else
-		progress_update(&prog, copied, done);
+	    update_pui(&prog, copied, done);
 
 	    copied++;					/// count copied block
 	    total_write += (unsigned long long)(w_size);	/// count copied size
@@ -433,8 +423,7 @@ int main(int argc, char **argv){
     close (dfr);    /// close source
     close (dfw);    /// close target
     free(bitmap);   /// free bitmp
-    if(opt.ncurses)
-	close_ncurses();
+    close_pui(pui);
     printf("Cloned successfully.\n");
     if(opt.debug)
 	close_log();

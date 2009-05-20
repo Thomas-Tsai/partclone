@@ -159,7 +159,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
 	    log_mesg(3, 0, 0, debug, "free b = %i\n", b);
 	}
 	/// update progress
-	progress_update(&prog, b, 0);
+	update_pui(&prog, b, 0);
 
     }
 
@@ -173,7 +173,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap){
     free(buffer2);
     fs_close();
     /// update progress
-    progress_update(&prog, 1, 1);
+    update_pui(&prog, 1, 1);
 }
 
 extern void initial_image_hdr(char* device, image_head* image_hdr)
