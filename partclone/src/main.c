@@ -398,13 +398,13 @@ int main(int argc, char **argv){
 		    log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
 
 		/// generate crc32 code and write it.
-        	crc_buffer = (char*)malloc(sizeof(unsigned long)); ///alloc a memory to copy data
+        	crc_buffer = (char*)malloc(CRC_SIZE); ///alloc a memory to copy data
                 if(crc_buffer == NULL){
                     log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
                 }
 		crc = crc32(crc, buffer, w_size);
-		memcpy(crc_buffer, &crc, sizeof(unsigned long));
-		c_size = write_all(&dfw, crc_buffer, sizeof(unsigned long), &opt);
+		memcpy(crc_buffer, &crc, CRC_SIZE);
+		c_size = write_all(&dfw, crc_buffer, CRC_SIZE, &opt);
         	
 		/// free buffer
 		free(buffer);
@@ -518,13 +518,13 @@ int main(int argc, char **argv){
 
 		/// read crc32 code and check it.
 		crc_ck = crc32(crc_ck, buffer, r_size);
-		crc_buffer = (char*)malloc(sizeof(unsigned long)); ///alloc a memory to copy data
+		crc_buffer = (char*)malloc(CRC_SIZE); ///alloc a memory to copy data
                 if(crc_buffer == NULL){
                     log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
                 }
-		c_size = read_all(&dfr, crc_buffer, sizeof(unsigned long), &opt);
-		memcpy(&crc, crc_buffer, sizeof(unsigned long));
-		if (memcmp(&crc, &crc_ck, sizeof(unsigned long)) != 0)
+		c_size = read_all(&dfr, crc_buffer, CRC_SIZE, &opt);
+		memcpy(&crc, crc_buffer, CRC_SIZE);
+		if (memcmp(&crc, &crc_ck, CRC_SIZE) != 0)
 		    log_mesg(0, 1, 1, debug, "CRC Check  error\n OrigCRC:0x%08lX, DestCRC:0x%08lX", crc, crc_ck);
 
 		/// free buffer
