@@ -102,9 +102,9 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     int block_nbytes;
     unsigned long long blk_itr;
     int bg_flags = 0;
-    int	start, res, stop;	/// start, range, stop number for progress bar
-
     int debug = 2;
+    int start = 0;
+    int bit_size = 1;
 
     log_mesg(2, 0, 0, debug, "readbitmap %i\n",bitmap);
 
@@ -128,10 +128,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 
     /// init progress
     progress_bar	prog;		/// progress_bar structure defined in progress.h
-    start = 0;				/// start number of progress bar
-    stop = (int)image_hdr.totalblock;	/// get the end of progress number, only used block
-    res = image_hdr.totalblock>>10;	/// the end of progress number
-    progress_init(&prog, start, stop, res, 1);
+    progress_init(&prog, start, image_hdr.totalblock, bit_size);
 
     /// each group
     for (group = 0; group < fs->group_desc_count; group++) {
@@ -161,7 +158,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 		    log_mesg(3, 0, 0, debug, "used block %lu at group %i\n", (current_block), group);
 		}
 		/// update progress
-		update_pui(&prog, current_block, 0);
+		update_pui(&prog, current_block, 0);//keep update
 	    }
 	    blk_itr += fs->super->s_blocks_per_group;
 	}
@@ -174,7 +171,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	log_mesg(0, 1, 1, debug, "bitmap free count err, free:%i\n", free);
     fs_close();
     /// update progress
-    update_pui(&prog, 1, 1);
+    update_pui(&prog, 1, 1);//finish
 }
 
 /// get extfs type

@@ -359,7 +359,8 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     uint16_t Fat16_Entry = 0;
     uint32_t Fat32_Entry = 0;
     extern cmd_opt opt;
-    int start, res, stop; /// start, range, stop number for progre
+    int start = 0;
+    int bit_size = 1;
 
     fs_open(device);
 
@@ -368,10 +369,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
-    start = 0;		    /// start number of progress bar
-    stop = cluster_count;	/// get the end of progress number, only used block
-    res = 100;		    /// the end of progress number
-    progress_init(&prog, start, stop, res, 1);
+    progress_init(&prog, start, cluster_count, bit_size);
     
     /// init bitmap
     for (i = 0 ; i < total_sector ; i++)
@@ -403,14 +401,14 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
         } else 
             log_mesg(2, 0, 0, 2, "error fs\n");
 	/// update progress
-	update_pui(&prog, i, 0);
+	update_pui(&prog, i, 0);//keep update
     }
 
     log_mesg(2, 0, 0, 2, "done\n");
     fs_close();
 
     /// update progress
-    update_pui(&prog, 1, 1);
+    update_pui(&prog, 1, 1);//finish
 }
 
 /// get_used_block - get FAT used blocks

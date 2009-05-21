@@ -183,12 +183,12 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     xfs_agnumber_t  agno = 0;
     int             bfree = 0,  bused = 0;
     int		    debug = 2;
-    int start, res, stop; /// start, range, stop number for progre
-    start = 0;		    /// start number of progress bar
-    stop = (int)image_hdr.totalblock;	/// get the end of progress number, only used block
-    res = image_hdr.totalblock>>10;		    /// the end of progress number
-    progress_init(&prog, start, stop, res, 1);
+    int start = 0;
+    int bit_size = 1;
 
+    /// init progress
+    progress_bar        prog;           /// progress_bar structure defined in progress.h
+    progress_init(&prog, start, image_hdr.totalblock, bit_size);
 
     fs_open(device);
     // init bitmap

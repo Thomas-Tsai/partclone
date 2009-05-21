@@ -66,8 +66,8 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     blk_t		 blk;
     unsigned long long 	 bused = 0, bfree = 0;
     int debug = 1;
-    int	start, res, stop;	/// start, range, stop number for progre
-    //printf("start initial image hdr\n");
+    int start = 0;
+    int bit_size = 1;
     
     fs_open(device);
     tree = reiserfs_fs_tree(fs);
@@ -75,10 +75,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
-    start = 0;		    /// start number of progress bar
-    stop = (int)image_hdr.totalblock;	/// get the end of progress number, only used block
-    res = image_hdr.totalblock>>10;		    /// the end of progress number
-    progress_init(&prog, start, stop, res, 1);
+    progress_init(&prog, start, image_hdr.totalblock, bit_size);
 
     for(blk = 0 ; (int)blk < fs->super->s_v1.sb_block_count; blk++){
 	if(reiserfs_tools_test_bit(blk, fs_bitmap->bm_map)){

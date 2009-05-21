@@ -81,7 +81,7 @@ int main(int argc, char **argv){
     unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
     /// copied is copied block count
     off_t		offset = 0, sf = 0;	/// seek postition, lseek result
-    int			start, res, stop;	/// start, range, stop number for progress bar
+    int			start, stop;		/// start, range, stop number for progress bar
     unsigned long long	total_write = 0;	/// the copied size 
     unsigned long long	needed_size = 0;	/// the copied size 
     unsigned long long	needed_mem  = 0;	/// the copied size 
@@ -188,7 +188,6 @@ int main(int argc, char **argv){
 	/// get Super Block information from partition
 	initial_image_hdr(source, &image_hdr);
 
-	log_mesg(1, 0, 1, debug, "Calculating bitmap ...\nPlease wait...");
 	/// check memory size
 	if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
 	    log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
@@ -205,7 +204,9 @@ int main(int argc, char **argv){
 	log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
 	/// read and check bitmap from partition
+	log_mesg(1, 0, 1, debug, "Calculating bitmap ...\n");
 	readbitmap(source, image_hdr, bitmap, pui);
+	log_mesg(1, 0, 1, debug, "done\n");
 
 	needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
 	if (opt.check)
@@ -213,13 +214,7 @@ int main(int argc, char **argv){
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
 
-	/*
-	   sf = lseek(dfw, 0, SEEK_SET);
-	   log_mesg(0, 0, 0, debug, "seek %lli for writing image_head\n",sf);
-	   if (sf == (off_t)-1)
-	   log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
-	 */
-
+	log_mesg(1, 0, 1, debug, "Writing super block and bitmap ...\n");
 	// write image_head to image file
 	w_size = write_all(&dfw, (char *)&image_hdr, sizeof(image_head), &opt);
 	if(w_size == -1)
@@ -229,7 +224,6 @@ int main(int argc, char **argv){
 	w_size = write_all(&dfw, bitmap, sizeof(char)*image_hdr.totalblock, &opt);
 	if(w_size == -1)
 	    log_mesg(0, 1, 1, debug, "write bitmap to image error\n");
-
 	log_mesg(1, 0, 1, debug, "done\n");
     } else if (opt.restore){
 
@@ -319,11 +313,10 @@ int main(int argc, char **argv){
      * initial progress bar
      */
     start = 0;				/// start number of progress bar
-    stop = (int)image_hdr.usedblocks;	/// get the end of progress number, only used block
-    res = 100;				/// the end of progress number
+    stop = image_hdr.usedblocks;	/// get the end of progress number, only used block
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
-    progress_init(&prog, start, stop, res, (int)image_hdr.block_size);
+    progress_init(&prog, start, stop, image_hdr.block_size);
     copied = 1;				/// initial number is 1
 
     /**
@@ -333,14 +326,6 @@ int main(int argc, char **argv){
 
 	w_size = write_all(&dfw, bitmagic, 8, &opt); /// write a magic string
 
-	/*
-	/// log the offset
-	sf = lseek(dfw, 0, SEEK_CUR);
-	log_mesg(0, 0, 0, debug, "seek %lli for writing data string\n",sf); 
-	if (sf == (off_t)-1)
-	log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
-	 */
-
 	/// read data from the first block and log the offset
 	sf = lseek(dfr, 0, SEEK_SET);
 	log_mesg(1, 0, 0, debug, "seek %lli for reading data string\n",sf);
@@ -348,7 +333,6 @@ int main(int argc, char **argv){
 	    log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
 
 	log_mesg(0, 0, 0, debug, "Total block %i\n", image_hdr.totalblock);
-	//        log_mesg(0, 0, 0, debug, "blockid,\tbitmap,\tread,\twrite,\tsize,\tseek,\tcopied,\terror\n");
 
 	/// start clone partition to image file
 	log_mesg(1, 0, 0, debug, "start backup data...\n");
@@ -461,14 +445,6 @@ int main(int argc, char **argv){
 	log_mesg(1, 0, 0, debug, "seek %lli for writing dtat string\n",sf);
 	if (sf == (off_t)-1)
 	    log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
-
-	/*
-	/// log the offset
-	sf = lseek(dfr, 0, SEEK_CUR);
-	log_mesg(0, 0, 0, debug, "seek %lli for reading data string\n",sf);
-	if (sf == (off_t)-1)
-	log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
-	 */
 
 	/// start restore image file to partition
 	log_mesg(1, 0, 0, debug, "start restore data...\n");

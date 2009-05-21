@@ -125,7 +125,9 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     long int tb = 0, rb = 0, bused = 0, bfree = 0;
     UInt32 b;
     int debug = 2;
-    int start, res, stop; /// start, range, stop number for progre
+    int start = 0;
+    int bit_size = 1;
+
 
     fs_open(device);
     tb = reverseInt((int)sb.totalBlocks);
@@ -134,11 +136,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
-    start = 0;		    /// start number of progress bar
-    stop = (int)image_hdr.totalblock;	/// get the end of progress number, only used block
-    res = image_hdr.totalblock>>10;		    /// the end of progress number
-    progress_init(&prog, start, stop, res, 1);
-
+    progress_init(&prog, start, image_hdr.totalblock, bit_size);
 
     for (i = 0; i < tb; i++)
 	bitmap[i] = 1;
@@ -168,7 +166,6 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     log_mesg(2, 0, 0, 1, "bused:%i\n", bused);
     if(bfree != reverseInt((int)sb.freeBlocks))
         log_mesg(0, 1, 1, debug, "bitmap free count err, free:%i\n", bfree);
-
 
     free(buffer2);
     fs_close();

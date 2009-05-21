@@ -55,7 +55,7 @@ int main(int argc, char **argv){
     unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
     /// copied is copied block count
     off_t		offset = 0, sf = 0;	/// seek postition, lseek result
-    int			start, res, stop;	/// start, range, stop number for progress bar
+    int			start, stop;		/// start, range, stop number for progress bar
     unsigned long long	total_write = 0;	/// the copied size 
     unsigned long long	needed_size = 0;	/// the copied size 
     unsigned long long	needed_mem  = 0;	/// the copied size 
@@ -224,11 +224,10 @@ int main(int argc, char **argv){
      * initial progress bar
      */
     start = 0;				/// start number of progress bar
-    stop = (int)image_hdr.usedblocks;	/// get the end of progress number, only used block
-    res = 100;				/// the end of progress number
+    stop = image_hdr.usedblocks;	/// get the end of progress number, only used block
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
-    progress_init(&prog, start, stop, res, (int)image_hdr.block_size);
+    progress_init(&prog, start, stop, image_hdr.block_size);
     copied = 1;				/// initial number is 1
 
     /**

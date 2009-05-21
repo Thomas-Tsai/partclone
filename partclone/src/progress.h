@@ -23,8 +23,8 @@
 /// the progress bar structure
 struct progress_bar {
         int start;
-        int stop;
-        int resolution;
+	unsigned long long stop;
+        unsigned long resolution;
 	int block_size;
 	float rate;
 	time_t time;
@@ -35,15 +35,15 @@ typedef struct progress_bar progress_bar;
 
 extern int open_pui(int pui);
 extern void close_pui(int pui);
-extern int update_pui(struct progress_bar *prog, int copied, int done);
+extern int update_pui(struct progress_bar *prog, unsigned long long current, int done);
 
 /// initial progress bar
-extern void progress_init(struct progress_bar *p, int start, int stop, int res, int size);
+extern void progress_init(struct progress_bar *prog, int start, unsigned long long stop, int size);
 
 /// update number
-extern void progress_update(struct progress_bar *p, int current, int done);
-extern void Ncurses_progress_update(struct progress_bar *p, int current, int done);
+extern void progress_update(struct progress_bar *prog, unsigned long long current, int done);
+extern void Ncurses_progress_update(struct progress_bar *p, unsigned long long current, int done);
 
 static open_p_ncurses();
 static close_p_ncurses();
-extern void Dialog_progress_update(struct progress_bar *p, int current, int done);
+extern void Dialog_progress_update(struct progress_bar *prog, unsigned long long current, int done);
