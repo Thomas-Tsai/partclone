@@ -68,14 +68,15 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     int debug = 1;
     int start = 0;
     int bit_size = 1;
+    int done = 0;
     
     fs_open(device);
     tree = reiserfs_fs_tree(fs);
     fs_bitmap = tree->fs->bitmap;
     
     /// init progress
-    progress_bar   prog;	/// progress_bar structure defined in progress.h
-    progress_init(&prog, start, image_hdr.totalblock, bit_size);
+    progress_bar   bprog;	/// progress_bar structure defined in progress.h
+    progress_init(&bprog, start, fs->super->s_v1.sb_block_count, bit_size);
 
     for(blk = 0 ; (int)blk < fs->super->s_v1.sb_block_count; blk++){
 	if(reiserfs_tools_test_bit(blk, fs_bitmap->bm_map)){
@@ -86,7 +87,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	    bitmap[blk] = 0;
 	}
 	/// update progress
-	update_pui(&prog, blk, 0);
+	update_pui(&bprog, 1, done);
 
     }
 
@@ -95,7 +96,8 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 
     fs_close();
     /// update progress
-    update_pui(&prog, blk, 1);
+    done = 1;
+    update_pui(&bprog, 1, done);
 
 }
 

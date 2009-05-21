@@ -33,7 +33,7 @@ struct progress_bar {
 };
 typedef struct progress_bar progress_bar;
 
-extern int open_pui(int pui);
+extern int open_pui(int pui, unsigned long res);
 extern void close_pui(int pui);
 extern void update_pui(struct progress_bar *prog, unsigned long long current, int done);
 
@@ -42,7 +42,7 @@ extern void progress_init(struct progress_bar *prog, int start, unsigned long lo
 
 /// update number
 extern void progress_update(struct progress_bar *prog, unsigned long long current, int done);
-extern void Ncurses_progress_update(struct progress_bar *p, unsigned long long current, int done);
+extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long long current, int done);
 
 static open_p_ncurses();
 static close_p_ncurses();

@@ -32,6 +32,7 @@
 #endif
 
 int PUI;
+unsigned long RES=0;
 
 /// initial progress bar
 extern void progress_init(struct progress_bar *prog, int start, unsigned long long stop, int size)
@@ -44,19 +45,23 @@ extern void progress_init(struct progress_bar *prog, int start, unsigned long lo
 	prog->time = now;
 	prog->block_size = size;
 	//prog->resolution = 10000;
-	if (stop <= 100){
-	    prog->resolution = 1;
-	} else if ((stop > 100) && (stop <= 10000)){
-	    prog->resolution = 100;
+	if (RES){
+		prog->resolution = RES*100;
 	} else {
-	    prog->resolution = 10000;
+		if (stop <= 100){
+			prog->resolution = 1;
+		} else if ((stop > 100) && (stop <= 10000)){
+			prog->resolution = 100;
+		} else {
+			prog->resolution = 10000;
+		}
 	}
 	prog->rate = 0.0;
 	prog->pui = PUI;
 }
 
 /// open progress interface
-extern int open_pui(int pui){
+extern int open_pui(int pui, unsigned long res){
     int tui = 0;
     if (pui == NCURSES){
 	tui = open_ncurses();
@@ -67,6 +72,7 @@ extern int open_pui(int pui){
 	tui = 1;
     }
     PUI = pui;
+    RES = res;
     return tui;
 }
 

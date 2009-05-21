@@ -73,6 +73,7 @@ struct cmd_opt
 	int ncurses;
 	int dialog;
 	int force;
+	unsigned long fresh;
 };
 typedef struct cmd_opt cmd_opt;
 extern void usage(void);

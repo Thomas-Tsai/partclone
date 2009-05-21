@@ -110,7 +110,6 @@ int main(int argc, char **argv){
 	"* Use the --rescue option to efficiently save as much data as possible! *\n"
 	"*************************************************************************\n";
 
-    progress_bar	prog;			/// progress_bar structure defined in progress.h
     image_head		image_hdr;		/// image_head structure defined in partclone.h
 
     /**
@@ -139,7 +138,7 @@ int main(int argc, char **argv){
     } else
 	pui = TEXT;
 
-    tui = open_pui(pui);
+    tui = open_pui(pui, opt.fresh);
     if ((opt.ncurses) && (tui == 0)){
 	opt.ncurses = 0;
 	log_mesg(1, 0, 0, debug, "Open Ncurses User Interface Error.\n");
@@ -311,6 +310,7 @@ int main(int argc, char **argv){
     /**
      * initial progress bar
      */
+    progress_bar	prog;		/// progress_bar structure defined in progress.h
     start = 0;				/// start number of progress bar
     stop = image_hdr.usedblocks;	/// get the end of progress number, only used block
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");

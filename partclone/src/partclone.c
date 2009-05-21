@@ -85,6 +85,7 @@ extern void usage(void)
 #endif
         "    -X,  --dialog           output message as Dialog Format\n"
         "    -F,  --force            force progress\n"
+        "    -f,  --UI-fresh         fresh times of progress\n"
         "    -h,  --help             Display this help\n"
     , EXECNAME, VERSION, svn_version, EXECNAME);
     exit(0);
@@ -92,7 +93,7 @@ extern void usage(void)
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hd::cbro:O:s:RCXFN";
+    static const char *sopt = "-hd::cbro:O:s:f:RCXFN";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "output",		required_argument,  NULL,   'o' },
@@ -103,6 +104,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "dev-to-dev",		no_argument,	    NULL,   'b' },
         { "debug",		optional_argument,  NULL,   'd' },
         { "rescue",		no_argument,	    NULL,   'R' },
+        { "UI-fresh",		required_argument,  NULL,   'u' },
         { "check",		no_argument,	    NULL,   'C' },
         { "dialog",		no_argument,	    NULL,   'X' },
         { "force",		no_argument,	    NULL,   'F' },
@@ -156,6 +158,9 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 		    else
 			opt->debug = 1;
                     break;
+	    case 'f':
+		    opt->fresh = atol(optarg);
+		    break;
 	    case 'F':
 		    opt->force++;
 		    break;
@@ -857,6 +862,12 @@ extern void print_opt(cmd_opt opt){
     log_mesg(1, 0, 0, debug, "OVERWRITE: %i\n", opt.overwrite);
     log_mesg(1, 0, 0, debug, "RESCUE: %i\n", opt.rescue);
     log_mesg(1, 0, 0, debug, "CHECK: %i\n", opt.check);
+    log_mesg(1, 0, 0, debug, "FRESH: %i\n", opt.fresh);
+    log_mesg(1, 0, 0, debug, "FORCE: %i\n", opt.force);
+#ifdef HAVE_LIBNCURSESW
+    log_mesg(1, 0, 0, debug, "NCURSES: %i\n", opt.ncurses);
+#endif
+    log_mesg(1, 0, 0, debug, "DIALOG: %i\n", opt.dialog);
 
 }
 
