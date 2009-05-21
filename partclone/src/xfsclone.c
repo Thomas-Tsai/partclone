@@ -187,8 +187,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     int bit_size = 1;
 
     /// init progress
-    progress_bar        prog;           /// progress_bar structure defined in progress.h
-    progress_init(&prog, start, image_hdr.totalblock, bit_size);
+    progress_init(&prog, start, image_hdr.totalblock*2, bit_size);
 
     fs_open(device);
     // init bitmap
@@ -240,8 +239,6 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
       scan_sbtree(agf, INT_GET(agf->agf_roots[XFS_BTNUM_BNO], ARCH_CONVERT), INT_GET(agf->agf_levels[XFS_BTNUM_BNO],ARCH_CONVERT), bitmap);
       free(agf_bufp);
     }
-    /// finish
-    update_pui(&prog, 1, 1);
 
     for(bit = 0; bit < mp->m_sb.sb_dblocks; bit++)
     {
@@ -253,6 +250,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	    bfree++;
 	    log_mesg(3, 0, 0, debug, "free b= %i\n", bit);
 	}
+	update_pui(&prog, (mp->m_sb.sb_dblocks+bit), 0);
     }
     //log_mesg(0, 0, 0, debug, "used = %i, free = %i\n", bused, bfree);
 
@@ -261,6 +259,8 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 
     fs_close();
 //	image_hdr->usedblocks = bused;
+    /// finish
+    update_pui(&prog, 1, 1);
 
 }
 

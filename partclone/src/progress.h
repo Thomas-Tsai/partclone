@@ -24,7 +24,7 @@
 struct progress_bar {
         int start;
 	unsigned long long stop;
-        unsigned long resolution;
+        unsigned long long resolution;
 	int block_size;
 	float rate;
 	time_t time;
@@ -35,7 +35,7 @@ typedef struct progress_bar progress_bar;
 
 extern int open_pui(int pui);
 extern void close_pui(int pui);
-extern int update_pui(struct progress_bar *prog, unsigned long long current, int done);
+extern void update_pui(struct progress_bar *prog, unsigned long long current, int done);
 
 /// initial progress bar
 extern void progress_init(struct progress_bar *prog, int start, unsigned long long stop, int size);

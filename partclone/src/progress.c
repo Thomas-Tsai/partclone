@@ -16,6 +16,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <math.h>
 #include "config.h"
 #include "progress.h"
 #include "gettext.h"
@@ -42,12 +43,13 @@ extern void progress_init(struct progress_bar *prog, int start, unsigned long lo
         prog->unit = 100.0 / (stop - start);
 	prog->time = now;
 	prog->block_size = size;
+	//prog->resolution = 10000;
 	if (stop <= 100){
 	    prog->resolution = 1;
 	} else if ((stop > 100) && (stop <= 10000)){
 	    prog->resolution = 100;
 	} else {
-	    prog->resolution = 1000;
+	    prog->resolution = 10000;
 	}
 	prog->rate = 0.0;
 	prog->pui = PUI;
@@ -75,14 +77,17 @@ extern void close_pui(int pui){
     }
 }
 
-extern int update_pui(struct progress_bar *prog, unsigned long long current, int done){
-    if (prog->pui == NCURSES)
-	Ncurses_progress_update(prog, current, done);
-    else if (prog->pui == DIALOG)
-	Dialog_progress_update(prog, current, done);
-    else if (prog->pui == TEXT)
-	progress_update(prog, current, done);
-    return 1;
+extern void update_pui(struct progress_bar *prog, unsigned long long current, int done){
+    if (done != 1){
+	if (((current - prog->start) % prog->resolution) && ((current != prog->stop)))
+	    return;
+    }
+	if (prog->pui == NCURSES)
+	    Ncurses_progress_update(prog, current, done);
+	else if (prog->pui == DIALOG)
+	    Dialog_progress_update(prog, current, done);
+	else if (prog->pui == TEXT)
+	    progress_update(prog, current, done);
 }
 
 /// update information at progress bar
