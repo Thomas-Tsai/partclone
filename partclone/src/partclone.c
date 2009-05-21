@@ -716,6 +716,7 @@ extern int open_target(char* target, cmd_opt* opt){
     int debug = opt->debug;
     char *mp = malloc(PATH_MAX + 1);
     int flags = O_WRONLY | O_LARGEFILE;
+    struct stat st_dev;
 
     log_mesg(1, 0, 0, debug, "open target file/device\n");
     if (opt->clone){
@@ -740,10 +741,21 @@ extern int open_target(char* target, cmd_opt* opt){
 	
 	if (check_mount(target, mp) == 1)
 	    log_mesg(0, 1, 1, debug, "device (%s) is mounted at %s\n", target, mp);
-
-	ret = open (target, flags);
-	if (ret == -1)
-	    log_mesg(0, 1, 1, debug, "restore: open %s error\n", target);
+	flags |= O_CREAT;	        /// new file
+	if (!opt->overwrite)        /// overwrite
+	    flags |= O_EXCL;
+	ret = open (target, flags, S_IRUSR);
+	if (ret == -1){
+	    if (errno == EEXIST){
+		log_mesg(0, 0, 1, debug, "Output file '%s' already exists.\nUse option --overwrite if you want to replace its content.\n", target);
+	    }
+	    log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
+	} 
+	/// check block device
+	stat(target, &st_dev);
+	if (!S_ISBLK(st_dev.st_mode)){
+	    log_mesg(1, 0, 1, debug, "Warning, did you restore to non-block device(%s)?\n", target);
+	}
     }
     return ret;
 }

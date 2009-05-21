@@ -1,3 +1,14 @@
+partclone (0.1.1-1) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Minor updates for output messages.
+    * New Feature: add argument to set fresh of progress bar
+    * New Feature: restore to new file(non-block device)
+    * A bug about crc check in 64bit image
+    * Update partclone.ntfsreloc to ntfsfixboot.c from http://cc.jct.ac.il/~shaneh/ntfsfixboot.c
+
+ -- root <root@partclone.TDRBL>  Fri, 22 May 2009 05:52:00 +0800
+
 partclone (0.1.0-10) unstable; urgency=low
 
     [ Thomas Tsai ]
