@@ -296,6 +296,8 @@ int main(int argc, char **argv){
 		    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
 		}
 		c_size = read_all(&dfr, crc_buffer, CRC_SIZE, &opt);
+		if (c_size < CRC_SIZE)
+		    log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno));
 		memcpy(&crc, crc_buffer, CRC_SIZE);
 		if (memcmp(&crc, &crc_ck, CRC_SIZE) != 0){
 		    log_mesg(1, 0, 0, debug, "CRC Check  error, 64bit bug before v0.1.0 (Rev:252:253M), enlarge crc size and recheck again....\n OrigCRC:0x%08lX, DestCRC:0x%08lX\n", crc, crc_ck);
@@ -309,6 +311,8 @@ int main(int argc, char **argv){
 			log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
 		    }
 		    c_size = read_all(&dfr, crc_buffer2, CRC_SIZE, &opt);
+		    if (c_size < CRC_SIZE)
+			log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno));
 		    memcpy(crc_buffer3+CRC_SIZE, crc_buffer, CRC_SIZE);
 		    memcpy(crc_buffer3, crc_buffer2, CRC_SIZE);
 		    memcpy(&crc, crc_buffer3, CRC_SIZE-4);

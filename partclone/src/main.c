@@ -206,7 +206,6 @@ int main(int argc, char **argv){
 	/// read and check bitmap from partition
 	log_mesg(1, 0, 1, debug, "Calculating bitmap ...\n");
 	readbitmap(source, image_hdr, bitmap, pui);
-	log_mesg(1, 0, 1, debug, "done\n");
 
 	needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
 	if (opt.check)
@@ -214,7 +213,7 @@ int main(int argc, char **argv){
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
 
-	log_mesg(1, 0, 1, debug, "Writing super block and bitmap ...\n");
+	log_mesg(1, 0, 1, debug, "Writing super block and bitmap ...");
 	// write image_head to image file
 	w_size = write_all(&dfw, (char *)&image_hdr, sizeof(image_head), &opt);
 	if(w_size == -1)
@@ -493,9 +492,12 @@ int main(int argc, char **argv){
 		    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
 		}
 		c_size = read_all(&dfr, crc_buffer, CRC_SIZE, &opt);
+		if (c_size < CRC_SIZE)
+		    log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno));
+
 		memcpy(&crc, crc_buffer, CRC_SIZE);
 		if (memcmp(&crc, &crc_ck, CRC_SIZE) != 0){
-		    log_mesg(1, 0, 0, debug, "CRC Check  error, 64bit bug before v0.1.0 (Rev:252:253M), enlarge crc size and recheck again....\n OrigCRC:0x%08lX, DestCRC:0x%08lX\n", crc, crc_ck);
+		    log_mesg(1, 0, 0, debug, "CRC Check  error, OrigCRC:0x%08lX, DestCRC:0x%08lX\n. 64bit bug before v0.1.0 (Rev:250M), enlarge crc size and recheck again....\n ", crc, crc_ck);
 		    /// check again
 		    crc_buffer2 = (char*)malloc(CRC_SIZE);
 		    if(crc_buffer2 == NULL){
@@ -506,11 +508,13 @@ int main(int argc, char **argv){
 			log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
 		    }
 		    c_size = read_all(&dfr, crc_buffer2, CRC_SIZE, &opt);
+		    if (c_size < CRC_SIZE)
+			log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno));
 		    memcpy(crc_buffer3+CRC_SIZE, crc_buffer, CRC_SIZE);
 		    memcpy(crc_buffer3, crc_buffer2, CRC_SIZE);
 		    memcpy(&crc, crc_buffer3, CRC_SIZE-4);
 		    if (memcmp(&crc, &crc_ck, CRC_SIZE-4) != 0){
-			log_mesg(0, 1, 1, debug, "CRC Check  error, \n OrigCRC:0x%08lX, DestCRC:0x%08lX\n", crc, crc_ck);
+			log_mesg(0, 1, 1, debug, "CRC Check  error, \n SecCRC:0x%08lX, DestCRC:0x%08lX\n", crc, crc_ck);
 		    }
 		}
 

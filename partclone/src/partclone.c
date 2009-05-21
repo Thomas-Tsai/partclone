@@ -312,7 +312,7 @@ extern int open_ncurses(){
     /// init log window
     log_win = subwin(stdscr, log_line, log_row, log_y_pos, log_x_pos);
     wbkgd(log_win, COLOR_PAIR(3));
-    wprintw(log_win, "Calculating bitmap...\nPlease wait...\n");
+    //wprintw(log_win, "Calculating bitmap...\nPlease wait...\n");
 
     // init progress window
     p_win = subwin(stdscr, p_line, p_row, p_y_pos, p_x_pos);
