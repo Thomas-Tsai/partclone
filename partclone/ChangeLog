@@ -1,3 +1,41 @@
+2009-05-21 02:01  thomas
+
+	* src/Makefile.in, src/ddclone.c, src/extfsclone.c, src/fatclone.c,
+	  src/hfsplusclone.c, src/main.c, src/ntfsclone-ng.c,
+	  src/progress.c, src/progress.h, src/reiser4clone.c,
+	  src/reiserfsclone.c, src/restore.c, src/version.c,
+	  src/xfsclone.c:
+	  
+	  update progress init
+
+2009-05-20 11:49  thomas
+
+	* src/fatclone.c, src/hfsplusclone.c, src/ntfsclone-ng.c,
+	  src/reiser4clone.c, src/reiserfsclone.c, src/version.c,
+	  src/xfsclone.c:
+	  
+	  update for pui
+
+2009-05-20 11:42  thomas
+
+	* ChangeLog, configure, configure.ac, po/partclone.pot,
+	  po/zh_TW.gmo, po/zh_TW.po:
+	  
+	  * update version
+
+2009-05-20 11:34  thomas
+
+	* src/ddclone.c, src/extfsclone.c, src/extfsclone.h,
+	  src/fatclone.c, src/fatclone.h, src/hfsplusclone.c,
+	  src/hfsplusclone.h, src/main.c, src/ntfsclone-ng.c,
+	  src/ntfsclone-ng.h, src/progress.c, src/progress.h,
+	  src/reiser4clone.c, src/reiser4clone.h, src/reiserfsclone.c,
+	  src/reiserfsclone.h, src/restore.c, src/version.c,
+	  src/xfsclone.c, src/xfsclone.h:
+	  
+	  * add progress for bitmap * update structure of progress * update
+	  structure of Ncurses...
+
 2009-05-20 11:03  thomas
 
 	* src/main.c, src/restore.c, src/version.c:
