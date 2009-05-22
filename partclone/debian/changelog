@@ -1,3 +1,10 @@
+partclone (0.1.1-2) unstable; urgency=low
+
+  [Thomas Tsai]
+    * partclone.ntfsreloc is linked to partclone.ntfsfixboot.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri, 22 May 2009 13:52:00 +0800
+
 partclone (0.1.1-1) unstable; urgency=low
 
   [Thomas Tsai]

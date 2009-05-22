@@ -1,3 +1,40 @@
+2009-05-21 17:45  thomas
+
+	* Makefile.am, Makefile.in, debian/changelog, po/partclone.pot,
+	  po/zh_TW.gmo, po/zh_TW.po, src/Makefile.in, src/partclone.c,
+	  src/version.c:
+	  
+	  It's possible to create new file as target for restore after this
+	  commit...
+
+2009-05-21 11:33  thomas
+
+	* src/ddclone.c, src/main.c, src/partclone.c, src/partclone.h,
+	  src/progress.c, src/progress.h, src/reiserfsclone.c,
+	  src/restore.c, src/version.c:
+	  
+	  add argument -f, --UI-fresh to set fresh time of progress bar ex:
+	  -f 10 // set fresh progress per 10*100 blocks The default fresh
+	  is 10000...
+
+2009-05-21 09:17  thomas
+
+	* src/progress.c, src/progress.h, src/version.c, src/xfsclone.c:
+	  
+	  update for xfs progress
+
+2009-05-21 02:40  thomas
+
+	* ChangeLog, po/partclone.pot, po/zh_TW.gmo, po/zh_TW.po:
+	  
+	  pre release...
+
+2009-05-21 02:39  thomas
+
+	* src/main.c, src/partclone.c, src/restore.c, src/version.c:
+	  
+	  update CRC read error message
+
 2009-05-21 02:01  thomas
 
 	* src/Makefile.in, src/ddclone.c, src/extfsclone.c, src/fatclone.c,
