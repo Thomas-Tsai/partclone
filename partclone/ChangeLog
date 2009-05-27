@@ -1,3 +1,28 @@
+2009-05-27 03:13  thomas
+
+	* src/partclone.c, src/version.c:
+	  
+	  test for open block file
+
+2009-05-22 08:17  steven
+
+	* src/version.c:
+	  
+	  updated for 0.1.1-2
+
+2009-05-22 05:53  steven
+
+	* ChangeLog, debian/changelog:
+	  
+	  updated for partclone (0.1.1-2).
+
+2009-05-22 05:47  thomas
+
+	* Makefile.am, Makefile.in, po/partclone.pot, po/zh_TW.po,
+	  src/Makefile.am, src/Makefile.in, src/version.c:
+	  
+	  add link of partclone.ntfsreloc
+
 2009-05-21 17:45  thomas
 
 	* Makefile.am, Makefile.in, debian/changelog, po/partclone.pot,
