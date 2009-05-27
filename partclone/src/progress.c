@@ -48,12 +48,10 @@ extern void progress_init(struct progress_bar *prog, int start, unsigned long lo
 	if (RES){
 		prog->resolution = RES*100;
 	} else {
-		if (stop <= 100){
-			prog->resolution = 1;
-		} else if ((stop > 100) && (stop <= 10000)){
-			prog->resolution = 100;
+		if (stop <= 5000){
+			prog->resolution = 50;
 		} else {
-			prog->resolution = 10000;
+			prog->resolution = 1000;
 		}
 	}
 	prog->rate = 0.0;
