@@ -1,3 +1,10 @@
+partclone (0.1.1-5) unstable; urgency=low
+
+  [Thomas Tsai]
+    * bug of time calculating was fixed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 27 May 2009 22:13:00 +0800
+
 partclone (0.1.1-4) unstable; urgency=low
 
   [Thomas Tsai]

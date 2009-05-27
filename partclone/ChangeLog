@@ -1,3 +1,21 @@
+2009-05-27 08:04  thomas
+
+	* src/progress.c, src/version.c:
+	  
+	  bug of time calculating
+
+2009-05-27 05:06  steven
+
+	* po/partclone.pot, po/zh_TW.gmo, po/zh_TW.po, src/version.c:
+	  
+	  Updated for version 0.1.1-4.
+
+2009-05-27 05:00  steven
+
+	* ChangeLog, debian/changelog:
+	  
+	  * Update default RES from 10000 to 1000.
+
 2009-05-27 04:23  thomas
 
 	* src/progress.c:
