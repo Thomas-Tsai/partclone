@@ -44,12 +44,11 @@ extern void progress_init(struct progress_bar *prog, int start, unsigned long lo
         prog->unit = 100.0 / (stop - start);
 	prog->time = now;
 	prog->block_size = size;
-	//prog->resolution = 10000;
 	if (RES){
 		prog->resolution = RES*100;
 	} else {
 		if (stop <= 5000){
-			prog->resolution = 50;
+			prog->resolution = 100;
 		} else {
 			prog->resolution = 1000;
 		}
@@ -117,6 +116,8 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
                 if (((current - prog->start) % prog->resolution) && ((current != prog->stop)))
                         return;
 		percent  = prog->unit * current;
+		if (percent <= 0)
+		    percent = 1;
 		elapsed  = (time(0) - prog->time);
 		if (elapsed <= 0)
 		    elapsed = 1;
