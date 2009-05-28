@@ -67,6 +67,7 @@ int main(int argc, char **argv){
     int			debug = 0;		/// debug or not
     unsigned long	crc = 0xffffffffL;	/// CRC32 check code for writint to image
     unsigned long	crc_ck = 0xffffffffL;	/// CRC32 check code for checking
+    unsigned long	crc_ck2 = 0xffffffffL;	/// CRC32 check code for checking
     int			c_size;			/// CRC32 code size
     char*		crc_buffer;		/// buffer data for malloc crc code
     int			done = 0;
@@ -282,12 +283,6 @@ int main(int argc, char **argv){
 		if (r_size <0)
 		    log_mesg(0, 1, 1, debug, "read errno = %i \n", errno);
 
-		/// write block from buffer to partition
-		w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
-		log_mesg(1, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
-		if (w_size != (int)image_hdr.block_size)
-		    log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
-
 		/// read crc32 code and check it.
 		crc_ck = crc32(crc_ck, buffer, r_size);
 		crc_buffer = (char*)malloc(CRC_SIZE); ///alloc a memory to copy data
@@ -299,26 +294,38 @@ int main(int argc, char **argv){
 		    log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno));
 		memcpy(&crc, crc_buffer, CRC_SIZE);
 		if (memcmp(&crc, &crc_ck, CRC_SIZE) != 0){
-		    log_mesg(1, 0, 0, debug, "CRC Check  error, 64bit bug before v0.1.0 (Rev:252:253M), enlarge crc size and recheck again....\n OrigCRC:0x%08lX, DestCRC:0x%08lX\n", crc, crc_ck);
+		    log_mesg(1, 0, 0, debug, "CRC Check error. 64bit bug before v0.1.0 (Rev:250M), enlarge crc size and recheck again....\n ");
 		    /// check again
-		    buffer2 = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
+		    buffer2 = (char*)malloc(image_hdr.block_size+CRC_SIZE); ///alloc a memory to copy data
 		    if(buffer2 == NULL){
 			log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
 		    }
-		    memcpy(buffer2, buffer+CRC_SIZE, (image_hdr.block_size-CRC_SIZE));
-		    memcpy(buffer2+(image_hdr.block_size-CRC_SIZE), crc_buffer, CRC_SIZE);
-		    crc_ck = crc32(crc_ck, buffer2, r_size);
-		    c_size = read_all(&dfr, crc_buffer, CRC_SIZE, &opt);
-		    if (c_size < CRC_SIZE)
-			log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno)); 
-		    memcpy(&crc, crc_buffer, CRC_SIZE);
-		    if (memcmp(&crc, &crc_ck, CRC_SIZE) != 0)
-			log_mesg(1, 0, 0, debug, "CRC error again...\n ");
-		    memcpy(buffer, buffer2, image_hdr.block_size);
+                    memcpy(buffer2, buffer, image_hdr.block_size);
+                    memcpy(buffer2+image_hdr.block_size, crc_buffer, CRC_SIZE);
+                    memcpy(buffer, buffer2+CRC_SIZE, image_hdr.block_size);
+                    
+                    crc_ck2 = crc32(crc_ck2, buffer, r_size);
+                    c_size = read_all(&dfr, crc_buffer, CRC_SIZE, &opt);
+                    if (c_size < CRC_SIZE)
+                        log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno));
+                    memcpy(&crc, crc_buffer, CRC_SIZE);
+                    if (memcmp(&crc, &crc_ck2, CRC_SIZE) != 0) {
+                        log_mesg(0, 1, 1, debug, "CRC error again at %i...\n ", sf);
+                    } else {
+                        crc_ck = crc_ck2;
+                    }
 		    free(buffer2);
 
-		}
+		} else {
+                    crc_ck2 = crc_ck;
+                }
 
+
+		/// write block from buffer to partition
+		w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
+		log_mesg(1, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
+		if (w_size != (int)image_hdr.block_size)
+		    log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
 		/// free buffer
 		free(buffer);
 		free(crc_buffer);
