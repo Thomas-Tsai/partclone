@@ -1,3 +1,23 @@
+2009-05-28 09:23  thomas
+
+	* src/main.c, src/restore.c, src/version.c:
+	  
+	  update for 64 bit I found a crc problem and should be fix in the
+	  next image version.
+
+2009-05-28 07:15  thomas
+
+	* src/main.c, src/restore.c, src/version.c:
+	  
+	  update crc in 64 bit image problem again...
+
+2009-05-27 14:38  steven
+
+	* ChangeLog, debian/changelog, po/partclone.pot, po/zh_TW.gmo,
+	  po/zh_TW.po, src/version.c:
+	  
+	  Updated for 0.1.1-5.
+
 2009-05-27 08:04  thomas
 
 	* src/progress.c, src/version.c:

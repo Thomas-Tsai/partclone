@@ -1,3 +1,10 @@
+partclone (0.1.1-6) unstable; urgency=low
+
+  [Thomas Tsai]
+    * bug of CRC in 64 bit image problem was fixed. A better method will be imlemented in the nexe version of image format.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sat, 30 May 2009 12:10:00 +0800
+
 partclone (0.1.1-5) unstable; urgency=low
 
   [Thomas Tsai]
