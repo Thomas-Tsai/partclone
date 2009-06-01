@@ -87,7 +87,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	    bitmap[blk] = 0;
 	}
 	/// update progress
-	update_pui(&bprog, 1, done);
+	update_pui(&bprog, blk, done);
 
     }
 

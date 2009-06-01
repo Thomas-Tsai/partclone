@@ -183,7 +183,7 @@ int main(int argc, char **argv){
 	    log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
 	    /// read and check bitmap from image file
-	    log_mesg(1, 0, 0, debug, "Calculating bitmap ...\n");
+	    log_mesg(1, 0, 1, debug, "Calculating bitmap ...\n");
 	    get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
 	    /// check the dest partition size.
