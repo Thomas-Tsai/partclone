@@ -1,3 +1,10 @@
+partclone (0.1.1-7) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Bug fixed: Progress update with nogui, "Calculating bitmap..." was added without option -d.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Mon, 01 Jun 2009 22:36:00 +0800
+
 partclone (0.1.1-6) unstable; urgency=low
 
   [Thomas Tsai]

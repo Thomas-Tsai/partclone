@@ -1,3 +1,16 @@
+2009-06-01 02:41  thomas
+
+	* src/main.c, src/reiserfsclone.c, src/restore.c:
+	  
+	  fix bug for progress update with nogui add "Calculating
+	  bitmap..." without -d option
+
+2009-05-30 04:12  steven
+
+	* ChangeLog, debian/changelog, src/version.c:
+	  
+	  Updated for version 0.1.1-6
+
 2009-05-28 09:23  thomas
 
 	* src/main.c, src/restore.c, src/version.c:
