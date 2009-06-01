@@ -123,6 +123,8 @@ int main(int argc, char **argv){
 	m_dialog.percent = 1;
     }
 
+    /// print partclone info
+    print_partclone_info(opt);
 
     if (geteuid() != 0)
 	log_mesg(0, 1, 1, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n"); 
@@ -183,7 +185,8 @@ int main(int argc, char **argv){
 	    log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
 	    /// read and check bitmap from image file
-	    log_mesg(1, 0, 1, debug, "Calculating bitmap ...\n");
+	    log_mesg(0, 0, 1, debug, "Calculating bitmap ...\n");
+	    log_mesg(0, 0, 1, debug, "Please wait...");
 	    get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
 	    /// check the dest partition size.
@@ -192,6 +195,7 @@ int main(int argc, char **argv){
 	    }
 
 	    log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
+	    log_mesg(0, 0, 1, debug, "done\n");
 	}else{
 	    log_mesg(1, 0, 0, debug, "This is not partclone image.\n");
 	    raw = 1;
@@ -214,8 +218,6 @@ int main(int argc, char **argv){
     /// print option to log file
     if (debug)
 	print_opt(opt);
-    /// print partclone info
-    print_partclone_info(opt);
 
     /// print image_head
     print_image_hdr_info(image_hdr, opt);
