@@ -186,7 +186,7 @@ int main(int argc, char **argv){
 
 	    /// read and check bitmap from image file
 	    log_mesg(0, 0, 1, debug, "Calculating bitmap ...\n");
-	    log_mesg(0, 0, 1, debug, "Please wait...");
+	    log_mesg(0, 0, 1, debug, "Please wait... ");
 	    get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
 	    /// check the dest partition size.
@@ -195,7 +195,7 @@ int main(int argc, char **argv){
 	    }
 
 	    log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
-	    log_mesg(0, 0, 1, debug, "done\n");
+	    log_mesg(0, 0, 1, debug, "done!\n");
 	}else{
 	    log_mesg(1, 0, 0, debug, "This is not partclone image.\n");
 	    raw = 1;
