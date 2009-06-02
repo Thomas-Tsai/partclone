@@ -1,9 +1,16 @@
+partclone (0.1.1-9) unstable; urgency=low
+
+  [Steven Shiau]
+    * Some output messages were polished again.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Tue, 02 Jun 2009 18:09:00 +0800
+
 partclone (0.1.1-8) unstable; urgency=low
 
   [Thomas Tsai]
     * Some output messages were polished.
 
- -- Steven Shiau <steven@nchc.org.tw>  Mon, 02 Jun 2009 16:51:00 +0800
+ -- Steven Shiau <steven@nchc.org.tw>  Tue, 02 Jun 2009 16:51:00 +0800
 
 partclone (0.1.1-7) unstable; urgency=low
 

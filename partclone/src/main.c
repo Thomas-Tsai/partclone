@@ -252,7 +252,7 @@ int main(int argc, char **argv){
 	log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
 	/// read and check bitmap from image file
-	log_mesg(0, 0, 1, debug, "Calculating bitmap ...\nPlease wait...");
+	log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
 	get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
 	/// check the dest partition size.
@@ -261,7 +261,7 @@ int main(int argc, char **argv){
 	}
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
-	log_mesg(0, 0, 1, debug, "done\n");
+	log_mesg(0, 0, 1, debug, "done!\n");
     } else if (opt.dd){
 	log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
 	log_mesg(1, 0, 1, debug, "Reading Super Block\n");
@@ -285,9 +285,9 @@ int main(int argc, char **argv){
 	log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
 	/// read and check bitmap from partition
-	log_mesg(0, 0, 1, debug, "Calculating bitmap ...\nPlease wait...");
+	log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
 	readbitmap(source, image_hdr, bitmap, pui);
-	log_mesg(1, 0, 1, debug, "done\n");
+	log_mesg(1, 0, 1, debug, "done!\n");
 
 	/// check the dest partition size.
 	if(opt.check){
@@ -295,7 +295,7 @@ int main(int argc, char **argv){
 	}
 
 	log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
-	log_mesg(1, 0, 1, debug, "done\n");
+	log_mesg(1, 0, 1, debug, "done!\n");
     }
 
     log_mesg(1, 0, 0, debug, "print image_head\n");
