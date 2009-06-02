@@ -1,3 +1,33 @@
+2009-06-01 17:15  thomas
+
+	* src/restore.c, src/version.c:
+	  
+	  update message for restore
+
+2009-06-01 17:05  thomas
+
+	* src/main.c, src/version.c:
+	  
+	  update: add "done" after "please wait"
+
+2009-06-01 16:59  thomas
+
+	* src/main.c:
+	  
+	  update: add new line after Please wait... modified: main.c
+
+2009-06-01 14:40  steven
+
+	* src/version.c:
+	  
+	  Updated for 0.1.1-7.
+
+2009-06-01 14:36  steven
+
+	* ChangeLog, debian/changelog:
+	  
+	  updated for partclone 0.1.1-7.
+
 2009-06-01 02:41  thomas
 
 	* src/main.c, src/reiserfsclone.c, src/restore.c:
