@@ -287,7 +287,6 @@ int main(int argc, char **argv){
 	/// read and check bitmap from partition
 	log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
 	readbitmap(source, image_hdr, bitmap, pui);
-	log_mesg(1, 0, 1, debug, "done!\n");
 
 	/// check the dest partition size.
 	if(opt.check){
