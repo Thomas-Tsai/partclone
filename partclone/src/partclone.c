@@ -378,7 +378,7 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
     va_start(args, fmt);
     extern cmd_opt opt;
     extern p_dialog_mesg m_dialog;
-    char tmp_str[128];
+    char tmp_str[512];
 	
     vsprintf(tmp_str, fmt, args);
     if (opt.ncurses) {
