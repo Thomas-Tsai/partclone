@@ -161,11 +161,11 @@ int main(int argc, char **argv){
 
 	log_mesg(1, 0, 0, debug, "restore image hdr - get image_head from image file\n");
 	/// get first 512 byte
-	r_size = read_all(&dfr, &image_hdr_magic, 512, &opt);
+	r_size = read_all(&dfr, image_hdr_magic, 512, &opt);
 
 	/// check the image magic
 	if (memcmp(image_hdr_magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE) == 0){
-	    restore_image_hdr_sp(&dfr, &opt, &image_hdr, &image_hdr_magic);
+	    restore_image_hdr_sp(&dfr, &opt, &image_hdr, image_hdr_magic);
 
 	    /// check memory size
 	    if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
