@@ -128,9 +128,9 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     int start = 0;
     int bit_size = 1;
     int allocation_exten = 0;
-    int allocation_start_block;
-    int allocation_block_size;
-    int exten_bitmap = 0;
+    long int allocation_start_block;
+    long int allocation_block_size;
+    long int exten_bitmap = 0;
 
 
     fs_open(device);
