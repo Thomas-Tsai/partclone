@@ -110,7 +110,7 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
     char *format = "%H:%M:%S";
     char Rformated[10], Eformated[10], Tformated[10];
     struct tm *Rtm, *Etm, *Ttm;
-    char *clear_buf = " ";
+    char *clear_buf = NULL;
 
     if (done != 1){
         if (((current - prog->start) % prog->resolution) && ((current != prog->stop)))
@@ -134,7 +134,7 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
         Etm = gmtime(&elapsed);
         strftime(Eformated, sizeof(Eformated), format, Etm);
 
-        fprintf(stderr, _("\r%81s\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "), clear_buf, Eformated, Rformated, percent, (float)(speed));
+        fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "), clear_buf, Eformated, Rformated, percent, (float)(speed));
         /*
            fprintf(stderr, ("\r%81c\r"), clear_buf);
            fprintf(stderr, _("Elapsed: %s, "), Eformated);
