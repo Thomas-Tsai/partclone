@@ -149,7 +149,7 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
         strftime(Tformated, sizeof(Tformated), format, Ttm);
         fprintf(stderr, _("\nTotal Time: %s, "), Tformated);
         fprintf(stderr, _("Ave. Rate: %6.1fMB/min, "), (float)(prog->rate/prog->stop));
-        fprintf(stderr, _("100.00%% completed!\n"));
+        fprintf(stderr, _("%s"), "100.00%% completed!\n");
     }
 }
 
