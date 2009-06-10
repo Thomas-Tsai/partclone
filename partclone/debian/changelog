@@ -1,3 +1,12 @@
+partclone (0.1.1-10) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Bug fixed: pointer problem was fixed.
+    * Bug fixed: buffer overflow problem was fixed. Thanks to Kristian Erik Hermansen and Piavlo.
+    * Bug fixed: a bug about hfs+ was fixed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 10 Jun 2009 10:39:00 +0800
+
 partclone (0.1.1-9) unstable; urgency=low
 
   [Steven Shiau]

@@ -1,3 +1,61 @@
+2009-06-09 09:12  thomas
+
+	* src/progress.c, src/restore.c:
+	  
+	  update pointer problem
+	  
+	  modified: src/progress.c modified: src/restore.c
+
+2009-06-09 09:12  thomas
+
+	* src/hfsplusclone.c, src/main.c, src/version.c:
+	  
+	  update message and hfsplus
+	  
+	  modified: src/hfsplusclone.c modified: src/main.c modified:
+	  src/version.c
+
+2009-06-09 07:56  thomas
+
+	* src/hfsplusclone.c:
+	  
+	  try to fix hfsplus problem-1 modified: src/hfsplusclone.c
+
+2009-06-08 15:35  thomas
+
+	* src/partclone.c:
+	  
+	  update tmp_str scale to 512. tkx Kristian Erik Hermansen
+	  <kristian.hermansen@gmail.com> and Piavlo <piavka@cs.bgu.ac.il>
+	  Re: [Clonezilla-user] partclone v0.1.0 - buffer overflow detected
+
+2009-06-08 02:11  thomas
+
+	* src/main.c:
+	  
+	  remove message done!
+
+2009-06-02 12:34  steven
+
+	* debian/changelog, partclone.spec, po/partclone.pot, po/zh_TW.gmo,
+	  po/zh_TW.po, src/main.c, src/partclone.c, src/restore.c,
+	  src/version.c:
+	  
+	  * Some output messages were polished again.
+
+2009-06-02 12:07  steven
+
+	* ChangeLog, src/restore.c:
+	  
+	  Output messages of restoring were updated.
+
+2009-06-02 12:05  steven
+
+	* src/restore.c:
+	  
+	  Output message when restoring will be shown as "Please wait...
+	  done!"
+
 2009-06-02 08:54  steven
 
 	* ChangeLog, debian/changelog, src/version.c:
