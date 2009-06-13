@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.0.4\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2009-06-10 10:40+0800\n"
+"POT-Creation-Date: 2009-06-13 14:37+0800\n"
 "PO-Revision-Date: 2007-11-01 11:35+0800\n"
 "Last-Translator: Yu-Chin Tsai <thomas@nchc.org.tw>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -18,7 +18,7 @@ msgstr ""
 #: src/progress.c:137
 #, fuzzy, c-format
 msgid ""
-"\r%81s\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "
+"\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "
 msgstr "\r%81c\r經過：%s, 剩餘： %s, 完成：%6.2f%%, 速率：%6.2fMB/min, "
 
 #: src/progress.c:150
@@ -37,8 +37,8 @@ msgstr "平均速率：%6.1fMB/min, "
 
 #: src/progress.c:152
 #, c-format
-msgid "100.00%% completed!\n"
-msgstr "100.00%% 已經完成！\n"
+msgid "%s"
+msgstr ""
 
 #: src/progress.c:203
 msgid " "
@@ -156,3 +156,6 @@ msgstr "還原 印象檔 (%s) 到 裝置 (%s) 完成\n"
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr "備份 裝置 (%s) 到 印象檔 (%s) 完成\n"
+
+#~ msgid "100.00%% completed!\n"
+#~ msgstr "100.00%% 已經完成！\n"

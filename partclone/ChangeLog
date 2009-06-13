@@ -1,3 +1,23 @@
+2009-06-10 10:39  thomas
+
+	* src/progress.c, src/version.c:
+	  
+	  update clear_buf
+
+2009-06-10 10:21  thomas
+
+	* src/progress.c, src/version.c:
+	  
+	  accept patch from Kristian Erik Hermansen. fix progress.c:152
+	  SECURITY: fprintf call should have "%s" as argument 1
+
+2009-06-10 02:43  steven
+
+	* ChangeLog, debian/changelog, po/partclone.pot, po/zh_TW.gmo,
+	  po/zh_TW.po, src/version.c:
+	  
+	  Updated for 0.1.1-10.
+
 2009-06-09 09:12  thomas
 
 	* src/progress.c, src/restore.c:

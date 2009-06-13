@@ -1,3 +1,11 @@
+partclone (0.1.1-11) unstable; urgency=low
+
+  [Thomas Tsai]
+    * update clear_buf
+    * The patch from Kristian Erik Hermansen. fix progress.c:152- SECURITY: fprintf call should have "%s" as argument 1
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sat, 13 Jun 2009 14:39:00 +0800
+
 partclone (0.1.1-10) unstable; urgency=low
 
   [Thomas Tsai]
