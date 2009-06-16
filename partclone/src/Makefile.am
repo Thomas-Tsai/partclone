@@ -1,6 +1,6 @@
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\"
 LDADD = $(LIBINTL)
-sbin_PROGRAMS=partclone.info partclone.dd partclone.restore
+sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 
 version.c: FORCE
@@ -10,6 +10,8 @@ partclone_info_SOURCES=infoclone.c partclone.c partclone.h
 
 partclone_restore_SOURCES=partclone.c partclone.h progress.c progress.h gettext.h restore.c
 partclone_restore_CFLAGS=-DRESTORE
+
+partclone_chkimg_SOURCES=partclone.c partclone.h progress.c progress.h gettext.h chkimg.c
 
 partclone_dd_SOURCES=partclone.c partclone.h progress.c progress.h gettext.h ddclone.c
 
