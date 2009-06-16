@@ -232,7 +232,6 @@ int main(int argc, char **argv){
     if (dfr == -1) {
         log_mesg(0, 1, 1, debug, "Erro EXIT.\n");
     }
-    printf("dfr = %i\n", dfr);
 
     /**
      * get partition information like super block, image_head, bitmap
@@ -331,7 +330,7 @@ int main(int argc, char **argv){
             }
             c_size = read_all(&dfr, crc_buffer, CRC_SIZE, &opt);
             if (c_size < CRC_SIZE)
-                log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno));
+                log_mesg(0, 1, 1, debug, "read CRC error, please check your image file. \n");
             memcpy(&crc, crc_buffer, CRC_SIZE);
             if (memcmp(&crc, &crc_ck, CRC_SIZE) != 0){
                 log_mesg(1, 0, 0, debug, "CRC Check error. 64bit bug before v0.1.0 (Rev:250M), enlarge crc size and recheck again....\n ");
