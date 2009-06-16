@@ -61,19 +61,20 @@ char *EXECNAME;
  */
 struct cmd_opt
 {
-        int clone;
-        int restore;
-	int dd;
-	int debug;
-        char* source;
-        char* target;
-	int overwrite;
-	int rescue;
-	int check;
-	int ncurses;
-	int dialog;
-	int force;
-	unsigned long fresh;
+    int clone;
+    int restore;
+    int dd;
+    int debug;
+    char* source;
+    char* target;
+    char* logfile;
+    int overwrite;
+    int rescue;
+    int check;
+    int ncurses;
+    int dialog;
+    int force;
+    unsigned long fresh;
 };
 typedef struct cmd_opt cmd_opt;
 extern void usage(void);
@@ -99,7 +100,7 @@ typedef struct dialog_mesg p_dialog_mesg;
  *		- write log and exit 
  *		- write to stderr...
  */
-extern void open_log();
+extern void open_log(char* source);
 extern void log_mesg(int lerrno, int lexit, int only_debug, int debug, const char *fmt, ...);
 extern void close_log();
 extern int io_all(int *fd, char *buffer, int count, int do_write, cmd_opt *opt);

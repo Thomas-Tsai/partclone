@@ -53,7 +53,8 @@ int main(int argc, char **argv){
     opt.debug   = 0;
     opt.clone   = 0;
     opt.restore = 0;
-    open_log();
+    opt.logfile = "/var/log/partclone.log";
+    open_log(opt.logfile);
 
     /// print partclone info
     print_partclone_info(opt);

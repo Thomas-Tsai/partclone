@@ -49,6 +49,7 @@ static void usage_chkimg(void)
             "    Efficiently clone to a image, device or standard output.\n"
             "\n"
             "    -s,  --source FILE      Source FILE\n"
+            "    -L,  --logfile FILE    Log FILE\n"
             "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
             "    -C,  --no_check         Don't check device size and free space\n"
 #ifdef HAVE_LIBNCURSESW
@@ -63,7 +64,7 @@ static void usage_chkimg(void)
 }
 
 static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
-    static const char *sopt = "-hd::s:f:CXFN";
+    static const char *sopt = "-hd::L:s:f:CXFN";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "source",		required_argument,  NULL,   's' },
@@ -71,6 +72,7 @@ static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
         { "UI-fresh",	required_argument,  NULL,   'u' },
         { "check",		no_argument,	    NULL,   'C' },
         { "dialog",		no_argument,	    NULL,   'X' },
+        { "logfile",	required_argument,  NULL,   'L' },
         { "force",		no_argument,	    NULL,   'F' },
 #ifdef HAVE_LIBNCURSESW
         { "ncurses",		no_argument,	    NULL,   'N' },
@@ -99,6 +101,9 @@ static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
                     option->debug = atol(optarg);
                 else
                     option->debug = 1;
+                break;
+            case 'L': 
+                option->logfile = optarg;
                 break;
             case 'f':
                 option->fresh = atol(optarg);
@@ -184,7 +189,7 @@ int main(int argc, char **argv){
      */
     debug = opt.debug;
     //if(opt.debug)
-    open_log();
+    open_log(opt.logfile);
 
     /**
      * using Text User Interface

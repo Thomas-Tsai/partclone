@@ -51,12 +51,12 @@
 
 FILE* msg = NULL;
 #ifdef HAVE_LIBNCURSESW
-    #include <ncurses.h>
-    WINDOW *log_win;
-    WINDOW *p_win;
-    WINDOW *box_win;
-    WINDOW *bar_win;
-    int log_y_line = 0;
+#include <ncurses.h>
+WINDOW *log_win;
+WINDOW *p_win;
+WINDOW *box_win;
+WINDOW *bar_win;
+int log_y_line = 0;
 #endif
 
 /**
@@ -67,44 +67,46 @@ FILE* msg = NULL;
 extern void usage(void)
 {
     fprintf(stderr, "%s v%s (%s) http://partclone.org\nUsage: %s [OPTIONS]\n"
-        "    Efficiently clone to a image, device or standard output.\n"
-        "\n"
-        "    -o,  --output FILE      Output FILE\n"
-	"    -O   --overwrite FILE   Output FILE, overwriting if exists\n"
-	"    -s,  --source FILE      Source FILE\n"
+            "    Efficiently clone to a image, device or standard output.\n"
+            "\n"
+            "    -o,  --output FILE      Output FILE\n"
+            "    -O   --overwrite FILE   Output FILE, overwriting if exists\n"
+            "    -s,  --source FILE      Source FILE\n"
+            "    -L,  --logfile FILE      Log FILE\n"
 #ifndef	RESTORE
-        "    -c,  --clone            Save to the special image format\n"
-        "    -r,  --restore          Restore from the special image format\n"
-	"    -b,  --dev-to-dev       Local device to device copy mode\n"
-        "    -R,  --rescue           Continue after disk read errors\n"
+            "    -c,  --clone            Save to the special image format\n"
+            "    -r,  --restore          Restore from the special image format\n"
+            "    -b,  --dev-to-dev       Local device to device copy mode\n"
+            "    -R,  --rescue           Continue after disk read errors\n"
 #endif
-        "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
-        "    -C,  --no_check         Don't check device size and free space\n"
+            "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
+            "    -C,  --no_check         Don't check device size and free space\n"
 #ifdef HAVE_LIBNCURSESW
-        "    -N,  --ncurses          Using Ncurses User Interface\n"
+            "    -N,  --ncurses          Using Ncurses User Interface\n"
 #endif
-        "    -X,  --dialog           output message as Dialog Format\n"
-        "    -F,  --force            force progress\n"
-        "    -f,  --UI-fresh         fresh times of progress\n"
-        "    -h,  --help             Display this help\n"
-    , EXECNAME, VERSION, svn_version, EXECNAME);
+            "    -X,  --dialog           output message as Dialog Format\n"
+            "    -F,  --force            force progress\n"
+            "    -f,  --UI-fresh         fresh times of progress\n"
+            "    -h,  --help             Display this help\n"
+            , EXECNAME, VERSION, svn_version, EXECNAME);
     exit(0);
 }
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hd::cbro:O:s:f:RCXFN";
+    static const char *sopt = "-hd::L:cbro:O:s:f:RCXFN";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "output",		required_argument,  NULL,   'o' },
-	{ "overwrite",		required_argument,  NULL,   'O' },
+        { "overwrite",	required_argument,  NULL,   'O' },
         { "source",		required_argument,  NULL,   's' },
         { "restore-image",	no_argument,	    NULL,   'r' },
         { "clone-image",	no_argument,	    NULL,   'c' },
         { "dev-to-dev",		no_argument,	    NULL,   'b' },
         { "debug",		optional_argument,  NULL,   'd' },
+        { "logfile",	required_argument,  NULL,   'L' },
         { "rescue",		no_argument,	    NULL,   'R' },
-        { "UI-fresh",		required_argument,  NULL,   'u' },
+        { "UI-fresh",	required_argument,  NULL,   'u' },
         { "check",		no_argument,	    NULL,   'C' },
         { "dialog",		no_argument,	    NULL,   'X' },
         { "force",		no_argument,	    NULL,   'F' },
@@ -125,118 +127,121 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     mode++;
 #endif
     while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != (char)-1) {
-            switch (c) {
+        switch (c) {
             case 's': 
-                    opt->source = optarg;
-                    break;
+                opt->source = optarg;
+                break;
             case 'h':
-                    usage();
-                    break;
+                usage();
+                break;
             case '?':
-                    usage();
-                    break;
-	    case 'O':
-		    opt->overwrite++;
+                usage();
+                break;
+            case 'O':
+                opt->overwrite++;
             case 'o':
-                    opt->target = optarg;
-                    break;
+                opt->target = optarg;
+                break;
             case 'r':
-                    opt->restore++;
-		    mode++;
-                    break;
+                opt->restore++;
+                mode++;
+                break;
             case 'c':
-                    opt->clone++;
-		    mode++;
-                    break;
+                opt->clone++;
+                mode++;
+                break;
             case 'b':
-                    opt->dd++;
-		    mode++;
-                    break;
+                opt->dd++;
+                mode++;
+                break;
             case 'd':
-		    if (optarg)
-			opt->debug = atol(optarg);
-		    else
-			opt->debug = 1;
-                    break;
-	    case 'f':
-		    opt->fresh = atol(optarg);
-		    break;
-	    case 'F':
-		    opt->force++;
-		    break;
-	    case 'R':
-		    opt->rescue++;
-		    break;
-	    case 'X':
-		    /// output message as dialog format, reference
-		    /// dialog --guage is text height width percent
-		    ///    A guage box displays a meter along the bottom of the box. The meter indicates the percentage. New percentages are read from standard input, one integer per line. The meter is updated to reflect each new percentage. If stdin is XXX, then the first line following is taken as an integer percentage, then subsequent lines up to another XXX are used for a new prompt. The guage exits when EOF is reached on stdin. 
-		    opt->dialog = 1;
-		    break;
+                if (optarg)
+                    opt->debug = atol(optarg);
+                else
+                    opt->debug = 1;
+                break;
+            case 'L': 
+                opt->logfile = optarg;
+                break;
+            case 'f':
+                opt->fresh = atol(optarg);
+                break;
+            case 'F':
+                opt->force++;
+                break;
+            case 'R':
+                opt->rescue++;
+                break;
+            case 'X':
+                /// output message as dialog format, reference
+                /// dialog --guage is text height width percent
+                ///    A guage box displays a meter along the bottom of the box. The meter indicates the percentage. New percentages are read from standard input, one integer per line. The meter is updated to reflect each new percentage. If stdin is XXX, then the first line following is taken as an integer percentage, then subsequent lines up to another XXX are used for a new prompt. The guage exits when EOF is reached on stdin. 
+                opt->dialog = 1;
+                break;
 #ifdef HAVE_LIBNCURSESW
-	    case 'N':
-		    opt->ncurses = 1;
-		    break;
+            case 'N':
+                opt->ncurses = 1;
+                break;
 #endif
-	    case 'C':
-		    opt->check = 0;
-		    break;
+            case 'C':
+                opt->check = 0;
+                break;
             default:
-                    fprintf(stderr, "Unknown option '%s'.\n", argv[optind-1]);
-                    usage();
-            }
+                fprintf(stderr, "Unknown option '%s'.\n", argv[optind-1]);
+                usage();
+        }
     }
 
     if(mode != 1) {
-	//fprintf(stderr, ".\n")
-	usage();
+        //fprintf(stderr, ".\n")
+        usage();
     }
 
     if (!opt->debug){
-	opt->debug = 0;
+        opt->debug = 0;
     }
     //printf("debug %i\n", opt->debug);
-        
+
     if ((opt->target == NULL) && (opt->source == NULL)){
-	fprintf(stderr, "There is no image name. or --help get more info.\n");
-	exit(0);
+        fprintf(stderr, "There is no image name. or --help get more info.\n");
+        exit(0);
     }
 
     if (opt->target == NULL) {
-	//fprintf(stderr, "You use specify output file like stdout. or --help get more info.\n");
-	opt->target = "-";
+        //fprintf(stderr, "You use specify output file like stdout. or --help get more info.\n");
+        opt->target = "-";
     }
 
     if (opt->source == NULL) {
-	//fprintf(stderr, "You use specify output file like stdout. or --help get more info.\n");
-	opt->source = "-";
+        //fprintf(stderr, "You use specify output file like stdout. or --help get more info.\n");
+        opt->source = "-";
     }
 
     if (opt->clone){
 
-	if ((strcmp(opt->source, "-") == 0) || (opt->source == NULL)) {
-	    fprintf(stderr, "Partclone can't clone from stdin.\nFor help, type: %s -h\n", EXECNAME);
-	    //usage();
-	    exit(0);
-	}
+        if ((strcmp(opt->source, "-") == 0) || (opt->source == NULL)) {
+            fprintf(stderr, "Partclone can't clone from stdin.\nFor help, type: %s -h\n", EXECNAME);
+            //usage();
+            exit(0);
+        }
 
-	if ((strcmp(opt->target, "-") == 0) || (opt->target == NULL)) {
-	    if (opt->ncurses){
-		fprintf(stderr, "Warning: Partclone can't save output to stdout with ncurses interface.\n");
-		opt->ncurses = 0;
-	    }
-	    
-	}
-    
+        if ((strcmp(opt->target, "-") == 0) || (opt->target == NULL)) {
+            if (opt->ncurses){
+                fprintf(stderr, "Warning: Partclone can't save output to stdout with ncurses interface.\n");
+                opt->ncurses = 0;
+            }
+
+        }
+
     }
-    
+
     if (opt->restore){
-	
-	if ((strcmp(opt->target, "-") == 0) || (opt->target == NULL)) {
-	    fprintf(stderr, "Partclone can't restore to stdout.\nFor help,type: %s -h\n", EXECNAME);
-	    //usage();
-	    exit(0);
-	}
+
+        if ((strcmp(opt->target, "-") == 0) || (opt->target == NULL)) {
+            fprintf(stderr, "Partclone can't restore to stdout.\nFor help,type: %s -h\n", EXECNAME);
+            //usage();
+            exit(0);
+        }
 
     }
 
@@ -272,26 +277,26 @@ extern int open_ncurses(){
     int p_x_pos = log_x_pos;
 
     int size_ok = 1;
- 
+
     if(terminal_y < (log_line+gap+p_line+3))
-	size_ok = 0;
+        size_ok = 0;
     if(terminal_x < (log_row+2))
-	size_ok = 0;
+        size_ok = 0;
 
     if (size_ok == 0){
-	log_mesg(0, 0, 0, debug, "Terminal width(%i) or height(%i) too small\n", terminal_x, terminal_y);
-	return 0;
+        log_mesg(0, 0, 0, debug, "Terminal width(%i) or height(%i) too small\n", terminal_x, terminal_y);
+        return 0;
     }
 
     /// check color pair
     if(!has_colors()){
-	log_mesg(0, 0, 0, debug, "Terminal color error\n");
-	return 0;
+        log_mesg(0, 0, 0, debug, "Terminal color error\n");
+        return 0;
     }
 
     if (start_color() != OK){
-	log_mesg(0, 0, 0, debug, "Terminal can't start color mode\n");
-	return 0;
+        log_mesg(0, 0, 0, debug, "Terminal can't start color mode\n");
+        return 0;
     }
 
     /// define color
@@ -331,7 +336,7 @@ extern int open_ncurses(){
     scrollok(log_win, TRUE);
 
     if( touchwin(stdscr) == ERR ){
-	return 0;
+        return 0;
     }
 
     //clear();
@@ -364,12 +369,16 @@ extern void close_ncurses(){
  *		- write to stderr...
  * close_log	- to close file /var/log/partclone.log
  */
-extern void open_log(){
-    msg = fopen("/var/log/partclone.log","w");
-	if(msg == NULL){
-		fprintf(stderr, "open /var/log/partclone.log error\n");
-		exit(0);
-	}
+extern void open_log(char* source){
+    if (source){
+        msg = fopen(source,"w");
+    } else {
+        msg = fopen("/var/log/partclone.log","w");
+    }
+    if(msg == NULL){
+        fprintf(stderr, "open /var/log/partclone.log error\n");
+        exit(0);
+    }
 }
 
 extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, const char *fmt, ...){
@@ -379,50 +388,50 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
     extern cmd_opt opt;
     extern p_dialog_mesg m_dialog;
     char tmp_str[512];
-	
+
     vsprintf(tmp_str, fmt, args);
     if (opt.ncurses) {
 #ifdef HAVE_LIBNCURSESW
-	setlocale(LC_ALL, "");
-	bindtextdomain(PACKAGE, LOCALEDIR);
-	textdomain(PACKAGE);
-	if((log_stderr) && (log_level <= debug)){
-	    if(log_exit){
-		wattron(log_win, A_STANDOUT);
-	    }
+        setlocale(LC_ALL, "");
+        bindtextdomain(PACKAGE, LOCALEDIR);
+        textdomain(PACKAGE);
+        if((log_stderr) && (log_level <= debug)){
+            if(log_exit){
+                wattron(log_win, A_STANDOUT);
+            }
 
-	    wprintw(log_win, tmp_str);
+            wprintw(log_win, tmp_str);
 
-	    
-	    if(log_exit){
-		wattroff(log_win, A_STANDOUT);
-		sleep(3);
-	    }
-	    wrefresh(log_win);
-	    log_y_line++;
-	}
+
+            if(log_exit){
+                wattroff(log_win, A_STANDOUT);
+                sleep(3);
+            }
+            wrefresh(log_win);
+            log_y_line++;
+        }
 #endif
     } else if (opt.dialog) {
-	/// write log to stderr if log_stderr is true
-	if((log_stderr) && (log_level <= debug)){
-	    //vsprintf(tmp_str, fmt, args);
-	    strncat(m_dialog.data, tmp_str, strlen(tmp_str));
-	    fprintf(stderr, "XXX\n%i\n%s\nXXX\n", m_dialog.percent, m_dialog.data);
-	}
+        /// write log to stderr if log_stderr is true
+        if((log_stderr) && (log_level <= debug)){
+            //vsprintf(tmp_str, fmt, args);
+            strncat(m_dialog.data, tmp_str, strlen(tmp_str));
+            fprintf(stderr, "XXX\n%i\n%s\nXXX\n", m_dialog.percent, m_dialog.data);
+        }
     } else {
-	/// write log to stderr if log_stderr is true
-	if((log_stderr == 1) && (log_level <= debug)){
-	    //vsprintf(tmp_str, fmt, args);
-	    fprintf(stderr, "%s", tmp_str);
-	}
+        /// write log to stderr if log_stderr is true
+        if((log_stderr == 1) && (log_level <= debug)){
+            //vsprintf(tmp_str, fmt, args);
+            fprintf(stderr, "%s", tmp_str);
+        }
     }
 
     /// write log to logfile if debug is true
     if(log_level <= debug){
-	//vsprintf(tmp_str, fmt, args);
-	fprintf(msg, "%s", tmp_str);
-	//if (errno != 0)
-	//    fprintf(msg, "%s(%i), ", strerror(errno), errno);
+        //vsprintf(tmp_str, fmt, args);
+        fprintf(msg, "%s", tmp_str);
+        //if (errno != 0)
+        //    fprintf(msg, "%s(%i), ", strerror(errno), errno);
     }
     va_end(args);
 
@@ -431,12 +440,12 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
 
     /// exit if lexit true
     if ((!opt.force) && (log_exit)){
-	close_ncurses();
-	fprintf(stderr, "Partclone fail, please check /var/log/partclone.log !\n");
-    	exit(1);
+        close_ncurses();
+        fprintf(stderr, "Partclone fail, please check /var/log/partclone.log !\n");
+        exit(1);
     }
 }
- 
+
 extern void close_log(){
     fclose(msg);
 }
@@ -462,7 +471,7 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
     free(buffer);
     dev_size = (unsigned long long)(image_hdr->totalblock * image_hdr->block_size);
     if (image_hdr->device_size != dev_size)
-	image_hdr->device_size = dev_size;
+        image_hdr->device_size = dev_size;
 }
 extern void restore_image_hdr_sp(int* ret, cmd_opt* opt, image_head* image_hdr, char* first_sec){
     int r_size;
@@ -480,7 +489,7 @@ extern void restore_image_hdr_sp(int* ret, cmd_opt* opt, image_head* image_hdr, 
     free(buffer);
     dev_size = (unsigned long long)(image_hdr->totalblock * image_hdr->block_size);
     if (image_hdr->device_size != dev_size)
-	image_hdr->device_size = dev_size;
+        image_hdr->device_size = dev_size;
 }
 /// get partition size
 extern unsigned long long get_partition_size(int* ret){
@@ -493,29 +502,29 @@ extern unsigned long long get_partition_size(int* ret){
     if (!fstat(*ret, &stat)) {
         if (S_ISFIFO(stat.st_mode)){
             dest_size = 0;
-	} else if (S_ISREG(stat.st_mode)){
-	    dest_size = stat.st_size;
-	} else {
+        } else if (S_ISREG(stat.st_mode)){
+            dest_size = stat.st_size;
+        } else {
 
 #ifdef BLKGETSIZE64
-	    if (ioctl(*ret, BLKGETSIZE64, &dest_size) < 0) {
-		log_mesg(0, 0, 0, debug, "get device size error, Use option -C to disable size checking(Dangerous).\n");
-	    }
-	    log_mesg(1, 0, 0, debug, "get device size %lli by ioctl BLKGETSIZE64,\n", dest_size);
-	    return dest_size;
+            if (ioctl(*ret, BLKGETSIZE64, &dest_size) < 0) {
+                log_mesg(0, 0, 0, debug, "get device size error, Use option -C to disable size checking(Dangerous).\n");
+            }
+            log_mesg(1, 0, 0, debug, "get device size %lli by ioctl BLKGETSIZE64,\n", dest_size);
+            return dest_size;
 #endif
 
 #ifdef BLKGETSIZE
-	    if (ioctl(*ret, BLKGETSIZE, &dest_block) >= 0) {
-		dest_size = (unsigned long long)(dest_block * 512);
-	    }
-	    log_mesg(1, 0, 0, debug, "get block %li and device size %lli by ioctl BLKGETSIZE,\n", dest_block, dest_size);
-	    return dest_size;
+            if (ioctl(*ret, BLKGETSIZE, &dest_block) >= 0) {
+                dest_size = (unsigned long long)(dest_block * 512);
+            }
+            log_mesg(1, 0, 0, debug, "get block %li and device size %lli by ioctl BLKGETSIZE,\n", dest_block, dest_size);
+            return dest_size;
 #endif
-	}
+        }
     } else {
-	log_mesg(0, 0, 0, debug, "fstat size error, Use option -C to disable size checking(Dangerous).\n");
-    
+        log_mesg(0, 0, 0, debug, "fstat size error, Use option -C to disable size checking(Dangerous).\n");
+
     }
 
     return dest_size;
@@ -529,8 +538,8 @@ extern int check_size(int* ret, unsigned long long size){
 
     dest_size = get_partition_size(ret);
     if (dest_size < size){
-	log_mesg(0, 1, 1, debug, "Target partition size(%lli MB) is smaller than source(%lli MB). Use option -C to disable size checking(Dangerous).\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
-	return 1;
+        log_mesg(0, 1, 1, debug, "Target partition size(%lli MB) is smaller than source(%lli MB). Use option -C to disable size checking(Dangerous).\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
+        return 1;
     }
 
     return 0;
@@ -547,7 +556,7 @@ extern void check_free_space(int* ret, unsigned long long size){
 
     if (fstatvfs(*ret, &stvfs) == -1) {
         printf("WARNING: Unknown free space on the destination: %s\n",
-        strerror(errno));
+                strerror(errno));
         return;
     }
     /* if file is a FIFO there is no point in checking the size */
@@ -556,16 +565,16 @@ extern void check_free_space(int* ret, unsigned long long size){
             return;
     } else {
         printf("WARNING: Couldn't get file info because of the following error: %s\n",
-        strerror(errno));
+                strerror(errno));
     }
 
     dest_size = (unsigned long long)stvfs.f_frsize * stvfs.f_bfree;
     if (!dest_size)
-            dest_size = (unsigned long long)stvfs.f_bsize * stvfs.f_bfree;
+        dest_size = (unsigned long long)stvfs.f_bsize * stvfs.f_bfree;
 
     if (dest_size < size)
-            log_mesg(0, 1, 1, debug, "Destination doesn't have enough free space: %llu MB < %llu MB\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
-//            log_mesg(0, 1, 1, debug, "Destination doesn't have enough free space: %llu MB < %llu MB\n", dest_size, size);
+        log_mesg(0, 1, 1, debug, "Destination doesn't have enough free space: %llu MB < %llu MB\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
+    //            log_mesg(0, 1, 1, debug, "Destination doesn't have enough free space: %llu MB < %llu MB\n", dest_size, size);
 }
 
 /// check free memory size
@@ -602,7 +611,7 @@ extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* 
 
     size = sizeof(char)*image_hdr.totalblock;
     buffer = (char*)malloc(size);
-   
+
     r_size = read_all(ret, buffer, size, &opt);
     memcpy(bitmap, buffer, size);
 
@@ -610,21 +619,21 @@ extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* 
 
     for (block_id = 0; block_id < image_hdr.totalblock; block_id++){
         if(bitmap[block_id] == 1){
-	    //printf("u = %i\n",block_id);
+            //printf("u = %i\n",block_id);
             bused++;
-	} else {
-	    //printf("n = %i\n",block_id);
+        } else {
+            //printf("n = %i\n",block_id);
             bfree++;
-	}
+        }
     }
     if (debug >= 2) {
-	if(image_hdr.usedblocks != bused){
-	    if (opt.force)
-		err_exit = 0;
-	    else
-		err_exit = 1;
-	    log_mesg(0, err_exit, 1, debug, "The Used Block count is different.(bitmap %lli != image_head %lli)\nTry to use --force to skip the metadata error.\n", bused, image_hdr.usedblocks);
-	}	
+        if(image_hdr.usedblocks != bused){
+            if (opt.force)
+                err_exit = 0;
+            else
+                err_exit = 1;
+            log_mesg(0, err_exit, 1, debug, "The Used Block count is different.(bitmap %lli != image_head %lli)\nTry to use --force to skip the metadata error.\n", bused, image_hdr.usedblocks);
+        }	
     } 
 }
 
@@ -651,14 +660,14 @@ extern int check_mount(const char* device, char* mount_p){
 
     real_file = malloc(PATH_MAX + 1);
     if (!real_file)
-            return -1;
+        return -1;
 
     real_fsname = malloc(PATH_MAX + 1);
     if (!real_fsname)
-            err = errno;
+        err = errno;
 
     if (!realpath(device, real_file))
-            err = errno;
+        err = errno;
 
     if ((f = setmntent (MOUNTED, "r")) == 0)
         return -1;
@@ -668,10 +677,10 @@ extern int check_mount(const char* device, char* mount_p){
         if (!realpath(mnt->mnt_fsname, real_fsname))
             continue;
         if (strcmp(real_file, real_fsname) == 0)
-            {
-                isMounted = 1;
-                strcpy(mount_p, mnt->mnt_dir);
-            }
+        {
+            isMounted = 1;
+            strcpy(mount_p, mnt->mnt_dir);
+        }
     }
     endmntent (f);
 
@@ -684,28 +693,28 @@ extern int open_source(char* source, cmd_opt* opt){
     char *mp = malloc(PATH_MAX + 1);
     int flags = O_RDONLY | O_LARGEFILE;
 
-    log_mesg(1, 0, 0, debug, "open source file/device\n");
+    log_mesg(1, 0, 0, debug, "open source file/device %s\n", source);
     if((opt->clone) || (opt->dd)){ /// always is device, clone from device=source
 
-	if (check_mount(source, mp) == 1)
-	    log_mesg(0, 1, 1, debug, "device (%s) is mounted at %s\n", source, mp);
+        if (check_mount(source, mp) == 1)
+            log_mesg(0, 1, 1, debug, "device (%s) is mounted at %s\n", source, mp);
 
         ret = open(source, flags, S_IRUSR);
-	if (ret == -1)
-	    log_mesg(0, 1, 1, debug, "clone: open %s error\n", source);
+        if (ret == -1)
+            log_mesg(0, 1, 1, debug, "clone: open %s error\n", source);
 
 
     } else if(opt->restore) {
 
-    	if (strcmp(source, "-") == 0){ 
-	    ret = fileno(stdin); 
-	    if (ret == -1)
-		log_mesg(0, 1, 1, debug,"restore: open %s(stdin) error\n", source);
-	} else {
-    	    ret = open (source, flags, S_IRWXU);
-	    if (ret == -1)
-	        log_mesg(0, 1, 1, debug, "restore: open %s error\n", source);
-	}
+        if (strcmp(source, "-") == 0){ 
+            ret = fileno(stdin); 
+            if (ret == -1)
+                log_mesg(0, 1, 1, debug,"restore: open %s(stdin) error\n", source);
+        } else {
+            ret = open (source, flags, S_IRWXU);
+            if (ret == -1)
+                log_mesg(0, 1, 1, debug, "restore: open %s error\n", source);
+        }
     }
 
     return ret;
@@ -720,44 +729,44 @@ extern int open_target(char* target, cmd_opt* opt){
 
     log_mesg(1, 0, 0, debug, "open target file/device\n");
     if (opt->clone){
-    	if (strcmp(target, "-") == 0){ 
-	    ret = fileno(stdout);
-	    if (ret == -1)
-		log_mesg(0, 1, 1, debug, "clone: open %s(stdout) error\n", target);
-    	} else { 
-	    flags |= O_CREAT;		    /// new file
-	    if (!opt->overwrite)	    /// overwrite
-		flags |= O_EXCL;
+        if (strcmp(target, "-") == 0){ 
+            ret = fileno(stdout);
+            if (ret == -1)
+                log_mesg(0, 1, 1, debug, "clone: open %s(stdout) error\n", target);
+        } else { 
+            flags |= O_CREAT;		    /// new file
+            if (!opt->overwrite)	    /// overwrite
+                flags |= O_EXCL;
             ret = open (target, flags, S_IRUSR);
 
-	    if (ret == -1){
-		if (errno == EEXIST){
-		    log_mesg(0, 0, 1, debug, "Output file '%s' already exists.\nUse option --overwrite if you want to replace its content.\n", target);
-		}
-		log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
-	    }
-    	}
+            if (ret == -1){
+                if (errno == EEXIST){
+                    log_mesg(0, 0, 1, debug, "Output file '%s' already exists.\nUse option --overwrite if you want to replace its content.\n", target);
+                }
+                log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
+            }
+        }
     } else if((opt->restore) || (opt->dd)){		    /// always is device, restore to device=target
-	
-	/// check mounted
-	if (check_mount(target, mp) == 1)
-	    log_mesg(0, 1, 1, debug, "device (%s) is mounted at %s\n", target, mp);
 
-	/// check block device
-	stat(target, &st_dev);
-	if (!S_ISBLK(st_dev.st_mode)){
-	    log_mesg(1, 0, 1, debug, "Warning, did you restore to non-block device(%s)?\n", target);
-	    flags |= O_CREAT;	        /// new file
-	    if (!opt->overwrite)        /// overwrite
-		flags |= O_EXCL;
-	}
-	ret = open (target, flags, S_IRUSR);
-	if (ret == -1){
-	    if (errno == EEXIST){
-		log_mesg(0, 0, 1, debug, "Output file '%s' already exists.\nUse option --overwrite if you want to replace its content.\n", target);
-	    }
-	    log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
-	} 
+        /// check mounted
+        if (check_mount(target, mp) == 1)
+            log_mesg(0, 1, 1, debug, "device (%s) is mounted at %s\n", target, mp);
+
+        /// check block device
+        stat(target, &st_dev);
+        if (!S_ISBLK(st_dev.st_mode)){
+            log_mesg(1, 0, 1, debug, "Warning, did you restore to non-block device(%s)?\n", target);
+            flags |= O_CREAT;	        /// new file
+            if (!opt->overwrite)        /// overwrite
+                flags |= O_EXCL;
+        }
+        ret = open (target, flags, S_IRUSR);
+        if (ret == -1){
+            if (errno == EEXIST){
+                log_mesg(0, 0, 1, debug, "Output file '%s' already exists.\nUse option --overwrite if you want to replace its content.\n", target);
+            }
+            log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
+        } 
     }
     return ret;
 }
@@ -771,24 +780,24 @@ extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
 
     // for sync I/O buffer, when use stdin or pipe.
     while (count > 0) {
-	if (do_write)
+        if (do_write)
             i = write(*fd, buf, count);
         else
-	    i = read(*fd, buf, count);
+            i = read(*fd, buf, count);
 
-	if (i < 0) {
-	    if (errno != EAGAIN && errno != EINTR){
-		log_mesg(0, 1, 1, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
+        if (i < 0) {
+            if (errno != EAGAIN && errno != EINTR){
+                log_mesg(0, 1, 1, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
                 return -1;
-	    }
-	    log_mesg(0, 1, 1, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
-	} else if (i == 0){
-	    log_mesg(2, 0, 0, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
-	    return 0;
+            }
+            log_mesg(0, 1, 1, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
+        } else if (i == 0){
+            log_mesg(2, 0, 0, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
+            return 0;
         } else {
-	    count -= i;
-	    buf = i + (char *) buf;
-	    log_mesg(2, 0, 0, debug, "%s: read %li, %li left.\n",__func__, i, count);
+            count -= i;
+            buf = i + (char *) buf;
+            log_mesg(2, 0, 0, debug, "%s: read %li, %li left.\n",__func__, i, count);
         }
     }
     return size;
@@ -797,8 +806,8 @@ extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
 extern void sync_data(int fd, cmd_opt* opt)
 {
     log_mesg(0, 0, 1, opt->debug, "Syncing... ");
-	if (fsync(fd) && errno != EINVAL)
-	log_mesg(0, 1, 1, opt->debug, "fsync error: errno = %i\n", errno);
+    if (fsync(fd) && errno != EINVAL)
+        log_mesg(0, 1, 1, opt->debug, "fsync error: errno = %i\n", errno);
     log_mesg(0, 0, 1, opt->debug, "OK!\n");
 }
 
@@ -813,7 +822,7 @@ extern void rescue_sector(int *fd, char *buff, cmd_opt *opt)
         log_mesg(0, 1, 1, opt->debug, "lseek error\n");
 
     if (io_all(fd, buff, SECTOR_SIZE, 0, opt) == -1) { /// read_all
-	log_mesg(0, 0, 1, opt->debug, "WARNING: Can't read sector at %llu, lost data.\n", (unsigned long long)pos);
+        log_mesg(0, 0, 1, opt->debug, "WARNING: Can't read sector at %llu, lost data.\n", (unsigned long long)pos);
         memset(buff, '?', SECTOR_SIZE);
         memmove(buff, badsector_magic, sizeof(badsector_magic));
     }
@@ -826,7 +835,7 @@ extern void rescue_sector(int *fd, char *buff, cmd_opt *opt)
 /// http://www.lammertbies.nl/comm/info/nl_crc-calculation.html 
 /// generate crc32 code
 extern unsigned long crc32(unsigned long crc, char *buf, int size){
-    
+
     unsigned long crc_tab32[256];
     unsigned long init_crc, init_p;
     unsigned long tmp, long_c;
@@ -835,25 +844,25 @@ extern unsigned long crc32(unsigned long crc, char *buf, int size){
     init_p = 0xEDB88320L;
 
     do{
-	memcpy(&c, buf, sizeof(char));
-	s = s + sizeof(char);
+        memcpy(&c, buf, sizeof(char));
+        s = s + sizeof(char);
         /// initial crc table
-	if (init == 0){
-	    for (i=0; i<256; i++) {
-		init_crc = (unsigned long) i;
-		for (j=0; j<8; j++) {
-		    if ( init_crc & 0x00000001L ) init_crc = ( init_crc >> 1 ) ^ init_p;
-		    else                     init_crc =   init_crc >> 1;
-		}
-		crc_tab32[i] = init_crc;
-	    }
-	    init = 1;
-	}
+        if (init == 0){
+            for (i=0; i<256; i++) {
+                init_crc = (unsigned long) i;
+                for (j=0; j<8; j++) {
+                    if ( init_crc & 0x00000001L ) init_crc = ( init_crc >> 1 ) ^ init_p;
+                    else                     init_crc =   init_crc >> 1;
+                }
+                crc_tab32[i] = init_crc;
+            }
+            init = 1;
+        }
 
         /// update crc
-	long_c = 0x000000ffL & (unsigned long) c;
-	tmp = crc ^ long_c;
-	crc = (crc >> 8) ^ crc_tab32[ tmp & 0xff ];
+        long_c = 0x000000ffL & (unsigned long) c;
+        tmp = crc ^ long_c;
+        crc = (crc >> 8) ^ crc_tab32[ tmp & 0xff ];
     }while(s < size);
 
     return crc;
@@ -862,13 +871,13 @@ extern unsigned long crc32(unsigned long crc, char *buf, int size){
 /// print options to log file
 extern void print_opt(cmd_opt opt){
     int debug = opt.debug;
-    
+
     if (opt.clone)
-	log_mesg(1, 0, 0, debug, "MODE: clone\n");
+        log_mesg(1, 0, 0, debug, "MODE: clone\n");
     else if (opt.restore)
-	log_mesg(1, 0, 0, debug, "MODE: restore\n");
+        log_mesg(1, 0, 0, debug, "MODE: restore\n");
     else if (opt.dd)
-	log_mesg(1, 0, 0, debug, "MODE: device to device\n");
+        log_mesg(1, 0, 0, debug, "MODE: device to device\n");
 
     log_mesg(1, 0, 0, debug, "DEBUG: %i\n", opt.debug);
     log_mesg(1, 0, 0, debug, "SOURCE: %s\n", opt.source);
@@ -887,7 +896,7 @@ extern void print_opt(cmd_opt opt){
 
 /// print partclone info
 extern void print_partclone_info(cmd_opt opt){
- 
+
     int debug = opt.debug;
 
     setlocale(LC_ALL, "");
@@ -896,18 +905,18 @@ extern void print_partclone_info(cmd_opt opt){
     //log_mesg(0, 0, 0, "%s v%s \n", EXEC_NAME, VERSION);
     log_mesg(0, 0, 1, debug, _("Partclone v%s (%s) http://partclone.org\n"), VERSION, svn_version);
     if (opt.clone)
-	log_mesg(0, 0, 1, debug, _("Starting clone device (%s) to image (%s)\n"), opt.source, opt.target);	
+        log_mesg(0, 0, 1, debug, _("Starting clone device (%s) to image (%s)\n"), opt.source, opt.target);	
     else if(opt.restore)
-	log_mesg(0, 0, 1, debug, _("Starting restore image (%s) to device (%s)\n"), opt.source, opt.target);
+        log_mesg(0, 0, 1, debug, _("Starting restore image (%s) to device (%s)\n"), opt.source, opt.target);
     else if(opt.dd)
-	log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
+        log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
     else
-	log_mesg(0, 0, 1, debug, "unknow mode\n");
+        log_mesg(0, 0, 1, debug, "unknow mode\n");
 }
 
 /// print image head
 extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
- 
+
     int block_s  = image_hdr.block_size;
     unsigned long long total    = image_hdr.totalblock;
     unsigned long long used     = image_hdr.usedblocks;
@@ -919,15 +928,15 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
     textdomain(PACKAGE);
     //log_mesg(0, 0, 0, "%s v%s \n", EXEC_NAME, VERSION);
     /*log_mesg(0, 0, 1, debug, _("Partclone v%s (%s) partclone.org, partclone.nchc.org.tw\n"), VERSION, svn_version);
-    if (opt.clone)
-	log_mesg(0, 0, 1, debug, _("Starting clone device (%s) to image (%s)\n"), opt.source, opt.target);	
-    else if(opt.restore)
-	log_mesg(0, 0, 1, debug, _("Starting restore image (%s) to device (%s)\n"), opt.source, opt.target);
-    else if(opt.dd)
-	log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
-    else
-	log_mesg(0, 0, 1, debug, "unknow mode\n");
-    */
+      if (opt.clone)
+      log_mesg(0, 0, 1, debug, _("Starting clone device (%s) to image (%s)\n"), opt.source, opt.target);	
+      else if(opt.restore)
+      log_mesg(0, 0, 1, debug, _("Starting restore image (%s) to device (%s)\n"), opt.source, opt.target);
+      else if(opt.dd)
+      log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
+      else
+      log_mesg(0, 0, 1, debug, "unknow mode\n");
+     */
     log_mesg(0, 0, 1, debug, _("File system: %s\n"), image_hdr.fs);
     log_mesg(0, 0, 1, debug, _("Device size: %lli MB\n"), print_size((total*block_s), MBYTE));
     log_mesg(0, 0, 1, debug, _("Space in use: %lli MB\n"), print_size((used*block_s), MBYTE));
@@ -937,19 +946,19 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
 
 /// print finish message
 extern void print_finish_info(cmd_opt opt){
- 
+
     int debug = opt.debug;
 
     setlocale(LC_ALL, "");
     bindtextdomain(PACKAGE, LOCALEDIR);
     textdomain(PACKAGE);
     if (opt.clone)
-	log_mesg(0, 0, 1, debug, _("Partclone successfully cloned the device (%s) to the image (%s)\n"), opt.source, opt.target);	
+        log_mesg(0, 0, 1, debug, _("Partclone successfully cloned the device (%s) to the image (%s)\n"), opt.source, opt.target);	
     else if(opt.restore)
-	log_mesg(0, 0, 1, debug, _("Partclone successfully restored the image (%s) to the device (%s)\n"), opt.source, opt.target);
+        log_mesg(0, 0, 1, debug, _("Partclone successfully restored the image (%s) to the device (%s)\n"), opt.source, opt.target);
     else if(opt.dd)
-	log_mesg(0, 0, 1, debug, _("Partclone successfully cloned the device (%s) to the device (%s)\n"), opt.source, opt.target);
-	    
+        log_mesg(0, 0, 1, debug, _("Partclone successfully cloned the device (%s) to the device (%s)\n"), opt.source, opt.target);
+
 }
 
 /// block_count
@@ -959,9 +968,9 @@ static unsigned long long block_count(unsigned long long partition_size, int blo
     blocks  = partition_size / block_size;
     sectors = partition_size % block_size;
     if (sectors)
-	return (blocks+1);
+        return (blocks+1);
     else
-	return blocks;
+        return blocks;
 
 }
 
@@ -983,6 +992,6 @@ extern void dd_bitmap(image_head image_hdr, char* bitmap){
 
     /// initial image bitmap as 1 (all block are used)
     for(block = 0; block < image_hdr.totalblock; block++)
-	bitmap[block] = 1; 
+        bitmap[block] = 1; 
 
 }

@@ -124,7 +124,7 @@ int main(int argc, char **argv){
      */
     debug = opt.debug;
     //if(opt.debug)
-    open_log();
+    open_log(opt.logfile);
 
     /**
      * using Text User Interface
