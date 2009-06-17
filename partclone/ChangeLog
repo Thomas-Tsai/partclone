@@ -1,3 +1,40 @@
+2009-06-16 02:45  thomas
+
+	* Makefile.in, aclocal.m4, configure, docs/Makefile.in,
+	  src/Makefile, src/Makefile.in, src/chkimg.c, src/version.c:
+	  
+	  update Makefile in debian lenny update src/chkimg.c
+
+2009-06-16 02:32  thomas
+
+	* Makefile.in, aclocal.m4, configure, docs/Makefile.in,
+	  src/Makefile, src/chkimg.c, src/config.h, src/ddclone.c,
+	  src/infoclone.c, src/main.c, src/partclone.c, src/partclone.h,
+	  src/restore.c:
+	  
+	  add option --logfile or -L to specify file for log message.
+	  update Makefile for chkimg
+	  
+	  modified: Makefile.in modified: aclocal.m4 modified: configure
+	  modified: docs/Makefile.in new file: src/Makefile modified:
+	  src/chkimg.c new file: src/config.h modified: src/ddclone.c
+	  modified: src/infoclone.c modified: src/main.c modified:
+	  src/partclone.c modified: src/partclone.h modified: src/restore.c
+
+2009-06-16 02:31  thomas
+
+	* src/Makefile.am, src/Makefile.in, src/chkimg.c:
+	  
+	  The partclone.chkimg could help you check img by CRC. modified:
+	  src/Makefile.am modified: src/Makefile.in new file: src/chkimg.c
+
+2009-06-13 06:40  steven
+
+	* ChangeLog, debian/changelog, po/partclone.pot, po/zh_TW.gmo,
+	  po/zh_TW.po, src/version.c:
+	  
+	  Updated for version 0.1.1-11.
+
 2009-06-10 10:39  thomas
 
 	* src/progress.c, src/version.c:
