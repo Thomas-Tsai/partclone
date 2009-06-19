@@ -121,6 +121,8 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     opt->debug = 0;
     opt->rescue = 0;
     opt->check = 1;
+    opt->logfile = "/var/log/partclone.log";
+
 #ifdef RESTORE
     opt->restore++;
     mode++;
@@ -362,20 +364,16 @@ extern void close_ncurses(){
 
 /**
  * debug message
- * open_log	- to open file /var/log/partclone.log
+ * open_log	- to open file default is /var/log/partclone.log
  * log_mesg	- write log to the file
  *		- write log and exit 
  *		- write to stderr...
  * close_log	- to close file /var/log/partclone.log
  */
 extern void open_log(char* source){
-    if (source){
-        msg = fopen(source,"w");
-    } else {
-        msg = fopen("/var/log/partclone.log","w");
-    }
+    msg = fopen(source,"w");
     if(msg == NULL){
-        fprintf(stderr, "open /var/log/partclone.log error\n");
+        fprintf(stderr, "open logfile %s error\n", source);
         exit(0);
     }
 }
@@ -440,7 +438,7 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
     /// exit if lexit true
     if ((!opt.force) && (log_exit)){
         close_ncurses();
-        fprintf(stderr, "Partclone fail, please check /var/log/partclone.log !\n");
+        fprintf(stderr, "Partclone fail, please check %s !\n", opt.logfile);
         exit(1);
     }
 }

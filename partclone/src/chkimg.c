@@ -87,6 +87,7 @@ static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
     option->check = 1;
     option->restore = 1;
     option->chkimg = 1;
+    option->logfile = "/var/log/partclone.log";
     while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != (char)-1) {
         switch (c) {
             case 's': 
@@ -190,7 +191,6 @@ int main(int argc, char **argv){
      * open debug file in "/var/log/partclone.log" for log message 
      */
     debug = opt.debug;
-    //if(opt.debug)
     open_log(opt.logfile);
 
     /**
