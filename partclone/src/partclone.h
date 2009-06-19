@@ -64,6 +64,8 @@ struct cmd_opt
     int clone;
     int restore;
     int dd;
+    int chkimg;
+    int info;
     int debug;
     char* source;
     char* target;

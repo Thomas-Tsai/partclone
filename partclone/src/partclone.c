@@ -904,12 +904,14 @@ extern void print_partclone_info(cmd_opt opt){
     textdomain(PACKAGE);
     //log_mesg(0, 0, 0, "%s v%s \n", EXEC_NAME, VERSION);
     log_mesg(0, 0, 1, debug, _("Partclone v%s (%s) http://partclone.org\n"), VERSION, svn_version);
-    if (opt.clone)
-        log_mesg(0, 0, 1, debug, _("Starting clone device (%s) to image (%s)\n"), opt.source, opt.target);	
+    if (opt.chkimg)
+        log_mesg(0, 0, 1, debug, _("Starting to check image (%s)\n"), opt.source);	
+    else if (opt.clone)
+        log_mesg(0, 0, 1, debug, _("Starting to clone device (%s) to image (%s)\n"), opt.source, opt.target);	
     else if(opt.restore)
-        log_mesg(0, 0, 1, debug, _("Starting restore image (%s) to device (%s)\n"), opt.source, opt.target);
+        log_mesg(0, 0, 1, debug, _("Starting to restore image (%s) to device (%s)\n"), opt.source, opt.target);
     else if(opt.dd)
-        log_mesg(0, 0, 1, debug, _("Starting back up device(%s) to device(%s)\n"), opt.source, opt.target);
+        log_mesg(0, 0, 1, debug, _("Starting to back up device(%s) to device(%s)\n"), opt.source, opt.target);
     else
         log_mesg(0, 0, 1, debug, "unknow mode\n");
 }
@@ -952,7 +954,9 @@ extern void print_finish_info(cmd_opt opt){
     setlocale(LC_ALL, "");
     bindtextdomain(PACKAGE, LOCALEDIR);
     textdomain(PACKAGE);
-    if (opt.clone)
+    if (opt.chkimg)
+        log_mesg(0, 0, 1, debug, _("Partclone successfully checkd the image (%s)\n"), opt.source);	
+    else if (opt.clone)
         log_mesg(0, 0, 1, debug, _("Partclone successfully cloned the device (%s) to the image (%s)\n"), opt.source, opt.target);	
     else if(opt.restore)
         log_mesg(0, 0, 1, debug, _("Partclone successfully restored the image (%s) to the device (%s)\n"), opt.source, opt.target);

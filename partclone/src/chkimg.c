@@ -30,7 +30,7 @@
  * progress.h - only for progress bar
  */
 #include "progress.h"
-
+#include "version.c"
 /**
  * partclone.h - include some structures like image_head, opt_cmd, ....
  *               and functions for main used.
@@ -49,7 +49,7 @@ static void usage_chkimg(void)
             "    Efficiently clone to a image, device or standard output.\n"
             "\n"
             "    -s,  --source FILE      Source FILE\n"
-            "    -L,  --logfile FILE    Log FILE\n"
+            "    -L,  --logfile FILE     Log FILE\n"
             "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
             "    -C,  --no_check         Don't check device size and free space\n"
 #ifdef HAVE_LIBNCURSESW
@@ -59,7 +59,7 @@ static void usage_chkimg(void)
             "    -F,  --force            force progress\n"
             "    -f,  --UI-fresh         fresh times of progress\n"
             "    -h,  --help             Display this help\n"
-            , EXECNAME, VERSION, "unknown", EXECNAME);
+            , EXECNAME, VERSION, "svn_version", EXECNAME);
     exit(0);
 }
 
@@ -85,6 +85,7 @@ static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
     option->debug = 0;
     option->check = 1;
     option->restore = 1;
+    option->chkimg = 1;
     while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != (char)-1) {
         switch (c) {
             case 's': 
@@ -214,10 +215,12 @@ int main(int argc, char **argv){
     /// print partclone info
     print_partclone_info(opt);
 
+    /*
     if (geteuid() != 0)
         log_mesg(0, 1, 1, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n"); 
     else
         log_mesg(1, 0, 0, debug, "UID is root.\n");
+    */
 
     /**
      * open source and target 
@@ -377,7 +380,7 @@ int main(int argc, char **argv){
     close (dfr);    /// close source
     free(bitmap);   /// free bitmp
     close_pui(pui);
-    printf("Cloned successfully.\n");
+    printf("Checked successfully.\n");
     if(opt.debug)
         close_log();
     return 0;	    /// finish
