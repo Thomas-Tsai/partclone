@@ -25,12 +25,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+#include "version.h"
 
 /**
  * progress.h - only for progress bar
  */
 #include "progress.h"
-#include "version.c"
+
 /**
  * partclone.h - include some structures like image_head, opt_cmd, ....
  *               and functions for main used.
@@ -59,7 +60,7 @@ static void usage_chkimg(void)
             "    -F,  --force            force progress\n"
             "    -f,  --UI-fresh         fresh times of progress\n"
             "    -h,  --help             Display this help\n"
-            , EXECNAME, VERSION, "svn_version", EXECNAME);
+            , EXECNAME, VERSION, svn_version, EXECNAME);
     exit(0);
 }
 

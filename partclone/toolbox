@@ -21,7 +21,7 @@ help()
 recognized flags are:
   --update-po             update translation files
   --update-log            update Changelog files from SVN
-  --update-version        generate src/version.c
+  --update-version        generate src/version.h
 EOF
   exit 1
 }
@@ -103,7 +103,7 @@ then
     CC="`sed -ne 's/^CC *= *//p' < Makefile`"
   fi
 
-  file="${builddir}/src/version.c"
+  file="${builddir}/src/version.h"
   if which svnversion 2>&1 >/dev/null; then
     SVN_REVISION=Rev:`svnversion ${builddir}`
   else
@@ -118,7 +118,7 @@ then
  * WHETHER THEY ARE BUILT BY OTHERS OR DURING DEVELOPMENT OR FOR THE
  * OFFICIAL PARTCLONE RELEASES.
  */
-const char svn_version[] = "${SVN_REVISION}";
+#define svn_version  "${SVN_REVISION}"
 
 EOF
   if diff >/dev/null 2>&1 ${file} ${file}.tmp

@@ -34,11 +34,10 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "gettext.h"
-#include "version.c"
 #include <linux/fs.h>
 #define _(STRING) gettext(STRING)
 //#define PACKAGE "partclone"
-
+#include "version.h"
 #include "partclone.h"
 
 #if defined(linux) && defined(_IO) && !defined(BLKGETSIZE)
@@ -72,7 +71,7 @@ extern void usage(void)
             "    -o,  --output FILE      Output FILE\n"
             "    -O   --overwrite FILE   Output FILE, overwriting if exists\n"
             "    -s,  --source FILE      Source FILE\n"
-            "    -L,  --logfile FILE      Log FILE\n"
+            "    -L,  --logfile FILE     Log FILE\n"
 #ifndef	RESTORE
             "    -c,  --clone            Save to the special image format\n"
             "    -r,  --restore          Restore from the special image format\n"
@@ -999,3 +998,4 @@ extern void dd_bitmap(image_head image_hdr, char* bitmap){
         bitmap[block] = 1; 
 
 }
+
