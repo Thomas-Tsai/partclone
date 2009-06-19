@@ -1,3 +1,10 @@
+partclone (0.1.1-13) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Prompt messages were updated.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri, 18 Jun 2009 13:30:00 +0800
+
 partclone (0.1.1-12) unstable; urgency=low
 
   [Thomas Tsai]

@@ -1,3 +1,37 @@
+2009-06-19 03:28  thomas
+
+	* src/chkimg.c, src/partclone.c:
+	  
+	  Merge branch 'test'
+
+2009-06-19 02:49  thomas
+
+	* src/chkimg.c, src/partclone.c, src/version.c, src/version.h,
+	  toolbox:
+	  
+	  Merge branch 'test'
+
+2009-06-19 01:23  thomas
+
+	* po/partclone.pot, po/zh_TW.gmo, po/zh_TW.po, src/chkimg.c,
+	  src/partclone.c, src/partclone.h, src/version.c:
+	  
+	  Merge branch 'test'
+	  
+	  Conflicts: partclone/src/version.c
+
+2009-06-17 02:39  steven
+
+	* src/Makefile, src/version.c:
+	  
+	  Updated for version 0.1.1-12.
+
+2009-06-17 02:34  steven
+
+	* ChangeLog, debian/changelog:
+	  
+	  Updated for version 0.1.1-12.
+
 2009-06-16 02:45  thomas
 
 	* Makefile.in, aclocal.m4, configure, docs/Makefile.in,
