@@ -1,3 +1,16 @@
+2009-06-24 07:03  thomas
+
+	* Makefile.am, Makefile.in, src/Makefile, src/fatclone.c,
+	  src/version.h:
+	  
+	  update makefile for version.h
+
+2009-06-19 05:56  steven
+
+	* ChangeLog, debian/changelog:
+	  
+	  Updated for version 0.1.1-13.
+
 2009-06-19 03:28  thomas
 
 	* src/chkimg.c, src/partclone.c:
