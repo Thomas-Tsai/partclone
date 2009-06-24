@@ -1,3 +1,15 @@
+2009-06-24 08:39  thomas
+
+	* src/Makefile, src/config.h:
+	  
+	  remove Makefile
+
+2009-06-24 07:39  steven
+
+	* ChangeLog, debian/changelog:
+	  
+	  updated for version 0.1.1-14.
+
 2009-06-24 07:03  thomas
 
 	* Makefile.am, Makefile.in, src/Makefile, src/fatclone.c,
