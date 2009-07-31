@@ -352,6 +352,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 {
     unsigned long long i = 0, j = 0;
     int rd = 0;
+    int fat_stat = 0;
     unsigned long long block = 0, bfree = 0, bused = 0, DamagedClusters = 0;
     unsigned long long cluster_count = 0;
     unsigned long long total_sector = 0;
@@ -385,9 +386,10 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     lseek(ret, FatReservedBytes, SEEK_SET);
 
     /// The second used to check FAT status
-    if (check_fat_status() == 1)
+    fat_stat = check_fat_status();
+    if (fat_stat == 1)
 	log_mesg(0, 1, 1, 2, "Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n");
-    else if (check_fat_status() == 2)
+    else if (fat_stat == 2)
 	log_mesg(0, 1, 1, 2, "I/O error! %X\n");
 
     for (i=0; i < cluster_count; i++){
@@ -416,6 +418,7 @@ static unsigned long long get_used_block()
 {
     unsigned long long i = 0;
     int rd = 0;
+    int fat_stat = 0;
     unsigned long long block = 0, bfree = 0, bused = 0, DamagedClusters = 0;
     unsigned long long cluster_count = 0, total_sector = 0;
     unsigned long long real_back_block= 0;
@@ -442,9 +445,10 @@ static unsigned long long get_used_block()
     lseek(ret, FatReservedBytes, SEEK_SET);
 
     /// The second fat is used to check FAT status
-    if (check_fat_status() == 1)
+    fat_stat = check_fat_status();
+    if (fat_stat == 1)
 	log_mesg(0, 1, 1, 2, "Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n");
-    else if (check_fat_status() == 2)
+    else if (fat_stat == 2)
 	log_mesg(0, 1, 1, 2, "I/O error! %X\n");
 
     for (i=0; i < cluster_count; i++){
