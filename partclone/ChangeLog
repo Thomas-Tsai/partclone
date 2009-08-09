@@ -1,3 +1,21 @@
+2009-07-31 08:04  thomas
+
+	* src/fatclone.c:
+	  
+	  update fat problem! fix bug about fat clone fail.
+
+2009-06-24 08:52  steven
+
+	* ChangeLog:
+	  
+	  updated for 0.1.1-15.
+
+2009-06-24 08:52  steven
+
+	* debian/changelog:
+	  
+	  updated for 0.1.1-15
+
 2009-06-24 08:39  thomas
 
 	* src/Makefile, src/config.h:

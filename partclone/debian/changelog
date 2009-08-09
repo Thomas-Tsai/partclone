@@ -1,3 +1,10 @@
+partclone (0.1.1-16) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Bug fixed: FAT clone failure was fixed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun, 09 Aug 2009 08:49:00 +0800
+
 partclone (0.1.1-15) unstable; urgency=low
 
   [Thomas Tsai]
