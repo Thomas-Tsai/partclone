@@ -3,7 +3,7 @@ LDADD = $(LIBINTL)
 sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 
-version.c: FORCE
+version.h: FORCE
 	$(TOOLBOX) --update-version
 
 partclone_info_SOURCES=infoclone.c partclone.c partclone.h

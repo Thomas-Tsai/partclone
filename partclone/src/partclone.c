@@ -83,9 +83,9 @@ extern void usage(void)
 #ifdef HAVE_LIBNCURSESW
             "    -N,  --ncurses          Using Ncurses User Interface\n"
 #endif
-            "    -X,  --dialog           output message as Dialog Format\n"
-            "    -F,  --force            force progress\n"
-            "    -f,  --UI-fresh         fresh times of progress\n"
+            "    -X,  --dialog           Output message as Dialog Format\n"
+            "    -F,  --force            Force progress\n"
+            "    -f,  --UI-fresh         Fresh times of progress\n"
             "    -h,  --help             Display this help\n"
             , EXECNAME, VERSION, svn_version, EXECNAME);
     exit(0);
