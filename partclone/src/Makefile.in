@@ -36,7 +36,7 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 	partclone.restore$(EXEEXT) partclone.chkimg$(EXEEXT) \
 	$(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 	$(am__EXEEXT_4) $(am__EXEEXT_5) $(am__EXEEXT_6) \
-	$(am__EXEEXT_7)
+	$(am__EXEEXT_7) partclone.ufs$(EXEEXT)
 @ENABLE_EXTFS_TRUE@am__append_1 = partclone.extfs
 @ENABLE_REISERFS_TRUE@am__append_2 = partclone.reiserfs
 @ENABLE_REISER4_TRUE@am__append_3 = partclone.reiser4
@@ -167,6 +167,14 @@ partclone_restore_LDADD = $(LDADD)
 partclone_restore_DEPENDENCIES = $(am__DEPENDENCIES_1)
 partclone_restore_LINK = $(CCLD) $(partclone_restore_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_partclone_ufs_OBJECTS = partclone_ufs-main.$(OBJEXT) \
+	partclone_ufs-partclone.$(OBJEXT) \
+	partclone_ufs-progress.$(OBJEXT) \
+	partclone_ufs-ufsclone.$(OBJEXT)
+partclone_ufs_OBJECTS = $(am_partclone_ufs_OBJECTS)
+partclone_ufs_DEPENDENCIES =
+partclone_ufs_LINK = $(CCLD) $(partclone_ufs_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__partclone_xfs_SOURCES_DIST = main.c partclone.c progress.c \
 	xfsclone.c xfsclone.h partclone.h progress.h gettext.h
 @ENABLE_XFS_TRUE@am_partclone_xfs_OBJECTS =  \
@@ -190,7 +198,8 @@ SOURCES = $(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
 	$(partclone_hfsp_SOURCES) $(partclone_info_SOURCES) \
 	$(partclone_ntfs_SOURCES) $(partclone_ntfsfixboot_SOURCES) \
 	$(partclone_reiser4_SOURCES) $(partclone_reiserfs_SOURCES) \
-	$(partclone_restore_SOURCES) $(partclone_xfs_SOURCES)
+	$(partclone_restore_SOURCES) $(partclone_ufs_SOURCES) \
+	$(partclone_xfs_SOURCES)
 DIST_SOURCES = $(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
 	$(am__partclone_extfs_SOURCES_DIST) \
 	$(am__partclone_fat_SOURCES_DIST) \
@@ -199,7 +208,8 @@ DIST_SOURCES = $(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
 	$(am__partclone_ntfsfixboot_SOURCES_DIST) \
 	$(am__partclone_reiser4_SOURCES_DIST) \
 	$(am__partclone_reiserfs_SOURCES_DIST) \
-	$(partclone_restore_SOURCES) $(am__partclone_xfs_SOURCES_DIST)
+	$(partclone_restore_SOURCES) $(partclone_ufs_SOURCES) \
+	$(am__partclone_xfs_SOURCES_DIST)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -342,6 +352,9 @@ partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h d
 @ENABLE_NTFS_TRUE@partclone_ntfs_CFLAGS = -DNTFS
 @ENABLE_NTFS_TRUE@partclone_ntfs_LDADD = -lntfs
 @ENABLE_NTFS_TRUE@partclone_ntfsfixboot_SOURCES = ntfsfixboot.c
+partclone_ufs_SOURCES = main.c partclone.c progress.c ufsclone.c ufsclone.h partclone.h progress.h gettext.h
+partclone_ufs_CFLAGS = -DUFS -D_GNU_SOURCE
+partclone_ufs_LDADD = -lufs -lbsd  
 all: all-am
 
 .SUFFIXES:
@@ -431,6 +444,9 @@ partclone.reiserfs$(EXEEXT): $(partclone_reiserfs_OBJECTS) $(partclone_reiserfs_
 partclone.restore$(EXEEXT): $(partclone_restore_OBJECTS) $(partclone_restore_DEPENDENCIES) 
 	@rm -f partclone.restore$(EXEEXT)
 	$(partclone_restore_LINK) $(partclone_restore_OBJECTS) $(partclone_restore_LDADD) $(LIBS)
+partclone.ufs$(EXEEXT): $(partclone_ufs_OBJECTS) $(partclone_ufs_DEPENDENCIES) 
+	@rm -f partclone.ufs$(EXEEXT)
+	$(partclone_ufs_LINK) $(partclone_ufs_OBJECTS) $(partclone_ufs_LDADD) $(LIBS)
 partclone.xfs$(EXEEXT): $(partclone_xfs_OBJECTS) $(partclone_xfs_DEPENDENCIES) 
 	@rm -f partclone.xfs$(EXEEXT)
 	$(partclone_xfs_LINK) $(partclone_xfs_OBJECTS) $(partclone_xfs_LDADD) $(LIBS)
@@ -473,6 +489,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_restore-partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_restore-progress.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_restore-restore.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ufs-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ufs-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ufs-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ufs-ufsclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_xfs-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_xfs-partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_xfs-progress.Po@am__quote@
@@ -871,6 +891,62 @@ partclone_restore-restore.obj: restore.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_restore_CFLAGS) $(CFLAGS) -c -o partclone_restore-restore.obj `if test -f 'restore.c'; then $(CYGPATH_W) 'restore.c'; else $(CYGPATH_W) '$(srcdir)/restore.c'; fi`
 
+partclone_ufs-main.o: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -MT partclone_ufs-main.o -MD -MP -MF $(DEPDIR)/partclone_ufs-main.Tpo -c -o partclone_ufs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ufs-main.Tpo $(DEPDIR)/partclone_ufs-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_ufs-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -c -o partclone_ufs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+
+partclone_ufs-main.obj: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -MT partclone_ufs-main.obj -MD -MP -MF $(DEPDIR)/partclone_ufs-main.Tpo -c -o partclone_ufs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ufs-main.Tpo $(DEPDIR)/partclone_ufs-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_ufs-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -c -o partclone_ufs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+
+partclone_ufs-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -MT partclone_ufs-partclone.o -MD -MP -MF $(DEPDIR)/partclone_ufs-partclone.Tpo -c -o partclone_ufs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ufs-partclone.Tpo $(DEPDIR)/partclone_ufs-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_ufs-partclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -c -o partclone_ufs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+
+partclone_ufs-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -MT partclone_ufs-partclone.obj -MD -MP -MF $(DEPDIR)/partclone_ufs-partclone.Tpo -c -o partclone_ufs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ufs-partclone.Tpo $(DEPDIR)/partclone_ufs-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_ufs-partclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -c -o partclone_ufs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+
+partclone_ufs-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -MT partclone_ufs-progress.o -MD -MP -MF $(DEPDIR)/partclone_ufs-progress.Tpo -c -o partclone_ufs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ufs-progress.Tpo $(DEPDIR)/partclone_ufs-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_ufs-progress.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -c -o partclone_ufs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+
+partclone_ufs-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -MT partclone_ufs-progress.obj -MD -MP -MF $(DEPDIR)/partclone_ufs-progress.Tpo -c -o partclone_ufs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ufs-progress.Tpo $(DEPDIR)/partclone_ufs-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_ufs-progress.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -c -o partclone_ufs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+
+partclone_ufs-ufsclone.o: ufsclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -MT partclone_ufs-ufsclone.o -MD -MP -MF $(DEPDIR)/partclone_ufs-ufsclone.Tpo -c -o partclone_ufs-ufsclone.o `test -f 'ufsclone.c' || echo '$(srcdir)/'`ufsclone.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ufs-ufsclone.Tpo $(DEPDIR)/partclone_ufs-ufsclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ufsclone.c' object='partclone_ufs-ufsclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -c -o partclone_ufs-ufsclone.o `test -f 'ufsclone.c' || echo '$(srcdir)/'`ufsclone.c
+
+partclone_ufs-ufsclone.obj: ufsclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -MT partclone_ufs-ufsclone.obj -MD -MP -MF $(DEPDIR)/partclone_ufs-ufsclone.Tpo -c -o partclone_ufs-ufsclone.obj `if test -f 'ufsclone.c'; then $(CYGPATH_W) 'ufsclone.c'; else $(CYGPATH_W) '$(srcdir)/ufsclone.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_ufs-ufsclone.Tpo $(DEPDIR)/partclone_ufs-ufsclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ufsclone.c' object='partclone_ufs-ufsclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ufs_CFLAGS) $(CFLAGS) -c -o partclone_ufs-ufsclone.obj `if test -f 'ufsclone.c'; then $(CYGPATH_W) 'ufsclone.c'; else $(CYGPATH_W) '$(srcdir)/ufsclone.c'; fi`
+
 partclone_xfs-main.o: main.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT partclone_xfs-main.o -MD -MP -MF $(DEPDIR)/partclone_xfs-main.Tpo -c -o partclone_xfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_xfs-main.Tpo $(DEPDIR)/partclone_xfs-main.Po
@@ -1109,6 +1185,7 @@ uninstall-am: uninstall-local uninstall-sbinPROGRAMS
 
 version.h: FORCE
 	$(TOOLBOX) --update-version
+#endif
 
 # Extra
 install-exec-hook:
