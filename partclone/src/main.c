@@ -66,6 +66,9 @@ p_dialog_mesg	m_dialog;			/// dialog format string
 #elif NTFS
 #include "ntfsclone-ng.h"
 #define FS "NTFS"
+#elif UFS
+#include "ufsclone.h"
+#define FS "UFS"
 #endif
 
 /**

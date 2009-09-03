@@ -353,7 +353,7 @@ partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h d
 @ENABLE_NTFS_TRUE@partclone_ntfs_LDADD = -lntfs
 @ENABLE_NTFS_TRUE@partclone_ntfsfixboot_SOURCES = ntfsfixboot.c
 partclone_ufs_SOURCES = main.c partclone.c progress.c ufsclone.c ufsclone.h partclone.h progress.h gettext.h
-partclone_ufs_CFLAGS = -DUFS -D_GNU_SOURCE
+partclone_ufs_CFLAGS = -DUFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64
 partclone_ufs_LDADD = -lufs -lbsd  
 all: all-am
 

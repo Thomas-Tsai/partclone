@@ -13,16 +13,16 @@
 
 #include <sys/param.h>
 #include <sys/time.h>
-#include <sys/disklabel.h>
 
-#include <ufs/ufs/dinode.h>
-#include <ufs/ffs/fs.h>
+#include "ufs/ufs/dinode.h"
+#include "ufs/ffs/fs.h"
+#include "ufs/sys/disklabel.h"
+#include "ufs/libufs.h"
 
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <fstab.h>
-#include <libufs.h>
 #include <time.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -38,10 +38,10 @@ struct uufsd disk;
 #include "progress.h"
 
 char *EXECNAME = "partclone.ufs";
+int debug = 3;
 
 /// open device
 static void fs_open(char* device){
-    int debug = 3;
 
     log_mesg(3, 0, 0, debug, "UFS partition Open\n");
     if (ufs_disk_fillout(&disk, device) == -1){
@@ -54,9 +54,9 @@ static void fs_open(char* device){
             log_mesg(3, 0, 0, debug, "magic = %x (UFS2)\n", afs.fs_magic);
             log_mesg(3, 0, 0, debug, "superblock location = %lld\nid = [ %x %x ]\n", afs.fs_sblockloc, afs.fs_id[0], afs.fs_id[1]);
             log_mesg(3, 0, 0, debug, "group (ncg) = %d\n", afs.fs_ncg);
-            log_mesg(3, 0, 0, debug, "UFS size (tblocks) = %lld\n", afs.fs_dsize);
+            log_mesg(3, 0, 0, debug, "UFS size = %lld\n", afs.fs_size);
             log_mesg(3, 0, 0, debug, "Blocksize fs_fsize = %i\n", afs.fs_fsize);
-            log_mesg(3, 0, 0, debug, "partition size = %lld\n", afs.fs_dsize*afs.fs_fsize);
+            log_mesg(3, 0, 0, debug, "partition size = %lld\n", afs.fs_size*afs.fs_fsize);
             log_mesg(3, 0, 0, debug, "block per group %i\n", afs.fs_fpg);
             break;
         case 1:
@@ -80,31 +80,36 @@ static void fs_close(){
 /// readbitmap - read bitmap
 extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui)
 {
-    unsigned long long     block, bused = 0, bfree = 0;
-    int                    debug = 3, done = 0;
+    unsigned long long     total_block, block, bused = 0, bfree = 0;
+    int                    done = 0, i = 0, start = 0, bit_size = 1;
+    char* p;
+
 
     fs_open(device);
 
     /// init progress
-    progress_bar   prog;	/// progress_bar structure defined in progress.h
-    progress_init(&prog, start, image_hdr.totalblock, bit_size);
+    progress_bar   bprog;	/// progress_bar structure defined in progress.h
+    progress_init(&bprog, start, image_hdr.totalblock, bit_size);
 
+    total_block = 0;
     /// read group
     while ((i = cgread(&disk)) != 0) {
         log_mesg(3, 0, 0, debug, "\ncg = %d\n", disk.d_lcg);
         log_mesg(3, 0, 0, debug, "blocks = %i\n", acg.cg_ndblk);
         p = cg_blksfree(&acg);
 
-        for (block = 0; block < afs.fs_fpg; block++){
+        for (block = 0; block < acg.cg_ndblk; block++){
+	    total_block++;
             if (isset(p, block)) {
-                bitmap[block] = 1;
-                log_mesg(3, 0, 0, debug, "bitmap is used %lli", block);
-            } else {
-                bitmap[block] = 0;
+                bitmap[total_block] = 0;
                 bfree++;
-                log_mesg(3, 0, 0, debug, "bitmap is free %lli", block);
+                log_mesg(3, 0, 0, debug, "bitmap is free %lli\n", block);
+            } else {
+                bitmap[total_block] = 1;
+		bused++;
+                log_mesg(3, 0, 0, debug, "bitmap is used %lli\n", block);
             }
-            update_pui(&bprog, block ,done);
+            update_pui(&bprog, total_block ,done);
         }
         log_mesg(3, 0, 0, debug, "\n");
 
@@ -112,6 +117,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 
     fs_close();
     
+    log_mesg(3, 0, 0, debug, "total used = %lli, total free = %lli\n", bused, bfree);
     done = 1;
     update_pui(&bprog, 1, done);
 
@@ -126,9 +132,9 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
     memcpy(image_hdr->fs, ufs_MAGIC, FS_MAGIC_SIZE);
     image_hdr->block_size  = afs.fs_fsize;
-    image_hdr->totalblock  = afs.fs_dsize;
+    image_hdr->totalblock  = afs.fs_size;
     image_hdr->usedblocks  = 0;
-    image_hdr->device_size = afs.fs_fsize*afs.fs_dsize;
+    image_hdr->device_size = afs.fs_fsize*afs.fs_size;
     fs_close();
 }
 
