@@ -28,6 +28,7 @@ enable_reiser4="yes"
 enable_hfsp="yes"
 enable_fat="yes"
 enable_ntfs="yes"
+#enable_ufs="yes"
 fi
 
 ##ext2/3##
@@ -278,6 +279,24 @@ supported_fs=$supported_fs" ntfs"
 fi
 #end of check ntfs
 
+##UFS##
+AC_ARG_ENABLE(test,
+	AS_HELP_STRING(--enable-ufs,enable UFS(1/2) file system), 
+	enable_ufs=yes,
+)
+AM_CONDITIONAL(ENABLE_UFS, test "$enable_ufs" = yes)
+
+if test "$enable_ufs" = "yes"; then
+#check library of some filesystems
+
+dnl Check for UFS 
+AC_CHECKING([ for UFS Library ... ])
+AC_CHECK_LIB([ufs], [ufs_disk_fillout], ,
+        AC_MSG_ERROR([*** ufs depend library (libufs2) not found]))
+supported_fs=$supported_fs" ufs"
+fi
+#end of check ufs
+
 
 ##libncursesw##
 AC_ARG_ENABLE(test,
@@ -324,10 +343,11 @@ AC_OUTPUT
 echo ""
 echo "Support File System:"
 echo "ext2/3/4......$enable_extfs $extfs_version"
-echo "reiserfs......$enable_extfs $reiserfs_version"
-echo "reiser4.......$enable_extfs $reiser4_version"
-echo "xfs...........$enable_extfs $xfs_version"
-echo "ntfs..........$enable_extfs $ntfs_version"
-echo "fat12/16/32...$enable_extfs $fat_version"
-echo "hfs plus......$enable_extfs $hfs_plus_version"
+echo "reiserfs......$enable_reiserfs $reiserfs_version"
+echo "reiser4.......$enable_reiser4 $reiser4_version"
+echo "xfs...........$enable_xfs $xfs_version"
+echo "ntfs..........$enable_ntfs $ntfs_version"
+echo "fat12/16/32...$enable_fat $fat_version"
+echo "hfs plus......$enable_hfsp $hfs_plus_version"
+echo "ufs ..........$enable_ufs"
 #echo $supported_fs

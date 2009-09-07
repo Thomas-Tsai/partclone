@@ -643,6 +643,8 @@ ENABLE_STATIC_FALSE
 ENABLE_STATIC_TRUE
 ENABLE_NCURSESW_FALSE
 ENABLE_NCURSESW_TRUE
+ENABLE_UFS_FALSE
+ENABLE_UFS_TRUE
 ENABLE_NTFS_FALSE
 ENABLE_NTFS_TRUE
 ENABLE_FAT_FALSE
@@ -1427,6 +1429,7 @@ Optional Features:
   --enable-hfsp           enable HFS plus file system
   --enable-fat            enable FAT file system
   --enable-ntfs           enable NTFS file system
+  --enable-ufs            enable UFS(1/2) file system
   --enable-ncursesw       enable TEXT User Interface
   --enable-static         enable static linking
 
@@ -6835,6 +6838,7 @@ enable_reiser4="yes"
 enable_hfsp="yes"
 enable_fat="yes"
 enable_ntfs="yes"
+#enable_ufs="yes"
 fi
 
 ##ext2/3##
@@ -9107,6 +9111,109 @@ supported_fs=$supported_fs" ntfs"
 fi
 #end of check ntfs
 
+##UFS##
+# Check whether --enable-test was given.
+if test "${enable_test+set}" = set; then
+  enableval=$enable_test; enable_ufs=yes
+fi
+
+ if test "$enable_ufs" = yes; then
+  ENABLE_UFS_TRUE=
+  ENABLE_UFS_FALSE='#'
+else
+  ENABLE_UFS_TRUE='#'
+  ENABLE_UFS_FALSE=
+fi
+
+
+if test "$enable_ufs" = "yes"; then
+#check library of some filesystems
+
+{ $as_echo "$as_me:$LINENO: checking  for UFS Library ... ..." >&5
+$as_echo "$as_me: checking  for UFS Library ... ..." >&6;}
+
+{ $as_echo "$as_me:$LINENO: checking for ufs_disk_fillout in -lufs" >&5
+$as_echo_n "checking for ufs_disk_fillout in -lufs... " >&6; }
+if test "${ac_cv_lib_ufs_ufs_disk_fillout+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lufs  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char ufs_disk_fillout ();
+int
+main ()
+{
+return ufs_disk_fillout ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  ac_cv_lib_ufs_ufs_disk_fillout=yes
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_ufs_ufs_disk_fillout=no
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_lib_ufs_ufs_disk_fillout" >&5
+$as_echo "$ac_cv_lib_ufs_ufs_disk_fillout" >&6; }
+if test "x$ac_cv_lib_ufs_ufs_disk_fillout" = x""yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBUFS 1
+_ACEOF
+
+  LIBS="-lufs $LIBS"
+
+else
+  { { $as_echo "$as_me:$LINENO: error: *** ufs depend library (libufs2) not found" >&5
+$as_echo "$as_me: error: *** ufs depend library (libufs2) not found" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+supported_fs=$supported_fs" ufs"
+fi
+#end of check ufs
+
 
 ##libncursesw##
 # Check whether --enable-test was given.
@@ -9555,6 +9662,13 @@ if test -z "${ENABLE_NTFS_TRUE}" && test -z "${ENABLE_NTFS_FALSE}"; then
   { { $as_echo "$as_me:$LINENO: error: conditional \"ENABLE_NTFS\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 $as_echo "$as_me: error: conditional \"ENABLE_NTFS\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${ENABLE_UFS_TRUE}" && test -z "${ENABLE_UFS_FALSE}"; then
+  { { $as_echo "$as_me:$LINENO: error: conditional \"ENABLE_UFS\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+$as_echo "$as_me: error: conditional \"ENABLE_UFS\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -11048,10 +11162,11 @@ fi
 echo ""
 echo "Support File System:"
 echo "ext2/3/4......$enable_extfs $extfs_version"
-echo "reiserfs......$enable_extfs $reiserfs_version"
-echo "reiser4.......$enable_extfs $reiser4_version"
-echo "xfs...........$enable_extfs $xfs_version"
-echo "ntfs..........$enable_extfs $ntfs_version"
-echo "fat12/16/32...$enable_extfs $fat_version"
-echo "hfs plus......$enable_extfs $hfs_plus_version"
+echo "reiserfs......$enable_reiserfs $reiserfs_version"
+echo "reiser4.......$enable_reiser4 $reiser4_version"
+echo "xfs...........$enable_xfs $xfs_version"
+echo "ntfs..........$enable_ntfs $ntfs_version"
+echo "fat12/16/32...$enable_fat $fat_version"
+echo "hfs plus......$enable_hfsp $hfs_plus_version"
+echo "ufs ..........$enable_ufs"
 #echo $supported_fs

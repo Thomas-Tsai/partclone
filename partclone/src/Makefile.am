@@ -70,12 +70,12 @@ if ENABLE_STATIC
 LDFLAGS+=-static 
 endif
 
-#if ENABLE_UFS
+if ENABLE_UFS
 sbin_PROGRAMS += partclone.ufs
 partclone_ufs_SOURCES=main.c partclone.c progress.c ufsclone.c ufsclone.h partclone.h progress.h gettext.h
 partclone_ufs_CFLAGS=-DUFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64
 partclone_ufs_LDADD=-lufs -lbsd  
-#endif
+endif
 
 
 # Extra
