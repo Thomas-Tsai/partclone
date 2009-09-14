@@ -120,16 +120,16 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
         p = cg_blksfree(&acg);
 
         for (block = 0; block < acg.cg_ndblk; block++){
-	    total_block++;
             if (isset(p, block)) {
                 bitmap[total_block] = 0;
                 bfree++;
-                log_mesg(3, 0, 0, debug, "bitmap is free %lli\n", block);
+                log_mesg(3, 0, 0, debug, "bitmap is free %lli, global %lli\n", block, total_block);
             } else {
                 bitmap[total_block] = 1;
 		bused++;
-                log_mesg(3, 0, 0, debug, "bitmap is used %lli\n", block);
+                log_mesg(3, 0, 0, debug, "bitmap is used %lli, global %lli\n", block, total_block);
             }
+	    total_block++;
             update_pui(&bprog, total_block ,done);
         }
         log_mesg(3, 0, 0, debug, "\n");
@@ -156,17 +156,18 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     switch (disk.d_ufs) {
         case 2:
 	    image_hdr->block_size  = afs.fs_fsize;
+	    image_hdr->totalblock  = afs.fs_size;
 	    image_hdr->device_size = afs.fs_fsize*afs.fs_size;
             break;
         case 1:
 	    image_hdr->block_size  = afs.fs_fsize;
+	    image_hdr->totalblock  = afs.fs_old_size;
 	    image_hdr->device_size = afs.fs_fsize*afs.fs_old_size;
             break;
         default:
             break;
     }
 
-    image_hdr->totalblock  = afs.fs_size;
     image_hdr->usedblocks  = get_used_block();
     fs_close();
 }
@@ -174,12 +175,11 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 /// get_used_block - get FAT used blocks
 static unsigned long long get_used_block()
 {
-    unsigned long long     total_block, block, bused = 0, bfree = 0;
+    unsigned long long     block, bused = 0, bfree = 0;
     int                    i = 0, start = 0, bit_size = 1;
     char		   *p;
 
 
-    total_block = 0;
     /// read group
     while ((i = cgread(&disk)) != 0) {
         log_mesg(3, 0, 0, debug, "\ncg = %d\n", disk.d_lcg);
@@ -187,7 +187,6 @@ static unsigned long long get_used_block()
         p = cg_blksfree(&acg);
 
         for (block = 0; block < acg.cg_ndblk; block++){
-	    total_block++;
             if (isset(p, block)) {
                 bfree++;
             } else {
