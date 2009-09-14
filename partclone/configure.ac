@@ -15,7 +15,7 @@ AC_SYS_LARGEFILE
 
 supported_fs=""
 ##enable-all##
-AC_ARG_ENABLE(test,
+AC_ARG_ENABLE(all,
 	        AS_HELP_STRING(--enable-all,enable all supported file system),
 	        enable_all=yes,
 )
@@ -32,7 +32,7 @@ enable_ntfs="yes"
 fi
 
 ##ext2/3##
-AC_ARG_ENABLE(test,
+AC_ARG_ENABLE(extfs,
 	AS_HELP_STRING(--enable-extfs,enable ext2/3/4 file system), 
 	enable_extfs=yes,
 )
@@ -79,7 +79,7 @@ fi
 #end of check extfs
 
 ##XFS##
-AC_ARG_ENABLE(test,
+AC_ARG_ENABLE(xfs,
 	AS_HELP_STRING(--enable-xfs,enable XFS file system), 
 	enable_xfs=yes,
 )
@@ -103,7 +103,7 @@ xfs_version="unknown"
 #end of check xfs
 
 ##reiserfs##
-AC_ARG_ENABLE(test,
+AC_ARG_ENABLE(reiserfs,
 	AS_HELP_STRING(--enable-reiserfs,enable REISERFS 3.6/3.6 file system), 
 	enable_reiserfs=yes,
 )
@@ -154,7 +154,7 @@ fi
 #end of check reiserfs
 
 ##reiser4##
-AC_ARG_ENABLE(test,
+AC_ARG_ENABLE(reiser4,
 	AS_HELP_STRING(--enable-reiser4,enable Reiser4 file system), 
 	enable_reiser4=yes,
 )
@@ -207,7 +207,7 @@ fi
 #end of check reiser4
 
 ##hfs plus##
-AC_ARG_ENABLE(test,
+AC_ARG_ENABLE(hfsp,
 	AS_HELP_STRING(--enable-hfsp,enable HFS plus file system), 
 	enable_hfsp=yes,
 )
@@ -220,7 +220,7 @@ hfs_plus_version="build-in"
 #end of check hfsplus
 
 ##fat##
-AC_ARG_ENABLE(test,
+AC_ARG_ENABLE(fat,
 	AS_HELP_STRING(--enable-fat,enable FAT file system), 
 	enable_fat=yes,
 )
@@ -233,7 +233,7 @@ fat_version="build-in"
 #end of check fat
 
 ##NTFS##
-AC_ARG_ENABLE(test,
+AC_ARG_ENABLE(ntfs,
 	AS_HELP_STRING(--enable-ntfs,enable NTFS file system), 
 	enable_ntfs=yes,
 )
@@ -280,7 +280,7 @@ fi
 #end of check ntfs
 
 ##UFS##
-AC_ARG_ENABLE(test,
+AC_ARG_ENABLE(ufs,
 	AS_HELP_STRING(--enable-ufs,enable UFS(1/2) file system), 
 	enable_ufs=yes,
 )
@@ -299,7 +299,7 @@ fi
 
 
 ##libncursesw##
-AC_ARG_ENABLE(test,
+AC_ARG_ENABLE(ncursesw,
 	AS_HELP_STRING(--enable-ncursesw,enable TEXT User Interface), 
 	enable_ncursesw=yes,
 )
@@ -318,7 +318,7 @@ fi
 
 
 ##static linking##
-AC_ARG_ENABLE(test,
+AC_ARG_ENABLE(static,
 	AS_HELP_STRING(--enable-static,enable static linking), 
 	enable_static=yes,
 )
