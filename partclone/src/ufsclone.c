@@ -43,6 +43,8 @@ int debug = 3;
 /// open device
 static void fs_open(char* device){
 
+    int fsflags;
+
     log_mesg(3, 0, 0, debug, "UFS partition Open\n");
     if (ufs_disk_fillout(&disk, device) == -1){
         log_mesg(3, 0, 0, debug, "UFS open fail\n");
@@ -58,15 +60,34 @@ static void fs_open(char* device){
             log_mesg(3, 0, 0, debug, "Blocksize fs_fsize = %i\n", afs.fs_fsize);
             log_mesg(3, 0, 0, debug, "partition size = %lld\n", afs.fs_size*afs.fs_fsize);
             log_mesg(3, 0, 0, debug, "block per group %i\n", afs.fs_fpg);
+
             break;
         case 1:
             log_mesg(3, 0, 0, debug, "magic = %x (UFS1)\n", afs.fs_magic);
-            log_mesg(3, 0, 0, debug, "id = [ %x %x ]\n", afs.fs_id[0], afs.fs_id[1]);
+            log_mesg(3, 0, 0, debug, "superblock location = %lld\nid = [ %x %x ]\n", afs.fs_sblockloc, afs.fs_id[0], afs.fs_id[1]);
+            log_mesg(3, 0, 0, debug, "group (ncg) = %d\n", afs.fs_ncg);
+            log_mesg(3, 0, 0, debug, "UFS size = %lld\n", afs.fs_size);
+            log_mesg(3, 0, 0, debug, "Blocksize fs_fsize = %i\n", afs.fs_fsize);
+            log_mesg(3, 0, 0, debug, "partition size = %lld\n", afs.fs_old_size*afs.fs_fsize);
+            log_mesg(3, 0, 0, debug, "block per group %i\n", afs.fs_fpg);
+
             break;
         default:
             log_mesg(3, 0, 0, debug, "disk.d_ufs = %c", disk.d_ufs);
             break;
     }
+
+    /// get ufs flags
+    if (afs.fs_old_flags & FS_FLAGS_UPDATED)
+	fsflags == afs.fs_flags;
+    else
+	fsflags == afs.fs_old_flags;
+
+    /// check ufs status
+    if (fsflags & FS_UNCLEAN)
+	log_mesg(0, 1, 1, debug, "UFS flag FS_UNCLEAN\n\n");
+    if (fsflags & FS_NEEDSFSCK)
+	log_mesg(0, 1, 1, debug, "UFS flag: need fsck run first\n\n");
 
 }
 
@@ -131,10 +152,50 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     fs_open(device);
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
     memcpy(image_hdr->fs, ufs_MAGIC, FS_MAGIC_SIZE);
-    image_hdr->block_size  = afs.fs_fsize;
+
+    switch (disk.d_ufs) {
+        case 2:
+	    image_hdr->block_size  = afs.fs_fsize;
+	    image_hdr->device_size = afs.fs_fsize*afs.fs_size;
+            break;
+        case 1:
+	    image_hdr->block_size  = afs.fs_fsize;
+	    image_hdr->device_size = afs.fs_fsize*afs.fs_old_size;
+            break;
+        default:
+            break;
+    }
+
     image_hdr->totalblock  = afs.fs_size;
-    image_hdr->usedblocks  = 0;
-    image_hdr->device_size = afs.fs_fsize*afs.fs_size;
+    image_hdr->usedblocks  = get_used_block();
     fs_close();
 }
 
+/// get_used_block - get FAT used blocks
+static unsigned long long get_used_block()
+{
+    unsigned long long     total_block, block, bused = 0, bfree = 0;
+    int                    i = 0, start = 0, bit_size = 1;
+    char		   *p;
+
+
+    total_block = 0;
+    /// read group
+    while ((i = cgread(&disk)) != 0) {
+        log_mesg(3, 0, 0, debug, "\ncg = %d\n", disk.d_lcg);
+        log_mesg(3, 0, 0, debug, "blocks = %i\n", acg.cg_ndblk);
+        p = cg_blksfree(&acg);
+
+        for (block = 0; block < acg.cg_ndblk; block++){
+	    total_block++;
+            if (isset(p, block)) {
+                bfree++;
+            } else {
+		bused++;
+            }
+        }
+
+    }
+    log_mesg(3, 0, 0, debug, "total used = %lli, total free = %lli\n", bused, bfree);
+    return bused;
+}

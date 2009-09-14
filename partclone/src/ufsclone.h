@@ -22,3 +22,6 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 
 /// read super block and write to image head
 extern void initial_image_hdr(char* device, image_head* image_hdr);
+
+/// return used block count
+static unsigned long long get_used_block();
