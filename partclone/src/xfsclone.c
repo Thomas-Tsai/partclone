@@ -41,7 +41,7 @@ static void addToHist(int dwAgNo, int dwAgBlockNo, int qwLen, char* bitmap)
     log_mesg(2, 0, 0, debug, "addTohits:%i,\t%i,\t%i,\t%i\n",dwAgNo, dwAgBlockNo, qwLen, qwBase);
     for (i = 0; i < qwLen; i++)
     {
-	bit = qwBase + i -1;
+	bit = qwBase + i;
 	bitmap[bit] = 0;
 	log_mesg(3, 0, 0, debug, "add bit%i\n",bit);
 	/// update progress
