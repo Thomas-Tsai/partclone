@@ -1,10 +1,10 @@
-partclone (0.1.9-1) jaunty; urgency=low
+partclone (0.1.9-1) unstable; urgency=low
 
   [ Yu-Chin Tsai  ]
   * Bug fixed: XFS clone failure was fixed. 
   * UFS was added.
 
- -- Yu-Chin Tsai  <thomas@nchc.org.tw>  Thu, 17 Sep 2009 13:43:54 +0800
+ -- Yu-Chin Tsai  <thomas@nchc.org.tw>  Thu, 17 Sep 2009 14:07:33 +0800
 
 partclone (0.1.1-16) unstable; urgency=low
 
