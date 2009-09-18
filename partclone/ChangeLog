@@ -1,3 +1,17 @@
+2009-09-17 06:12  thomas
+
+	* debian/changelog:
+	  
+	  update changelog to test svn-buildpackage
+
+2009-09-17 06:03  thomas
+
+	* ChangeLog, Makefile.in, aclocal.m4, config.h.in, configure,
+	  configure.ac, debian/changelog, docs/Makefile.in,
+	  src/Makefile.in:
+	  
+	  * update version * update log
+
 2009-09-14 15:11  thomas
 
 	* src/ufsclone.c, src/version.h:
