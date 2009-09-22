@@ -77,6 +77,7 @@ struct cmd_opt
     int ncurses;
     int dialog;
     int force;
+    int ignore_fschk;
     unsigned long fresh;
 };
 typedef struct cmd_opt cmd_opt;

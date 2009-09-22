@@ -84,6 +84,7 @@ extern void usage(void)
             "    -N,  --ncurses          Using Ncurses User Interface\n"
 #endif
             "    -X,  --dialog           Output message as Dialog Format\n"
+            "    -I,  --ignore-fschk     Ignore filesystem check\n"
             "    -F,  --force            Force progress\n"
             "    -f,  --UI-fresh         Fresh times of progress\n"
             "    -h,  --help             Display this help\n"
@@ -93,7 +94,7 @@ extern void usage(void)
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hd::L:cbro:O:s:f:RCXFN";
+    static const char *sopt = "-hd::L:cbro:O:s:f:RCXFIN";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "output",		required_argument,  NULL,   'o' },
@@ -108,6 +109,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "UI-fresh",	required_argument,  NULL,   'u' },
         { "check",		no_argument,	    NULL,   'C' },
         { "dialog",		no_argument,	    NULL,   'X' },
+        { "ignore_fschk",   no_argument,    NULL,   'I' },
         { "force",		no_argument,	    NULL,   'F' },
 #ifdef HAVE_LIBNCURSESW
         { "ncurses",		no_argument,	    NULL,   'N' },
@@ -169,6 +171,9 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
                 break;
             case 'F':
                 opt->force++;
+                break;
+            case 'I':
+                opt->ignore_fschk++;
                 break;
             case 'R':
                 opt->rescue++;

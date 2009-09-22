@@ -71,6 +71,10 @@ p_dialog_mesg	m_dialog;			/// dialog format string
 #define FS "UFS"
 #endif
 
+/// fs option
+#include "fs_common.h"
+fs_cmd_opt		fs_opt;			/// cmd_opt structure defined in partclone.h
+
 /**
  * main functiom - for colne or restore data
  */
@@ -126,6 +130,9 @@ int main(int argc, char **argv){
      * open debug file in "/var/log/partclone.log" for log message 
      */
     debug = opt.debug;
+    fs_opt.debug = debug;
+    fs_opt.ignore_fschk = opt.ignore_fschk;
+
     //if(opt.debug)
     open_log(opt.logfile);
 
@@ -333,6 +340,11 @@ int main(int argc, char **argv){
         if (sf == (off_t)-1)
             log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
 
+        buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
+        if(buffer == NULL){
+            log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+        }
+
         log_mesg(0, 0, 0, debug, "Total block %i\n", image_hdr.totalblock);
 
         /// start clone partition to image file
@@ -360,12 +372,8 @@ int main(int argc, char **argv){
                 if (sf == -1)
                     log_mesg(0, 1, 1, debug, "source seek error = %lli, ",sf);
 #endif
-                buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
-                if(buffer == NULL){
-                    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-                }
-
                 /// read data from source to buffer
+                memset(buffer, 0, image_hdr.block_size);
                 r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
                 log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
                 if (r_size != (int)image_hdr.block_size){
@@ -398,7 +406,6 @@ int main(int argc, char **argv){
                 c_size = write_all(&dfw, crc_buffer, CRC_SIZE, &opt);
 
                 /// free buffer
-                free(buffer);
                 free(crc_buffer);
 
                 update_pui(&prog, copied, done);
@@ -429,6 +436,7 @@ int main(int argc, char **argv){
             }
         } /// end of for    
         sync_data(dfw, &opt);	
+        free(buffer);
 
     } else if (opt.restore) {
 

@@ -27,25 +27,31 @@
 #include "partclone.h"
 #include "reiserfsclone.h"
 #include "progress.h"
+#include "fs_common.h"
 
 dal_t		 *dal;
 reiserfs_fs_t	 *fs;
 char *EXECNAME = "partclone.reiserfs";
 
+extern fs_cmd_opt fs_opt;
+
 /// open device
 static void fs_open(char* device){
-    int debug = 2;
 
     if (!(dal = (dal_t*)file_dal_open(device, DEFAULT_BLOCK_SIZE, O_RDONLY))) {
-	log_mesg(0, 1, 1, debug, "Couldn't create device abstraction for %s.\n", device);
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't create device abstraction for %s.\n", device, __FILE__);
     }
 
     if (!(fs = reiserfs_fs_open(dal, dal))) {
-	log_mesg(0, 1, 1, debug, "Couldn't open filesystem on %s.\n",device);
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't open filesystem on %s.\n", device, __FILE__);
     }
 
-    if (get_sb_umount_state(fs->super) != FS_CLEAN)
-	log_mesg(0, 1, 1, debug, "Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n");
+    if(fs_opt.ignore_fschk){
+        log_mesg(1, 0, 0, fs_opt.debug, "%s: Ignore filesystem check\n", __FILE__);
+    }else{
+        if (get_sb_umount_state(fs->super) != FS_CLEAN)
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n", __FILE__);
+    }
 
 }
 
@@ -65,7 +71,6 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     reiserfs_block_t	 *node;
     blk_t		 blk;
     unsigned long long 	 bused = 0, bfree = 0;
-    int debug = 1;
     int start = 0;
     int bit_size = 1;
     int done = 0;
@@ -92,7 +97,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     }
 
     if(bfree != fs->super->s_v1.sb_free_blocks)
-	log_mesg(0, 1, 1, debug, "bitmap free count err, free:%i\n", bfree);
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, free:%i\n", bfree, __FILE__);
 
     fs_close();
     /// update progress
