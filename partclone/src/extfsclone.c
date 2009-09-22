@@ -54,12 +54,16 @@ static void fs_open(char* device){
 
     ext2fs_mark_valid(fs);
 
-    if ((fs->super->s_state & EXT2_ERROR_FS) || !ext2fs_test_valid(fs))
-	log_mesg(0, 1, 1, fs_opt.debug, "FS contains a file system with errors\n");
-    else if ((fs->super->s_state & EXT2_VALID_FS) == 0)
-	log_mesg(0, 1, 1, fs_opt.debug, "FS was not cleanly unmounted\n");
-    else if ((fs->super->s_max_mnt_count > 0) && (fs->super->s_mnt_count >= (unsigned) fs->super->s_max_mnt_count)) {
-	log_mesg(0, 1, 1, fs_opt.debug, "FS has been mounted %u times without being checked\n");
+    if(fs_opt.ignore_fschk){
+        log_mesg(1, 0, 0, fs_opt.debug, "%s: Ignore filesystem check\n", __FILE__);
+    } else {
+        if ((fs->super->s_state & EXT2_ERROR_FS) || !ext2fs_test_valid(fs))
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: FS contains a file system with errors\n", __FILE__);
+        else if ((fs->super->s_state & EXT2_VALID_FS) == 0)
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: FS was not cleanly unmounted\n", __FILE__);
+        else if ((fs->super->s_max_mnt_count > 0) && (fs->super->s_mnt_count >= (unsigned) fs->super->s_max_mnt_count)) {
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: FS has been mounted %u times without being checked\n", __FILE__);
+        }
     }
 
 }
@@ -106,7 +110,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     int start = 0;
     int bit_size = 1;
 
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: readbitmap %i\n", bitmap, __FILE__);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: readbitmap %i\n", __FILE__, bitmap);
 
     fs_open(device);
     retval = ext2fs_read_bitmaps(fs); /// open extfs bitmap
@@ -150,12 +154,12 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 		    free++;
 		    gfree++;
 		    bitmap[current_block] = 0;
-		    log_mesg(3, 0, 0, fs_opt.debug, "%s: free block %lu at group %i\n", (current_block), group, __FILE__);
+		    log_mesg(3, 0, 0, fs_opt.debug, "%s: free block %lu at group %i\n", __FILE__, (current_block), group);
 		} else {
 		    used++;
 		    gused++;
 		    bitmap[current_block] = 1;
-		    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %lu at group %i\n", (current_block), group, __FILE__);
+		    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %lu at group %i\n", __FILE__, (current_block), group);
 		}
 		/// update progress
 		update_pui(&prog, current_block, 0);//keep update
@@ -164,11 +168,11 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	}
 	/// check free blocks in group
 	if (gfree != fs->group_desc[group].bg_free_blocks_count)
-	    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap erroe at %i group.\n", group, __FILE__);
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap erroe at %i group.\n", __FILE__, group);
     }
     /// check all free blocks in partition
     if (free != fs->super->s_free_blocks_count)
-	log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, free:%i\n", free, __FILE__);
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, free:%i\n", __FILE__, free);
     fs_close();
     /// update progress
     update_pui(&prog, 1, 1);//finish

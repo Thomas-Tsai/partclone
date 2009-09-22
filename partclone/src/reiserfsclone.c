@@ -39,11 +39,11 @@ extern fs_cmd_opt fs_opt;
 static void fs_open(char* device){
 
     if (!(dal = (dal_t*)file_dal_open(device, DEFAULT_BLOCK_SIZE, O_RDONLY))) {
-        log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't create device abstraction for %s.\n", device, __FILE__);
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't create device abstraction for %s.\n", __FILE__, device);
     }
 
     if (!(fs = reiserfs_fs_open(dal, dal))) {
-        log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't open filesystem on %s.\n", device, __FILE__);
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't open filesystem on %s.\n", __FILE__, device);
     }
 
     if(fs_opt.ignore_fschk){
@@ -97,7 +97,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     }
 
     if(bfree != fs->super->s_v1.sb_free_blocks)
-	log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, free:%i\n", bfree, __FILE__);
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, free:%i\n", __FILE__, bfree);
 
     fs_close();
     /// update progress

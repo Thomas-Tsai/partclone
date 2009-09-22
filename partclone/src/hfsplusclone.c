@@ -27,10 +27,12 @@
 #include "partclone.h"
 #include "hfsplusclone.h"
 #include "progress.h"
+#include "fs_common.h"
 
 struct HFSPlusVolumeHeader sb;
 int ret;
 char *EXECNAME = "partclone.hfsp";
+extern fs_cmd_opt fs_opt;
 
 static short reverseShort(short s){
     unsigned char c1, c2;
@@ -54,25 +56,23 @@ static int reverseInt(int i){
 static int IsAllocationBlockUsed(UInt32 thisAllocationBlock, UInt8* allocationFileContents)
 {
     UInt8 thisByte;
-    int debug = 1;
 
     thisByte = allocationFileContents[thisAllocationBlock / 8];
-    //log_mesg(0, 0, 0, debug, "IsAB:%i\n", (thisByte & (1 << (7 - (thisAllocationBlock % 8)))));
+    //log_mesg(0, 0, 0, fs_opt.debug, "IsAB:%i\n", (thisByte & (1 << (7 - (thisAllocationBlock % 8)))));
     return (thisByte & (1 << (7 - (thisAllocationBlock % 8)))) != 0;
 }
 
 static void print_fork_data(HFSPlusForkData* fork){
     int i = 0;
-    int debug = 2;
 
     HFSPlusExtentDescriptor* exten;
-    log_mesg(2, 0, 0, debug, "logicalSize: %#lx\n", fork->logicalSize);
-    log_mesg(2, 0, 0, debug, "clumpSize: %i\n", reverseInt(fork->clumpSize));
-    log_mesg(2, 0, 0, debug, "totalBlocks: %i\n", reverseInt(fork->totalBlocks));
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: logicalSize: %#lx\n", __FILE__, fork->logicalSize);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: clumpSize: %i\n", __FILE__, reverseInt(fork->clumpSize));
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: totalBlocks: %i\n", __FILE__, reverseInt(fork->totalBlocks));
     for (i = 0; i < 8; i++ ){
         exten = &fork->extents[i];
-        log_mesg(2, 0, 0, debug, "\texten %i startBlock: %i\n", i, reverseInt(exten->startBlock));
-        log_mesg(2, 0, 0, debug, "\texten %i blockCount: %i\n", i, reverseInt(fork->extents[i].blockCount));
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: \texten %i startBlock: %i\n", __FILE__, i, reverseInt(exten->startBlock));
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: \texten %i blockCount: %i\n", __FILE__, i, reverseInt(fork->extents[i].blockCount));
 
     }
 }
@@ -82,7 +82,6 @@ static void fs_open(char* device){
 
     int s, r;
     char *buffer;
-    int debug = 3;
     short HFS_Version;
     char HFS_Signature[2];
     int HFS_Clean = 0;
@@ -98,15 +97,19 @@ static void fs_open(char* device){
     HFS_Version = (short)reverseShort(sb.version);
     HFS_Clean = (reverseInt(sb.attributes)>>8) & 1;
 
-    log_mesg(3, 0, 0, debug, "Signature=%c%c\n", HFS_Signature[0], HFS_Signature[1]);
-    log_mesg(3, 0, 0, debug, "Version=%i\n", HFS_Version);
-    log_mesg(3, 0, 0, debug, "Attr-Unmounted=%i(1 is clean, 0 is dirty)\n", HFS_Clean);
-    log_mesg(3, 0, 0, debug, "Attr-Inconsistent=%i\n", (reverseInt(sb.attributes)>>11) & 1);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: Signature=%c%c\n", __FILE__, HFS_Signature[0], HFS_Signature[1]);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: Version=%i\n", __FILE__, HFS_Version);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: Attr-Unmounted=%i(1 is clean, 0 is dirty)\n", __FILE__, HFS_Clean);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: Attr-Inconsistent=%i\n", __FILE__, (reverseInt(sb.attributes)>>11) & 1);
 
-    if (HFS_Clean)
-        log_mesg(3, 0, 0, debug, "HFS_Plus '%s' is clean\n", device);
-    else 
-        log_mesg(0, 1, 1, debug, "HFS_Plus Volume '%s' is scheduled for a check or it was shutdown\nuncleanly. Please fix it by fsck.\n", device);
+    if(fs_opt.ignore_fschk){
+        log_mesg(1, 0, 0, fs_opt.fs_opt.debug, "%s: Ignore filesystem check\n", __FILE__);
+    } else {
+        if (HFS_Clean)
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: HFS_Plus '%s' is clean\n", __FILE__, device);
+        else 
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: HFS_Plus Volume '%s' is scheduled for a check or it was shutdown\nuncleanly. Please fix it by fsck.\n", __FILE__, device);
+    }
 
     free(buffer);
 
@@ -124,7 +127,6 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     UInt8 *buffer2;
     long int tb = 0, rb = 0, bused = 0, bfree = 0;
     UInt32 b;
-    int debug = 2;
     int start = 0;
     int bit_size = 1;
     int allocation_exten = 0;
@@ -162,11 +164,11 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
             if (IsUsed){
                 bused++;
                 bitmap[b] = 1;
-                log_mesg(3, 0, 0, debug, "used b = %i\n", b);
+                log_mesg(3, 0, 0, fs_opt.debug, "%s: used b = %i\n", __FILE__, b);
             } else {
                 bfree++;
                 bitmap[b] = 0;
-                log_mesg(3, 0, 0, debug, "free b = %i\n", b);
+                log_mesg(3, 0, 0, fs_opt.debug, "%s: free b = %i\n", __FILE__, b);
             }
             exten_bitmap = allocation_block_size*8;
             /// update progress
@@ -174,13 +176,13 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 
         }
         free(buffer2);
-        log_mesg(2, 0, 0, 2, "buffer2:%i\n", buffer2);
+        log_mesg(2, 0, 0, 2, "%s: buffer2:%i\n", __FILE__, buffer2);
 
-        log_mesg(2, 0, 0, 2, "bfree:%i\n", bfree);
-        log_mesg(2, 0, 0, 2, "bused:%i\n", bused);
+        log_mesg(2, 0, 0, 2, "%s: bfree:%i\n", __FILE__, bfree);
+        log_mesg(2, 0, 0, 2, "%s: bused:%i\n", __FILE__, bused);
     }
     if(bused != (reverseInt(sb.totalBlocks) - reverseInt(sb.freeBlocks)))
-        log_mesg(0, 1, 1, debug, "bitmap count error, used:%i\n", bused);
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap count error, used:%i\n", __FILE__, bused);
 
     fs_close();
     /// update progress
@@ -197,9 +199,9 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     image_hdr->totalblock  = (unsigned long long)reverseInt(sb.totalBlocks);
     image_hdr->device_size = (unsigned long long)(image_hdr->block_size * image_hdr->totalblock);
     image_hdr->usedblocks  = (unsigned long long)(reverseInt(sb.totalBlocks) - reverseInt(sb.freeBlocks));
-    log_mesg(2, 0, 0, 2, "blockSize:%i\n", reverseInt(sb.blockSize));
-    log_mesg(2, 0, 0, 2, "totalBlocks:%i\n", reverseInt(sb.totalBlocks));
-    log_mesg(2, 0, 0, 2, "freeBlocks:%i\n", reverseInt(sb.freeBlocks));
+    log_mesg(2, 0, 0, 2, "%s: blockSize:%i\n", __FILE__, reverseInt(sb.blockSize));
+    log_mesg(2, 0, 0, 2, "%s: totalBlocks:%i\n", __FILE__, reverseInt(sb.totalBlocks));
+    log_mesg(2, 0, 0, 2, "%s: freeBlocks:%i\n", __FILE__, reverseInt(sb.freeBlocks));
     print_fork_data(&sb.allocationFile);
     print_fork_data(&sb.extentsFile);
     print_fork_data(&sb.catalogFile);

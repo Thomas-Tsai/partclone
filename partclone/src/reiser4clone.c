@@ -32,53 +32,58 @@
 #include "partclone.h"
 #include "reiser4clone.h"
 #include "progress.h"
+#include "fs_common.h"
 
 aal_device_t           *fs_device;
 reiser4_fs_t           *fs = NULL;
 reiser4_format_t       *format;
 char *EXECNAME = "partclone.reiser4";
+extern fs_cmd_opt fs_opt;
 
 /// open device
 static void fs_open(char* device){
-    int debug = 2;
     unsigned long long int state, extended;
 
     if (libreiser4_init()) {
-            log_mesg(0, 1, 1, debug, "Can't initialize libreiser4.\n");
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: Can't initialize libreiser4.\n", __FILE__);
     }
 
     if (!(fs_device = aal_device_open(&file_ops, device, 512, O_RDONLY)))
     {
-            log_mesg(0, 1, 1, debug, "Cannot open the partition (%s).\n", device);
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: Cannot open the partition (%s).\n", __FILE__, device);
     }
 
     if (!(fs = reiser4_fs_open(fs_device, 0))) {
-            log_mesg(0, 1, 1, debug, "Can't open reiser4 on %s\n", device);
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: Can't open reiser4 on %s\n", __FILE__, device);
     }
 
-   //reiser4_opset_profile(fs->tree->ent.opset);
+    //reiser4_opset_profile(fs->tree->ent.opset);
 
-   if (!(fs->journal = reiser4_journal_open(fs, fs_device))) {
-           log_mesg(0, 1, 1, debug, "Can't open journal on %s", device);
-   }
-   
-   state = get_ss_status(STATUS(fs->status));
-   extended = get_ss_extended(STATUS(fs->status));
+    if (!(fs->journal = reiser4_journal_open(fs, fs_device))) {
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: Can't open journal on %s", __FILE__, device);
+    }
 
-   if (!state)
-       log_mesg(0, 1, 1, debug, "REISER4 can't get status\n");
+    state = get_ss_status(STATUS(fs->status));
+    extended = get_ss_extended(STATUS(fs->status));
+    if(fs_opt.ignore_fschk){
+        log_mesg(1, 0, 0, fs_opt.debug, "%s: Ignore filesystem check\n", __FILE__);
+    }else{
 
-   if (state) 
-       log_mesg(3, 0, 0, debug, "REISER4 stat : \n", state);
+        if (!state)
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: REISER4 can't get status\n", __FILE__);
 
-   if (state != FS_OK)
-       log_mesg(0, 1, 1, debug, "Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n");
+        if (state) 
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: REISER4 stat : %i\n", __FILE__, state);
 
-   if (extended)
-       log_mesg(3, 0, 0, debug, "Extended status: %0xllx\n", extended);
+        if (state != FS_OK)
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n", __FILE__);
 
-   //reiser4_opset_profile(fs->tree->ent.opset);
-   fs->format = reiser4_format_open(fs);
+        if (extended)
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: Extended status: %0xllx\n", extended, __FILE__);
+
+    }
+    //reiser4_opset_profile(fs->tree->ent.opset);
+    fs->format = reiser4_format_open(fs);
 }
 
 /// close device
@@ -92,7 +97,6 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 {
     reiser4_bitmap_t       *fs_bitmap;
     unsigned long long     bit, block, bused = 0, bfree = 0;
-    int                    debug = 2;
     int start = 0;
     int bit_size = 1;
 
@@ -106,23 +110,23 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 
 
     for(bit = 0; bit < reiser4_format_get_len(fs->format); bit++){
-	block = bit ;
-	if(reiser4_bitmap_test(fs_bitmap, bit)){
-	    bused++;
-	    bitmap[block] = 1;
-	    log_mesg(3, 0, 0, debug, "bitmap is used %lli", block);
-	} else {
-	    bitmap[block] = 0;
-	    bfree++;
-	    log_mesg(3, 0, 0, debug, "bitmap is free %lli", block);
-	}
-	/// update progress
-	update_pui(&prog, bit, 0);
+        block = bit ;
+        if(reiser4_bitmap_test(fs_bitmap, bit)){
+            bused++;
+            bitmap[block] = 1;
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %lli", block, __FILE__);
+        } else {
+            bitmap[block] = 0;
+            bfree++;
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is free %lli", block, __FILE__);
+        }
+        /// update progress
+        update_pui(&prog, bit, 0);
 
     }
 
     if(bfree != reiser4_format_get_free(fs->format))
-	log_mesg(0, 1, 1, debug, "bitmap free count err, bfree:%lli, sfree=%lli\n", bfree, reiser4_format_get_free(fs->format));
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, bfree:%lli, sfree=%lli\n", __FILE__, bfree, reiser4_format_get_free(fs->format));
 
     fs_close();
     /// update progress
@@ -132,7 +136,6 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 /// read super block and write to image head
 extern void initial_image_hdr(char* device, image_head* image_hdr)
 {
-    int                    debug=1;
     reiser4_bitmap_t       *fs_bitmap;
     unsigned long long free_blocks=0;
 

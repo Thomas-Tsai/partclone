@@ -36,66 +36,70 @@ struct uufsd disk;
 #include "partclone.h"
 #include "ufsclone.h"
 #include "progress.h"
+#include "fs_common.h"
 
 char *EXECNAME = "partclone.ufs";
-int debug = 3;
+extern fs_cmd_opt fs_opt;
 
 /// open device
 static void fs_open(char* device){
 
     int fsflags;
 
-    log_mesg(3, 0, 0, debug, "UFS partition Open\n");
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: UFS partition Open\n", __FILE__);
     if (ufs_disk_fillout(&disk, device) == -1){
-        log_mesg(3, 0, 0, debug, "UFS open fail\n");
+        log_mesg(3, 0, 0, fs_opt.debug, "%s: UFS open fail\n", __FILE__);
     }
-    log_mesg(3, 0, 0, debug, "UFS open well\n");
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: UFS open well\n", __FILE__);
 
     switch (disk.d_ufs) {
         case 2:
-            log_mesg(3, 0, 0, debug, "magic = %x (UFS2)\n", afs.fs_magic);
-            log_mesg(3, 0, 0, debug, "superblock location = %lld\nid = [ %x %x ]\n", afs.fs_sblockloc, afs.fs_id[0], afs.fs_id[1]);
-            log_mesg(3, 0, 0, debug, "group (ncg) = %d\n", afs.fs_ncg);
-            log_mesg(3, 0, 0, debug, "UFS size = %lld\n", afs.fs_size);
-            log_mesg(3, 0, 0, debug, "Blocksize fs_fsize = %i\n", afs.fs_fsize);
-            log_mesg(3, 0, 0, debug, "partition size = %lld\n", afs.fs_size*afs.fs_fsize);
-            log_mesg(3, 0, 0, debug, "block per group %i\n", afs.fs_fpg);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: magic = %x (UFS2)\n", __FILE__, afs.fs_magic);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: superblock location = %lld\nid = [ %x %x ]\n", __FILE__, afs.fs_sblockloc, afs.fs_id[0], afs.fs_id[1]);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: group (ncg) = %d\n", __FILE__, afs.fs_ncg);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: UFS size = %lld\n", __FILE__, afs.fs_size);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: Blocksize fs_fsize = %i\n", __FILE__, afs.fs_fsize);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: partition size = %lld\n", __FILE__, afs.fs_size*afs.fs_fsize);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: block per group %i\n", __FILE__, afs.fs_fpg);
 
             break;
         case 1:
-            log_mesg(3, 0, 0, debug, "magic = %x (UFS1)\n", afs.fs_magic);
-            log_mesg(3, 0, 0, debug, "superblock location = %lld\nid = [ %x %x ]\n", afs.fs_sblockloc, afs.fs_id[0], afs.fs_id[1]);
-            log_mesg(3, 0, 0, debug, "group (ncg) = %d\n", afs.fs_ncg);
-            log_mesg(3, 0, 0, debug, "UFS size = %lld\n", afs.fs_size);
-            log_mesg(3, 0, 0, debug, "Blocksize fs_fsize = %i\n", afs.fs_fsize);
-            log_mesg(3, 0, 0, debug, "partition size = %lld\n", afs.fs_old_size*afs.fs_fsize);
-            log_mesg(3, 0, 0, debug, "block per group %i\n", afs.fs_fpg);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: magic = %x (UFS1)\n", __FILE__, afs.fs_magic);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: superblock location = %lld\nid = [ %x %x ]\n", __FILE__, afs.fs_sblockloc, afs.fs_id[0], afs.fs_id[1]);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: group (ncg) = %d\n", __FILE__, afs.fs_ncg);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: UFS size = %lld\n", __FILE__, afs.fs_size);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: Blocksize fs_fsize = %i\n", __FILE__, afs.fs_fsize);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: partition size = %lld\n", __FILE__, afs.fs_old_size*afs.fs_fsize);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: block per group %i\n", __FILE__, afs.fs_fpg);
 
             break;
         default:
-            log_mesg(3, 0, 0, debug, "disk.d_ufs = %c", disk.d_ufs);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: disk.d_ufs = %c", __FILE__, disk.d_ufs);
             break;
     }
 
     /// get ufs flags
     if (afs.fs_old_flags & FS_FLAGS_UPDATED)
-	fsflags == afs.fs_flags;
+        fsflags == afs.fs_flags;
     else
-	fsflags == afs.fs_old_flags;
+        fsflags == afs.fs_old_flags;
 
     /// check ufs status
-    if (fsflags & FS_UNCLEAN)
-	log_mesg(0, 1, 1, debug, "UFS flag FS_UNCLEAN\n\n");
-    if (fsflags & FS_NEEDSFSCK)
-	log_mesg(0, 1, 1, debug, "UFS flag: need fsck run first\n\n");
-
+    if(fs_opt.ignore_fschk){
+        log_mesg(1, 0, 0, fs_opt.debug, "%s: %s: Ignore filesystem check\n", __FILE__, __FILE__);
+    }else{
+        if (fsflags & FS_UNCLEAN)
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: UFS flag FS_UNCLEAN\n\n", __FILE__);
+        if (fsflags & FS_NEEDSFSCK)
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: UFS flag: need fsck run first\n\n", __FILE__);
+    }
 }
 
 /// close device
 static void fs_close(){
-    log_mesg(3, 0, 0, debug, "close\n");
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: close\n", __FILE__);
     ufs_disk_close(&disk);
-    log_mesg(3, 0, 0, debug, "done\n\n");
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: done\n\n", __FILE__);
 }
 
 /// readbitmap - read bitmap
@@ -115,30 +119,31 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     total_block = 0;
     /// read group
     while ((i = cgread(&disk)) != 0) {
-        log_mesg(3, 0, 0, debug, "\ncg = %d\n", disk.d_lcg);
-        log_mesg(3, 0, 0, debug, "blocks = %i\n", acg.cg_ndblk);
+        log_mesg(3, 0, 0, fs_opt.debug, "%s: \ncg = %d\n", __FILE__, disk.d_lcg);
+        log_mesg(3, 0, 0, fs_opt.debug, "%s: blocks = %i\n", __FILE__, acg.cg_ndblk);
         p = cg_blksfree(&acg);
 
         for (block = 0; block < acg.cg_ndblk; block++){
+            total_block++;
             if (isset(p, block)) {
                 bitmap[total_block] = 0;
                 bfree++;
-                log_mesg(3, 0, 0, debug, "bitmap is free %lli, global %lli\n", block, total_block);
+                log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is free %lli\n", __FILE__, block);
             } else {
                 bitmap[total_block] = 1;
-		bused++;
-                log_mesg(3, 0, 0, debug, "bitmap is used %lli, global %lli\n", block, total_block);
+                bused++;
+                log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %lli\n", __FILE__, block);
             }
 	    total_block++;
             update_pui(&bprog, total_block ,done);
         }
-        log_mesg(3, 0, 0, debug, "\n");
+        log_mesg(3, 0, 0, fs_opt.debug, "%s: \n", __FILE__);
 
     }
 
     fs_close();
-    
-    log_mesg(3, 0, 0, debug, "total used = %lli, total free = %lli\n", bused, bfree);
+
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: total used = %lli, total free = %lli\n", __FILE__, bused, bfree);
     done = 1;
     update_pui(&bprog, 1, done);
 
@@ -147,7 +152,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 /// read super block and write to image head
 extern void initial_image_hdr(char* device, image_head* image_hdr)
 {
-    int                    debug=1;
+    int                    fs_opt.debug=1;
 
     fs_open(device);
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
@@ -155,14 +160,12 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 
     switch (disk.d_ufs) {
         case 2:
-	    image_hdr->block_size  = afs.fs_fsize;
-	    image_hdr->totalblock  = afs.fs_size;
-	    image_hdr->device_size = afs.fs_fsize*afs.fs_size;
+            image_hdr->block_size  = afs.fs_fsize;
+            image_hdr->device_size = afs.fs_fsize*afs.fs_size;
             break;
         case 1:
-	    image_hdr->block_size  = afs.fs_fsize;
-	    image_hdr->totalblock  = afs.fs_old_size;
-	    image_hdr->device_size = afs.fs_fsize*afs.fs_old_size;
+            image_hdr->block_size  = afs.fs_fsize;
+            image_hdr->device_size = afs.fs_fsize*afs.fs_old_size;
             break;
         default:
             break;
@@ -182,19 +185,20 @@ static unsigned long long get_used_block()
 
     /// read group
     while ((i = cgread(&disk)) != 0) {
-        log_mesg(3, 0, 0, debug, "\ncg = %d\n", disk.d_lcg);
-        log_mesg(3, 0, 0, debug, "blocks = %i\n", acg.cg_ndblk);
+        log_mesg(3, 0, 0, fs_opt.debug, "%s: \ncg = %d\n", __FILE__, disk.d_lcg);
+        log_mesg(3, 0, 0, fs_opt.debug, "%s: blocks = %i\n", __FILE__, acg.cg_ndblk);
         p = cg_blksfree(&acg);
 
         for (block = 0; block < acg.cg_ndblk; block++){
+            total_block++;
             if (isset(p, block)) {
                 bfree++;
             } else {
-		bused++;
+                bused++;
             }
         }
 
     }
-    log_mesg(3, 0, 0, debug, "total used = %lli, total free = %lli\n", bused, bfree);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: total used = %lli, total free = %lli\n", __FILE__, bused, bfree);
     return bused;
 }
