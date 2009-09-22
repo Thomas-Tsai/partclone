@@ -26,9 +26,11 @@
 #include "partclone.h"
 #include "extfsclone.h"
 #include "progress.h"
+#include "fs_common.h"
 
 ext2_filsys  fs;
 char *EXECNAME = "partclone.extfs";
+extern fs_cmd_opt fs_opt;
 
 /// open device
 static void fs_open(char* device){
@@ -36,7 +38,6 @@ static void fs_open(char* device){
     int use_superblock = 0;
     int use_blocksize = 0;
     int flags;
-    int debug = 2;
 
     flags = EXT2_FLAG_JOURNAL_DEV_OK | EXT2_FLAG_SOFTSUPP_FEATURES;
     if (use_superblock && !use_blocksize) {
@@ -49,16 +50,16 @@ static void fs_open(char* device){
 	retval = ext2fs_open (device, flags, use_superblock, use_blocksize, unix_io_manager, &fs);
 
     if (retval) 
-	log_mesg(0, 1, 1, debug, "Couldn't find valid filesystem superblock.\n");
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't find valid filesystem superblock.\n", __FILE__);
 
     ext2fs_mark_valid(fs);
 
     if ((fs->super->s_state & EXT2_ERROR_FS) || !ext2fs_test_valid(fs))
-	log_mesg(0, 1, 1, debug, "FS contains a file system with errors\n");
+	log_mesg(0, 1, 1, fs_opt.debug, "FS contains a file system with errors\n");
     else if ((fs->super->s_state & EXT2_VALID_FS) == 0)
-	log_mesg(0, 1, 1, debug, "FS was not cleanly unmounted\n");
+	log_mesg(0, 1, 1, fs_opt.debug, "FS was not cleanly unmounted\n");
     else if ((fs->super->s_max_mnt_count > 0) && (fs->super->s_mnt_count >= (unsigned) fs->super->s_max_mnt_count)) {
-	log_mesg(0, 1, 1, debug, "FS has been mounted %u times without being checked\n");
+	log_mesg(0, 1, 1, fs_opt.debug, "FS has been mounted %u times without being checked\n");
     }
 
 }
@@ -102,16 +103,15 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     int block_nbytes;
     unsigned long long blk_itr;
     int bg_flags = 0;
-    int debug = 2;
     int start = 0;
     int bit_size = 1;
 
-    log_mesg(2, 0, 0, debug, "readbitmap %i\n",bitmap);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: readbitmap %i\n", bitmap, __FILE__);
 
     fs_open(device);
     retval = ext2fs_read_bitmaps(fs); /// open extfs bitmap
     if (retval)
-	log_mesg(0, 1, 1, debug, "Couldn't find valid filesystem bitmap.\n");
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't find valid filesystem bitmap.\n", __FILE__);
 
     block_nbytes = EXT2_BLOCKS_PER_GROUP(fs->super) / 8;
     if (fs->block_map)
@@ -150,12 +150,12 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 		    free++;
 		    gfree++;
 		    bitmap[current_block] = 0;
-		    log_mesg(3, 0, 0, debug, "free block %lu at group %i\n", (current_block), group);
+		    log_mesg(3, 0, 0, fs_opt.debug, "%s: free block %lu at group %i\n", (current_block), group, __FILE__);
 		} else {
 		    used++;
 		    gused++;
 		    bitmap[current_block] = 1;
-		    log_mesg(3, 0, 0, debug, "used block %lu at group %i\n", (current_block), group);
+		    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %lu at group %i\n", (current_block), group, __FILE__);
 		}
 		/// update progress
 		update_pui(&prog, current_block, 0);//keep update
@@ -164,11 +164,11 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	}
 	/// check free blocks in group
 	if (gfree != fs->group_desc[group].bg_free_blocks_count)
-	    log_mesg(0, 1, 1, debug, "bitmap erroe at %i group.\n", group);
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap erroe at %i group.\n", group, __FILE__);
     }
     /// check all free blocks in partition
     if (free != fs->super->s_free_blocks_count)
-	log_mesg(0, 1, 1, debug, "bitmap free count err, free:%i\n", free);
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, free:%i\n", free, __FILE__);
     fs_close();
     /// update progress
     update_pui(&prog, 1, 1);//finish
@@ -176,19 +176,18 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 
 /// get extfs type
 static int test_extfs_type(char* device){
-    int debug = 1;
     int ext2 = 1;
     int ext3 = 2;
     int ext4 = 3;
     fs_open(device);
     if(fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM){
-	log_mesg(1, 0, 0, debug, "test feature as EXT4\n");
+	log_mesg(1, 0, 0, fs_opt.debug, "%s: test feature as EXT4\n", __FILE__);
 	return ext4;
     } else if (fs->super->s_feature_compat & EXT3_FEATURE_COMPAT_HAS_JOURNAL){
-	log_mesg(1, 0, 0, debug, "test feature as EXT3\n");
+	log_mesg(1, 0, 0, fs_opt.debug, "%s: test feature as EXT3\n", __FILE__);
 	return ext3;
     } else {
-	log_mesg(1, 0, 0, debug, "test feature as EXT2\n");
+	log_mesg(1, 0, 0, fs_opt.debug, "%s: test feature as EXT2\n", __FILE__);
 	return ext2;
     }
     fs_close();
