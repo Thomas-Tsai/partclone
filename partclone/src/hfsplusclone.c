@@ -103,7 +103,7 @@ static void fs_open(char* device){
     log_mesg(3, 0, 0, fs_opt.debug, "%s: Attr-Inconsistent=%i\n", __FILE__, (reverseInt(sb.attributes)>>11) & 1);
 
     if(fs_opt.ignore_fschk){
-        log_mesg(1, 0, 0, fs_opt.fs_opt.debug, "%s: Ignore filesystem check\n", __FILE__);
+        log_mesg(1, 0, 0, fs_opt.debug, "%s: Ignore filesystem check\n", __FILE__);
     } else {
         if (HFS_Clean)
             log_mesg(3, 0, 0, fs_opt.debug, "%s: HFS_Plus '%s' is clean\n", __FILE__, device);
