@@ -124,7 +124,6 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
         p = cg_blksfree(&acg);
 
         for (block = 0; block < acg.cg_ndblk; block++){
-            total_block++;
             if (isset(p, block)) {
                 bitmap[total_block] = 0;
                 bfree++;
@@ -152,7 +151,6 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 /// read super block and write to image head
 extern void initial_image_hdr(char* device, image_head* image_hdr)
 {
-    int                    fs_opt.debug=1;
 
     fs_open(device);
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
@@ -190,7 +188,6 @@ static unsigned long long get_used_block()
         p = cg_blksfree(&acg);
 
         for (block = 0; block < acg.cg_ndblk; block++){
-            total_block++;
             if (isset(p, block)) {
                 bfree++;
             } else {
