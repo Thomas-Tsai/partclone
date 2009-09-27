@@ -62,22 +62,19 @@ int main(int argc, char **argv){
     char		bitmagic_r[8];		/// read magic string from image
     int			cmp;			/// compare magic string
     int			debug = 0;		/// debug or not
-    unsigned long	crc = 0xffffffffL;	/// CRC32 check code for writint to image
-    unsigned long	crc_ck = 0xffffffffL;	/// CRC32 check code for checking
-    int			c_size;			/// CRC32 code size
-    char*		crc_buffer;		/// buffer data for malloc crc code
     int			done = 0;
     int			s_count = 0;
     int			rescue_num = 0;
+    unsigned long long	rescue_pos = 0;
     int			tui = 0;		/// text user interface
     int			pui = 0;		/// progress mode(default text)
     char *bad_sectors_warning_msg =
-	"*************************************************************************\n"
-	"* WARNING: The disk has bad sector. This means physical damage on the   *\n"
-	"* disk surface caused by deterioration, manufacturing faults or other   *\n"
-	"* reason. The reliability of the disk may stay stable or degrade fast.  *\n"
-	"* Use the --rescue option to efficiently save as much data as possible! *\n"
-	"*************************************************************************\n";
+        "*************************************************************************\n"
+        "* WARNING: The disk has bad sector. This means physical damage on the   *\n"
+        "* disk surface caused by deterioration, manufacturing faults or other   *\n"
+        "* reason. The reliability of the disk may stay stable or degrade fast.  *\n"
+        "* Use the --rescue option to efficiently save as much data as possible! *\n"
+        "*************************************************************************\n";
 
     progress_bar	prog;			/// progress_bar structure defined in progress.h
     image_head		image_hdr;		/// image_head structure defined in partclone.h
@@ -100,29 +97,29 @@ int main(int argc, char **argv){
      * using Text User Interface
      */
     if (opt.ncurses){
-	pui = NCURSES;
-	log_mesg(1, 0, 0, debug, "Using Ncurses User Interface mode.\n");
+        pui = NCURSES;
+        log_mesg(1, 0, 0, debug, "Using Ncurses User Interface mode.\n");
     } else if (opt.dialog){
-	pui = DIALOG;
-	log_mesg(1, 0, 0, debug, "Using Dialog User Interface mode.\n");
+        pui = DIALOG;
+        log_mesg(1, 0, 0, debug, "Using Dialog User Interface mode.\n");
     } else
-	pui = TEXT;
+        pui = TEXT;
 
     tui = open_pui(pui, opt.fresh);
     if ((opt.ncurses) && (tui == 0)){
-	opt.ncurses = 0;
-	log_mesg(1, 0, 0, debug, "Open Ncurses User Interface Error.\n");
+        opt.ncurses = 0;
+        log_mesg(1, 0, 0, debug, "Open Ncurses User Interface Error.\n");
     } else if ((opt.dialog) && (tui == 1)){
-	m_dialog.percent = 1;
+        m_dialog.percent = 1;
     }
 
     /// print partclone info
     print_partclone_info(opt);
 
     if (geteuid() != 0)
-	log_mesg(0, 1, 1, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n"); 
+        log_mesg(0, 1, 1, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n"); 
     else
-	log_mesg(1, 0, 0, debug, "UID is root.\n");
+        log_mesg(1, 0, 0, debug, "UID is root.\n");
 
     /**
      * open source and target 
@@ -137,12 +134,12 @@ int main(int argc, char **argv){
     target = opt.target;
     dfr = open_source(source, &opt);
     if (dfr == -1) {
-	log_mesg(0, 1, 1, debug, "Erro EXIT.\n");
+        log_mesg(0, 1, 1, debug, "Erro EXIT.\n");
     }
 
     dfw = open_target(target, &opt);
     if (dfw == -1) {
-	log_mesg(0, 1, 1, debug, "Error Exit.\n");
+        log_mesg(0, 1, 1, debug, "Error Exit.\n");
     }
 
     /**
@@ -157,23 +154,23 @@ int main(int argc, char **argv){
 
     /// check memory size
     if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
-	log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
+        log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
 
     needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
 
     if (opt.check){
-	if (opt.clone){
-	    check_free_space(&dfw, needed_size);
-	} else {
-	    check_size(&dfw, image_hdr.device_size);
-	}
+        if (opt.clone){
+            check_free_space(&dfw, needed_size);
+        } else {
+            check_size(&dfw, image_hdr.device_size);
+        }
     }
 
     log_mesg(1, 0, 0, debug, "print image_head\n");
 
     /// print option to log file
     if (debug)
-	print_opt(opt);
+        print_opt(opt);
 
     /// print image_head
     print_image_hdr_info(image_hdr, opt);
@@ -197,60 +194,73 @@ int main(int argc, char **argv){
 
     /// start clone partition to image file
     block_id = 0;
+    buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
+    if(buffer == NULL){
+	log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+    }
+
     do {
 
-	r_size = 0;
-	w_size = 0;
+        r_size = 0;
+        w_size = 0;
+	memset(buffer, 0, image_hdr.block_size);
 
-	log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
+        log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
 
-	buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
-	if(buffer == NULL){
-	    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-	}
+        /// read data from source to buffer
+	rescue_pos = lseek(dfr, 0, SEEK_CUR);
+        r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
+        log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
+        if (r_size != (int)image_hdr.block_size){
 
-	/// read data from source to buffer
-	r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
-	log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
-	if (r_size != (int)image_hdr.block_size){
+            if ((r_size == -1) && (errno == EIO)){
+                if (opt.rescue){
+		    r_size = 0;
+                    for (rescue_num = 0; rescue_num < image_hdr.block_size; rescue_num += SECTOR_SIZE){
+                        rescue_sector(&dfr, rescue_pos + rescue_num, buffer + rescue_num, &opt);
+			r_size+=SECTOR_SIZE;
+		    }
+                }else{
+                    log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
+                }
 
-	    if ((r_size == -1) && (errno == EIO)){
-		if (opt.rescue){
-		    for (rescue_num = 0; rescue_num < image_hdr.block_size; rescue_num += SECTOR_SIZE)
-			rescue_sector(&dfr, buffer + rescue_num, &opt);
-		}else
-		    log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
+            }else if (r_size == 0) {
+		done = 1;
+	    }else
+		log_mesg(0, 1, 1, debug, "read error: %s(%i) rsize=%i\n", strerror(errno), errno, r_size);
 
-	    } else if (r_size == 0)
-		done = 1; //EOF
-	}
+        }
+        if (r_size == image_hdr.block_size){
+            /// write buffer to target
+            w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
+            log_mesg(2, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
+            if (w_size != (int)image_hdr.block_size)
+                log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
+        } else if (r_size < image_hdr.block_size){
+            /// write readed buffer to target
+            w_size = write_all(&dfw, buffer, r_size, &opt);
+            log_mesg(2, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
+            if (w_size != r_size)
+                log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
+        } else {
+            w_size = 0;
+        }
 
-	if (r_size == image_hdr.block_size){
-	    /// write buffer to target
-	    w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
-	    log_mesg(2, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
-	    if (w_size != (int)image_hdr.block_size)
-		log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
-	} else {
-	    w_size = 0;
-	}
+        update_pui(&prog, copied, done);
 
-	/// free buffer
-	free(buffer);
+        copied++;					/// count copied block
+        total_write += (unsigned long long)(w_size);	/// count copied size
+        log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
 
-	update_pui(&prog, copied, done);
-
-	copied++;					/// count copied block
-	total_write += (unsigned long long)(w_size);	/// count copied size
-	log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
-
-	/// read or write error
-	if (r_size != w_size)
-	    log_mesg(0, 1, 1, debug, "read and write different\n");
-	log_mesg(1, 0, 0, debug, "end\n");
-	block_id++;
+        /// read or write error
+        if (r_size != w_size)
+            log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
+        log_mesg(1, 0, 0, debug, "end\n");
+        block_id++;
     } while (done == 0);/// end of for    
     sync_data(dfw, &opt);	
+    /// free buffer
+    free(buffer);
 
     print_finish_info(opt);
 
@@ -259,6 +269,6 @@ int main(int argc, char **argv){
     close_pui(pui);    /// close target
     printf("Cloned successfully.\n");
     if(opt.debug)
-	close_log();
+        close_log();
     return 0;	    /// finish
 }

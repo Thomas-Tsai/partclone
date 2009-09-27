@@ -107,6 +107,8 @@ int main(int argc, char **argv){
     int			done = 0;
     int			s_count = 0;
     int			rescue_num = 0;
+    unsigned long long			rescue_pos = 0;
+    unsigned long long			main_pos = 0;
     int			tui = 0;		/// text user interface
     int			pui = 0;		/// progress mode(default text)
     char *bad_sectors_warning_msg =
@@ -353,6 +355,8 @@ int main(int argc, char **argv){
 
             r_size = 0;
             w_size = 0;
+            main_pos = lseek(dfr, 0, SEEK_CUR);
+            log_mesg(3, 0, 0, debug, "man pos = %lli\n", main_pos);
 
             if((image_hdr.totalblock - 1 ) == block_id) 
                 done = 1;
@@ -374,20 +378,23 @@ int main(int argc, char **argv){
 #endif
                 /// read data from source to buffer
                 memset(buffer, 0, image_hdr.block_size);
+                rescue_pos = lseek(dfr, 0, SEEK_CUR);
                 r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
                 log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
                 if (r_size != (int)image_hdr.block_size){
 
                     if ((r_size == -1) && (errno == EIO)){
                         if (opt.rescue){
-                            for (rescue_num = 0; rescue_num < image_hdr.block_size; rescue_num += SECTOR_SIZE)
-                                rescue_sector(&dfr, buffer + rescue_num, &opt);
+                            r_size = 0;
+                            for (rescue_num = 0; rescue_num < image_hdr.block_size; rescue_num += SECTOR_SIZE){
+                                rescue_sector(&dfr, rescue_pos + rescue_num, buffer + rescue_num, &opt);
+                                r_size+=SECTOR_SIZE;
+                            }
                         }else
                             log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
 
-                    }
-
-                    log_mesg(0, 1, 1, debug, "read error %i \n", r_size);
+                    }else
+                        log_mesg(0, 1, 1, debug, "read error: %s(%i) \n", strerror(errno), errno);
                 }
 
                 /// write buffer to target
@@ -415,7 +422,7 @@ int main(int argc, char **argv){
 
                 /// read or write error
                 if (r_size != w_size)
-                    log_mesg(0, 1, 1, debug, "read and write different\n");
+                    log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
                 log_mesg(1, 0, 0, debug, "end\n");
             } else {
 #ifndef _FILE_OFFSET_BITS
@@ -500,7 +507,7 @@ int main(int argc, char **argv){
                     log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno));
 
                 memcpy(&crc, crc_buffer, CRC_SIZE);
-                if (memcmp(&crc, &crc_ck, CRC_SIZE) != 0){
+                if ((memcmp(&crc, &crc_ck, CRC_SIZE) != 0) && (opt.ignore_crc > 0)){
                     log_mesg(1, 0, 0, debug, "CRC Check error. 64bit bug before v0.1.0 (Rev:250M), enlarge crc size and recheck again....\n ");
                     /// check again
                     buffer2 = (char*)malloc(image_hdr.block_size+CRC_SIZE); ///alloc a memory to copy data
@@ -516,7 +523,7 @@ int main(int argc, char **argv){
                     if (c_size < CRC_SIZE)
                         log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno));
                     memcpy(&crc, crc_buffer, CRC_SIZE);
-                    if (memcmp(&crc, &crc_ck2, CRC_SIZE) != 0) {
+                    if ((memcmp(&crc, &crc_ck2, CRC_SIZE) != 0 )&& (opt.ignore_crc > 0)) {
                         log_mesg(0, 1, 1, debug, "CRC error again at %i...\n ", sf);
                     } else {
                         crc_ck = crc_ck2;
@@ -568,8 +575,16 @@ int main(int argc, char **argv){
         if (sf == (off_t)-1)
             log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
 
+	main_pos = lseek(dfr, 0, SEEK_CUR);
+	log_mesg(3, 0, 0, debug, "man pos = %lli\n", main_pos);
+
         log_mesg(0, 0, 0, debug, "Total block %i\n", image_hdr.totalblock);
 
+	buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
+	if(buffer == NULL){
+	    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+	}
+ 
         /// start clone partition to image file
         log_mesg(1, 0, 0, debug, "start backup data device-to-device...\n");
         for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
@@ -597,24 +612,24 @@ int main(int argc, char **argv){
                 if (sf == -1)
                     log_mesg(0, 1, 1, debug, "target seek error = %lli, ",sf);
 #endif
-                buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
-                if(buffer == NULL){
-                    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-                }
-                /// read data from source to buffer
+               /// read data from source to buffer
+                memset(buffer, 0, image_hdr.block_size);
+                rescue_pos = lseek(dfr, 0, SEEK_CUR);
                 r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
                 log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
                 if (r_size != (int)image_hdr.block_size){
                     if ((r_size == -1) && (errno == EIO)){
                         if (opt.rescue){
-                            for (rescue_num = 0; rescue_num < image_hdr.block_size; rescue_num += SECTOR_SIZE)
-                                rescue_sector(&dfr, buffer + rescue_num, &opt);
+                            r_size = 0;
+                            for (rescue_num = 0; rescue_num < image_hdr.block_size; rescue_num += SECTOR_SIZE){
+                                rescue_sector(&dfr, rescue_pos + rescue_num, buffer + rescue_num, &opt);
+				r_size+=SECTOR_SIZE;
+			      }
                         }else
                             log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
 
-                    }
-
-                    log_mesg(0, 1, 1, debug, "read error %i \n", r_size);
+                    }else
+                        log_mesg(0, 1, 1, debug, "read error: %s(%i) \n", strerror(errno), errno);
                 }
 
                 /// write buffer to target
@@ -623,8 +638,6 @@ int main(int argc, char **argv){
                 if (w_size != (int)image_hdr.block_size)
                     log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
 
-                /// free buffer
-                free(buffer);
                 update_pui(&prog, copied, done);
                 copied++;                                       /// count copied block
                 total_write += (unsigned long long)(w_size);    /// count copied size
@@ -653,6 +666,8 @@ int main(int argc, char **argv){
 #endif
             }
         } /// end of for
+	/// free buffer
+	free(buffer);
         sync_data(dfw, &opt);
     }
 

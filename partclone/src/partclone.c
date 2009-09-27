@@ -85,6 +85,7 @@ extern void usage(void)
 #endif
             "    -X,  --dialog           Output message as Dialog Format\n"
             "    -I,  --ignore-fschk     Ignore filesystem check\n"
+	    "         --ignore-crc       Ignore crc check error\n"
             "    -F,  --force            Force progress\n"
             "    -f,  --UI-fresh         Fresh times of progress\n"
             "    -h,  --help             Display this help\n"
@@ -94,7 +95,7 @@ extern void usage(void)
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hd::L:cbro:O:s:f:RCXFIN";
+    static const char *sopt = "-hd::L:cbro:O:s:f:RCXFINi";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "output",		required_argument,  NULL,   'o' },
@@ -110,6 +111,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "check",		no_argument,	    NULL,   'C' },
         { "dialog",		no_argument,	    NULL,   'X' },
         { "ignore_fschk",   no_argument,    NULL,   'I' },
+	{ "ignore_crc",     no_argument,    NULL,   'i' },
         { "force",		no_argument,	    NULL,   'F' },
 #ifdef HAVE_LIBNCURSESW
         { "ncurses",		no_argument,	    NULL,   'N' },
@@ -175,6 +177,10 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
             case 'I':
                 opt->ignore_fschk++;
                 break;
+            case 'i':
+                opt->ignore_crc++;
+                break;
+
             case 'R':
                 opt->rescue++;
                 break;
@@ -788,14 +794,14 @@ extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
             i = read(*fd, buf, count);
 
         if (i < 0) {
+            log_mesg(0, 0, 1, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
             if (errno != EAGAIN && errno != EINTR){
-                log_mesg(0, 1, 1, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
                 return -1;
             }
-            log_mesg(0, 1, 1, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
         } else if (i == 0){
-            log_mesg(2, 0, 0, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
+            log_mesg(1, 0, 0, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
             return 0;
+
         } else {
             count -= i;
             buf = i + (char *) buf;
@@ -813,15 +819,16 @@ extern void sync_data(int fd, cmd_opt* opt)
     log_mesg(0, 0, 1, opt->debug, "OK!\n");
 }
 
-extern void rescue_sector(int *fd, char *buff, cmd_opt *opt)
+extern void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt)
 {
     const char *badsector_magic = "BADSECTOR\0";
-    off_t pos = 0;
 
-    pos = lseek(*fd, 0, SEEK_CUR);
-
-    if (lseek(*fd, SECTOR_SIZE, SEEK_CUR) == (off_t)-1)
-        log_mesg(0, 1, 1, opt->debug, "lseek error\n");
+    if (lseek(*fd, pos, SEEK_SET) == (off_t)-1){
+        log_mesg(0, 0, 1, opt->debug, "WARNING: lseek error at %lli\n", pos);
+        memset(buff, '?', SECTOR_SIZE);
+        memmove(buff, badsector_magic, sizeof(badsector_magic));
+	return;
+    }
 
     if (io_all(fd, buff, SECTOR_SIZE, 0, opt) == -1) { /// read_all
         log_mesg(0, 0, 1, opt->debug, "WARNING: Can't read sector at %llu, lost data.\n", (unsigned long long)pos);
@@ -985,7 +992,7 @@ extern void initial_dd_hdr(int ret, image_head* image_hdr){
 
     memset(image_hdr ,(int )NULL, sizeof(image_head));
     memcpy(image_hdr->fs, raw_MAGIC, FS_MAGIC_SIZE);
-    image_hdr->block_size  = 512;
+    image_hdr->block_size  = 512*2;
     image_hdr->device_size = get_partition_size(&ret);
     image_hdr->totalblock  = block_count(image_hdr->device_size, image_hdr->block_size);
     image_hdr->usedblocks  = image_hdr->totalblock;

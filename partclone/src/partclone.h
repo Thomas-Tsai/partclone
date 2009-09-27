@@ -78,6 +78,7 @@ struct cmd_opt
     int dialog;
     int force;
     int ignore_fschk;
+    int ignore_crc;
     unsigned long fresh;
 };
 typedef struct cmd_opt cmd_opt;
@@ -109,7 +110,7 @@ extern void log_mesg(int lerrno, int lexit, int only_debug, int debug, const cha
 extern void close_log();
 extern int io_all(int *fd, char *buffer, int count, int do_write, cmd_opt *opt);
 extern void sync_data(int fd, cmd_opt* opt);
-extern void rescue_sector(int *fd, char *buff, cmd_opt *opt);
+extern void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt);
 /**
  * for restore used functions
  * restore_image_hdr	- get image_head from image file 
