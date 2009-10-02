@@ -35,8 +35,8 @@ progress_bar	prog;	    /// progress_bar structure defined in progress.h
 
 static void addToHist(int dwAgNo, int dwAgBlockNo, int qwLen, char* bitmap)
 {
-    int bit;
-    int qwBase, i;
+    unsigned long long bit=0;
+    unsigned long long qwBase, i;
 
     qwBase = (dwAgNo * mp->m_sb.sb_agblocks) + dwAgBlockNo;
     log_mesg(2, 0, 0, fs_opt.debug, "%s: addTohits:%i,\t%i,\t%i,\t%i\n", __FILE__, dwAgNo, dwAgBlockNo, qwLen, qwBase);
@@ -162,9 +162,14 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
     memcpy(image_hdr->fs, xfs_MAGIC, FS_MAGIC_SIZE);
     image_hdr->block_size = (int)mp->m_sb.sb_blocksize;
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: blcos size= %i\n", __FILE__, image_hdr->block_size);
     image_hdr->totalblock = (unsigned long long)mp->m_sb.sb_dblocks;
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: total b= %lli\n", __FILE__, image_hdr->totalblock);
     image_hdr->usedblocks = (unsigned long long)(mp->m_sb.sb_dblocks - mp->m_sb.sb_fdblocks);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: free block= %lli\n", __FILE__, mp->m_sb.sb_fdblocks);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block= %lli\n", __FILE__, image_hdr->usedblocks);
     image_hdr->device_size = (unsigned long long)(image_hdr->totalblock * image_hdr->block_size);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: device size= %lli\n", __FILE__, image_hdr->device_size);
     fs_close();
 
 }
@@ -173,13 +178,14 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 {
     void            *agf_bufp = NULL;
     void            *agfl_bufp = NULL;
-    int             i, c, b, seek, bit;
+    int             i, c, b;
+    unsigned long long             seek, bit;
     xfs_agf_t       *agf;
     xfs_agfl_t      *agfl;
     xfs_agnumber_t  seqno;
     xfs_agblock_t   bno;
     xfs_agnumber_t  agno = 0;
-    int             bfree = 0,  bused = 0;
+    unsigned long long             bfree = 0,  bused = 0;
     int start = 0;
     int bit_size = 1;
 
@@ -242,17 +248,22 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
         if (bitmap[bit] == 1)
         {
             bused++;
-            log_mesg(3, 0, 0, fs_opt.debug, "%s: used b= %i\n", __FILE__, bit);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: used b= %lli\n", __FILE__, bit);
         } else {
             bfree++;
-            log_mesg(3, 0, 0, fs_opt.debug, "%s: free b= %i\n", __FILE__, bit);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: free b= %lli\n", __FILE__, bit);
         }
         update_pui(&prog, (mp->m_sb.sb_dblocks+bit), 0);
     }
     //log_mesg(0, 0, 0, fs_opt.debug, "used = %i, free = %i\n", bused, bfree);
 
-    if(bfree != mp->m_sb.sb_fdblocks)
-        log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, free:%i\n", __FILE__, bfree);
+
+    if(fs_opt.ignore_fschk){
+        log_mesg(1, 0, 0, fs_opt.debug, "%s: Ignore filesystem check\n", __FILE__);
+    } else {
+	if(bfree != mp->m_sb.sb_fdblocks)
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, bfree:%lli mfree:%lli\n", __FILE__, bfree, mp->m_sb.sb_fdblocks);
+    }
 
     fs_close();
     //	image_hdr->usedblocks = bused;
