@@ -84,8 +84,8 @@ extern void usage(void)
             "    -N,  --ncurses          Using Ncurses User Interface\n"
 #endif
             "    -X,  --dialog           Output message as Dialog Format\n"
-            "    -I,  --ignore-fschk     Ignore filesystem check\n"
-	    "         --ignore-crc       Ignore crc check error\n"
+            "    -I,  --ignore_fschk     Ignore filesystem check\n"
+	    "         --ignore_crc       Ignore crc check error\n"
             "    -F,  --force            Force progress\n"
             "    -f,  --UI-fresh         Fresh times of progress\n"
             "    -h,  --help             Display this help\n"
