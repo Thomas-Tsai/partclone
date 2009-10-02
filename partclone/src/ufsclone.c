@@ -136,7 +136,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	    total_block++;
             update_pui(&bprog, total_block ,done);
         }
-        log_mesg(3, 0, 0, fs_opt.debug, "%s: \n", __FILE__);
+        log_mesg(3, 0, 0, fs_opt.debug, "%s: read bitmap done\n", __FILE__);
 
     }
 
@@ -156,20 +156,21 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
     memcpy(image_hdr->fs, ufs_MAGIC, FS_MAGIC_SIZE);
 
+    image_hdr->block_size  = afs.fs_fsize;
+    image_hdr->usedblocks  = get_used_block();
     switch (disk.d_ufs) {
         case 2:
-            image_hdr->block_size  = afs.fs_fsize;
+	    image_hdr->totalblock = (unsigned long long)afs.fs_size;
             image_hdr->device_size = afs.fs_fsize*afs.fs_size;
             break;
         case 1:
-            image_hdr->block_size  = afs.fs_fsize;
+	    image_hdr->totalblock = (unsigned long long)afs.fs_old_size;
             image_hdr->device_size = afs.fs_fsize*afs.fs_old_size;
             break;
         default:
             break;
     }
 
-    image_hdr->usedblocks  = get_used_block();
     fs_close();
 }
 
