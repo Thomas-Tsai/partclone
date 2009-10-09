@@ -1,3 +1,105 @@
+2009-10-06 05:45  thomas
+
+	* src/ufsclone.c:
+	  
+	  update log message and open fail message for ufsclone. Thank
+	  dswartz for testing ufs backup and report. modified:
+	  src/ufsclone.c
+
+2009-10-02 06:56  thomas
+
+	* src/ufsclone.c:
+	  
+	  bug fix for ufscline
+
+2009-10-02 05:34  thomas
+
+	* src/partclone.c:
+	  
+	  update option value
+
+2009-10-02 05:23  thomas
+
+	* src/xfsclone.c:
+	  
+	  add ignore fschk for xfs. modified: xfsclone.c
+
+2009-09-27 02:44  thomas
+
+	* src/ddclone.c, src/main.c, src/partclone.c, src/partclone.h,
+	  src/restore.c, src/version.h:
+	  
+	  add option Ignore_crc, but need more test. fix bug of --rescue
+	  update malloc for I/O performance
+	  
+	  modified: src/ddclone.c modified: src/main.c modified:
+	  src/partclone.c modified: src/partclone.h modified: src/restore.c
+	  modified: src/version.h
+
+2009-09-22 03:00  thomas
+
+	* src/ufs, src/ufs/ffs, src/ufs/ffs/fs.h, src/ufs/libufs.h,
+	  src/ufs/sys, src/ufs/sys/disklabel.h, src/ufs/ufs,
+	  src/ufs/ufs/dinode.h, src/ufs/ufs/fs.h:
+	  
+	  add ufs include dir On branch master
+	  
+	  new file: ufs/ffs/fs.h new file: ufs/libufs.h new file:
+	  ufs/sys/disklabel.h new file: ufs/ufs/dinode.h new file:
+	  ufs/ufs/fs.h
+
+2009-09-22 02:42  thomas
+
+	* src/ufsclone.c:
+	  
+	  update ufsclone merge error. On branch master Changes to be
+	  committed: modified: src/ufsclone.c
+
+2009-09-22 02:27  thomas
+
+	* src/hfsplusclone.c:
+	  
+	  fix hfsplus message modified: src/hfsplusclone.c
+
+2009-09-22 02:27  thomas
+
+	* src/extfsclone.c, src/fatclone.c, src/hfsplusclone.c,
+	  src/ntfsclone-ng.c, src/reiser4clone.c, src/reiserfsclone.c,
+	  src/ufsclone.c, src/xfsclone.c:
+	  
+	  update fs log message. add ignore option to all supported file
+	  system.
+	  
+	  Changes to be committed: (use "git reset HEAD <file>..." to
+	  unstage)
+	  
+	  modified: extfsclone.c modified: fatclone.c modified:
+	  hfsplusclone.c modified: ntfsclone-ng.c modified: reiser4clone.c
+	  modified: reiserfsclone.c modified: ufsclone.c modified:
+	  xfsclone.c
+
+2009-09-22 02:27  thomas
+
+	* src/extfsclone.c:
+	  
+	  ignore fschk fro extfs modified: extfsclone.c
+
+2009-09-22 02:27  thomas
+
+	* src/fs_common.h, src/main.c, src/partclone.c, src/partclone.h,
+	  src/reiserfsclone.c:
+	  
+	  New feature: ignore file system check for reiserfs, -I or
+	  --ignore_fschk. On branch log Changes to be committed: new file:
+	  fs_common.h modified: main.c modified: partclone.c modified:
+	  partclone.h modified: reiserfsclone.c
+
+2009-09-18 09:46  steven
+
+	* ChangeLog, configure, src/version.h:
+	  
+	  updated for 0.1.9-1.
+
 2009-09-17 06:12  thomas
 
 	* debian/changelog:
