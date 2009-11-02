@@ -166,6 +166,10 @@ int main(int argc, char **argv){
     else
         log_mesg(1, 0, 0, debug, "UID is root.\n");
 
+    /// ignore crc check
+    if(opt.ignore_crc)
+	log_mesg(1, 0, 1, debug, "Ignore CRC error\n");
+
     /**
      * open source and target 
      * clone mode, source is device and target is image file/stdout
@@ -507,7 +511,8 @@ int main(int argc, char **argv){
                     log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno));
 
                 memcpy(&crc, crc_buffer, CRC_SIZE);
-                if ((memcmp(&crc, &crc_ck, CRC_SIZE) != 0) && (opt.ignore_crc > 0)){
+		/*FIX: 64bit image can't ignore crc error*/
+                if ((memcmp(&crc, &crc_ck, CRC_SIZE) != 0) && (!opt.ignore_crc)){
                     log_mesg(1, 0, 0, debug, "CRC Check error. 64bit bug before v0.1.0 (Rev:250M), enlarge crc size and recheck again....\n ");
                     /// check again
                     buffer2 = (char*)malloc(image_hdr.block_size+CRC_SIZE); ///alloc a memory to copy data
@@ -523,7 +528,7 @@ int main(int argc, char **argv){
                     if (c_size < CRC_SIZE)
                         log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno));
                     memcpy(&crc, crc_buffer, CRC_SIZE);
-                    if ((memcmp(&crc, &crc_ck2, CRC_SIZE) != 0 )&& (opt.ignore_crc > 0)) {
+                    if ((memcmp(&crc, &crc_ck2, CRC_SIZE) != 0 )&& (!opt.ignore_crc)) {
                         log_mesg(0, 1, 1, debug, "CRC error again at %i...\n ", sf);
                     } else {
                         crc_ck = crc_ck2;

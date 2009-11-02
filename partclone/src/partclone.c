@@ -125,6 +125,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     opt->debug = 0;
     opt->rescue = 0;
     opt->check = 1;
+    opt->ignore_crc = 0;
     opt->logfile = "/var/log/partclone.log";
 
 #ifdef RESTORE
@@ -178,7 +179,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
                 opt->ignore_fschk++;
                 break;
             case 'i':
-                opt->ignore_crc++;
+                opt->ignore_crc = 1;
                 break;
 
             case 'R':
