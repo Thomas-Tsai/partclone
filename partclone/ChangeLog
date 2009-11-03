@@ -1,3 +1,16 @@
+2009-11-02 09:11  thomas
+
+	* src/main.c, src/partclone.c, src/restore.c, src/version.h:
+	  
+	  update ignore_crc in main.c add ignore_crc to restore.c DON'T
+	  IGNORE CRC in 64BIT IMAGE !!!
+
+2009-10-09 15:15  steven
+
+	* ChangeLog, debian/changelog, src/version.h:
+	  
+	  Updated changelog for partclone 0.1.9-2.
+
 2009-10-06 05:45  thomas
 
 	* src/ufsclone.c:
