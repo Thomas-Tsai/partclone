@@ -1,3 +1,10 @@
+partclone (0.1.9-3ubuntu1) jaunty; urgency=low
+
+  * update configure.ac, set ufs as default enabled file system.
+  * update progress bar to show the "100%" in the end.
+
+ -- Yu-Chin Tsai <thomas@nchc.org.tw>  Mon, 16 Nov 2009 14:46:04 +0800
+
 partclone (0.1.9-3) unstable; urgency=low
 
   [ Yu-Chin Tsai  ]
