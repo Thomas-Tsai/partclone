@@ -1,4 +1,4 @@
-partclone (0.1.9-3ubuntu1) jaunty; urgency=low
+partclone (0.1.9-4) jaunty; urgency=low
 
   * update configure.ac, set ufs as default enabled file system.
   * update progress bar to show the "100%" in the end.
