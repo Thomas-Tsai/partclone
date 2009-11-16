@@ -28,7 +28,7 @@ enable_reiser4="yes"
 enable_hfsp="yes"
 enable_fat="yes"
 enable_ntfs="yes"
-#enable_ufs="yes"
+enable_ufs="yes"
 fi
 
 ##ext2/3##
@@ -294,6 +294,7 @@ AC_CHECKING([ for UFS Library ... ])
 AC_CHECK_LIB([ufs], [ufs_disk_fillout], ,
         AC_MSG_ERROR([*** ufs depend library (libufs2) not found]))
 supported_fs=$supported_fs" ufs"
+ufs_version="newer then 7.0-2"
 fi
 #end of check ufs
 
@@ -349,5 +350,5 @@ echo "xfs...........$enable_xfs $xfs_version"
 echo "ntfs..........$enable_ntfs $ntfs_version"
 echo "fat12/16/32...$enable_fat $fat_version"
 echo "hfs plus......$enable_hfsp $hfs_plus_version"
-echo "ufs ..........$enable_ufs"
+echo "ufs ..........$enable_ufs $ufs_version"
 #echo $supported_fs
