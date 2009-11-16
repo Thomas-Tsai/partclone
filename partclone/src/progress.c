@@ -144,9 +144,18 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
          */
     } else {
         elapsed  = (time(0) - prog->time);
+        if (elapsed <= 0)
+            elapsed = 1;
+        speedps  = (float)prog->block_size * (float)current / (float)(elapsed);
+        percent=100;
+        /// format time string
+        remained = (time_t)0;
+        Rtm = gmtime(&remained);
+        strftime(Rformated, sizeof(Rformated), format, Rtm);
         total = elapsed;
         Ttm = gmtime(&total);
         strftime(Tformated, sizeof(Tformated), format, Ttm);
+        fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "), clear_buf, Tformated, Rformated, percent, (float)(speed));
         fprintf(stderr, _("\nTotal Time: %s, "), Tformated);
         fprintf(stderr, _("Ave. Rate: %6.1fMB/min, "), (float)(prog->rate/prog->stop));
         fprintf(stderr, _("%s"), "100.00%% completed!\n");
@@ -225,6 +234,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
         wrefresh(bar_win);
         free(p_block);
     } else {
+        percent=100;
         total = (time(0) - prog->time);
         Ttm = gmtime(&total);
         strftime(Tformated, sizeof(Tformated), format, Ttm);
