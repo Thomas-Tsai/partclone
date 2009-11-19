@@ -123,21 +123,19 @@ static void fs_close(){
 
 extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui){
 
-    int r, IsUsed = 0, s, i;
-    UInt8 *buffer2;
-    long int tb = 0, rb = 0, bused = 0, bfree = 0;
-    UInt32 b;
-    int start = 0;
-    int bit_size = 1;
+    int rd = 0, IsUsed = 0, sk = 0;
+    UInt8 *extent_bitmap;
+    UInt32 bused = 0, bfree = 0, mused = 0;
+    UInt32 block = 0, extent_block = 0, tb = 0, i = 0;
     int allocation_exten = 0;
     long int allocation_start_block;
     long int allocation_block_size;
-    long int exten_bitmap = 0;
+    int start = 0;
+    int bit_size = 1;
 
 
     fs_open(device);
-    tb = reverseInt((int)sb.totalBlocks);
-    rb = (tb/8)+1;
+    tb = reverseInt(sb.totalBlocks);
 
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
@@ -150,39 +148,45 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
         allocation_start_block = 4096*reverseInt(sb.allocationFile.extents[allocation_exten].startBlock);
 
         allocation_block_size = 4096*reverseInt(sb.allocationFile.extents[allocation_exten].blockCount);
+        log_mesg(2, 0, 0, 2, "%s: tb = %lu\n", __FILE__, tb);
+        log_mesg(2, 0, 0, 2, "%s: extent_block = %lu\n", __FILE__, extent_block);
+        log_mesg(2, 0, 0, 2, "%s: allocation_exten = %i\n", __FILE__, allocation_exten);
+        log_mesg(2, 0, 0, 2, "%s: allocation_start_block = %lu\n", __FILE__, allocation_start_block);
+        log_mesg(2, 0, 0, 2, "%s: allocation_block_size = %lu\n", __FILE__, allocation_block_size);
+
         if((allocation_start_block == 0) && (allocation_block_size == 0)){
             continue;
         }
 
-        s = lseek(ret, allocation_start_block, SEEK_SET);
-        rb = allocation_block_size;
-        buffer2 = (UInt8*)malloc(rb);
-        r = read(ret, buffer2, rb);
-        for(b = exten_bitmap ; (b < allocation_block_size*8) && (b < tb); b++){
-            int check_block = b;
-            IsUsed = IsAllocationBlockUsed(check_block, buffer2);
+        sk = lseek(ret, allocation_start_block, SEEK_SET);
+        extent_bitmap = (UInt8*)malloc(allocation_block_size);
+        rd = read(ret, extent_bitmap, allocation_block_size);
+        for(extent_block = 0 ; (extent_block < allocation_block_size*8) && (block< tb); extent_block++){
+            IsUsed = IsAllocationBlockUsed(extent_block, extent_bitmap);
             if (IsUsed){
                 bused++;
-                bitmap[b] = 1;
-                log_mesg(3, 0, 0, fs_opt.debug, "%s: used b = %i\n", __FILE__, b);
+                bitmap[block] = 1;
+                log_mesg(3, 0, 0, fs_opt.debug, "%s: used block= %i\n", __FILE__, block);
             } else {
                 bfree++;
-                bitmap[b] = 0;
-                log_mesg(3, 0, 0, fs_opt.debug, "%s: free b = %i\n", __FILE__, b);
+                bitmap[block] = 0;
+                log_mesg(3, 0, 0, fs_opt.debug, "%s: free block= %i\n", __FILE__, block);
             }
-            exten_bitmap = allocation_block_size*8;
+            block++;
             /// update progress
-            update_pui(&prog, b, 0);
+            update_pui(&prog, block, 0);
 
         }
-        free(buffer2);
-        log_mesg(2, 0, 0, 2, "%s: buffer2:%i\n", __FILE__, buffer2);
+        free(extent_bitmap);
+        log_mesg(2, 0, 0, 2, "%s: next exten\n", __FILE__);
+        log_mesg(2, 0, 0, 2, "%s: extent_bitmap:%i\n", __FILE__, extent_bitmap);
 
         log_mesg(2, 0, 0, 2, "%s: bfree:%i\n", __FILE__, bfree);
         log_mesg(2, 0, 0, 2, "%s: bused:%i\n", __FILE__, bused);
     }
-    if(bused != (reverseInt(sb.totalBlocks) - reverseInt(sb.freeBlocks)))
-        log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap count error, used:%i\n", __FILE__, bused);
+    mused = (reverseInt(sb.totalBlocks) - reverseInt(sb.freeBlocks));
+    if(bused != mused)
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap count error, used:%lu, mbitmap:%lu\n", __FILE__, bused, mused);
 
     fs_close();
     /// update progress
