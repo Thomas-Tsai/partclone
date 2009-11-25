@@ -1,4 +1,11 @@
-partclone (0.1.9-4) jaunty; urgency=low
+partclone (0.1.9-5) unstable; urgency=low
+
+  [ Yu-Chin Tsai  ]
+  * A bug about hfsplus error for 2 or more extents was fixed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 25 Nov 2009 16:54:00 +0800
+
+partclone (0.1.9-4) unstable; urgency=low
 
   * update configure.ac, set ufs as default enabled file system.
   * update progress bar to show the "100%" in the end.

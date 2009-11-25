@@ -1,3 +1,49 @@
+2009-11-19 13:54  thomas
+
+	* src/hfsplusclone.c:
+	  
+	  try to fix hfsplus error for 2 or more extents.
+	  
+	  modified: hfsplusclone.c
+
+2009-11-16 06:50  thomas
+
+	* debian/changelog:
+	  
+	  update version number
+
+2009-11-16 06:49  thomas
+
+	* debian/changelog, debian/control:
+	  
+	  add control for ufs add changelog
+
+2009-11-16 04:17  thomas
+
+	* configure, configure.ac, po/partclone.pot, po/zh_TW.gmo,
+	  po/zh_TW.po:
+	  
+	  * update progress bar lang translation. * update ufs as default
+	  enabled file system. modified: configure modified: configure.ac
+	  modified: po/partclone.pot modified: po/zh_TW.gmo modified:
+	  po/zh_TW.po
+
+2009-11-16 04:17  thomas
+
+	* src/progress.c:
+	  
+	  test progress 1
+	  
+	  modified: src/progress.c
+
+2009-11-03 09:17  steven
+
+	* ChangeLog, debian/changelog, src/version.h:
+	  
+	  partclone (0.1.9-3) unstable; urgency=low
+	  
+	  [ Yu-Chin Tsai ] * An option to ignore CRC checking was added.
+
 2009-11-02 09:11  thomas
 
 	* src/main.c, src/partclone.c, src/restore.c, src/version.h:
