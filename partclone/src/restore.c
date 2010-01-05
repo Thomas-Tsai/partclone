@@ -328,7 +328,6 @@ int main(int argc, char **argv){
                 free(buffer);
                 free(crc_buffer);
 
-                update_pui(&prog, copied, done);
 
                 copied++;					/// count copied block
                 total_write += (unsigned long long) w_size;	/// count copied size
@@ -354,6 +353,7 @@ int main(int argc, char **argv){
 #endif
             }
 
+	    update_pui(&prog, copied, done);
         } // end of for
         sync_data(dfw, &opt);	
     } else if ((opt.restore) && (raw)){

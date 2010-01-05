@@ -952,6 +952,7 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
     log_mesg(0, 0, 1, debug, _("File system: %s\n"), image_hdr.fs);
     log_mesg(0, 0, 1, debug, _("Device size: %lli MB\n"), print_size((total*block_s), MBYTE));
     log_mesg(0, 0, 1, debug, _("Space in use: %lli MB\n"), print_size((used*block_s), MBYTE));
+    log_mesg(0, 0, 1, debug, _("Free Space: %lli MB\n"), print_size(((total-used)*block_s), MBYTE));
     log_mesg(0, 0, 1, debug, _("Block size: %i Byte\n"), block_s);
     log_mesg(0, 0, 1, debug, _("Used block count: %lli\n"), used);
 }

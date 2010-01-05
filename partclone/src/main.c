@@ -419,7 +419,6 @@ int main(int argc, char **argv){
                 /// free buffer
                 free(crc_buffer);
 
-                update_pui(&prog, copied, done);
                 copied++;					/// count copied block
                 total_write += (unsigned long long)(w_size);	/// count copied size
                 log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
@@ -445,6 +444,7 @@ int main(int argc, char **argv){
                 log_mesg(2, 0, 0, debug, "end\n");
 #endif
             }
+	    update_pui(&prog, copied, done);
         } /// end of for    
         sync_data(dfw, &opt);	
         free(buffer);
@@ -547,7 +547,6 @@ int main(int argc, char **argv){
                 /// free buffer
                 free(buffer);
                 free(crc_buffer);
-                update_pui(&prog, copied, done);
                 copied++;					/// count copied block
                 total_write += (unsigned long long) w_size;	/// count copied size
 
@@ -571,7 +570,7 @@ int main(int argc, char **argv){
                 log_mesg(2, 0, 0, debug, "end\n");
 #endif
             }
-
+	    update_pui(&prog, copied, done);
         } // end of for
         sync_data(dfw, &opt);	
     } else if (opt.dd){
@@ -643,7 +642,6 @@ int main(int argc, char **argv){
                 if (w_size != (int)image_hdr.block_size)
                     log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
 
-                update_pui(&prog, copied, done);
                 copied++;                                       /// count copied block
                 total_write += (unsigned long long)(w_size);    /// count copied size
                 log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
@@ -670,6 +668,7 @@ int main(int argc, char **argv){
                 log_mesg(2, 0, 0, debug, "end\n");
 #endif
             }
+	    update_pui(&prog, copied, done);
         } /// end of for
 	/// free buffer
 	free(buffer);

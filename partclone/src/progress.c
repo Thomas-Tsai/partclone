@@ -157,7 +157,9 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
         strftime(Tformated, sizeof(Tformated), format, Ttm);
         fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "), clear_buf, Tformated, Rformated, percent, (float)(speed));
         fprintf(stderr, _("\nTotal Time: %s, "), Tformated);
-        fprintf(stderr, _("Ave. Rate: %6.1fMB/min, "), (float)(prog->rate/prog->stop));
+        //fprintf(stderr, _("Ave. Rate: %6.1fMB/min, "), (float)(prog->rate/prog->stop));
+        fprintf(stderr, _("Ave. Rate: %6.1fMB/min, "), (float)(prog->stop*prog->block_size/total/1000000.0*60.0));
+
         fprintf(stderr, _("%s"), "100.00%% completed!\n");
     }
 }
@@ -240,7 +242,8 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
         strftime(Tformated, sizeof(Tformated), format, Ttm);
         mvwprintw(p_win, 1, 0, _("Total Time: %s"), Tformated);
         mvwprintw(p_win, 2, 0, _("Remaining: 0"));
-        mvwprintw(p_win, 3, 0, _("Ave. Rate: %6.1fMB/min"), (float)(prog->rate/prog->stop));
+        //mvwprintw(p_win, 3, 0, _("Ave. Rate: %6.1fMB/min"), (float)(prog->rate/prog->stop));
+        mvwprintw(p_win, 3, 0, _("Ave. Rate: %6.1fMB/min"), (float)(prog->stop*prog->block_size/total/1000000.0*60.0));
         //mvwprintw(p_win, 3, 0, _("100.00%% completed!"));
         wattrset(bar_win, COLOR_PAIR(4));
         mvwprintw(bar_win, 0, 0, "%50s", " ");
@@ -323,7 +326,8 @@ extern void Dialog_progress_update(struct progress_bar *prog, unsigned long long
         Ttm = gmtime(&total);
         strftime(Tformated, sizeof(Tformated), format, Ttm);
         m_dialog.percent = 100;
-        sprintf(tmp_str, _("  Total Time: %s\n  Ave. Rate: %6.1fMB/min\n 100.00%%  completed!\n"), Tformated, (float)(prog->rate/prog->stop));
+        //sprintf(tmp_str, _("  Total Time: %s\n  Ave. Rate: %6.1fMB/min\n 100.00%%  completed!\n"), Tformated, (float)(prog->rate/prog->stop));
+        sprintf(tmp_str, _("  Total Time: %s\n  Ave. Rate: %6.1fMB/min\n 100.00%%  completed!\n"), Tformated, (float)(prog->stop*prog->block_size/total/1000000.0*60.0));
         fprintf(stderr, "XXX\n%i\n%s\n%s\nXXX\n", m_dialog.percent, m_dialog.data, tmp_str);
     }
 

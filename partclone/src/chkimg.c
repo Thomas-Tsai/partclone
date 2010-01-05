@@ -368,13 +368,13 @@ int main(int argc, char **argv){
             free(buffer);
             free(crc_buffer);
 
-            update_pui(&prog, copied, done);
 
             copied++;					/// count copied block
 
             log_mesg(1, 0, 0, debug, "end\n");
         }
 
+	update_pui(&prog, copied, done);
     } // end of for
     print_finish_info(opt);
 
