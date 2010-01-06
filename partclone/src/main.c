@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <mcheck.h>
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
@@ -79,7 +80,10 @@ fs_cmd_opt		fs_opt;			/// cmd_opt structure defined in partclone.h
  * main functiom - for colne or restore data
  */
 int main(int argc, char **argv){ 
-
+#ifdef MEMTRACE
+    setenv("MALLOC_TRACE", "partclone_mtrace.log", 1);
+    mtrace();
+#endif
     char*		source;			/// source data
     char*		target;			/// target data
     char*		buffer;			/// buffer data for malloc used
@@ -684,5 +688,8 @@ int main(int argc, char **argv){
     printf("Cloned successfully.\n");
     if(opt.debug)
         close_log();
+#ifdef MEMTRACE
+    muntrace();
+#endif
     return 0;	    /// finish
 }

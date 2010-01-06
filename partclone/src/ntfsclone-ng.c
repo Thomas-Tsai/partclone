@@ -136,7 +136,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     used_block = 0;
     free_block = 0;
     count = ntfs_attr_pread(ntfs->lcnbmp_na, pos, bitmap_size, ntfs_bitmap);
-    for (current_block = 0; current_block <= ntfs->nr_clusters; current_block++)
+    for (current_block = 0; current_block < ntfs->nr_clusters; current_block++)
     {
         char bit;
         bit = ntfs_bit_get(ntfs_bitmap, current_block);
@@ -151,11 +151,12 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
         update_pui(&prog, current_block, 0);
 
     }
-
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: \nUsed Block\t: %lld\n", __FILE__, used_block);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: Used Block\t: %lld\n", __FILE__, used_block);
     log_mesg(3, 0, 0, fs_opt.debug, "%s: Free Block\t: %lld\n", __FILE__, free_block);
     free(ntfs_bitmap);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap alloc free\n", __FILE__);
     fs_close();
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: fs_close done\n", __FILE__);
 
     /// update progress
     update_pui(&prog, 1, 1);
