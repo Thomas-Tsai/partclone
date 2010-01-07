@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.0.4\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2009-11-16 12:15+0800\n"
+"POT-Creation-Date: 2010-01-06 16:48+0800\n"
 "PO-Revision-Date: 2007-11-01 11:35+0800\n"
 "Last-Translator: Yu-Chin Tsai <thomas@nchc.org.tw>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -15,13 +15,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/progress.c:137 src/progress.c:158
+#: src/progress.c:138 src/progress.c:159
 #, c-format
 msgid ""
 "\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "
 msgstr "\r%81c\r經過：%s, 剩餘： %s, 完成：%6.2f%%, 速率：%6.2fMB/min, "
 
-#: src/progress.c:159
+#: src/progress.c:160
 #, c-format
 msgid ""
 "\n"
@@ -30,50 +30,50 @@ msgstr ""
 "\n"
 "全部時間：%s, "
 
-#: src/progress.c:160
+#: src/progress.c:162
 #, c-format
 msgid "Ave. Rate: %6.1fMB/min, "
 msgstr "平均速率：%6.1fMB/min, "
 
-#: src/progress.c:161
+#: src/progress.c:164
 #, c-format
 msgid "%s"
 msgstr ""
 
-#: src/progress.c:212
+#: src/progress.c:215
 msgid " "
 msgstr ""
 
-#: src/progress.c:213
+#: src/progress.c:216
 #, c-format
 msgid "Elapsed: %s"
 msgstr "經過：%s"
 
-#: src/progress.c:214
+#: src/progress.c:217
 #, c-format
 msgid "Remaining: %s"
 msgstr "剩餘：%s"
 
-#: src/progress.c:215
+#: src/progress.c:218
 #, c-format
 msgid "Rate: %6.2fMB/min"
 msgstr "速率：%6.1fMB/min"
 
-#: src/progress.c:241
+#: src/progress.c:244
 #, c-format
 msgid "Total Time: %s"
 msgstr "全部時間：%s"
 
-#: src/progress.c:242
+#: src/progress.c:245
 msgid "Remaining: 0"
 msgstr "剩餘：0"
 
-#: src/progress.c:243
+#: src/progress.c:247
 #, c-format
 msgid "Ave. Rate: %6.1fMB/min"
 msgstr "平均速率：%6.1fMB/min"
 
-#: src/progress.c:319
+#: src/progress.c:323
 #, c-format
 msgid ""
 "  Elapsed: %s\n"
@@ -86,7 +86,7 @@ msgstr ""
 " 完成：%6.2f%%\n"
 " 速率：%6.2fMB/min"
 
-#: src/progress.c:326
+#: src/progress.c:331
 #, c-format
 msgid ""
 "  Total Time: %s\n"
@@ -97,72 +97,77 @@ msgstr ""
 " 平均速率: %6.1fMB/min\n"
 " 100.00%% 已經完成！\n"
 
-#: src/partclone.c:915
+#: src/partclone.c:936
 #, c-format
 msgid "Partclone v%s (%s) http://partclone.org\n"
 msgstr ""
 
-#: src/partclone.c:917
+#: src/partclone.c:938
 #, c-format
 msgid "Starting to check image (%s)\n"
 msgstr "開始檢查印象檔 (%s)\n"
 
-#: src/partclone.c:919
+#: src/partclone.c:940
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
 msgstr "開始備份 裝置 (%s) 到 印象檔 (%s)\n"
 
-#: src/partclone.c:921
+#: src/partclone.c:942
 #, c-format
 msgid "Starting to restore image (%s) to device (%s)\n"
 msgstr "開始還原 印象檔 (%s) 到 裝置 (%s)\n"
 
-#: src/partclone.c:923
+#: src/partclone.c:944
 #, c-format
 msgid "Starting to back up device(%s) to device(%s)\n"
 msgstr "開始備份 裝置 (%s) 到 裝置 (%s)\n"
 
-#: src/partclone.c:951
+#: src/partclone.c:972
 #, c-format
 msgid "File system: %s\n"
 msgstr "檔案系統: %s\n"
 
-#: src/partclone.c:952
+#: src/partclone.c:973
 #, c-format
 msgid "Device size: %lli MB\n"
 msgstr "裝置大小: %lli MB\n"
 
-#: src/partclone.c:953
+#: src/partclone.c:974
 #, c-format
 msgid "Space in use: %lli MB\n"
 msgstr "裝置使用到空間: %lli MB\n"
 
-#: src/partclone.c:954
+#: src/partclone.c:975
+#, fuzzy, c-format
+msgid "Free Space: %lli MB\n"
+msgstr "裝置使用到空間: %lli MB\n"
+
+#: src/partclone.c:976
 #, c-format
 msgid "Block size: %i Byte\n"
 msgstr "裝置區塊大小: %i Byte\n"
 
-#: src/partclone.c:955
+#: src/partclone.c:977
 #, c-format
 msgid "Used block count: %lli\n"
 msgstr "裝置使用區塊數量: %lli\n"
 
-#: src/partclone.c:967
+#: src/partclone.c:989
 #, c-format
 msgid "Partclone successfully checkd the image (%s)\n"
 msgstr "檢查印象檔 (%s) 完成\n"
 
-#: src/partclone.c:969
+#: src/partclone.c:991
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr "備份 裝置 (%s) 到 印象檔 (%s) 完成\n"
 
-#: src/partclone.c:971
+#: src/partclone.c:993
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr "還原 印象檔 (%s) 到 裝置 (%s) 完成\n"
 
-#: src/partclone.c:973
+#: src/partclone.c:995
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr "備份 裝置 (%s) 到 印象檔 (%s) 完成\n"

@@ -98,7 +98,7 @@ int main(int argc, char **argv){
     unsigned long long	needed_size = 0;	/// the copied size 
     unsigned long long	needed_mem  = 0;	/// the copied size 
     char		bitmagic[8] = "BiTmAgIc";// only for check postition
-    char		bitmagic_r[8];		/// read magic string from image
+    char		bitmagic_r[8]="00000000";/// read magic string from image
     int			cmp;			/// compare magic string
     char		*bitmap;		/// the point for bitmap data
     int			debug = 0;		/// debug or not
@@ -124,6 +124,7 @@ int main(int argc, char **argv){
         "*************************************************************************\n";
 
     image_head		image_hdr;		/// image_head structure defined in partclone.h
+    memset(&image_hdr, 0, sizeof(&image_hdr));
 
     /**
      * get option and assign to opt structure
@@ -135,6 +136,7 @@ int main(int argc, char **argv){
      * if "-d / --debug" given
      * open debug file in "/var/log/partclone.log" for log message 
      */
+    memset(&fs_opt, 0, sizeof(fs_cmd_opt));
     debug = opt.debug;
     fs_opt.debug = debug;
     fs_opt.ignore_fschk = opt.ignore_fschk;

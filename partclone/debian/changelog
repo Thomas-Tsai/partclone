@@ -1,3 +1,9 @@
+partclone (0.2.0-1) unstable; urgency=low
+
+  * test ...
+
+ -- thomas <thomas@nchc.org.tw>  Wed, 06 Jan 2010 16:07:05 +0800
+
 partclone (0.1.9-5) unstable; urgency=low
 
   [ Yu-Chin Tsai  ]

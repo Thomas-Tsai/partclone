@@ -39,6 +39,7 @@ extern void progress_init(struct progress_bar *prog, int start, unsigned long lo
 {
     time_t now;
     time(&now);
+    memset(prog, 0, sizeof(progress_bar));
     prog->start = start;
     prog->stop = stop;
     prog->unit = 100.0 / (stop - start);
