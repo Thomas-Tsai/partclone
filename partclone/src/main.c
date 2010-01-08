@@ -124,7 +124,7 @@ int main(int argc, char **argv){
         "*************************************************************************\n";
 
     image_head		image_hdr;		/// image_head structure defined in partclone.h
-    memset(&image_hdr, 0, sizeof(&image_hdr));
+    memset(&image_hdr, 0, sizeof(image_hdr));
 
     /**
      * get option and assign to opt structure
