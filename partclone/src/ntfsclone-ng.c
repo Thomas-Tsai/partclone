@@ -136,11 +136,20 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     used_block = 0;
     free_block = 0;
     count = ntfs_attr_pread(ntfs->lcnbmp_na, pos, bitmap_size, ntfs_bitmap);
+    if (count == -1){					    // On error and nothing has been read
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: read ntfs attr error: %s\n", __FILE__, strerror(errno));
+    }
+    if (count != bitmap_size){
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: the readed size of ntfs_attr not expected: %s\n", __FILE__, strerror(errno));
+    }
+
     for (current_block = 0; current_block < ntfs->nr_clusters; current_block++)
     {
         char bit;
         bit = ntfs_bit_get(ntfs_bitmap, current_block);
-        if (bit){
+        if (bit == -1){                                     // Return -1 on error
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s: check bitmap error\n", __FILE__); 
+	}else if(bit == 1){				    // The value of the bit (0 or 1)
             bitmap[current_block] = 1;
             used_block++;
         } else {
