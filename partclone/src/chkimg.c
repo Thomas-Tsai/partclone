@@ -375,6 +375,8 @@ int main(int argc, char **argv){
         }
 
 	update_pui(&prog, copied, done);
+	if(done = 1)
+	    break;
     } // end of for
     print_finish_info(opt);
 

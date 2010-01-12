@@ -354,6 +354,8 @@ int main(int argc, char **argv){
             }
 
 	    update_pui(&prog, copied, done);
+	    if (done == 1)
+		break;
         } // end of for
         sync_data(dfw, &opt);	
     } else if ((opt.restore) && (raw)){
