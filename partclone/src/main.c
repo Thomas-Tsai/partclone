@@ -333,7 +333,7 @@ int main(int argc, char **argv){
      */
     progress_bar	prog;		/// progress_bar structure defined in progress.h
     start = 0;				/// start number of progress bar
-    stop = image_hdr.usedblocks;	/// get the end of progress number, only used block
+    stop = (image_hdr.usedblocks+1);	/// get the end of progress number, only used block
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
     progress_init(&prog, start, stop, image_hdr.block_size);
