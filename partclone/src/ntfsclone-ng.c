@@ -49,6 +49,82 @@ char *EXECNAME	= "partclone.ntfs";
 extern fs_cmd_opt fs_opt;
 ntfs_volume *ntfs;
 
+
+/********************************************************
+ * Routines for counting attributes free bits.
+ *
+ * Used to count and verify number of free clusters
+ * as per ntfs volume $BitMap.
+ *
+ * Copied from ntfs-3g 2009.11.14 source code:
+ *
+ ********************************************************/
+
+/* Below macros are 32-bit ready. */
+#define BCX(x) ((x) - (((x) >> 1) & 0x77777777) - \
+                      (((x) >> 2) & 0x33333333) - \
+                      (((x) >> 3) & 0x11111111))
+
+#define BITCOUNT(x) (((BCX(x) + (BCX(x) >> 4)) & 0x0F0F0F0F) % 255)
+
+static u8 *ntfs_init_lut256(void)
+{
+        int i;
+        u8 *lut;
+
+        lut = ntfs_malloc(256);
+        if (lut)
+                for(i = 0; i < 256; i++)
+                        *(lut + i) = 8 - BITCOUNT(i);
+        return lut;
+}
+
+static s64 ntfs_attr_get_free_bits(ntfs_attr *na)
+{
+        u8 *buf, *lut;
+        s64 br      = 0;
+        s64 total   = 0;
+        s64 nr_free = 0;
+
+        lut = ntfs_init_lut256();
+        if (!lut)
+                return -1;
+
+        buf = ntfs_malloc(65536);
+        if (!buf)
+                goto out;
+
+        while (1) {
+                u32 *p;
+                br = ntfs_attr_pread(na, total, 65536, buf);
+                if (br <= 0)
+                        break;
+                total += br;
+                p = (u32 *)buf + br / 4 - 1;
+                for (; (u8 *)p >= buf; p--) {
+                        nr_free += lut[ *p        & 255] +
+                                   lut[(*p >>  8) & 255] +
+                                   lut[(*p >> 16) & 255] +
+                                   lut[(*p >> 24)      ];
+                }
+                switch (br % 4) {
+                        case 3:  nr_free += lut[*(buf + br - 3)];
+                        case 2:  nr_free += lut[*(buf + br - 2)];
+                        case 1:  nr_free += lut[*(buf + br - 1)];
+                }
+        }
+        free(buf);
+out:
+        free(lut);
+        if (!total || br < 0)
+                return -1;
+        return nr_free;
+}
+
+/* End of ntfs-3g routines code copy */
+/*********************************************************/
+
+
 /// open device
 static void fs_open(char* device){
 
@@ -85,6 +161,14 @@ static void fs_open(char* device){
             log_mesg(0, 1, 1, fs_opt.debug, "%s: Unknown NTFS version\n", __FILE__);
         }
 
+        // Initialize free clusters metric
+        ntfs->nr_free_clusters = ntfs_attr_get_free_bits(ntfs->lcnbmp_na);
+
+        if ( ntfs->nr_free_clusters < 0 || ntfs->nr_free_clusters >= ntfs->nr_clusters) {
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: Bad number of free (%lld) or total (%lld) clusters!\n", __FILE__,
+                ntfs->nr_free_clusters, ntfs->nr_clusters); 
+        }
+
         device_size = ntfs_device_size_get(ntfs->dev, 1);
         volume_size = ntfs->nr_clusters * ntfs->cluster_size;
 
@@ -108,21 +192,30 @@ static void fs_open(char* device){
 
 /// close device
 static void fs_close(){
-    ntfs_umount(ntfs, 0);
+    int ret = ntfs_umount(ntfs, 0);
+
+    if (ret != 0) {
+        log_mesg(0, 0, 1, fs_opt.debug, "%s: NTFS unmount error %i!\n", __FILE__, errno);
+    }
 }
 
 ///  readbitmap - read bitmap
 extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui)
 {
     unsigned char	*ntfs_bitmap;
-    unsigned long long	current_block, used_block, free_block, count, pos;
+    unsigned long long	current_block, used_block, free_block, pos;
+    long long int	count;
     unsigned long	bitmap_size = (ntfs->nr_clusters + 7) / 8;
-    int			i;
     int start = 0;
     int bit_size = 1;
 
     fs_open(device);
-    ntfs_bitmap = (char*)malloc(bitmap_size);
+
+    if (bitmap_size > ntfs->lcnbmp_na->data_size) {
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: calculated bitmap size (%lu) > lcnbmp_na->data_size (%llu)\n", __FILE__);
+    }
+ 
+    ntfs_bitmap = (unsigned char*)malloc(bitmap_size);
 
     if ((bitmap == NULL) || (ntfs_bitmap == NULL)) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap alloc error\n", __FILE__);
@@ -160,12 +253,23 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
         update_pui(&prog, current_block, 0);
 
     }
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: Used Block\t: %lld\n", __FILE__, used_block);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: Free Block\t: %lld\n", __FILE__, free_block);
+
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: [bitmap] Used Block\t: %llu\n", __FILE__, used_block);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: [bitmap] Free Block\t: %llu\n", __FILE__, free_block);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: [bitmap] Calculated Bitmap Size\t: %lu\n", __FILE__, bitmap_size);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: [bitmap] Bitmap attribute data size\t: %llu\n", __FILE__, ntfs->lcnbmp_na->data_size);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: [bitmap] Bitmap attribute initialized size\t: %llu\n", __FILE__, ntfs->lcnbmp_na->initialized_size);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: [bitmap] Bitmap attribute allocated size\t: %llu\n", __FILE__, ntfs->lcnbmp_na->allocated_size);
+
     free(ntfs_bitmap);
     log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap alloc free\n", __FILE__);
     fs_close();
     log_mesg(3, 0, 0, fs_opt.debug, "%s: fs_close done\n", __FILE__);
+
+    if (used_block != image_hdr.usedblocks) {
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: used blocks count mismatch: %llu in header, %llu from readbitmap\n", __FILE__,
+                used_block, image_hdr.usedblocks);
+    }
 
     /// update progress
     update_pui(&prog, 1, 1);
@@ -179,8 +283,12 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     memcpy(image_hdr->fs, ntfs_MAGIC, FS_MAGIC_SIZE);
     image_hdr->block_size  = (int)ntfs->cluster_size;
     image_hdr->totalblock  = (unsigned long long)ntfs->nr_clusters;
-    image_hdr->usedblocks  = (unsigned long long)(ntfs->nr_clusters - ntfs->nr_free_clusters - 1);
+    image_hdr->usedblocks  = (unsigned long long)(ntfs->nr_clusters - ntfs->nr_free_clusters);
     image_hdr->device_size = (unsigned long long)ntfs_device_size_get(ntfs->dev, 1);
     fs_close();
+
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: hdr - usedblocks:\t: %llu\n", __FILE__, image_hdr->usedblocks);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: hdr - totalblocks:\t: %llu\n", __FILE__, image_hdr->totalblock);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: ntfs - nr_free:\t: %lld\n", __FILE__, ntfs->nr_free_clusters);
 }
 
