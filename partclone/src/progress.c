@@ -120,8 +120,7 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
     char *clear_buf = NULL;
 
     if (done != 1){
-        //if (((current - prog->start) % prog->resolution) && ((current != prog->stop)))
-        if (difftime(time(0), prog->resolution_time) < prog->interval_time)
+        if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && current != 0)
             return;
 	prog->resolution_time = time(0);
         percent  = prog->unit * current;
@@ -143,7 +142,11 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
         Etm = gmtime(&elapsed);
         strftime(Eformated, sizeof(Eformated), format, Etm);
 
-        fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "), clear_buf, Eformated, Rformated, percent, (float)(speed));
+        if ((current+1) == prog->stop){
+	    fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Seeking..., "), clear_buf, Eformated, Rformated, percent, (float)(speed));
+	} else {
+	    fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "), clear_buf, Eformated, Rformated, percent, (float)(speed));
+	}
     } else {
         elapsed  = (time(0) - prog->initial_time);
         if (elapsed <= 0)

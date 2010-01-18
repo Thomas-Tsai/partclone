@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.0.4\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2010-01-06 16:48+0800\n"
+"POT-Creation-Date: 2010-01-18 10:07+0800\n"
 "PO-Revision-Date: 2007-11-01 11:35+0800\n"
 "Last-Translator: Yu-Chin Tsai <thomas@nchc.org.tw>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -15,13 +15,17 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/progress.c:138 src/progress.c:159
+#: src/progress.c:146
+msgid "\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Seeking..., "
+msgstr "\r%81c\r經過：%s, 剩餘： %s, 完成：%6.2f%%, 尋找備份..., "
+
+#: src/progress.c:148 src/progress.c:164
 #, c-format
 msgid ""
 "\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "
 msgstr "\r%81c\r經過：%s, 剩餘： %s, 完成：%6.2f%%, 速率：%6.2fMB/min, "
 
-#: src/progress.c:160
+#: src/progress.c:165
 #, c-format
 msgid ""
 "\n"
@@ -30,50 +34,49 @@ msgstr ""
 "\n"
 "全部時間：%s, "
 
-#: src/progress.c:162
+#: src/progress.c:166
 #, c-format
 msgid "Ave. Rate: %6.1fMB/min, "
 msgstr "平均速率：%6.1fMB/min, "
 
-#: src/progress.c:164
+#: src/progress.c:167
 #, c-format
 msgid "%s"
 msgstr ""
 
-#: src/progress.c:215
+#: src/progress.c:218
 msgid " "
 msgstr ""
 
-#: src/progress.c:216
+#: src/progress.c:219
 #, c-format
 msgid "Elapsed: %s"
 msgstr "經過：%s"
 
-#: src/progress.c:217
+#: src/progress.c:220
 #, c-format
 msgid "Remaining: %s"
 msgstr "剩餘：%s"
 
-#: src/progress.c:218
+#: src/progress.c:221
 #, c-format
 msgid "Rate: %6.2fMB/min"
 msgstr "速率：%6.1fMB/min"
 
-#: src/progress.c:244
+#: src/progress.c:249
 #, c-format
 msgid "Total Time: %s"
 msgstr "全部時間：%s"
 
-#: src/progress.c:245
+#: src/progress.c:250
 msgid "Remaining: 0"
 msgstr "剩餘：0"
 
-#: src/progress.c:247
-#, c-format
-msgid "Ave. Rate: %6.1fMB/min"
+#: src/progress.c:251
+msgid "Ave. Rate: %6.2fMB/min"
 msgstr "平均速率：%6.1fMB/min"
 
-#: src/progress.c:323
+#: src/progress.c:327
 #, c-format
 msgid ""
 "  Elapsed: %s\n"
@@ -86,7 +89,7 @@ msgstr ""
 " 完成：%6.2f%%\n"
 " 速率：%6.2fMB/min"
 
-#: src/progress.c:331
+#: src/progress.c:336
 #, c-format
 msgid ""
 "  Total Time: %s\n"
@@ -138,9 +141,8 @@ msgid "Space in use: %lli MB\n"
 msgstr "裝置使用到空間: %lli MB\n"
 
 #: src/partclone.c:975
-#, fuzzy, c-format
 msgid "Free Space: %lli MB\n"
-msgstr "裝置使用到空間: %lli MB\n"
+msgstr "剩餘空間: %lli MB\n"
 
 #: src/partclone.c:976
 #, c-format
