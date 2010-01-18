@@ -225,7 +225,7 @@ int main(int argc, char **argv){
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
     progress_init(&prog, start, stop, image_hdr.block_size);
-    copied = 1;				/// initial number is 1
+    copied = 0;				/// initial number is 0
 
     /**
      * start read and write data between device and image file
@@ -253,13 +253,6 @@ int main(int argc, char **argv){
             r_size = 0;
             w_size = 0;
 
-            if((block_id + 1) == image_hdr.totalblock) 
-                done = 1;
-
-#ifdef _FILE_OFFSET_BITS
-            if(copied == image_hdr.usedblocks) 
-                done = 1;
-#endif
             if (bitmap[block_id] == 1){ 
                 /// The block is used
                 log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
@@ -344,19 +337,13 @@ int main(int argc, char **argv){
                 log_mesg(2, 0, 0, debug, "seek=%lli, ",sf);
                 if (sf == (off_t)-1)
                     log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
-                s_count++;
-                if ((s_count >=100) || (done == 1)){
-                    update_pui(&prog, copied, done);
-                    s_count = 0;
-                }
                 log_mesg(2, 0, 0, debug, "end\n");
 #endif
             }
-
 	    update_pui(&prog, copied, done);
-	    if (done == 1)
-		break;
         } // end of for
+	done = 1;
+	update_pui(&prog, copied, done);
         sync_data(dfw, &opt);	
     } else if ((opt.restore) && (raw)){
         /// start clone partition to image file
@@ -369,14 +356,12 @@ int main(int argc, char **argv){
         block_id = 1;
         do {
 
-
             log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
 
             buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
             if(buffer == NULL){
                 log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
             }
-
 
             /// read data from source to buffer
             r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
@@ -398,12 +383,6 @@ int main(int argc, char **argv){
             /// free buffer
             free(buffer);
 
-            update_pui(&prog, copied, done);
-
-            copied++;					/// count copied block
-            total_write += (unsigned long long)(w_size);	/// count copied size
-            log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
-
             /// read or write error
             if (r_size != w_size)
                 log_mesg(0, 1, 1, debug, "read and write different\n");
@@ -411,6 +390,15 @@ int main(int argc, char **argv){
             block_id++;
             r_size = 0;
             w_size = 0;
+            copied++;					/// count copied block
+            total_write += (unsigned long long)(w_size);	/// count copied size
+            log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
+
+            update_pui(&prog, copied, done);
+	    if(copied == image_hdr.totalblock){
+		done = 1;	
+	    }
+
         } while (done == 0);/// end of for    
         sync_data(dfw, &opt);	
 

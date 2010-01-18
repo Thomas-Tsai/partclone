@@ -27,7 +27,9 @@ struct progress_bar {
         unsigned long long resolution;
 	int block_size;
 	float rate;
-	time_t time;
+	time_t initial_time;
+	time_t resolution_time;
+	time_t interval_time;
         float unit;
 	int pui;
 };

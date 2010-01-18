@@ -337,7 +337,7 @@ int main(int argc, char **argv){
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
     progress_init(&prog, start, stop, image_hdr.block_size);
-    copied = 1;				/// initial number is 1
+    copied = 0;				/// initial number is 0
 
     /**
      * start read and write data between device and image file
@@ -359,26 +359,21 @@ int main(int argc, char **argv){
 
         log_mesg(0, 0, 0, debug, "Total block %i\n", image_hdr.totalblock);
 
+
         /// start clone partition to image file
         log_mesg(1, 0, 0, debug, "start backup data...\n");
         for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
 
             r_size = 0;
             w_size = 0;
-            main_pos = lseek(dfr, 0, SEEK_CUR);
-            log_mesg(3, 0, 0, debug, "man pos = %lli\n", main_pos);
 
-            if((image_hdr.totalblock - 1 ) == block_id) 
-                done = 1;
+	    main_pos = lseek(dfr, 0, SEEK_CUR);
+	    log_mesg(3, 0, 0, debug, "man pos = %lli\n", main_pos);
 
-#ifdef _FILE_OFFSET_BITS
-            if(copied == image_hdr.usedblocks) 
-                done = 1;
-#endif
             if (bitmap[block_id] == 1){
                 /// if the block is used
                 log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
-                log_mesg(1, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
+                log_mesg(2, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 
                 offset = (off_t)(block_id * image_hdr.block_size);
 #ifdef _FILE_OFFSET_BITS
@@ -390,7 +385,7 @@ int main(int argc, char **argv){
                 memset(buffer, 0, image_hdr.block_size);
                 rescue_pos = lseek(dfr, 0, SEEK_CUR);
                 r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
-                log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
+                log_mesg(3, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
                 if (r_size != (int)image_hdr.block_size){
 
                     if ((r_size == -1) && (errno == EIO)){
@@ -409,7 +404,7 @@ int main(int argc, char **argv){
 
                 /// write buffer to target
                 w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
-                log_mesg(2, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
+                log_mesg(3, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
                 if (w_size != (int)image_hdr.block_size)
                     log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
 
@@ -427,12 +422,12 @@ int main(int argc, char **argv){
 
                 copied++;					/// count copied block
                 total_write += (unsigned long long)(w_size);	/// count copied size
-                log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
+                log_mesg(3, 0, 0, debug, "total=%lli, ", total_write);
 
                 /// read or write error
                 if (r_size != w_size)
                     log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
-                log_mesg(1, 0, 0, debug, "end\n");
+                log_mesg(2, 0, 0, debug, "end\n");
             } else {
 #ifndef _FILE_OFFSET_BITS
                 /// if the block is not used, I just skip it.
@@ -442,18 +437,13 @@ int main(int argc, char **argv){
                 if (sf == (off_t)-1)
                     log_mesg(0, 1, 1, debug, "clone seek error %lli errno=%i\n", (long long)offset, (int)errno);
 
-                s_count++;
-                if ((s_count >=100) || (done == 1)){
-                    update_pui(&prog, copied, done);
-                    s_count = 0;
-                }
                 log_mesg(2, 0, 0, debug, "end\n");
 #endif
             }
 	    update_pui(&prog, copied, done);
-	    if (done == 1)
-		break;
         } /// end of for    
+	done = 1;
+	update_pui(&prog, copied, done);
         sync_data(dfw, &opt);	
         free(buffer);
 
@@ -481,17 +471,10 @@ int main(int argc, char **argv){
             r_size = 0;
             w_size = 0;
 
-            if((block_id + 1) == image_hdr.totalblock) 
-                done = 1;
-
-#ifdef _FILE_OFFSET_BITS
-            if(copied == image_hdr.usedblocks) 
-                done = 1;
-#endif
             if (bitmap[block_id] == 1){ 
                 /// The block is used
-                log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
-                log_mesg(1, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
+                log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
+                log_mesg(2, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 
                 offset = (off_t)(block_id * image_hdr.block_size);
 #ifdef _FILE_OFFSET_BITS
@@ -504,7 +487,7 @@ int main(int argc, char **argv){
                     log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
                 }
                 r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
-                log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
+                log_mesg(3, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
                 if (r_size <0)
                     log_mesg(0, 1, 1, debug, "read errno = %i \n", errno);
 
@@ -570,18 +553,13 @@ int main(int argc, char **argv){
                 log_mesg(2, 0, 0, debug, "seek=%lli, ",sf);
                 if (sf == (off_t)-1)
                     log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
-                s_count++;
-                if ((s_count >=100) || (done == 1)){
-                    update_pui(&prog, copied, done);
-                    s_count = 0;
-                }
                 log_mesg(2, 0, 0, debug, "end\n");
 #endif
             }
 	    update_pui(&prog, copied, done);
-	    if (done == 1)
-		break;
         } // end of for
+	done = 1;
+	update_pui(&prog, copied, done);
         sync_data(dfw, &opt);	
     } else if (opt.dd){
         sf = lseek(dfr, 0, SEEK_SET);
@@ -590,7 +568,7 @@ int main(int argc, char **argv){
             log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
 
 	main_pos = lseek(dfr, 0, SEEK_CUR);
-	log_mesg(3, 0, 0, debug, "man pos = %lli\n", main_pos);
+	log_mesg(1, 0, 0, debug, "man pos = %lli\n", main_pos);
 
         log_mesg(0, 0, 0, debug, "Total block %i\n", image_hdr.totalblock);
 
@@ -605,18 +583,11 @@ int main(int argc, char **argv){
             r_size = 0;
             w_size = 0;
 
-            if((image_hdr.totalblock - 1 ) == block_id)
-                done = 1;
-
-#ifdef _FILE_OFFSET_BITS
-            if(copied == image_hdr.usedblocks) 
-                done = 1;
-#endif
             if (bitmap[block_id] == 1){
                 /// if the block is used
 
                 log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
-                log_mesg(1, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
+                log_mesg(2, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
                 offset = (off_t)(block_id * image_hdr.block_size);
 #ifdef _FILE_OFFSET_BITS
                 sf = lseek(dfr, offset, SEEK_SET);
@@ -630,7 +601,7 @@ int main(int argc, char **argv){
                 memset(buffer, 0, image_hdr.block_size);
                 rescue_pos = lseek(dfr, 0, SEEK_CUR);
                 r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
-                log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
+                log_mesg(3, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
                 if (r_size != (int)image_hdr.block_size){
                     if ((r_size == -1) && (errno == EIO)){
                         if (opt.rescue){
@@ -648,13 +619,13 @@ int main(int argc, char **argv){
 
                 /// write buffer to target
                 w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
-                log_mesg(1, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
+                log_mesg(3, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
                 if (w_size != (int)image_hdr.block_size)
                     log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
 
                 copied++;                                       /// count copied block
                 total_write += (unsigned long long)(w_size);    /// count copied size
-                log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
+                log_mesg(2, 0, 0, debug, "total=%lli, ", total_write);
                 /// read or write error
                 if (r_size != w_size)
                     log_mesg(0, 1, 1, debug, "read and write different\n");
@@ -669,17 +640,12 @@ int main(int argc, char **argv){
                 log_mesg(2, 0, 0, debug, "skip target seek=%lli, ",sf);
                 if (sf == (off_t)-1)
                     log_mesg(0, 1, 1, debug, "clone seek error %lli errno=%i\n", (long long)offset, (int)errno);
-                s_count++;
-                if ((s_count >=100) || (done == 1)){
-                    update_pui(&prog, copied, done);
-                    s_count = 0;
-                }
-
-                log_mesg(2, 0, 0, debug, "end\n");
 #endif
             }
 	    update_pui(&prog, copied, done);
         } /// end of for
+	done = 1;
+	update_pui(&prog, copied, done);
 	/// free buffer
 	free(buffer);
         sync_data(dfw, &opt);

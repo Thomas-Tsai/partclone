@@ -183,7 +183,7 @@ int main(int argc, char **argv){
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
     progress_init(&prog, start, stop, image_hdr.block_size);
-    copied = 1;				/// initial number is 1
+    copied = 0;				/// initial number is 0
 
     /**
      * start read and write data between device and image file
@@ -225,6 +225,7 @@ int main(int argc, char **argv){
                 }
 
             }else if (r_size == 0) {
+		//EIO
 		done = 1;
 	    }else
 		log_mesg(0, 1, 1, debug, "read error: %s(%i) rsize=%i\n", strerror(errno), errno, r_size);
@@ -246,7 +247,6 @@ int main(int argc, char **argv){
             w_size = 0;
         }
 
-        update_pui(&prog, copied, done);
 
         copied++;					/// count copied block
         total_write += (unsigned long long)(w_size);	/// count copied size
@@ -257,6 +257,7 @@ int main(int argc, char **argv){
             log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
         log_mesg(1, 0, 0, debug, "end\n");
         block_id++;
+	update_pui(&prog, copied, done);
     } while (done == 0);/// end of for    
     sync_data(dfw, &opt);	
     /// free buffer
