@@ -212,7 +212,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     fs_open(device);
 
     if (bitmap_size > ntfs->lcnbmp_na->data_size) {
-        log_mesg(0, 1, 1, fs_opt.debug, "%s: calculated bitmap size (%lu) > lcnbmp_na->data_size (%llu)\n", __FILE__);
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: calculated bitmap size (%lu) > lcnbmp_na->data_size (%llu)\n", __FILE__, bitmap_size, ntfs->lcnbmp_na->data_size);
     }
  
     ntfs_bitmap = (unsigned char*)malloc(bitmap_size);
