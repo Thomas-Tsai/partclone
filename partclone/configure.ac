@@ -29,6 +29,7 @@ enable_hfsp="yes"
 enable_fat="yes"
 enable_ntfs="yes"
 enable_ufs="yes"
+enable_vmfs="yes"
 fi
 
 ##ext2/3##
@@ -298,6 +299,26 @@ ufs_version="newer then 7.0-2"
 fi
 #end of check ufs
 
+##VMFS##
+AC_ARG_ENABLE(vmfs,
+	AS_HELP_STRING(--enable-vmfs,enable vmfs file system), 
+	enable_vmfs=yes,
+)
+AM_CONDITIONAL(ENABLE_VMFS, test "$enable_vmfs" = yes)
+
+if test "$enable_vmfs" = "yes"; then
+#check library of some filesystems
+
+dnl Check for VMFS 
+#AC_CHECKING([ for VMFS Library ... ])
+#AC_CHECK_LIB([vmfs], [vmfs_disk_fillout], ,
+#        AC_MSG_ERROR([*** ufs depend library (libufs2) not found]))
+supported_fs=$supported_fs" vmfs"
+vmfs_version="testing"
+fi
+#end of check ufs
+
+
 
 ##libncursesw##
 AC_ARG_ENABLE(ncursesw,
@@ -351,4 +372,5 @@ echo "ntfs..........$enable_ntfs $ntfs_version"
 echo "fat12/16/32...$enable_fat $fat_version"
 echo "hfs plus......$enable_hfsp $hfs_plus_version"
 echo "ufs ..........$enable_ufs $ufs_version"
+echo "vmfs .........$enable_vmfs $vmfs_version"
 #echo $supported_fs

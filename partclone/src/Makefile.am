@@ -77,6 +77,13 @@ partclone_ufs_CFLAGS=-DUFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64
 partclone_ufs_LDADD=-lufs -lbsd  
 endif
 
+if ENABLE_VMFS
+sbin_PROGRAMS += partclone.vmfs
+partclone_vmfs_SOURCES=main.c partclone.c progress.c vmfsclone.c vmfsclone.h partclone.h progress.h gettext.h
+partclone_vmfs_CFLAGS=-DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64
+partclone_vmfs_LDADD=-lvmfs -luuid
+endif
+
 
 # Extra
 install-exec-hook:

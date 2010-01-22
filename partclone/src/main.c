@@ -70,6 +70,9 @@ p_dialog_mesg	m_dialog;			/// dialog format string
 #elif UFS
 #include "ufsclone.h"
 #define FS "UFS"
+#elif VMFS
+#include "vmfsclone.h"
+#define FS "VMFS"
 #endif
 
 /// fs option
