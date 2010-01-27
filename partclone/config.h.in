@@ -52,8 +52,8 @@
 /* Define to 1 if you have the `ufs' library (-lufs). */
 #undef HAVE_LIBUFS
 
-/* Define to 1 if you have the `uuid' library (-luuid). */
-#undef HAVE_LIBUUID
+/* Define to 1 if you have the `vmfs -luuid' library (-lvmfs -luuid). */
+#undef HAVE_LIBVMFS__LUUID
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -108,9 +108,6 @@
 
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
-
-/* Define to the home page for this package. */
-#undef PACKAGE_URL
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION

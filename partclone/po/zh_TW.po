@@ -16,6 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: src/progress.c:146
+#, c-format
 msgid "\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Seeking..., "
 msgstr "\r%81c\r經過：%s, 剩餘： %s, 完成：%6.2f%%, 尋找備份..., "
 
@@ -42,11 +43,11 @@ msgstr "平均速率：%6.1fMB/min, "
 #: src/progress.c:167
 #, c-format
 msgid "%s"
-msgstr ""
+msgstr "%s"
 
 #: src/progress.c:218
 msgid " "
-msgstr ""
+msgstr " "
 
 #: src/progress.c:219
 #, c-format
@@ -73,6 +74,7 @@ msgid "Remaining: 0"
 msgstr "剩餘：0"
 
 #: src/progress.c:251
+#, c-format
 msgid "Ave. Rate: %6.2fMB/min"
 msgstr "平均速率：%6.1fMB/min"
 
@@ -141,6 +143,7 @@ msgid "Space in use: %lli MB\n"
 msgstr "裝置使用到空間: %lli MB\n"
 
 #: src/partclone.c:975
+#, c-format
 msgid "Free Space: %lli MB\n"
 msgstr "剩餘空間: %lli MB\n"
 

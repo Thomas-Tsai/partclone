@@ -32,6 +32,9 @@ enable_ufs="yes"
 enable_vmfs="yes"
 fi
 
+dnl Check for uuid 
+PKG_CHECK_MODULES(UUID, uuid,,exit)
+
 ##ext2/3##
 AC_ARG_ENABLE(extfs,
 	AS_HELP_STRING(--enable-extfs,enable ext2/3/4 file system), 
@@ -100,7 +103,7 @@ AC_CHECK_HEADERS([xfs/libxfs.h], ,
 )
 supported_fs=$supported_fs" xfs"
 fi
-xfs_version="unknown"
+xfs_version="unknown, suggest 2.10.2"
 #end of check xfs
 
 ##reiserfs##
@@ -165,10 +168,6 @@ if test "$enable_reiser4" = "yes"; then
 
 dnl Check for REISER4
 dnl Check uuid library which depended by REISER4
-AC_CHECK_LIB([uuid], [uuid_unparse], , 
-    AC_MSG_ERROR([*** uuid library (libuuid) not found])
-)
-
 AC_CHECKING([ for Reiser4 Library and Header files ... ])
 AC_CHECK_HEADERS([reiser4/libreiser4.h], ,
   AC_MSG_ERROR([*** reiser4 header files (reiser4/libreiser4.h) not found])
@@ -295,7 +294,7 @@ AC_CHECKING([ for UFS Library ... ])
 AC_CHECK_LIB([ufs], [ufs_disk_fillout], ,
         AC_MSG_ERROR([*** ufs depend library (libufs2) not found]))
 supported_fs=$supported_fs" ufs"
-ufs_version="newer then 7.0-2"
+ufs_version="unknown, suggest 7.0-2"
 fi
 #end of check ufs
 
@@ -310,15 +309,16 @@ if test "$enable_vmfs" = "yes"; then
 #check library of some filesystems
 
 dnl Check for VMFS 
-#AC_CHECKING([ for VMFS Library ... ])
-#AC_CHECK_LIB([vmfs], [vmfs_disk_fillout], ,
-#        AC_MSG_ERROR([*** ufs depend library (libufs2) not found]))
+##AC_CHECKING([ for VMFS Library and Header files ... ])
+##AC_CHECK_HEADERS([uuid/uuid.h vmfs/vmfs.h], ,
+##   AC_MSG_ERROR([*** VMFS(vmfs-tools) header not found]))
+AC_CHECKING([for VMFS Library files ... ])
+AC_CHECK_LIB([vmfs -luuid], [vmfs_host_init], ,
+        AC_MSG_ERROR([*** vmfs depend library (libvmfs) not found]))
 supported_fs=$supported_fs" vmfs"
-vmfs_version="testing"
+vmfs_version="unknown, suggest 0.2.0"
 fi
-#end of check ufs
-
-
+#end of check vmfs
 
 ##libncursesw##
 AC_ARG_ENABLE(ncursesw,
@@ -364,13 +364,13 @@ AC_OUTPUT
 
 echo ""
 echo "Support File System:"
-echo "ext2/3/4......$enable_extfs $extfs_version"
-echo "reiserfs......$enable_reiserfs $reiserfs_version"
-echo "reiser4.......$enable_reiser4 $reiser4_version"
-echo "xfs...........$enable_xfs $xfs_version"
-echo "ntfs..........$enable_ntfs $ntfs_version"
-echo "fat12/16/32...$enable_fat $fat_version"
-echo "hfs plus......$enable_hfsp $hfs_plus_version"
-echo "ufs ..........$enable_ufs $ufs_version"
-echo "vmfs .........$enable_vmfs $vmfs_version"
+echo "ext2/3/4...... $enable_extfs  $extfs_version"
+echo "reiserfs...... $enable_reiserfs  $reiserfs_version"
+echo "reiser4....... $enable_reiser4  $reiser4_version"
+echo "xfs........... $enable_xfs  $xfs_version"
+echo "ntfs.......... $enable_ntfs  $ntfs_version"
+echo "fat12/16/32... $enable_fat  $fat_version"
+echo "hfs plus...... $enable_hfsp  $hfs_plus_version"
+echo "ufs .......... $enable_ufs  $ufs_version"
+echo "vmfs ......... $enable_vmfs  $vmfs_version"
 #echo $supported_fs

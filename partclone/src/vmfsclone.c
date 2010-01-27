@@ -13,8 +13,7 @@
 
 #include <stdio.h>
 #include <stdio.h>
-#include "vmfs.h"
-
+#include <vmfs/vmfs.h>
 
 #include "partclone.h"
 #include "reiser4clone.h"
@@ -80,7 +79,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
     total = fs->fbb->bmh.total_items;
     alloc = vmfs_bitmap_allocated_items(fs->fbb);
 
-    for(current = 0; current <= total; current++){
+    for(current = 0; current < total; current++){
 	status = vmfs_block_get_status(fs, VMFS_BLK_FB_BUILD(current));
 	if (status == -1) {
 	    err_block++;
@@ -100,7 +99,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
     update_pui(&prog, current, 1);
     fs_close();
 
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: Used:%u, Free:%u, Status err:%u\n", __FILE__, used_block, free_block, err_block);
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: Used:%u, Free:%u, Status err:%u\n", __FILE__, used_block, free_block, err_block);
 
 }
 
