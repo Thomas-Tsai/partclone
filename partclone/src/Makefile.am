@@ -82,8 +82,13 @@ sbin_PROGRAMS += partclone.vmfs
 partclone_vmfs_SOURCES=main.c partclone.c progress.c vmfsclone.c vmfsclone.h partclone.h progress.h gettext.h
 partclone_vmfs_CFLAGS=-DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
 partclone_vmfs_LDADD=-lvmfs -luuid
-endif
 
+sbin_PROGRAMS += partclone.fstype
+partclone_fstype_SOURCES=fstype.c
+partclone_fstype_CFLAGS=-DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
+partclone_fstype_LDADD=-lvmfs -luuid
+
+endif
 
 # Extra
 install-exec-hook:

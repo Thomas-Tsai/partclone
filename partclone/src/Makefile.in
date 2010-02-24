@@ -46,7 +46,7 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 @ENABLE_NTFS_TRUE@am__append_7 = partclone.ntfs partclone.ntfsfixboot
 @ENABLE_STATIC_TRUE@am__append_8 = -static 
 @ENABLE_UFS_TRUE@am__append_9 = partclone.ufs
-@ENABLE_VMFS_TRUE@am__append_10 = partclone.vmfs
+@ENABLE_VMFS_TRUE@am__append_10 = partclone.vmfs partclone.fstype
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -69,7 +69,8 @@ CONFIG_CLEAN_FILES =
 @ENABLE_NTFS_TRUE@am__EXEEXT_7 = partclone.ntfs$(EXEEXT) \
 @ENABLE_NTFS_TRUE@	partclone.ntfsfixboot$(EXEEXT)
 @ENABLE_UFS_TRUE@am__EXEEXT_8 = partclone.ufs$(EXEEXT)
-@ENABLE_VMFS_TRUE@am__EXEEXT_9 = partclone.vmfs$(EXEEXT)
+@ENABLE_VMFS_TRUE@am__EXEEXT_9 = partclone.vmfs$(EXEEXT) \
+@ENABLE_VMFS_TRUE@	partclone.fstype$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)"
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(sbin_PROGRAMS)
@@ -106,6 +107,13 @@ partclone_fat_OBJECTS = $(am_partclone_fat_OBJECTS)
 partclone_fat_LDADD = $(LDADD)
 partclone_fat_DEPENDENCIES = $(am__DEPENDENCIES_1)
 partclone_fat_LINK = $(CCLD) $(partclone_fat_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__partclone_fstype_SOURCES_DIST = fstype.c
+@ENABLE_VMFS_TRUE@am_partclone_fstype_OBJECTS =  \
+@ENABLE_VMFS_TRUE@	partclone_fstype-fstype.$(OBJEXT)
+partclone_fstype_OBJECTS = $(am_partclone_fstype_OBJECTS)
+partclone_fstype_DEPENDENCIES =
+partclone_fstype_LINK = $(CCLD) $(partclone_fstype_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__partclone_hfsp_SOURCES_DIST = main.c partclone.c progress.c \
 	hfsplusclone.c hfsplusclone.h partclone.h progress.h gettext.h
@@ -213,14 +221,16 @@ CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
 	$(partclone_extfs_SOURCES) $(partclone_fat_SOURCES) \
-	$(partclone_hfsp_SOURCES) $(partclone_info_SOURCES) \
-	$(partclone_ntfs_SOURCES) $(partclone_ntfsfixboot_SOURCES) \
-	$(partclone_reiser4_SOURCES) $(partclone_reiserfs_SOURCES) \
-	$(partclone_restore_SOURCES) $(partclone_ufs_SOURCES) \
-	$(partclone_vmfs_SOURCES) $(partclone_xfs_SOURCES)
+	$(partclone_fstype_SOURCES) $(partclone_hfsp_SOURCES) \
+	$(partclone_info_SOURCES) $(partclone_ntfs_SOURCES) \
+	$(partclone_ntfsfixboot_SOURCES) $(partclone_reiser4_SOURCES) \
+	$(partclone_reiserfs_SOURCES) $(partclone_restore_SOURCES) \
+	$(partclone_ufs_SOURCES) $(partclone_vmfs_SOURCES) \
+	$(partclone_xfs_SOURCES)
 DIST_SOURCES = $(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
 	$(am__partclone_extfs_SOURCES_DIST) \
 	$(am__partclone_fat_SOURCES_DIST) \
+	$(am__partclone_fstype_SOURCES_DIST) \
 	$(am__partclone_hfsp_SOURCES_DIST) $(partclone_info_SOURCES) \
 	$(am__partclone_ntfs_SOURCES_DIST) \
 	$(am__partclone_ntfsfixboot_SOURCES_DIST) \
@@ -380,6 +390,9 @@ partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h d
 @ENABLE_VMFS_TRUE@partclone_vmfs_SOURCES = main.c partclone.c progress.c vmfsclone.c vmfsclone.h partclone.h progress.h gettext.h
 @ENABLE_VMFS_TRUE@partclone_vmfs_CFLAGS = -DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
 @ENABLE_VMFS_TRUE@partclone_vmfs_LDADD = -lvmfs -luuid
+@ENABLE_VMFS_TRUE@partclone_fstype_SOURCES = fstype.c
+@ENABLE_VMFS_TRUE@partclone_fstype_CFLAGS = -DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
+@ENABLE_VMFS_TRUE@partclone_fstype_LDADD = -lvmfs -luuid
 all: all-am
 
 .SUFFIXES:
@@ -448,6 +461,9 @@ partclone.extfs$(EXEEXT): $(partclone_extfs_OBJECTS) $(partclone_extfs_DEPENDENC
 partclone.fat$(EXEEXT): $(partclone_fat_OBJECTS) $(partclone_fat_DEPENDENCIES) 
 	@rm -f partclone.fat$(EXEEXT)
 	$(partclone_fat_LINK) $(partclone_fat_OBJECTS) $(partclone_fat_LDADD) $(LIBS)
+partclone.fstype$(EXEEXT): $(partclone_fstype_OBJECTS) $(partclone_fstype_DEPENDENCIES) 
+	@rm -f partclone.fstype$(EXEEXT)
+	$(partclone_fstype_LINK) $(partclone_fstype_OBJECTS) $(partclone_fstype_LDADD) $(LIBS)
 partclone.hfsp$(EXEEXT): $(partclone_hfsp_OBJECTS) $(partclone_hfsp_DEPENDENCIES) 
 	@rm -f partclone.hfsp$(EXEEXT)
 	$(partclone_hfsp_LINK) $(partclone_hfsp_OBJECTS) $(partclone_hfsp_LDADD) $(LIBS)
@@ -498,6 +514,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_fat-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_fat-partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_fat-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_fstype-fstype.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-hfsplusclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-partclone.Po@am__quote@
@@ -656,6 +673,20 @@ partclone_fat-fatclone.obj: fatclone.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fatclone.c' object='partclone_fat-fatclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fat_CFLAGS) $(CFLAGS) -c -o partclone_fat-fatclone.obj `if test -f 'fatclone.c'; then $(CYGPATH_W) 'fatclone.c'; else $(CYGPATH_W) '$(srcdir)/fatclone.c'; fi`
+
+partclone_fstype-fstype.o: fstype.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fstype_CFLAGS) $(CFLAGS) -MT partclone_fstype-fstype.o -MD -MP -MF $(DEPDIR)/partclone_fstype-fstype.Tpo -c -o partclone_fstype-fstype.o `test -f 'fstype.c' || echo '$(srcdir)/'`fstype.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_fstype-fstype.Tpo $(DEPDIR)/partclone_fstype-fstype.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fstype.c' object='partclone_fstype-fstype.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fstype_CFLAGS) $(CFLAGS) -c -o partclone_fstype-fstype.o `test -f 'fstype.c' || echo '$(srcdir)/'`fstype.c
+
+partclone_fstype-fstype.obj: fstype.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fstype_CFLAGS) $(CFLAGS) -MT partclone_fstype-fstype.obj -MD -MP -MF $(DEPDIR)/partclone_fstype-fstype.Tpo -c -o partclone_fstype-fstype.obj `if test -f 'fstype.c'; then $(CYGPATH_W) 'fstype.c'; else $(CYGPATH_W) '$(srcdir)/fstype.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/partclone_fstype-fstype.Tpo $(DEPDIR)/partclone_fstype-fstype.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fstype.c' object='partclone_fstype-fstype.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_fstype_CFLAGS) $(CFLAGS) -c -o partclone_fstype-fstype.obj `if test -f 'fstype.c'; then $(CYGPATH_W) 'fstype.c'; else $(CYGPATH_W) '$(srcdir)/fstype.c'; fi`
 
 partclone_hfsp-main.o: main.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -MT partclone_hfsp-main.o -MD -MP -MF $(DEPDIR)/partclone_hfsp-main.Tpo -c -o partclone_hfsp-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
