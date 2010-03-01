@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.0.4\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2010-01-18 10:07+0800\n"
+"POT-Creation-Date: 2010-03-01 16:07+0800\n"
 "PO-Revision-Date: 2007-11-01 11:35+0800\n"
 "Last-Translator: Yu-Chin Tsai <thomas@nchc.org.tw>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -104,7 +104,7 @@ msgstr ""
 
 #: src/partclone.c:936
 #, c-format
-msgid "Partclone v%s (%s) http://partclone.org\n"
+msgid "Partclone v%s http://partclone.org\n"
 msgstr ""
 
 #: src/partclone.c:938

@@ -1,3 +1,10 @@
+partclone (0.2.3-2ubuntu1) karmic; urgency=low
+
+  * add partclone.fstype to test filesystem type (vmfs only)
+  * 
+
+ -- thomas <thomas@T-laptop>  Mon, 01 Mar 2010 16:14:59 +0800
+
 partclone (0.2.0-2) unstable; urgency=low
 
   * VMFS supported in this release.

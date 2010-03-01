@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2010-01-18 10:07+0800\n"
+"POT-Creation-Date: 2010-03-01 16:07+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -96,7 +96,7 @@ msgstr ""
 
 #: src/partclone.c:936
 #, c-format
-msgid "Partclone v%s (%s) http://partclone.org\n"
+msgid "Partclone v%s http://partclone.org\n"
 msgstr ""
 
 #: src/partclone.c:938

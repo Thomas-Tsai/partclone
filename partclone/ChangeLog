@@ -1,3 +1,30 @@
+2010-03-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	        try to build package via git build package
+		modified:   ChangeLog
+		modified:   debian/changelog
+		modified:   po/partclone.pot
+		modified:   po/zh_TW.gmo
+		modified:   po/zh_TW.po
+		modified:   toolbox
+
+	~ update message of fstype
+	~ replace to git repository
+	~ update version display
+	~ add gitlog-to-changelog to convert git log to ChangeLog
+
+	On branch master
+	Changes to be committed:
+		new file:   gitlog-to-changelog
+		modified:   ChangeLog
+		modified:   configure
+		modified:   configure.ac
+		modified:   src/chkimg.c
+		modified:   src/fstype.c
+		modified:   src/partclone.c
+		modified:   src/version.h
+		modified:   toolbox
+
 2010-02-25  Thomas Tsai  <thomas@nchc.org.tw>
 
 	update version number
