@@ -358,7 +358,7 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\"
 LDADD = $(LIBINTL)
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
-partclone_info_SOURCES = infoclone.c partclone.c partclone.h
+partclone_info_SOURCES = infoclone.c partclone.c partclone.h fs_common.h
 partclone_restore_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h restore.c
 partclone_restore_CFLAGS = -DRESTORE
 partclone_chkimg_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h chkimg.c

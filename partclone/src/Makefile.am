@@ -6,7 +6,7 @@ TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 version.h: FORCE
 	$(TOOLBOX) --update-version
 
-partclone_info_SOURCES=infoclone.c partclone.c partclone.h
+partclone_info_SOURCES=infoclone.c partclone.c partclone.h fs_common.h
 
 partclone_restore_SOURCES=partclone.c partclone.h progress.c progress.h gettext.h restore.c
 partclone_restore_CFLAGS=-DRESTORE
