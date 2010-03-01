@@ -46,7 +46,7 @@ char *EXECNAME="partclone.chkimg";
 
 static void usage_chkimg(void)
 {
-    fprintf(stderr, "%s v%s (%s) http://partclone.org\nUsage: %s [OPTIONS]\n"
+    fprintf(stderr, "%s v%s http://partclone.org\nUsage: %s [OPTIONS]\n"
             "    Efficiently clone to a image, device or standard output.\n"
             "\n"
             "    -s,  --source FILE      Source FILE\n"
@@ -60,7 +60,7 @@ static void usage_chkimg(void)
             "    -F,  --force            force progress\n"
             "    -f,  --UI-fresh         fresh times of progress\n"
             "    -h,  --help             Display this help\n"
-            , EXECNAME, VERSION, svn_version, EXECNAME);
+            , EXECNAME, VERSION, EXECNAME);
     exit(0);
 }
 

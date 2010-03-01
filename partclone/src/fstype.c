@@ -62,7 +62,7 @@ int main (int argc, char **argv){
     source=argv[1];
     ret = pvmfs_fs_open(source);
     if(ret == 0){
-	fprintf(stdout, "type: vmfs\n");
+	fprintf(stdout, "TYPE=\"vmfs\"\n");
     }else{
         fprintf(stderr, "error exit\n");
 	return 1;

@@ -65,7 +65,7 @@ int log_y_line = 0;
  */
 extern void usage(void)
 {
-    fprintf(stderr, "%s v%s (%s) http://partclone.org\nUsage: %s [OPTIONS]\n"
+    fprintf(stderr, "%s v%s http://partclone.org\nUsage: %s [OPTIONS]\n"
             "    Efficiently clone to a image, device or standard output.\n"
             "\n"
             "    -o,  --output FILE      Output FILE\n"
@@ -89,7 +89,7 @@ extern void usage(void)
             "    -F,  --force            Force progress\n"
             "    -f,  --UI-fresh         Fresh times of progress\n"
             "    -h,  --help             Display this help\n"
-            , EXECNAME, VERSION, svn_version, EXECNAME);
+            , EXECNAME, VERSION, EXECNAME);
     exit(0);
 }
 
@@ -933,7 +933,7 @@ extern void print_partclone_info(cmd_opt opt){
     bindtextdomain(PACKAGE, LOCALEDIR);
     textdomain(PACKAGE);
     //log_mesg(0, 0, 0, "%s v%s \n", EXEC_NAME, VERSION);
-    log_mesg(0, 0, 1, debug, _("Partclone v%s (%s) http://partclone.org\n"), VERSION, svn_version);
+    log_mesg(0, 0, 1, debug, _("Partclone v%s http://partclone.org\n"), VERSION);
     if (opt.chkimg)
         log_mesg(0, 0, 1, debug, _("Starting to check image (%s)\n"), opt.source);	
     else if (opt.clone)
