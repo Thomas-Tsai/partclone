@@ -1,9 +1,9 @@
-partclone (0.2.3-2ubuntu1) karmic; urgency=low
+partclone (0.2.3-1) unstable; urgency=low
 
   * add partclone.fstype to test filesystem type (vmfs only)
-  * 
+  * update svn versionto git version
 
- -- thomas <thomas@T-laptop>  Mon, 01 Mar 2010 16:14:59 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 02 Mar 2010 13:50:26 +0800
 
 partclone (0.2.0-2) unstable; urgency=low
 

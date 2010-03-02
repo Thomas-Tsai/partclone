@@ -61,6 +61,7 @@ int log_y_line = 0;
 /**
  * options - 
  * usage		    - print message "how to use this"
+ * print_version
  * parse_options	    - get parameter from agrc, argv
  */
 extern void usage(void)
@@ -88,16 +89,23 @@ extern void usage(void)
 	    "         --ignore_crc       Ignore crc check error\n"
             "    -F,  --force            Force progress\n"
             "    -f,  --UI-fresh         Fresh times of progress\n"
+            "    -v,  --version          Display partclone version\n"
             "    -h,  --help             Display this help\n"
             , EXECNAME, VERSION, EXECNAME);
     exit(0);
 }
 
+extern void print_version(void){
+    printf("Partclone : v%s (%s) \n", VERSION, git_version);
+    exit(0);
+}
+
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hd::L:cbro:O:s:f:RCXFINi";
+    static const char *sopt = "-hvd::L:cbro:O:s:f:RCXFINi";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
+        { "print_version",	no_argument,	    NULL,   'v' },
         { "output",		required_argument,  NULL,   'o' },
         { "overwrite",	required_argument,  NULL,   'O' },
         { "source",		required_argument,  NULL,   's' },
@@ -142,6 +150,9 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
                 break;
             case '?':
                 usage();
+                break;
+            case 'v':
+                print_version();
                 break;
             case 'O':
                 opt->overwrite++;
