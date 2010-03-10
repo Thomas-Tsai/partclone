@@ -1,3 +1,10 @@
+partclone (0.2.4-1) unstable; urgency=low
+
+  * autogen git number
+  * fix progress inf bug
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 10 Mar 2010 16:30:55 +0800
+
 partclone (0.2.3-1) unstable; urgency=low
 
   * add partclone.fstype to test filesystem type (vmfs only)
