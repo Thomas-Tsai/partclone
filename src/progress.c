@@ -242,6 +242,8 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
     } else {
         percent=100;
         total = (time(0) - prog->initial_time);
+	if (total <= 0)
+	    total = 1;
         Ttm = gmtime(&total);
         speedps  = (float)prog->block_size * (float)current / (float)(total);
         speed = (float)(speedps / 1000000.0 * 60.0);
@@ -328,6 +330,8 @@ extern void Dialog_progress_update(struct progress_bar *prog, unsigned long long
         fprintf(stderr, "XXX\n%i\n%s\n%s\nXXX\n", m_dialog.percent, m_dialog.data, tmp_str);
     } else {
         total = (time(0) - prog->initial_time);
+	if (total <= 0)
+	    total = 1;
         Ttm = gmtime(&total);
         speedps  = (float)prog->block_size * (float)current / (float)(total);
         speed = (float)(speedps / 1000000.0 * 60.0);
