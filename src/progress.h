@@ -35,8 +35,19 @@ struct progress_bar {
 };
 typedef struct progress_bar progress_bar;
 
+struct prog_stat_t{
+    char Eformated[10];
+    char Rformated[10];
+    float percent;
+    float speed;
+    char speed_unit[3];
+    
+};
+typedef struct prog_stat_t prog_stat_t;
+
 extern int open_pui(int pui, unsigned long res);
 extern void close_pui(int pui);
+static void calculate_speed(struct progress_bar *prog, unsigned long long current, int done, prog_stat_t *prog_stat);
 extern void update_pui(struct progress_bar *prog, unsigned long long current, int done);
 
 /// initial progress bar

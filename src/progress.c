@@ -34,6 +34,11 @@ int color_support = 1;
 int PUI;
 unsigned long RES=0;
 
+#define KBYTE (1000)
+#define MBYTE (1000 * 1000)
+#define GBYTE (1000 * 1000 * 1000)
+#define print_size(a, b) (((a) + (b - 1)) / (b))
+
 /// initial progress bar
 extern void progress_init(struct progress_bar *prog, int start, unsigned long long stop, int size)
 {
@@ -100,6 +105,68 @@ extern void update_pui(struct progress_bar *prog, unsigned long long current, in
         progress_update(prog, current, done);
 }
 
+static void calculate_speed(struct progress_bar *prog, unsigned long long current, int done, prog_stat_t *prog_stat){
+    char *format = "%H:%M:%S";
+    double speedps = 1.0;
+    float speed = 1.0;
+    float percent = 1.0;
+    time_t remained;
+    time_t elapsed;
+    char Rformated[10], Eformated[10];
+    char speed_unit[] = "KB";
+    struct tm *Rtm, *Etm;
+
+    percent  = prog->unit * current;
+    if (percent <= 0)
+	percent = 1;
+
+    elapsed  = (time(0) - prog->initial_time);
+    if (elapsed <= 0)
+	elapsed = 1;
+
+    speedps  = (float)prog->block_size * (float)current / (float)(elapsed);
+    speed = (float)(speedps * 60.0);
+
+    if(prog->block_size == 1){ // don't show bitmap rate, bit_size = 1
+	speed = 0;	
+    }
+
+    if (speed >= GBYTE){
+	speed = print_size(speed, GBYTE);
+	strncpy(speed_unit, "GB", 3);
+    }else if (speed >= MBYTE){
+	speed = print_size(speed, MBYTE);
+	strncpy(speed_unit, "MB", 3);
+    }else if (speed >= KBYTE){
+	speed = print_size(speed, KBYTE);
+	strncpy(speed_unit, "KB", 3);
+    }
+
+    if (done != 1){
+        remained = (time_t)((elapsed/percent*100) - elapsed);
+
+        Rtm = gmtime(&remained);
+        strftime(Rformated, sizeof(Rformated), format, Rtm);
+
+        Etm = gmtime(&elapsed);
+        strftime(Eformated, sizeof(Eformated), format, Etm);
+
+    } else {
+        percent=100;
+        remained = (time_t)0;
+        Rtm = gmtime(&remained);
+        strftime(Rformated, sizeof(Rformated), format, Rtm);
+        Etm = gmtime(&elapsed);
+        strftime(Eformated, sizeof(Eformated), format, Etm);
+    }
+
+    strncpy(prog_stat->Eformated, Eformated, 10);
+    strncpy(prog_stat->Rformated, Rformated, 10);
+    prog_stat->percent   = percent;
+    prog_stat->speed     = speed;
+    strncpy(prog_stat->speed_unit, speed_unit, 3);
+}
+
 /// update information at progress bar
 extern void progress_update(struct progress_bar *prog, unsigned long long current, int done)
 {
@@ -107,63 +174,34 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
     bindtextdomain(PACKAGE, LOCALEDIR);
     textdomain(PACKAGE);
 
-    float percent;
-    double speedps = 1.0;
-    float speed = 1.0;
-    int display = 0;
-    time_t remained;
-    time_t elapsed;
-    time_t total;
-    char *format = "%H:%M:%S";
-    char Rformated[10], Eformated[10], Tformated[10];
-    struct tm *Rtm, *Etm, *Ttm;
-    char *clear_buf = NULL;
+    char clear_buf = ' ';
+    prog_stat_t prog_stat;
+
+    memset(&prog_stat, 0, sizeof(prog_stat_t));
+    calculate_speed(prog, current, done, &prog_stat);
 
     if (done != 1){
         if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && current != 0)
             return;
 	prog->resolution_time = time(0);
-        percent  = prog->unit * current;
-        if (percent <= 0)
-            percent = 1;
-        elapsed  = (time(0) - prog->initial_time);
-        if (elapsed <= 0)
-            elapsed = 1;
-        speedps  = (float)prog->block_size * (float)current / (float)(elapsed);
-        //remained = (time_t)(prog->block_size * (prog->stoprog- current)/(int)speedps);
-        remained = (time_t)((elapsed/percent*100) - elapsed);
-        speed = (float)(speedps / 1000000.0 * 60.0);
-        prog->rate = prog->rate+speed;
-
-        /// format time string
-        Rtm = gmtime(&remained);
-        strftime(Rformated, sizeof(Rformated), format, Rtm);
-
-        Etm = gmtime(&elapsed);
-        strftime(Eformated, sizeof(Eformated), format, Etm);
 
         if ((current+1) == prog->stop){
-	    fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Seeking..., "), clear_buf, Eformated, Rformated, percent, (float)(speed));
+	    fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Seeking..., "), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed));
 	} else {
-	    fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "), clear_buf, Eformated, Rformated, percent, (float)(speed));
+	    if((int)prog_stat.speed > 0)
+	    fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2f%s/min, "), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed), prog_stat.speed_unit);
+	    else
+		fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
 	}
     } else {
-        elapsed  = (time(0) - prog->initial_time);
-        if (elapsed <= 0)
-            elapsed = 1;
-        speedps  = (float)prog->block_size * (float)current / (float)(elapsed);
-        speed = (float)(speedps / 1000000.0 * 60.0);
-        percent=100;
-        /// format time string
-        remained = (time_t)0;
-        Rtm = gmtime(&remained);
-        strftime(Rformated, sizeof(Rformated), format, Rtm);
-        total = elapsed;
-        Ttm = gmtime(&total);
-        strftime(Tformated, sizeof(Tformated), format, Ttm);
-        fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2fMB/min, "), clear_buf, Tformated, Rformated, percent, (float)(speed));
-        fprintf(stderr, _("\nTotal Time: %s, "), Tformated);
-        fprintf(stderr, _("Ave. Rate: %6.1fMB/min, "), (float)(speed));
+	if((int)prog_stat.speed > 0)
+	    fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2f%s/min, "), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed), prog_stat.speed_unit);
+	else
+	    fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
+
+        fprintf(stderr, _("\nTotal Time: %s, "), prog_stat.Eformated);
+	if((int)prog_stat.speed > 0)
+	    fprintf(stderr, _("Ave. Rate: %6.1f%s/min, "), (float)(prog_stat.speed), prog_stat.speed_unit);
         fprintf(stderr, _("%s"), "100.00%% completed!\n");
     }
 }
@@ -173,39 +211,17 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 {
 #ifdef HAVE_LIBNCURSESW
 
-    float percent;
-    double speedps = 1.0;
-    float speed = 1.0;
-    int display = 0;
-    time_t remained;
-    time_t elapsed;
-    time_t total;
-    char *format = "%H:%M:%S";
-    char Rformated[10], Eformated[10], Tformated[10];
-    struct tm *Rtm, *Etm, *Ttm;
     char *clear_buf = NULL;
     char *p_block;
+    prog_stat_t prog_stat;
+
+    memset(&prog_stat, 0, sizeof(prog_stat_t));
+    calculate_speed(prog, current, done, &prog_stat);
 
     if (done != 1){
-        //if (((current - prog->start) % prog->resolution) && ((current != prog->stop)))
         if (difftime(time(0), prog->resolution_time) < prog->interval_time)
             return;
 	prog->resolution_time = time(0);
-        percent  = prog->unit * current;
-        elapsed  = (time(0) - prog->initial_time);
-        if (elapsed <= 0)
-            elapsed = 1;
-        speedps  = (float)prog->block_size * (float)current / (float)(elapsed);
-        speed = (float)(speedps / 1000000.0 * 60.0);
-        remained = (time_t)((elapsed/percent*100) - elapsed);
-        prog->rate = prog->rate+speed;
-
-        /// format time string
-        Rtm = gmtime(&remained);
-        strftime(Rformated, sizeof(Rformated), format, Rtm);
-
-        Etm = gmtime(&elapsed);
-        strftime(Eformated, sizeof(Eformated), format, Etm);
 
         /// set bar color
         init_pair(4, COLOR_RED, COLOR_RED);
@@ -216,48 +232,42 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 
 
         mvwprintw(p_win, 0, 0, _(" "));
-        mvwprintw(p_win, 1, 0, _("Elapsed: %s") , Eformated);
-        mvwprintw(p_win, 2, 0, _("Remaining: %s"), Rformated);
-        mvwprintw(p_win, 3, 0, _("Rate: %6.2fMB/min"), (float)(speed));
+        mvwprintw(p_win, 1, 0, _("Elapsed: %s") , prog_stat.Eformated);
+        mvwprintw(p_win, 2, 0, _("Remaining: %s"), prog_stat.Rformated);
+	if ((int)prog_stat.speed > 0)
+	    mvwprintw(p_win, 3, 0, _("Rate: %6.2f%s/min"), (float)(prog_stat.speed), prog_stat.speed_unit);
         //mvwprintw(p_win, 3, 0, _("Completed:%6.2f%%"), percent);
         p_block = malloc(50);
         memset(p_block, 0, 50);
-        memset(p_block, ' ', (size_t)(percent*0.5));
+        memset(p_block, ' ', (size_t)(prog_stat.percent*0.5));
         wattrset(bar_win, COLOR_PAIR(4));
         mvwprintw(bar_win, 0, 0, "%s", p_block);
         wattroff(bar_win, COLOR_PAIR(4));
-        if(percent <= 50){
+        if(prog_stat.percent <= 50){
             wattrset(p_win, COLOR_PAIR(5));
-            mvwprintw(p_win, 5, 25, "%3.0f%%", percent);
+            mvwprintw(p_win, 5, 25, "%3.0f%%", prog_stat.percent);
             wattroff(p_win, COLOR_PAIR(5));
         }else{
             wattrset(p_win, COLOR_PAIR(6));
-            mvwprintw(p_win, 5, 25, "%3.0f%%", percent);
+            mvwprintw(p_win, 5, 25, "%3.0f%%", prog_stat.percent);
             wattroff(p_win, COLOR_PAIR(6));
         }
-        mvwprintw(p_win, 5, 52, "%6.2f%%", percent);
+        mvwprintw(p_win, 5, 52, "%6.2f%%", prog_stat.percent);
         wrefresh(p_win);
         wrefresh(bar_win);
         free(p_block);
     } else {
-        percent=100;
-        total = (time(0) - prog->initial_time);
-	if (total <= 0)
-	    total = 1;
-        Ttm = gmtime(&total);
-        speedps  = (float)prog->block_size * (float)current / (float)(total);
-        speed = (float)(speedps / 1000000.0 * 60.0);
-        strftime(Tformated, sizeof(Tformated), format, Ttm);
-        mvwprintw(p_win, 1, 0, _("Total Time: %s"), Tformated);
+        mvwprintw(p_win, 1, 0, _("Total Time: %s"), prog_stat.Eformated);
         mvwprintw(p_win, 2, 0, _("Remaining: 0"));
-        mvwprintw(p_win, 3, 0, _("Ave. Rate: %6.2fMB/min"), (float)speed);
+	if ((int)prog_stat.speed > 0)
+	    mvwprintw(p_win, 3, 0, _("Ave. Rate: %6.2f%s/min"), (float)prog_stat.speed, prog_stat.speed_unit);
         wattrset(bar_win, COLOR_PAIR(4));
         mvwprintw(bar_win, 0, 0, "%50s", " ");
         wattroff(bar_win, COLOR_PAIR(4));
         wattrset(p_win, COLOR_PAIR(6));
-        mvwprintw(p_win, 5, 22, "%6.2f%%", percent);
+        mvwprintw(p_win, 5, 22, "%6.2f%%", prog_stat.percent);
         wattroff(p_win, COLOR_PAIR(6));
-        mvwprintw(p_win, 5, 52, "%6.2f%%", percent);
+        mvwprintw(p_win, 5, 52, "%6.2f%%", prog_stat.percent);
         wrefresh(p_win);
         wrefresh(bar_win);
         refresh();
@@ -290,54 +300,30 @@ extern void Dialog_progress_update(struct progress_bar *prog, unsigned long long
     textdomain(PACKAGE);
     extern p_dialog_mesg m_dialog;
 
-    float percent;
-    double speedps = 1.0;
-    float speed = 1.0;
-    int display = 0;
-    time_t remained;
-    time_t elapsed;
-    time_t total;
-    char *format = "%H:%M:%S";
-    char Rformated[10], Eformated[10], Tformated[10];
-    struct tm *Rtm, *Etm, *Ttm;
     char tmp_str[128];
     char *clear_buf = NULL;
+    prog_stat_t prog_stat;
+
+    memset(&prog_stat, 0, sizeof(prog_stat_t));
+    calculate_speed(prog, current, done, &prog_stat);
 
     if (done != 1){
-        //if (((current - prog->start) % prog->resolution) && ((current != prog->stop)))
         if (difftime(time(0), prog->resolution_time) < prog->interval_time)
             return;
 	prog->resolution_time = time(0);
-        percent  = prog->unit * current;
-        elapsed  = (time(0) - prog->initial_time);
-        if (elapsed <= 0)
-            elapsed = 1;
-        speedps  = (float)prog->block_size * (float)current / (float)(elapsed);
-        //remained = (time_t)(prog->block_size * (prog->stoprog- current)/(int)speedps);
-        remained = (time_t)((elapsed/percent*100) - elapsed);
-        speed = (float)(speedps / 1000000.0 * 60.0);
-        prog->rate = prog->rate+speed;
 
-        /// format time string
-        Rtm = gmtime(&remained);
-        strftime(Rformated, sizeof(Rformated), format, Rtm);
-
-        Etm = gmtime(&elapsed);
-        strftime(Eformated, sizeof(Eformated), format, Etm);
-
-        m_dialog.percent = (int)percent;
-        sprintf(tmp_str, _("  Elapsed: %s\n  Remaining: %s\n  Completed:%6.2f%%\n  Rate: %6.2fMB/min, "), Eformated, Rformated, percent, (float)(speed));
+        m_dialog.percent = (int)prog_stat.percent;
+	if ((int)prog_stat.speed > 0)
+	    sprintf(tmp_str, _("  Elapsed: %s\n  Remaining: %s\n  Completed:%6.2f%%\n  Rate: %6.2f%s/min, "), prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed), prog_stat.speed_unit);
+	else
+	    sprintf(tmp_str, _("  Elapsed: %s\n  Remaining: %s\n  Completed:%6.2f%%"), prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
         fprintf(stderr, "XXX\n%i\n%s\n%s\nXXX\n", m_dialog.percent, m_dialog.data, tmp_str);
     } else {
-        total = (time(0) - prog->initial_time);
-	if (total <= 0)
-	    total = 1;
-        Ttm = gmtime(&total);
-        speedps  = (float)prog->block_size * (float)current / (float)(total);
-        speed = (float)(speedps / 1000000.0 * 60.0);
-        strftime(Tformated, sizeof(Tformated), format, Ttm);
         m_dialog.percent = 100;
-        sprintf(tmp_str, _("  Total Time: %s\n  Ave. Rate: %6.1fMB/min\n 100.00%%  completed!\n"), Tformated, (float)speed);
+	if ((int)prog_stat.speed > 0)
+	    sprintf(tmp_str, _("  Total Time: %s\n  Ave. Rate: %6.1f%s/min\n 100.00%%  completed!\n"), prog_stat.Eformated, (float)prog_stat.speed, prog_stat.speed_unit);
+	else
+	    sprintf(tmp_str, _("  Total Time: %s\n  100.00%%  completed!\n"), prog_stat.Eformated);
         fprintf(stderr, "XXX\n%i\n%s\n%s\nXXX\n", m_dialog.percent, m_dialog.data, tmp_str);
     }
 
