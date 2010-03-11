@@ -1,3 +1,10 @@
+partclone (0.2.5-1) unstable; urgency=low
+
+  * A bug about 0 rate for bitmap calculation.
+  * update partclone to show more readable size for partition and rate/min.
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Fri, 12 Mar 2010 09:15:31 +0800
+
 partclone (0.2.4-1) unstable; urgency=low
 
   * autogen git number

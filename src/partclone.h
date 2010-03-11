@@ -45,7 +45,9 @@
 #define CRC_SIZE 4
 
 // Reference: ntfsclone.c
+#define KBYTE (1000)
 #define MBYTE (1000 * 1000)
+#define GBYTE (1000 * 1000 * 1000)
 #define print_size(a, b) (((a) + (b - 1)) / (b))
 
 // define read and write
