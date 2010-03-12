@@ -60,29 +60,27 @@ int log_y_line = 0;
 
 extern void print_readable_size_str(unsigned long long size_byte, char *new_size_str){
 
-    int new_size = 0;
-    //char new_size_str[10];
-    memset(new_size_str, 0, 10);
+    float new_size = 1.0;
+    memset(new_size_str, 0, 11);
     uint64_t tbyte=1000000000000;
     
     if (size_byte == 0)
-	snprintf(new_size_str, 10, "%lli", size_byte);
+	snprintf(new_size_str, 11, "%lli", size_byte);
 
     if (size_byte >= tbyte){
 	new_size = print_size(size_byte, tbyte);
-	snprintf(new_size_str, 10, "%4i TB", new_size);
+	snprintf(new_size_str, 11, "%5.1f TB", new_size);
     }else if (size_byte >= GBYTE){
 	new_size = print_size(size_byte, GBYTE);
-	snprintf(new_size_str, 10, "%4i GB", new_size);
+	snprintf(new_size_str, 11, "%5.1f GB", new_size);
     }else if (size_byte >= MBYTE){
 	new_size = print_size(size_byte, MBYTE);
-	snprintf(new_size_str, 10, "%4i MB", new_size);
+	snprintf(new_size_str, 11, "%5.1f MB", new_size);
     }else if (size_byte >= KBYTE){
 	new_size = print_size(size_byte, KBYTE);
-	snprintf(new_size_str, 10, "%4i KB", new_size);
+	snprintf(new_size_str, 11, "%5.1f KB", new_size);
     }else{
-	new_size = print_size(size_byte, 1);
-	snprintf(new_size_str, 10, "%4i byte", new_size);
+	snprintf(new_size_str, 11, "%3i Byte", (int)size_byte);
     }
 
 }
@@ -993,24 +991,24 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
     unsigned long long used     = image_hdr.usedblocks;
     unsigned long long dev_size = image_hdr.device_size;
     int debug = opt.debug;
-    char size_str[10];
+    char size_str[11];
 
     setlocale(LC_ALL, "");
     bindtextdomain(PACKAGE, LOCALEDIR);
     textdomain(PACKAGE);
-    log_mesg(0, 0, 1, debug, _("File system: %s\n"), image_hdr.fs);
+    log_mesg(0, 0, 1, debug, _("File system:  %s\n"), image_hdr.fs);
 
     print_readable_size_str(total*block_s, size_str);
-    log_mesg(0, 0, 1, debug, _("Device size: %s\n"), size_str);
+    log_mesg(0, 0, 1, debug, _("Device size:  %s\n"), size_str);
     
     print_readable_size_str(used*block_s, size_str);
     log_mesg(0, 0, 1, debug, _("Space in use: %s\n"), size_str);
     
     print_readable_size_str((total-used)*block_s, size_str);
-    log_mesg(0, 0, 1, debug, _("Free Space: %s\n"), size_str);
+    log_mesg(0, 0, 1, debug, _("Free Space:   %s\n"), size_str);
     
-    log_mesg(0, 0, 1, debug, _("Block size: %i Byte\n"), block_s);
-    log_mesg(0, 0, 1, debug, _("Used block count: %lli\n"), used);
+    log_mesg(0, 0, 1, debug, _("Block size:   %i Byte\n"), block_s);
+    log_mesg(0, 0, 1, debug, _("Used block :  %lli\n"), used);
 }
 
 /// print finish message
