@@ -63,21 +63,24 @@ extern void print_readable_size_str(unsigned long long size_byte, char *new_size
     float new_size = 1.0;
     memset(new_size_str, 0, 11);
     uint64_t tbyte=1000000000000;
+    uint64_t gbyte=1000000000;
+    uint64_t mbyte=1000000;
+    uint64_t kbyte=1000;
     
     if (size_byte == 0)
 	snprintf(new_size_str, 11, "%lli", size_byte);
 
     if (size_byte >= tbyte){
-	new_size = print_size(size_byte, tbyte);
+	new_size = print_size((float)size_byte, (float)tbyte);
 	snprintf(new_size_str, 11, "%5.1f TB", new_size);
-    }else if (size_byte >= GBYTE){
-	new_size = print_size(size_byte, GBYTE);
+    }else if (size_byte >= gbyte){
+	new_size = print_size((float)size_byte, (float)gbyte);
 	snprintf(new_size_str, 11, "%5.1f GB", new_size);
-    }else if (size_byte >= MBYTE){
-	new_size = print_size(size_byte, MBYTE);
+    }else if (size_byte >= mbyte){
+	new_size = print_size((float)size_byte, (float)mbyte);
 	snprintf(new_size_str, 11, "%5.1f MB", new_size);
-    }else if (size_byte >= KBYTE){
-	new_size = print_size(size_byte, KBYTE);
+    }else if (size_byte >= kbyte){
+	new_size = print_size((float)size_byte, (float)kbyte);
 	snprintf(new_size_str, 11, "%5.1f KB", new_size);
     }else{
 	snprintf(new_size_str, 11, "%3i Byte", (int)size_byte);
