@@ -1,18 +1,47 @@
-2010-03-01  Thomas Tsai  <thomas@nchc.org.tw>
+2010-03-15  Thomas Tsai  <thomas@nchc.org.tw>
 
-	        try to build package via git build package
-		modified:   ChangeLog
-		modified:   debian/changelog
-		modified:   po/partclone.pot
-		modified:   po/zh_TW.gmo
-		modified:   po/zh_TW.po
-		modified:   toolbox
+	    * try to fix progress rate     * also change to partclone.c to fix print_readable_size 	modified:   src/partclone.c 	modified:   src/progress.c
 
-	~ update message of fstype
-	~ replace to git repository
-	~ update version display
-	~ add gitlog-to-changelog to convert git log to ChangeLog
+2010-03-12  Thomas Tsai  <thomas@nchc.org.tw>
 
+	update size number
+
+	show partition size more cleanly
+
+	Merge branch 'master' of partclone.nchc.org.tw:/home/partclone
+
+2010-03-12  thomas  <thomas@T17.(none)>
+
+	    * fix rate = 0, hide the size for bitmap only.     * print readable size     * update version     * update changelog
+
+2010-03-11  thomas  <thomas@T17.(none)>
+
+	    * fix rate = 0, hide the size for bitmap only.     * print readable size     * update version
+
+2010-03-10  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update deb changelog
+
+	set version to 0.2.4
+
+	add export version
+
+2010-03-10  thomas  <thomas@T17.(none)>
+
+	        add git revision by attribute 	update process inf error 	new file:   .gitattributes 	modified:   src/progress.c 	modified:   src/version.h
+
+2010-03-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add -v option to display VERSION and git version
+
+	remove unnecessary code
+
+2010-03-01  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
+
+	        try to build package via git build package 	modified:   ChangeLog 	modified:   debian/changelog 	modified:   po/partclone.pot 	modified:   po/zh_TW.gmo 	modified:   po/zh_TW.po 	modified:   toolbox
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@363 93b75dfe-da2d-4241-a08d-2141769abc04
+
+	~ update message of fstype ~ replace to git repository ~ update version display ~ add gitlog-to-changelog to convert git log to ChangeLog
 	On branch master
 	Changes to be committed:
 		new file:   gitlog-to-changelog
@@ -25,24 +54,14 @@
 		modified:   src/version.h
 		modified:   toolbox
 
-2010-02-25  Thomas Tsai  <thomas@nchc.org.tw>
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@362 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	update version number
-		modified:   Makefile.am
-		modified:   Makefile.in
-		modified:   configure
-		modified:   configure.ac
-		modified:   src/Makefile.am
-		modified:   src/Makefile.in
-		modified:   src/version.h
+	update version number 	modified:   Makefile.am 	modified:   Makefile.in 	modified:   configure 	modified:   configure.ac 	modified:   src/Makefile.am 	modified:   src/Makefile.in 	modified:   src/version.h
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@361 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2010-02-24  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	* add fstype.c to test vmfs filesystem like blkid do.
-	  We can run partclone.fstype to detect partition is vmfs or not, just run
-	  _$ ./partclone.fstype /dev/sda1
-	  type: vmfs
-
+	* add fstype.c to test vmfs filesystem like blkid do.   We can run partclone.fstype to detect partition is vmfs or not, just run   _$ ./partclone.fstype /dev/sda1   type: vmfs
 	  if partition is vmfs, fstype return string "type: vmfs" with exit "0". if not vmfs you can find reason with exit 1.
 
 	* update files:
@@ -51,97 +70,61 @@
 		modified:   src/Makefile.in
 		new file:   src/fstype.c
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@360 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@360 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2010-02-14  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Pack the release for 0.2.0-2.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@359 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@359 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2010-01-27  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	* add vmfs check to autoconf
-	* update vmfsclone
-		modified:   Makefile.in
-		modified:   aclocal.m4
-		modified:   config.h.in
-		modified:   configure
-		modified:   configure.ac
-		modified:   docs/Makefile.in
-		modified:   po/zh_TW.gmo
-		modified:   po/zh_TW.po
-		modified:   src/Makefile.am
-		modified:   src/Makefile.in
-		modified:   src/version.h
-		modified:   src/vmfsclone.c
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@358 93b75dfe-da2d-4241-a08d-2141769abc04
+	* add vmfs check to autoconf * update vmfsclone 	modified:   Makefile.in 	modified:   aclocal.m4 	modified:   config.h.in 	modified:   configure 	modified:   configure.ac 	modified:   docs/Makefile.in 	modified:   po/zh_TW.gmo 	modified:   po/zh_TW.po 	modified:   src/Makefile.am 	modified:   src/Makefile.in 	modified:   src/version.h 	modified:   src/vmfsclone.c
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@358 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2010-01-22  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	The vmfsclone initial version. Just a experimental one can clone/restore vmfs partition. Thanks for vmfs-tools author, mike and cf. The vmfsclone shoud be keep update and do more testing.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@357 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@357 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2010-01-19  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	* lose log mesg about bitmap_size and ntfs->lcnbmp_na->data_size data.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@356 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@356 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2010-01-18  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	translate and smal update progress bar.
-		modified:   po/partclone.pot
-		modified:   po/zh_TW.gmo
-		modified:   po/zh_TW.po
-		modified:   src/progress.c
+	translate and smal update progress bar. 	modified:   po/partclone.pot 	modified:   po/zh_TW.gmo 	modified:   po/zh_TW.po 	modified:   src/progress.c
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@355 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@355 93b75dfe-da2d-4241-a08d-2141769abc04
+	update progress bar stop value. 	modified:   src/ddclone.c 	modified:   src/main.c 	modified:   src/restore.c
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@354 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	update progress bar stop value.
-		modified:   src/ddclone.c
-		modified:   src/main.c
-		modified:   src/restore.c
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@354 93b75dfe-da2d-4241-a08d-2141769abc04
-
-	update progress bar. the new progress update by time.
-		modified:   src/ddclone.c
-		modified:   src/main.c
-		modified:   src/progress.c
-		modified:   src/progress.h
-		modified:   src/restore.c
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@353 93b75dfe-da2d-4241-a08d-2141769abc04
+	update progress bar. the new progress update by time. 	modified:   src/ddclone.c 	modified:   src/main.c 	modified:   src/progress.c 	modified:   src/progress.h 	modified:   src/restore.c
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@353 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update ntfsclone-ng.c, accept and test the ntfs readbitmap patch, it's contributed  by javor. Thank you.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@352 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@352 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2010-01-12  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update progress.c to fix avg rate number.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@351 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@351 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update progress bug, real done when finish procress.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@350 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@350 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2010-01-08  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	* check the result of ntfs function call.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@349 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@349 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	* update image_hdr for initializing.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@348 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@348 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2010-01-07  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	* update version
-	* initial image_hdr first
-	 Please enter the commit message for your changes. Lines starting
-	 with '#' will be ignored, and an empty message aborts the commit.
-	 On branch initial_image_hdr
-	 Changes to be committed:
-	   (use "git reset HEAD <file>..." to unstage)
-
+	* update version * initial image_hdr first  Please enter the commit message for your changes. Lines starting  with '#' will be ignored, and an empty message aborts the commit.  On branch initial_image_hdr  Changes to be committed:    (use "git reset HEAD <file>..." to unstage)
 		modified:   configure
 		modified:   configure.ac
 		modified:   debian/changelog
@@ -151,64 +134,50 @@
 		modified:   src/main.c
 		modified:   src/progress.c
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@347 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@347 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2010-01-06  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	* add mtrace for debug
-	* fix partclone.ntfs free/fs_close error, thank Javor
-	  reference: http://sourceforge.net/mailarchive/forum.php?thread_name=8e45d0591001051533n1378e8acvcbfd59c77ebca0de%40mail.gmail.com&forum_name=partclone-user
-	* fix some memory leak problem.
-
+	* add mtrace for debug * fix partclone.ntfs free/fs_close error, thank Javor   reference: http://sourceforge.net/mailarchive/forum.php?thread_name=8e45d0591001051533n1378e8acvcbfd59c77ebca0de%40mail.gmail.com&forum_name=partclone-user * fix some memory leak problem.
 		modified:   src/main.c
 		modified:   src/ntfsclone-ng.c
 		modified:   src/partclone.c
 		modified:   src/version.h
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@346 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@346 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2010-01-05  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	make sure progress bar show 100%.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@345 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@345 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-11-25  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Updated for 0.1.9-5.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@344 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@344 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-11-19  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	try to fix hfsplus error for 2 or more extents.
 		modified:   hfsplusclone.c
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@343 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@343 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-11-16  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update version number
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@342 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@342 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	add control for ufs
-	add changelog
+	add control for ufs add changelog
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@341 93b75dfe-da2d-4241-a08d-2141769abc04
 
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@341 93b75dfe-da2d-4241-a08d-2141769abc04
-
-	* update progress bar lang translation.
-	* update ufs as default enabled file system.
-		modified:   configure
-		modified:   configure.ac
-		modified:   po/partclone.pot
-		modified:   po/zh_TW.gmo
-		modified:   po/zh_TW.po
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@340 93b75dfe-da2d-4241-a08d-2141769abc04
+	* update progress bar lang translation. * update ufs as default enabled file system. 	modified:   configure 	modified:   configure.ac 	modified:   po/partclone.pot 	modified:   po/zh_TW.gmo 	modified:   po/zh_TW.po
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@340 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	test progress 1
 		modified:   src/progress.c
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@339 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@339 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-11-03  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
@@ -217,50 +186,37 @@
 	  * An option to ignore CRC checking was added.
 
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@338 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@338 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-11-02  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    update ignore_crc in main.c
-	    add ignore_crc to restore.c
-	    DON'T IGNORE CRC in 64BIT IMAGE !!!
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@337 93b75dfe-da2d-4241-a08d-2141769abc04
+	    update ignore_crc in main.c     add ignore_crc to restore.c     DON'T IGNORE CRC in 64BIT IMAGE !!!
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@337 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-10-09  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Updated changelog for partclone 0.1.9-2.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@336 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@336 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-10-06  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	update log message and open fail message for ufsclone.
-	Thank dswartz for testing ufs backup and report.
-		modified:   src/ufsclone.c
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@335 93b75dfe-da2d-4241-a08d-2141769abc04
+	update log message and open fail message for ufsclone. Thank dswartz for testing ufs backup and report. 	modified:   src/ufsclone.c
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@335 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-10-02  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	bug fix for ufscline
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@334 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@334 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update option value
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@333 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@333 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	add ignore fschk for xfs.
-		modified:   xfsclone.c
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@332 93b75dfe-da2d-4241-a08d-2141769abc04
+	add ignore fschk for xfs. 	modified:   xfsclone.c
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@332 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-09-27  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	add option Ignore_crc, but need more test.
-	fix bug of --rescue
-	update malloc for I/O performance
-
+	add option Ignore_crc, but need more test. fix bug of --rescue update malloc for I/O performance
 		modified:   src/ddclone.c
 		modified:   src/main.c
 		modified:   src/partclone.c
@@ -268,36 +224,26 @@
 		modified:   src/restore.c
 		modified:   src/version.h
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@331 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@331 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-09-22  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	add ufs include dir
-	 On branch master
-
+	add ufs include dir  On branch master
 		new file:   ufs/ffs/fs.h
 		new file:   ufs/libufs.h
 		new file:   ufs/sys/disklabel.h
 		new file:   ufs/ufs/dinode.h
 		new file:   ufs/ufs/fs.h
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@330 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@330 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	update ufsclone merge error.
-	 On branch master
-	 Changes to be committed:
-		modified:   src/ufsclone.c
+	update ufsclone merge error.  On branch master  Changes to be committed: 	modified:   src/ufsclone.c
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@329 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@329 93b75dfe-da2d-4241-a08d-2141769abc04
+	fix hfsplus message 	modified:   src/hfsplusclone.c
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@328 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	fix hfsplus message
-		modified:   src/hfsplusclone.c
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@328 93b75dfe-da2d-4241-a08d-2141769abc04
-
-	update fs log message.
-	add ignore option to all supported file system.
-
+	update fs log message. add ignore option to all supported file system.
 	 Changes to be committed:
 	   (use "git reset HEAD <file>..." to unstage)
 
@@ -310,45 +256,31 @@
 		modified:   ufsclone.c
 		modified:   xfsclone.c
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@327 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@327 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	ignore fschk fro extfs
-		modified:   extfsclone.c
+	ignore fschk fro extfs 	modified:   extfsclone.c
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@326 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@326 93b75dfe-da2d-4241-a08d-2141769abc04
-
-	New feature: ignore file system check for reiserfs, -I or --ignore_fschk.
-	 On branch log
-	 Changes to be committed:
-		new file:   fs_common.h
-		modified:   main.c
-		modified:   partclone.c
-		modified:   partclone.h
-		modified:   reiserfsclone.c
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@325 93b75dfe-da2d-4241-a08d-2141769abc04
+	New feature: ignore file system check for reiserfs, -I or --ignore_fschk.  On branch log  Changes to be committed: 	new file:   fs_common.h 	modified:   main.c 	modified:   partclone.c 	modified:   partclone.h 	modified:   reiserfsclone.c
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@325 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-09-18  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	updated for 0.1.9-1.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@324 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@324 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-09-17  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update changelog to test svn-buildpackage
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@323 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@323 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	* update version
-	* update log
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@322 93b75dfe-da2d-4241-a08d-2141769abc04
+	* update version * update log
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@322 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-09-14  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	ufs test ok.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@321 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@321 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	 update for checking ufs status.
 	 Committer: thomas <thomas@T17.(none)>
@@ -360,10 +292,10 @@
 		modified:   src/ufsclone.c
 		modified:   src/ufsclone.h
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@320 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@320 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update configure.ac
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@319 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@319 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	 Committer: thomas <thomas@T17.(none)>
 	 On branch master
@@ -373,109 +305,98 @@
 		modified:   src/xfsclone.c
 		bug fix for xfs clone fail.
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@318 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@318 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-09-07  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	add autotool script for ufs. The option --enable-all not include ufs right now.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@317 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@317 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-09-03  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	first time ufs back/restore successfully.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@316 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@316 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update automake andd ufsclone
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@315 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@315 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	Merge 140.110.240.52:/home/partimag/workspace/partclone
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@314 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@314 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-08-10  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	update version function
-	update usage
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@313 93b75dfe-da2d-4241-a08d-2141769abc04
+	update version function update usage
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@313 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update svn version
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@312 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@312 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-08-09  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    * Bug fixed: FAT clone failure was fixed.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@311 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@311 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-07-31  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	update fat problem!
-	fix bug about fat clone fail.
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@310 93b75dfe-da2d-4241-a08d-2141769abc04
+	update fat problem! fix bug about fat clone fail.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@310 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-24  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	updated for 0.1.1-15.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@309 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@309 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	updated for 0.1.1-15
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@308 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@308 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-24  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	remove Makefile
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@307 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@307 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-24  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	updated for version 0.1.1-14.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@306 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@306 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-24  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update makefile for version.h
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@305 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@305 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-19  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Updated for version 0.1.1-13.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@304 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@304 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-19  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Merge branch 'test'
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@303 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@303 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	Merge branch 'test'
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@302 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@302 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	Merge branch 'test'
 	Conflicts:
 		partclone/src/version.c
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@301 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@301 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-17  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Updated for version 0.1.1-12.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@300 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@300 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	Updated for version 0.1.1-12.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@299 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@299 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-16  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	update Makefile in debian lenny
-	update src/chkimg.c
+	update Makefile in debian lenny update src/chkimg.c
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@298 93b75dfe-da2d-4241-a08d-2141769abc04
 
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@298 93b75dfe-da2d-4241-a08d-2141769abc04
-
-	add option --logfile or -L to specify file for log message.
-	update Makefile for chkimg
-
+	add option --logfile or -L to specify file for log message. update Makefile for chkimg
 		modified:   Makefile.in
 		modified:   aclocal.m4
 		modified:   configure
@@ -490,36 +411,28 @@
 		modified:   src/partclone.h
 		modified:   src/restore.c
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@297 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@297 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	The partclone.chkimg could help you check img by CRC.
-		modified:   src/Makefile.am
-		modified:   src/Makefile.in
-		new file:   src/chkimg.c
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@296 93b75dfe-da2d-4241-a08d-2141769abc04
+	The partclone.chkimg could help you check img by CRC. 	modified:   src/Makefile.am 	modified:   src/Makefile.in 	new file:   src/chkimg.c
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@296 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-13  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Updated for version 0.1.1-11.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@295 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@295 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-10  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update clear_buf
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@294 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@294 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	accept patch from Kristian Erik Hermansen.
-	fix progress.c:152 SECURITY: fprintf call should have "%s" as argument 1
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@293 93b75dfe-da2d-4241-a08d-2141769abc04
+	accept patch from Kristian Erik Hermansen. fix progress.c:152 SECURITY: fprintf call should have "%s" as argument 1
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@293 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-10  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Updated for 0.1.1-10.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@292 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@292 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-09  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
@@ -527,1147 +440,977 @@
 		modified:   src/progress.c
 	    modified:   src/restore.c
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@291 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@291 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update message and hfsplus
 		modified:   src/hfsplusclone.c
 		modified:   src/main.c
 		modified:   src/version.c
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@290 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@290 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	try to fix hfsplus problem-1
-		modified:   src/hfsplusclone.c
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@289 93b75dfe-da2d-4241-a08d-2141769abc04
+	try to fix hfsplus problem-1 	modified:   src/hfsplusclone.c
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@289 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-08  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	update tmp_str scale to 512.
-	tkx Kristian Erik Hermansen <kristian.hermansen@gmail.com> and Piavlo <piavka@cs.bgu.ac.il>
-	Re: [Clonezilla-user] partclone v0.1.0 - buffer overflow detected
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@288 93b75dfe-da2d-4241-a08d-2141769abc04
+	update tmp_str scale to 512. tkx Kristian Erik Hermansen <kristian.hermansen@gmail.com> and Piavlo <piavka@cs.bgu.ac.il> Re: [Clonezilla-user] partclone v0.1.0 - buffer overflow detected
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@288 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	remove message done!
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@287 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@287 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-02  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    * Some output messages were polished again.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@286 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@286 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	Output messages of restoring were updated.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@285 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@285 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	Output message when restoring will be shown as "Please wait... done!"
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@284 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@284 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	Updated for version 0.1.1-8.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@283 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@283 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-02  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update message for restore
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@282 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@282 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update: add "done" after "please wait"
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@281 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@281 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	update: add new line after Please wait...
-		modified:   main.c
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@280 93b75dfe-da2d-4241-a08d-2141769abc04
+	update: add new line after Please wait... 	modified:   main.c
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@280 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-01  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Updated for 0.1.1-7.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@279 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@279 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	updated for partclone 0.1.1-7.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@278 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@278 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-01  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	fix bug for progress update with nogui
-	add "Calculating bitmap..." without -d option
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@277 93b75dfe-da2d-4241-a08d-2141769abc04
+	fix bug for progress update with nogui add "Calculating bitmap..." without -d option
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@277 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-30  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Updated for version 0.1.1-6
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@276 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@276 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-28  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	update for 64 bit
-	I found a crc problem and should be fix in the next image version.
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@275 93b75dfe-da2d-4241-a08d-2141769abc04
+	update for 64 bit I found a crc problem and should be fix in the next image version.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@275 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update crc in 64 bit image problem again...
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@274 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@274 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-27  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Updated for 0.1.1-5.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@273 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@273 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-27  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	bug of time calculating
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@272 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@272 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-27  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Updated for version 0.1.1-4.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@271 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@271 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    * Update default RES from 10000 to 1000.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@270 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@270 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-27  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update default RES from 10000 to 1000
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@269 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@269 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-27  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	updated for 0.1.1-3
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@268 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@268 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-27  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	test for open block file
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@267 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@267 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-22  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	updated for 0.1.1-2
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@266 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@266 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	updated for partclone (0.1.1-2).
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@265 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@265 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-22  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	add link of partclone.ntfsreloc
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@264 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@264 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	It's possible to create new file as target for restore after this commit...
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@263 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@263 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-21  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	add argument -f, --UI-fresh to set fresh time of progress bar
-	ex: -f 10 // set fresh progress per 10*100 blocks
-	The default fresh is 10000...
+	add argument -f, --UI-fresh to set fresh time of progress bar ex: -f 10 // set fresh progress per 10*100 blocks The default fresh is 10000...
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@262 93b75dfe-da2d-4241-a08d-2141769abc04
 
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@262 93b75dfe-da2d-4241-a08d-2141769abc04
-
-	update for xfs progress 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@261 93b75dfe-da2d-4241-a08d-2141769abc04
+	update for xfs progress
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@261 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	pre release...
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@260 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@260 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update CRC read error message
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@259 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@259 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update progress init
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@258 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@258 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-20  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	update for pui 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@257 93b75dfe-da2d-4241-a08d-2141769abc04
+	update for pui
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@257 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	* update version
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@256 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@256 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	* add progress for bitmap
-	* update structure of progress
-	* update structure of Ncurses...
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@255 93b75dfe-da2d-4241-a08d-2141769abc04
+	* add progress for bitmap * update structure of progress * update structure of Ncurses...
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@255 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	* Before this commit, partclone restore fail from 64 bit img to 32 bit. It's because the size of Unsigned long is 8 bytes in 64 bit, and 4 bytes in 32 bit partclone.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@254 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@254 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update crc test
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@253 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@253 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-19  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	* display progress bar when readbitmap
-	* normalize update time, but could be better
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@252 93b75dfe-da2d-4241-a08d-2141769abc04
+	* display progress bar when readbitmap * normalize update time, but could be better
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@252 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	test progress of bitmap
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@251 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@251 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-14  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	  * add print_partclone_info()
-	  * add more informatio to stderr
-	  * check all utilities work right
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@250 93b75dfe-da2d-4241-a08d-2141769abc04
+	  * add print_partclone_info()   * add more informatio to stderr   * check all utilities work right
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@250 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	add more information to know the process
 		modified:   main.c
 		modified:   partclone.c
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@249 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@249 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-05  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	remove ntfsreloc
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@248 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@248 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	add ntfsfixboot.c from http://cc.jct.ac.il/~shaneh/ntfsfixboot.c
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@247 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@247 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-01  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	updated for 0.1.0-10.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@246 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@246 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    * Bug fixed: clonezilla-Bugs-2784676. Thanks to njorl _at_ users sourceforge net.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@245 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@245 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	changelog updated for bug fixed: clonezilla-Bugs-2784676. Thanks to njorl _at_ users sourceforge net.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@244 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@244 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-05-01  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update for fs_open
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@243 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@243 93b75dfe-da2d-4241-a08d-2141769abc04
+
+2009-04-29  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
+
+	update po
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@242 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-27  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	zh_TW po related files were updated.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@241 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@241 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-26  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	version.c automatically updated for 0.1.0-9.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@240 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@240 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	Changelogs were updated for 0.1.0-9.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@239 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@239 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-25  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Output message "clone successfully" was changed as "Cloned successfully.".
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@238 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@238 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-24  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Updated for 0.1.0-8.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@237 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@237 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-24  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	add EXECNAME
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@236 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@236 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-24  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	"clone successfully" was changed to "Successfully cloned."
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@235 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@235 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-23  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	updated for 0.1.0-7
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@234 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@234 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-23  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	add link partclone.ext4dev
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@233 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@233 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-18  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Updated.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@232 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@232 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	Updated for version 0.1.0-6.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@231 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@231 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-17  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	fix partclone.restore can't get source data from pipe which is organized FS.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@230 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@230 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update po files
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@229 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@229 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-16  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update check fs type and error message for reiser4, reiserfs, xfs, ntfs and extfs.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@228 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@228 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-16  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	www.partclone.org was changed to partclone.org.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@227 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@227 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	Updated for partclone 0.1.0-5
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@226 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@226 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-16  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	* update ext2/3/4 message
-	* fix bug, update check_size return value
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@225 93b75dfe-da2d-4241-a08d-2141769abc04
+	* update ext2/3/4 message * fix bug, update check_size return value
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@225 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-16  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Update chnagelog for release 0.1.0-4
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@224 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@224 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-16  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	update
-	* EXECNAME in xxxclone.c
-	* change description of dd-mode as dev-to-dev Local copy...
-	* fix bug about get_partition size
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@223 93b75dfe-da2d-4241-a08d-2141769abc04
+	update * EXECNAME in xxxclone.c * change description of dd-mode as dev-to-dev Local copy... * fix bug about get_partition size
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@223 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-15  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    [ Thomas Tsai ]
-	    * Bug fixed: partclone.ntfs statistics data was wrong when doing partition to partition clone.
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@222 93b75dfe-da2d-4241-a08d-2141769abc04
+	    [ Thomas Tsai ]     * Bug fixed: partclone.ntfs statistics data was wrong when doing partition to partition clone.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@222 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-15  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update xfs unknow to unknown
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@221 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@221 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	update #include 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@220 93b75dfe-da2d-4241-a08d-2141769abc04
+	update #include
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@220 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	* update for #49, configure error with FC10
-	* try to fix ntfs used space
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@219 93b75dfe-da2d-4241-a08d-2141769abc04
+	* update for #49, configure error with FC10 * try to fix ntfs used space
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@219 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-10  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    * --enable-static is on again.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@218 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@218 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	* Disable static linking
-	* e2fslibs-dev (>= 1.41.3) is required for partclone.ext4.
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@217 93b75dfe-da2d-4241-a08d-2141769abc04
+	* Disable static linking * e2fslibs-dev (>= 1.41.3) is required for partclone.ext4.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@217 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-10  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	add ext4 link again....
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@216 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@216 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-04-07  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	 r341@T-X61:  thomas | 2009-04-07 23:06:22 +0800
-	 update Makefile.am: add pthread link for build static partclone.extfs with Debiab/lenny.
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@215 93b75dfe-da2d-4241-a08d-2141769abc04
+	 r341@T-X61:  thomas | 2009-04-07 23:06:22 +0800  update Makefile.am: add pthread link for build static partclone.extfs with Debiab/lenny.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@215 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update ChangeLog
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@214 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@214 93b75dfe-da2d-4241-a08d-2141769abc04
+
+2009-04-03  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
+
+	update progress.c set default progress update threshold as 10. partclone update progress bar per 10 copied blocks. but the performance not speedup.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@213 93b75dfe-da2d-4241-a08d-2141769abc04
+
+	test version for better performance: Idea 1: decrease the count of progress_update
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@212 93b75dfe-da2d-4241-a08d-2141769abc04
+
+2009-04-01  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
+
+	The unstable version has merged to stable and move to backup. The testing is branch from stable.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@211 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-03-31  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	update make file
-	* add partclone.ext4 link
+	update make file * add partclone.ext4 link
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@210 93b75dfe-da2d-4241-a08d-2141769abc04
 
+2009-03-12  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@210 93b75dfe-da2d-4241-a08d-2141769abc04
+	update size of device and volume
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@209 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-03-05  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	merger from unstable
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@208 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@208 93b75dfe-da2d-4241-a08d-2141769abc04
+
+	 r214@T-X61:  thomas | 2009-03-05 02:54:25 +0800  update configure by autoreconf  update partclone.c  * return 0 from io_all to check EOF  * can't vfprintf twice between va_start to va_end in log_mesg
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@207 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update for va_start, make sure vsprintf is right for x86_64
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@206 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@206 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-03-04  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update deplib_version.c to check library version
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@205 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@205 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update configure for ext4
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@204 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@204 93b75dfe-da2d-4241-a08d-2141769abc04
+
+	update configure.ac
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@203 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	back to r198
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@202 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@202 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@201 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@201 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update for lib reiser4
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@200 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@200 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	add partclone.ext4
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@199 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@199 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update confiure
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@198 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@198 93b75dfe-da2d-4241-a08d-2141769abc04
+
+	 r201@T-X61:  thomas | 2009-03-04 00:46:06 +0800  test by svk
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@197 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-03-02  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	add src/deplib_version.c to check library version for configuration.
-	remove src/ntfs_version.c and cheange to use src/deplib_version.c .
+	add unstable/src/deplib_version.c to replace unstable/src/ntfs_version.c update configure to check library version ex: reiser4, reiserfs, extfs and ntfs.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@196 93b75dfe-da2d-4241-a08d-2141769abc04
 
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@195 93b75dfe-da2d-4241-a08d-2141769abc04
+	add src/deplib_version.c to check library version for configuration. remove src/ntfs_version.c and cheange to use src/deplib_version.c .
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@195 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-02-05  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
+	create a unstable branch
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@194 93b75dfe-da2d-4241-a08d-2141769abc04
+
 	update debug level
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@193 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@193 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	fix bug for bitmap
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@192 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@192 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	fix check_valid fs
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@191 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@191 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-02-04  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	try to fix bug of ext4
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@190 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@190 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-01-20  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update restore.c to support restore stdin raw file
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@189 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@189 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-01-19  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	make partclone.dd can read stdin to restore date
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@188 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@188 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update for ext4
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@187 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@187 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-01-16  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	add partclone.dd and partclone.restore.
-	partclone.dd set all block as used and save/restore device to/from raw data.
-	partclone.restore is used to restore device from raw data or image build from partclone.
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@186 93b75dfe-da2d-4241-a08d-2141769abc04
+	add partclone.dd and partclone.restore. partclone.dd set all block as used and save/restore device to/from raw data. partclone.restore is used to restore device from raw data or image build from partclone.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@186 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-01-12  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	* add option force progress! use -F/--force to keep progress and just warrning for memory, disk and FS problem but dangerous.
-	* add restore utility to restore any image which is made by partclone.
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@185 93b75dfe-da2d-4241-a08d-2141769abc04
+	* add option force progress! use -F/--force to keep progress and just warrning for memory, disk and FS problem but dangerous. * add restore utility to restore any image which is made by partclone.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@185 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-12-30  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    * A bug about FAT12 was fixed.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@184 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@184 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-12-29  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	update fat12 bug.
-	The Fat 12 is ready now!
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@183 93b75dfe-da2d-4241-a08d-2141769abc04
+	update fat12 bug. The Fat 12 is ready now!
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@183 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-12-25  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    * New upstream ntfsreloc.c 0.8.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@182 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@182 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-12-22  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	updated with 0.0.9-2.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@181 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@181 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	Updated for 0.0.9-2
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@180 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@180 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-12-03  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	update fatclone.c fatclone.h clearly.
-	update dirty message for extfs.
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@179 93b75dfe-da2d-4241-a08d-2141769abc04
+	update fatclone.c fatclone.h clearly. update dirty message for extfs.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@179 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-11-18  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	add check FAT filesystem before clone volume.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@178 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@178 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-11-17  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	add check hfs_plus filesystem before clone volume.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@177 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@177 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-11-11  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	check filesystem before clone partition.
-	Partclone will make sure reiserfs, ext2/3/4, reiser4 and ntfs is clean before copy data.
-	The check of fat, xfs and hfsplus is developing.
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@176 93b75dfe-da2d-4241-a08d-2141769abc04
+	check filesystem before clone partition. Partclone will make sure reiserfs, ext2/3/4, reiser4 and ntfs is clean before copy data. The check of fat, xfs and hfsplus is developing.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@176 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-11-07  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update dirty message for ntfsclone-ng
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@175 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@175 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-10-30  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	* remove get_ntfs_version, and always compile get_ntfs_version by configure
-	* make ntfsclone-ng.c support libntfs version 9 and 10
-	* never check used block between bitmap and super_block except option "-d2"
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@174 93b75dfe-da2d-4241-a08d-2141769abc04
+	* remove get_ntfs_version, and always compile get_ntfs_version by configure * make ntfsclone-ng.c support libntfs version 9 and 10 * never check used block between bitmap and super_block except option "-d2"
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@174 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update for old libntfs(9) at debian etch
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@173 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@173 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update configure to check ntfs_version
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@172 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@172 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	fix get_ntfs_version to get right version number
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@171 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@171 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-10-30  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	debian/changelog and README were updated.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@170 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@170 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-10-30  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	add man for ntfs
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@169 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@169 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-10-22  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	update ntfsclone
-	upgrade version to 0.0.9
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@168 93b75dfe-da2d-4241-a08d-2141769abc04
+	update ntfsclone upgrade version to 0.0.9
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@168 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-10-21  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	add src/ntfsreloc.c for partclone.ntfsreloc.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@167 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@167 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update segmentation fail for log_mesg in X86_64.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@166 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@166 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-10-20  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update configure to check libntfs version.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@165 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@165 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	Add get_ntfs_version, src/ntfs_version.c to check libntfs version.
-	update src/ntfsclone-ng.c for bitmap bug
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@164 93b75dfe-da2d-4241-a08d-2141769abc04
+	Add get_ntfs_version, src/ntfs_version.c to check libntfs version. update src/ntfsclone-ng.c for bitmap bug
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@164 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-10-16  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	add ntfsreloc.c from linux-ntfs.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@163 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@163 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	try to support ntfs, the ntfsclone-ng is unstable now.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@162 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@162 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	try to support NTFS filesystem.
-	unstable!!!
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@161 93b75dfe-da2d-4241-a08d-2141769abc04
+	try to support NTFS filesystem. unstable!!!
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@161 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-07-30  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update for 0.8.8 release.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@160 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@160 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-07-29  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    fix-bug for fat 32 file system.
-	    The error will calculate wrong bitmap number.
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@159 93b75dfe-da2d-4241-a08d-2141769abc04
+	    fix-bug for fat 32 file system.     The error will calculate wrong bitmap number.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@159 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-07-24  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    update Makefile.am for amd64 compile with static problem. I add -lcom_err to fix "undefined reference tp 'com_err ". see #16
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@158 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@158 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-07-24  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	updated notes for 0.0.8-7.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@157 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@157 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-07-24  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    add partclone.pfsplus link.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@156 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@156 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-07-11  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    # Bug fixed: partclone.fat12 link was not done.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@155 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@155 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-07-11  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    update makefile to link fat12
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@154 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@154 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-07-11  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    # fat12 was added by Thomas Tsai.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@153 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@153 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-07-10  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    try to make partclone support fat12
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@152 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@152 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-06-28  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    # Enable static linking.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@151 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@151 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-06-15  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Changelog updated for 0.8.2-3.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@150 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@150 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-06-15  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	update for net TUI tickets:
-	    #35, Add a message like "Waiting for image" or "Please wait..." after "Calculating bitmap..."
-	    #37, Make all the words in Chinese the same - 印象檔
-	    #38, typos
-	    
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@149 93b75dfe-da2d-4241-a08d-2141769abc04
+	update for net TUI tickets:     #35, Add a message like "Waiting for image" or "Please wait..." after "Calculating bitmap..."     #37, Make all the words in Chinese the same - 印象檔     #38, typos
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@149 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-05-25  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    * update configure.ac to check ncurses well at different dists.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@148 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@148 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-05-25  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	- partclone.sourceforge.net is replaced by www.partclone.org.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@147 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@147 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	# clone.$FS was renamed as partclone.$FS by Thomas Tsai.
-	# Version number now is 0.0.8.
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@146 93b75dfe-da2d-4241-a08d-2141769abc04
+	# clone.$FS was renamed as partclone.$FS by Thomas Tsai. # Version number now is 0.0.8.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@146 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-05-22  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    * update dics files
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@145 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@145 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-05-20  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    * rename man file for partclone
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@144 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@144 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-05-19  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    * erase window to make terminal clean
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@143 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@143 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    * fix color for probress bar
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@142 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@142 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    * try to fix strange bug for ncurses.(http://www.stevenshiau.org/misc/partclone/partclone2.png)
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@141 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@141 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    * accept ticket #33, and update configure, *am, *in files.
-	    * make all clone tools can restore any image which is created by partclone.
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@140 93b75dfe-da2d-4241-a08d-2141769abc04
+	    * accept ticket #33, and update configure, *am, *in files.     * make all clone tools can restore any image which is created by partclone.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@140 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-05-16  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	change updated for 0.0.7-4
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@139 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@139 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-05-16  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    * fix the latest terminal(64*24) size for ncurses
-	    * chage the color to partimage style.
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@138 93b75dfe-da2d-4241-a08d-2141769abc04
+	    * fix the latest terminal(64*24) size for ncurses     * chage the color to partimage style.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@138 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-05-14  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    update TUI
-	    * set background and font color
-	    * set window postition always at center
-	    * leave message on stderr when clone fail or success
-	    * If you want to use TUI, the latest terminal size should be 64x26
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@137 93b75dfe-da2d-4241-a08d-2141769abc04
+	    update TUI     * set background and font color     * set window postition always at center     * leave message on stderr when clone fail or success     * If you want to use TUI, the latest terminal size should be 64x26
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@137 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-05-11  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	changelog for version 0.0.7-3
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@136 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@136 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-05-07  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    fix bug for #30
-	    * change to txet mode if terminal color error
-	    * change to text mode if terminal width and height too small
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@135 93b75dfe-da2d-4241-a08d-2141769abc04
+	    fix bug for #30     * change to txet mode if terminal color error     * change to text mode if terminal width and height too small
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@135 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-05-01  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    * update progress bar when the terminal not work at color style
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@134 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@134 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-05-01  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	auto updated.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@133 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@133 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	libncursesw5-dev was added for Build-Depends.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@132 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@132 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    # Use --enable-ncursesw by default.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@131 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@131 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-05-01  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    * update version number
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@130 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@130 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-04-30  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    * add more information for dialog
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@129 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@129 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    * update ncurses mode  bug 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@128 93b75dfe-da2d-4241-a08d-2141769abc04
+	    * update ncurses mode  bug
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@128 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    * update po files
-	    * update progress.c for i18n
-	    * update partclone.c to fix bug at save stdout with ncurses
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@127 93b75dfe-da2d-4241-a08d-2141769abc04
+	    * update po files     * update progress.c for i18n     * update partclone.c to fix bug at save stdout with ncurses
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@127 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-04-29  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    add restore description at gauge
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@126 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@126 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    fix Text User Intereface and add dialog format string.
-	    -N --ncurses, Ncurses Interface, but can't save partition data to stdout
-	    -X --dialog, output dialog gauge format string, if you want to use dialog
-		mkfifo pipe; (./clone.extfs -d -c -X -s /dev/loop0 2>pipe | cat - > test3_stderr.img) | ./gauge < pipe
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@125 93b75dfe-da2d-4241-a08d-2141769abc04
+	    fix Text User Intereface and add dialog format string.     -N --ncurses, Ncurses Interface, but can't save partition data to stdout     -X --dialog, output dialog gauge format string, if you want to use dialog 	mkfifo pipe; (./clone.extfs -d -c -X -s /dev/loop0 2>pipe | cat - > test3_stderr.img) | ./gauge < pipe
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@125 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-04-28  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    add TUI mode for partclone.
-	    * use ncursesw to display text user interface with i18n support
-	    * user interface status
-	    * user interface progress bar
-	    * configure option --enable-ncursesw for TUI mode
-
+	    add TUI mode for partclone.     * use ncursesw to display text user interface with i18n support     * user interface status     * user interface progress bar     * configure option --enable-ncursesw for TUI mode
 	    Using -X or --tui to display text user interface like
 	    ex. clone.extfs -d -c -X -s /dev/loop0 -o test.img
 
 
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@124 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@124 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-04-22  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    keep fixing TUI mode.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@123 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@123 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    update FS check, use strcmp to replace memcmp.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@122 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@122 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-04-22  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	changelog for version 0.0.6-4.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@121 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@121 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-04-22  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    add ifdef for tui mode
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@120 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@120 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    fix last change for log_level only.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@119 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@119 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    update memcmp size.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@118 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@118 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-04-21  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    update Changelog
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@117 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@117 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    try to add new function for #14 "TUI of status reports"
-	    add --enable-ncurses to enable TUI and check libncurses
-	    add add new option to use TUI, ex: -X or --tui
-	    add function 
-		open_tui to open text window
-		close_tui to close window
-		TUI_progress_update to show status
-	    The option(TUI) is unstable.
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@116 93b75dfe-da2d-4241-a08d-2141769abc04
+	    try to add new function for #14 "TUI of status reports"     add --enable-ncurses to enable TUI and check libncurses     add add new option to use TUI, ex: -X or --tui     add function 	open_tui to open text window 	close_tui to close window 	TUI_progress_update to show status     The option(TUI) is unstable.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@116 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-04-21  jazz  <jazz@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@115 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@115 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-02-21  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Version now is 0.0.6
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@114 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@114 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-02-20  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	clone.fat was not compiled.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@113 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@113 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	updated for 0.0.6-1
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@112 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@112 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-02-18  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    add manual for clone.fat
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@111 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@111 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    Unstable version.
-	    add new filesystem: FAT16/32
-	    add --enable-fat to compile clone.fat.
-	    add --enable-all to compile all supported filesystem utilities.
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@110 93b75dfe-da2d-4241-a08d-2141769abc04
+	    Unstable version.     add new filesystem: FAT16/32     add --enable-fat to compile clone.fat.     add --enable-all to compile all supported filesystem utilities.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@110 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-02-16  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	changelog updated for 0.0.5-16
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@109 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@109 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-02-12  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    fix #28, get right partition size when running partition to partition clone.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@108 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@108 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-02-10  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Typo checkinh was fixed as checking.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@107 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@107 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-02-04  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	"," was added between partclone.sf.net and partclone.nchc.org.tw
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@106 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@106 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	version automatically updated by svn.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@105 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@105 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    # partclone.nchc.org.tw was put without http:// in usage.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@104 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@104 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	http://partclone.nchc.org.tw was added in usage.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@103 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@103 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	Update the output messages when clone is finished
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@102 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@102 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-31  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    fix about device size
-	        use BLKGETSIZE64 to get large partition size
-	    fix seek error
-	        stop when seek error
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@101 93b75dfe-da2d-4241-a08d-2141769abc04
+	    fix about device size         use BLKGETSIZE64 to get large partition size     fix seek error         stop when seek error
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@101 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-31  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	updated automatically.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@100 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@100 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-30  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Changelog updted for 0.0.5-13
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@99 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@99 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-30  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    * reduce seek time
-	    * fix number of Ave.Rate
-	    * check every filesystem's image_head data...
-	    * add new option to disable device and free space checking
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@98 93b75dfe-da2d-4241-a08d-2141769abc04
+	    * reduce seek time     * fix number of Ave.Rate     * check every filesystem's image_head data...     * add new option to disable device and free space checking
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@98 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    update last fix
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@97 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@97 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-30  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Changelog updated for 0.0.5-12.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@96 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@96 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-30  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    fix stats info
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@95 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@95 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    try to fix long seeking time problem. not test
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@94 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@94 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    fix a bug at clone hfsp get wrong device size
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@93 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@93 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-29  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	changelog udpated for 0.0.5-11.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@92 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@92 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-29  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    fix bug to get right destination partition size which bigger than 78GB.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@91 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@91 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-24  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	Format the output:
-	Syncing ...OK -> Syncing... OK
-	Rate:%6.2MB/min -> Rate: %6.2MB/min
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@90 93b75dfe-da2d-4241-a08d-2141769abc04
+	Format the output: Syncing ...OK -> Syncing... OK Rate:%6.2MB/min -> Rate: %6.2MB/min
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@90 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-23  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	updated for 0.0.5-10.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@89 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@89 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-23  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    add function to check memory size.
-	    function "check_mem" can make sure you have enough memory
-	    and report how many size partclone needed if there is no enough size. 
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@88 93b75dfe-da2d-4241-a08d-2141769abc04
+	    add function to check memory size.     function "check_mem" can make sure you have enough memory     and report how many size partclone needed if there is no enough size.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@88 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-22  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    fix real size of MB.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@87 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@87 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    add function "check_free_space" to make sure the free space is enough to save image file.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@86 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@86 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    Changeset 84 and 85
-	    * set debug level, set -dX or --debug=X. X = 0 is no debug
-						     X = 1 is normal debug
-						     X = 2 is large log messgae
-	    * update log_mesg for different debug level.
-	    * add new function "print_option" to print options and argument at debug=1.
-	    * configure --enable-all to enable alll supported file systems.
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@85 93b75dfe-da2d-4241-a08d-2141769abc04
+	    Changeset 84 and 85     * set debug level, set -dX or --debug=X. X = 0 is no debug 					     X = 1 is normal debug 					     X = 2 is large log messgae     * update log_mesg for different debug level.     * add new function "print_option" to print options and argument at debug=1.     * configure --enable-all to enable alll supported file systems.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@85 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-21  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    update debug message mode but not finish.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@84 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@84 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    fix #24
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@83 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@83 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    fix #24, Remove extra space.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@82 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@82 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-20  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Updated for 0.0.5-9.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@81 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@81 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-16  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    UNSTALBE feature, support device to device.
-	    clone.reiserfs -b -s /dev/sda1 -o /dev/sdb1
-	    clone.reiserfs --dd-mode --source /dev/sda1 --output /dev/sdb1
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@80 93b75dfe-da2d-4241-a08d-2141769abc04
+	    UNSTALBE feature, support device to device.     clone.reiserfs -b -s /dev/sda1 -o /dev/sdb1     clone.reiserfs --dd-mode --source /dev/sda1 --output /dev/sdb1
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@80 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-15  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    updat atoobox and makefile.am to update ChangeLog every "make dist" automatically.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@79 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@79 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    add log mesg for bitmap.
-	    update svn version string at print_image_ info.
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@78 93b75dfe-da2d-4241-a08d-2141769abc04
+	    add log mesg for bitmap.     update svn version string at print_image_ info.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@78 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    add new function rescue_sector like ntfsclone to backup bad blocks.
-	    
 	    clone.ext3 -d -c -R -s /dev/hda1 -o hda1.img
 	    clone.ext3 --clone --rescue --source /dev/hda1 --output hda1.img
 
 
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@77 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@77 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-14  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    add file toolbox, src/version.c for svn version string
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@76 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@76 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    fix svn string
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@75 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@75 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    translation zh-TW.po
-	    fix SVN Revision string
-	    
+	    translation zh-TW.po     fix SVN Revision string
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@74 93b75dfe-da2d-4241-a08d-2141769abc04
 
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@74 93b75dfe-da2d-4241-a08d-2141769abc04
-
-	    import GNU-Style Changelog from svn.
-	    svn2cl --reparagraph --break-before-msg=2
-	    The tool svn2cl is part of subversion-tools.
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@73 93b75dfe-da2d-4241-a08d-2141769abc04
+	    import GNU-Style Changelog from svn.     svn2cl --reparagraph --break-before-msg=2     The tool svn2cl is part of subversion-tools.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@73 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    check output exist, and add option --overwrite to replace its content.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@72 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@72 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    add check_mount to check device is mounted or not before clone/restore. 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@71 93b75dfe-da2d-4241-a08d-2141769abc04
+	    add check_mount to check device is mounted or not before clone/restore.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@71 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    fix log mesg when clone/restore extfs, too many log message.
-	    fix status information format when "clone.xxx | clone.xxx"
-	    
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@70 93b75dfe-da2d-4241-a08d-2141769abc04
+	    fix log mesg when clone/restore extfs, too many log message.     fix status information format when "clone.xxx | clone.xxx"
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@70 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-11  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	changelog updated.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@69 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@69 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-10  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    update #18,
-	    add finish message
-	    
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@68 93b75dfe-da2d-4241-a08d-2141769abc04
+	    update #18,     add finish message
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@68 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-09  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	changelog updated for minor changes.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@67 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@67 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-09  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    update #18 again again again...
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@66 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@66 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    add translation for "Remaining"
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@65 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@65 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    update #18, make sure report information ignore seek time.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@64 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@64 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    fix and test revision
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@63 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@63 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-09  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	changelog updated.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@62 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@62 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-08  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
@@ -1678,51 +1421,36 @@
 
 
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@61 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@61 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-08  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	changelog updated for ticket #18.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@60 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@60 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-08  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    update #18, change the status format to
-	    
 	    Elapsed: 00:00:33, Remained: 00:00:00, Completed:  99.74%, Rate:   4.36MB/s
 	    Total Time : 00:00:34, 100.00% completed!
 
 
 
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@59 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@59 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    fix #18:Add a saving/restoring rate and estimated time in the status report
-	    like this:
-	    .....
-	    Used block count: 35192
-	    99.74% completed, Total: 00040 sec., Estimated: 00000 sec.,    3.59 MB/s
-	    100.00% completed
-	    Syncing ...
-
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@58 93b75dfe-da2d-4241-a08d-2141769abc04
+	    fix #18:Add a saving/restoring rate and estimated time in the status report     like this:     .....     Used block count: 35192     99.74% completed, Total: 00040 sec., Estimated: 00000 sec.,    3.59 MB/s     100.00% completed     Syncing ...
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@58 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-07  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update changelog for 0.0.5-4
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@57 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@57 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-07  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    fix #15, sync after save/restore.
-	    update root-check before open any device or image.
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@56 93b75dfe-da2d-4241-a08d-2141769abc04
+	    fix #15, sync after save/restore.     update root-check before open any device or image.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@56 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    fux #12, #13 and #17.
 	    #13, #17 update as:
@@ -1744,269 +1472,232 @@
 
 
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@55 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@55 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-06  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	  * Static linking was disabled in debian/rules.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@54 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@54 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-04  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	updated for 0.0.5-2
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@53 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@53 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	Description is updated.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@52 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@52 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-04  jazz  <jazz@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	  * modified src/Makefile.am :
-	    [Bugfix] ticket #8 - linking issue of tarbal and dpkg-buildpackage
-	    [Note] `make install' will use related path instead of real path
-	  * modified src/partclone.c
-	    - add SVN Revision message to usage()
-	  * modified debian/[control rules]
-	    - add project URL and some detail change for debian packaging
+	  * motion6 folder is only for showing how `svn import' work.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@51 93b75dfe-da2d-4241-a08d-2141769abc04
 
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@50 93b75dfe-da2d-4241-a08d-2141769abc04
+	  * modified src/Makefile.am :     [Bugfix] ticket #8 - linking issue of tarbal and dpkg-buildpackage     [Note] `make install' will use related path instead of real path   * modified src/partclone.c     - add SVN Revision message to usage()   * modified debian/[control rules]     - add project URL and some detail change for debian packaging
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@50 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-04  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    fix Ticket #11
-	    Unable to run autoreconf in Debian etch
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@49 93b75dfe-da2d-4241-a08d-2141769abc04
+	    fix Ticket #11     Unable to run autoreconf in Debian etch
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@49 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-04  jazz  <jazz@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	  * change release version from 0.0.4 to 0.0.5
-	  * [bugfix] reopen and cloes ticket #8 
-	    - modified Makefile.am to fix linking permission problem
-	      while using `dpkg-buildpackage -rfakeroot'
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@48 93b75dfe-da2d-4241-a08d-2141769abc04
+	  * change release version from 0.0.4 to 0.0.5   * [bugfix] reopen and cloes ticket #8     - modified Makefile.am to fix linking permission problem       while using `dpkg-buildpackage -rfakeroot'
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@48 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-04  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    fix link problem.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@47 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@47 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-04  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	updated for new release.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@46 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@46 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-04  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	    fix Ticket #8,
-	    making install partclone, those symbolic link files can be automatically linked.
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@45 93b75dfe-da2d-4241-a08d-2141769abc04
+	    fix Ticket #8,     making install partclone, those symbolic link files can be automatically linked.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@45 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-03  jazz  <jazz@93b75dfe-da2d-4241-a08d-2141769abc04>
 
+	  * Initial veriosn of motion6
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@44 93b75dfe-da2d-4241-a08d-2141769abc04
+
+	  * clean up repositories of tags and branches which created by cvs2svn
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@43 93b75dfe-da2d-4241-a08d-2141769abc04
+
 	  * change repository name from trunk to partclone
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/partclone@42 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@42 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-03  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    add print version information at --help.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@41 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@41 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    check stdin/stdout
-	    User can't clone from stdin or restore to stdout.
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@40 93b75dfe-da2d-4241-a08d-2141769abc04
+	    check stdin/stdout     User can't clone from stdin or restore to stdout.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@40 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    add image version control.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@39 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@39 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    add crc check function to avoid data I/O error.
-	    reference libcrc which mainatined by Lammert Bies  1999-2007
-	    http://www.lammertbies.nl/comm/info/nl_crc-calculation.html
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@38 93b75dfe-da2d-4241-a08d-2141769abc04
+	    add crc check function to avoid data I/O error.     reference libcrc which mainatined by Lammert Bies  1999-2007     http://www.lammertbies.nl/comm/info/nl_crc-calculation.html
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@38 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    add default source is -/stdin. default target is -/stdout.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@37 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@37 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    fix the ticke about "The better informatio at clone/restore"
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@36 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@36 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    update zh_tw.gmo
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@35 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@35 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	  Change Image metadata format!
-	  add filesystem information in image_head
-	  add buff[4096] in image_head for use in the future.
-
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@34 93b75dfe-da2d-4241-a08d-2141769abc04
+	  Change Image metadata format!   add filesystem information in image_head   add buff[4096] in image_head for use in the future.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@34 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-02  jazz  <jazz@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	  * These template files is not necessary for current packaging usage.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@33 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@33 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-02  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	add infoclone.c to print Image file information.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@32 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@32 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-02  jazz  <jazz@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	  * modified debian/[control, changelog, rules] 
-	    - to build debian package with static linking binary as default
-
+	  * modified debian/[control, changelog, rules]     - to build debian package with static linking binary as default
 	  * update src/Makefile.in
 	    - if user did not install automake and autoconf then Makefile.am will not update
 	      Makefile.in automatically, so we put it in the version control repository.
 
 
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@31 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@31 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	  * [BUGFIX][BUG #1] fixed linking time error while enabling support of xfs.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@30 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@30 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-02  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	add function check_size to check dest partition size.
-	make sure the size is enough.
+	add function check_size to check dest partition size. make sure the size is enough.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@29 93b75dfe-da2d-4241-a08d-2141769abc04
 
+	fix a bug in partclone.c. to make sure it return the I/O size.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@28 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@29 93b75dfe-da2d-4241-a08d-2141769abc04
-
-	fix a bug in partclone.c.
-	to make sure it return the I/O size.
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@28 93b75dfe-da2d-4241-a08d-2141769abc04
-
-	check I/O syncronization while using pipe and stdin
-	I use read_all and write_all to replace read and write.
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@27 93b75dfe-da2d-4241-a08d-2141769abc04
+	check I/O syncronization while using pipe and stdin I use read_all and write_all to replace read and write.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@27 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-02  jazz  <jazz@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	  add ToDo List: I/O syncronization
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@26 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@26 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	  add ToDo list: checksum
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@25 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@25 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	  update ToDo List: new bug #1
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@24 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@24 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	  add ToDo List
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@23 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@23 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-02  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	add more information about the size, xxx MB, xxx Byte...
-	update zh_tw.po
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@22 93b75dfe-da2d-4241-a08d-2141769abc04
+	add more information about the size, xxx MB, xxx Byte... update zh_tw.po
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@22 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-01  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	...
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@21 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@21 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	add % for status report.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@20 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@20 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	...
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@19 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@19 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-01  jazz  <jazz@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	  * fix pipe syncronization problem
-	    - reference from ntfsclone.c io_all() function
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@18 93b75dfe-da2d-4241-a08d-2141769abc04
+	  * fix pipe syncronization problem     - reference from ntfsclone.c io_all() function
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@18 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-01  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	...
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@17 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@17 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	Update the descriptions in help.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@16 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@16 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2007-12-31  jazz  <jazz@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	  * modified configure.ac and src/Makefile.am to add support to compile
-	    static linking programs
-	  * Makefile.in, configure and src/Makefile.in are modified by autoreconf
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@15 93b75dfe-da2d-4241-a08d-2141769abc04
+	  * modified configure.ac and src/Makefile.am to add support to compile     static linking programs   * Makefile.in, configure and src/Makefile.in are modified by autoreconf
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@15 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2007-12-31  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	spec for rpm package.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@14 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@14 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2007-12-31  jazz  <jazz@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	  testing http://free.nchc.org.tw/cvs2rss.php
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@13 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@13 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2007-12-13  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	dd files for debian
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@12 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@12 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	add debian for make debian package
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@11 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@11 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2007-12-10  c00jhs00  <c00jhs00@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	...
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@10 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@10 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2007-11-26  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	fix stdout/stdin bug
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@9 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@9 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	fix no --debug error
-	make partclone always open log file
-
-
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@8 93b75dfe-da2d-4241-a08d-2141769abc04
+	fix no --debug error make partclone always open log file
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@8 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	fix large file support and hfsp get free bitmap error
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@7 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@7 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	default not enable reiserfs, until progsreiserfs can get from debian
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@6 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@6 93b75dfe-da2d-4241-a08d-2141769abc04
+
+2007-11-25  (no author)  <(no author)@93b75dfe-da2d-4241-a08d-2141769abc04>
+
+	This commit was manufactured by cvs2svn to create tag 'r_0_1'.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@5 93b75dfe-da2d-4241-a08d-2141769abc04
+
+2007-11-25  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
+
+	initial partclone 2007
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@4 93b75dfe-da2d-4241-a08d-2141769abc04
+
+2007-11-25  (no author)  <(no author)@93b75dfe-da2d-4241-a08d-2141769abc04>
+
+	This commit was manufactured by cvs2svn to create branch 'thomas'.
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@3 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2007-11-25  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	Initial revision
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@2 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@2 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2007-11-25  (no author)  <(no author)@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	New repository initialized by cvs2svn.
-	git-svn-id: svn+ssh://partclone.nchc.org.tw/partclone_svn/trunk@1 93b75dfe-da2d-4241-a08d-2141769abc04
+	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@1 93b75dfe-da2d-4241-a08d-2141769abc04
