@@ -71,16 +71,16 @@ extern void print_readable_size_str(unsigned long long size_byte, char *new_size
 	snprintf(new_size_str, 11, "%lli", size_byte);
 
     if (size_byte >= tbyte){
-	new_size = print_size((float)size_byte, (float)tbyte);
+	new_size = (float)size_byte / (float)tbyte;
 	snprintf(new_size_str, 11, "%5.1f TB", new_size);
     }else if (size_byte >= gbyte){
-	new_size = print_size((float)size_byte, (float)gbyte);
+	new_size = (float)size_byte / (float)gbyte;
 	snprintf(new_size_str, 11, "%5.1f GB", new_size);
     }else if (size_byte >= mbyte){
-	new_size = print_size((float)size_byte, (float)mbyte);
+	new_size = (float)size_byte / (float)mbyte;
 	snprintf(new_size_str, 11, "%5.1f MB", new_size);
     }else if (size_byte >= kbyte){
-	new_size = print_size((float)size_byte, (float)kbyte);
+	new_size = (float)size_byte / (float)kbyte;
 	snprintf(new_size_str, 11, "%5.1f KB", new_size);
     }else{
 	snprintf(new_size_str, 11, "%3i Byte", (int)size_byte);

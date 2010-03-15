@@ -34,11 +34,6 @@ int color_support = 1;
 int PUI;
 unsigned long RES=0;
 
-#define KBYTE (1000)
-#define MBYTE (1000 * 1000)
-#define GBYTE (1000 * 1000 * 1000)
-#define print_size(a, b) (((a) + (b - 1)) / (b))
-
 /// initial progress bar
 extern void progress_init(struct progress_bar *prog, int start, unsigned long long stop, int size)
 {
@@ -115,6 +110,11 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
     char Rformated[10], Eformated[10];
     char speed_unit[] = "KB";
     struct tm *Rtm, *Etm;
+    uint64_t tbyte=1000000000000;
+    uint64_t gbyte=1000000000;
+    uint64_t mbyte=1000000;
+    uint64_t kbyte=1000;
+
 
     percent  = prog->unit * current;
     if (percent <= 0)
@@ -131,15 +131,17 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
 	speed = 0;	
     }
 
-    if (speed >= GBYTE){
-	speed = print_size(speed, GBYTE);
+    if (speed >= gbyte){
+	speed = speed / gbyte;
 	strncpy(speed_unit, "GB", 3);
-    }else if (speed >= MBYTE){
-	speed = print_size(speed, MBYTE);
+    }else if (speed >= mbyte){
+	speed = speed / mbyte;
 	strncpy(speed_unit, "MB", 3);
-    }else if (speed >= KBYTE){
-	speed = print_size(speed, KBYTE);
+    }else if (speed >= kbyte){
+	speed = speed / kbyte;
 	strncpy(speed_unit, "KB", 3);
+    }else{
+	strncpy(speed_unit, "byte", 5);
     }
 
     if (done != 1){
