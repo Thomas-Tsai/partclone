@@ -188,18 +188,18 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
 	prog->resolution_time = time(0);
 
         if ((current+1) == prog->stop){
-	    fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Seeking..., "), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed));
+	    fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Seeking...,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed));
 	} else {
 	    if((int)prog_stat.speed > 0)
-	    fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2f%s/min, "), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed), prog_stat.speed_unit);
+	    fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2f%s/min,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed), prog_stat.speed_unit);
 	    else
-		fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
+		fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
 	}
     } else {
 	if((int)prog_stat.speed > 0)
-	    fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2f%s/min, "), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed), prog_stat.speed_unit);
+	    fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2f%s/min,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed), prog_stat.speed_unit);
 	else
-	    fprintf(stderr, _("\r%81c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
+	    fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
 
         fprintf(stderr, _("\nTotal Time: %s, "), prog_stat.Eformated);
 	if((int)prog_stat.speed > 0)

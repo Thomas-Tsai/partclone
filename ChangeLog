@@ -1,5 +1,7 @@
 2010-03-15  Thomas Tsai  <thomas@nchc.org.tw>
 
+		* update version to 0.2.6
+
 	    * try to fix progress rate     * also change to partclone.c to fix print_readable_size 	modified:   src/partclone.c 	modified:   src/progress.c
 
 2010-03-12  Thomas Tsai  <thomas@nchc.org.tw>
