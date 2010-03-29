@@ -18,7 +18,6 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
-#include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/mount.h>
 #include <stdio.h>
@@ -62,7 +61,7 @@ extern void print_readable_size_str(unsigned long long size_byte, char *new_size
 
     float new_size = 1.0;
     memset(new_size_str, 0, 11);
-    uint64_t tbyte=1000000000000;
+    uint64_t tbyte=1000000000000.0;
     uint64_t gbyte=1000000000;
     uint64_t mbyte=1000000;
     uint64_t kbyte=1000;

@@ -108,9 +108,8 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
     time_t remained;
     time_t elapsed;
     char Rformated[10], Eformated[10];
-    char speed_unit[] = "KB";
+    char speed_unit[] = "    ";
     struct tm *Rtm, *Etm;
-    uint64_t tbyte=1000000000000;
     uint64_t gbyte=1000000000;
     uint64_t mbyte=1000000;
     uint64_t kbyte=1000;
@@ -172,10 +171,6 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
 /// update information at progress bar
 extern void progress_update(struct progress_bar *prog, unsigned long long current, int done)
 {
-    setlocale(LC_ALL, "");
-    bindtextdomain(PACKAGE, LOCALEDIR);
-    textdomain(PACKAGE);
-
     char clear_buf = ' ';
     prog_stat_t prog_stat;
 
@@ -185,6 +180,10 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
     if (done != 1){
         if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && current != 0)
             return;
+	setlocale(LC_ALL, "");
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
+
 	prog->resolution_time = time(0);
 
         if ((current+1) == prog->stop){
@@ -196,6 +195,10 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
 		fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
 	}
     } else {
+	setlocale(LC_ALL, "");
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
+
 	if((int)prog_stat.speed > 0)
 	    fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2f%s/min,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed), prog_stat.speed_unit);
 	else
