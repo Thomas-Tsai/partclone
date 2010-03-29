@@ -1,3 +1,15 @@
+2010-03-29  Thomas Tsai  <thomas@nchc.org.tw>
+
+	* make progress bar update faster
+
+	* fix progress to make calculating bitmap takes faster
+
+2010-03-16  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add git ignore files and fix toolbox to create right git commit hash
+
+	update progress bar
+
 2010-03-15  Thomas Tsai  <thomas@nchc.org.tw>
 
 		* update version to 0.2.6

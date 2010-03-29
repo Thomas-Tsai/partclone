@@ -1,3 +1,9 @@
+partclone (0.2.8) unstable; urgency=low
+
+  * Bug fixed: update progress bar faster
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 29 Mar 2010 16:22:38 +0800
+
 partclone (0.2.7-1) unstable; urgency=low
 
   * fix progress bug about: alwayn new line for 640x480 resolution
