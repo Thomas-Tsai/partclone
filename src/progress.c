@@ -37,14 +37,12 @@ unsigned long RES=0;
 /// initial progress bar
 extern void progress_init(struct progress_bar *prog, int start, unsigned long long stop, int size)
 {
-    time_t now;
-    time(&now);
     memset(prog, 0, sizeof(progress_bar));
     prog->start = start;
     prog->stop = stop;
     prog->unit = 100.0 / (stop - start);
-    prog->initial_time = now;
-    prog->resolution_time = now;
+    prog->initial_time = time(0);
+    prog->resolution_time = time(0);
     prog->interval_time = 1;
     prog->block_size = size;
     if (RES){
@@ -174,17 +172,18 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
     char clear_buf = ' ';
     prog_stat_t prog_stat;
 
+    if (done != 1)
+	if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && current != 0)
+	    return;
+
     memset(&prog_stat, 0, sizeof(prog_stat_t));
     calculate_speed(prog, current, done, &prog_stat);
 
     if (done != 1){
-        if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && current != 0)
-            return;
+	prog->resolution_time = time(0);
 	setlocale(LC_ALL, "");
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
-
-	prog->resolution_time = time(0);
 
         if ((current+1) == prog->stop){
 	    fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Seeking...,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed));
