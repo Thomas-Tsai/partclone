@@ -298,7 +298,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	    btree_buf_position = pos = (xfs_off_t)XFS_AGB_TO_DADDR(mp,agno,bno) << BBSHIFT;
 	    btree_buf_length = source_blocksize;
 
-	    sk = lseek(source_fd, 0, SEEK_CUR);
+	    sk = lseek(source_fd, btree_buf_position, SEEK_SET);
 	    current_block = (sk/source_blocksize);
 	    block_count = (btree_buf_length/source_blocksize);
 	    set_bitmap(bitmap, sk, btree_buf_length);
