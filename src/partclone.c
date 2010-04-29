@@ -649,7 +649,7 @@ extern int check_mem_size(image_head image_hdr, cmd_opt opt, unsigned long long 
 
 /// get bitmap from image file to restore data
 extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* bitmap){
-    int size, r_size;
+    unsigned long long size, r_size;
     int do_write = 0;
     char* buffer;
     unsigned long long block_id;
@@ -658,12 +658,7 @@ extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* 
     int err_exit = 1;
 
     size = sizeof(char)*image_hdr.totalblock;
-    buffer = (char*)malloc(size);
-
-    r_size = read_all(ret, buffer, size, &opt);
-    memcpy(bitmap, buffer, size);
-
-    free(buffer);
+    r_size = read_all(ret, bitmap, size, &opt);
 
     for (block_id = 0; block_id < image_hdr.totalblock; block_id++){
         if(bitmap[block_id] == 1){
@@ -840,11 +835,11 @@ extern int open_target(char* target, cmd_opt* opt){
 }
 
 /// the io function, reference from ntfsprogs(ntfsclone).
-extern int io_all(int *fd, char *buf, int count, int do_write, cmd_opt* opt)
+extern int io_all(int *fd, char *buf, unsigned long long count, int do_write, cmd_opt* opt)
 {
-    int i;
+    unsigned long long i;
     int debug = opt->debug;
-    int size = count;
+    unsigned long long size = count;
 
     // for sync I/O buffer, when use stdin or pipe.
     while (count > 0) {

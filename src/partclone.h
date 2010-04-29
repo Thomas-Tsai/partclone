@@ -111,7 +111,7 @@ typedef struct dialog_mesg p_dialog_mesg;
 extern void open_log(char* source);
 extern void log_mesg(int lerrno, int lexit, int only_debug, int debug, const char *fmt, ...);
 extern void close_log();
-extern int io_all(int *fd, char *buffer, int count, int do_write, cmd_opt *opt);
+extern int io_all(int *fd, char *buffer, unsigned long long count, int do_write, cmd_opt *opt);
 extern void sync_data(int fd, cmd_opt* opt);
 extern void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt);
 /**
