@@ -1,3 +1,10 @@
+partclone (0.2.9) unstable; urgency=low
+
+  * Bug fixed: error for backup partition larger than 8.7T
+  * Bug fixed: better memory usage for restore
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 29 Apr 2010 15:22:07 +0800
+
 partclone (0.2.8) unstable; urgency=low
 
   * Bug fixed: update progress bar faster

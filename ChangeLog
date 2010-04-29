@@ -1,4 +1,10 @@
+2010-04-29  thomas  <thomas@T17.(none)>
+
+	fix bug: alloc double memory for bitmap when restore. fix bug: bitmap error for over 8.7T partition backup and restore.
+
 2010-03-29  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update version to 0.2.8
 
 	* make progress bar update faster
 
