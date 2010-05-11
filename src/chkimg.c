@@ -58,6 +58,7 @@ static void usage_chkimg(void)
 #endif
             "    -X,  --dialog           output message as Dialog Format\n"
             "    -F,  --force            force progress\n"
+	    "         --ignore_crc       Ignore crc check error\n"
             "    -f,  --UI-fresh         fresh times of progress\n"
             "    -h,  --help             Display this help\n"
             , EXECNAME, VERSION, EXECNAME);
@@ -65,7 +66,7 @@ static void usage_chkimg(void)
 }
 
 static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
-    static const char *sopt = "-hd::L:s:f:CXFN";
+    static const char *sopt = "-hd::L:s:f:CXFNi";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "source",		required_argument,  NULL,   's' },
@@ -75,6 +76,7 @@ static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
         { "dialog",		no_argument,	    NULL,   'X' },
         { "logfile",	required_argument,  NULL,   'L' },
         { "force",		no_argument,	    NULL,   'F' },
+	{ "ignore_crc",     no_argument,    NULL,   'i' },
 #ifdef HAVE_LIBNCURSESW
         { "ncurses",		no_argument,	    NULL,   'N' },
 #endif
@@ -87,6 +89,7 @@ static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
     option->check = 1;
     option->restore = 1;
     option->chkimg = 1;
+    option->ignore_crc = 0;
     option->logfile = "/var/log/partclone.log";
     while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != (char)-1) {
         switch (c) {
@@ -113,7 +116,10 @@ static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
                 break;
             case 'F':
                 option->force++;
-                break;
+		break;
+	    case 'i':
+		option->ignore_crc = 1;
+		break;
             case 'X':
                 /// output message as dialog format, reference
                 /// dialog --guage is text height width percent
@@ -221,7 +227,10 @@ int main(int argc, char **argv){
         log_mesg(0, 1, 1, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n"); 
     else
         log_mesg(1, 0, 0, debug, "UID is root.\n");
-    */
+     */
+    /// ignore crc check
+    if(opt.ignore_crc)
+	log_mesg(1, 0, 1, debug, "Ignore CRC\n");
 
     /**
      * open source and target 
@@ -304,13 +313,6 @@ int main(int argc, char **argv){
 
         r_size = 0;
 
-        if((block_id + 1) == image_hdr.totalblock) 
-            done = 1;
-
-#ifdef _FILE_OFFSET_BITS
-        if(copied == image_hdr.usedblocks) 
-            done = 1;
-#endif
         if (bitmap[block_id] == 1){ 
             /// The block is used
             log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
@@ -327,16 +329,22 @@ int main(int argc, char **argv){
                 log_mesg(0, 1, 1, debug, "read errno = %i \n", errno);
 
             /// read crc32 code and check it.
+	    log_mesg(1, 0, 0, debug, "Ignore_crc 1 %i\n ", opt.ignore_crc);
             crc_ck = crc32(crc_ck, buffer, r_size);
             crc_buffer = (char*)malloc(CRC_SIZE); ///alloc a memory to copy data
             if(crc_buffer == NULL){
                 log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
             }
             c_size = read_all(&dfr, crc_buffer, CRC_SIZE, &opt);
-            if (c_size < CRC_SIZE)
-                log_mesg(0, 1, 1, debug, "read CRC error, please check your image file. \n");
+            if (c_size < CRC_SIZE){
+                log_mesg(0, 0, 1, debug, "read CRC error, please check your image file. \n");
+                log_mesg(0, 0, 1, debug, "read CRC size (%i), %s. \n", c_size, strerror(errno));
+		lseek(dfr, (int)(CRC_SIZE-c_size), SEEK_CUR);
+		}
             memcpy(&crc, crc_buffer, CRC_SIZE);
-            if (memcmp(&crc, &crc_ck, CRC_SIZE) != 0){
+            if ((memcmp(&crc, &crc_ck, CRC_SIZE) != 0) && (!opt.ignore_crc)){
+		log_mesg(1, 0, 0, debug, "Ignore_crc 2 %i\n ", opt.ignore_crc);
+
                 log_mesg(1, 0, 0, debug, "CRC Check error. 64bit bug before v0.1.0 (Rev:250M), enlarge crc size and recheck again....\n ");
                 /// check again
                 buffer2 = (char*)malloc(image_hdr.block_size+CRC_SIZE); ///alloc a memory to copy data
@@ -352,7 +360,7 @@ int main(int argc, char **argv){
                 if (c_size < CRC_SIZE)
                     log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno));
                 memcpy(&crc, crc_buffer, CRC_SIZE);
-                if (memcmp(&crc, &crc_ck2, CRC_SIZE) != 0) {
+                if ((memcmp(&crc, &crc_ck2, CRC_SIZE) != 0) && (!opt.ignore_crc)){
                     log_mesg(0, 1, 1, debug, "CRC error again at %i...\n ", sf);
                 } else {
                     crc_ck = crc_ck2;
@@ -363,21 +371,17 @@ int main(int argc, char **argv){
                 crc_ck2 = crc_ck;
             }
 
-
             /// free buffer
             free(buffer);
             free(crc_buffer);
-
-
             copied++;					/// count copied block
-
             log_mesg(1, 0, 0, debug, "end\n");
         }
 
 	update_pui(&prog, copied, done);
-	if(done = 1)
-	    break;
     } // end of for
+    done = 1;
+    update_pui(&prog, copied, done);
     print_finish_info(opt);
 
     close (dfr);    /// close source
