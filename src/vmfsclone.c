@@ -110,9 +110,8 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     uint32_t alloc,total;
 
     fs_open(device);
-    memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    memcpy(image_hdr->fs, vmfs_MAGIC, FS_MAGIC_SIZE);
-
+    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
+    strncpy(image_hdr->fs, vmfs_MAGIC, FS_MAGIC_SIZE);
     total = fs->fbb->bmh.total_items;
     alloc = vmfs_bitmap_allocated_items(fs->fbb);
 

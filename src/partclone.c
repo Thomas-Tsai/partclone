@@ -1043,8 +1043,8 @@ static unsigned long long block_count(unsigned long long partition_size, int blo
 /// initial dd hdr
 extern void initial_dd_hdr(int ret, image_head* image_hdr){
 
-    memset(image_hdr ,(int )NULL, sizeof(image_head));
-    memcpy(image_hdr->fs, raw_MAGIC, FS_MAGIC_SIZE);
+    memset(image_hdr, 0, sizeof(image_head));
+    strncpy(image_hdr->fs, raw_MAGIC, FS_MAGIC_SIZE);
     image_hdr->block_size  = 512*2;
     image_hdr->device_size = get_partition_size(&ret);
     image_hdr->totalblock  = block_count(image_hdr->device_size, image_hdr->block_size);

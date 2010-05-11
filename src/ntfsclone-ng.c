@@ -279,8 +279,8 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 extern void initial_image_hdr(char* device, image_head* image_hdr)
 {
     fs_open(device);
-    memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    memcpy(image_hdr->fs, ntfs_MAGIC, FS_MAGIC_SIZE);
+    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
+    strncpy(image_hdr->fs, ntfs_MAGIC, FS_MAGIC_SIZE);
     image_hdr->block_size  = (int)ntfs->cluster_size;
     image_hdr->totalblock  = (unsigned long long)ntfs->nr_clusters;
     image_hdr->usedblocks  = (unsigned long long)(ntfs->nr_clusters - ntfs->nr_free_clusters);

@@ -334,8 +334,8 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 
     bused = get_used_block();//so I need calculate by myself.
 
-    memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    memcpy(image_hdr->fs, fat_type, FS_MAGIC_SIZE);
+    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
+    strncpy(image_hdr->fs, fat_type, FS_MAGIC_SIZE);
     image_hdr->block_size  = (int)fat_sb.sector_size;
     image_hdr->totalblock  = (unsigned long long)total_sector;
     image_hdr->device_size = (unsigned long long)(total_sector * image_hdr->block_size);

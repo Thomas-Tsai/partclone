@@ -216,7 +216,7 @@ int main(int argc, char **argv){
         if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
             log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
 
-        memcpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
+	strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
         /// alloc a memory to restore bitmap
         bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
@@ -298,7 +298,7 @@ int main(int argc, char **argv){
         if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
             log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
 
-        memcpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
+	strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
         /// alloc a memory to restore bitmap
         bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);

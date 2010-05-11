@@ -159,8 +159,9 @@ static void fs_close()
 extern void initial_image_hdr(char* device, image_head* image_hdr)
 {
     fs_open(device);
-    memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    memcpy(image_hdr->fs, xfs_MAGIC, FS_MAGIC_SIZE);
+    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
+    strncpy(image_hdr->fs, xfs_MAGIC, FS_MAGIC_SIZE);
+
     image_hdr->block_size = (int)mp->m_sb.sb_blocksize;
     log_mesg(3, 0, 0, fs_opt.debug, "%s: blcos size= %i\n", __FILE__, image_hdr->block_size);
     image_hdr->totalblock = (unsigned long long)mp->m_sb.sb_dblocks;
