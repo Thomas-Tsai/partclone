@@ -62,7 +62,7 @@ static void fs_open(char* device){
         else if ((fs->super->s_state & EXT2_VALID_FS) == 0)
             log_mesg(0, 1, 1, fs_opt.debug, "%s: FS was not cleanly unmounted\n", __FILE__);
         else if ((fs->super->s_max_mnt_count > 0) && (fs->super->s_mnt_count >= (unsigned) fs->super->s_max_mnt_count)) {
-            log_mesg(0, 1, 1, fs_opt.debug, "%s: FS has been mounted %u times without being checked\n", __FILE__);
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: FS has been mounted %u times without being checked\n", __FILE__, fs->super->s_mnt_count);
         }
     }
 

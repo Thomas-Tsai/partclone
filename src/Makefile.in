@@ -379,7 +379,7 @@ partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h d
 @ENABLE_HFSP_TRUE@partclone_hfsp_SOURCES = main.c partclone.c progress.c hfsplusclone.c hfsplusclone.h partclone.h progress.h gettext.h
 @ENABLE_HFSP_TRUE@partclone_hfsp_CFLAGS = -DHFSPLUS
 @ENABLE_XFS_TRUE@partclone_xfs_SOURCES = main.c partclone.c progress.c xfsclone.c xfsclone.h partclone.h progress.h gettext.h
-@ENABLE_XFS_TRUE@partclone_xfs_CFLAGS = -DXFS
+@ENABLE_XFS_TRUE@partclone_xfs_CFLAGS = -DXFS -D_FILE_OFFSET_BITS=64
 @ENABLE_XFS_TRUE@partclone_xfs_LDFLAGS = 
 @ENABLE_XFS_TRUE@partclone_xfs_LDADD = -lxfs -lrt -lpthread
 @ENABLE_FAT_TRUE@partclone_fat_SOURCES = main.c partclone.c progress.c fatclone.c fatclone.h partclone.h progress.h gettext.h

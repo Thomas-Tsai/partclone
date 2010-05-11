@@ -13,14 +13,31 @@
 
 #include <xfs/libxfs.h>
 
+/*
+ * An on-disk allocation group header is composed of 4 structures,
+ * each of which is 1 disk sector long where the sector size is at
+ * least 512 bytes long (BBSIZE).
+ *
+ * There's one ag_header per ag and the superblock in the first ag
+ * is the contains the real data for the entire filesystem (although
+ * most of the relevant data won't change anyway even on a growfs).
+ *
+ * The filesystem superblock specifies the number of AG's and
+ * the AG size.  That splits the filesystem up into N pieces,
+ * each of which is an AG and has an ag_header at the beginning.
+ */
+typedef struct ag_header  {
+    xfs_dsb_t       *xfs_sb;        /* superblock for filesystem or AG */
+    xfs_agf_t       *xfs_agf;       /* free space info */
+    xfs_agi_t       *xfs_agi;       /* free inode info */
+    xfs_agfl_t      *xfs_agfl;      /* AG freelist */
+    char            *residue;
+    int             residue_length;
+} ag_header_t;
+
+
 /// update bitmap table
-static void addToHist(int dwAgNo, int dwAgBlockNo, int qwLen, char* bitmap);
-
-/// scan bno
-static void scanfunc_bno(xfs_btree_sblock_t* ablock,  int level, xfs_agf_t* agf, char* bitmap);
-
-/// scan btree
-static void scan_sbtree(xfs_agf_t* agf, xfs_agblock_t root, int nlevels, char* bitmap);
+static void set_bitmap(char* bitmap, unsigned long long pos, int length);
 
 /// open device
 static void fs_open(char* device);
