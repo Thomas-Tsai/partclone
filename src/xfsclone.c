@@ -15,20 +15,6 @@
  * add original 
  * 1. (sbp->sb_magicnum != XFS_SB_MAGIC
  * 2. !XFS_SB_GOOD_VERSION(sbp)
- * 3. if(!mp)
- {
- mp = libxfs_mount(&xmount, sbp, x.ddev, x.logdev, x.rtdev, LIBXFS_MOUNT_DEBUGGER);
- if (!mp) 
- {
- log_mesg(0, 1, 1, fs_opt.debug, "%s: device %s unusable (not an XFS filesystem?)\n", __FILE__, x.dname);
- }
- } else {
- log_mesg(0, 0, 0, fs_opt.debug, "%s: device %s usable (XFS filesystem)\n", __FILE__, x.dname);
- }
-
- * 4. progress_
- * 5. initial bitmap[bit] = 1;
- *-6. (bitmap[bit] == 1)
  *- 7. check is it work right?
  */
 
@@ -52,19 +38,19 @@ extern  fs_cmd_opt fs_opt;
 int	source_fd = -1;
 int     first_residue;
 
-#define rounddown(x, y) (((x)/(y))*(y))
-
 xfs_mount_t     *mp;
 xfs_mount_t     mbuf;
 libxfs_init_t   xargs;
 unsigned int    source_blocksize;       /* source filesystem blocksize */
 unsigned int    source_sectorsize;      /* source disk sectorsize */
 
-static void set_bitmap(char* bitmap, unsigned long long pos, int length)
+#define rounddown(x, y) (((x)/(y))*(y))
+
+static void set_bitmap(char* bitmap, uint64_t pos, int length)
 {
-    unsigned long long pos_block;
-    unsigned long long block_count;
-    unsigned long long block;
+    uint64_t pos_block;
+    uint64_t block_count;
+    uint64_t block;
 
     pos_block   = pos/source_blocksize;
     block_count = length/source_blocksize;
@@ -131,7 +117,7 @@ static void fs_open(char* device)
     if (mp == NULL) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s filesystem failed to initialize\nAborting.\n", device);
     } else if (mp->m_sb.sb_inprogress)  {
-	log_mesg(0, 1, 1, fs_opt.debug, "%s filesystem failed to initialize\nAborting.\n", device);
+	log_mesg(0, 1, 1, fs_opt.debug, "%s filesystem failed to initialize\nAborting(inprogress).\n", device);
     } else if (mp->m_sb.sb_logstart == 0)  {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s has an external log.\nAborting.\n", device);
     } else if (mp->m_sb.sb_rextents != 0)  {
@@ -197,8 +183,8 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     xfs_daddr_t     read_ag_off;
     int             read_ag_length;
     void            *read_ag_buf = NULL;
-    xfs_off_t	    read_ag_position;
-    unsigned long long	    sk, res, s_pos = 0;
+    xfs_off_t	    read_ag_position;            /* xfs_types.h: typedef __s64 */
+    uint64_t	    sk, res, s_pos = 0;
     void            *btree_buf_data = NULL;
     int		    btree_buf_length;
     xfs_off_t	    btree_buf_position;
@@ -206,31 +192,32 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     uint	    current_level;
     uint	    btree_levels;
     xfs_daddr_t     begin, next_begin, ag_begin, new_begin, ag_end;
+						/* xfs_types.h: typedef __s64*/
     xfs_off_t       pos;
     xfs_alloc_ptr_t *ptr;
     xfs_alloc_rec_t *rec_ptr;
     int		    length;
     int		    i;
-    __uint64_t      size, sizeb;
+    uint64_t        size, sizeb;
     xfs_off_t	    w_position;
     int		    w_length;
     int		    wblocks;
     int		    w_size = 1 * 1024 * 1024;
-    __uint64_t      numblocks = 0;
+    uint64_t        numblocks = 0;
 
     xfs_off_t	    logstart, logend;
     xfs_off_t	    logstart_pos, logend_pos;
     int		    log_length;
 
     struct xfs_btree_block *block;
-    unsigned long long current_block, block_count;
+    uint64_t current_block, block_count;
 
     int start = 0;
     int bit_size = 1;
     progress_bar        prog;
 
-    unsigned long long bused = 0;
-    unsigned long long bfree = 0;
+    uint64_t bused = 0;
+    uint64_t bfree = 0;
 
     /// init progress
     progress_init(&prog, start, image_hdr.totalblock, bit_size);
