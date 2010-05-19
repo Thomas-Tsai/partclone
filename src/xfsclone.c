@@ -3,19 +3,12 @@
  *
  * Copyright (c) 2007~ Thomas Tsai <thomas at nchc org tw>
  *
- * read xfs super block and bitmap
+ * read xfs super block and bitmap, reference xfs_copy.c
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- */
-
-/*
- * add original 
- * 1. (sbp->sb_magicnum != XFS_SB_MAGIC
- * 2. !XFS_SB_GOOD_VERSION(sbp)
- *- 7. check is it work right?
  */
 
 #include <sys/param.h>
@@ -483,13 +476,6 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	    bfree++;
     }
     log_mesg(0, 0, 0, fs_opt.debug, "bused = %lli, bfree = %lli\n", bused, bfree);
-
-    if(fs_opt.ignore_fschk){
-	log_mesg(1, 0, 0, fs_opt.debug, "%s: Ignore filesystem check\n", __FILE__);
-    } else {
-	if(bfree > mp->m_sb.sb_fdblocks)
-	    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, bfree:%lli mfree:%lli\n", __FILE__, bfree, mp->m_sb.sb_fdblocks);
-    }
 
     fs_close();
     update_pui(&prog, 1, 1);

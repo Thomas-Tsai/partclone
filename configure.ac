@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.2.9], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.2.10], [thomas@nchc.org.tw])
 #AC_CONFIG_AUX_DIR([build-aux])
 #AC CONFIG SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -12,8 +12,9 @@ AC_PROG_LN_S
 # Enable large file support.
 AC_SYS_LARGEFILE
 
-
+# default value##
 supported_fs=""
+
 ##enable-all##
 AC_ARG_ENABLE(all,
 	        AS_HELP_STRING(--enable-all,enable all supported file system),
@@ -39,6 +40,7 @@ PKG_CHECK_MODULES(UUID, uuid,,exit)
 AC_ARG_ENABLE(extfs,
 	AS_HELP_STRING(--enable-extfs,enable ext2/3/4 file system), 
 	enable_extfs=yes,
+	enable_extfs=no
 )
 AM_CONDITIONAL(ENABLE_EXTFS, test "$enable_extfs" = yes)
 
@@ -86,6 +88,7 @@ fi
 AC_ARG_ENABLE(xfs,
 	AS_HELP_STRING(--enable-xfs,enable XFS file system), 
 	enable_xfs=yes,
+	enable_xfs=no
 )
 AM_CONDITIONAL(ENABLE_XFS, test "$enable_xfs" = yes)
 
@@ -103,13 +106,14 @@ AC_CHECK_HEADERS([xfs/libxfs.h], ,
 )
 supported_fs=$supported_fs" xfs"
 fi
-xfs_version="unknown, suggest 2.10.2"
+xfs_version="version unknown, suggest 3.1.1"
 #end of check xfs
 
 ##reiserfs##
 AC_ARG_ENABLE(reiserfs,
 	AS_HELP_STRING(--enable-reiserfs,enable REISERFS 3.6/3.6 file system), 
 	enable_reiserfs=yes,
+	enable_reiserfs=no
 )
 AM_CONDITIONAL(ENABLE_REISERFS, test "$enable_reiserfs" = yes)
 
@@ -161,6 +165,7 @@ fi
 AC_ARG_ENABLE(reiser4,
 	AS_HELP_STRING(--enable-reiser4,enable Reiser4 file system), 
 	enable_reiser4=yes,
+	enable_reiser4=no
 )
 AM_CONDITIONAL(ENABLE_REISER4, test "$enable_reiser4" = yes)
 
@@ -210,32 +215,35 @@ fi
 AC_ARG_ENABLE(hfsp,
 	AS_HELP_STRING(--enable-hfsp,enable HFS plus file system), 
 	enable_hfsp=yes,
+	enable_hfsp=no
 )
 AM_CONDITIONAL(ENABLE_HFSP, test "$enable_hfsp" = yes)
 
 if test "$enable_hfsp" = yes; then
 supported_fs=$supported_fs" hfs-plus"
-fi
 hfs_plus_version="build-in"
+fi
 #end of check hfsplus
 
 ##fat##
 AC_ARG_ENABLE(fat,
 	AS_HELP_STRING(--enable-fat,enable FAT file system), 
 	enable_fat=yes,
+	enable_fat=no
 )
 AM_CONDITIONAL(ENABLE_FAT, test "$enable_fat" = yes)
 
 if test "$enable_fat" = yes; then
 supported_fs=$supported_fs" fat"
-fi
 fat_version="build-in"
+fi
 #end of check fat
 
 ##NTFS##
 AC_ARG_ENABLE(ntfs,
 	AS_HELP_STRING(--enable-ntfs,enable NTFS file system), 
 	enable_ntfs=yes,
+	enable_ntfs=no
 )
 AM_CONDITIONAL(ENABLE_NTFS, test "$enable_ntfs" = yes)
 
@@ -283,6 +291,7 @@ fi
 AC_ARG_ENABLE(ufs,
 	AS_HELP_STRING(--enable-ufs,enable UFS(1/2) file system), 
 	enable_ufs=yes,
+	enable_ufs=no
 )
 AM_CONDITIONAL(ENABLE_UFS, test "$enable_ufs" = yes)
 
@@ -302,6 +311,7 @@ fi
 AC_ARG_ENABLE(vmfs,
 	AS_HELP_STRING(--enable-vmfs,enable vmfs file system), 
 	enable_vmfs=yes,
+	enable_vmfs=no
 )
 AM_CONDITIONAL(ENABLE_VMFS, test "$enable_vmfs" = yes)
 
@@ -364,13 +374,13 @@ AC_OUTPUT
 
 echo ""
 echo "Support File System:"
-echo "ext2/3/4...... $enable_extfs  $extfs_version"
-echo "reiserfs...... $enable_reiserfs  $reiserfs_version"
-echo "reiser4....... $enable_reiser4  $reiser4_version"
-echo "xfs........... $enable_xfs  $xfs_version"
-echo "ntfs.......... $enable_ntfs  $ntfs_version"
-echo "fat12/16/32... $enable_fat  $fat_version"
-echo "hfs plus...... $enable_hfsp  $hfs_plus_version"
-echo "ufs .......... $enable_ufs  $ufs_version"
-echo "vmfs ......... $enable_vmfs  $vmfs_version"
+echo "ext2/3/4...... $enable_extfs, $extfs_version"
+echo "reiserfs...... $enable_reiserfs, $reiserfs_version"
+echo "reiser4....... $enable_reiser4, $reiser4_version"
+echo "xfs........... $enable_xfs, $xfs_version"
+echo "ntfs.......... $enable_ntfs, $ntfs_version"
+echo "fat12/16/32... $enable_fat, $fat_version"
+echo "hfs plus...... $enable_hfsp, $hfs_plus_version"
+echo "ufs .......... $enable_ufs, $ufs_version"
+echo "vmfs ......... $enable_vmfs, $vmfs_version"
 #echo $supported_fs
