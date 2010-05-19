@@ -329,7 +329,6 @@ int main(int argc, char **argv){
                 log_mesg(0, 1, 1, debug, "read errno = %i \n", errno);
 
             /// read crc32 code and check it.
-	    log_mesg(1, 0, 0, debug, "Ignore_crc 1 %i\n ", opt.ignore_crc);
             crc_ck = crc32(crc_ck, buffer, r_size);
             crc_buffer = (char*)malloc(CRC_SIZE); ///alloc a memory to copy data
             if(crc_buffer == NULL){
