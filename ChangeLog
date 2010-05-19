@@ -1,6 +1,38 @@
+2010-05-19  Thomas Tsai  <thomas@nchc.org.tw>
+
+	remove one not necessary message
+
+	release 0.2.10 for xfsclone
+
+2010-05-15  thomas  <thomas@T17.(none)>
+
+	* update xfsclone.c
+
+2010-05-11  thomas  <thomas@T17.(none)>
+
+	* try to merge from new xfs clone
+
+	* replace memcpy to strncpy to avoid accessing memory beyond string terminator * and patch from  Andre Przywara <osp@andrep.de>, many thanks.
+
+	fix bug about chkimg fail
+
 2010-04-29  thomas  <thomas@T17.(none)>
 
+	* release 0.2.9
+
 	fix bug: alloc double memory for bitmap when restore. fix bug: bitmap error for over 8.7T partition backup and restore.
+
+2010-04-23  thomas  <thomas@T17.(none)>
+
+	fix xfsclone error
+
+2010-04-12  Thomas Tsai  <thomas@nchc.org.tw>
+
+	initial new xfsclone
+
+2010-04-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix about: extfsclone do fs_check and report error message when mounted times larger than fs default, but error message lost report mounted times.
 
 2010-03-29  Thomas Tsai  <thomas@nchc.org.tw>
 
