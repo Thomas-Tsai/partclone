@@ -37,7 +37,7 @@ typedef struct ag_header  {
 
 
 /// update bitmap table
-static void set_bitmap(char* bitmap, unsigned long long pos, int length);
+static void set_bitmap(char* bitmap, uint64_t pos, int length);
 
 /// open device
 static void fs_open(char* device);
