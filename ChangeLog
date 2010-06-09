@@ -1,4 +1,12 @@
+2010-06-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update to 0.2.11
+
+	add Build-Depends libvmfs fix xfsclone.c: conflicting types for ‘set_bitmap’
+
 2010-05-19  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release testing 0.2.10
 
 	remove one not necessary message
 

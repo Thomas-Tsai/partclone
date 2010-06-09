@@ -1,3 +1,10 @@
+partclone (0.2.11) unstable; urgency=low
+
+  * Bug fixed: xfsclone type error for amd64
+  * Update control file: add libvmfs
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 19 May 2010 12:22:07 +0800
+
 partclone (0.2.10) unstable; urgency=low
 
   * Bug fixed: chkimg.c not work
