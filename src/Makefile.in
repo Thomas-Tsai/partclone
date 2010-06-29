@@ -38,7 +38,8 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 	partclone.restore$(EXEEXT) partclone.chkimg$(EXEEXT) \
 	$(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 	$(am__EXEEXT_4) $(am__EXEEXT_5) $(am__EXEEXT_6) \
-	$(am__EXEEXT_7) $(am__EXEEXT_8) $(am__EXEEXT_9)
+	$(am__EXEEXT_7) $(am__EXEEXT_8) $(am__EXEEXT_9) \
+	$(am__EXEEXT_10)
 @ENABLE_EXTFS_TRUE@am__append_1 = partclone.extfs
 @ENABLE_REISERFS_TRUE@am__append_2 = partclone.reiserfs
 @ENABLE_REISER4_TRUE@am__append_3 = partclone.reiser4
@@ -49,6 +50,7 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 @ENABLE_STATIC_TRUE@am__append_8 = -static 
 @ENABLE_UFS_TRUE@am__append_9 = partclone.ufs
 @ENABLE_VMFS_TRUE@am__append_10 = partclone.vmfs partclone.fstype
+@ENABLE_JFS_TRUE@am__append_11 = partclone.jfs
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -74,6 +76,7 @@ CONFIG_CLEAN_VPATH_FILES =
 @ENABLE_UFS_TRUE@am__EXEEXT_8 = partclone.ufs$(EXEEXT)
 @ENABLE_VMFS_TRUE@am__EXEEXT_9 = partclone.vmfs$(EXEEXT) \
 @ENABLE_VMFS_TRUE@	partclone.fstype$(EXEEXT)
+@ENABLE_JFS_TRUE@am__EXEEXT_10 = partclone.jfs$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
 am_partclone_chkimg_OBJECTS = partclone.$(OBJEXT) progress.$(OBJEXT) \
@@ -133,6 +136,15 @@ am_partclone_info_OBJECTS = infoclone.$(OBJEXT) partclone.$(OBJEXT)
 partclone_info_OBJECTS = $(am_partclone_info_OBJECTS)
 partclone_info_LDADD = $(LDADD)
 partclone_info_DEPENDENCIES = $(am__DEPENDENCIES_1)
+am__partclone_jfs_SOURCES_DIST = main.c partclone.c progress.c \
+	jfs_devices.c jfs_devices.h jfsclone.c jfsclone.h partclone.h \
+	progress.h gettext.h
+@ENABLE_JFS_TRUE@am_partclone_jfs_OBJECTS = main.$(OBJEXT) \
+@ENABLE_JFS_TRUE@	partclone.$(OBJEXT) progress.$(OBJEXT) \
+@ENABLE_JFS_TRUE@	jfs_devices.$(OBJEXT) jfsclone.$(OBJEXT)
+partclone_jfs_OBJECTS = $(am_partclone_jfs_OBJECTS)
+partclone_jfs_LDADD = $(LDADD)
+partclone_jfs_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__partclone_ntfs_SOURCES_DIST = main.c partclone.c progress.c \
 	ntfsclone-ng.c ntfsclone-ng.h partclone.h progress.h gettext.h
 @ENABLE_NTFS_TRUE@am_partclone_ntfs_OBJECTS =  \
@@ -225,16 +237,17 @@ LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
 	$(partclone_extfs_SOURCES) $(partclone_fat_SOURCES) \
 	$(partclone_fstype_SOURCES) $(partclone_hfsp_SOURCES) \
-	$(partclone_info_SOURCES) $(partclone_ntfs_SOURCES) \
-	$(partclone_ntfsfixboot_SOURCES) $(partclone_reiser4_SOURCES) \
-	$(partclone_reiserfs_SOURCES) $(partclone_restore_SOURCES) \
-	$(partclone_ufs_SOURCES) $(partclone_vmfs_SOURCES) \
-	$(partclone_xfs_SOURCES)
+	$(partclone_info_SOURCES) $(partclone_jfs_SOURCES) \
+	$(partclone_ntfs_SOURCES) $(partclone_ntfsfixboot_SOURCES) \
+	$(partclone_reiser4_SOURCES) $(partclone_reiserfs_SOURCES) \
+	$(partclone_restore_SOURCES) $(partclone_ufs_SOURCES) \
+	$(partclone_vmfs_SOURCES) $(partclone_xfs_SOURCES)
 DIST_SOURCES = $(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
 	$(am__partclone_extfs_SOURCES_DIST) \
 	$(am__partclone_fat_SOURCES_DIST) \
 	$(am__partclone_fstype_SOURCES_DIST) \
 	$(am__partclone_hfsp_SOURCES_DIST) $(partclone_info_SOURCES) \
+	$(am__partclone_jfs_SOURCES_DIST) \
 	$(am__partclone_ntfs_SOURCES_DIST) \
 	$(am__partclone_ntfsfixboot_SOURCES_DIST) \
 	$(am__partclone_reiser4_SOURCES_DIST) \
@@ -369,7 +382,9 @@ partclone_chkimg_SOURCES = partclone.c partclone.h progress.c progress.h gettext
 partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h ddclone.c
 @ENABLE_EXTFS_TRUE@partclone_extfs_SOURCES = main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
 @ENABLE_EXTFS_TRUE@partclone_extfs_CFLAGS = -DEXTFS
+@ENABLE_JFS_TRUE@partclone_extfs_CFLAGS = -DJFS
 @ENABLE_EXTFS_TRUE@partclone_extfs_LDADD = -lext2fs -lcom_err -lpthread
+@ENABLE_JFS_TRUE@partclone_extfs_LDADD = -luuid -ljfs
 @ENABLE_REISERFS_TRUE@partclone_reiserfs_SOURCES = main.c partclone.c progress.c reiserfsclone.c reiserfsclone.h partclone.h progress.h gettext.h
 @ENABLE_REISERFS_TRUE@partclone_reiserfs_CFLAGS = -DREISERFS
 @ENABLE_REISERFS_TRUE@partclone_reiserfs_LDADD = -lreiserfs -ldal
@@ -397,6 +412,7 @@ partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h d
 @ENABLE_VMFS_TRUE@partclone_fstype_SOURCES = fstype.c
 @ENABLE_VMFS_TRUE@partclone_fstype_CFLAGS = -DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
 @ENABLE_VMFS_TRUE@partclone_fstype_LDADD = -lvmfs -luuid
+@ENABLE_JFS_TRUE@partclone_jfs_SOURCES = main.c partclone.c progress.c jfs_devices.c jfs_devices.h jfsclone.c jfsclone.h partclone.h progress.h gettext.h
 all: all-am
 
 .SUFFIXES:
@@ -489,6 +505,9 @@ partclone.hfsp$(EXEEXT): $(partclone_hfsp_OBJECTS) $(partclone_hfsp_DEPENDENCIES
 partclone.info$(EXEEXT): $(partclone_info_OBJECTS) $(partclone_info_DEPENDENCIES) 
 	@rm -f partclone.info$(EXEEXT)
 	$(LINK) $(partclone_info_OBJECTS) $(partclone_info_LDADD) $(LIBS)
+partclone.jfs$(EXEEXT): $(partclone_jfs_OBJECTS) $(partclone_jfs_DEPENDENCIES) 
+	@rm -f partclone.jfs$(EXEEXT)
+	$(LINK) $(partclone_jfs_OBJECTS) $(partclone_jfs_LDADD) $(LIBS)
 partclone.ntfs$(EXEEXT): $(partclone_ntfs_OBJECTS) $(partclone_ntfs_DEPENDENCIES) 
 	@rm -f partclone.ntfs$(EXEEXT)
 	$(partclone_ntfs_LINK) $(partclone_ntfs_OBJECTS) $(partclone_ntfs_LDADD) $(LIBS)
@@ -523,6 +542,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chkimg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/infoclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfs_devices.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfsclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ntfsfixboot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-extfsclone.Po@am__quote@

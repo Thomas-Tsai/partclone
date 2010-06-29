@@ -37,6 +37,7 @@
 #define ntfs_MAGIC "NTFS"
 #define ufs_MAGIC "UFS"
 #define vmfs_MAGIC "VMFS"
+#define jfs_MAGIC "JFS"
 #define raw_MAGIC "raw"
 
 #define IMAGE_VERSION "0001"

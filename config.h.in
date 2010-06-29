@@ -37,6 +37,9 @@
 /* Define to 1 if you have the `ext2fs' library (-lext2fs). */
 #undef HAVE_LIBEXT2FS
 
+/* Define to 1 if you have the `jfs -luuid' library (-ljfs -luuid). */
+#undef HAVE_LIBJFS__LUUID
+
 /* Define to 1 if you have the `ncursesw' library (-lncursesw). */
 #undef HAVE_LIBNCURSESW
 

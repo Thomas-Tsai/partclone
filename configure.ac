@@ -31,6 +31,7 @@ enable_fat="yes"
 enable_ntfs="yes"
 enable_ufs="yes"
 enable_vmfs="yes"
+enable_jfs="yes"
 fi
 
 dnl Check for uuid 
@@ -330,6 +331,29 @@ vmfs_version="unknown, suggest 0.2.0"
 fi
 #end of check vmfs
 
+##JFS##
+AC_ARG_ENABLE(jfs,
+	AS_HELP_STRING(--enable-jfs,enable jfs file system), 
+	enable_jfs=yes,
+	enable_jfs=no
+)
+AM_CONDITIONAL(ENABLE_JFS, test "$enable_jfs" = yes)
+
+if test "$enable_jfs" = "yes"; then
+#check library of some filesystems
+
+dnl Check for JFS 
+##AC_CHECKING([ for JFS Library and Header files ... ])
+##AC_CHECK_HEADERS([uuid/uuid.h jfs/jfs_superblock.h], ,
+##   AC_MSG_ERROR([*** JFS(libjfs) header not found]))
+AC_CHECKING([for JFS Library files ... ])
+AC_CHECK_LIB([jfs -luuid], [ujfs_get_superblk], ,
+        AC_MSG_ERROR([*** jfs depend library (libjfs) not found]))
+supported_fs=$supported_fs" jfs"
+jfs_version="unknown..."
+fi
+#end of check jfs
+
 ##libncursesw##
 AC_ARG_ENABLE(ncursesw,
 	AS_HELP_STRING(--enable-ncursesw,enable TEXT User Interface), 
@@ -383,4 +407,5 @@ echo "fat12/16/32... $enable_fat, $fat_version"
 echo "hfs plus...... $enable_hfsp, $hfs_plus_version"
 echo "ufs .......... $enable_ufs, $ufs_version"
 echo "vmfs ......... $enable_vmfs, $vmfs_version"
+echo "jfs .......... $enable_jfs, $jfs_version"
 #echo $supported_fs

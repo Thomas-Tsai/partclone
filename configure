@@ -602,6 +602,8 @@ ENABLE_STATIC_FALSE
 ENABLE_STATIC_TRUE
 ENABLE_NCURSESW_FALSE
 ENABLE_NCURSESW_TRUE
+ENABLE_JFS_FALSE
+ENABLE_JFS_TRUE
 ENABLE_VMFS_FALSE
 ENABLE_VMFS_TRUE
 ENABLE_UFS_FALSE
@@ -750,6 +752,7 @@ enable_fat
 enable_ntfs
 enable_ufs
 enable_vmfs
+enable_jfs
 enable_ncursesw
 enable_static
 '
@@ -1399,6 +1402,7 @@ Optional Features:
   --enable-ntfs           enable NTFS file system
   --enable-ufs            enable UFS(1/2) file system
   --enable-vmfs           enable vmfs file system
+  --enable-jfs            enable jfs file system
   --enable-ncursesw       enable TEXT User Interface
   --enable-static         enable static linking
 
@@ -6359,6 +6363,7 @@ enable_fat="yes"
 enable_ntfs="yes"
 enable_ufs="yes"
 enable_vmfs="yes"
+enable_jfs="yes"
 fi
 
 
@@ -7769,6 +7774,84 @@ vmfs_version="unknown, suggest 0.2.0"
 fi
 #end of check vmfs
 
+##JFS##
+# Check whether --enable-jfs was given.
+if test "${enable_jfs+set}" = set; then :
+  enableval=$enable_jfs; enable_jfs=yes
+else
+  enable_jfs=no
+
+fi
+
+ if test "$enable_jfs" = yes; then
+  ENABLE_JFS_TRUE=
+  ENABLE_JFS_FALSE='#'
+else
+  ENABLE_JFS_TRUE='#'
+  ENABLE_JFS_FALSE=
+fi
+
+
+if test "$enable_jfs" = "yes"; then
+#check library of some filesystems
+
+##AC_CHECKING([ for JFS Library and Header files ... ])
+##AC_CHECK_HEADERS([uuid/uuid.h jfs/jfs_superblock.h], ,
+##   AC_MSG_ERROR([*** JFS(libjfs) header not found]))
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for JFS Library files ... ..." >&5
+$as_echo "$as_me: checking for JFS Library files ... ..." >&6;}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ujfs_get_superblk in -ljfs -luuid" >&5
+$as_echo_n "checking for ujfs_get_superblk in -ljfs -luuid... " >&6; }
+if test "${ac_cv_lib_jfs__luuid_ujfs_get_superblk+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ljfs -luuid  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char ujfs_get_superblk ();
+int
+main ()
+{
+return ujfs_get_superblk ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_jfs__luuid_ujfs_get_superblk=yes
+else
+  ac_cv_lib_jfs__luuid_ujfs_get_superblk=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_jfs__luuid_ujfs_get_superblk" >&5
+$as_echo "$ac_cv_lib_jfs__luuid_ujfs_get_superblk" >&6; }
+if test "x$ac_cv_lib_jfs__luuid_ujfs_get_superblk" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBJFS__LUUID 1
+_ACEOF
+
+  LIBS="-ljfs -luuid $LIBS"
+
+else
+  as_fn_error "*** jfs depend library (libjfs) not found" "$LINENO" 5
+fi
+
+supported_fs=$supported_fs" jfs"
+jfs_version="unknown..."
+fi
+#end of check jfs
+
 ##libncursesw##
 # Check whether --enable-ncursesw was given.
 if test "${enable_ncursesw+set}" = set; then :
@@ -8027,6 +8110,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_VMFS_TRUE}" && test -z "${ENABLE_VMFS_FALSE}"; then
   as_fn_error "conditional \"ENABLE_VMFS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_JFS_TRUE}" && test -z "${ENABLE_JFS_FALSE}"; then
+  as_fn_error "conditional \"ENABLE_JFS\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_NCURSESW_TRUE}" && test -z "${ENABLE_NCURSESW_FALSE}"; then
@@ -9497,4 +9584,5 @@ echo "fat12/16/32... $enable_fat, $fat_version"
 echo "hfs plus...... $enable_hfsp, $hfs_plus_version"
 echo "ufs .......... $enable_ufs, $ufs_version"
 echo "vmfs ......... $enable_vmfs, $vmfs_version"
+echo "jfs .......... $enable_jfs, $jfs_version"
 #echo $supported_fs
