@@ -129,6 +129,8 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
     int64_t pb = 1;
     int64_t block_used = 0;
     int64_t block_free = 0;
+    uint64_t logloc = 0;
+    int logsize = 0;
 
     int start = 0;
     int bit_size = 1;
@@ -174,10 +176,14 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 
     /// ujfs_swap_dmap(&d_map); fixme
 
-    log_mesg(2, 0, 0, fs_opt.debug, "%s:Dmap page at block %lld\n", __FILE__, (long long) (d_address >> sb.s_l2bsize));
-    log_mesg(2, 0, 0, fs_opt.debug, "%s:control nblocks %d\n", __FILE__, d_map.nblocks);
-    log_mesg(2, 0, 0, fs_opt.debug, "%s:control nfree %d\n", __FILE__, d_map.nfree);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: Dmap page at block %lld\n", __FILE__, (long long) (d_address >> sb.s_l2bsize));
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: control nblocks %d\n", __FILE__, d_map.nblocks);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: control nfree %d\n", __FILE__, d_map.nfree);
     lblock = 4; //First map page
+
+    logloc  = addressPXD(&(sb.s_logpxd));
+    logsize = lengthPXD(&(sb.s_logpxd));
+    log_mesg(1, 0, 0, fs_opt.debug, "%s: logloc %lli, logsize %i\n", __FILE__, logloc, logsize);
 
     /// init progress
     progress_bar        prog;           /// progress_bar structure defined in progress.h
@@ -235,6 +241,18 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 
     }
 
+    /// log
+    for (;tb <= image_hdr.totalblock; tb++){
+
+	if ((tb >= logloc) && (tb < (logloc+logsize))){
+	    bitmap[tb] = 1;
+	    block_used++;
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: log used pb = %lli tb = %lli\n", __FILE__, pb, tb);
+	}
+	update_pui(&prog, tb, 0);//keep update
+
+    }
+
     log_mesg(2, 0, 0, fs_opt.debug, "%s:total_used = %lli\n", __FILE__, tub);
     fs_close();
     update_pui(&prog, 1, 1);//finish
@@ -277,6 +295,8 @@ extern uint64_t get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_block
     int64_t pb = 0;
     int64_t block_used = 0;
     int64_t block_free = 0;
+    int64_t bytes_on_device = 0;
+    int logsize = 0;
 
 
     /// Read Blocal Allocation Map  Inode 
@@ -300,10 +320,15 @@ extern uint64_t get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_block
     if (ret){
 	log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):xRead error.\n", __FILE__, __LINE__);
     }
-    log_mesg(2, 0, 0, fs_opt.debug, "%s:total_blocks = %lli\n", __FILE__, cntl_page.dn_mapsize);
-    log_mesg(2, 0, 0, fs_opt.debug, "%s:used_blocks = %lli\n", __FILE__, cntl_page.dn_nfree);
-    *total_blocks = cntl_page.dn_mapsize;
-    *used_blocks = (cntl_page.dn_mapsize - cntl_page.dn_nfree);
+    logsize = lengthPXD(&(sb.s_logpxd));
+    ret = ujfs_get_dev_size(fp, &bytes_on_device);
+    *total_blocks = bytes_on_device / sb.s_bsize;
+    *used_blocks = (cntl_page.dn_mapsize - cntl_page.dn_nfree + logsize);
+
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: dn.mapsize = %lli\n", __FILE__, cntl_page.dn_mapsize);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: total_blocks = %lli\n", __FILE__, *total_blocks);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: free_blocks = %lli\n", __FILE__, cntl_page.dn_nfree);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: log_blocks = %i\n", __FILE__, logsize);
 
 }
 
