@@ -34,7 +34,7 @@
 #include <jfs/jfs_dinode.h>
 #include <jfs/jfs_xtree.h>
 #include <jfs/jfs_byteorder.h>
-#include "jfs_devices.h"
+#include <jfs/devices.h>
 
 #include "partclone.h"
 #include "jfsclone.h"

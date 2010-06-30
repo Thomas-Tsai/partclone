@@ -137,11 +137,10 @@ partclone_info_OBJECTS = $(am_partclone_info_OBJECTS)
 partclone_info_LDADD = $(LDADD)
 partclone_info_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__partclone_jfs_SOURCES_DIST = main.c partclone.c progress.c \
-	jfs_devices.c jfs_devices.h jfsclone.c jfsclone.h partclone.h \
-	progress.h gettext.h
+	jfsclone.c jfsclone.h partclone.h progress.h gettext.h
 @ENABLE_JFS_TRUE@am_partclone_jfs_OBJECTS = main.$(OBJEXT) \
 @ENABLE_JFS_TRUE@	partclone.$(OBJEXT) progress.$(OBJEXT) \
-@ENABLE_JFS_TRUE@	jfs_devices.$(OBJEXT) jfsclone.$(OBJEXT)
+@ENABLE_JFS_TRUE@	jfsclone.$(OBJEXT)
 partclone_jfs_OBJECTS = $(am_partclone_jfs_OBJECTS)
 partclone_jfs_LDADD = $(LDADD)
 partclone_jfs_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -412,7 +411,8 @@ partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h d
 @ENABLE_VMFS_TRUE@partclone_fstype_SOURCES = fstype.c
 @ENABLE_VMFS_TRUE@partclone_fstype_CFLAGS = -DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
 @ENABLE_VMFS_TRUE@partclone_fstype_LDADD = -lvmfs -luuid
-@ENABLE_JFS_TRUE@partclone_jfs_SOURCES = main.c partclone.c progress.c jfs_devices.c jfs_devices.h jfsclone.c jfsclone.h partclone.h progress.h gettext.h
+#partclone_jfs_SOURCES=main.c partclone.c progress.c jfs_devices.c jfs_devices.h jfsclone.c jfsclone.h partclone.h progress.h gettext.h
+@ENABLE_JFS_TRUE@partclone_jfs_SOURCES = main.c partclone.c progress.c jfsclone.c jfsclone.h partclone.h progress.h gettext.h
 all: all-am
 
 .SUFFIXES:
@@ -542,7 +542,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chkimg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/infoclone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfs_devices.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfsclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ntfsfixboot.Po@am__quote@

@@ -1,4 +1,10 @@
+2010-06-29  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add support for jfs
+
 2010-06-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update debian/changlog
 
 	update to 0.2.11
 

@@ -92,7 +92,8 @@ endif
 
 if ENABLE_JFS
 sbin_PROGRAMS += partclone.jfs
-partclone_jfs_SOURCES=main.c partclone.c progress.c jfs_devices.c jfs_devices.h jfsclone.c jfsclone.h partclone.h progress.h gettext.h
+#partclone_jfs_SOURCES=main.c partclone.c progress.c jfs_devices.c jfs_devices.h jfsclone.c jfsclone.h partclone.h progress.h gettext.h
+partclone_jfs_SOURCES=main.c partclone.c progress.c jfsclone.c jfsclone.h partclone.h progress.h gettext.h
 partclone_extfs_CFLAGS=-DJFS
 partclone_extfs_LDADD=-luuid -ljfs
 endif
