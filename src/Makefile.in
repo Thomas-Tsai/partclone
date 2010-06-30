@@ -138,12 +138,15 @@ partclone_info_LDADD = $(LDADD)
 partclone_info_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__partclone_jfs_SOURCES_DIST = main.c partclone.c progress.c \
 	jfsclone.c jfsclone.h partclone.h progress.h gettext.h
-@ENABLE_JFS_TRUE@am_partclone_jfs_OBJECTS = main.$(OBJEXT) \
-@ENABLE_JFS_TRUE@	partclone.$(OBJEXT) progress.$(OBJEXT) \
-@ENABLE_JFS_TRUE@	jfsclone.$(OBJEXT)
+@ENABLE_JFS_TRUE@am_partclone_jfs_OBJECTS =  \
+@ENABLE_JFS_TRUE@	partclone_jfs-main.$(OBJEXT) \
+@ENABLE_JFS_TRUE@	partclone_jfs-partclone.$(OBJEXT) \
+@ENABLE_JFS_TRUE@	partclone_jfs-progress.$(OBJEXT) \
+@ENABLE_JFS_TRUE@	partclone_jfs-jfsclone.$(OBJEXT)
 partclone_jfs_OBJECTS = $(am_partclone_jfs_OBJECTS)
-partclone_jfs_LDADD = $(LDADD)
-partclone_jfs_DEPENDENCIES = $(am__DEPENDENCIES_1)
+partclone_jfs_DEPENDENCIES =
+partclone_jfs_LINK = $(CCLD) $(partclone_jfs_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__partclone_ntfs_SOURCES_DIST = main.c partclone.c progress.c \
 	ntfsclone-ng.c ntfsclone-ng.h partclone.h progress.h gettext.h
 @ENABLE_NTFS_TRUE@am_partclone_ntfs_OBJECTS =  \
@@ -381,9 +384,7 @@ partclone_chkimg_SOURCES = partclone.c partclone.h progress.c progress.h gettext
 partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h ddclone.c
 @ENABLE_EXTFS_TRUE@partclone_extfs_SOURCES = main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
 @ENABLE_EXTFS_TRUE@partclone_extfs_CFLAGS = -DEXTFS
-@ENABLE_JFS_TRUE@partclone_extfs_CFLAGS = -DJFS
 @ENABLE_EXTFS_TRUE@partclone_extfs_LDADD = -lext2fs -lcom_err -lpthread
-@ENABLE_JFS_TRUE@partclone_extfs_LDADD = -luuid -ljfs
 @ENABLE_REISERFS_TRUE@partclone_reiserfs_SOURCES = main.c partclone.c progress.c reiserfsclone.c reiserfsclone.h partclone.h progress.h gettext.h
 @ENABLE_REISERFS_TRUE@partclone_reiserfs_CFLAGS = -DREISERFS
 @ENABLE_REISERFS_TRUE@partclone_reiserfs_LDADD = -lreiserfs -ldal
@@ -413,6 +414,8 @@ partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h d
 @ENABLE_VMFS_TRUE@partclone_fstype_LDADD = -lvmfs -luuid
 #partclone_jfs_SOURCES=main.c partclone.c progress.c jfs_devices.c jfs_devices.h jfsclone.c jfsclone.h partclone.h progress.h gettext.h
 @ENABLE_JFS_TRUE@partclone_jfs_SOURCES = main.c partclone.c progress.c jfsclone.c jfsclone.h partclone.h progress.h gettext.h
+@ENABLE_JFS_TRUE@partclone_jfs_CFLAGS = -DJFS
+@ENABLE_JFS_TRUE@partclone_jfs_LDADD = -luuid -ljfs
 all: all-am
 
 .SUFFIXES:
@@ -507,7 +510,7 @@ partclone.info$(EXEEXT): $(partclone_info_OBJECTS) $(partclone_info_DEPENDENCIES
 	$(LINK) $(partclone_info_OBJECTS) $(partclone_info_LDADD) $(LIBS)
 partclone.jfs$(EXEEXT): $(partclone_jfs_OBJECTS) $(partclone_jfs_DEPENDENCIES) 
 	@rm -f partclone.jfs$(EXEEXT)
-	$(LINK) $(partclone_jfs_OBJECTS) $(partclone_jfs_LDADD) $(LIBS)
+	$(partclone_jfs_LINK) $(partclone_jfs_OBJECTS) $(partclone_jfs_LDADD) $(LIBS)
 partclone.ntfs$(EXEEXT): $(partclone_ntfs_OBJECTS) $(partclone_ntfs_DEPENDENCIES) 
 	@rm -f partclone.ntfs$(EXEEXT)
 	$(partclone_ntfs_LINK) $(partclone_ntfs_OBJECTS) $(partclone_ntfs_LDADD) $(LIBS)
@@ -542,8 +545,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chkimg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ddclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/infoclone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jfsclone.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ntfsfixboot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-extfsclone.Po@am__quote@
@@ -559,6 +560,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_jfs-jfsclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_jfs-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_jfs-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_jfs-progress.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ntfs-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ntfs-ntfsclone-ng.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ntfs-partclone.Po@am__quote@
@@ -783,6 +788,62 @@ partclone_hfsp-hfsplusclone.obj: hfsplusclone.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='hfsplusclone.c' object='partclone_hfsp-hfsplusclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -c -o partclone_hfsp-hfsplusclone.obj `if test -f 'hfsplusclone.c'; then $(CYGPATH_W) 'hfsplusclone.c'; else $(CYGPATH_W) '$(srcdir)/hfsplusclone.c'; fi`
+
+partclone_jfs-main.o: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -MT partclone_jfs-main.o -MD -MP -MF $(DEPDIR)/partclone_jfs-main.Tpo -c -o partclone_jfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_jfs-main.Tpo $(DEPDIR)/partclone_jfs-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_jfs-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -c -o partclone_jfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+
+partclone_jfs-main.obj: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -MT partclone_jfs-main.obj -MD -MP -MF $(DEPDIR)/partclone_jfs-main.Tpo -c -o partclone_jfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_jfs-main.Tpo $(DEPDIR)/partclone_jfs-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_jfs-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -c -o partclone_jfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+
+partclone_jfs-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -MT partclone_jfs-partclone.o -MD -MP -MF $(DEPDIR)/partclone_jfs-partclone.Tpo -c -o partclone_jfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_jfs-partclone.Tpo $(DEPDIR)/partclone_jfs-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_jfs-partclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -c -o partclone_jfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+
+partclone_jfs-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -MT partclone_jfs-partclone.obj -MD -MP -MF $(DEPDIR)/partclone_jfs-partclone.Tpo -c -o partclone_jfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_jfs-partclone.Tpo $(DEPDIR)/partclone_jfs-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_jfs-partclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -c -o partclone_jfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+
+partclone_jfs-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -MT partclone_jfs-progress.o -MD -MP -MF $(DEPDIR)/partclone_jfs-progress.Tpo -c -o partclone_jfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_jfs-progress.Tpo $(DEPDIR)/partclone_jfs-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_jfs-progress.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -c -o partclone_jfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+
+partclone_jfs-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -MT partclone_jfs-progress.obj -MD -MP -MF $(DEPDIR)/partclone_jfs-progress.Tpo -c -o partclone_jfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_jfs-progress.Tpo $(DEPDIR)/partclone_jfs-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_jfs-progress.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -c -o partclone_jfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+
+partclone_jfs-jfsclone.o: jfsclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -MT partclone_jfs-jfsclone.o -MD -MP -MF $(DEPDIR)/partclone_jfs-jfsclone.Tpo -c -o partclone_jfs-jfsclone.o `test -f 'jfsclone.c' || echo '$(srcdir)/'`jfsclone.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_jfs-jfsclone.Tpo $(DEPDIR)/partclone_jfs-jfsclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='jfsclone.c' object='partclone_jfs-jfsclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -c -o partclone_jfs-jfsclone.o `test -f 'jfsclone.c' || echo '$(srcdir)/'`jfsclone.c
+
+partclone_jfs-jfsclone.obj: jfsclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -MT partclone_jfs-jfsclone.obj -MD -MP -MF $(DEPDIR)/partclone_jfs-jfsclone.Tpo -c -o partclone_jfs-jfsclone.obj `if test -f 'jfsclone.c'; then $(CYGPATH_W) 'jfsclone.c'; else $(CYGPATH_W) '$(srcdir)/jfsclone.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_jfs-jfsclone.Tpo $(DEPDIR)/partclone_jfs-jfsclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='jfsclone.c' object='partclone_jfs-jfsclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -c -o partclone_jfs-jfsclone.obj `if test -f 'jfsclone.c'; then $(CYGPATH_W) 'jfsclone.c'; else $(CYGPATH_W) '$(srcdir)/jfsclone.c'; fi`
 
 partclone_ntfs-main.o: main.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -MT partclone_ntfs-main.o -MD -MP -MF $(DEPDIR)/partclone_ntfs-main.Tpo -c -o partclone_ntfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
