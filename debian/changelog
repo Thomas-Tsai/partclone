@@ -1,4 +1,4 @@
-partclone (0.2.11ubuntu1) lucid; urgency=low
+partclone (0.2.12) unstable; urgency=low
 
   * New Feature: The jfs filesystem is supported.
 
