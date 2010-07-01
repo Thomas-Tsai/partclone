@@ -188,6 +188,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
     /// init progress
     progress_bar        prog;           /// progress_bar structure defined in progress.h
     progress_init(&prog, start, image_hdr.totalblock, bit_size);
+    memset(bitmap, 1, image_hdr.totalblock);
 
     while(next){
 	block_used = 0;
@@ -211,7 +212,6 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 	log_mesg(2, 0, 0, fs_opt.debug, "%s: nfree %d\n", __FILE__, d_map.nfree);
 
 	/// bitmap information not cover all partition
-	memset(bitmap, 1, image_hdr.totalblock);
 
 	/// display bitmap  
 
