@@ -210,6 +210,9 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 	log_mesg(2, 0, 0, fs_opt.debug, "%s: nblocks %d\n", __FILE__, d_map.nblocks);
 	log_mesg(2, 0, 0, fs_opt.debug, "%s: nfree %d\n", __FILE__, d_map.nfree);
 
+	/// bitmap information not cover all partition
+	memset(bitmap, 1, image_hdr.totalblock);
+
 	/// display bitmap  
 
 	for (pb = 0; pb < d_map.nblocks; pb++){

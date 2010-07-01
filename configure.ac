@@ -350,7 +350,7 @@ AC_CHECKING([for JFS Library files ... ])
 AC_CHECK_LIB([jfs -luuid], [ujfs_get_superblk], ,
         AC_MSG_ERROR([*** jfs depend library (libjfs) not found]))
 supported_fs=$supported_fs" jfs"
-jfs_version="unknown..."
+jfs_version="version unknown, suggest 1.1.12"
 fi
 #end of check jfs
 
