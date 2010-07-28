@@ -132,6 +132,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
     uint64_t logloc = 0;
     int logsize = 0;
     int dmap_level = 0;
+    int64_t dn_mapsize = 0;
 
     int start = 0;
     int bit_size = 1;
@@ -158,6 +159,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
     if (ret){
 	log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):xRead error %i\n", __FILE__, __LINE__);
     }
+    dn_mapsize = cntl_page.dn_mapsize;
     dmap_level = BMAPSZTOLEV(cntl_page.dn_mapsize);
     dmap_l2bpp = cntl_page.dn_l2nbperpage;
 
@@ -216,7 +218,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 
 	/// display bitmap  
 
-	for (pb = 0; (pb < d_map.nblocks) && (tb < image_hdr.totalblock); pb++){
+	for (pb = 0; (pb < d_map.nblocks) && (tb < dn_mapsize); pb++){
 
 	    if (jfs_bit_inuse(d_map.wmap, pb) == 1){
 		block_used++;
@@ -250,7 +252,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
             }
         }
 
-        if (tb >= image_hdr.totalblock)
+        if (tb >= dn_mapsize)
             next = 0;
 
 	if (d_map.nblocks == 0)
