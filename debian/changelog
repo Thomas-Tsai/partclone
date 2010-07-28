@@ -1,3 +1,11 @@
+partclone (0.2.13) unstable; urgency=low
+
+  * add link partclone.VMFS_volume_member
+  * fix bug: jfsclone segfault
+  * add debian/control pkg-config
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 28 Jul 2010 17:14:20 +0800
+
 partclone (0.2.12) unstable; urgency=low
 
   * New Feature: The jfs filesystem is supported.

@@ -118,6 +118,9 @@ if ENABLE_FAT
 	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.fat32
 	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.vfat
 endif
+if ENABLE_VMFS
+	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.VMFS_volume_member
+endif
 
 uninstall-local:
 	$(RM) -f $(sbindir)/partclone.ext4dev
@@ -136,6 +139,10 @@ if ENABLE_FAT
 endif
 if ENABLE_NTFS
 	$(RM) -f $(sbindir)/partclone.ntfsreloc
+endif
+
+if ENABLE_VMFS
+	$(RM) -f $(sbindir)/partclone.VMFS_volume_member
 endif
 
 FORCE:

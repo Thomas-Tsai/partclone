@@ -121,7 +121,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
     int dmap_l2bpp;
     int64_t d_address;
     struct dmap d_map;
-    int dmap, l0, l1;
+    int dmap_i, l0, l1;
     int next = 1;
     int64_t btotal, bfree;
     int64_t tub;
@@ -131,10 +131,10 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
     int64_t block_free = 0;
     uint64_t logloc = 0;
     int logsize = 0;
+    int dmap_level = 0;
 
     int start = 0;
     int bit_size = 1;
-
 
     fs_open(device);
     /// Read Blocal Allocation Map  Inode 
@@ -158,12 +158,13 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
     if (ret){
 	log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):xRead error %i\n", __FILE__, __LINE__);
     }
+    dmap_level = BMAPSZTOLEV(cntl_page.dn_mapsize);
     dmap_l2bpp = cntl_page.dn_l2nbperpage;
 
     /// display leaf 
 
     lblock = 0; //control page
-    decode_pagenum(lblock, &l1, &l0, &dmap);
+    decode_pagenum(lblock, &l1, &l0, &dmap_i);
     ret = ujfs_rwdaddr(fp, &d_address, &bmap_inode, (lblock) << dmap_l2bpp, GET, bsize);
     if (ret){
 	log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):ujfs_rwdaddr error.\n", __FILE__, __LINE__);
@@ -194,7 +195,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 	block_used = 0;
 	block_free = 0;
 	log_mesg(2, 0, 0, fs_opt.debug, "%s:lblock = %lli\n", __FILE__, lblock);
-	decode_pagenum(lblock, &l1, &l0, &dmap);
+	decode_pagenum(lblock, &l1, &l0, &dmap_i);
 	ret = ujfs_rwdaddr(fp, &d_address, &bmap_inode, (lblock) << dmap_l2bpp, GET, bsize);
 	if (ret){
 	    log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):ujfs_rwdaddr error.\n", __FILE__, __LINE__);
@@ -215,7 +216,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 
 	/// display bitmap  
 
-	for (pb = 0; pb < d_map.nblocks; pb++){
+	for (pb = 0; (pb < d_map.nblocks) && (tb < image_hdr.totalblock); pb++){
 
 	    if (jfs_bit_inuse(d_map.wmap, pb) == 1){
 		block_used++;
@@ -233,15 +234,27 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 	log_mesg(2, 0, 0, fs_opt.debug, "%s:block_used %lli block_free %lli\n", __FILE__, block_used, block_free);
 	tub += block_used;
 
-	if(dmap < LPERCTL - 1){
-	    lblock = DMAPPAGE(l1, l0, dmap + 1);
-	    next++;
-	} else
-	    next = 0;
+        next = 0;
+	if (dmap_i < LPERCTL - 1){
+	    lblock = DMAPPAGE(l1, l0, dmap_i + 1);
+	    next = 1;
+        }
+        if (dmap_level > 0) {
+            if (l0 < LPERCTL - 1){
+                lblock = DMAPPAGE(l1, l0+1, 0);
+                next = 1;
+            }
+            if ((dmap_level == 2) && (l1 < LPERCTL - 1)) {
+                lblock = DMAPPAGE(l1+1, 0, 0);
+                next = 1;
+            }
+        }
+
+        if (tb >= image_hdr.totalblock)
+            next = 0;
 
 	if (d_map.nblocks == 0)
 	    next = 0;
-
     }
 
     /// log

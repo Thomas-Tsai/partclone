@@ -1440,6 +1440,7 @@ install-exec-hook:
 @ENABLE_FAT_TRUE@	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.fat16
 @ENABLE_FAT_TRUE@	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.fat32
 @ENABLE_FAT_TRUE@	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.vfat
+@ENABLE_VMFS_TRUE@	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.VMFS_volume_member
 
 uninstall-local:
 	$(RM) -f $(sbindir)/partclone.ext4dev
@@ -1453,6 +1454,8 @@ uninstall-local:
 @ENABLE_FAT_TRUE@	$(RM) -f $(sbindir)/partclone.fat32
 @ENABLE_FAT_TRUE@	$(RM) -f $(sbindir)/partclone.vfat
 @ENABLE_NTFS_TRUE@	$(RM) -f $(sbindir)/partclone.ntfsreloc
+
+@ENABLE_VMFS_TRUE@	$(RM) -f $(sbindir)/partclone.VMFS_volume_member
 
 FORCE:
 
