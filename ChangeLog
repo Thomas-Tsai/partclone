@@ -1,3 +1,33 @@
+2010-08-22  Thomas Tsai  <thomas@nchc.org.tw>
+
+	remove other btfs files
+
+	add btrfs support
+
+2010-07-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix buf for jfsclone
+
+	autoreconf
+
+	  * add link partclone.VMFS_volume_member   * fix bug: jfsclone segfault   * add debian/control pkg-config
+
+2010-07-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix bug of jfsclone
+
+	fix jfs: set unknown status bock as used
+
+	fix bug for jfs_logform
+
+2010-06-30  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update changelog
+
+	update makefile.am for jfs
+
+	remove jfs_devices.h jfs_devices.c update version to 0.2.12 add libjfs to control file and get libjfs...deb from partclone.nchc.org.tw/download/misc/
+
 2010-06-29  Thomas Tsai  <thomas@nchc.org.tw>
 
 	add support for jfs
