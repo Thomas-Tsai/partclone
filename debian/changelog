@@ -2,7 +2,7 @@ partclone (0.2.14) unstable; urgency=low
 
   * add btrfs support
 
- --Thomas Tsai <thomas@nchc.org.tw>  Sun, 22 Aug 2010 15:14:20 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Sun, 22 Aug 2010 15:14:20 +0800
 
 partclone (0.2.13) unstable; urgency=low
 
