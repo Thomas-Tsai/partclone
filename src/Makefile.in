@@ -39,7 +39,7 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 	$(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 	$(am__EXEEXT_4) $(am__EXEEXT_5) $(am__EXEEXT_6) \
 	$(am__EXEEXT_7) $(am__EXEEXT_8) $(am__EXEEXT_9) \
-	$(am__EXEEXT_10)
+	$(am__EXEEXT_10) $(am__EXEEXT_11)
 @ENABLE_EXTFS_TRUE@am__append_1 = partclone.extfs
 @ENABLE_REISERFS_TRUE@am__append_2 = partclone.reiserfs
 @ENABLE_REISER4_TRUE@am__append_3 = partclone.reiser4
@@ -51,6 +51,7 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 @ENABLE_UFS_TRUE@am__append_9 = partclone.ufs
 @ENABLE_VMFS_TRUE@am__append_10 = partclone.vmfs partclone.fstype
 @ENABLE_JFS_TRUE@am__append_11 = partclone.jfs
+@ENABLE_BTRFS_TRUE@am__append_12 = partclone.btrfs
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -77,8 +78,47 @@ CONFIG_CLEAN_VPATH_FILES =
 @ENABLE_VMFS_TRUE@am__EXEEXT_9 = partclone.vmfs$(EXEEXT) \
 @ENABLE_VMFS_TRUE@	partclone.fstype$(EXEEXT)
 @ENABLE_JFS_TRUE@am__EXEEXT_10 = partclone.jfs$(EXEEXT)
+@ENABLE_BTRFS_TRUE@am__EXEEXT_11 = partclone.btrfs$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
+am__partclone_btrfs_SOURCES_DIST = main.c partclone.c progress.c \
+	btrfsclone.c btrfsclone.h partclone.h progress.h gettext.h \
+	btrfs/crc32c.c btrfs/disk-io.c btrfs/extent-tree.c \
+	btrfs/inode-map.c btrfs/rbtree.c btrfs/volumes.c btrfs/ctree.c \
+	btrfs/extent-cache.c btrfs/file-item.c btrfs/print-tree.c \
+	btrfs/root-tree.c btrfs/dir-item.c btrfs/extent_io.c \
+	btrfs/inode-item.c btrfs/radix-tree.c btrfs/utils.c \
+	btrfs/crc32c.h btrfs/extent-cache.h btrfs/ioctl.h \
+	btrfs/print-tree.h btrfs/transaction.h btrfs/volumes.h \
+	btrfs/ctree.h btrfs/extent_io.h btrfs/kerncompat.h \
+	btrfs/radix-tree.h btrfs/utils.h btrfs/disk-io.h btrfs/hash.h \
+	btrfs/list.h btrfs/rbtree.h btrfs/version.h
+am__objects_1 = partclone_btrfs-crc32c.$(OBJEXT) \
+	partclone_btrfs-disk-io.$(OBJEXT) \
+	partclone_btrfs-extent-tree.$(OBJEXT) \
+	partclone_btrfs-inode-map.$(OBJEXT) \
+	partclone_btrfs-rbtree.$(OBJEXT) \
+	partclone_btrfs-volumes.$(OBJEXT) \
+	partclone_btrfs-ctree.$(OBJEXT) \
+	partclone_btrfs-extent-cache.$(OBJEXT) \
+	partclone_btrfs-file-item.$(OBJEXT) \
+	partclone_btrfs-print-tree.$(OBJEXT) \
+	partclone_btrfs-root-tree.$(OBJEXT) \
+	partclone_btrfs-dir-item.$(OBJEXT) \
+	partclone_btrfs-extent_io.$(OBJEXT) \
+	partclone_btrfs-inode-item.$(OBJEXT) \
+	partclone_btrfs-radix-tree.$(OBJEXT) \
+	partclone_btrfs-utils.$(OBJEXT)
+@ENABLE_BTRFS_TRUE@am_partclone_btrfs_OBJECTS =  \
+@ENABLE_BTRFS_TRUE@	partclone_btrfs-main.$(OBJEXT) \
+@ENABLE_BTRFS_TRUE@	partclone_btrfs-partclone.$(OBJEXT) \
+@ENABLE_BTRFS_TRUE@	partclone_btrfs-progress.$(OBJEXT) \
+@ENABLE_BTRFS_TRUE@	partclone_btrfs-btrfsclone.$(OBJEXT) \
+@ENABLE_BTRFS_TRUE@	$(am__objects_1)
+partclone_btrfs_OBJECTS = $(am_partclone_btrfs_OBJECTS)
+partclone_btrfs_DEPENDENCIES =
+partclone_btrfs_LINK = $(CCLD) $(partclone_btrfs_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_partclone_chkimg_OBJECTS = partclone.$(OBJEXT) progress.$(OBJEXT) \
 	chkimg.$(OBJEXT)
 partclone_chkimg_OBJECTS = $(am_partclone_chkimg_OBJECTS)
@@ -236,15 +276,17 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
-	$(partclone_extfs_SOURCES) $(partclone_fat_SOURCES) \
-	$(partclone_fstype_SOURCES) $(partclone_hfsp_SOURCES) \
-	$(partclone_info_SOURCES) $(partclone_jfs_SOURCES) \
-	$(partclone_ntfs_SOURCES) $(partclone_ntfsfixboot_SOURCES) \
-	$(partclone_reiser4_SOURCES) $(partclone_reiserfs_SOURCES) \
-	$(partclone_restore_SOURCES) $(partclone_ufs_SOURCES) \
-	$(partclone_vmfs_SOURCES) $(partclone_xfs_SOURCES)
-DIST_SOURCES = $(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
+SOURCES = $(partclone_btrfs_SOURCES) $(partclone_chkimg_SOURCES) \
+	$(partclone_dd_SOURCES) $(partclone_extfs_SOURCES) \
+	$(partclone_fat_SOURCES) $(partclone_fstype_SOURCES) \
+	$(partclone_hfsp_SOURCES) $(partclone_info_SOURCES) \
+	$(partclone_jfs_SOURCES) $(partclone_ntfs_SOURCES) \
+	$(partclone_ntfsfixboot_SOURCES) $(partclone_reiser4_SOURCES) \
+	$(partclone_reiserfs_SOURCES) $(partclone_restore_SOURCES) \
+	$(partclone_ufs_SOURCES) $(partclone_vmfs_SOURCES) \
+	$(partclone_xfs_SOURCES)
+DIST_SOURCES = $(am__partclone_btrfs_SOURCES_DIST) \
+	$(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
 	$(am__partclone_extfs_SOURCES_DIST) \
 	$(am__partclone_fat_SOURCES_DIST) \
 	$(am__partclone_fstype_SOURCES_DIST) \
@@ -377,6 +419,7 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\"
 LDADD = $(LIBINTL)
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
+BTRFS_SOURCE = btrfs/crc32c.c btrfs/disk-io.c btrfs/extent-tree.c btrfs/inode-map.c btrfs/rbtree.c btrfs/volumes.c btrfs/ctree.c btrfs/extent-cache.c btrfs/file-item.c btrfs/print-tree.c btrfs/root-tree.c btrfs/dir-item.c btrfs/extent_io.c btrfs/inode-item.c btrfs/radix-tree.c btrfs/utils.c btrfs/crc32c.h btrfs/extent-cache.h btrfs/ioctl.h btrfs/print-tree.h btrfs/transaction.h btrfs/volumes.h btrfs/ctree.h btrfs/extent_io.h btrfs/kerncompat.h btrfs/radix-tree.h btrfs/utils.h btrfs/disk-io.h btrfs/hash.h btrfs/list.h btrfs/rbtree.h btrfs/version.h
 partclone_info_SOURCES = infoclone.c partclone.c partclone.h fs_common.h
 partclone_restore_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h restore.c
 partclone_restore_CFLAGS = -DRESTORE
@@ -416,6 +459,9 @@ partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h d
 @ENABLE_JFS_TRUE@partclone_jfs_SOURCES = main.c partclone.c progress.c jfsclone.c jfsclone.h partclone.h progress.h gettext.h
 @ENABLE_JFS_TRUE@partclone_jfs_CFLAGS = -DJFS
 @ENABLE_JFS_TRUE@partclone_jfs_LDADD = -luuid -ljfs
+@ENABLE_BTRFS_TRUE@partclone_btrfs_SOURCES = main.c partclone.c progress.c btrfsclone.c btrfsclone.h partclone.h progress.h gettext.h $(BTRFS_SOURCE)
+@ENABLE_BTRFS_TRUE@partclone_btrfs_CFLAGS = -DBTRFS
+@ENABLE_BTRFS_TRUE@partclone_btrfs_LDADD = -luuid
 all: all-am
 
 .SUFFIXES:
@@ -487,6 +533,9 @@ uninstall-sbinPROGRAMS:
 
 clean-sbinPROGRAMS:
 	-test -z "$(sbin_PROGRAMS)" || rm -f $(sbin_PROGRAMS)
+partclone.btrfs$(EXEEXT): $(partclone_btrfs_OBJECTS) $(partclone_btrfs_DEPENDENCIES) 
+	@rm -f partclone.btrfs$(EXEEXT)
+	$(partclone_btrfs_LINK) $(partclone_btrfs_OBJECTS) $(partclone_btrfs_LDADD) $(LIBS)
 partclone.chkimg$(EXEEXT): $(partclone_chkimg_OBJECTS) $(partclone_chkimg_DEPENDENCIES) 
 	@rm -f partclone.chkimg$(EXEEXT)
 	$(LINK) $(partclone_chkimg_OBJECTS) $(partclone_chkimg_LDADD) $(LIBS)
@@ -547,6 +596,26 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/infoclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ntfsfixboot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-btrfsclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-crc32c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-ctree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-dir-item.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-disk-io.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-extent-cache.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-extent-tree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-extent_io.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-file-item.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-inode-item.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-inode-map.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-print-tree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-radix-tree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-rbtree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-root-tree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-utils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-volumes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-extfsclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-partclone.Po@am__quote@
@@ -606,6 +675,286 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
+
+partclone_btrfs-main.o: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-main.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-main.Tpo -c -o partclone_btrfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-main.Tpo $(DEPDIR)/partclone_btrfs-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_btrfs-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+
+partclone_btrfs-main.obj: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-main.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-main.Tpo -c -o partclone_btrfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-main.Tpo $(DEPDIR)/partclone_btrfs-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_btrfs-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+
+partclone_btrfs-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-partclone.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-partclone.Tpo -c -o partclone_btrfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-partclone.Tpo $(DEPDIR)/partclone_btrfs-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_btrfs-partclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+
+partclone_btrfs-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-partclone.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-partclone.Tpo -c -o partclone_btrfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-partclone.Tpo $(DEPDIR)/partclone_btrfs-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_btrfs-partclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+
+partclone_btrfs-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-progress.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-progress.Tpo -c -o partclone_btrfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-progress.Tpo $(DEPDIR)/partclone_btrfs-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_btrfs-progress.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+
+partclone_btrfs-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-progress.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-progress.Tpo -c -o partclone_btrfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-progress.Tpo $(DEPDIR)/partclone_btrfs-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_btrfs-progress.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+
+partclone_btrfs-btrfsclone.o: btrfsclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-btrfsclone.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-btrfsclone.Tpo -c -o partclone_btrfs-btrfsclone.o `test -f 'btrfsclone.c' || echo '$(srcdir)/'`btrfsclone.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-btrfsclone.Tpo $(DEPDIR)/partclone_btrfs-btrfsclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfsclone.c' object='partclone_btrfs-btrfsclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-btrfsclone.o `test -f 'btrfsclone.c' || echo '$(srcdir)/'`btrfsclone.c
+
+partclone_btrfs-btrfsclone.obj: btrfsclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-btrfsclone.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-btrfsclone.Tpo -c -o partclone_btrfs-btrfsclone.obj `if test -f 'btrfsclone.c'; then $(CYGPATH_W) 'btrfsclone.c'; else $(CYGPATH_W) '$(srcdir)/btrfsclone.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-btrfsclone.Tpo $(DEPDIR)/partclone_btrfs-btrfsclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfsclone.c' object='partclone_btrfs-btrfsclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-btrfsclone.obj `if test -f 'btrfsclone.c'; then $(CYGPATH_W) 'btrfsclone.c'; else $(CYGPATH_W) '$(srcdir)/btrfsclone.c'; fi`
+
+partclone_btrfs-crc32c.o: btrfs/crc32c.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-crc32c.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-crc32c.Tpo -c -o partclone_btrfs-crc32c.o `test -f 'btrfs/crc32c.c' || echo '$(srcdir)/'`btrfs/crc32c.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-crc32c.Tpo $(DEPDIR)/partclone_btrfs-crc32c.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/crc32c.c' object='partclone_btrfs-crc32c.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-crc32c.o `test -f 'btrfs/crc32c.c' || echo '$(srcdir)/'`btrfs/crc32c.c
+
+partclone_btrfs-crc32c.obj: btrfs/crc32c.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-crc32c.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-crc32c.Tpo -c -o partclone_btrfs-crc32c.obj `if test -f 'btrfs/crc32c.c'; then $(CYGPATH_W) 'btrfs/crc32c.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/crc32c.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-crc32c.Tpo $(DEPDIR)/partclone_btrfs-crc32c.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/crc32c.c' object='partclone_btrfs-crc32c.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-crc32c.obj `if test -f 'btrfs/crc32c.c'; then $(CYGPATH_W) 'btrfs/crc32c.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/crc32c.c'; fi`
+
+partclone_btrfs-disk-io.o: btrfs/disk-io.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-disk-io.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-disk-io.Tpo -c -o partclone_btrfs-disk-io.o `test -f 'btrfs/disk-io.c' || echo '$(srcdir)/'`btrfs/disk-io.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-disk-io.Tpo $(DEPDIR)/partclone_btrfs-disk-io.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/disk-io.c' object='partclone_btrfs-disk-io.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-disk-io.o `test -f 'btrfs/disk-io.c' || echo '$(srcdir)/'`btrfs/disk-io.c
+
+partclone_btrfs-disk-io.obj: btrfs/disk-io.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-disk-io.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-disk-io.Tpo -c -o partclone_btrfs-disk-io.obj `if test -f 'btrfs/disk-io.c'; then $(CYGPATH_W) 'btrfs/disk-io.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/disk-io.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-disk-io.Tpo $(DEPDIR)/partclone_btrfs-disk-io.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/disk-io.c' object='partclone_btrfs-disk-io.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-disk-io.obj `if test -f 'btrfs/disk-io.c'; then $(CYGPATH_W) 'btrfs/disk-io.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/disk-io.c'; fi`
+
+partclone_btrfs-extent-tree.o: btrfs/extent-tree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-extent-tree.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-extent-tree.Tpo -c -o partclone_btrfs-extent-tree.o `test -f 'btrfs/extent-tree.c' || echo '$(srcdir)/'`btrfs/extent-tree.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-extent-tree.Tpo $(DEPDIR)/partclone_btrfs-extent-tree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/extent-tree.c' object='partclone_btrfs-extent-tree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-extent-tree.o `test -f 'btrfs/extent-tree.c' || echo '$(srcdir)/'`btrfs/extent-tree.c
+
+partclone_btrfs-extent-tree.obj: btrfs/extent-tree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-extent-tree.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-extent-tree.Tpo -c -o partclone_btrfs-extent-tree.obj `if test -f 'btrfs/extent-tree.c'; then $(CYGPATH_W) 'btrfs/extent-tree.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/extent-tree.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-extent-tree.Tpo $(DEPDIR)/partclone_btrfs-extent-tree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/extent-tree.c' object='partclone_btrfs-extent-tree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-extent-tree.obj `if test -f 'btrfs/extent-tree.c'; then $(CYGPATH_W) 'btrfs/extent-tree.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/extent-tree.c'; fi`
+
+partclone_btrfs-inode-map.o: btrfs/inode-map.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-inode-map.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-inode-map.Tpo -c -o partclone_btrfs-inode-map.o `test -f 'btrfs/inode-map.c' || echo '$(srcdir)/'`btrfs/inode-map.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-inode-map.Tpo $(DEPDIR)/partclone_btrfs-inode-map.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/inode-map.c' object='partclone_btrfs-inode-map.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-inode-map.o `test -f 'btrfs/inode-map.c' || echo '$(srcdir)/'`btrfs/inode-map.c
+
+partclone_btrfs-inode-map.obj: btrfs/inode-map.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-inode-map.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-inode-map.Tpo -c -o partclone_btrfs-inode-map.obj `if test -f 'btrfs/inode-map.c'; then $(CYGPATH_W) 'btrfs/inode-map.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/inode-map.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-inode-map.Tpo $(DEPDIR)/partclone_btrfs-inode-map.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/inode-map.c' object='partclone_btrfs-inode-map.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-inode-map.obj `if test -f 'btrfs/inode-map.c'; then $(CYGPATH_W) 'btrfs/inode-map.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/inode-map.c'; fi`
+
+partclone_btrfs-rbtree.o: btrfs/rbtree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-rbtree.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-rbtree.Tpo -c -o partclone_btrfs-rbtree.o `test -f 'btrfs/rbtree.c' || echo '$(srcdir)/'`btrfs/rbtree.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-rbtree.Tpo $(DEPDIR)/partclone_btrfs-rbtree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/rbtree.c' object='partclone_btrfs-rbtree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-rbtree.o `test -f 'btrfs/rbtree.c' || echo '$(srcdir)/'`btrfs/rbtree.c
+
+partclone_btrfs-rbtree.obj: btrfs/rbtree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-rbtree.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-rbtree.Tpo -c -o partclone_btrfs-rbtree.obj `if test -f 'btrfs/rbtree.c'; then $(CYGPATH_W) 'btrfs/rbtree.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/rbtree.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-rbtree.Tpo $(DEPDIR)/partclone_btrfs-rbtree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/rbtree.c' object='partclone_btrfs-rbtree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-rbtree.obj `if test -f 'btrfs/rbtree.c'; then $(CYGPATH_W) 'btrfs/rbtree.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/rbtree.c'; fi`
+
+partclone_btrfs-volumes.o: btrfs/volumes.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-volumes.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-volumes.Tpo -c -o partclone_btrfs-volumes.o `test -f 'btrfs/volumes.c' || echo '$(srcdir)/'`btrfs/volumes.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-volumes.Tpo $(DEPDIR)/partclone_btrfs-volumes.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/volumes.c' object='partclone_btrfs-volumes.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-volumes.o `test -f 'btrfs/volumes.c' || echo '$(srcdir)/'`btrfs/volumes.c
+
+partclone_btrfs-volumes.obj: btrfs/volumes.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-volumes.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-volumes.Tpo -c -o partclone_btrfs-volumes.obj `if test -f 'btrfs/volumes.c'; then $(CYGPATH_W) 'btrfs/volumes.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/volumes.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-volumes.Tpo $(DEPDIR)/partclone_btrfs-volumes.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/volumes.c' object='partclone_btrfs-volumes.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-volumes.obj `if test -f 'btrfs/volumes.c'; then $(CYGPATH_W) 'btrfs/volumes.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/volumes.c'; fi`
+
+partclone_btrfs-ctree.o: btrfs/ctree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-ctree.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-ctree.Tpo -c -o partclone_btrfs-ctree.o `test -f 'btrfs/ctree.c' || echo '$(srcdir)/'`btrfs/ctree.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-ctree.Tpo $(DEPDIR)/partclone_btrfs-ctree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/ctree.c' object='partclone_btrfs-ctree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-ctree.o `test -f 'btrfs/ctree.c' || echo '$(srcdir)/'`btrfs/ctree.c
+
+partclone_btrfs-ctree.obj: btrfs/ctree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-ctree.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-ctree.Tpo -c -o partclone_btrfs-ctree.obj `if test -f 'btrfs/ctree.c'; then $(CYGPATH_W) 'btrfs/ctree.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/ctree.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-ctree.Tpo $(DEPDIR)/partclone_btrfs-ctree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/ctree.c' object='partclone_btrfs-ctree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-ctree.obj `if test -f 'btrfs/ctree.c'; then $(CYGPATH_W) 'btrfs/ctree.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/ctree.c'; fi`
+
+partclone_btrfs-extent-cache.o: btrfs/extent-cache.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-extent-cache.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-extent-cache.Tpo -c -o partclone_btrfs-extent-cache.o `test -f 'btrfs/extent-cache.c' || echo '$(srcdir)/'`btrfs/extent-cache.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-extent-cache.Tpo $(DEPDIR)/partclone_btrfs-extent-cache.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/extent-cache.c' object='partclone_btrfs-extent-cache.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-extent-cache.o `test -f 'btrfs/extent-cache.c' || echo '$(srcdir)/'`btrfs/extent-cache.c
+
+partclone_btrfs-extent-cache.obj: btrfs/extent-cache.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-extent-cache.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-extent-cache.Tpo -c -o partclone_btrfs-extent-cache.obj `if test -f 'btrfs/extent-cache.c'; then $(CYGPATH_W) 'btrfs/extent-cache.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/extent-cache.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-extent-cache.Tpo $(DEPDIR)/partclone_btrfs-extent-cache.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/extent-cache.c' object='partclone_btrfs-extent-cache.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-extent-cache.obj `if test -f 'btrfs/extent-cache.c'; then $(CYGPATH_W) 'btrfs/extent-cache.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/extent-cache.c'; fi`
+
+partclone_btrfs-file-item.o: btrfs/file-item.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-file-item.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-file-item.Tpo -c -o partclone_btrfs-file-item.o `test -f 'btrfs/file-item.c' || echo '$(srcdir)/'`btrfs/file-item.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-file-item.Tpo $(DEPDIR)/partclone_btrfs-file-item.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/file-item.c' object='partclone_btrfs-file-item.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-file-item.o `test -f 'btrfs/file-item.c' || echo '$(srcdir)/'`btrfs/file-item.c
+
+partclone_btrfs-file-item.obj: btrfs/file-item.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-file-item.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-file-item.Tpo -c -o partclone_btrfs-file-item.obj `if test -f 'btrfs/file-item.c'; then $(CYGPATH_W) 'btrfs/file-item.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/file-item.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-file-item.Tpo $(DEPDIR)/partclone_btrfs-file-item.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/file-item.c' object='partclone_btrfs-file-item.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-file-item.obj `if test -f 'btrfs/file-item.c'; then $(CYGPATH_W) 'btrfs/file-item.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/file-item.c'; fi`
+
+partclone_btrfs-print-tree.o: btrfs/print-tree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-print-tree.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-print-tree.Tpo -c -o partclone_btrfs-print-tree.o `test -f 'btrfs/print-tree.c' || echo '$(srcdir)/'`btrfs/print-tree.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-print-tree.Tpo $(DEPDIR)/partclone_btrfs-print-tree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/print-tree.c' object='partclone_btrfs-print-tree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-print-tree.o `test -f 'btrfs/print-tree.c' || echo '$(srcdir)/'`btrfs/print-tree.c
+
+partclone_btrfs-print-tree.obj: btrfs/print-tree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-print-tree.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-print-tree.Tpo -c -o partclone_btrfs-print-tree.obj `if test -f 'btrfs/print-tree.c'; then $(CYGPATH_W) 'btrfs/print-tree.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/print-tree.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-print-tree.Tpo $(DEPDIR)/partclone_btrfs-print-tree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/print-tree.c' object='partclone_btrfs-print-tree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-print-tree.obj `if test -f 'btrfs/print-tree.c'; then $(CYGPATH_W) 'btrfs/print-tree.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/print-tree.c'; fi`
+
+partclone_btrfs-root-tree.o: btrfs/root-tree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-root-tree.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-root-tree.Tpo -c -o partclone_btrfs-root-tree.o `test -f 'btrfs/root-tree.c' || echo '$(srcdir)/'`btrfs/root-tree.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-root-tree.Tpo $(DEPDIR)/partclone_btrfs-root-tree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/root-tree.c' object='partclone_btrfs-root-tree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-root-tree.o `test -f 'btrfs/root-tree.c' || echo '$(srcdir)/'`btrfs/root-tree.c
+
+partclone_btrfs-root-tree.obj: btrfs/root-tree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-root-tree.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-root-tree.Tpo -c -o partclone_btrfs-root-tree.obj `if test -f 'btrfs/root-tree.c'; then $(CYGPATH_W) 'btrfs/root-tree.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/root-tree.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-root-tree.Tpo $(DEPDIR)/partclone_btrfs-root-tree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/root-tree.c' object='partclone_btrfs-root-tree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-root-tree.obj `if test -f 'btrfs/root-tree.c'; then $(CYGPATH_W) 'btrfs/root-tree.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/root-tree.c'; fi`
+
+partclone_btrfs-dir-item.o: btrfs/dir-item.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-dir-item.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-dir-item.Tpo -c -o partclone_btrfs-dir-item.o `test -f 'btrfs/dir-item.c' || echo '$(srcdir)/'`btrfs/dir-item.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-dir-item.Tpo $(DEPDIR)/partclone_btrfs-dir-item.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/dir-item.c' object='partclone_btrfs-dir-item.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-dir-item.o `test -f 'btrfs/dir-item.c' || echo '$(srcdir)/'`btrfs/dir-item.c
+
+partclone_btrfs-dir-item.obj: btrfs/dir-item.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-dir-item.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-dir-item.Tpo -c -o partclone_btrfs-dir-item.obj `if test -f 'btrfs/dir-item.c'; then $(CYGPATH_W) 'btrfs/dir-item.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/dir-item.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-dir-item.Tpo $(DEPDIR)/partclone_btrfs-dir-item.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/dir-item.c' object='partclone_btrfs-dir-item.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-dir-item.obj `if test -f 'btrfs/dir-item.c'; then $(CYGPATH_W) 'btrfs/dir-item.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/dir-item.c'; fi`
+
+partclone_btrfs-extent_io.o: btrfs/extent_io.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-extent_io.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-extent_io.Tpo -c -o partclone_btrfs-extent_io.o `test -f 'btrfs/extent_io.c' || echo '$(srcdir)/'`btrfs/extent_io.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-extent_io.Tpo $(DEPDIR)/partclone_btrfs-extent_io.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/extent_io.c' object='partclone_btrfs-extent_io.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-extent_io.o `test -f 'btrfs/extent_io.c' || echo '$(srcdir)/'`btrfs/extent_io.c
+
+partclone_btrfs-extent_io.obj: btrfs/extent_io.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-extent_io.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-extent_io.Tpo -c -o partclone_btrfs-extent_io.obj `if test -f 'btrfs/extent_io.c'; then $(CYGPATH_W) 'btrfs/extent_io.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/extent_io.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-extent_io.Tpo $(DEPDIR)/partclone_btrfs-extent_io.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/extent_io.c' object='partclone_btrfs-extent_io.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-extent_io.obj `if test -f 'btrfs/extent_io.c'; then $(CYGPATH_W) 'btrfs/extent_io.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/extent_io.c'; fi`
+
+partclone_btrfs-inode-item.o: btrfs/inode-item.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-inode-item.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-inode-item.Tpo -c -o partclone_btrfs-inode-item.o `test -f 'btrfs/inode-item.c' || echo '$(srcdir)/'`btrfs/inode-item.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-inode-item.Tpo $(DEPDIR)/partclone_btrfs-inode-item.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/inode-item.c' object='partclone_btrfs-inode-item.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-inode-item.o `test -f 'btrfs/inode-item.c' || echo '$(srcdir)/'`btrfs/inode-item.c
+
+partclone_btrfs-inode-item.obj: btrfs/inode-item.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-inode-item.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-inode-item.Tpo -c -o partclone_btrfs-inode-item.obj `if test -f 'btrfs/inode-item.c'; then $(CYGPATH_W) 'btrfs/inode-item.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/inode-item.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-inode-item.Tpo $(DEPDIR)/partclone_btrfs-inode-item.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/inode-item.c' object='partclone_btrfs-inode-item.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-inode-item.obj `if test -f 'btrfs/inode-item.c'; then $(CYGPATH_W) 'btrfs/inode-item.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/inode-item.c'; fi`
+
+partclone_btrfs-radix-tree.o: btrfs/radix-tree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-radix-tree.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-radix-tree.Tpo -c -o partclone_btrfs-radix-tree.o `test -f 'btrfs/radix-tree.c' || echo '$(srcdir)/'`btrfs/radix-tree.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-radix-tree.Tpo $(DEPDIR)/partclone_btrfs-radix-tree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/radix-tree.c' object='partclone_btrfs-radix-tree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-radix-tree.o `test -f 'btrfs/radix-tree.c' || echo '$(srcdir)/'`btrfs/radix-tree.c
+
+partclone_btrfs-radix-tree.obj: btrfs/radix-tree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-radix-tree.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-radix-tree.Tpo -c -o partclone_btrfs-radix-tree.obj `if test -f 'btrfs/radix-tree.c'; then $(CYGPATH_W) 'btrfs/radix-tree.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/radix-tree.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-radix-tree.Tpo $(DEPDIR)/partclone_btrfs-radix-tree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/radix-tree.c' object='partclone_btrfs-radix-tree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-radix-tree.obj `if test -f 'btrfs/radix-tree.c'; then $(CYGPATH_W) 'btrfs/radix-tree.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/radix-tree.c'; fi`
+
+partclone_btrfs-utils.o: btrfs/utils.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-utils.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-utils.Tpo -c -o partclone_btrfs-utils.o `test -f 'btrfs/utils.c' || echo '$(srcdir)/'`btrfs/utils.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-utils.Tpo $(DEPDIR)/partclone_btrfs-utils.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/utils.c' object='partclone_btrfs-utils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-utils.o `test -f 'btrfs/utils.c' || echo '$(srcdir)/'`btrfs/utils.c
+
+partclone_btrfs-utils.obj: btrfs/utils.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-utils.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-utils.Tpo -c -o partclone_btrfs-utils.obj `if test -f 'btrfs/utils.c'; then $(CYGPATH_W) 'btrfs/utils.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/utils.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-utils.Tpo $(DEPDIR)/partclone_btrfs-utils.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/utils.c' object='partclone_btrfs-utils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-utils.obj `if test -f 'btrfs/utils.c'; then $(CYGPATH_W) 'btrfs/utils.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/utils.c'; fi`
 
 partclone_extfs-main.o: main.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -MT partclone_extfs-main.o -MD -MP -MF $(DEPDIR)/partclone_extfs-main.Tpo -c -o partclone_extfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c

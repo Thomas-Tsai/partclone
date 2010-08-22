@@ -602,6 +602,8 @@ ENABLE_STATIC_FALSE
 ENABLE_STATIC_TRUE
 ENABLE_NCURSESW_FALSE
 ENABLE_NCURSESW_TRUE
+ENABLE_BTRFS_FALSE
+ENABLE_BTRFS_TRUE
 ENABLE_JFS_FALSE
 ENABLE_JFS_TRUE
 ENABLE_VMFS_FALSE
@@ -753,6 +755,7 @@ enable_ntfs
 enable_ufs
 enable_vmfs
 enable_jfs
+enable_btrfs
 enable_ncursesw
 enable_static
 '
@@ -1403,6 +1406,7 @@ Optional Features:
   --enable-ufs            enable UFS(1/2) file system
   --enable-vmfs           enable vmfs file system
   --enable-jfs            enable jfs file system
+  --enable-btrfs          enable btrfs file system
   --enable-ncursesw       enable TEXT User Interface
   --enable-static         enable static linking
 
@@ -6364,6 +6368,7 @@ enable_ntfs="yes"
 enable_ufs="yes"
 enable_vmfs="yes"
 enable_jfs="yes"
+enable_btrfs="yes"
 fi
 
 
@@ -7852,6 +7857,31 @@ jfs_version="version unknown, suggest 1.1.12"
 fi
 #end of check jfs
 
+##btrfs##
+# Check whether --enable-btrfs was given.
+if test "${enable_btrfs+set}" = set; then :
+  enableval=$enable_btrfs; enable_btrfs=yes
+else
+  enable_btrfs=no
+
+fi
+
+ if test "$enable_btrfs" = yes; then
+  ENABLE_BTRFS_TRUE=
+  ENABLE_BTRFS_FALSE='#'
+else
+  ENABLE_BTRFS_TRUE='#'
+  ENABLE_BTRFS_FALSE=
+fi
+
+
+if test "$enable_btrfs" = yes; then
+supported_fs=$supported_fs" btrfs"
+btrfs_version="0.19"
+fi
+#end of check btrfs
+
+
 ##libncursesw##
 # Check whether --enable-ncursesw was given.
 if test "${enable_ncursesw+set}" = set; then :
@@ -8114,6 +8144,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_JFS_TRUE}" && test -z "${ENABLE_JFS_FALSE}"; then
   as_fn_error "conditional \"ENABLE_JFS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_BTRFS_TRUE}" && test -z "${ENABLE_BTRFS_FALSE}"; then
+  as_fn_error "conditional \"ENABLE_BTRFS\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_NCURSESW_TRUE}" && test -z "${ENABLE_NCURSESW_FALSE}"; then
@@ -9585,4 +9619,5 @@ echo "hfs plus...... $enable_hfsp, $hfs_plus_version"
 echo "ufs .......... $enable_ufs, $ufs_version"
 echo "vmfs ......... $enable_vmfs, $vmfs_version"
 echo "jfs .......... $enable_jfs, $jfs_version"
+echo "btrfs......... $enable_btrfs, $btrfs_version"
 #echo $supported_fs

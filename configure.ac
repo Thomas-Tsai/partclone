@@ -32,6 +32,7 @@ enable_ntfs="yes"
 enable_ufs="yes"
 enable_vmfs="yes"
 enable_jfs="yes"
+enable_btrfs="yes"
 fi
 
 dnl Check for uuid 
@@ -354,6 +355,21 @@ jfs_version="version unknown, suggest 1.1.12"
 fi
 #end of check jfs
 
+##btrfs##
+AC_ARG_ENABLE(btrfs,
+	AS_HELP_STRING(--enable-btrfs,enable btrfs file system), 
+	enable_btrfs=yes,
+	enable_btrfs=no
+)
+AM_CONDITIONAL(ENABLE_BTRFS, test "$enable_btrfs" = yes)
+
+if test "$enable_btrfs" = yes; then
+supported_fs=$supported_fs" btrfs"
+btrfs_version="0.19"
+fi
+#end of check btrfs
+
+
 ##libncursesw##
 AC_ARG_ENABLE(ncursesw,
 	AS_HELP_STRING(--enable-ncursesw,enable TEXT User Interface), 
@@ -408,4 +424,5 @@ echo "hfs plus...... $enable_hfsp, $hfs_plus_version"
 echo "ufs .......... $enable_ufs, $ufs_version"
 echo "vmfs ......... $enable_vmfs, $vmfs_version"
 echo "jfs .......... $enable_jfs, $jfs_version"
+echo "btrfs......... $enable_btrfs, $btrfs_version"
 #echo $supported_fs
