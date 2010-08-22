@@ -1,4 +1,4 @@
-partclone (0.2.14test) unstable; urgency=low
+partclone (0.2.14) unstable; urgency=low
 
   * add btrfs support
 
