@@ -16,6 +16,7 @@
 #include "btrfs/version.h"
 #include "btrfs/ctree.h"
 #include "btrfs/disk-io.h"
+#include "btrfs/volumes.h"
 
 #include "partclone.h"
 #include "btrfsclone.h"
@@ -68,12 +69,16 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 {
     uint64_t super_block = 0;
     struct btrfs_root *extent_root;
+    struct btrfs_extent_item *ei;
     struct extent_buffer *leaf;
+    struct extent_buffer *eb;
     struct btrfs_key key;
     uint64_t bytenr;
     uint64_t num_bytes;
+    uint64_t length;
+    uint64_t block_offset;
+    struct btrfs_multi_bio *multi = NULL;
     int ret;
-
 
     fs_open(device);
     block_size = image_hdr.block_size;
@@ -86,7 +91,8 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 
     extent_root = root->fs_info->extent_root;
     bytenr = BTRFS_SUPER_INFO_OFFSET + 4096;
-    key.objectid = BTRFS_EXTENT_ITEM_KEY;
+    key.objectid = bytenr;
+    key.type = BTRFS_EXTENT_ITEM_KEY;
     key.offset = 0;
 
     ret = btrfs_search_slot(NULL, extent_root, &key, path, 0, 0);
@@ -106,8 +112,30 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 	}
 
 	bytenr = key.objectid;
+        block_offset = bytenr;
 	num_bytes = key.offset;
-	set_bitmap(bitmap, bytenr, num_bytes);
+        log_mesg(2, 0, 0, fs_opt.debug, "bytenr = %llu, size = %llu\n", bytenr, num_bytes);
+
+        if (btrfs_item_size_nr(leaf, path->slots[0]) > sizeof(*ei)) {
+	    ei = btrfs_item_ptr(leaf, path->slots[0], struct btrfs_extent_item);
+	    if (btrfs_extent_flags(leaf, ei) & BTRFS_EXTENT_FLAG_TREE_BLOCK) {
+
+                /*disk_io.c*/
+		eb = btrfs_find_tree_block(root, bytenr, num_bytes);
+		if (eb && btrfs_buffer_uptodate(eb, 0)) {
+			free_extent_buffer(eb);
+		}
+
+		/*READ=0, mirror=0*/
+		ret = btrfs_map_block(&root->fs_info->mapping_tree, 0, bytenr, &length, &multi, 0);
+                block_offset = multi->stripes[0].physical;
+		set_bitmap(bitmap, block_offset, num_bytes);
+	    } else {
+		set_bitmap(bitmap, block_offset, num_bytes);
+            }
+	} else {
+            set_bitmap(bitmap, block_offset, num_bytes);
+	}
 	bytenr+=num_bytes;
     }
     fs_close();
@@ -126,9 +154,9 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     image_hdr->device_size = btrfs_super_total_bytes(&root->fs_info->super_copy);
     image_hdr->totalblock  = (uint64_t)(image_hdr->device_size/image_hdr->block_size);
     log_mesg(0, 0, 0, fs_opt.debug, "block_size = %i\n", image_hdr->block_size);
-    log_mesg(0, 0, 0, fs_opt.debug, "usedblock = %i\n", image_hdr->usedblocks);
-    log_mesg(0, 0, 0, fs_opt.debug, "device_size = %i\n", image_hdr->device_size);
-    log_mesg(0, 0, 0, fs_opt.debug, "totalblock = %i\n", image_hdr->totalblock);
+    log_mesg(0, 0, 0, fs_opt.debug, "usedblock = %lli\n", image_hdr->usedblocks);
+    log_mesg(0, 0, 0, fs_opt.debug, "device_size = %llu\n", image_hdr->device_size);
+    log_mesg(0, 0, 0, fs_opt.debug, "totalblock = %lli\n", image_hdr->totalblock);
 
     fs_close();
 }
