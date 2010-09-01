@@ -73,6 +73,12 @@ p_dialog_mesg	m_dialog;			/// dialog format string
 #elif VMFS
 #include "vmfsclone.h"
 #define FS "VMFS"
+#elif JFS
+#include "jfsclone.h"
+#define FS "JFS"
+#elif BTRFS
+#include "btrfsclone.h"
+#define FS "BTRFS"
 #endif
 
 /// fs option

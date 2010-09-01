@@ -1,4 +1,18 @@
+2010-09-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update version and add fr_FR locale
+
+2010-08-31  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Bug fixed: btrfs clone fail, lost some metadata message
+
 2010-08-22  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update changelog
+
+	update version
+
+	release test version
 
 	remove other btfs files
 

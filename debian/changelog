@@ -1,3 +1,10 @@
+partclone (0.2.15) unstable; urgency=low
+
+  * Bug fixed: btrfs clone fail, lost some metadata message
+  * Add po: add fr_FR po file from Cédric, very thanks.
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 01 Sep 2010 10:25:48 +0800
+
 partclone (0.2.14) unstable; urgency=low
 
   * add btrfs support
