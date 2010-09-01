@@ -87,16 +87,16 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
     //initial all block as free
     memset(bitmap, 0, image_hdr.totalblock);
 
-    // set super block as used
+    // set super block and tree as used
     super_block = BTRFS_SUPER_INFO_OFFSET / block_size;
     leafsize = btrfs_super_leafsize(&root->fs_info->super_copy);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: leafsize %i\n", __FILE__, leafsize);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: super block %i\n", __FILE__, super_block);
     bitmap[super_block] = 1;
     for (i = 1; i < 7; i++) {
-	bytenr = BTRFS_SUPER_INFO_OFFSET + 1024 * 1024 + leafsize * i / block_size;
+	bytenr = (BTRFS_SUPER_INFO_OFFSET + 1024 * 1024 + leafsize * i ) / block_size;
+	log_mesg(1, 0, 0, fs_opt.debug, "%s: tree block %llu\n", __FILE__, bytenr);
 	bitmap[bytenr] = 1;
-	log_mesg(1, 0, 0, fs_opt.debug, "%s: tree block %i\n", __FILE__, bytenr);
     }
 
 
