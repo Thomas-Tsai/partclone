@@ -1,5 +1,11 @@
 2010-09-01  Thomas Tsai  <thomas@nchc.org.tw>
 
+	fix btrfs bug
+
+	fix btrfs clone
+
+	lost update some files
+
 	update version and add fr_FR locale
 
 2010-08-31  Thomas Tsai  <thomas@nchc.org.tw>

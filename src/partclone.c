@@ -100,6 +100,7 @@ extern void usage(void)
             "\n"
             "    -o,  --output FILE      Output FILE\n"
             "    -O   --overwrite FILE   Output FILE, overwriting if exists\n"
+            "         --restore_row_file create special row file for loop device\n"
             "    -s,  --source FILE      Source FILE\n"
             "    -L,  --logfile FILE     Log FILE\n"
 #ifndef	RESTORE
@@ -118,6 +119,7 @@ extern void usage(void)
 	    "         --ignore_crc       Ignore crc check error\n"
             "    -F,  --force            Force progress\n"
             "    -f,  --UI-fresh         Fresh times of progress\n"
+            "    -q,  --quiet		 Disable progress message\n"
             "    -v,  --version          Display partclone version\n"
             "    -h,  --help             Display this help\n"
             , EXECNAME, VERSION, EXECNAME);
@@ -131,7 +133,7 @@ extern void print_version(void){
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hvd::L:cbro:O:s:f:RCXFINi";
+    static const char *sopt = "-hvd::L:cbro:O:s:f:RCXFINiql";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "print_version",	no_argument,	    NULL,   'v' },
@@ -139,6 +141,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "overwrite",	required_argument,  NULL,   'O' },
         { "source",		required_argument,  NULL,   's' },
         { "restore-image",	no_argument,	    NULL,   'r' },
+        { "restore_row_file",	no_argument,	    NULL,   'l' },
         { "clone-image",	no_argument,	    NULL,   'c' },
         { "dev-to-dev",		no_argument,	    NULL,   'b' },
         { "debug",		optional_argument,  NULL,   'd' },
@@ -150,6 +153,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "ignore_fschk",   no_argument,    NULL,   'I' },
 	{ "ignore_crc",     no_argument,    NULL,   'i' },
         { "force",		no_argument,	    NULL,   'F' },
+        { "quiet",		no_argument,	    NULL,   'q' },
 #ifdef HAVE_LIBNCURSESW
         { "ncurses",		no_argument,	    NULL,   'N' },
 #endif
@@ -163,6 +167,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     opt->rescue = 0;
     opt->check = 1;
     opt->ignore_crc = 0;
+    opt->quiet = 0;
     opt->logfile = "/var/log/partclone.log";
 
 #ifdef RESTORE
@@ -221,7 +226,12 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
             case 'i':
                 opt->ignore_crc = 1;
                 break;
-
+            case 'l':
+                opt->restore_row_file = 1;
+                break;
+            case 'q':
+                opt->quiet = 1;
+                break;
             case 'R':
                 opt->rescue++;
                 break;
@@ -949,6 +959,7 @@ extern void print_opt(cmd_opt opt){
     log_mesg(1, 0, 0, debug, "OVERWRITE: %i\n", opt.overwrite);
     log_mesg(1, 0, 0, debug, "RESCUE: %i\n", opt.rescue);
     log_mesg(1, 0, 0, debug, "CHECK: %i\n", opt.check);
+    log_mesg(1, 0, 0, debug, "QUIET: %i\n", opt.quiet);
     log_mesg(1, 0, 0, debug, "FRESH: %i\n", opt.fresh);
     log_mesg(1, 0, 0, debug, "FORCE: %i\n", opt.force);
 #ifdef HAVE_LIBNCURSESW
@@ -1062,3 +1073,15 @@ extern void dd_bitmap(image_head image_hdr, char* bitmap){
 
 }
 
+/// write last block
+void write_last_block(int* dfw, int size, unsigned long long id, cmd_opt* opt){
+    char* buffer;
+    int st;
+    off_t sf;
+
+    sf = lseek(*dfw, (size*id), SEEK_SET);
+    buffer = (char*)malloc(size);
+    memset(buffer, 0, size);
+    st = io_all(dfw, buffer, size, 1, opt);
+    log_mesg(1, 0, 0, opt->debug, "write last block%lli, size %i ,status %i\n", id, size, st);
+}

@@ -84,6 +84,8 @@ struct cmd_opt
     int force;
     int ignore_fschk;
     int ignore_crc;
+    int quiet;
+    int restore_row_file;
     unsigned long fresh;
 };
 typedef struct cmd_opt cmd_opt;

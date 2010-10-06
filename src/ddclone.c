@@ -257,7 +257,8 @@ int main(int argc, char **argv){
             log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
         log_mesg(1, 0, 0, debug, "end\n");
         block_id++;
-	update_pui(&prog, copied, done);
+	if (!opt.quiet)
+	    update_pui(&prog, copied, done);
     } while (done == 0);/// end of for    
     sync_data(dfw, &opt);	
     /// free buffer

@@ -287,9 +287,10 @@ int main(int argc, char **argv){
         get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
         /// check the dest partition size.
-        if(opt.check){
+        if (opt.restore_row_file)
+	    check_free_space(&dfw, image_hdr.device_size);
+        else if(opt.check)
             check_size(&dfw, image_hdr.device_size);
-        }
 
         log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
         log_mesg(0, 0, 1, debug, "done!\n");
@@ -449,7 +450,8 @@ int main(int argc, char **argv){
                 log_mesg(2, 0, 0, debug, "end\n");
 #endif
             }
-	    update_pui(&prog, copied, done);
+	    if (!opt.quiet)
+		update_pui(&prog, copied, done);
         } /// end of for    
 	done = 1;
 	update_pui(&prog, copied, done);
@@ -479,6 +481,7 @@ int main(int argc, char **argv){
 
             r_size = 0;
             w_size = 0;
+
 
             if (bitmap[block_id] == 1){ 
                 /// The block is used
@@ -555,17 +558,24 @@ int main(int argc, char **argv){
                 //	log_mesg(0, 1, 1, debug, "read and write different\n");
                 log_mesg(1, 0, 0, debug, "end\n");
             } else {
+		/// for restore to row file, mount -o loop used.
+		if ((block_id == (image_hdr.totalblock-1)) && (opt.restore_row_file)){
+		    write_last_block(&dfw, image_hdr.block_size, block_id, &opt);
+
+		} else {
 #ifndef _FILE_OFFSET_BITS
-                /// if the block is not used, I just skip it.
-                log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
-                sf = lseek(dfw, image_hdr.block_size, SEEK_CUR);
-                log_mesg(2, 0, 0, debug, "seek=%lli, ",sf);
-                if (sf == (off_t)-1)
-                    log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
-                log_mesg(2, 0, 0, debug, "end\n");
+		    /// if the block is not used, I just skip it.
+		    log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
+		    sf = lseek(dfw, image_hdr.block_size, SEEK_CUR);
+		    log_mesg(2, 0, 0, debug, "seek=%lli, ",sf);
+		    if (sf == (off_t)-1)
+			log_mesg(0, 1, 1, debug, "seek error %lli errno=%i\n", (long long)offset, (int)errno);
+		    log_mesg(2, 0, 0, debug, "end\n");
 #endif
+		}
             }
-	    update_pui(&prog, copied, done);
+	    if (!opt.quiet)
+		update_pui(&prog, copied, done);
         } // end of for
 	done = 1;
 	update_pui(&prog, copied, done);
@@ -651,7 +661,8 @@ int main(int argc, char **argv){
                     log_mesg(0, 1, 1, debug, "clone seek error %lli errno=%i\n", (long long)offset, (int)errno);
 #endif
             }
-	    update_pui(&prog, copied, done);
+	    if (!opt.quiet)
+		update_pui(&prog, copied, done);
         } /// end of for
 	done = 1;
 	update_pui(&prog, copied, done);
