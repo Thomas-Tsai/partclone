@@ -1,3 +1,7 @@
+2010-10-06  Thomas Tsai  <thomas@nchc.org.tw>
+
+	* add option --quiet to disable progress bar * add option --restoew_row_file to restore to special row file for loop device
+
 2010-09-01  Thomas Tsai  <thomas@nchc.org.tw>
 
 	fix btrfs bug

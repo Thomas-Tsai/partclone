@@ -1,3 +1,10 @@
+partclone (0.2.16) unstable; urgency=low
+
+  * add option --quiet to disable progress bar
+  * add option --restore_row_file to create special file for mounting with loop option
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 06 Oct 2010 16:06:05 +0800
+
 partclone (0.2.15) unstable; urgency=low
 
   * Bug fixed: btrfs clone fail, lost some metadata message
