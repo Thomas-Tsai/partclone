@@ -53,7 +53,7 @@ AC_CHECKING([ for EXT2/3 Library and Header files ... ])
 AC_CHECK_HEADERS([ext2fs/ext2fs.h], ,
   AC_MSG_ERROR([*** EXT2/3 header files (ext2fs/ext2fs.h) not found])
 )
-AC_CHECK_LIB([ext2fs], [ext2fs_initialize], ,
+AC_CHECK_LIB([ext2fs], [ext2fs_initialize], true,
     AC_MSG_ERROR([*** EXT2/3 library (libext2fs) not found]))
 AC_MSG_CHECKING(version of libextfs)
 extfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lext2fs -DEXTFS`
@@ -97,7 +97,7 @@ AM_CONDITIONAL(ENABLE_XFS, test "$enable_xfs" = yes)
 if test "$enable_xfs" = "yes"; then
 #check library of some filesystems
 dnl Check runtime library which depended by XFS
-AC_CHECK_LIB([rt], [aio_init], , 
+AC_CHECK_LIB([rt], [aio_init], true, 
     AC_MSG_ERROR([*** runtime library (libc6) not found])
 )
 
@@ -126,9 +126,9 @@ AC_CHECKING([ for Reiserfs Library and Header files ... ])
 AC_CHECK_HEADERS([reiserfs/reiserfs.h], ,
     AC_MSG_ERROR([*** reiserfs header files (reiserfs/reiserfs.h) not found])
 )
-AC_CHECK_LIB([reiserfs], [reiserfs_fs_open], ,
+AC_CHECK_LIB([reiserfs], [reiserfs_fs_open], true,
     AC_MSG_ERROR([*** Reiserfs library (libreiserfs) not found]))
-AC_CHECK_LIB([dal], [file_dal_open], ,
+AC_CHECK_LIB([dal], [file_dal_open], true,
     AC_MSG_ERROR([*** Reiserfs depend library (libdal) not found]))
 AC_MSG_CHECKING(version of libreiserfs)
 reiserfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiserfs -DREISERFS`
@@ -181,7 +181,7 @@ AC_CHECK_HEADERS([reiser4/libreiser4.h], ,
 )
 #AC_CHECK_LIB([reiser4 -laal], [reiser4_init], ,
 #    AC_MSG_ERROR([*** Reiser4 library (libreiser4) not found]))
-AC_CHECK_LIB([aal], [aal_device_open], ,
+AC_CHECK_LIB([aal], [aal_device_open], true,
     AC_MSG_ERROR([*** Reiser4 depend library (libaal) not found]))
 AC_MSG_CHECKING(version of libreiser4)
 reiser4_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiser4 -laal -DREISER4`
@@ -255,10 +255,9 @@ if test "$enable_ntfs" = "yes"; then
 dnl Check for NTFS 
 AC_CHECKING([ for NTFS Library and Header files ... ])
 AC_CHECK_HEADERS([ntfs/version.h], ,
-   AC_MSG_ERROR([*** NTFS(ntfsprog) header not found])
-AC_CHECK_LIB([ntfs], [ntfs_mount], ,
-        AC_MSG_ERROR([*** ntfs depend library (libntfs) not found]))
-)
+   AC_MSG_ERROR([*** NTFS(ntfsprog) header not found]))
+AC_CHECK_LIB([ntfs], [ntfs_mount], true,
+   AC_MSG_ERROR([*** ntfs depend library (libntfs) not found]))
 AC_MSG_CHECKING(version of libntfs)
 ntfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lntfs -DNTFS`
 ntfs_version=`$srcdir/get_lib_version ntfs | cut -d':' -f1`
@@ -302,7 +301,7 @@ if test "$enable_ufs" = "yes"; then
 
 dnl Check for UFS 
 AC_CHECKING([ for UFS Library ... ])
-AC_CHECK_LIB([ufs], [ufs_disk_fillout], ,
+AC_CHECK_LIB([ufs], [ufs_disk_fillout], true,
         AC_MSG_ERROR([*** ufs depend library (libufs2) not found]))
 supported_fs=$supported_fs" ufs"
 ufs_version="unknown, suggest 7.0-2"
@@ -325,7 +324,7 @@ dnl Check for VMFS
 ##AC_CHECK_HEADERS([uuid/uuid.h vmfs/vmfs.h], ,
 ##   AC_MSG_ERROR([*** VMFS(vmfs-tools) header not found]))
 AC_CHECKING([for VMFS Library files ... ])
-AC_CHECK_LIB([vmfs -luuid], [vmfs_host_init], ,
+AC_CHECK_LIB([vmfs -luuid], [vmfs_host_init], true,
         AC_MSG_ERROR([*** vmfs depend library (libvmfs) not found]))
 supported_fs=$supported_fs" vmfs"
 vmfs_version="unknown, suggest 0.2.0"
@@ -348,7 +347,7 @@ dnl Check for JFS
 ##AC_CHECK_HEADERS([uuid/uuid.h jfs/jfs_superblock.h], ,
 ##   AC_MSG_ERROR([*** JFS(libjfs) header not found]))
 AC_CHECKING([for JFS Library files ... ])
-AC_CHECK_LIB([jfs -luuid], [ujfs_get_superblk], ,
+AC_CHECK_LIB([jfs -luuid], [ujfs_get_superblk], true,
         AC_MSG_ERROR([*** jfs depend library (libjfs) not found]))
 supported_fs=$supported_fs" jfs"
 jfs_version="version unknown, suggest 1.1.12"
