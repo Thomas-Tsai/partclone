@@ -28,35 +28,8 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `aal' library (-laal). */
-#undef HAVE_LIBAAL
-
-/* Define to 1 if you have the `dal' library (-ldal). */
-#undef HAVE_LIBDAL
-
-/* Define to 1 if you have the `ext2fs' library (-lext2fs). */
-#undef HAVE_LIBEXT2FS
-
-/* Define to 1 if you have the `jfs -luuid' library (-ljfs -luuid). */
-#undef HAVE_LIBJFS__LUUID
-
 /* Define to 1 if you have the `ncursesw' library (-lncursesw). */
 #undef HAVE_LIBNCURSESW
-
-/* Define to 1 if you have the `ntfs' library (-lntfs). */
-#undef HAVE_LIBNTFS
-
-/* Define to 1 if you have the `reiserfs' library (-lreiserfs). */
-#undef HAVE_LIBREISERFS
-
-/* Define to 1 if you have the `rt' library (-lrt). */
-#undef HAVE_LIBRT
-
-/* Define to 1 if you have the `ufs' library (-lufs). */
-#undef HAVE_LIBUFS
-
-/* Define to 1 if you have the `vmfs -luuid' library (-lvmfs -luuid). */
-#undef HAVE_LIBVMFS__LUUID
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H

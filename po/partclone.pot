@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2010-10-06 14:37+0800\n"
+"POT-Creation-Date: 2010-11-02 10:49+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -114,77 +114,77 @@ msgid ""
 "  100.00%%  completed!\n"
 msgstr ""
 
-#: src/partclone.c:980
+#: src/partclone.c:981
 #, c-format
 msgid "Partclone v%s http://partclone.org\n"
 msgstr ""
 
-#: src/partclone.c:982
+#: src/partclone.c:983
 #, c-format
 msgid "Starting to check image (%s)\n"
 msgstr ""
 
-#: src/partclone.c:984
+#: src/partclone.c:985
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
 msgstr ""
 
-#: src/partclone.c:986
+#: src/partclone.c:987
 #, c-format
 msgid "Starting to restore image (%s) to device (%s)\n"
 msgstr ""
 
-#: src/partclone.c:988
+#: src/partclone.c:989
 #, c-format
 msgid "Starting to back up device(%s) to device(%s)\n"
 msgstr ""
 
-#: src/partclone.c:1006
+#: src/partclone.c:1007
 #, c-format
 msgid "File system:  %s\n"
 msgstr ""
 
-#: src/partclone.c:1009
+#: src/partclone.c:1010
 #, c-format
 msgid "Device size:  %s\n"
 msgstr ""
 
-#: src/partclone.c:1012
+#: src/partclone.c:1013
 #, c-format
 msgid "Space in use: %s\n"
 msgstr ""
 
-#: src/partclone.c:1015
+#: src/partclone.c:1016
 #, c-format
 msgid "Free Space:   %s\n"
 msgstr ""
 
-#: src/partclone.c:1017
+#: src/partclone.c:1018
 #, c-format
 msgid "Block size:   %i Byte\n"
 msgstr ""
 
-#: src/partclone.c:1018
+#: src/partclone.c:1019
 #, c-format
 msgid "Used block :  %lli\n"
 msgstr ""
 
-#: src/partclone.c:1030
+#: src/partclone.c:1031
 #, c-format
 msgid "Partclone successfully checkd the image (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1032
+#: src/partclone.c:1033
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1034
+#: src/partclone.c:1035
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1036
+#: src/partclone.c:1037
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr ""

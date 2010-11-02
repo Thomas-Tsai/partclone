@@ -33,6 +33,13 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+@ENABLE_EXTFS_TRUE@am__append_1 = partclone.extfs.8
+@ENABLE_REISERFS_TRUE@am__append_2 = partclone.reiserfs.8
+@ENABLE_REISER4_TRUE@am__append_3 = partclone.reiser4.8
+@ENABLE_HFSP_TRUE@am__append_4 = partclone.hfsp.8
+@ENABLE_XFS_TRUE@am__append_5 = partclone.xfs.8
+@ENABLE_FAT_TRUE@am__append_6 = partclone.fat.8
+@ENABLE_NTFS_TRUE@am__append_7 = partclone.ntfs.8
 subdir = docs
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/partclone.extfs.8.in $(srcdir)/partclone.fat.8.in \
@@ -195,7 +202,9 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-man_MANS = partclone.extfs.8 partclone.reiserfs.8 partclone.reiser4.8 partclone.xfs.8 partclone.hfsp.8 partclone.fat.8 partclone.ntfs.8
+man_MANS = $(am__append_1) $(am__append_2) $(am__append_3) \
+	$(am__append_4) $(am__append_5) $(am__append_6) \
+	$(am__append_7)
 all: all-am
 
 .SUFFIXES:

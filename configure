@@ -7031,12 +7031,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ext2fs_ext2fs_initialize" >&5
 $as_echo "$ac_cv_lib_ext2fs_ext2fs_initialize" >&6; }
 if test "x$ac_cv_lib_ext2fs_ext2fs_initialize" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBEXT2FS 1
-_ACEOF
-
-  LIBS="-lext2fs $LIBS"
-
+  true
 else
   as_fn_error "*** EXT2/3 library (libext2fs) not found" "$LINENO" 5
 fi
@@ -7134,12 +7129,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rt_aio_init" >&5
 $as_echo "$ac_cv_lib_rt_aio_init" >&6; }
 if test "x$ac_cv_lib_rt_aio_init" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBRT 1
-_ACEOF
-
-  LIBS="-lrt $LIBS"
-
+  true
 else
   as_fn_error "*** runtime library (libc6) not found" "$LINENO" 5
 
@@ -7242,12 +7232,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_reiserfs_reiserfs_fs_open" >&5
 $as_echo "$ac_cv_lib_reiserfs_reiserfs_fs_open" >&6; }
 if test "x$ac_cv_lib_reiserfs_reiserfs_fs_open" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBREISERFS 1
-_ACEOF
-
-  LIBS="-lreiserfs $LIBS"
-
+  true
 else
   as_fn_error "*** Reiserfs library (libreiserfs) not found" "$LINENO" 5
 fi
@@ -7289,12 +7274,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_dal_file_dal_open" >&5
 $as_echo "$ac_cv_lib_dal_file_dal_open" >&6; }
 if test "x$ac_cv_lib_dal_file_dal_open" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBDAL 1
-_ACEOF
-
-  LIBS="-ldal $LIBS"
-
+  true
 else
   as_fn_error "*** Reiserfs depend library (libdal) not found" "$LINENO" 5
 fi
@@ -7413,12 +7393,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_aal_aal_device_open" >&5
 $as_echo "$ac_cv_lib_aal_aal_device_open" >&6; }
 if test "x$ac_cv_lib_aal_aal_device_open" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBAAL 1
-_ACEOF
-
-  LIBS="-laal $LIBS"
-
+  true
 else
   as_fn_error "*** Reiser4 depend library (libaal) not found" "$LINENO" 5
 fi
@@ -7539,6 +7514,10 @@ _ACEOF
 
 else
   as_fn_error "*** NTFS(ntfsprog) header not found" "$LINENO" 5
+fi
+
+done
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ntfs_mount in -lntfs" >&5
 $as_echo_n "checking for ntfs_mount in -lntfs... " >&6; }
 if test "${ac_cv_lib_ntfs_ntfs_mount+set}" = set; then :
@@ -7576,20 +7555,10 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ntfs_ntfs_mount" >&5
 $as_echo "$ac_cv_lib_ntfs_ntfs_mount" >&6; }
 if test "x$ac_cv_lib_ntfs_ntfs_mount" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBNTFS 1
-_ACEOF
-
-  LIBS="-lntfs $LIBS"
-
+  true
 else
   as_fn_error "*** ntfs depend library (libntfs) not found" "$LINENO" 5
 fi
-
-
-fi
-
-done
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking version of libntfs" >&5
 $as_echo_n "checking version of libntfs... " >&6; }
@@ -7686,12 +7655,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ufs_ufs_disk_fillout" >&5
 $as_echo "$ac_cv_lib_ufs_ufs_disk_fillout" >&6; }
 if test "x$ac_cv_lib_ufs_ufs_disk_fillout" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBUFS 1
-_ACEOF
-
-  LIBS="-lufs $LIBS"
-
+  true
 else
   as_fn_error "*** ufs depend library (libufs2) not found" "$LINENO" 5
 fi
@@ -7764,12 +7728,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_vmfs__luuid_vmfs_host_init" >&5
 $as_echo "$ac_cv_lib_vmfs__luuid_vmfs_host_init" >&6; }
 if test "x$ac_cv_lib_vmfs__luuid_vmfs_host_init" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBVMFS__LUUID 1
-_ACEOF
-
-  LIBS="-lvmfs -luuid $LIBS"
-
+  true
 else
   as_fn_error "*** vmfs depend library (libvmfs) not found" "$LINENO" 5
 fi
@@ -7842,12 +7801,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_jfs__luuid_ujfs_get_superblk" >&5
 $as_echo "$ac_cv_lib_jfs__luuid_ujfs_get_superblk" >&6; }
 if test "x$ac_cv_lib_jfs__luuid_ujfs_get_superblk" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBJFS__LUUID 1
-_ACEOF
-
-  LIBS="-ljfs -luuid $LIBS"
-
+  true
 else
   as_fn_error "*** jfs depend library (libjfs) not found" "$LINENO" 5
 fi
