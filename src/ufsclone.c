@@ -87,12 +87,16 @@ static void fs_open(char* device){
 
     /// check ufs status
     if(fs_opt.ignore_fschk){
-        log_mesg(1, 0, 0, fs_opt.debug, "%s: %s: Ignore filesystem check\n", __FILE__, __FILE__);
+	log_mesg(1, 0, 0, fs_opt.debug, "%s: %s: Ignore filesystem check\n", __FILE__, __FILE__);
     }else{
-        if (fsflags & FS_UNCLEAN)
-            log_mesg(0, 1, 1, fs_opt.debug, "%s: UFS flag FS_UNCLEAN\n\n", __FILE__);
-        if (fsflags & FS_NEEDSFSCK)
-            log_mesg(0, 1, 1, fs_opt.debug, "%s: UFS flag: need fsck run first\n\n", __FILE__);
+	if (afs.fs_clean == 1) {
+	    log_mesg(1, 0, 0, fs_opt.debug, "%s: FS CLEAN (%i)\n", __FILE__, afs.fs_clean);
+	} else {
+	    if ((fs_flags & (FS_UNCLEAN | FS_NEEDSFSCK)) == 0) {
+		log_mesg(0, 1, 1, fs_opt.debug, "%s: UFS flag FS_UNCLEAN or FS_NEEDSFSCK\n\n", __FILE__);
+	    }
+	    log_mesg(1, 0, 0, fs_opt.debug, "%s: FS CLEAN not set!(%i)\n", __FILE__, afs.fs_clean);
+	}
     }
 }
 
