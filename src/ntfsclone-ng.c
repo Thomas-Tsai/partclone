@@ -1,9 +1,9 @@
 /**
- * reiserfsclone.c - part of Partclone project
+ * ntfsclone.c - part of Partclone project
  *
  * Copyright (c) 2007~ Thomas Tsai <thomas at nchc org tw>
  *
- * read reiserfs super block and bitmap
+ * read ntfs super block and bitmap
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
