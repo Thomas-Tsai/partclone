@@ -92,7 +92,7 @@ static void fs_open(char* device){
 	if (afs.fs_clean == 1) {
 	    log_mesg(1, 0, 0, fs_opt.debug, "%s: FS CLEAN (%i)\n", __FILE__, afs.fs_clean);
 	} else {
-	    if ((fs_flags & (FS_UNCLEAN | FS_NEEDSFSCK)) == 0) {
+	    if ((fsflags & (FS_UNCLEAN | FS_NEEDSFSCK)) == 0) {
 		log_mesg(0, 1, 1, fs_opt.debug, "%s: UFS flag FS_UNCLEAN or FS_NEEDSFSCK\n\n", __FILE__);
 	    }
 	    log_mesg(1, 0, 0, fs_opt.debug, "%s: FS CLEAN not set!(%i)\n", __FILE__, afs.fs_clean);
