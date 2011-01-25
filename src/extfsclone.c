@@ -102,13 +102,15 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     errcode_t retval;
     unsigned long group;
     unsigned long long current_block, block;
-    unsigned long long free, used, gfree, gused;
+    unsigned long long free, gfree;
     char *block_bitmap=NULL;
     int block_nbytes;
     unsigned long long blk_itr;
     int bg_flags = 0;
     int start = 0;
     int bit_size = 1;
+    int B_UN_INIT = 0;
+    int ext4_gfree_mismatch = 0;
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s: readbitmap %i\n", __FILE__, bitmap);
 
@@ -126,7 +128,6 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	bitmap[block] = 1; 
 
     free = 0;
-    used = 0;
     current_block = 0;
     blk_itr = fs->super->s_first_data_block;
 
@@ -138,28 +139,33 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     for (group = 0; group < fs->group_desc_count; group++) {
 
 	gfree = 0;
-	gused = 0;
+	B_UN_INIT = 0;
 
 	if (block_bitmap) {
 	    ext2fs_get_block_bitmap_range(fs->block_map, blk_itr, block_nbytes << 3, block_bitmap);
 
+	    if (fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM){
+		    bg_flags = fs->group_desc[group].bg_flags;
+		    if (bg_flags&EXT2_BG_BLOCK_UNINIT){
+			log_mesg(1, 0, 0, fs_opt.debug, "%s: BLOCK_UNINIT for group %i\n", __FILE__, group);
+			B_UN_INIT = 1;
+		    } else {
+			log_mesg(2, 0, 0, fs_opt.debug, "%s: BLOCK_INIT for group %i\n", __FILE__, group);
+		    }
+	    }
 	    /// each block in group
 	    for (block = 0; ((block < fs->super->s_blocks_per_group) && (current_block < (image_hdr.totalblock-1))); block++) {
 		current_block = block + blk_itr;
-		if (fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM)
-		    bg_flags = fs->group_desc[group].bg_flags;
 
 		/// check block is used or not
-		if ((!in_use (block_bitmap, block)) || (bg_flags&EXT2_BG_BLOCK_UNINIT)) {
+		if ((!in_use (block_bitmap, block)) || (B_UN_INIT)) {
 		    free++;
 		    gfree++;
 		    bitmap[current_block] = 0;
-		    log_mesg(3, 0, 0, fs_opt.debug, "%s: free block %lu at group %i\n", __FILE__, (current_block), group);
+		    log_mesg(3, 0, 0, fs_opt.debug, "%s: free block %llu at group %i init %i\n", __FILE__, current_block, group, (int)B_UN_INIT);
 		} else {
-		    used++;
-		    gused++;
 		    bitmap[current_block] = 1;
-		    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %lu at group %i\n", __FILE__, (current_block), group);
+		    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %llu at group %i\n", __FILE__, current_block, group);
 		}
 		/// update progress
 		update_pui(&prog, current_block, 0);//keep update
@@ -167,12 +173,20 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	    blk_itr += fs->super->s_blocks_per_group;
 	}
 	/// check free blocks in group
-	if (gfree != fs->group_desc[group].bg_free_blocks_count)
-	    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap erroe at %i group.\n", __FILE__, group);
+	if (gfree != fs->group_desc[group].bg_free_blocks_count){
+	    if (!B_UN_INIT)
+		log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap error at %i group.\n", __FILE__, group);
+	    else
+		ext4_gfree_mismatch = 1;
+	}
     }
     /// check all free blocks in partition
     if (free != fs->super->s_free_blocks_count)
-	log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, free:%i\n", __FILE__, free);
+	if ((fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM) && (ext4_gfree_mismatch))
+	    log_mesg(1, 0, 0, fs_opt.debug, "%s: EXT4 bitmap metadata mismatch\n", __FILE__);
+	else
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, free:%i\n", __FILE__, free);
+
     fs_close();
     /// update progress
     update_pui(&prog, 1, 1);//finish
