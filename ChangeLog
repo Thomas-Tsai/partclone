@@ -1,4 +1,28 @@
+2011-01-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix ufs error
+
+	update ext4 mismatch and new release version
+
+2011-01-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix commit: replace reiserfs with ntfs, thanks for Marcos Felipe Rasia de Mello
+
+2011-01-13  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix bug for ufs unclean
+
+2010-11-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update POs
+
+2010-11-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Fix configure.ac and makefile.am and accept patchs from Cedric OLLIVIER ollivier.cedric _at_ gmail.com.
+
 2010-10-06  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update version 0.2.16
 
 	* add option --quiet to disable progress bar * add option --restoew_row_file to restore to special row file for loop device
 
