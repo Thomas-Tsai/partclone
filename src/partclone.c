@@ -119,6 +119,7 @@ extern void usage(void)
 	    "         --ignore_crc       Ignore crc check error\n"
             "    -F,  --force            Force progress\n"
             "    -f,  --UI-fresh         Fresh times of progress\n"
+            "    -m,  --max_block_cache  The used block will be cache until max number\n"
             "    -q,  --quiet		 Disable progress message\n"
             "    -v,  --version          Display partclone version\n"
             "    -h,  --help             Display this help\n"
@@ -133,25 +134,26 @@ extern void print_version(void){
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hvd::L:cbro:O:s:f:RCXFINiql";
+    static const char *sopt = "-hvd::L:cbro:O:s:f:m:RCXFINiql";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "print_version",	no_argument,	    NULL,   'v' },
         { "output",		required_argument,  NULL,   'o' },
-        { "overwrite",	required_argument,  NULL,   'O' },
+        { "overwrite",		required_argument,  NULL,   'O' },
         { "source",		required_argument,  NULL,   's' },
         { "restore-image",	no_argument,	    NULL,   'r' },
         { "restore_row_file",	no_argument,	    NULL,   'l' },
         { "clone-image",	no_argument,	    NULL,   'c' },
         { "dev-to-dev",		no_argument,	    NULL,   'b' },
         { "debug",		optional_argument,  NULL,   'd' },
-        { "logfile",	required_argument,  NULL,   'L' },
+        { "logfile",		required_argument,  NULL,   'L' },
         { "rescue",		no_argument,	    NULL,   'R' },
-        { "UI-fresh",	required_argument,  NULL,   'u' },
+        { "UI-fresh",		required_argument,  NULL,   'f' },
+        { "max_block_cache",	required_argument,  NULL,   'm' },
         { "check",		no_argument,	    NULL,   'C' },
         { "dialog",		no_argument,	    NULL,   'X' },
-        { "ignore_fschk",   no_argument,    NULL,   'I' },
-	{ "ignore_crc",     no_argument,    NULL,   'i' },
+        { "ignore_fschk",	no_argument,	    NULL,   'I' },
+	{ "ignore_crc",		no_argument,	    NULL,   'i' },
         { "force",		no_argument,	    NULL,   'F' },
         { "quiet",		no_argument,	    NULL,   'q' },
 #ifdef HAVE_LIBNCURSESW
@@ -165,6 +167,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     memset(opt, 0, sizeof(cmd_opt));
     opt->debug = 0;
     opt->rescue = 0;
+    opt->max_block_cache = 8;
     opt->check = 1;
     opt->ignore_crc = 0;
     opt->quiet = 0;
@@ -210,6 +213,9 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
                     opt->debug = atol(optarg);
                 else
                     opt->debug = 1;
+                break;
+            case 'm': 
+                opt->max_block_cache = atol(optarg);
                 break;
             case 'L': 
                 opt->logfile = optarg;
@@ -870,7 +876,7 @@ extern int io_all(int *fd, char *buf, unsigned long long count, int do_write, cm
         } else {
             count -= i;
             buf = i + (char *) buf;
-            log_mesg(2, 0, 0, debug, "%s: read %li, %li left.\n",__func__, i, count);
+            log_mesg(2, 0, 0, debug, "%s: read %lli, %lli left.\n",__func__, i, count);
         }
     }
     return size;
@@ -962,6 +968,7 @@ extern void print_opt(cmd_opt opt){
     log_mesg(1, 0, 0, debug, "QUIET: %i\n", opt.quiet);
     log_mesg(1, 0, 0, debug, "FRESH: %i\n", opt.fresh);
     log_mesg(1, 0, 0, debug, "FORCE: %i\n", opt.force);
+    log_mesg(1, 0, 0, debug, "MAX BLOCK CACHE: %i\n", opt.max_block_cache);
 #ifdef HAVE_LIBNCURSESW
     log_mesg(1, 0, 0, debug, "NCURSES: %i\n", opt.ncurses);
 #endif
@@ -1028,7 +1035,7 @@ extern void print_finish_info(cmd_opt opt){
     bindtextdomain(PACKAGE, LOCALEDIR);
     textdomain(PACKAGE);
     if (opt.chkimg)
-        log_mesg(0, 0, 1, debug, _("Partclone successfully checkd the image (%s)\n"), opt.source);	
+        log_mesg(0, 0, 1, debug, _("Partclone successfully checked the image (%s)\n"), opt.source);	
     else if (opt.clone)
         log_mesg(0, 0, 1, debug, _("Partclone successfully cloned the device (%s) to the image (%s)\n"), opt.source, opt.target);	
     else if(opt.restore)

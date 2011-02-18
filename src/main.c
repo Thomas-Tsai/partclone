@@ -124,6 +124,11 @@ int main(int argc, char **argv){
     unsigned long long			main_pos = 0;
     int			tui = 0;		/// text user interface
     int			pui = 0;		/// progress mode(default text)
+    int                 next=1,next_int=1,next_max_count=7,next_count=7,next_block=0;
+    unsigned long long  next_block_id;
+    char*               cache_buffer;
+    int                 nx_current=0;
+
     char *bad_sectors_warning_msg =
         "*************************************************************************\n"
         "* WARNING: The disk has bad sector. This means physical damage on the   *\n"
@@ -149,6 +154,9 @@ int main(int argc, char **argv){
     debug = opt.debug;
     fs_opt.debug = debug;
     fs_opt.ignore_fschk = opt.ignore_fschk;
+
+    next_max_count = opt.max_block_cache-1;
+    next_count = opt.max_block_cache-1;
 
     //if(opt.debug)
     open_log(opt.logfile);
@@ -475,6 +483,16 @@ int main(int argc, char **argv){
         if (sf == (off_t)-1)
             log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
 
+	cache_buffer = (char*)malloc(image_hdr.block_size * (next_max_count+1));
+	if(cache_buffer == NULL){
+	    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+	}
+
+	buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
+	if(buffer == NULL){
+	    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+	}
+
         /// start restore image file to partition
         log_mesg(1, 0, 0, debug, "start restore data...\n");
         for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
@@ -488,16 +506,7 @@ int main(int argc, char **argv){
                 log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
                 log_mesg(2, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
 
-                offset = (off_t)(block_id * image_hdr.block_size);
-#ifdef _FILE_OFFSET_BITS
-                sf = lseek(dfw, offset, SEEK_SET);
-                if (sf == -1)
-                    log_mesg(0, 1, 1, debug, "target seek error = %lli, ",sf);
-#endif
-                buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data
-                if(buffer == NULL){
-                    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-                }
+                memset(buffer, 0, image_hdr.block_size);
                 r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
                 log_mesg(3, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
                 if (r_size <0)
@@ -541,14 +550,47 @@ int main(int argc, char **argv){
                     crc_ck2 = crc_ck;
                 }
 
-                /// write block from buffer to partition
-                w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
-                log_mesg(1, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
-                if (w_size != (int)image_hdr.block_size)
-                    log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
+		if(next != next_count){
+		    memset(cache_buffer, 0, image_hdr.block_size*next_max_count);
+		    for (next_int = 1; next_int <= next_max_count; next_int++)
+		    {
+			next_block_id = block_id+next_int;
+			next_block = bitmap[next_block_id];
+			if (next_block == 1) {
+			    next++;
+			} else if (next_block == 0){
+			    next_count = next;
+			    break;
+			}
+			next_count = next;
+		    }
+		    log_mesg(1, 0, 0, debug, "next = %i\n",next);
+		}
+
+		if ((next == next_count) &&(nx_current < next)){
+		    memcpy(cache_buffer+(image_hdr.block_size*nx_current), buffer, image_hdr.block_size);
+		    w_size = 0;
+		    nx_current++;
+		}
+
+		if ((next == next_count) && (nx_current == next)){
+#ifdef _FILE_OFFSET_BITS
+		    offset = (off_t)((block_id-next+1) * image_hdr.block_size);
+		    sf = lseek(dfw, offset, SEEK_SET);
+		    if (sf == -1)
+			log_mesg(0, 1, 1, debug, "target seek error = %lli, ",sf);
+#endif
+		    /// write block from buffer to partition
+		    w_size = write_all(&dfw, cache_buffer, (image_hdr.block_size*nx_current), &opt);
+		    log_mesg(1, 0, 0, debug, "bs=%i and w=%i, ",(image_hdr.block_size*nx_current), w_size);
+		    if (w_size != (int)image_hdr.block_size*nx_current)
+			log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
+		    next = 1;
+		    next_count = next_max_count;
+		    nx_current=0;
+		}
 
                 /// free buffer
-                free(buffer);
                 free(crc_buffer);
                 copied++;					/// count copied block
                 total_write += (unsigned long long) w_size;	/// count copied size
@@ -577,6 +619,8 @@ int main(int argc, char **argv){
 	    if (!opt.quiet)
 		update_pui(&prog, copied, done);
         } // end of for
+	/// free buffer
+	free(buffer);
 	done = 1;
 	update_pui(&prog, copied, done);
         sync_data(dfw, &opt);	

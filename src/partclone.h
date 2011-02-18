@@ -79,6 +79,7 @@ struct cmd_opt
     int overwrite;
     int rescue;
     int check;
+    int max_block_cache;
     int ncurses;
     int dialog;
     int force;
