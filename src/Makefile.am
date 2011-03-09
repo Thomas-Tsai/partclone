@@ -104,7 +104,7 @@ endif
 if ENABLE_BTRFS
 sbin_PROGRAMS += partclone.btrfs
 partclone_btrfs_SOURCES=main.c partclone.c progress.c btrfsclone.c btrfsclone.h partclone.h progress.h gettext.h $(BTRFS_SOURCE)
-partclone_btrfs_CFLAGS=-DBTRFS
+partclone_btrfs_CFLAGS=-DBTRFS -D_FILE_OFFSET_BITS=64
 partclone_btrfs_LDADD=-luuid
 endif
 

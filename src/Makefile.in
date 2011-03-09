@@ -462,7 +462,7 @@ partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h d
 @ENABLE_JFS_TRUE@partclone_jfs_CFLAGS = -DJFS
 @ENABLE_JFS_TRUE@partclone_jfs_LDADD = -luuid -ljfs
 @ENABLE_BTRFS_TRUE@partclone_btrfs_SOURCES = main.c partclone.c progress.c btrfsclone.c btrfsclone.h partclone.h progress.h gettext.h $(BTRFS_SOURCE)
-@ENABLE_BTRFS_TRUE@partclone_btrfs_CFLAGS = -DBTRFS
+@ENABLE_BTRFS_TRUE@partclone_btrfs_CFLAGS = -DBTRFS -D_FILE_OFFSET_BITS=64
 @ENABLE_BTRFS_TRUE@partclone_btrfs_LDADD = -luuid
 all: all-am
 
