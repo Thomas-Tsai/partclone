@@ -27,7 +27,6 @@
 #include <ncurses.h>
 extern WINDOW *p_win;
 extern WINDOW *bar_win;
-int window_f = 0;
 int color_support = 1;
 #endif
 
@@ -100,15 +99,16 @@ extern void update_pui(struct progress_bar *prog, unsigned long long current, in
 
 static void calculate_speed(struct progress_bar *prog, unsigned long long current, int done, prog_stat_t *prog_stat){
     char *format = "%H:%M:%S";
-    double speedps = 1.0;
-    float speed = 1.0;
+    uint64_t speedps = 1;
+    uint64_t speed = 1;
+    double dspeed = 1.0;
     float percent = 1.0;
     time_t remained;
     time_t elapsed;
     char Rformated[10], Eformated[10];
     char speed_unit[] = "    ";
     struct tm *Rtm, *Etm;
-    uint64_t gbyte=1000000000;
+    uint64_t gbyte=1000000000.0;
     uint64_t mbyte=1000000;
     uint64_t kbyte=1000;
 
@@ -116,30 +116,42 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
     percent  = prog->unit * current;
     if (percent <= 0)
 	percent = 1;
+    else if (percent > 100)
+	percent = 100;
+
 
     elapsed  = (time(0) - prog->initial_time);
     if (elapsed <= 0)
 	elapsed = 1;
 
-    speedps  = (float)prog->block_size * (float)current / (float)(elapsed);
-    speed = (float)(speedps * 60.0);
+    speedps  = prog->block_size * current / elapsed;
+    speed = speedps * 60.0;
 
     if(prog->block_size == 1){ // don't show bitmap rate, bit_size = 1
 	speed = 0;	
     }
 
+    prog_stat->percent   = percent;
+
     if (speed >= gbyte){
-	speed = speed / gbyte;
+	dspeed = (double)speed / (double)gbyte;
 	strncpy(speed_unit, "GB", 3);
+	strncpy(prog_stat->speed_unit, speed_unit, 3);
     }else if (speed >= mbyte){
-	speed = speed / mbyte;
+	dspeed = (double)speed / (double)mbyte;
 	strncpy(speed_unit, "MB", 3);
+	strncpy(prog_stat->speed_unit, speed_unit, 3);
     }else if (speed >= kbyte){
-	speed = speed / kbyte;
+	dspeed = (double)speed / (double)kbyte;
 	strncpy(speed_unit, "KB", 3);
+	strncpy(prog_stat->speed_unit, speed_unit, 3);
     }else{
+	dspeed = speed;
 	strncpy(speed_unit, "byte", 5);
+	strncpy(prog_stat->speed_unit, speed_unit, 5);
     }
+
+    prog_stat->speed     = dspeed;
 
     if (done != 1){
         remained = (time_t)((elapsed/percent*100) - elapsed);
@@ -161,9 +173,6 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
 
     strncpy(prog_stat->Eformated, Eformated, 10);
     strncpy(prog_stat->Rformated, Rformated, 10);
-    prog_stat->percent   = percent;
-    prog_stat->speed     = speed;
-    strncpy(prog_stat->speed_unit, speed_unit, 3);
 }
 
 /// update information at progress bar
@@ -222,18 +231,17 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
     memset(&prog_stat, 0, sizeof(prog_stat_t));
     calculate_speed(prog, current, done, &prog_stat);
 
+    /// set bar color
+    init_pair(4, COLOR_RED, COLOR_RED);
+    init_pair(5, COLOR_WHITE, COLOR_BLUE);
+    init_pair(6, COLOR_WHITE, COLOR_RED);
+    werase(p_win);
+    werase(bar_win);
+
     if (done != 1){
         if (difftime(time(0), prog->resolution_time) < prog->interval_time)
             return;
 	prog->resolution_time = time(0);
-
-        /// set bar color
-        init_pair(4, COLOR_RED, COLOR_RED);
-        init_pair(5, COLOR_WHITE, COLOR_BLUE);
-        init_pair(6, COLOR_WHITE, COLOR_RED);
-        werase(p_win);
-        werase(bar_win);
-
 
         mvwprintw(p_win, 0, 0, _(" "));
         mvwprintw(p_win, 1, 0, _("Elapsed: %s") , prog_stat.Eformated);
@@ -265,6 +273,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
         mvwprintw(p_win, 2, 0, _("Remaining: 0"));
 	if ((int)prog_stat.speed > 0)
 	    mvwprintw(p_win, 3, 0, _("Ave. Rate: %6.2f%s/min"), (float)prog_stat.speed, prog_stat.speed_unit);
+
         wattrset(bar_win, COLOR_PAIR(4));
         mvwprintw(bar_win, 0, 0, "%50s", " ");
         wattroff(bar_win, COLOR_PAIR(4));
@@ -275,25 +284,12 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
         wrefresh(p_win);
         wrefresh(bar_win);
         refresh();
-        sleep(1);
-    }
-
-    if(done == 1){
-        window_f = close_p_ncurses();
+	sleep(1);
     }
 
 #endif
 }
 
-static int open_p_ncurses(){
-
-    return 1;
-}
-
-static int close_p_ncurses(){
-
-    return 1;
-}
 /// update information as dialog format, refernece source code of dialog
 /// # mkfifo pipe
 /// # (./clone.extfs -d -c -X -s /dev/loop0 2>pipe | cat - > test.img) | ./gauge < pipe
