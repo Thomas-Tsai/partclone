@@ -1,4 +1,14 @@
+2011-03-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update makefile for btrfs
+
+2011-02-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	    * add option max_block_cache to get better performance escpcially small block size(fat)     * update typo error     * Version 0.2.18
+
 2011-01-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update ChangeLog
 
 	fix ufs error
 

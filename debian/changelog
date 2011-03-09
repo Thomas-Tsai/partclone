@@ -1,3 +1,8 @@
+partclone (0.2.19) unstable; urgency=low
+
+  * update makefile for btrf
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 09 Mar 2011 14:06:05 +0800
 partclone (0.2.18) unstable; urgency=low
   
   * add option max_block_cache to get better performance escpcially small block size(fat)
