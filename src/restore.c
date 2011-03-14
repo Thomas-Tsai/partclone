@@ -207,7 +207,10 @@ int main(int argc, char **argv){
             log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
 
             /// get Super Block information from partition
-            initial_dd_hdr(dfr, &image_hdr);
+	    if (dfr != 0)
+                initial_dd_hdr(dfr, &image_hdr);
+	    else
+		initial_dd_hdr(dfw, &image_hdr);
 
             /// check the dest partition size.
             if(opt.check){

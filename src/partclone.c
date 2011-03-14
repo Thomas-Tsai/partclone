@@ -853,7 +853,7 @@ extern int open_target(char* target, cmd_opt* opt){
 /// the io function, reference from ntfsprogs(ntfsclone).
 extern int io_all(int *fd, char *buf, unsigned long long count, int do_write, cmd_opt* opt)
 {
-    unsigned long long i;
+    long long int i;
     int debug = opt->debug;
     unsigned long long size = count;
 
@@ -865,12 +865,12 @@ extern int io_all(int *fd, char *buf, unsigned long long count, int do_write, cm
             i = read(*fd, buf, count);
 
         if (i < 0) {
-            log_mesg(0, 0, 1, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
+            log_mesg(0, 0, 1, debug, "%s: errno = %i(%s)\n",__func__, errno, strerror(errno));
             if (errno != EAGAIN && errno != EINTR){
                 return -1;
             }
         } else if (i == 0){
-            log_mesg(1, 0, 0, debug, "%s: errno = %s(%i)\n",__func__, strerror(errno), errno);
+            log_mesg(0, 0, 1, debug, "%s: nothing to read. errno = %i(%s)\n",__func__, errno, strerror(errno));
             return 0;
 
         } else {
