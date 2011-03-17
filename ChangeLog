@@ -1,4 +1,12 @@
+2011-03-14  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix partclone.dd / partclone.restore hard to show right message for stdin data. We use target size as source size for the special case.
+
 2011-03-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	0.2.19: fixbug: progress fail when just 10 block restore
+
+	release 0.2.19
 
 	update makefile for btrfs
 
