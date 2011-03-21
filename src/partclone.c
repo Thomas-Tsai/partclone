@@ -865,12 +865,12 @@ extern int io_all(int *fd, char *buf, unsigned long long count, int do_write, cm
             i = read(*fd, buf, count);
 
         if (i < 0) {
-            log_mesg(0, 0, 1, debug, "%s: errno = %i(%s)\n",__func__, errno, strerror(errno));
+            log_mesg(1, 0, 1, debug, "%s: errno = %i(%s)\n",__func__, errno, strerror(errno));
             if (errno != EAGAIN && errno != EINTR){
                 return -1;
             }
         } else if (i == 0){
-            log_mesg(0, 0, 1, debug, "%s: nothing to read. errno = %i(%s)\n",__func__, errno, strerror(errno));
+            log_mesg(1, 0, 1, debug, "%s: nothing to read. errno = %i(%s)\n",__func__, errno, strerror(errno));
             return 0;
 
         } else {
@@ -1063,7 +1063,7 @@ extern void initial_dd_hdr(int ret, image_head* image_hdr){
 
     memset(image_hdr, 0, sizeof(image_head));
     strncpy(image_hdr->fs, raw_MAGIC, FS_MAGIC_SIZE);
-    image_hdr->block_size  = 512*2;
+    image_hdr->block_size  = 512;
     image_hdr->device_size = get_partition_size(&ret);
     image_hdr->totalblock  = block_count(image_hdr->device_size, image_hdr->block_size);
     image_hdr->usedblocks  = image_hdr->totalblock;
