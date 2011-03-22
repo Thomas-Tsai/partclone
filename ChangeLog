@@ -1,3 +1,17 @@
+2011-03-22  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix bug for partclone.dd
+
+2011-03-21  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch '0.2.8-update' of partclone.nchc.org.tw:/home/partclone into 0.2.8-update
+
+	fix bug for partclone.dd
+
+2011-03-17  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.20
+
 2011-03-14  Thomas Tsai  <thomas@nchc.org.tw>
 
 	fix partclone.dd / partclone.restore hard to show right message for stdin data. We use target size as source size for the special case.

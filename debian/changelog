@@ -1,3 +1,9 @@
+partclone (0.2.21) maverick; urgency=low
+
+  * fix bug for partclone.dd and partclone.restore for stdin dd data.
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 22 Mar 2011 14:21:11 +0800
+
 partclone (0.2.20) maverick; urgency=low
 
   * fix dd issue. set default size as target size for stdin data.
