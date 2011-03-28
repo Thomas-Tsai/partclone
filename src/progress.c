@@ -215,7 +215,7 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
         fprintf(stderr, _("\nTotal Time: %s, "), prog_stat.Eformated);
 	if((int)prog_stat.speed > 0)
 	    fprintf(stderr, _("Ave. Rate: %6.1f%s/min, "), (float)(prog_stat.speed), prog_stat.speed_unit);
-        fprintf(stderr, _("%s"), "100.00%% completed!\n");
+        fprintf(stderr, _("%s"), "100.00% completed!\n");
     }
 }
 
