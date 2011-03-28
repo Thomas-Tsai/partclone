@@ -1,4 +1,10 @@
+2011-03-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	typo error for progress
+
 2011-03-22  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release version 0.2.21
 
 	fix bug for partclone.dd
 
