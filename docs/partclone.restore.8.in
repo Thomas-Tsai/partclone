@@ -1,0 +1,76 @@
+.TH partclone.restore 8 "Nov 2007" "partclone @VERSION@"
+.SH NAME
+partclone.restore \- The utility to restore an etx2/ext3 partition.
+.SH SYNOPSIS
+partclone.restore [options]... [MODE] [SOURCE FILE] [OUTPUT FILE]
+.SH DESCRIPTION
+.B partclone.restore
+is a part of Partclone project.
+Partclone is a project like the well-known backup utility "Partition Image" a.k.a partimage. Partclone provide utilities to back up used blocks and design for higher compatibility of the file system using supported library like e2fslibs.
+.SH OPTIONS
+.TP
+.B -o,  --output FILE
+Output FILE
+.TP
+.B -O   --overwrite FILE   Output FILE, overwriting if exists
+--restore_row_file create special row file for loop device
+.TP
+.B -s,  --source FILE
+Source FILE
+.TP
+.B -L,  --logfile FILE
+Log FILE
+.TP
+.B -dX, --debug=X
+Set the debug level to X = [0|1|2]
+.TP
+.B -C,  --no_check
+Don't check device size and free space
+.TP
+.B -X,  --dialog
+Output message as Dialog Format
+.TP
+.B -I,  --ignore_fschk
+Ignore filesystem check
+.TP
+.B --ignore_crc
+Ignore crc check error
+.TP
+.B -F,  --force
+Force progress
+.TP
+.B -f,  --UI-fresh
+Fresh times of progress
+.TP
+.B -m,  --max_block_cache
+The used block will be cache until max number
+.TP
+.B -q,  --quiet
+Disable progress message
+.TP
+.B -v,  --version
+Display partclone version
+.TP
+.B -h,  --help
+Display this help
+.SH
+Examples:
+.sp 1
+restore /dev/hda1 from hda1.img and display debug information.
+.sp 1
+partclone.restore -d -s hda1.img -o /dev/hda1
+.sp 1
+restore image from clonezilla(split, gzip,) with stdin source
+.sp1
+cat sda1.ext3-ptcl-img.gz.a* > gunzip -c | partclone.restore -d -s - -o /dev/sda1
+.sp 1
+restore row image from partclone.dd
+.sp1
+partclone.dd -d -c -s /dev/sda1 -o - | partclone.restore -d -s - -o /dev/sdb1
+.SH REPORTING BUGS
+Report bugs to <thomas@nchc.org.tw>
+.SH SUPPORT
+You can get support at http://partclone.org
+.SH AUTHOR
+This manual page was written by Thomas Tsai <thomas@nchc.org.tw>
+

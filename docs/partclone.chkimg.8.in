@@ -1,0 +1,46 @@
+.TH partclone.chkimg 8 "Nov 2007" "partclone @VERSION@"
+.SH NAME
+partclone.chkimg \- The utility to check image made by partclone
+.SH SYNOPSIS
+partclone.chkimg [options]... [MODE] [SOURCE FILE] [OUTPUT FILE]
+.SH DESCRIPTION
+.B partclone.chkimg
+is a part of Partclone project.
+Partclone is a project like the well-known backup utility "Partition Image" a.k.a partimage. Partclone provide utilities to back up used blocks and design for higher compatibility of the file system using supported library like e2fslibs.
+.SH OPTIONS
+.TP
+.B -s,  --source FILE
+Source FILE
+.TP
+.B -L,  --logfile FILE
+Log FILE
+.TP
+.B -dX, --debug=X
+Set the debug level to X = [0|1|2]
+.TP
+.B -C,  --no_check
+Don't check device size and free space
+.TP
+.B -X,  --dialog
+output message as Dialog Format
+.TP
+.B -F,  --force
+force progress
+.TP
+.B --ignore_crc
+Ignore crc check error
+.TP
+.B -f,  --UI-fresh
+fresh times of progress
+.TP
+.B -h,  --help
+Display this help
+
+.sp1
+.SH REPORTING BUGS
+Report bugs to <thomas@nchc.org.tw>
+.SH SUPPORT
+You can get support at http://partclone.org
+.SH AUTHOR
+This manual page was written by Thomas Tsai <thomas@nchc.org.tw>
+

@@ -1,0 +1,97 @@
+.TH partclone.dd 8 "Nov 2007" "partclone @VERSION@"
+.SH NAME
+partclone.dd \- The utility to clone/restore row file like dd.
+.SH SYNOPSIS
+partclone.dd [options]... [MODE] [SOURCE FILE] [OUTPUT FILE]
+.SH DESCRIPTION
+.B partclone.dd
+is a part of Partclone project.
+Partclone is a project like the well-known backup utility "Partition Image" a.k.a partimage. Partclone provide utilities to back up used blocks and design for higher compatibility of the file system using supported library like e2fslibs.
+.SH OPTIONS
+.TP
+.B -o,  --output FILE
+Output FILE
+.TP
+.B -O   --overwrite FILE
+Output FILE, overwriting if exists
+.TP
+.B -s,  --source FILE
+Source FILE
+.TP
+.b
+-L,  --logfile FILE     
+Log FILE
+.TP
+.b
+-c,  --clone            
+Save to the special image format
+.TP
+.b
+-r,  --restore          
+Restore from the special image format
+.TP
+.b
+-b,  --dev-to-dev       
+Local device to device copy mode
+.TP
+.b
+-R,  --rescue           
+Continue after disk read errors
+.TP
+.b
+-dX, --debug=X          
+Set the debug level to X = [0|1|2]
+.TP
+.b
+-C,  --no_check         
+Don't check device size and free space
+.TP
+.b
+-X,  --dialog           
+Output message as Dialog Format
+.TP
+.b
+-I,  --ignore_fschk     
+Ignore filesystem check
+.TP
+.b
+--ignore_crc       
+Ignore crc check error
+.TP
+.b
+-F,  --force            
+Force progress
+.TP
+.b
+-f,  --UI-fresh         
+Fresh times of progress
+.TP
+.b
+-q,  --quiet            
+quiet mode, no progress update
+.TP
+.b
+-v,  --version          
+Display partclone version
+.TP
+.b
+-h,  --help             
+Display this help
+.SH
+Examples:
+.sp 1
+clone /dev/hda1 to hda1.dd.img and display debug information.
+.sp 1
+partclone.dd -c -d -s /dev/hda1 -o hda1.dd.img
+.sp 1
+restore /dev/hda1 from hda1.dd.img and display debug information.
+.sp 1
+partclone.dd -r -d -s hda1.dd.img -o /dev/hda1
+.sp1
+.SH REPORTING BUGS
+Report bugs to <thomas@nchc.org.tw>
+.SH SUPPORT
+You can get support at http://partclone.org
+.SH AUTHOR
+This manual page was written by Thomas Tsai <thomas@nchc.org.tw>
+

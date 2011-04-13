@@ -33,19 +33,35 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@ENABLE_EXTFS_TRUE@am__append_1 = partclone.extfs.8
+@ENABLE_EXTFS_TRUE@am__append_1 = partclone.extfs.8 partclone.ext2.8 \
+@ENABLE_EXTFS_TRUE@	partclone.ext3.8 partclone.ext4.8 \
+@ENABLE_EXTFS_TRUE@	partclone.ext4dev.8
 @ENABLE_REISERFS_TRUE@am__append_2 = partclone.reiserfs.8
 @ENABLE_REISER4_TRUE@am__append_3 = partclone.reiser4.8
-@ENABLE_HFSP_TRUE@am__append_4 = partclone.hfsp.8
+@ENABLE_HFSP_TRUE@am__append_4 = partclone.hfsplus.8 partclone.hfs+.8
 @ENABLE_XFS_TRUE@am__append_5 = partclone.xfs.8
-@ENABLE_FAT_TRUE@am__append_6 = partclone.fat.8
-@ENABLE_NTFS_TRUE@am__append_7 = partclone.ntfs.8
+@ENABLE_FAT_TRUE@am__append_6 = partclone.vfat.8 partclone.fat12.8 \
+@ENABLE_FAT_TRUE@	partclone.fat16.8 partclone.fat32.8
+@ENABLE_UFS_TRUE@am__append_7 = partclone.ufs.8
+@ENABLE_VMFS_TRUE@am__append_8 = partclone.vmfs.8
+@ENABLE_JFS_TRUE@am__append_9 = partclone.jfs.8
+@ENABLE_BTRFS_TRUE@am__append_10 = partclone.btrfs.8
+@ENABLE_NTFS_TRUE@am__append_11 = partclone.ntfs.8
 subdir = docs
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/partclone.extfs.8.in $(srcdir)/partclone.fat.8.in \
-	$(srcdir)/partclone.hfsp.8.in $(srcdir)/partclone.ntfs.8.in \
-	$(srcdir)/partclone.reiser4.8.in \
-	$(srcdir)/partclone.reiserfs.8.in $(srcdir)/partclone.xfs.8.in
+	$(srcdir)/partclone.btrfs.8.in $(srcdir)/partclone.chkimg.8.in \
+	$(srcdir)/partclone.dd.8.in $(srcdir)/partclone.ext2.8.in \
+	$(srcdir)/partclone.ext3.8.in $(srcdir)/partclone.ext4.8.in \
+	$(srcdir)/partclone.ext4dev.8.in \
+	$(srcdir)/partclone.extfs.8.in $(srcdir)/partclone.fat12.8.in \
+	$(srcdir)/partclone.fat16.8.in $(srcdir)/partclone.fat32.8.in \
+	$(srcdir)/partclone.hfs+.8.in $(srcdir)/partclone.hfsplus.8.in \
+	$(srcdir)/partclone.info.8.in $(srcdir)/partclone.jfs.8.in \
+	$(srcdir)/partclone.ntfs.8.in $(srcdir)/partclone.reiser4.8.in \
+	$(srcdir)/partclone.reiserfs.8.in \
+	$(srcdir)/partclone.restore.8.in $(srcdir)/partclone.ufs.8.in \
+	$(srcdir)/partclone.vfat.8.in $(srcdir)/partclone.vmfs.8.in \
+	$(srcdir)/partclone.xfs.8.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
 	$(top_srcdir)/m4/iconv.m4 $(top_srcdir)/m4/lib-ld.m4 \
@@ -56,9 +72,14 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES = partclone.extfs.8 partclone.hfsp.8 \
-	partclone.fat.8 partclone.ntfs.8 partclone.reiserfs.8 \
-	partclone.reiser4.8 partclone.xfs.8
+CONFIG_CLEAN_FILES = partclone.extfs.8 partclone.ext2.8 \
+	partclone.ext3.8 partclone.ext4.8 partclone.ext4dev.8 \
+	partclone.jfs.8 partclone.xfs.8 partclone.ufs.8 \
+	partclone.ntfs.8 partclone.vmfs.8 partclone.hfsplus.8 \
+	partclone.hfs+.8 partclone.vfat.8 partclone.fat12.8 \
+	partclone.fat16.8 partclone.fat32.8 partclone.btrfs.8 \
+	partclone.reiserfs.8 partclone.reiser4.8 partclone.restore.8 \
+	partclone.dd.8 partclone.chkimg.8 partclone.info.8
 CONFIG_CLEAN_VPATH_FILES =
 SOURCES =
 DIST_SOURCES =
@@ -204,9 +225,11 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-man_MANS = $(am__append_1) $(am__append_2) $(am__append_3) \
-	$(am__append_4) $(am__append_5) $(am__append_6) \
-	$(am__append_7)
+man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 \
+	partclone.restore.8 $(am__append_1) $(am__append_2) \
+	$(am__append_3) $(am__append_4) $(am__append_5) \
+	$(am__append_6) $(am__append_7) $(am__append_8) \
+	$(am__append_9) $(am__append_10) $(am__append_11)
 all: all-am
 
 .SUFFIXES:
@@ -242,17 +265,49 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 $(am__aclocal_m4_deps):
 partclone.extfs.8: $(top_builddir)/config.status $(srcdir)/partclone.extfs.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-partclone.hfsp.8: $(top_builddir)/config.status $(srcdir)/partclone.hfsp.8.in
+partclone.ext2.8: $(top_builddir)/config.status $(srcdir)/partclone.ext2.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-partclone.fat.8: $(top_builddir)/config.status $(srcdir)/partclone.fat.8.in
+partclone.ext3.8: $(top_builddir)/config.status $(srcdir)/partclone.ext3.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.ext4.8: $(top_builddir)/config.status $(srcdir)/partclone.ext4.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.ext4dev.8: $(top_builddir)/config.status $(srcdir)/partclone.ext4dev.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.jfs.8: $(top_builddir)/config.status $(srcdir)/partclone.jfs.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.xfs.8: $(top_builddir)/config.status $(srcdir)/partclone.xfs.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.ufs.8: $(top_builddir)/config.status $(srcdir)/partclone.ufs.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 partclone.ntfs.8: $(top_builddir)/config.status $(srcdir)/partclone.ntfs.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.vmfs.8: $(top_builddir)/config.status $(srcdir)/partclone.vmfs.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.hfsplus.8: $(top_builddir)/config.status $(srcdir)/partclone.hfsplus.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.hfs+.8: $(top_builddir)/config.status $(srcdir)/partclone.hfs+.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.vfat.8: $(top_builddir)/config.status $(srcdir)/partclone.vfat.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.fat12.8: $(top_builddir)/config.status $(srcdir)/partclone.fat12.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.fat16.8: $(top_builddir)/config.status $(srcdir)/partclone.fat16.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.fat32.8: $(top_builddir)/config.status $(srcdir)/partclone.fat32.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.btrfs.8: $(top_builddir)/config.status $(srcdir)/partclone.btrfs.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 partclone.reiserfs.8: $(top_builddir)/config.status $(srcdir)/partclone.reiserfs.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 partclone.reiser4.8: $(top_builddir)/config.status $(srcdir)/partclone.reiser4.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-partclone.xfs.8: $(top_builddir)/config.status $(srcdir)/partclone.xfs.8.in
+partclone.restore.8: $(top_builddir)/config.status $(srcdir)/partclone.restore.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.dd.8: $(top_builddir)/config.status $(srcdir)/partclone.dd.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.chkimg.8: $(top_builddir)/config.status $(srcdir)/partclone.chkimg.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+partclone.info.8: $(top_builddir)/config.status $(srcdir)/partclone.info.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 install-man8: $(man_MANS)
 	@$(NORMAL_INSTALL)
