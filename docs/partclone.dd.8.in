@@ -18,63 +18,63 @@ Output FILE, overwriting if exists
 .B -s,  --source FILE
 Source FILE
 .TP
-.b
+.B
 -L,  --logfile FILE     
 Log FILE
 .TP
-.b
+.B
 -c,  --clone            
 Save to the special image format
 .TP
-.b
+.B
 -r,  --restore          
 Restore from the special image format
 .TP
-.b
+.B
 -b,  --dev-to-dev       
 Local device to device copy mode
 .TP
-.b
+.B
 -R,  --rescue           
 Continue after disk read errors
 .TP
-.b
+.B
 -dX, --debug=X          
 Set the debug level to X = [0|1|2]
 .TP
-.b
+.B
 -C,  --no_check         
 Don't check device size and free space
 .TP
-.b
+.B
 -X,  --dialog           
 Output message as Dialog Format
 .TP
-.b
+.B
 -I,  --ignore_fschk     
 Ignore filesystem check
 .TP
-.b
+.B
 --ignore_crc       
 Ignore crc check error
 .TP
-.b
+.B
 -F,  --force            
 Force progress
 .TP
-.b
+.B
 -f,  --UI-fresh         
 Fresh times of progress
 .TP
-.b
+.B
 -q,  --quiet            
 quiet mode, no progress update
 .TP
-.b
+.B
 -v,  --version          
 Display partclone version
 .TP
-.b
+.B
 -h,  --help             
 Display this help
 .SH
