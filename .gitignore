@@ -6,13 +6,7 @@ config.h.in~
 config.log
 config.status
 docs/Makefile
-docs/partclone.extfs.8
-docs/partclone.fat.8
-docs/partclone.hfsp.8
-docs/partclone.ntfs.8
-docs/partclone.reiser4.8
-docs/partclone.reiserfs.8
-docs/partclone.xfs.8
+docs/partclone.*.8
 get_lib_version
 po/Makefile
 po/Makefile.in
