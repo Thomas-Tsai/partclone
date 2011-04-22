@@ -1,3 +1,9 @@
+partclone (0.2.23) maverick; urgency=low
+
+  * update manpages 
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Fri, 22 Apr 2011 11:02:59 +0800
+
 partclone (0.2.22) maverick; urgency=low
 
   * typo error for progress
