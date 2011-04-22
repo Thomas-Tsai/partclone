@@ -401,6 +401,7 @@ AC_CONFIG_FILES([
 	src/Makefile
 	po/Makefile.in
 	docs/Makefile
+	docs/partclone.xxxfs.8
 	docs/partclone.extfs.8
 	docs/partclone.ext2.8
 	docs/partclone.ext3.8

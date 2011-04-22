@@ -61,7 +61,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/partclone.reiserfs.8.in \
 	$(srcdir)/partclone.restore.8.in $(srcdir)/partclone.ufs.8.in \
 	$(srcdir)/partclone.vfat.8.in $(srcdir)/partclone.vmfs.8.in \
-	$(srcdir)/partclone.xfs.8.in
+	$(srcdir)/partclone.xfs.8.in $(srcdir)/partclone.xxxfs.8.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
 	$(top_srcdir)/m4/iconv.m4 $(top_srcdir)/m4/lib-ld.m4 \
@@ -72,14 +72,15 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES = partclone.extfs.8 partclone.ext2.8 \
-	partclone.ext3.8 partclone.ext4.8 partclone.ext4dev.8 \
-	partclone.jfs.8 partclone.xfs.8 partclone.ufs.8 \
-	partclone.ntfs.8 partclone.vmfs.8 partclone.hfsplus.8 \
-	partclone.hfs+.8 partclone.vfat.8 partclone.fat12.8 \
-	partclone.fat16.8 partclone.fat32.8 partclone.btrfs.8 \
-	partclone.reiserfs.8 partclone.reiser4.8 partclone.restore.8 \
-	partclone.dd.8 partclone.chkimg.8 partclone.info.8
+CONFIG_CLEAN_FILES = partclone.xxxfs.8 partclone.extfs.8 \
+	partclone.ext2.8 partclone.ext3.8 partclone.ext4.8 \
+	partclone.ext4dev.8 partclone.jfs.8 partclone.xfs.8 \
+	partclone.ufs.8 partclone.ntfs.8 partclone.vmfs.8 \
+	partclone.hfsplus.8 partclone.hfs+.8 partclone.vfat.8 \
+	partclone.fat12.8 partclone.fat16.8 partclone.fat32.8 \
+	partclone.btrfs.8 partclone.reiserfs.8 partclone.reiser4.8 \
+	partclone.restore.8 partclone.dd.8 partclone.chkimg.8 \
+	partclone.info.8
 CONFIG_CLEAN_VPATH_FILES =
 SOURCES =
 DIST_SOURCES =
@@ -226,10 +227,11 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 \
-	partclone.restore.8 $(am__append_1) $(am__append_2) \
-	$(am__append_3) $(am__append_4) $(am__append_5) \
-	$(am__append_6) $(am__append_7) $(am__append_8) \
-	$(am__append_9) $(am__append_10) $(am__append_11)
+	partclone.restore.8 partclone.xxxfs.8 $(am__append_1) \
+	$(am__append_2) $(am__append_3) $(am__append_4) \
+	$(am__append_5) $(am__append_6) $(am__append_7) \
+	$(am__append_8) $(am__append_9) $(am__append_10) \
+	$(am__append_11)
 all: all-am
 
 .SUFFIXES:
@@ -263,6 +265,8 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
+partclone.xxxfs.8: $(top_builddir)/config.status $(srcdir)/partclone.xxxfs.8.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 partclone.extfs.8: $(top_builddir)/config.status $(srcdir)/partclone.extfs.8.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 partclone.ext2.8: $(top_builddir)/config.status $(srcdir)/partclone.ext2.8.in

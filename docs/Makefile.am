@@ -1,4 +1,4 @@
-man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 partclone.restore.8
+man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 partclone.restore.8 partclone.xxxfs.8
 
 if ENABLE_EXTFS
 man_MANS += partclone.extfs.8
