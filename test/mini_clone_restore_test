@@ -19,6 +19,8 @@ echo "create md5 for $row file"
 md5sum $row > $md5
 echo "clone $row to $img"
 partclone.$fs -d -c -s $row -O $img -F -L $logfile
+echo "do image checking"
+partclone.chkimg -s $img
 echo "remove $row"
 rm $row
 echo "restore $img to $row"
