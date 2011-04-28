@@ -1,39 +1,74 @@
 #!/bin/bash
+
 current_dir=`pwd`
 logfile='test.log'
 img='floppy.img'
 row='floppy.row'
 md5=$row'.md5'
 dd_bs=1024
-#dd_count=$((1024*256))
-dd_count=1024
-test_fs='ext2 ext3 ext4 vfat'
+normal_size=$((1024*256))
+floppy_size=1024
 
+## file system
+normal_fs="ext2 ext3 ext4 vfat"
+featured_fs="$normal_fs jfs xfs reiserfs hfsplus"
+extra_fs="$featured_fs ufs vmfs reiser4 ntfs btrfs"
+
+mkfs_option_for_reiserfs='-f'
+mkfs_option_for_ntfs='-f -F'
+
+manual_fs=$1
+
+test_fs=$featured_fs
+dd_count=$normal_size
+[ -n $manual_fs ] && test_fs=$manual_fs
+
+check_return_code(){
+    if [ $? != 0 ]; then
+	echo "return code fail"
+	exit
+    fi
+}
+
+#main
 for fs in $test_fs; do
 
-echo "create row file $row"
-dd if=/dev/zero of=$row bs=$dd_bs count=$dd_count
-echo "format as $fs"
-mkfs.$fs $row
-echo "create md5 for $row file"
-md5sum $row > $md5
-echo "clone $row to $img"
-partclone.$fs -d -c -s $row -O $img -F -L $logfile
-echo "do image checking"
-partclone.chkimg -s $img
-echo "remove $row"
-rm $row
-echo "restore $img to $row"
-partclone.restore -s $img -o $row -C --restore_row_file -F -L $logfile
-echo "md5 check"
-ret=`md5sum --quiet -c $md5`
-if [ !$ret ]; then
-    echo "$fs test ok"
-    echo "clear tmp files $img $row $logfile $md5"
-    rm $img $row $logfile $md5
-else
-    echo "$fs test fail"
-    echo "keep the files for bug report $img $row $logfile $md5"
-fi
+    echo "create row file $row"
+    [ -f $row ] && rm $row
+    dd if=/dev/zero of=$row bs=$dd_bs count=$dd_count
+
+    echo "format $row as $fs row partition"
+    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $row
+
+    echo "create md5 for $row file"
+    md5sum $row > $md5
+
+    echo "clone $row to $img"
+    [ -f $img ] && rm $img
+    partclone.$fs -d -c -s $row -O $img -F -L $logfile
+    check_return_code
+
+    echo "do image checking"
+    partclone.chkimg -s $img -L $logfile
+    check_return_code
+
+    echo "remove $row"
+    [ -f $row ] && rm $row
+
+    echo "restore $img to $row"
+    partclone.restore -s $img -o $row -C --restore_row_file -F -L $logfile
+    check_return_code
+
+    echo "md5 check"
+    ret=`md5sum --quiet -c $md5`
+
+    if [ -z "$ret" ]; then
+	echo "$fs test ok"
+	echo "clear tmp files $img $row $logfile $md5"
+	rm $img $row $logfile $md5
+    else
+	echo "$fs test fail"
+	echo "keep the files for bug report $img $row $logfile $md5"
+    fi
 
 done
