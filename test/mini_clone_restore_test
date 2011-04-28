@@ -1,0 +1,37 @@
+#!/bin/bash
+current_dir=`pwd`
+logfile='test.log'
+img='floppy.img'
+row='floppy.row'
+md5=$row'.md5'
+dd_bs=1024
+#dd_count=$((1024*256))
+dd_count=1024
+test_fs='ext2 ext3 ext4 vfat'
+
+for fs in $test_fs; do
+
+echo "create row file $row"
+dd if=/dev/zero of=$row bs=$dd_bs count=$dd_count
+echo "format as $fs"
+mkfs.$fs $row
+echo "create md5 for $row file"
+md5sum $row > $md5
+echo "clone $row to $img"
+partclone.$fs -d -c -s $row -O $img -F -L $logfile
+echo "remove $row"
+rm $row
+echo "restore $img to $row"
+partclone.restore -s $img -o $row -C --restore_row_file -F -L $logfile
+echo "md5 check"
+ret=`md5sum --quiet -c $md5`
+if [ !$ret ]; then
+    echo "$fs test ok"
+    echo "clear tmp files $img $row $logfile $md5"
+    rm $img $row $logfile $md5
+else
+    echo "$fs test fail"
+    echo "keep the files for bug report $img $row $logfile $md5"
+fi
+
+done
