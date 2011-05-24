@@ -335,6 +335,34 @@ int main(int argc, char **argv){
 
         log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
         log_mesg(1, 0, 1, debug, "done!\n");
+    } else if (opt.domain) {
+        log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
+        log_mesg(1, 0, 1, debug, "Reading Super Block\n");
+
+        /// get Super Block information from partition
+        initial_image_hdr(source, &image_hdr);
+
+        /// check memory size
+        if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
+            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
+
+	strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
+
+        /// alloc a memory to restore bitmap
+        bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+        if(bitmap == NULL){
+            log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+        }
+
+        log_mesg(2, 0, 0, debug, "initial main bitmap pointer %i\n", bitmap);
+        log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
+
+        /// read and check bitmap from partition
+        log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
+        readbitmap(source, image_hdr, bitmap, pui);
+
+        log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
+        log_mesg(1, 0, 1, debug, "done!\n");
     }
 
     log_mesg(1, 0, 0, debug, "print image_head\n");
@@ -712,6 +740,40 @@ int main(int argc, char **argv){
 	update_pui(&prog, copied, done);
 	/// free buffer
 	free(buffer);
+        sync_data(dfw, &opt);
+    } else if (opt.domain) {
+        log_mesg(0, 0, 0, debug, "Total block %i\n", image_hdr.totalblock);
+        log_mesg(1, 0, 0, debug, "start writing domain log...\n");
+        // write domain log comment and status line
+        dprintf(dfw, "# Domain logfile created by %s v%s\n", EXECNAME, VERSION);
+        dprintf(dfw, "# Source: %s\n", opt.source);
+        dprintf(dfw, "# Offset: 0x%08llX\n", opt.offset_domain);
+        dprintf(dfw, "# current_pos  current_status\n");
+        dprintf(dfw, "0x%08llX     ?\n",
+                opt.offset_domain + (image_hdr.totalblock * image_hdr.block_size));
+        dprintf(dfw, "#      pos        size  status\n");
+        // start logging the used/unused areas
+        next_block_id = 0;
+        cmp = bitmap[0];
+        for( block_id = 0; block_id <= image_hdr.totalblock; block_id++ ){
+            if (block_id < image_hdr.totalblock){
+                nx_current = bitmap[block_id];
+                if (nx_current == 1)
+                    copied++;
+            } else
+                nx_current = -1;
+            if (nx_current != cmp){
+                dprintf(dfw, "0x%08llX  0x%08llX  %c\n",
+                        opt.offset_domain + (next_block_id * image_hdr.block_size),
+                        (block_id - next_block_id) * image_hdr.block_size,
+                        cmp ? '+' : '?');
+                next_block_id = block_id;
+                cmp = nx_current;
+            }
+            // don't bother updating progress
+        } /// end of for
+        done = 1;
+        update_pui(&prog, copied, done);
         sync_data(dfw, &opt);
     }
 

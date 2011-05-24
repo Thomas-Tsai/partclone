@@ -107,6 +107,8 @@ extern void usage(void)
             "    -c,  --clone            Save to the special image format\n"
             "    -r,  --restore          Restore from the special image format\n"
             "    -b,  --dev-to-dev       Local device to device copy mode\n"
+            "    -D,  --domain           Create ddrescue domain log from source device\n"
+            "         --offset_domain=X  Add offset X (bytes) to domain log values\n"
             "    -R,  --rescue           Continue after disk read errors\n"
 #endif
             "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
@@ -132,9 +134,13 @@ extern void print_version(void){
     exit(0);
 }
 
+enum {
+    OPT_OFFSET_DOMAIN = 1000
+};
+
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hvd::L:cbro:O:s:f:m:RCXFINiql";
+    static const char *sopt = "-hvd::L:cbrDo:O:s:f:m:RCXFINiql";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "print_version",	no_argument,	    NULL,   'v' },
@@ -145,6 +151,8 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "restore_row_file",	no_argument,	    NULL,   'l' },
         { "clone-image",	no_argument,	    NULL,   'c' },
         { "dev-to-dev",		no_argument,	    NULL,   'b' },
+        { "domain",		no_argument,	    NULL,   'D' },
+        { "offset_domain",	required_argument,  NULL,   OPT_OFFSET_DOMAIN },
         { "debug",		optional_argument,  NULL,   'd' },
         { "logfile",		required_argument,  NULL,   'L' },
         { "rescue",		no_argument,	    NULL,   'R' },
@@ -162,7 +170,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { NULL,			0,		    NULL,    0  }
     };
 
-    char c;
+    int c;
     int mode = 0;
     memset(opt, 0, sizeof(cmd_opt));
     opt->debug = 0;
@@ -177,7 +185,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     opt->restore++;
     mode++;
 #endif
-    while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != (char)-1) {
+    while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != -1) {
         switch (c) {
             case 's': 
                 opt->source = optarg;
@@ -206,6 +214,10 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
                 break;
             case 'b':
                 opt->dd++;
+                mode++;
+                break;
+            case 'D':
+                opt->domain++;
                 mode++;
                 break;
             case 'd':
@@ -255,6 +267,9 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
             case 'C':
                 opt->check = 0;
                 break;
+            case OPT_OFFSET_DOMAIN:
+                opt->offset_domain = strtoull(optarg, NULL, 0);
+                break;
             default:
                 fprintf(stderr, "Unknown option '%s'.\n", argv[optind-1]);
                 usage();
@@ -286,10 +301,12 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         opt->source = "-";
     }
 
-    if (opt->clone){
+    if (opt->clone || opt->domain){
 
         if ((strcmp(opt->source, "-") == 0) || (opt->source == NULL)) {
-            fprintf(stderr, "Partclone can't clone from stdin.\nFor help, type: %s -h\n", EXECNAME);
+            fprintf(stderr, "Partclone can't %s from stdin.\nFor help, type: %s -h\n",
+                    opt->clone ? "clone" : "make domain log",
+                    EXECNAME);
             //usage();
             exit(0);
         }
@@ -763,7 +780,7 @@ extern int open_source(char* source, cmd_opt* opt){
     int flags = O_RDONLY | O_LARGEFILE;
 
     log_mesg(1, 0, 0, debug, "open source file/device %s\n", source);
-    if((opt->clone) || (opt->dd)){ /// always is device, clone from device=source
+    if((opt->clone) || (opt->dd) || (opt->domain)){ /// always is device, clone from device=source
 
         mp = malloc(PATH_MAX + 1);
         if (check_mount(source, mp) == 1){
@@ -802,13 +819,13 @@ extern int open_target(char* target, cmd_opt* opt){
     struct stat st_dev;
 
     log_mesg(1, 0, 0, debug, "open target file/device\n");
-    if (opt->clone){
+    if (opt->clone || opt->domain){
         if (strcmp(target, "-") == 0){ 
             ret = fileno(stdout);
             if (ret == -1)
                 log_mesg(0, 1, 1, debug, "clone: open %s(stdout) error\n", target);
         } else { 
-            flags |= O_CREAT;		    /// new file
+            flags |= O_CREAT | O_TRUNC;	    /// new file
             if (!opt->overwrite)	    /// overwrite
                 flags |= O_EXCL;
             ret = open (target, flags, S_IRUSR);
@@ -958,6 +975,8 @@ extern void print_opt(cmd_opt opt){
         log_mesg(1, 0, 0, debug, "MODE: restore\n");
     else if (opt.dd)
         log_mesg(1, 0, 0, debug, "MODE: device to device\n");
+    else if (opt.domain)
+        log_mesg(1, 0, 0, debug, "MODE: create domain log for ddrescue\n");
 
     log_mesg(1, 0, 0, debug, "DEBUG: %i\n", opt.debug);
     log_mesg(1, 0, 0, debug, "SOURCE: %s\n", opt.source);
@@ -973,6 +992,7 @@ extern void print_opt(cmd_opt opt){
     log_mesg(1, 0, 0, debug, "NCURSES: %i\n", opt.ncurses);
 #endif
     log_mesg(1, 0, 0, debug, "DIALOG: %i\n", opt.dialog);
+    log_mesg(1, 0, 0, debug, "OFFSET DOMAIN: 0x%llX\n", opt.offset_domain);
 
 }
 
@@ -994,6 +1014,8 @@ extern void print_partclone_info(cmd_opt opt){
         log_mesg(0, 0, 1, debug, _("Starting to restore image (%s) to device (%s)\n"), opt.source, opt.target);
     else if(opt.dd)
         log_mesg(0, 0, 1, debug, _("Starting to back up device(%s) to device(%s)\n"), opt.source, opt.target);
+    else if (opt.domain)
+        log_mesg(0, 0, 1, debug, _("Starting to map device (%s) to domain log (%s)\n"), opt.source, opt.target);
     else
         log_mesg(0, 0, 1, debug, "unknow mode\n");
 }
@@ -1042,6 +1064,8 @@ extern void print_finish_info(cmd_opt opt){
         log_mesg(0, 0, 1, debug, _("Partclone successfully restored the image (%s) to the device (%s)\n"), opt.source, opt.target);
     else if(opt.dd)
         log_mesg(0, 0, 1, debug, _("Partclone successfully cloned the device (%s) to the device (%s)\n"), opt.source, opt.target);
+    else if (opt.domain)
+        log_mesg(0, 0, 1, debug, _("Partclone successfully mapped the device (%s) to the domain log (%s)\n"), opt.source, opt.target);
 
 }
 

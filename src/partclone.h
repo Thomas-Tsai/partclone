@@ -70,6 +70,7 @@ struct cmd_opt
     int clone;
     int restore;
     int dd;
+    int domain;
     int chkimg;
     int info;
     int debug;
@@ -88,6 +89,7 @@ struct cmd_opt
     int quiet;
     int restore_row_file;
     unsigned long fresh;
+    unsigned long long offset_domain;
 };
 typedef struct cmd_opt cmd_opt;
 extern void usage(void);

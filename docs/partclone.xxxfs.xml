@@ -313,6 +313,19 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         </listitem>
       </varlistentry>
       <varlistentry>
+      <term><option>-D</option></term> 
+      <term><option>--domain</option></term>
+      <listitem>
+      <para>Create GNU Ddrescue domain log file from source device</para>
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><option>--offset_domain=X</option></term>
+      <listitem>
+      <para>Add X (in bytes) to all positions reported in the domain log file</para>
+      </listitem>
+      </varlistentry>
+       <varlistentry>
         <term><option>--restore_row_file</option></term>
         <listitem>
           <para>Creating special row file for loop device.</para>

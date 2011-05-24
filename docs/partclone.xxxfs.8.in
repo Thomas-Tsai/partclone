@@ -35,6 +35,14 @@ Restore from the special image format
 Local device to device copy mode
 .TP
 .B
+-D,  --domain
+Create GNU Ddrescue domain log file from source device
+.TP
+.B
+     --offset_domain=X
+Add X (in bytes) to all positions reported in the domain log file
+.TP
+.B
 -R,  --rescue           
 Continue after disk read errors
 .TP
