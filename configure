@@ -610,6 +610,8 @@ ENABLE_VMFS_FALSE
 ENABLE_VMFS_TRUE
 ENABLE_UFS_FALSE
 ENABLE_UFS_TRUE
+ENABLE_NTFS_3G_FALSE
+ENABLE_NTFS_3G_TRUE
 ENABLE_NTFS_FALSE
 ENABLE_NTFS_TRUE
 ENABLE_FAT_FALSE
@@ -754,6 +756,7 @@ enable_reiser4
 enable_hfsp
 enable_fat
 enable_ntfs
+enable_ntfs_3g
 enable_ufs
 enable_vmfs
 enable_jfs
@@ -1408,6 +1411,7 @@ Optional Features:
   --enable-hfsp           enable HFS plus file system
   --enable-fat            enable FAT file system
   --enable-ntfs           enable NTFS file system
+  --enable-ntfs_3g        enable NTFS file system
   --enable-ufs            enable UFS(1/2) file system
   --enable-vmfs           enable vmfs file system
   --enable-jfs            enable jfs file system
@@ -6378,6 +6382,7 @@ enable_reiser4="yes"
 enable_hfsp="yes"
 enable_fat="yes"
 enable_ntfs="yes"
+enable_ntfs_3g="yes"
 enable_ufs="yes"
 enable_vmfs="yes"
 enable_jfs="yes"
@@ -7493,7 +7498,6 @@ supported_fs=$supported_fs" fat"
 fat_version="build-in"
 fi
 #end of check fat
-
 ##NTFS##
 # Check whether --enable-ntfs was given.
 if test "${enable_ntfs+set}" = set; then :
@@ -7605,6 +7609,76 @@ $as_echo "$ntfs_version" >&6; }
 fi
 
 supported_fs=$supported_fs" ntfs"
+fi
+#end of check ntfs
+
+
+##NTFS-3g##
+# Check whether --enable-ntfs_3g was given.
+if test "${enable_ntfs_3g+set}" = set; then :
+  enableval=$enable_ntfs_3g; enable_ntfs_3g=yes
+else
+  enable_ntfs_3g=no
+
+fi
+
+ if test "$enable_ntfs_3g" = yes; then
+  ENABLE_NTFS_3G_TRUE=
+  ENABLE_NTFS_3G_FALSE='#'
+else
+  ENABLE_NTFS_3G_TRUE='#'
+  ENABLE_NTFS_3G_FALSE=
+fi
+
+
+if test "$enable_ntfs_3g" = "yes"; then
+#check library of some filesystems
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  for NTFS-3g Library and Header files ... ..." >&5
+$as_echo "$as_me: checking  for NTFS-3g Library and Header files ... ..." >&6;}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ntfs_mount in -lntfs-3g" >&5
+$as_echo_n "checking for ntfs_mount in -lntfs-3g... " >&6; }
+if test "${ac_cv_lib_ntfs_3g_ntfs_mount+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lntfs-3g  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char ntfs_mount ();
+int
+main ()
+{
+return ntfs_mount ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_ntfs_3g_ntfs_mount=yes
+else
+  ac_cv_lib_ntfs_3g_ntfs_mount=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ntfs_3g_ntfs_mount" >&5
+$as_echo "$ac_cv_lib_ntfs_3g_ntfs_mount" >&6; }
+if test "x$ac_cv_lib_ntfs_3g_ntfs_mount" = x""yes; then :
+  true
+else
+  as_fn_error $? "*** ntfs depend library (libntfs-3g) not found" "$LINENO" 5
+fi
+
+
+supported_fs=$supported_fs" ntfs_3g"
 fi
 #end of check ntfs
 
@@ -8104,6 +8178,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_NTFS_TRUE}" && test -z "${ENABLE_NTFS_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_NTFS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_NTFS_3G_TRUE}" && test -z "${ENABLE_NTFS_3G_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_NTFS_3G\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_UFS_TRUE}" && test -z "${ENABLE_UFS_FALSE}"; then
@@ -9617,6 +9695,7 @@ echo "reiserfs...... $enable_reiserfs, $reiserfs_version"
 echo "reiser4....... $enable_reiser4, $reiser4_version"
 echo "xfs........... $enable_xfs, $xfs_version"
 echo "ntfs.......... $enable_ntfs, $ntfs_version"
+echo "ntfs_3g....... $enable_ntfs_3g, $ntfs_version"
 echo "fat12/16/32... $enable_fat, $fat_version"
 echo "hfs plus...... $enable_hfsp, $hfs_plus_version"
 echo "ufs .......... $enable_ufs, $ufs_version"

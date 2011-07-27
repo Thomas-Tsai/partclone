@@ -45,7 +45,7 @@ for fs in $test_fs; do
 
     echo "clone $row to $img"
     [ -f $img ] && rm $img
-    partclone.$fs -d -c -s $row -O $img -F -L $logfile
+    partclone.$fs -d -N -c -s $row -O $img -F -L $logfile
     check_return_code
 
     echo "do image checking"

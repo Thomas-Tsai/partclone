@@ -29,6 +29,7 @@ enable_reiser4="yes"
 enable_hfsp="yes"
 enable_fat="yes"
 enable_ntfs="yes"
+enable_ntfs_3g="yes"
 enable_ufs="yes"
 enable_vmfs="yes"
 enable_jfs="yes"
@@ -240,7 +241,6 @@ supported_fs=$supported_fs" fat"
 fat_version="build-in"
 fi
 #end of check fat
-
 ##NTFS##
 AC_ARG_ENABLE(ntfs,
 	AS_HELP_STRING(--enable-ntfs,enable NTFS file system), 
@@ -285,6 +285,26 @@ AC_MSG_RESULT($ntfs_version)
 fi
 
 supported_fs=$supported_fs" ntfs"
+fi
+#end of check ntfs
+
+
+##NTFS-3g##
+AC_ARG_ENABLE(ntfs_3g,
+	AS_HELP_STRING(--enable-ntfs_3g,enable NTFS file system), 
+	enable_ntfs_3g=yes,
+	enable_ntfs_3g=no
+)
+AM_CONDITIONAL(ENABLE_NTFS_3G, test "$enable_ntfs_3g" = yes)
+
+if test "$enable_ntfs_3g" = "yes"; then
+#check library of some filesystems
+dnl Check for NTFS-3g
+AC_CHECKING([ for NTFS-3g Library and Header files ... ])
+AC_CHECK_LIB([ntfs-3g], [ntfs_mount], true,
+   AC_MSG_ERROR([*** ntfs depend library (libntfs-3g) not found]))
+
+supported_fs=$supported_fs" ntfs_3g"
 fi
 #end of check ntfs
 
@@ -435,6 +455,7 @@ echo "reiserfs...... $enable_reiserfs, $reiserfs_version"
 echo "reiser4....... $enable_reiser4, $reiser4_version"
 echo "xfs........... $enable_xfs, $xfs_version"
 echo "ntfs.......... $enable_ntfs, $ntfs_version"
+echo "ntfs_3g....... $enable_ntfs_3g, $ntfs_version"
 echo "fat12/16/32... $enable_fat, $fat_version"
 echo "hfs plus...... $enable_hfsp, $hfs_plus_version"
 echo "ufs .......... $enable_ufs, $ufs_version"

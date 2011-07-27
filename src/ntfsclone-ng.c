@@ -28,9 +28,15 @@
 #define NTFS_DO_NOT_CHECK_ENDIANS
 #define NTFS_MAX_CLUSTER_SIZE   65536
 
+#ifdef NTFS3G
+#include <ntfs-3g/device.h>
+#include <ntfs-3g/volume.h>
+#include <ntfs-3g/bitmap.h>
+#else
 #include <ntfs/device.h>
 #include <ntfs/volume.h>
 #include <ntfs/bitmap.h>
+#endif
 
 #include "partclone.h"
 #include "ntfsclone-ng.h"
@@ -72,13 +78,14 @@ static u8 *ntfs_init_lut256(void)
         int i;
         u8 *lut;
 
-        lut = ntfs_malloc(256);
+        lut = (u8 *)ntfs_malloc(256);
         if (lut)
                 for(i = 0; i < 256; i++)
                         *(lut + i) = 8 - BITCOUNT(i);
         return lut;
 }
 
+#ifndef NTFS3G
 static s64 ntfs_attr_get_free_bits(ntfs_attr *na)
 {
         u8 *buf, *lut;
@@ -123,7 +130,7 @@ out:
 
 /* End of ntfs-3g routines code copy */
 /*********************************************************/
-
+#endif
 
 /// open device
 static void fs_open(char* device){
@@ -162,6 +169,15 @@ static void fs_open(char* device){
         }
 
         // Initialize free clusters metric
+#ifdef NTFS3G
+        ntfs->free_clusters = ntfs_attr_get_free_bits(ntfs->lcnbmp_na);
+
+        if ( ntfs->free_clusters < 0 || ntfs->free_clusters >= ntfs->nr_clusters) {
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: Bad number of free (%lld) or total (%lld) clusters!\n", __FILE__,
+                ntfs->free_clusters, ntfs->nr_clusters); 
+        }
+
+#else
         ntfs->nr_free_clusters = ntfs_attr_get_free_bits(ntfs->lcnbmp_na);
 
         if ( ntfs->nr_free_clusters < 0 || ntfs->nr_free_clusters >= ntfs->nr_clusters) {
@@ -169,6 +185,7 @@ static void fs_open(char* device){
                 ntfs->nr_free_clusters, ntfs->nr_clusters); 
         }
 
+#endif
         device_size = ntfs_device_size_get(ntfs->dev, 1);
         volume_size = ntfs->nr_clusters * ntfs->cluster_size;
 
@@ -283,12 +300,20 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     strncpy(image_hdr->fs, ntfs_MAGIC, FS_MAGIC_SIZE);
     image_hdr->block_size  = (int)ntfs->cluster_size;
     image_hdr->totalblock  = (unsigned long long)ntfs->nr_clusters;
+#ifdef NTFS3G
+    image_hdr->usedblocks  = (unsigned long long)(ntfs->nr_clusters - ntfs->free_clusters);
+#else
     image_hdr->usedblocks  = (unsigned long long)(ntfs->nr_clusters - ntfs->nr_free_clusters);
+#endif
     image_hdr->device_size = (unsigned long long)ntfs_device_size_get(ntfs->dev, 1);
     fs_close();
 
     log_mesg(3, 0, 0, fs_opt.debug, "%s: hdr - usedblocks:\t: %llu\n", __FILE__, image_hdr->usedblocks);
     log_mesg(3, 0, 0, fs_opt.debug, "%s: hdr - totalblocks:\t: %llu\n", __FILE__, image_hdr->totalblock);
+#ifdef NTFS3G
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: ntfs - nr_free:\t: %lld\n", __FILE__, ntfs->free_clusters);
+#else
     log_mesg(3, 0, 0, fs_opt.debug, "%s: ntfs - nr_free:\t: %lld\n", __FILE__, ntfs->nr_free_clusters);
+#endif
 }
 

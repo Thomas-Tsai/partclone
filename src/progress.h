@@ -12,7 +12,7 @@
  */
 
 #include <stdio.h>
-#include <time.h>
+//#include <time.h>
 
 // progress display mode
 #define TEXT 0
