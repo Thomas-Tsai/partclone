@@ -29,7 +29,6 @@ enable_reiser4="yes"
 enable_hfsp="yes"
 enable_fat="yes"
 enable_ntfs="yes"
-enable_ntfs_3g="yes"
 enable_ufs="yes"
 enable_vmfs="yes"
 enable_jfs="yes"
@@ -222,7 +221,7 @@ AC_ARG_ENABLE(hfsp,
 )
 AM_CONDITIONAL(ENABLE_HFSP, test "$enable_hfsp" = yes)
 
-if test "$enable_hfsp" = yes; then
+if test "$enable_hfsp" = "yes"; then
 supported_fs=$supported_fs" hfs-plus"
 hfs_plus_version="build-in"
 fi
@@ -236,77 +235,75 @@ AC_ARG_ENABLE(fat,
 )
 AM_CONDITIONAL(ENABLE_FAT, test "$enable_fat" = yes)
 
-if test "$enable_fat" = yes; then
+if test "$enable_fat" = "yes"; then
 supported_fs=$supported_fs" fat"
 fat_version="build-in"
 fi
 #end of check fat
+
 ##NTFS##
 AC_ARG_ENABLE(ntfs,
 	AS_HELP_STRING(--enable-ntfs,enable NTFS file system), 
 	enable_ntfs=yes,
 	enable_ntfs=no
 )
-AM_CONDITIONAL(ENABLE_NTFS, test "$enable_ntfs" = yes)
 
 if test "$enable_ntfs" = "yes"; then
-#check library of some filesystems
+    ntfs_3g_h=0
+    ntfs_3g_l=0
+    ntfsprogs_h=0
+    ntfsprogs_l=0
+    #check library of some filesystems
+    dnl Check for NTFS-3g
+    AC_CHECKING([ for NTFS-3g Library and Header files ... ])
+    AC_CHECK_HEADERS([ntfs-3g/misc.h], ntfs_3g_h=1,
+    AC_MSG_WARN([*** NTFS(libntfs-3g-dev) header not found]))
+    AC_CHECK_LIB([ntfs-3g], [ntfs_mount], ntfs_3g_l=1,
+    AC_MSG_WARN([*** ntfs depend library (libntfs-3g) not found]))
 
-dnl Check for NTFS 
-AC_CHECKING([ for NTFS Library and Header files ... ])
-AC_CHECK_HEADERS([ntfs/version.h], ,
-   AC_MSG_ERROR([*** NTFS(ntfsprog) header not found]))
-AC_CHECK_LIB([ntfs], [ntfs_mount], true,
-   AC_MSG_ERROR([*** ntfs depend library (libntfs) not found]))
-AC_MSG_CHECKING(version of libntfs)
-ntfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lntfs -DNTFS`
-ntfs_version=`$srcdir/get_lib_version ntfs | cut -d':' -f1`
-ntfs_version_major=`$srcdir/get_lib_version ntfs | cut -d':' -f2`
-ntfs_version_minor=`$srcdir/get_lib_version ntfs | cut -d':' -f3`
-if test -z "$ntfs_version"; then
-    ntfs_version="?"
-    ntfs_version_major="?"
-    ntfs_version_minor="?"
-    ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; bad"
-    AC_MSG_RESULT($ntfs_version)
-    AC_MSG_ERROR(Please check your libntfs!)
+    dnl Check for NTFSPROGS
+    AC_CHECKING([ for NTFS Library and Header files ... ])
+    AC_CHECK_HEADERS([ntfs/version.h], ntfsprogs_h=1,
+    AC_MSG_WARN([*** NTFS(ntfsprogs) header not found]))
+    AC_CHECK_LIB([ntfs], [ntfs_mount], ntfsprogs_l=1,
+    AC_MSG_WARN([*** ntfsprogs library (libntfs) not found]))
 fi
 
-if test $ntfs_version -lt 9 ; then
-ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; bad"
-AC_MSG_RESULT($ntfs_version)
-AC_MSG_ERROR(Please upgrade your libntfs to 9:0:0 or newer version!)
-elif test $ntfs_version -eq 9 ; then
-ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; suggest you upgrade the library!"
-AC_MSG_RESULT($ntfs_version)
-else
-ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; ok!"
-AC_MSG_RESULT($ntfs_version)
-fi
+AM_CONDITIONAL(ENABLE_NTFS_3G, test "$ntfs_3g_l" = 1)
+AM_CONDITIONAL(ENABLE_NTFS, test "$ntfsprogs_l" = 1)
+if test "$ntfs_3g_h" = 1 -a "$ntfs_3g_l" = 1; then
+    supported_fs=$supported_fs" ntfs"
+    ntfs_version="ntfs-3g"
+elif test "$ntfsprogs_h" = 1 -a "$ntfsprogs_l" = 1; then
+    AC_MSG_CHECKING(version of libntfs)
+    ntfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lntfs -DNTFS`
+    ntfs_version=`$srcdir/get_lib_version ntfs | cut -d':' -f1`
+    ntfs_version_major=`$srcdir/get_lib_version ntfs | cut -d':' -f2`
+    ntfs_version_minor=`$srcdir/get_lib_version ntfs | cut -d':' -f3`
+    if test -z "$ntfs_version"; then
+        ntfs_version="?"
+        ntfs_version_major="?"
+        ntfs_version_minor="?"
+        ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; bad"
+        AC_MSG_RESULT($ntfs_version)
+        AC_MSG_ERROR(Please check your libntfs!)
+    fi
 
-supported_fs=$supported_fs" ntfs"
-fi
-#end of check ntfs
-
-
-##NTFS-3g##
-AC_ARG_ENABLE(ntfs_3g,
-	AS_HELP_STRING(--enable-ntfs_3g,enable NTFS file system), 
-	enable_ntfs_3g=yes,
-	enable_ntfs_3g=no
-)
-AM_CONDITIONAL(ENABLE_NTFS_3G, test "$enable_ntfs_3g" = yes)
-
-if test "$enable_ntfs_3g" = "yes"; then
-#check library of some filesystems
-dnl Check for NTFS-3g
-AC_CHECKING([ for NTFS-3g Library and Header files ... ])
-AC_CHECK_LIB([ntfs-3g], [ntfs_mount], true,
-   AC_MSG_ERROR([*** ntfs depend library (libntfs-3g) not found]))
-
-supported_fs=$supported_fs" ntfs_3g"
+    if test "$ntfs_version" -lt 9 ; then
+        ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; bad"
+        AC_MSG_RESULT($ntfs_version)
+        AC_MSG_ERROR(Please upgrade your libntfs to 9:0:0 or newer version!)
+    elif test "$ntfs_version" -eq 9 ; then
+        ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; suggest you upgrade the library!"
+        AC_MSG_RESULT($ntfs_version)
+    else
+        ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; ok!"
+        AC_MSG_RESULT($ntfs_version)
+        supported_fs=$supported_fs" ntfs"
+    fi
 fi
 #end of check ntfs
+
 
 ##UFS##
 AC_ARG_ENABLE(ufs,
@@ -455,7 +452,6 @@ echo "reiserfs...... $enable_reiserfs, $reiserfs_version"
 echo "reiser4....... $enable_reiser4, $reiser4_version"
 echo "xfs........... $enable_xfs, $xfs_version"
 echo "ntfs.......... $enable_ntfs, $ntfs_version"
-echo "ntfs_3g....... $enable_ntfs_3g, $ntfs_version"
 echo "fat12/16/32... $enable_fat, $fat_version"
 echo "hfs plus...... $enable_hfsp, $hfs_plus_version"
 echo "ufs .......... $enable_ufs, $ufs_version"

@@ -1,3 +1,37 @@
+2011-07-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add ntfs-3g library support for ntfs accept patch from Arkadiusz Patyk because In PLD Linux now we switch from ntfsprog to ntfs-3g. update patch and try to keep ntfsprogs.
+
+2011-05-24  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.4 with deb file
+
+	    * accept patch from Ian Abbott.     * Ian Abbott realized it would be quicker if it only copied the in-use     areas of the partition.  ddrescue has a '--domain-log=FILE' option which     can be used to restrict it to certain areas, so the problem is to create     such a domain log file to cover the areas used by the filesystem on the     partition.     ... check mail list to get more details...
+
+2011-05-14  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch '0.2.8-update' of partclone.nchc.org.tw:/home/partclone into 0.2.8-update
+
+	add docbook style manpages : partclone.xxx.xml
+
+2011-04-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update test script
+
+	add chkimg test
+
+	add test
+
+2011-04-22  Thomas Tsai  <thomas@nchc.org.tw>
+
+	lost xxxfs.8
+
+	add template man page for all file system
+
+	update marco so
+
+	release 0.2.23 for better manpages
+
 2011-04-13  Thomas Tsai  <thomas@nchc.org.tw>
 
 	update gitignore

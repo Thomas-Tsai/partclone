@@ -37,6 +37,9 @@
 /* Define to 1 if you have the <ncurses.h> header file. */
 #undef HAVE_NCURSES_H
 
+/* Define to 1 if you have the <ntfs-3g/misc.h> header file. */
+#undef HAVE_NTFS_3G_MISC_H
+
 /* Define to 1 if you have the <ntfs/version.h> header file. */
 #undef HAVE_NTFS_VERSION_H
 

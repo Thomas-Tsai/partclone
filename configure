@@ -610,10 +610,10 @@ ENABLE_VMFS_FALSE
 ENABLE_VMFS_TRUE
 ENABLE_UFS_FALSE
 ENABLE_UFS_TRUE
-ENABLE_NTFS_3G_FALSE
-ENABLE_NTFS_3G_TRUE
 ENABLE_NTFS_FALSE
 ENABLE_NTFS_TRUE
+ENABLE_NTFS_3G_FALSE
+ENABLE_NTFS_3G_TRUE
 ENABLE_FAT_FALSE
 ENABLE_FAT_TRUE
 ENABLE_HFSP_FALSE
@@ -756,7 +756,6 @@ enable_reiser4
 enable_hfsp
 enable_fat
 enable_ntfs
-enable_ntfs_3g
 enable_ufs
 enable_vmfs
 enable_jfs
@@ -1411,7 +1410,6 @@ Optional Features:
   --enable-hfsp           enable HFS plus file system
   --enable-fat            enable FAT file system
   --enable-ntfs           enable NTFS file system
-  --enable-ntfs_3g        enable NTFS file system
   --enable-ufs            enable UFS(1/2) file system
   --enable-vmfs           enable vmfs file system
   --enable-jfs            enable jfs file system
@@ -6382,7 +6380,6 @@ enable_reiser4="yes"
 enable_hfsp="yes"
 enable_fat="yes"
 enable_ntfs="yes"
-enable_ntfs_3g="yes"
 enable_ufs="yes"
 enable_vmfs="yes"
 enable_jfs="yes"
@@ -7469,7 +7466,7 @@ else
 fi
 
 
-if test "$enable_hfsp" = yes; then
+if test "$enable_hfsp" = "yes"; then
 supported_fs=$supported_fs" hfs-plus"
 hfs_plus_version="build-in"
 fi
@@ -7493,11 +7490,12 @@ else
 fi
 
 
-if test "$enable_fat" = yes; then
+if test "$enable_fat" = "yes"; then
 supported_fs=$supported_fs" fat"
 fat_version="build-in"
 fi
 #end of check fat
+
 ##NTFS##
 # Check whether --enable-ntfs was given.
 if test "${enable_ntfs+set}" = set; then :
@@ -7507,135 +7505,31 @@ else
 
 fi
 
- if test "$enable_ntfs" = yes; then
-  ENABLE_NTFS_TRUE=
-  ENABLE_NTFS_FALSE='#'
-else
-  ENABLE_NTFS_TRUE='#'
-  ENABLE_NTFS_FALSE=
-fi
-
 
 if test "$enable_ntfs" = "yes"; then
-#check library of some filesystems
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  for NTFS Library and Header files ... ..." >&5
-$as_echo "$as_me: checking  for NTFS Library and Header files ... ..." >&6;}
-for ac_header in ntfs/version.h
+    ntfs_3g_h=0
+    ntfs_3g_l=0
+    ntfsprogs_h=0
+    ntfsprogs_l=0
+    #check library of some filesystems
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  for NTFS-3g Library and Header files ... ..." >&5
+$as_echo "$as_me: checking  for NTFS-3g Library and Header files ... ..." >&6;}
+    for ac_header in ntfs-3g/misc.h
 do :
-  ac_fn_c_check_header_mongrel "$LINENO" "ntfs/version.h" "ac_cv_header_ntfs_version_h" "$ac_includes_default"
-if test "x$ac_cv_header_ntfs_version_h" = x""yes; then :
+  ac_fn_c_check_header_mongrel "$LINENO" "ntfs-3g/misc.h" "ac_cv_header_ntfs_3g_misc_h" "$ac_includes_default"
+if test "x$ac_cv_header_ntfs_3g_misc_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_NTFS_VERSION_H 1
+#define HAVE_NTFS_3G_MISC_H 1
 _ACEOF
-
+ ntfs_3g_h=1
 else
-  as_fn_error $? "*** NTFS(ntfsprog) header not found" "$LINENO" 5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: *** NTFS(libntfs-3g-dev) header not found" >&5
+$as_echo "$as_me: WARNING: *** NTFS(libntfs-3g-dev) header not found" >&2;}
 fi
 
 done
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ntfs_mount in -lntfs" >&5
-$as_echo_n "checking for ntfs_mount in -lntfs... " >&6; }
-if test "${ac_cv_lib_ntfs_ntfs_mount+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lntfs  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char ntfs_mount ();
-int
-main ()
-{
-return ntfs_mount ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ntfs_ntfs_mount=yes
-else
-  ac_cv_lib_ntfs_ntfs_mount=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ntfs_ntfs_mount" >&5
-$as_echo "$ac_cv_lib_ntfs_ntfs_mount" >&6; }
-if test "x$ac_cv_lib_ntfs_ntfs_mount" = x""yes; then :
-  true
-else
-  as_fn_error $? "*** ntfs depend library (libntfs) not found" "$LINENO" 5
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking version of libntfs" >&5
-$as_echo_n "checking version of libntfs... " >&6; }
-ntfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lntfs -DNTFS`
-ntfs_version=`$srcdir/get_lib_version ntfs | cut -d':' -f1`
-ntfs_version_major=`$srcdir/get_lib_version ntfs | cut -d':' -f2`
-ntfs_version_minor=`$srcdir/get_lib_version ntfs | cut -d':' -f3`
-if test -z "$ntfs_version"; then
-    ntfs_version="?"
-    ntfs_version_major="?"
-    ntfs_version_minor="?"
-    ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; bad"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ntfs_version" >&5
-$as_echo "$ntfs_version" >&6; }
-    as_fn_error $? "Please check your libntfs!" "$LINENO" 5
-fi
-
-if test $ntfs_version -lt 9 ; then
-ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; bad"
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ntfs_version" >&5
-$as_echo "$ntfs_version" >&6; }
-as_fn_error $? "Please upgrade your libntfs to 9:0:0 or newer version!" "$LINENO" 5
-elif test $ntfs_version -eq 9 ; then
-ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; suggest you upgrade the library!"
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ntfs_version" >&5
-$as_echo "$ntfs_version" >&6; }
-else
-ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; ok!"
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ntfs_version" >&5
-$as_echo "$ntfs_version" >&6; }
-fi
-
-supported_fs=$supported_fs" ntfs"
-fi
-#end of check ntfs
-
-
-##NTFS-3g##
-# Check whether --enable-ntfs_3g was given.
-if test "${enable_ntfs_3g+set}" = set; then :
-  enableval=$enable_ntfs_3g; enable_ntfs_3g=yes
-else
-  enable_ntfs_3g=no
-
-fi
-
- if test "$enable_ntfs_3g" = yes; then
-  ENABLE_NTFS_3G_TRUE=
-  ENABLE_NTFS_3G_FALSE='#'
-else
-  ENABLE_NTFS_3G_TRUE='#'
-  ENABLE_NTFS_3G_FALSE=
-fi
-
-
-if test "$enable_ntfs_3g" = "yes"; then
-#check library of some filesystems
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  for NTFS-3g Library and Header files ... ..." >&5
-$as_echo "$as_me: checking  for NTFS-3g Library and Header files ... ..." >&6;}
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ntfs_mount in -lntfs-3g" >&5
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ntfs_mount in -lntfs-3g" >&5
 $as_echo_n "checking for ntfs_mount in -lntfs-3g... " >&6; }
 if test "${ac_cv_lib_ntfs_3g_ntfs_mount+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -7672,15 +7566,129 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ntfs_3g_ntfs_mount" >&5
 $as_echo "$ac_cv_lib_ntfs_3g_ntfs_mount" >&6; }
 if test "x$ac_cv_lib_ntfs_3g_ntfs_mount" = x""yes; then :
-  true
+  ntfs_3g_l=1
 else
-  as_fn_error $? "*** ntfs depend library (libntfs-3g) not found" "$LINENO" 5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: *** ntfs depend library (libntfs-3g) not found" >&5
+$as_echo "$as_me: WARNING: *** ntfs depend library (libntfs-3g) not found" >&2;}
 fi
 
 
-supported_fs=$supported_fs" ntfs_3g"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  for NTFS Library and Header files ... ..." >&5
+$as_echo "$as_me: checking  for NTFS Library and Header files ... ..." >&6;}
+    for ac_header in ntfs/version.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "ntfs/version.h" "ac_cv_header_ntfs_version_h" "$ac_includes_default"
+if test "x$ac_cv_header_ntfs_version_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_NTFS_VERSION_H 1
+_ACEOF
+ ntfsprogs_h=1
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: *** NTFS(ntfsprogs) header not found" >&5
+$as_echo "$as_me: WARNING: *** NTFS(ntfsprogs) header not found" >&2;}
+fi
+
+done
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ntfs_mount in -lntfs" >&5
+$as_echo_n "checking for ntfs_mount in -lntfs... " >&6; }
+if test "${ac_cv_lib_ntfs_ntfs_mount+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lntfs  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char ntfs_mount ();
+int
+main ()
+{
+return ntfs_mount ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_ntfs_ntfs_mount=yes
+else
+  ac_cv_lib_ntfs_ntfs_mount=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ntfs_ntfs_mount" >&5
+$as_echo "$ac_cv_lib_ntfs_ntfs_mount" >&6; }
+if test "x$ac_cv_lib_ntfs_ntfs_mount" = x""yes; then :
+  ntfsprogs_l=1
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: *** ntfsprogs library (libntfs) not found" >&5
+$as_echo "$as_me: WARNING: *** ntfsprogs library (libntfs) not found" >&2;}
+fi
+
+fi
+
+ if test "$ntfs_3g_l" = 1; then
+  ENABLE_NTFS_3G_TRUE=
+  ENABLE_NTFS_3G_FALSE='#'
+else
+  ENABLE_NTFS_3G_TRUE='#'
+  ENABLE_NTFS_3G_FALSE=
+fi
+
+ if test "$ntfsprogs_l" = 1; then
+  ENABLE_NTFS_TRUE=
+  ENABLE_NTFS_FALSE='#'
+else
+  ENABLE_NTFS_TRUE='#'
+  ENABLE_NTFS_FALSE=
+fi
+
+if test "$ntfs_3g_h" = 1 -a "$ntfs_3g_l" = 1; then
+    supported_fs=$supported_fs" ntfs"
+    ntfs_version="ntfs-3g"
+elif test "$ntfsprogs_h" = 1 -a "$ntfsprogs_l" = 1; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking version of libntfs" >&5
+$as_echo_n "checking version of libntfs... " >&6; }
+    ntfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lntfs -DNTFS`
+    ntfs_version=`$srcdir/get_lib_version ntfs | cut -d':' -f1`
+    ntfs_version_major=`$srcdir/get_lib_version ntfs | cut -d':' -f2`
+    ntfs_version_minor=`$srcdir/get_lib_version ntfs | cut -d':' -f3`
+    if test -z "$ntfs_version"; then
+        ntfs_version="?"
+        ntfs_version_major="?"
+        ntfs_version_minor="?"
+        ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; bad"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ntfs_version" >&5
+$as_echo "$ntfs_version" >&6; }
+        as_fn_error $? "Please check your libntfs!" "$LINENO" 5
+    fi
+
+    if test "$ntfs_version" -lt 9 ; then
+        ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; bad"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ntfs_version" >&5
+$as_echo "$ntfs_version" >&6; }
+        as_fn_error $? "Please upgrade your libntfs to 9:0:0 or newer version!" "$LINENO" 5
+    elif test "$ntfs_version" -eq 9 ; then
+        ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; suggest you upgrade the library!"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ntfs_version" >&5
+$as_echo "$ntfs_version" >&6; }
+    else
+        ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; ok!"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ntfs_version" >&5
+$as_echo "$ntfs_version" >&6; }
+        supported_fs=$supported_fs" ntfs"
+    fi
 fi
 #end of check ntfs
+
 
 ##UFS##
 # Check whether --enable-ufs was given.
@@ -8176,12 +8184,12 @@ if test -z "${ENABLE_FAT_TRUE}" && test -z "${ENABLE_FAT_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_FAT\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
-if test -z "${ENABLE_NTFS_TRUE}" && test -z "${ENABLE_NTFS_FALSE}"; then
-  as_fn_error $? "conditional \"ENABLE_NTFS\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
 if test -z "${ENABLE_NTFS_3G_TRUE}" && test -z "${ENABLE_NTFS_3G_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_NTFS_3G\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_NTFS_TRUE}" && test -z "${ENABLE_NTFS_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_NTFS\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_UFS_TRUE}" && test -z "${ENABLE_UFS_FALSE}"; then
@@ -9695,7 +9703,6 @@ echo "reiserfs...... $enable_reiserfs, $reiserfs_version"
 echo "reiser4....... $enable_reiser4, $reiser4_version"
 echo "xfs........... $enable_xfs, $xfs_version"
 echo "ntfs.......... $enable_ntfs, $ntfs_version"
-echo "ntfs_3g....... $enable_ntfs_3g, $ntfs_version"
 echo "fat12/16/32... $enable_fat, $fat_version"
 echo "hfs plus...... $enable_hfsp, $hfs_plus_version"
 echo "ufs .......... $enable_ufs, $ufs_version"
