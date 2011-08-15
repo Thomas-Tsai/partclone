@@ -1,3 +1,11 @@
+2011-08-15  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update for e2fslibs 1.42~WIP-2011-07-02
+
+2011-08-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	compact ntfs and ntfs-3g
+
 2011-07-28  Thomas Tsai  <thomas@nchc.org.tw>
 
 	add ntfs-3g library support for ntfs accept patch from Arkadiusz Patyk because In PLD Linux now we switch from ntfsprog to ntfs-3g. update patch and try to keep ntfsprogs.

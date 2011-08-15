@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.2.24], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.2.25], [thomas@nchc.org.tw])
 #AC_CONFIG_AUX_DIR([build-aux])
 #AC CONFIG SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -72,11 +72,11 @@ fi
 if test $extfs_version -lt 1 ; then
     extfs_version="$extfs_version.$extfs_version_major.$extfs_version_minor; bad"
     AC_MSG_RESULT($extfs_version)
-    AC_MSG_ERROR(Please upgrade your libextfs to 1.41.3 or newer version!)
-elif test $extfs_version -ge 1 -a $extfs_version_major -lt 41  ; then
+    AC_MSG_ERROR(Please upgrade your libextfs to 1.42 or newer version!)
+elif test $extfs_version -ge 1 -a $extfs_version_major -lt 42  ; then
     extfs_version="$extfs_version.$extfs_version_major.$extfs_version_minor; suggest you upgrade the library!"
     AC_MSG_RESULT($extfs_version)
-    AC_MSG_ERROR(Please upgrade your libextfs to 1.41.3 or newer version!)
+    AC_MSG_ERROR(Please upgrade your libextfs to 1.42 or newer version!)
 else
     extfs_version="$extfs_version.$extfs_version_major.$extfs_version_minor; ok!"
     AC_MSG_RESULT($extfs_version)
