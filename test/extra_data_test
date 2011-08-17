@@ -1,0 +1,199 @@
+#!/bin/bash
+
+## file system
+normal_fs="ext2 ext3 ext4 vfat"
+featured_fs="$normal_fs jfs xfs reiserfs hfsplus"
+extra_fs="$featured_fs ufs vmfs reiser4 ntfs btrfs"
+
+mkfs_option_for_reiserfs='-f'
+mkfs_option_for_ntfs='-f -F'
+
+test_fs=$featured_fs
+[ -n $manual_fs ] || test_fs=$manual_fs
+
+USAGE() {
+    cat << EOF
+	recognized flags are:
+	--test_data_path
+	--row_file_path
+	--partition_size
+	--image_path
+	--file-system
+	--logfile_path
+	--keep_row_files
+EOF
+
+    
+}
+
+check_option(){
+    while [ $# -gt 0 ]; do
+	case "$1" in
+	    -p|--test_data_path)
+		shift
+		if [ -z "$(echo $1 |grep ^-.)" ]; then
+		    # skip the -xx option, in case 
+		    test_data_path="$1"
+		    shift
+		fi
+		;;
+	    -s|--partition_size)
+		shift
+		if [ -z "$(echo $1 | grep ^-.)" ]; then
+		    partition_size="$1"
+		    shift
+		fi
+		;;
+	    -r|--row_file_path)
+		shift
+		if [ -z "$(echo $1 |grep ^-.)" ]; then
+		    row_file_path="$1"
+		    shift
+		fi
+		;;
+	    -k|--keep_row_files)
+		shift
+		if [ -z "$(echo $1 |grep ^-.)" ]; then
+		    keep_row=1
+		    shift
+		fi
+		;;
+	    -i|--image_path)
+		shift
+		if [ -z "$(echo $1 |grep ^-.)" ]; then
+		    image_path="$1"
+		    shift
+		fi
+		;;
+	    -l|--logfile_path)
+		shift
+		if [ -z "$(echo $1 |grep ^-.)" ]; then
+		    logfile_path="$1"
+		    shift
+		fi
+		;;
+	    -f|--file-system)
+		shift
+		if [ -z "$(echo $1 |grep ^-.)" ]; then
+		    fs="$1"
+		    shift
+		fi
+		;;
+	    -*)     
+		echo "${0}: ${1}: invalid option" >&2
+		USAGE >& 2
+		exit 2 
+		;;
+	    *)      
+		break 
+		;;
+	esac
+    done
+}
+
+prefix_name(){
+    return `date +%F-%H-%M`
+}
+
+prepare_data(){
+    fs=$1
+    target_file=$row_file_path/source_row_device.$fs
+    target_mpt=$row_file_path/mpt.$fs
+    target_md5=$row_file_path/md5sum.$fs
+
+    $target_device=`losetup -f`
+    echo "generate row file($target_file) as loop device($target_device) for $fs"
+    dd if=/dev/zero of=$target_file bs=1MB count=$partition_size
+    losetup $target_device  $target_file
+
+    echo "format $target_device as $fs row partition"
+    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $target_device
+
+    mkdir -p $target_mpt
+    mount $target_device $target_map
+    rsync --avrl --delete $sourth_path $target_mpt
+    echo "create md5 for $fs file"
+    find $target_mpt -exec md5sum '{}'\; > $target_md5
+    umount $target_mpt
+    losetup -d $target_device
+}
+
+check_source(){
+    fs=$1
+    target_file=$row_file_path/source_row_device.$fs
+    [ -f $target_file ] || exit
+    $target_device=`losetup -f`
+    losetup $target_device  $target_file
+    return $target_device
+}
+
+check_image(){
+    fs=$1
+    img=$image_path/$fs-`prefix_name`.img
+    [ -f $img ] && rm $img
+    return $img
+}
+
+check_target(){
+    fs=$1
+    img=$row_file_path/$fs-`prefix_name`.restore.row
+    [ -f $img ] && rm $img
+    return $img
+}
+
+restore_data_check() {
+ 
+    fs=$1
+    target_md5=$row_file_path/md5sum.$fs
+    mkdir -p $target_mpt
+    mount -o loop $target_device $target_map
+    ret=md5sum -c $row_file_path/md5sum.$fs > $target_md5.log
+    umount $target_device
+
+    if [ -z "$ret" ]; then
+	echo "$fs test ok"
+	echo "clear tmp files $img $row $logfile $md5"
+	rm $img $row $logfile $md5
+    else
+	echo "$fs test fail"
+	echo "keep the files for bug report $img $row $logfile $md5"
+    fi
+   
+}
+
+check_return_code(){
+    if [ $? != 0 ]; then
+	echo "return code fail"
+	exit
+    fi
+}
+#main
+check_option $@
+
+for fs in $test_fs; do
+    [ -z $source_data_path ] && prepare_data $fs
+
+    source_device=check_source $fs
+    partclone_img=check_image $fs
+    target_device=check_target $fs
+    logfile=$logfile_path/fs-`prefix_name`.log
+    ncurses="-N"
+    debug="-d"
+
+    echo "clone $source_device to $partclone_img"
+    partclone.$fs $debug $ncurses -c -s $source_device -O $partclone_img -L $logfile
+    check_return_code
+
+    echo "do image checking"
+    partclone.chkimg -s $partclone_img -L $logfile
+    check_return_code
+
+    echo "restore $partclone_img to $targwt_device"
+    partclone.restore -s $partclone_img -o $target_device --restore_row_file -L $logfile
+    check_return_code
+
+    echo "md5 check"
+    restore_data_check $fs
+    losetup -d $source_device
+
+done
