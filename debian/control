@@ -18,3 +18,17 @@ Description: The utility to clone and restore a partition.
  .
  check the project website for more details
  http://partclone.org
+
+Package: partclone-dbg
+Section: debug
+Priority: extra
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: The utility to clone and restore a partition.
+ Partclone is a project like the well-known backup utility 
+ "Partition Image" a.k.a partimage. 
+ .
+ This package contains the debugging symbols.
+ .
+ check the project website for more details
+ http://partclone.org

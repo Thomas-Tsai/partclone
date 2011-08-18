@@ -102,5 +102,8 @@ binary-arch: build install
 	dh_md5sums
 	dh_builddeb
 
+override_dh_strip:
+	dh_strip --dbg-package=partclone-dbg
+
 binary: binary-indep binary-arch
 .PHONY: build clean binary-indep binary-arch binary install 
