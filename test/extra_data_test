@@ -6,6 +6,7 @@ test_data_path=""
 row_file_path=""
 logfile_path=""
 image_path=""
+test_data_md5="test_data.md5"
 keep_row=1
 partition_size=384
 
@@ -21,13 +22,6 @@ mkfs_option_for_jfs='-f'
 
 test_fs=$extra_fs
 
-if [ ! "$UID" = "0" ]; then
-    echo
-    echo "You need to run this script \"`basename $0`\" as root."
-    echo
-    exit 1
-fi
-
 USAGE() {
     cat << EOF
         $0 is DANGEROUS script to test partclone with root permission. This 
@@ -37,6 +31,7 @@ USAGE() {
 	recognized flags are:
 	-t, --test_data_path        file in this path will be copy to generated
 	                            loop device and prepare md5 file.
+	-m, --test_data_md5	    specify md5 file for test data set
 	-s, --partition_size        if -t option enabled, use dd to create row 
 	                            file with this MB size
 	-r, --row_file_path         path to collect all generated row files
@@ -58,8 +53,13 @@ abs_path(){
     dy_path=$1
     if [ -d $dy_path ]; then
 	echo `cd $1;pwd`
+    elif [ -f $dy_path ]; then
+	bf=`basename $dy_path`
+	dy_b_path=${dy_path%$bf}
+	new_path=$(abs_path $dy_b_path)
+	echo $new_path/$bf
     else
-	echo 2 "directory($dy_path) not exist"
+	echo "directory or file ($dy_path) not exist" >&2
 	exit 2
     fi
 }
@@ -72,6 +72,14 @@ check_option(){
 		if [ -z "$(echo $1 |grep ^-.)" ]; then
 		    # skip the -xx option, in case 
 		    test_data_path=$(abs_path $1)
+		    shift
+		fi
+		;;
+	    -m|--test_data_md5)
+		shift
+		if [ -z "$(echo $1 |grep ^-.)" ]; then
+		    # skip the -xx option, in case 
+		    test_data_md5=$(abs_path $1)
 		    shift
 		fi
 		;;
@@ -135,7 +143,7 @@ check_option(){
 generate_test_data_md5(){
 
     cur_path=`pwd`
-    target_md5=$row_file_path/test_data.md5
+    target_md5=$test_data_md5
     echo "create md5 file"
     cd $test_data_path
     find $test_data_path -type f -exec md5sum '{}' \; > $target_md5
@@ -144,7 +152,7 @@ generate_test_data_md5(){
     if [ -f $target_md5 ]; then
 	echo "done"
     else
-	echo "generate md5 file error"
+	echo "generate md5 file error" >&2
 	exit 2
     fi
 }
@@ -166,7 +174,9 @@ prepare_data(){
     mkdir -p $target_mpt
     mount $target_device $target_mpt
     rsync -avrl --delete $test_data_path $target_mpt
+    sync
     umount $target_mpt
+    sleep 2
     losetup -d $target_device
     echo "prepare data done"
 
@@ -180,7 +190,7 @@ check_source(){
 	losetup $target_device  $target_file
 	echo $target_device
     else
-	echo "can't find $target_file"
+	echo "can't find $target_file" >&2
 	exit 2
     fi
 }
@@ -202,12 +212,12 @@ check_target(){
 restore_data_check() {
  
     fs=$1
-    target_md5=$row_file_path/test_data.md5
+    target_md5=$test_data_md5
     target_mpt=$row_file_path/mpt.restore
     [ -f $target_md5 ] || exit 2
-    [ -d $target_mpt ] || exit 2
     cur_path=`pwd`
     mkdir -p $target_mpt
+    [ -d $target_mpt ] || exit 2
     mount -o loop $target_device $target_mpt
     cd $target_mpt
     ret=`md5sum --quiet -c $target_md5`
@@ -225,13 +235,21 @@ restore_data_check() {
 
 #main
 
-check_option $@
+check_option "$@"
+
+if [ ! "$UID" = "0" ]; then
+    echo
+    echo "You need to run this script \"`basename $0`\" as root." >&2
+    echo
+    exit 1
+fi
+
 
 [ -z "$manual_fs" ] || test_fs=$manual_fs
-[ -z "$source_data_path" ] || generate_test_data_md5
+[ -z "$test_data_path" ] || generate_test_data_md5
 
 for fs in $test_fs; do
-    if [ ! -z "$source_data_path" ]; then
+    if [ ! -z "$test_data_path" ]; then
 	echo "prepare test data for $fs"
 	prepare_data $fs
     fi
