@@ -1,3 +1,9 @@
+partclone (0.2.26) sid; urgency=low
+
+  * update test script
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 15 Aug 2011 10:45:06 +0800
+
 partclone (0.2.25) unstable; urgency=low
 
   * update for e2fslibs 1.42~WIP-2011-07-02

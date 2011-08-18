@@ -1,6 +1,28 @@
+2011-08-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update help description
+
+	update test script
+
+2011-08-17  Thomas Tsai  <thomas@nchc.org.tw>
+
+	script can do basic test for developer
+
+	initial extra test script
+
+2011-08-14  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'master' of ssh://partclone.nchc.org.tw/home/partclone
+
 2011-08-15  Thomas Tsai  <thomas@nchc.org.tw>
 
+	release version 0.2.25
+
 	update for e2fslibs 1.42~WIP-2011-07-02
+
+2011-08-14  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release version 0.2.25 update configure.ac for new e2fslibrary
 
 2011-08-01  Thomas Tsai  <thomas@nchc.org.tw>
 

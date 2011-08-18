@@ -21,7 +21,7 @@ manual_fs=$1
 
 test_fs=$featured_fs
 dd_count=$normal_size
-[ -n $manual_fs ] && test_fs=$manual_fs
+[ -n $manual_fs ] || test_fs=$manual_fs
 
 check_return_code(){
     if [ $? != 0 ]; then
