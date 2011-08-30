@@ -237,6 +237,7 @@ int main(int argc, char **argv){
         if(bitmap == NULL){
             log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
         }
+	memset(bitmap, 0, sizeof(char)*image_hdr.totalblock)
 
         log_mesg(2, 0, 0, debug, "initial main bitmap pointer %i\n", bitmap);
         log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
