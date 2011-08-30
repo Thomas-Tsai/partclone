@@ -69,7 +69,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     reiserfs_bitmap_t    *fs_bitmap;
     reiserfs_tree_t	 *tree;
     reiserfs_block_t	 *node;
-    blk_t		 blk;
+    unsigned long long	 blk = 0;
     unsigned long long 	 bused = 0, bfree = 0;
     int start = 0;
     int bit_size = 1;
@@ -83,7 +83,10 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     progress_bar   bprog;	/// progress_bar structure defined in progress.h
     progress_init(&bprog, start, fs->super->s_v1.sb_block_count, bit_size);
 
-    for(blk = 0 ; (int)blk < fs->super->s_v1.sb_block_count; blk++){
+    for( blk = 0; blk < (unsigned long long)fs->super->s_v1.sb_block_count; blk++ ){
+	
+	log_mesg(3, 0, 0, fs_opt.debug, "%s: block sb_block_count %llu\n", __FILE__, fs->super->s_v1.sb_block_count);
+	log_mesg(3, 0, 0, fs_opt.debug, "%s: block bitmap check %llu\n", __FILE__, blk);
 	if(reiserfs_tools_test_bit(blk, fs_bitmap->bm_map)){
 	    bused++;
 	    bitmap[blk] = 1;
