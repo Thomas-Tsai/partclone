@@ -98,11 +98,11 @@ partclone.extfs -r -d -s hda1.img -o /dev/hda1
 .sp 1
 restore image from clonezilla(split, gzip,) with stdin source
 
-.sp1
+.sp 1
 
 cat sda1.ext3-ptcl-img.gz.a* > gunzip -c | partclone.ext3 -d -r -s - -o /dev/sda1
 
-.sp1
+.sp 1
 .SH REPORTING BUGS
 Report bugs to <thomas@nchc.org.tw>
 .SH SUPPORT

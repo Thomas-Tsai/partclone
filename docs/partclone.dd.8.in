@@ -87,7 +87,7 @@ partclone.dd -c -d -s /dev/hda1 -o hda1.dd.img
 restore /dev/hda1 from hda1.dd.img and display debug information.
 .sp 1
 partclone.dd -r -d -s hda1.dd.img -o /dev/hda1
-.sp1
+.sp 1
 .SH REPORTING BUGS
 Report bugs to <thomas@nchc.org.tw>
 .SH SUPPORT

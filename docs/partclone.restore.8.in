@@ -61,11 +61,11 @@ restore /dev/hda1 from hda1.img and display debug information.
 partclone.restore -d -s hda1.img -o /dev/hda1
 .sp 1
 restore image from clonezilla(split, gzip,) with stdin source
-.sp1
+.sp 1
 cat sda1.ext3-ptcl-img.gz.a* > gunzip -c | partclone.restore -d -s - -o /dev/sda1
 .sp 1
 restore row image from partclone.dd
-.sp1
+.sp 1
 partclone.dd -d -c -s /dev/sda1 -o - | partclone.restore -d -s - -o /dev/sdb1
 .SH REPORTING BUGS
 Report bugs to <thomas@nchc.org.tw>

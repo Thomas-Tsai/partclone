@@ -12,10 +12,10 @@
  */
 
 
-typedef unsigned char      UInt8;
-typedef unsigned short int UInt16;
-typedef unsigned long int       UInt32;
-typedef unsigned long long int  UInt64;
+typedef uint8_t  UInt8;
+typedef uint16_t UInt16;
+typedef uint32_t UInt32;
+typedef uint64_t UInt64;
 
 typedef UInt32 HFSCatalogNodeID;
 
