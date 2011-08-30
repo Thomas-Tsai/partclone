@@ -7064,7 +7064,7 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking version of libextfs" >&5
 $as_echo_n "checking version of libextfs... " >&6; }
-extfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lext2fs -DEXTFS`
+extfs_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lext2fs -DEXTFS`
 extfs_version=`$srcdir/get_lib_version extfs | cut -d'.' -f1`
 extfs_version_major=`$srcdir/get_lib_version extfs | cut -d'.' -f2`
 extfs_version_minor=`$srcdir/get_lib_version extfs | cut -d'.' -f3`
@@ -7307,7 +7307,7 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking version of libreiserfs" >&5
 $as_echo_n "checking version of libreiserfs... " >&6; }
-reiserfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiserfs -DREISERFS`
+reiserfs_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiserfs -DREISERFS`
 reiserfs_version=`$srcdir/get_lib_version reiserfs | cut -d'.' -f1`
 reiserfs_version_major=`$srcdir/get_lib_version reiserfs | cut -d'.' -f2`
 reiserfs_version_minor=`$srcdir/get_lib_version reiserfs | cut -d'.' -f3`
@@ -7426,7 +7426,7 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking version of libreiser4" >&5
 $as_echo_n "checking version of libreiser4... " >&6; }
-reiser4_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiser4 -laal -DREISER4`
+reiser4_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiser4 -laal -DREISER4`
 reiser4_version=`$srcdir/get_lib_version reiser4 | cut -d'.' -f1`
 reiser4_version_major=`$srcdir/get_lib_version reiser4 | cut -d'.' -f2`
 reiser4_version_minor=`$srcdir/get_lib_version reiser4 | cut -d'.' -f3`
@@ -7668,7 +7668,7 @@ if test "$ntfs_3g_h" = 1 -a "$ntfs_3g_l" = 1; then
 elif test "$ntfsprogs_h" = 1 -a "$ntfsprogs_l" = 1; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking version of libntfs" >&5
 $as_echo_n "checking version of libntfs... " >&6; }
-    ntfs_version=`gcc -static  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lntfs -DNTFS`
+    ntfs_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lntfs -DNTFS`
     ntfs_version=`$srcdir/get_lib_version ntfs | cut -d':' -f1`
     ntfs_version_major=`$srcdir/get_lib_version ntfs | cut -d':' -f2`
     ntfs_version_minor=`$srcdir/get_lib_version ntfs | cut -d':' -f3`

@@ -1,10 +1,26 @@
+2011-08-30  Thomas Tsai  <thomas@nchc.org.tw>
+
+	accept suggestion from Paul, many thanks
+
+	Merge branch 'master' of partclone.nchc.org.tw:/home/partclone
+
+	accept patches from Georges - 10-configure.ac.patch removes a flag '-static' in a compilation - 20-manpages fixes a few typos in manpages (s/sp1/sp 1/) - 30-fixIntTypes fixes a more subtle bug, it make the definition of   integer types more precise and architecture-agnostic. See     http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=636927
+
 2011-08-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	try to release dbg version
+
+	update test script
+
+	release 0.2.26 stable
 
 	update help description
 
 	update test script
 
 2011-08-17  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add dbg package
 
 	script can do basic test for developer
 
