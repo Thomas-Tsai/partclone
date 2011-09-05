@@ -163,7 +163,7 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
         strftime(Eformated, sizeof(Eformated), format, Etm);
 
     } else {
-        percent=100;
+        prog_stat->percent=100;
         remained = (time_t)0;
         Rtm = gmtime(&remained);
         strftime(Rformated, sizeof(Rformated), format, Rtm);
@@ -225,7 +225,8 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 #ifdef HAVE_LIBNCURSESW
 
     char *clear_buf = NULL;
-    char *p_block;
+    char r_block[] = "                                                  ";
+    char p_block[50];
     prog_stat_t prog_stat;
 
     memset(&prog_stat, 0, sizeof(prog_stat_t));
@@ -249,10 +250,8 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 	if ((int)prog_stat.speed > 0)
 	    mvwprintw(p_win, 3, 0, _("Rate: %6.2f%s/min"), (float)(prog_stat.speed), prog_stat.speed_unit);
         //mvwprintw(p_win, 3, 0, _("Completed:%6.2f%%"), percent);
-        p_block = malloc(50);
-        memset(p_block, 0, 50);
-        memset(p_block, ' ', (size_t)(prog_stat.percent*0.5));
         wattrset(bar_win, COLOR_PAIR(4));
+        strncpy(p_block, r_block, (prog_stat.percent/2)-1);
         mvwprintw(bar_win, 0, 0, "%s", p_block);
         wattroff(bar_win, COLOR_PAIR(4));
         if(prog_stat.percent <= 50){
@@ -267,7 +266,6 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
         mvwprintw(p_win, 5, 52, "%6.2f%%", prog_stat.percent);
         wrefresh(p_win);
         wrefresh(bar_win);
-        free(p_block);
     } else {
         mvwprintw(p_win, 1, 0, _("Total Time: %s"), prog_stat.Eformated);
         mvwprintw(p_win, 2, 0, _("Remaining: 0"));
@@ -275,7 +273,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 	    mvwprintw(p_win, 3, 0, _("Ave. Rate: %6.2f%s/min"), (float)prog_stat.speed, prog_stat.speed_unit);
 
         wattrset(bar_win, COLOR_PAIR(4));
-        mvwprintw(bar_win, 0, 0, "%50s", " ");
+        mvwprintw(bar_win, 0, 0, "%s", r_block);
         wattroff(bar_win, COLOR_PAIR(4));
         wattrset(p_win, COLOR_PAIR(6));
         mvwprintw(p_win, 5, 22, "%6.2f%%", prog_stat.percent);
