@@ -4,6 +4,12 @@
    language is requested. */
 #undef ENABLE_NLS
 
+/* "define e2fs version" */
+#undef EXTFS_1_41
+
+/* "define e2fs version" */
+#undef EXTFS_VERSION
+
 /* Define to 1 if you have the MacOS X function CFLocaleCopyCurrent in the
    CoreFoundation framework. */
 #undef HAVE_CFLOCALECOPYCURRENT
@@ -73,6 +79,9 @@
 /* Define to 1 if you have the <xfs/libxfs.h> header file. */
 #undef HAVE_XFS_LIBXFS_H
 
+/* "define ntfs version" */
+#undef NTFS_VERSION
+
 /* Name of package */
 #undef PACKAGE
 
@@ -93,6 +102,12 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* "define reiser4 version" */
+#undef REISER4_VERSION
+
+/* "define reiserfs version" */
+#undef REISERFS_VERSION
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS

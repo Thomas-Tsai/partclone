@@ -55,11 +55,14 @@ AC_CHECK_HEADERS([ext2fs/ext2fs.h], ,
 )
 AC_CHECK_LIB([ext2fs], [ext2fs_initialize], true,
     AC_MSG_ERROR([*** EXT2/3 library (libext2fs) not found]))
+
 AC_MSG_CHECKING(version of libextfs)
 extfs_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lext2fs -DEXTFS`
+extfs_version=`$srcdir/get_lib_version extfs`
 extfs_version=`$srcdir/get_lib_version extfs | cut -d'.' -f1`
 extfs_version_major=`$srcdir/get_lib_version extfs | cut -d'.' -f2`
 extfs_version_minor=`$srcdir/get_lib_version extfs | cut -d'.' -f3`
+AC_DEFINE_UNQUOTED([EXTFS_VERSION], "${extfs_version}.${extfs_version_major}", ["define e2fs version"])
 if test -z "$extfs_version"; then
     extfs_version="?"
     extfs_version_major="?"
@@ -72,11 +75,16 @@ fi
 if test $extfs_version -lt 1 ; then
     extfs_version="$extfs_version.$extfs_version_major.$extfs_version_minor; bad"
     AC_MSG_RESULT($extfs_version)
-    AC_MSG_ERROR(Please upgrade your libextfs to 1.42 or newer version!)
-elif test $extfs_version -ge 1 -a $extfs_version_major -lt 42  ; then
-    extfs_version="$extfs_version.$extfs_version_major.$extfs_version_minor; suggest you upgrade the library!"
+    AC_MSG_ERROR(Please upgrade your libextfs to 1.41 or newer version!)
+elif test $extfs_version -ge 1 -a $extfs_version_major -lt 41  ; then
+    extfs_version="$extfs_version.$extfs_version_major.$extfs_version_minor; bad"
     AC_MSG_RESULT($extfs_version)
     AC_MSG_ERROR(Please upgrade your libextfs to 1.42 or newer version!)
+elif test $extfs_version -ge 1 -a $extfs_version_major -lt 42  ; then    
+    extfs_version="$extfs_version.$extfs_version_major.$extfs_version_minor; suggest you upgrade the library!"
+    AC_MSG_RESULT($extfs_version)
+    AC_MSG_WARN(Suggest upgrade your libextfs to 1.42 or newer version!)
+    AC_DEFINE_UNQUOTED([EXTFS_1_41], "1", ["define e2fs version"])
 else
     extfs_version="$extfs_version.$extfs_version_major.$extfs_version_minor; ok!"
     AC_MSG_RESULT($extfs_version)
@@ -132,6 +140,8 @@ AC_CHECK_LIB([dal], [file_dal_open], true,
     AC_MSG_ERROR([*** Reiserfs depend library (libdal) not found]))
 AC_MSG_CHECKING(version of libreiserfs)
 reiserfs_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiserfs -DREISERFS`
+reiserfs_version=`$srcdir/get_lib_version reiserfs`
+AC_DEFINE_UNQUOTED([REISERFS_VERSION], "${reiserfs_version}", ["define reiserfs version"])
 reiserfs_version=`$srcdir/get_lib_version reiserfs | cut -d'.' -f1`
 reiserfs_version_major=`$srcdir/get_lib_version reiserfs | cut -d'.' -f2`
 reiserfs_version_minor=`$srcdir/get_lib_version reiserfs | cut -d'.' -f3`
@@ -185,6 +195,8 @@ AC_CHECK_LIB([aal], [aal_device_open], true,
     AC_MSG_ERROR([*** Reiser4 depend library (libaal) not found]))
 AC_MSG_CHECKING(version of libreiser4)
 reiser4_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiser4 -laal -DREISER4`
+reiser4_version=`$srcdir/get_lib_version reiser4`
+AC_DEFINE_UNQUOTED([REISER4_VERSION], "${reiser4_version}", ["define reiser4 version"])
 reiser4_version=`$srcdir/get_lib_version reiser4 | cut -d'.' -f1`
 reiser4_version_major=`$srcdir/get_lib_version reiser4 | cut -d'.' -f2`
 reiser4_version_minor=`$srcdir/get_lib_version reiser4 | cut -d'.' -f3`
@@ -271,12 +283,16 @@ fi
 
 AM_CONDITIONAL(ENABLE_NTFS_3G, test "$ntfs_3g_l" = 1)
 AM_CONDITIONAL(ENABLE_NTFS, test "$ntfsprogs_l" = 1)
+define_ntfs_version="ntfs-3g"
 if test "$ntfs_3g_h" = 1 -a "$ntfs_3g_l" = 1; then
     supported_fs=$supported_fs" ntfs"
     ntfs_version="ntfs-3g"
+    AC_DEFINE_UNQUOTED([NTFS_VERSION], "${ntfs_version}", ["define ntfs version"])
 elif test "$ntfsprogs_h" = 1 -a "$ntfsprogs_l" = 1; then
     AC_MSG_CHECKING(version of libntfs)
     ntfs_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lntfs -DNTFS`
+    ntfs_version=`$srcdir/get_lib_version ntfs`
+    AC_DEFINE_UNQUOTED([NTFS_VERSION], "${ntfs_version}", ["define ntfs version"])
     ntfs_version=`$srcdir/get_lib_version ntfs | cut -d':' -f1`
     ntfs_version_major=`$srcdir/get_lib_version ntfs | cut -d':' -f2`
     ntfs_version_minor=`$srcdir/get_lib_version ntfs | cut -d':' -f3`
@@ -301,6 +317,7 @@ elif test "$ntfsprogs_h" = 1 -a "$ntfsprogs_l" = 1; then
         AC_MSG_RESULT($ntfs_version)
         supported_fs=$supported_fs" ntfs"
     fi
+    define_ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor"
 fi
 #end of check ntfs
 

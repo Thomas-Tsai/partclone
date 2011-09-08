@@ -20,6 +20,7 @@
 #include <malloc.h>
 #include <stdarg.h>
 #include <getopt.h>
+#include <config.h>
 
 #define in_use(m, x)    (ext2fs_test_bit ((x), (m)))
 
@@ -145,7 +146,11 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	    ext2fs_get_block_bitmap_range(fs->block_map, blk_itr, block_nbytes << 3, block_bitmap);
 
 	    if (fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM){
+#ifdef EXTFS_1_41		
+		    bg_flags = fs->group_desc[group].bg_flags;
+#else
 		    bg_flags = ext2fs_bg_flags(fs, group);
+#endif
 		    if (bg_flags&EXT2_BG_BLOCK_UNINIT){
 			log_mesg(1, 0, 0, fs_opt.debug, "%s: BLOCK_UNINIT for group %i\n", __FILE__, group);
 			B_UN_INIT = 1;
@@ -173,7 +178,11 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	    blk_itr += fs->super->s_blocks_per_group;
 	}
 	/// check free blocks in group
+#ifdef EXTFS_1_41		
+	if (gfree != fs->group_desc[group].bg_free_blocks_count){	
+#else
 	if (gfree != ext2fs_bg_free_blocks_count(fs, group)){
+#endif
 	    if (!B_UN_INIT)
 		log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap error at %i group.\n", __FILE__, group);
 	    else
