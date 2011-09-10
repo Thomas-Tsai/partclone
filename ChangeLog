@@ -1,4 +1,20 @@
+2011-09-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	make e2fs compact for squeeze
+
+2011-09-05  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update configure
+
+	update ncurses for sid
+
 2011-08-30  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix bug for reiserfs
+
+	0.2.27
+
+	0.2.27
 
 	accept suggestion from Paul, many thanks
 

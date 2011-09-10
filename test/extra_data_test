@@ -6,9 +6,12 @@ test_data_path=""
 row_file_path=""
 logfile_path=""
 image_path=""
-test_data_md5="test_data.md5"
-keep_row=1
+test_data_md5=""
+keep_row=0
 partition_size=384
+restore_device=""
+restore_file="restore_file_device"
+to_be_remove=""
 
 ## file system
 normal_fs="ext2 ext3 ext4 vfat"
@@ -157,6 +160,26 @@ generate_test_data_md5(){
     fi
 }
 
+prepare_restore_device(){
+    if [ -f $row_file_path/$restore_file ]; then
+	echo "file exist"
+    else
+	echo "start create restore device"
+	dd if=/dev/zero of=$row_file_path/$restore_file bs=1M count=$partition_size
+	echo "device generate done ($restore_device)  "
+    fi
+    to_be_remove="$to_be_remove $row_file_path/$restore_file"
+
+    if [ -z $(losetup -a | grep $restore_file) ]; then
+	restore_device=`losetup -f`
+	echo "attach loop device"
+	losetup $restore_device $row_file_path/$restore_file
+	echo "done"
+    else
+	echo "loop device exist"
+    fi
+    
+}
 prepare_data(){
     fs=$1
     target_file=$row_file_path/source_row_device.$fs
@@ -209,7 +232,28 @@ check_target(){
     echo $img
 }
 
-restore_data_check() {
+restore_device_file_check(){
+    target_md5=$test_data_md5
+    target_mpt=$row_file_path/mpt.restore
+    [ -f $target_md5 ] || exit 2
+    cur_path=`pwd`
+    mkdir -p $target_mpt
+    [ -d $target_mpt ] || exit 2
+    mount $restore_device $target_mpt
+    cd $target_mpt
+    ret=`md5sum --quiet -c $target_md5`
+    cd $cur_path
+    umount $target_mpt
+
+    if [ -z "$ret" ]; then
+	echo "test ok"
+    else
+	echo "test fail"
+	echo $ret
+    fi
+    
+}
+restore_row_data_check() {
  
     fs=$1
     target_md5=$test_data_md5
@@ -222,7 +266,7 @@ restore_data_check() {
     cd $target_mpt
     ret=`md5sum --quiet -c $target_md5`
     cd $cur_path
-    umount $target_device
+    umount $target_mpt
 
     if [ -z "$ret" ]; then
 	echo "$fs test ok"
@@ -244,6 +288,10 @@ if [ ! "$UID" = "0" ]; then
     exit 1
 fi
 
+if [ -z "$test_fata_md5" ]; then 
+    touch "$row_file_path/test_data.md5"
+    test_data_md5=$(abs_path "$row_file_path/test_data.md5")
+fi
 
 [ -z "$manual_fs" ] || test_fs=$manual_fs
 [ -z "$test_data_path" ] || generate_test_data_md5
@@ -261,17 +309,42 @@ for fs in $test_fs; do
     ncurses="-N"
     debug="-d"
 
+    to_be_remove="$to_be_remove $row_file_path/source_row_device.$fs"
     echo "clone $source_device to $partclone_img"
     partclone.$fs $debug $ncurses -c -s $source_device -O $partclone_img -L $logfile.clone
 
     echo "do image checking"
     partclone.chkimg -s $partclone_img -L $logfile.imgchk
 
-    echo "restore $partclone_img to $target_device"
-    partclone.restore -s $partclone_img -o $target_device --restore_row_file -L $logfile.restore
+    echo "restore $partclone_img to row file $target_device"
+    partclone.restore -s $partclone_img -o $target_device --restore_row_file -L $logfile.restore-row
 
     echo "md5 check"
-    restore_data_check $fs
-    losetup -d $source_device
+    restore_row_data_check $fs
 
+    echo "restore $partclone_img to device $restore_device"
+    prepare_restore_device
+    partclone.$fs $debug $ncurses -r -s $partclone_img -o $restore_device -L $logfile.restore
+    restore_device_file_check
+    losetup -d $restore_device
+
+    echo "dev-to-dev test"
+    prepare_restore_device
+    partclone.$fs $debug $ncurses -b -s $source_device -o $restore_device -L $logfile.dddev
+    restore_device_file_check
+    losetup -d $restore_device
+
+    echo "detach all loop device ..."
+    other_loop=$(losetup -a | grep $(basename $row_file_path) | awk {'print $1'} | sed s/://)
+    for loop_dev in $other_loop; do
+	losetup -d $loop_dev
+    done
 done
+
+if [ $keep_row == 0  ]; then
+    echo "remove all row files: $to_be_remove"
+    remove_files=$(echo $to_be_remove | tr ' ' '\012'| uniq)
+    rm -i $remove_files
+fi
+
+

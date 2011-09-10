@@ -1,3 +1,10 @@
+partclone (0.2.28) sid; urgency=low
+
+  * update e2fslibs for squeeze
+  * fix bug for ntfsclone with ncurses on sid
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 08 Sep 2011 22:58:27 +0800
+
 partclone (0.2.27) sid; urgency=low
 
   * accept patch from Georges about configure, fixIntTypes and typos in manpages
