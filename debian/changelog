@@ -1,3 +1,10 @@
+partclone (0.2.29) sid; urgency=low
+
+  * fix bugs
+  * release 0.2.29
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 12 Sep 2011 21:21:24 +0800
+
 partclone (0.2.28) sid; urgency=low
 
   * update e2fslibs for squeeze
