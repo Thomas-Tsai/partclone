@@ -692,18 +692,18 @@ extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* 
 
     size = sizeof(char)*image_hdr.totalblock;
     r_size = read_all(ret, bitmap, size, &opt);
-
-    for (block_id = 0; block_id < image_hdr.totalblock; block_id++){
-        if(bitmap[block_id] == 1){
-            //printf("u = %i\n",block_id);
-            bused++;
-        } else {
-            //printf("n = %i\n",block_id);
-            bfree++;
-        }
-    }
     if (debug >= 2) {
-        if(image_hdr.usedblocks != bused){
+
+	for (block_id = 0; block_id < image_hdr.totalblock; block_id++){
+	    if(bitmap[block_id] == 1){
+		//printf("u = %i\n",block_id);
+		bused++;
+	    } else {
+		//printf("n = %i\n",block_id);
+		bfree++;
+	    }
+	}
+	if(image_hdr.usedblocks != bused){
             if (opt.force)
                 err_exit = 0;
             else
