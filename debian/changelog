@@ -1,3 +1,9 @@
+partclone (0.2.30) sid; urgency=low
+
+  * patch for new vmfs-tools
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 11 Oct 2011 21:21:24 +0800
+
 partclone (0.2.29) sid; urgency=low
 
   * fix bugs
