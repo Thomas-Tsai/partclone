@@ -14,22 +14,7 @@ static int pvmfs_fs_open(char* device){
     flags.allow_missing_extents = 1;
 
     //log_mesg(3, 0, 0, fs_opt.debug, "%s: device %s\n", device);
-    if (!(lvm = vmfs_lvm_create(flags))) {
-	fprintf(stderr, "Unable to create LVM structure\n");
-	return 1;
-    }
-
-    if (vmfs_lvm_add_extent(lvm, vmfs_vol_open(device, flags)) == -1) {
-	fprintf(stderr, "Unable to open device/file \"%s\".\n", device);
-	return 1;
-    }
-
-    if (!(fs = vmfs_fs_create(lvm))) {
-	fprintf(stderr, "Unable to open filesystem\n");
-	return 1;
-    }
-
-    if (vmfs_fs_open(fs) == -1) {
+    if (!(fs = vmfs_fs_open(&device, flags))) {
 	fprintf(stderr, "Unable to open volume.\n");
 	return 1;
     }
