@@ -29,14 +29,16 @@ extern fs_cmd_opt fs_opt;
 static void fs_open(char* device){
     vmfs_lvm_t *lvm;
     vmfs_flags_t flags;
+    char *mdev[] = {device, NULL};
+    char *next = NULL;
 
     vmfs_host_init();
     flags.packed = 0;
     flags.allow_missing_extents = 1;
 
-    //log_mesg(3, 0, 0, fs_opt.debug, "%s: device %s\n", __FILE__, device);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: device %s\n", __FILE__, device);
 
-    if (!(fs=vmfs_fs_open(&device, flags))) {
+    if (!(fs=vmfs_fs_open(&mdev, flags))) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to open volume.\n", __FILE__);
     }
 
