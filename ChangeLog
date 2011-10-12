@@ -1,4 +1,10 @@
+2011-10-13  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update for vmfs5
+
 2011-10-11  Thomas Tsai  <thomas@nchc.org.tw>
+
+	patch vmfs and release
 
 	patch for new vmfs library
 
