@@ -109,7 +109,7 @@ int main(int argc, char **argv){
     char		bitmagic[8] = "BiTmAgIc";// only for check postition
     char		bitmagic_r[8]="00000000";/// read magic string from image
     int			cmp;			/// compare magic string
-    char		*bitmap;		/// the point for bitmap data
+    unsigned long	*bitmap;		/// the point for bitmap data
     int			debug = 0;		/// debug or not
     unsigned long	crc = 0xffffffffL;	/// CRC32 check code for writint to image
     unsigned long	crc_ck = 0xffffffffL;	/// CRC32 check code for checking
@@ -124,10 +124,11 @@ int main(int argc, char **argv){
     unsigned long long			main_pos = 0;
     int			tui = 0;		/// text user interface
     int			pui = 0;		/// progress mode(default text)
-    int                 next=1,next_int=1,next_max_count=7,next_count=7,next_block=0;
+    int                 next=1,next_int=1,next_max_count=7,next_count=7,i;
     unsigned long long  next_block_id;
     char*               cache_buffer;
     int                 nx_current=0;
+    char                bbuffer[4096];
 
     char *bad_sectors_warning_msg =
         "*************************************************************************\n"
@@ -233,11 +234,11 @@ int main(int argc, char **argv){
 	strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
         /// alloc a memory to restore bitmap
-        bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+        bitmap = (unsigned long*)malloc(sizeof(unsigned long)*LONGS(image_hdr.totalblock));
         if(bitmap == NULL){
             log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
         }
-	memset(bitmap, 0, sizeof(char)*image_hdr.totalblock);
+	memset(bitmap, 0, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
 
         log_mesg(2, 0, 0, debug, "initial main bitmap pointer %i\n", bitmap);
         log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
@@ -259,9 +260,18 @@ int main(int argc, char **argv){
             log_mesg(0, 1, 1, debug, "write image_hdr to image error\n");
 
         // write bitmap information to image file
-        w_size = write_all(&dfw, bitmap, sizeof(char)*image_hdr.totalblock, &opt);
-        if(w_size == -1)
-            log_mesg(0, 1, 1, debug, "write bitmap to image error\n");
+        for (i = 0; i < image_hdr.totalblock; i++){
+            if (pc_test_bit(i, bitmap)){
+                bbuffer[i % sizeof(bbuffer)] = 1;
+            } else {
+                bbuffer[i % sizeof(bbuffer)] = 0;
+            }
+            if (i % sizeof(bbuffer) == sizeof(bbuffer) - 1 || i == image_hdr.totalblock - 1) {
+                w_size = write_all(&dfw, bbuffer, 1 + (i % sizeof(bbuffer)), &opt);
+                if(w_size == -1)
+                    log_mesg(0, 1, 1, debug, "write bitmap to image error\n");
+            }
+        }
         log_mesg(1, 0, 1, debug, "done!\n");
     } else if (opt.restore){
 
@@ -275,11 +285,11 @@ int main(int argc, char **argv){
             log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
 
         /// alloc a memory to restore bitmap
-        bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+        bitmap = (unsigned long*)malloc(sizeof(unsigned long)*LONGS(image_hdr.totalblock));
         if(bitmap == NULL){
             log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
         }
-	memset(bitmap, 0, sizeof(char)*image_hdr.totalblock);
+	memset(bitmap, 0, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
 
         /// check the image magic
         if (memcmp(image_hdr.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE) != 0)
@@ -318,11 +328,11 @@ int main(int argc, char **argv){
 	strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
         /// alloc a memory to restore bitmap
-        bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+        bitmap = (unsigned long*)malloc(sizeof(unsigned long)*LONGS(image_hdr.totalblock));
         if(bitmap == NULL){
             log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
         }
-	memset(bitmap, 0, sizeof(char)*image_hdr.totalblock);
+	memset(bitmap, 0, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
 
         log_mesg(2, 0, 0, debug, "initial main bitmap pointer %i\n", bitmap);
         log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
@@ -352,11 +362,11 @@ int main(int argc, char **argv){
 	strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
         /// alloc a memory to restore bitmap
-        bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+        bitmap = (unsigned long*)malloc(sizeof(unsigned long)*LONGS(image_hdr.totalblock));
         if(bitmap == NULL){
             log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
         }
-	memset(bitmap, 0, sizeof(char)*image_hdr.totalblock);
+	memset(bitmap, 0, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
 
         log_mesg(2, 0, 0, debug, "initial main bitmap pointer %i\n", bitmap);
         log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
@@ -420,10 +430,10 @@ int main(int argc, char **argv){
 	    main_pos = lseek(dfr, 0, SEEK_CUR);
 	    log_mesg(3, 0, 0, debug, "man pos = %lli\n", main_pos);
 
-            if (bitmap[block_id] == 1){
+            if (pc_test_bit(block_id, bitmap)){
                 /// if the block is used
                 log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
-                log_mesg(2, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
+                log_mesg(2, 0, 0, debug, "bitmap=%i, ",pc_test_bit(block_id, bitmap));
 
                 offset = (off_t)(block_id * image_hdr.block_size);
 #ifdef _FILE_OFFSET_BITS
@@ -533,10 +543,10 @@ int main(int argc, char **argv){
             w_size = 0;
 
 
-            if (bitmap[block_id] == 1){ 
+            if (pc_test_bit(block_id, bitmap)){ 
                 /// The block is used
                 log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
-                log_mesg(2, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
+                log_mesg(2, 0, 0, debug, "bitmap=%i, ",pc_test_bit(block_id, bitmap));
 
                 memset(buffer, 0, image_hdr.block_size);
                 r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
@@ -587,10 +597,9 @@ int main(int argc, char **argv){
 		    for (next_int = 1; next_int <= next_max_count; next_int++)
 		    {
 			next_block_id = block_id+next_int;
-			next_block = bitmap[next_block_id];
-			if (next_block == 1) {
+			if (pc_test_bit(next_block_id, bitmap)) {
 			    next++;
-			} else if (next_block == 0){
+			} else {
 			    next_count = next;
 			    break;
 			}
@@ -678,11 +687,11 @@ int main(int argc, char **argv){
             r_size = 0;
             w_size = 0;
 
-            if (bitmap[block_id] == 1){
+            if (pc_test_bit(block_id, bitmap)){
                 /// if the block is used
 
                 log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
-                log_mesg(2, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
+                log_mesg(2, 0, 0, debug, "bitmap=%i, ",pc_test_bit(block_id, bitmap));
                 offset = (off_t)(block_id * image_hdr.block_size);
 #ifdef _FILE_OFFSET_BITS
                 sf = lseek(dfr, offset, SEEK_SET);
@@ -758,10 +767,10 @@ int main(int argc, char **argv){
         dprintf(dfw, "#      pos        size  status\n");
         // start logging the used/unused areas
         next_block_id = 0;
-        cmp = bitmap[0];
+        cmp = pc_test_bit(0, bitmap);
         for( block_id = 0; block_id <= image_hdr.totalblock; block_id++ ){
             if (block_id < image_hdr.totalblock){
-                nx_current = bitmap[block_id];
+                nx_current = pc_test_bit(block_id, bitmap);
                 if (nx_current == 1)
                     copied++;
             } else

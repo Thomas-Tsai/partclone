@@ -31,7 +31,7 @@ struct btrfs_path *path;
 int block_size = 0;
 
 ///set useb block
-static void set_bitmap(char* bitmap, uint64_t pos, uint64_t length){
+static void set_bitmap(unsigned long* bitmap, uint64_t pos, uint64_t length){
     uint64_t block;
     uint64_t pos_block;
     uint64_t count;
@@ -40,7 +40,7 @@ static void set_bitmap(char* bitmap, uint64_t pos, uint64_t length){
     count = length/block_size;
 
     for(block = pos_block; block < (pos_block+count); block++){
-	bitmap[block] = 1;
+	pc_set_bit(block, bitmap);
 	log_mesg(3, 0, 0, fs_opt.debug, "block %i is used\n", block);
     }
 }
@@ -65,7 +65,7 @@ static void fs_close(){
 }
 
 /// readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
+extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     uint64_t super_block = 0;
     struct btrfs_root *extent_root;
@@ -85,18 +85,18 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
     fs_open(device);
     block_size = image_hdr.block_size;
     //initial all block as free
-    memset(bitmap, 0, image_hdr.totalblock);
+    memset(bitmap, 0, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
 
     // set super block and tree as used
     super_block = BTRFS_SUPER_INFO_OFFSET / block_size;
     leafsize = btrfs_super_leafsize(&root->fs_info->super_copy);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: leafsize %i\n", __FILE__, leafsize);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: super block %i\n", __FILE__, super_block);
-    bitmap[super_block] = 1;
+    pc_set_bit(super_block, bitmap);
     for (i = 1; i < 7; i++) {
 	bytenr = (BTRFS_SUPER_INFO_OFFSET + 1024 * 1024 + leafsize * i ) / block_size;
 	log_mesg(1, 0, 0, fs_opt.debug, "%s: tree block %llu\n", __FILE__, bytenr);
-	bitmap[bytenr] = 1;
+	pc_set_bit(bytenr, bitmap);
     }
 
 

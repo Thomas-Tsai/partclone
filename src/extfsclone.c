@@ -99,7 +99,7 @@ static unsigned long long get_used_blocks(){
 }
 
 /// readbitmap - cread and heck bitmap, reference dumpe2fs
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui){
+extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui){
     errcode_t retval;
     unsigned long group;
     unsigned long long current_block, block;
@@ -125,8 +125,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	block_bitmap = malloc(block_nbytes);
 
     /// initial image bitmap as 1 (all block are used)
-    for(block = 0; block < image_hdr.totalblock; block++)
-	bitmap[block] = 1; 
+    memset(bitmap, 0xFF, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
 
     free = 0;
     current_block = 0;
@@ -166,10 +165,10 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 		if ((!in_use (block_bitmap, block)) || (B_UN_INIT)) {
 		    free++;
 		    gfree++;
-		    bitmap[current_block] = 0;
+		    pc_clear_bit(current_block, bitmap);
 		    log_mesg(3, 0, 0, fs_opt.debug, "%s: free block %llu at group %i init %i\n", __FILE__, current_block, group, (int)B_UN_INIT);
 		} else {
-		    bitmap[current_block] = 1;
+		    pc_set_bit(current_block, bitmap);
 		    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %llu at group %i\n", __FILE__, current_block, group);
 		}
 		/// update progress

@@ -64,7 +64,7 @@ static void fs_close(){
 }
 
 ///  readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui)
+extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     reiserfs_bitmap_t    *fs_bitmap;
     reiserfs_tree_t	 *tree;
@@ -89,10 +89,10 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: block bitmap check %llu\n", __FILE__, blk);
 	if(reiserfs_tools_test_bit(blk, fs_bitmap->bm_map)){
 	    bused++;
-	    bitmap[blk] = 1;
+	    pc_set_bit(blk, bitmap);
 	}else{
 	    bfree++;
-	    bitmap[blk] = 0;
+	    pc_clear_bit(blk, bitmap);
 	}
 	/// update progress
 	update_pui(&bprog, blk, done);

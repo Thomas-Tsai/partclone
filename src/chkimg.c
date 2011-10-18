@@ -168,7 +168,7 @@ int main(int argc, char **argv){
     char		bitmagic[8] = "BiTmAgIc";// only for check postition
     char		bitmagic_r[8];		/// read magic string from image
     int			cmp;			/// compare magic string
-    char		*bitmap;		/// the point for bitmap data
+    unsigned long	*bitmap;		/// the point for bitmap data
     int			debug = 0;		/// debug or not
     unsigned long	crc = 0xffffffffL;	/// CRC32 check code for writint to image
     unsigned long	crc_ck = 0xffffffffL;	/// CRC32 check code for checking
@@ -260,7 +260,7 @@ int main(int argc, char **argv){
         log_mesg(0, 1, 1, debug, "The Image magic error. This file is NOT partclone Image\n");
 
     /// alloc a memory to restore bitmap
-    bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+    bitmap = (unsigned long*)malloc(sizeof(unsigned long)*LONGS(image_hdr.totalblock));
     if(bitmap == NULL){
         log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     }
@@ -313,10 +313,10 @@ int main(int argc, char **argv){
 
         r_size = 0;
 
-        if (bitmap[block_id] == 1){ 
+        if (pc_test_bit(block_id, bitmap)){
             /// The block is used
             log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
-            log_mesg(1, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
+            log_mesg(1, 0, 0, debug, "bitmap=%i, ",pc_test_bit(block_id, bitmap));
 
             offset = (off_t)(block_id * image_hdr.block_size);
             buffer = (char*)malloc(image_hdr.block_size); ///alloc a memory to copy data

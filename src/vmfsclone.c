@@ -55,7 +55,7 @@ static void fs_close(){
 }
 
 /// readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
+extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     uint32_t current, used_block, free_block, err_block, total, alloc;
     int status = 0;
@@ -74,13 +74,13 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 	status = vmfs_block_get_status(fs, VMFS_BLK_FB_BUILD(current));
 	if (status == -1) {
 	    err_block++;
-	    bitmap[current] = 0;
+	    pc_clear_bit(current, bitmap);
 	} else if (status == 1){
 	    used_block++;
-	    bitmap[current] = 1;
+	    pc_set_bit(current, bitmap);
 	} else if (status == 0){
 	    free_block++;
-	    bitmap[current] = 0;
+	    pc_clear_bit(current, bitmap);
 	}
 
 	log_mesg(2, 0, 0, fs_opt.debug, "%s: Block 0x%8.8x status:", __FILE__, current, status);

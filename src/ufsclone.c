@@ -108,7 +108,7 @@ static void fs_close(){
 }
 
 /// readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui)
+extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     unsigned long long     total_block, block, bused = 0, bfree = 0;
     int                    done = 0, i = 0, start = 0, bit_size = 1;
@@ -130,11 +130,11 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
 
         for (block = 0; block < acg.cg_ndblk; block++){
             if (isset(p, block)) {
-                bitmap[total_block] = 0;
+                pc_clear_bit(total_block, bitmap);
                 bfree++;
                 log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is free %lli\n", __FILE__, block);
             } else {
-                bitmap[total_block] = 1;
+                pc_set_bit(total_block, bitmap);
                 bused++;
                 log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %lli\n", __FILE__, block);
             }

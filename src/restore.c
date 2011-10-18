@@ -63,7 +63,7 @@ int main(int argc, char **argv){
     char		bitmagic[8] = "BiTmAgIc";// only for check postition
     char		bitmagic_r[8];		/// read magic string from image
     int			cmp;			/// compare magic string
-    char		*bitmap;		/// the point for bitmap data
+    unsigned long	*bitmap;		/// the point for bitmap data
     int			debug = 0;		/// debug or not
     unsigned long	crc = 0xffffffffL;	/// CRC32 check code for writint to image
     unsigned long	crc_ck = 0xffffffffL;	/// CRC32 check code for checking
@@ -76,7 +76,7 @@ int main(int argc, char **argv){
     int			pui = 0;		/// progress mode(default text)
     int			raw = 0;
     char		image_hdr_magic[512];
-    int			next=1,next_int=1,next_max_count=7,next_count=7,next_block=0;
+    int			next=1,next_int=1,next_max_count=7,next_count=7;
     unsigned long long	next_block_id;
     char*		cache_buffer;
     int			nx_current=0;
@@ -174,7 +174,7 @@ int main(int argc, char **argv){
 		log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
 
 	    /// alloc a memory to restore bitmap
-	    bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+	    bitmap = (unsigned long*)malloc(sizeof(unsigned long)*LONGS(image_hdr.totalblock));
 	    if(bitmap == NULL){
 		log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
 	    }
@@ -272,10 +272,10 @@ int main(int argc, char **argv){
 	    r_size = 0;
 	    w_size = 0;
 
-	    if (bitmap[block_id] == 1){ 
+	    if (pc_test_bit(block_id, bitmap)){
 		/// The block is used
 		log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
-		log_mesg(1, 0, 0, debug, "bitmap=%i, ",bitmap[block_id]);
+		log_mesg(1, 0, 0, debug, "bitmap=%i, ",pc_test_bit(block_id, bitmap));
 
 		memset(buffer, 0, image_hdr.block_size);
 		r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
@@ -326,10 +326,9 @@ int main(int argc, char **argv){
 		    for (next_int = 1; next_int <= next_max_count; next_int++)
 		    {
 			next_block_id = block_id+next_int;
-			next_block = bitmap[next_block_id];
-			if (next_block == 1) {
+			if (pc_test_bit(next_block_id, bitmap)) {
 			    next++;
-			} else if (next_block == 0){
+			} else {
 			    next_count = next;    
 			    break;
 			}

@@ -95,7 +95,7 @@ static void fs_close();
 extern void initial_image_hdr(char* device, image_head* image_hdr);
 
 /// readbitmap - cread and heck bitmap, reference dumpe2fs
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui);
+extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui);
 
 /// return used block count
 static unsigned long long get_used_block();
@@ -119,12 +119,12 @@ unsigned long long get_cluster_count();
 extern int check_fat_status();
 
 /// mark reserved sectors as used
-static unsigned long long mark_reserved_sectors(char* fat_bitmap, unsigned long long block);
+static unsigned long long mark_reserved_sectors(unsigned long* fat_bitmap, unsigned long long block);
 
 
 /// check per FAT32 entry
-unsigned long long check_fat32_entry(char* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters);
+unsigned long long check_fat32_entry(unsigned long* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters);
 
 
 /// check per FAT16 entry
-unsigned long long check_fat16_entry(char* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters);
+unsigned long long check_fat16_entry(unsigned long* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters);

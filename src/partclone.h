@@ -20,6 +20,7 @@
 #include <stdarg.h>
 #include <getopt.h>
 #include <errno.h>
+#include "bitmap.h"
 
 #define IMAGE_MAGIC "partclone-image"
 #define IMAGE_MAGIC_SIZE 15
@@ -141,7 +142,7 @@ typedef struct image_head image_head;
 
 extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr);
 extern void restore_image_hdr_sp(int* ret, cmd_opt* opt, image_head* image_hdr, char* first_sec);
-extern void get_image_hdr(int* ret, cmd_opt opt, image_head image_hdr, char* bitmap);
+extern void get_image_hdr(int* ret, cmd_opt opt, image_head image_hdr, unsigned long* bitmap);
 
 /**
  * for open and close
@@ -182,4 +183,4 @@ extern void print_finish_info(cmd_opt opt);
 extern void initial_dd_hdr(int ret, image_head* image_hdr);
 
 /// initial bitmap
-extern void dd_bitmap(image_head image_hdr, char* bitmap);
+extern void dd_bitmap(image_head image_hdr, unsigned long* bitmap);

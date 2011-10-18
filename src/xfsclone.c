@@ -39,7 +39,7 @@ unsigned int    source_sectorsize;      /* source disk sectorsize */
 
 #define rounddown(x, y) (((x)/(y))*(y))
 
-static void set_bitmap(char* bitmap, uint64_t pos, int length)
+static void set_bitmap(unsigned long* bitmap, uint64_t pos, int length)
 {
     uint64_t pos_block;
     uint64_t block_count;
@@ -49,7 +49,7 @@ static void set_bitmap(char* bitmap, uint64_t pos, int length)
     block_count = length/source_blocksize;
 
     for (block = pos_block; block < pos_block+block_count; block++){
-	bitmap[block] = 1;
+	pc_set_bit(block, bitmap);
 	log_mesg(3, 0, 0, fs_opt.debug, "block %i is used\n", block);
     }
 
@@ -166,7 +166,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 
 }
 
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui)
+extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
 
     xfs_agnumber_t  agno = 0;
@@ -470,7 +470,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     }
 
     for(current_block = 0; current_block <= image_hdr.totalblock; current_block++){
-	if(bitmap[current_block] == 1)
+	if(pc_test_bit(current_block, bitmap))
 	    bused++;
 	else
 	    bfree++;

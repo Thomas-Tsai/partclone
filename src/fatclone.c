@@ -178,7 +178,7 @@ extern int check_fat_status(){
 }
 
 /// mark reserved sectors as used
-static unsigned long long mark_reserved_sectors(char* fat_bitmap, unsigned long long block)
+static unsigned long long mark_reserved_sectors(unsigned long* fat_bitmap, unsigned long long block)
 {
     unsigned long long i = 0;
     unsigned long long j = 0;
@@ -189,17 +189,17 @@ static unsigned long long mark_reserved_sectors(char* fat_bitmap, unsigned long 
 
     /// A) the reserved sectors are used
     for (i=0; i < fat_sb.reserved; i++,block++)
-        fat_bitmap[block] = 1;
+        pc_set_bit(block, fat_bitmap);
 
     /// B) the FAT tables are on used sectors
     for (j=0; j < fat_sb.fats; j++)
         for (i=0; i < sec_per_fat ; i++,block++)
-            fat_bitmap[block] = 1;
+            pc_set_bit(block, fat_bitmap);
 
     /// C) The rootdirectory is on used sectors
     if (root_sec > 0) /// no rootdir sectors on FAT32
         for (i=0; i < root_sec; i++,block++)
-            fat_bitmap[block] = 1;
+            pc_set_bit(block, fat_bitmap);
     return block;
 }
 
@@ -233,7 +233,7 @@ static void fs_close()
 }
 
 /// check per FAT32 entry
-unsigned long long check_fat32_entry(char* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters)
+unsigned long long check_fat32_entry(unsigned long* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters)
 {
     uint32_t Fat32_Entry = 0;
     int rd = 0;
@@ -246,22 +246,22 @@ unsigned long long check_fat32_entry(char* fat_bitmap, unsigned long long block,
         DamagedClusters++;
         log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %i\n", __FILE__, block);
         for (j=0; j < fat_sb.cluster_size; j++,block++)
-            fat_bitmap[block] = 0;
+            pc_clear_bit(block, fat_bitmap);
     } else if (Fat32_Entry == 0x0000){ /// free
         bfree++;
         for (j=0; j < fat_sb.cluster_size; j++,block++)
-            fat_bitmap[block] = 0;
+            pc_clear_bit(block, fat_bitmap);
     } else {
         bused++;
         for (j=0; j < fat_sb.cluster_size; j++,block++)
-            fat_bitmap[block] = 1;
+            pc_set_bit(block, fat_bitmap);
     }
 
     return block;
 }
 
 /// check per FAT16 entry
-unsigned long long check_fat16_entry(char* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters)
+unsigned long long check_fat16_entry(unsigned long* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters)
 {
     uint16_t Fat16_Entry = 0;
     int rd = 0;
@@ -273,21 +273,21 @@ unsigned long long check_fat16_entry(char* fat_bitmap, unsigned long long block,
         DamagedClusters++;
         log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %i\n", __FILE__, block);
         for (j=0; j < fat_sb.cluster_size; j++,block++)
-            fat_bitmap[block] = 0;
+            pc_clear_bit(block, fat_bitmap);
     } else if (Fat16_Entry == 0x0000){ /// free
         bfree++;
         for (j=0; j < fat_sb.cluster_size; j++,block++)
-            fat_bitmap[block] = 0;
+            pc_clear_bit(block, fat_bitmap);
     } else {
         bused++;
         for (j=0; j < fat_sb.cluster_size; j++,block++)
-            fat_bitmap[block] = 1;
+            pc_set_bit(block, fat_bitmap);
     }
     return block;
 }
 
 /// check per FAT12 entry
-unsigned long long check_fat12_entry(char* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters)
+unsigned long long check_fat12_entry(unsigned long* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters)
 {
     uint16_t Fat16_Entry = 0;
     uint16_t Fat12_Entry = 0;
@@ -301,15 +301,15 @@ unsigned long long check_fat12_entry(char* fat_bitmap, unsigned long long block,
         DamagedClusters++;
         log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %i\n", __FILE__, block);
         for (j=0; j < fat_sb.cluster_size; j++,block++)
-            fat_bitmap[block] = 0;
+            pc_clear_bit(block, fat_bitmap);
     } else if (Fat12_Entry == 0x0000){ /// free
         bfree++;
         for (j=0; j < fat_sb.cluster_size; j++,block++)
-            fat_bitmap[block] = 0;
+            pc_clear_bit(block, fat_bitmap);
     } else {
         bused++;
         for (j=0; j < fat_sb.cluster_size; j++,block++)
-            fat_bitmap[block] = 1;
+            pc_set_bit(block, fat_bitmap);
     }
     return block;
 }
@@ -350,7 +350,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 }
 
 /// readbitmap - read and check bitmap
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui)
+extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     unsigned long long i = 0, j = 0;
     int rd = 0;
@@ -375,8 +375,7 @@ extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui
     progress_init(&prog, start, cluster_count, bit_size);
 
     /// init bitmap
-    for (i = 0 ; i < total_sector ; i++)
-        bitmap[i] = 1;
+    memset(bitmap, 0xFF, sizeof(unsigned long)*LONGS(total_sector));
 
     /// A) B) C)
     block = mark_reserved_sectors(bitmap, block);
@@ -429,17 +428,17 @@ static unsigned long long get_used_block()
     unsigned long long cluster_count = 0, total_sector = 0;
     unsigned long long real_back_block= 0;
     int FatReservedBytes = 0;
-    char *fat_bitmap;
+    unsigned long *fat_bitmap;
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s: get_used_block start\n", __FILE__);
 
     total_sector = get_total_sector();
     cluster_count = get_cluster_count();
 
-    fat_bitmap = (char *)malloc(total_sector);
+    fat_bitmap = (unsigned long *)malloc(sizeof(unsigned long)*LONGS(total_sector));
     if (fat_bitmap == NULL)
         log_mesg(2, 0, 0, fs_opt.debug, "%s: bitmapalloc error\n", __FILE__);
-    memset(fat_bitmap, 1, total_sector);
+    memset(fat_bitmap, 0xFF, sizeof(unsigned long)*LONGS(total_sector));
 
     /// A) B) C)
     block = mark_reserved_sectors(fat_bitmap, block);
@@ -470,14 +469,14 @@ static unsigned long long get_used_block()
     }
 
     while(block < total_sector){
-        fat_bitmap[block] = 1;
+        pc_set_bit(block, fat_bitmap);
         block++;
     }
 
 
     for (block = 0; block < total_sector; block++)
     {
-        if (fat_bitmap[block] == 1) {
+        if (pc_test_bit(block, fat_bitmap)) {
             real_back_block++;
         }
     }

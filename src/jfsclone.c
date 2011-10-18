@@ -110,7 +110,7 @@ static void fs_close(){
 }
 
 /// readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui){
+extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui){
 
     int64_t lblock = 0;
     int64_t address;
@@ -191,7 +191,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
     /// init progress
     progress_bar        prog;           /// progress_bar structure defined in progress.h
     progress_init(&prog, start, image_hdr.totalblock, bit_size);
-    memset(bitmap, 1, image_hdr.totalblock);
+    memset(bitmap, 0xFF, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
 
     while(next){
 	block_used = 0;
@@ -223,11 +223,11 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
 	    if (jfs_bit_inuse(d_map.wmap, pb) == 1){
 		block_used++;
 		log_mesg(3, 0, 0, fs_opt.debug, "%s: used pb = %lli tb = %lli\n", __FILE__, pb, tb);
-		bitmap[tb] = 1;
+		pc_set_bit(tb, bitmap);
 	    } else {
 		block_free++;
 		log_mesg(3, 0, 0, fs_opt.debug, "%s: free pb = %lli tb = %lli\n", __FILE__, pb, tb);
-		bitmap[tb] = 0;
+		pc_clear_bit(tb, bitmap);
 	    }
 	    tb++;
 	    update_pui(&prog, tb, 0);//keep update
@@ -263,7 +263,7 @@ extern void readbitmap(char* device, image_head image_hdr, char*bitmap, int pui)
     for (;tb <= image_hdr.totalblock; tb++){
 
 	if ((tb >= logloc) && (tb < (logloc+logsize))){
-	    bitmap[tb] = 1;
+	    pc_set_bit(tb, bitmap);
 	    block_used++;
 	    log_mesg(3, 0, 0, fs_opt.debug, "%s: log used pb = %lli tb = %lli\n", __FILE__, pb, tb);
 	}

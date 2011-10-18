@@ -37,7 +37,7 @@ typedef struct ag_header  {
 
 
 /// update bitmap table
-static void set_bitmap(char* bitmap, uint64_t pos, int length);
+static void set_bitmap(unsigned long* bitmap, uint64_t pos, int length);
 
 /// open device
 static void fs_open(char* device);
@@ -46,7 +46,7 @@ static void fs_open(char* device);
 static void fs_close();
 
 ///  readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui);
+extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui);
 
 /// read super block and write to image head
 extern void initial_image_hdr(char* device, image_head* image_hdr);

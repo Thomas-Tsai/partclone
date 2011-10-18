@@ -666,7 +666,7 @@ extern int check_mem_size(image_head image_hdr, cmd_opt opt, unsigned long long 
     void *test_mem;
 
     image_head_size = sizeof(image_head);
-    bitmap_size = (sizeof(char)*image_hdr.totalblock);
+    bitmap_size = sizeof(unsigned long)*LONGS(image_hdr.totalblock);
     crc_io_size = sizeof(unsigned long)+image_hdr.block_size;
     *mem_size = image_head_size + bitmap_size + crc_io_size;
 
@@ -681,29 +681,37 @@ extern int check_mem_size(image_head image_hdr, cmd_opt opt, unsigned long long 
 }
 
 /// get bitmap from image file to restore data
-extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, char* bitmap){
-    unsigned long long size, r_size;
-    int do_write = 0;
-    char* buffer;
-    unsigned long long block_id;
+extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, unsigned long* bitmap){
+    unsigned long long size, r_size, r_need;
+    char buffer[4096];
+    unsigned long long offset = 0;
     unsigned long long bused = 0, bfree = 0;
-    int debug = opt.debug;
+    int i, debug = opt.debug;
     int err_exit = 1;
 
     size = sizeof(char)*image_hdr.totalblock;
-    r_size = read_all(ret, bitmap, size, &opt);
-    if (debug >= 2) {
 
-	for (block_id = 0; block_id < image_hdr.totalblock; block_id++){
-	    if(bitmap[block_id] == 1){
-		//printf("u = %i\n",block_id);
+    while (size > 0){
+	r_need = size > sizeof(buffer) ? sizeof(buffer) : size;
+	r_size = read_all(ret, buffer, r_need, &opt);
+	if (r_size < r_need){
+	    log_mesg(0, 1, 1, debug, "Unable to read bitmap.\n");
+	}
+	for (i = 0; i < r_need; i++){
+	    if(buffer[i] == 1){
+		pc_set_bit(offset + i, bitmap);
 		bused++;
 	    } else {
-		//printf("n = %i\n",block_id);
+		pc_clear_bit(offset + i, bitmap);
 		bfree++;
 	    }
 	}
-	if(image_hdr.usedblocks != bused){
+	offset += r_need;
+	size -= r_need;
+    }
+
+    if (debug >= 2) {
+        if(image_hdr.usedblocks != bused){
             if (opt.force)
                 err_exit = 0;
             else
@@ -1094,13 +1102,12 @@ extern void initial_dd_hdr(int ret, image_head* image_hdr){
 }
 
 /// initial bitmap
-extern void dd_bitmap(image_head image_hdr, char* bitmap){
+extern void dd_bitmap(image_head image_hdr, unsigned long* bitmap){
 
     int block;
 
     /// initial image bitmap as 1 (all block are used)
-    for(block = 0; block < image_hdr.totalblock; block++)
-        bitmap[block] = 1; 
+    memset(bitmap, 0xFF, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
 
 }
 

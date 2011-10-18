@@ -30,7 +30,7 @@ static unsigned long long block_count();
 static unsigned long long get_used_blocks();
 
 /// readbitmap - cread and heck bitmap, reference dumpe2fs
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui);
+extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui);
 
 /// get extfs type
 static int test_extfs_type(char* device);

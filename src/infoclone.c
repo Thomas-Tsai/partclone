@@ -40,7 +40,7 @@ int main(int argc, char **argv){
 
     char*		source;			/// source data
     int			dfr;			/// file descriptor for source and target
-    char		*bitmap;		/// the point for bitmap data
+    unsigned long	*bitmap;		/// the point for bitmap data
     image_head		image_hdr;		/// image_head structure defined in partclone.h
     int debug = 1;
 
@@ -74,7 +74,7 @@ int main(int argc, char **argv){
 	log_mesg(0, 1, 1, debug, "The Image magic error. This file is NOT partclone Image\n");
 
     /// alloc a memory to restore bitmap
-    bitmap = (char*)malloc(sizeof(char)*image_hdr.totalblock);
+    bitmap = (unsigned long*)malloc(sizeof(unsigned long)*LONGS(image_hdr.totalblock));
 
     log_mesg(0, 0, 0, debug, "initial main bitmap pointer %lli\n", bitmap);
     log_mesg(0, 0, 0, debug, "Initial image hdr: read bitmap table\n");

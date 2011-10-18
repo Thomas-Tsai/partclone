@@ -84,4 +84,4 @@ static void fs_close();
 extern void initial_image_hdr(char* device, image_head* image_hdr);
 
 /// readbitmap - cread and heck bitmap, reference dumpe2fs
-extern void readbitmap(char* device, image_head image_hdr, char* bitmap, int pui);
+extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui);
