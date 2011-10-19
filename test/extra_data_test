@@ -102,9 +102,7 @@ check_option(){
 		;;
 	    -k|--keep_row_files)
 		shift
-		if [ -z "$(echo $1 |grep ^-.)" ]; then
-		    keep_row=1
-		fi
+		keep_row=1
 		;;
 	    -i|--image_path)
 		shift
