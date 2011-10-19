@@ -1,3 +1,17 @@
+2011-10-19  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update test script
+
+	add bitmap.h
+
+2011-10-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	accept patch from Rommer
+
+2011-10-12  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.31
+
 2011-10-13  Thomas Tsai  <thomas@nchc.org.tw>
 
 	update for vmfs5

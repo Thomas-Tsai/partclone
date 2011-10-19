@@ -1,3 +1,10 @@
+partclone (0.2.32) sid; urgency=low
+
+  * accept patch file from Tommer.
+  * Attached patch for partclone 0.2.31 reduces memory usage by 4-8 times.  by Rommer.
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 12 Oct 2011 21:27:43 +0800
+
 partclone (0.2.31) sid; urgency=low
 
   * update for vmfs5 
