@@ -1,5 +1,7 @@
 2011-10-19  Thomas Tsai  <thomas@nchc.org.tw>
 
+	release 0.2.32
+
 	update test script
 
 	add bitmap.h

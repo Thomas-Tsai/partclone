@@ -1,6 +1,12 @@
+partclone (0.2.33) sid; urgency=low
+
+  * update makefile for ncurses static linking 
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 25 Oct 2011 17:39:23 +0800
+
 partclone (0.2.32) sid; urgency=low
 
-  * accept patch file from Tommer.
+  * accept patch file from Rommer.
   * Attached patch for partclone 0.2.31 reduces memory usage by 4-8 times.  by Rommer.
 
  -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 12 Oct 2011 21:27:43 +0800

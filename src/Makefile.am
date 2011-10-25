@@ -80,6 +80,7 @@ endif
 
 if ENABLE_STATIC
 LDFLAGS+=-static 
+LIBS+=-ltinfo
 endif
 
 if ENABLE_UFS
