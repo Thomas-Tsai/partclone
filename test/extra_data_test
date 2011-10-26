@@ -304,7 +304,7 @@ for fs in $test_fs; do
     partclone_img=$(check_image $fs)
     target_device=$(check_target $fs)
     logfile=$logfile_path/$fs-$(prefix_name).log
-    ncurses="-N"
+    ncurses="-N -f 1"
     debug="-d"
 
     to_be_remove="$to_be_remove $row_file_path/source_row_device.$fs"
