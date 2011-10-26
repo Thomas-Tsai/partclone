@@ -229,7 +229,7 @@ int main(int argc, char **argv){
 
         /// check memory size
         if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
-            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
+            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %lld bytes memory\n", needed_mem);
 
 	strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
@@ -244,7 +244,7 @@ int main(int argc, char **argv){
         log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
         /// read and check bitmap from partition
-        log_mesg(0, 0, 1, debug, "Calculating bitmap...\n");
+        log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
         readbitmap(source, image_hdr, bitmap, pui);
 
         needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
@@ -253,7 +253,7 @@ int main(int argc, char **argv){
 
         log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
 
-        log_mesg(1, 0, 1, debug, "Writing super block and bitmap...");
+        log_mesg(1, 0, 0, debug, "Writing super block and bitmap... ");
         // write image_head to image file
         w_size = write_all(&dfw, (char *)&image_hdr, sizeof(image_head), &opt);
         if(w_size == -1)
@@ -272,7 +272,7 @@ int main(int argc, char **argv){
                     log_mesg(0, 1, 1, debug, "write bitmap to image error\n");
             }
         }
-        log_mesg(1, 0, 1, debug, "done!\n");
+        log_mesg(0, 0, 1, debug, "done!\n");
     } else if (opt.restore){
 
         log_mesg(1, 0, 0, debug, "restore image hdr - get image_head from image file\n");
@@ -282,7 +282,7 @@ int main(int argc, char **argv){
 
         /// check memory size
         if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
-            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
+            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %lld bytes memory\n", needed_mem);
 
         /// alloc a memory to restore bitmap
         bitmap = (unsigned long*)malloc(sizeof(unsigned long)*LONGS(image_hdr.totalblock));
@@ -323,7 +323,7 @@ int main(int argc, char **argv){
 
         /// check memory size
         if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
-            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
+            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %lld bytes memory\n", needed_mem);
 
 	strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
@@ -347,7 +347,7 @@ int main(int argc, char **argv){
         }
 
         log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
-        log_mesg(1, 0, 1, debug, "done!\n");
+        log_mesg(0, 0, 1, debug, "done!\n");
     } else if (opt.domain) {
         log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
         log_mesg(1, 0, 1, debug, "Reading Super Block\n");
@@ -357,7 +357,7 @@ int main(int argc, char **argv){
 
         /// check memory size
         if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
-            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
+            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %lld bytes memory\n", needed_mem);
 
 	strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
@@ -376,7 +376,7 @@ int main(int argc, char **argv){
         readbitmap(source, image_hdr, bitmap, pui);
 
         log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
-        log_mesg(1, 0, 1, debug, "done!\n");
+        log_mesg(0, 0, 1, debug, "done!\n");
     }
 
     log_mesg(1, 0, 0, debug, "print image_head\n");

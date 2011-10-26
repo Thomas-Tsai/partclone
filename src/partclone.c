@@ -352,7 +352,7 @@ extern int open_ncurses(){
     getmaxyx(stdscr, terminal_y, terminal_x);
 
     // set window position
-    int log_line = 10;
+    int log_line = 12;
     int log_row = 60;
     int log_y_pos = (terminal_y-24)/2+2;
     int log_x_pos = (terminal_x-log_row)/2;
@@ -408,7 +408,6 @@ extern int open_ncurses(){
     /// init log window
     log_win = subwin(stdscr, log_line, log_row, log_y_pos, log_x_pos);
     wbkgd(log_win, COLOR_PAIR(3));
-    //wprintw(log_win, "Calculating bitmap...\nPlease wait...\n");
 
     // init progress window
     p_win = subwin(stdscr, p_line, p_row, p_y_pos, p_x_pos);
@@ -545,7 +544,7 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
     int debug = opt->debug;
 
     buffer = (char*)malloc(sizeof(image_head));
-    //r_size = read(*ret, buffer, sizeof(image_head));
+    memset(buffer, 0, sizeof(image_head));
     r_size = read_all(ret, buffer, sizeof(image_head), opt);
     if (r_size == -1)
         log_mesg(0, 1, 1, debug, "read image_hdr error\n");
@@ -562,7 +561,7 @@ extern void restore_image_hdr_sp(int* ret, cmd_opt* opt, image_head* image_hdr, 
     int debug = opt->debug;
 
     buffer = (char*)malloc(sizeof(image_head));
-    //r_size = read(*ret, buffer, sizeof(image_head));
+    memset(buffer, 0, sizeof(image_head));
     memcpy(buffer, first_sec, 512);
     r_size = read_all(ret, (buffer+512), (sizeof(image_head)-512), opt);
     if (r_size == -1)
@@ -667,8 +666,9 @@ extern int check_mem_size(image_head image_hdr, cmd_opt opt, unsigned long long 
 
     image_head_size = sizeof(image_head);
     bitmap_size = sizeof(unsigned long)*LONGS(image_hdr.totalblock);
-    crc_io_size = sizeof(unsigned long)+image_hdr.block_size;
+    crc_io_size = CRC_SIZE+image_hdr.block_size;
     *mem_size = image_head_size + bitmap_size + crc_io_size;
+    log_mesg(0, 0, 0, 1, "we need memory: %lld bytes\nimage head %lld, bitmap %lld, crc %i bytes\n", *mem_size, image_head_size, bitmap_size, crc_io_size);
 
     test_mem = malloc(*mem_size);
     if (test_mem == NULL){

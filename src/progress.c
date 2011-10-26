@@ -224,7 +224,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 {
 #ifdef HAVE_LIBNCURSESW
 
-    char *clear_buf = NULL;
+    //char *clear_buf = NULL;
     //char *p_block;
     char r_block[] = "                                                          ";
     char p_block[50];

@@ -233,19 +233,21 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     }
  
     ntfs_bitmap = (unsigned char*)malloc(bitmap_size);
+    memset(ntfs_bitmap, 0, bitmap_size);
 
     if ((bitmap == NULL) || (ntfs_bitmap == NULL)) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap alloc error\n", __FILE__);
     }
 
-    /// init progress
-    progress_bar   prog;	/// progress_bar structure defined in progress.h
-    progress_init(&prog, start, image_hdr.totalblock, bit_size);
-
     pos = 0;
     used_block = 0;
     free_block = 0;
     count = ntfs_attr_pread(ntfs->lcnbmp_na, pos, bitmap_size, ntfs_bitmap);
+
+    /// init progress
+    progress_bar   prog;
+    progress_init(&prog, start, image_hdr.totalblock, bit_size);
+
     if (count == -1){					    // On error and nothing has been read
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: read ntfs attr error: %s\n", __FILE__, strerror(errno));
     }
@@ -271,6 +273,9 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     }
 
+    /// update progress
+    update_pui(&prog, 1, 1);
+
     log_mesg(3, 0, 0, fs_opt.debug, "%s: [bitmap] Used Block\t: %llu\n", __FILE__, used_block);
     log_mesg(3, 0, 0, fs_opt.debug, "%s: [bitmap] Free Block\t: %llu\n", __FILE__, free_block);
     log_mesg(3, 0, 0, fs_opt.debug, "%s: [bitmap] Calculated Bitmap Size\t: %lu\n", __FILE__, bitmap_size);
@@ -285,11 +290,8 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     if (used_block != image_hdr.usedblocks) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: used blocks count mismatch: %llu in header, %llu from readbitmap\n", __FILE__,
-                used_block, image_hdr.usedblocks);
+                image_hdr.usedblocks, used_block);
     }
-
-    /// update progress
-    update_pui(&prog, 1, 1);
 }
 
 /// read super block and write to image head
