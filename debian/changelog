@@ -1,8 +1,10 @@
 partclone (0.2.33) sid; urgency=low
 
   * update makefile for ncurses static linking 
+  * update memory usage
+  * update ncurses progress bar
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 25 Oct 2011 17:39:23 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 27 Oct 2011 22:05:17 +0800
 
 partclone (0.2.32) sid; urgency=low
 
