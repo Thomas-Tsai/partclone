@@ -174,7 +174,8 @@ int main(int argc, char **argv){
 		log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
 
 	    /// alloc a memory to restore bitmap
-	    bitmap = (unsigned long*)malloc(sizeof(unsigned long)*LONGS(image_hdr.totalblock));
+	    //bitmap = (unsigned long*)malloc(sizeof(unsigned long)*LONGS(image_hdr.totalblock));
+	    bitmap = (unsigned long*)calloc(sizeof(unsigned long), sizeof(unsigned long)*LONGS(image_hdr.totalblock));
 	    if(bitmap == NULL){
 		log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
 	    }

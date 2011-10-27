@@ -260,7 +260,8 @@ int main(int argc, char **argv){
         log_mesg(0, 1, 1, debug, "The Image magic error. This file is NOT partclone Image\n");
 
     /// alloc a memory to restore bitmap
-    bitmap = (unsigned long*)malloc(sizeof(unsigned long)*LONGS(image_hdr.totalblock));
+    //bitmap = (unsigned long*)malloc(sizeof(unsigned long)*LONGS(image_hdr.totalblock));
+    bitmap = (unsigned long*)calloc(sizeof(unsigned long), sizeof(unsigned long)*LONGS(image_hdr.totalblock));
     if(bitmap == NULL){
         log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     }
