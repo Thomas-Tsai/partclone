@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+## ex: ./extra_data_test -t /usr/share/base-files/ -s 256 -r data_pool/ -i data_pool/ -l data_pool/ -f ext3
+
 ##default_value
 test_data_path=""
 row_file_path=""
@@ -275,6 +277,13 @@ restore_row_data_check() {
    
 }
 
+clear_loop() {
+    all_loop=$(losetup -a  | awk {'print $1'} | sed 's/://')
+    for loop in $all_loop; do
+	losetup -d $loop
+    done
+}
+
 #main
 
 check_option "$@"
@@ -285,6 +294,8 @@ if [ ! "$UID" = "0" ]; then
     echo
     exit 1
 fi
+
+clear_loop
 
 if [ -z "$test_fata_md5" ]; then 
     touch "$row_file_path/test_data.md5"
@@ -338,6 +349,8 @@ for fs in $test_fs; do
 	losetup -d $loop_dev
     done
 done
+
+clear_loop
 
 if [ $keep_row == 0  ]; then
     echo "remove all row files: $to_be_remove"
