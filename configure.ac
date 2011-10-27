@@ -424,10 +424,18 @@ fi
 
 ##static linking##
 AC_ARG_ENABLE(static,
-	AS_HELP_STRING(--enable-static,enable static linking), 
+	AS_HELP_STRING(--enable-static, enable static linking), 
 	enable_static=yes,
 )
 AM_CONDITIONAL(ENABLE_STATIC, test "$enable_static" = yes)
+
+##memory tracing##
+AC_ARG_ENABLE(mtrace,
+	AS_HELP_STRING(--enable-mtrace, enable memory tracing), 
+	enable_memtrace=yes,
+)
+AM_CONDITIONAL(ENABLE_MEMTRACE, test "$enable_memtrace" = yes)
+
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([

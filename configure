@@ -606,6 +606,8 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+ENABLE_MEMTRACE_FALSE
+ENABLE_MEMTRACE_TRUE
 ENABLE_STATIC_FALSE
 ENABLE_STATIC_TRUE
 ENABLE_NCURSESW_FALSE
@@ -770,6 +772,7 @@ enable_jfs
 enable_btrfs
 enable_ncursesw
 enable_static
+enable_mtrace
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1424,6 +1427,7 @@ Optional Features:
   --enable-btrfs          enable btrfs file system
   --enable-ncursesw       enable TEXT User Interface
   --enable-static         enable static linking
+  --enable-mtrace         enable memory tracing
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -8088,6 +8092,22 @@ else
 fi
 
 
+##memory tracing##
+# Check whether --enable-mtrace was given.
+if test "${enable_mtrace+set}" = set; then :
+  enableval=$enable_mtrace; enable_memtrace=yes
+fi
+
+ if test "$enable_memtrace" = yes; then
+  ENABLE_MEMTRACE_TRUE=
+  ENABLE_MEMTRACE_FALSE='#'
+else
+  ENABLE_MEMTRACE_TRUE='#'
+  ENABLE_MEMTRACE_FALSE=
+fi
+
+
+
 ac_config_headers="$ac_config_headers config.h"
 
 ac_config_files="$ac_config_files Makefile src/Makefile po/Makefile.in docs/Makefile docs/partclone.xxxfs.8 docs/partclone.extfs.8 docs/partclone.ext2.8 docs/partclone.ext3.8 docs/partclone.ext4.8 docs/partclone.ext4dev.8 docs/partclone.jfs.8 docs/partclone.xfs.8 docs/partclone.ufs.8 docs/partclone.ntfs.8 docs/partclone.vmfs.8 docs/partclone.hfsplus.8 docs/partclone.hfs+.8 docs/partclone.vfat.8 docs/partclone.fat12.8 docs/partclone.fat16.8 docs/partclone.fat32.8 docs/partclone.btrfs.8 docs/partclone.reiserfs.8 docs/partclone.reiser4.8 docs/partclone.restore.8 docs/partclone.dd.8 docs/partclone.chkimg.8 docs/partclone.info.8"
@@ -8279,6 +8299,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_STATIC_TRUE}" && test -z "${ENABLE_STATIC_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_STATIC\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_MEMTRACE_TRUE}" && test -z "${ENABLE_MEMTRACE_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_MEMTRACE\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

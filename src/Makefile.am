@@ -5,6 +5,16 @@ TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 
 BTRFS_SOURCE= btrfs/crc32c.c btrfs/disk-io.c btrfs/extent-tree.c btrfs/inode-map.c btrfs/rbtree.c btrfs/volumes.c btrfs/ctree.c btrfs/extent-cache.c btrfs/file-item.c btrfs/print-tree.c btrfs/root-tree.c btrfs/dir-item.c btrfs/extent_io.c btrfs/inode-item.c btrfs/radix-tree.c btrfs/utils.c btrfs/crc32c.h btrfs/extent-cache.h btrfs/ioctl.h btrfs/print-tree.h btrfs/transaction.h btrfs/volumes.h btrfs/ctree.h btrfs/extent_io.h btrfs/kerncompat.h btrfs/radix-tree.h btrfs/utils.h btrfs/disk-io.h btrfs/hash.h btrfs/list.h btrfs/rbtree.h btrfs/version.h
 
+if ENABLE_STATIC
+LDFLAGS+=-static 
+LIBS+=-ltinfo
+endif
+
+if ENABLE_MEMTRACE
+CFLAGS+=-DMEMTRACE -DMEMWATCH -DMW_STDIO
+endif
+
+
 
 version.h: FORCE
 	$(TOOLBOX) --update-version
@@ -77,17 +87,11 @@ partclone_ntfsfixboot_SOURCES=ntfsfixboot.c
 endif
 endif
 
-
-if ENABLE_STATIC
-LDFLAGS+=-static 
-LIBS+=-ltinfo
-endif
-
 if ENABLE_UFS
 sbin_PROGRAMS += partclone.ufs
 partclone_ufs_SOURCES=main.c partclone.c progress.c ufsclone.c ufsclone.h partclone.h progress.h gettext.h
 partclone_ufs_CFLAGS=-DUFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64
-partclone_ufs_LDADD=-lufs -lbsd  
+partclone_ufs_LDADD=-lufs -lbsd
 endif
 
 if ENABLE_VMFS

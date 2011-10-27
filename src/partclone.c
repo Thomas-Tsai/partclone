@@ -836,13 +836,13 @@ extern int open_target(char* target, cmd_opt* opt){
             flags |= O_CREAT | O_TRUNC;	    /// new file
             if (!opt->overwrite)	    /// overwrite
                 flags |= O_EXCL;
-            ret = open (target, flags, S_IRUSR);
+            ret = open (target, flags, S_IRUSR|S_IWUSR);
 
             if (ret == -1){
                 if (errno == EEXIST){
                     log_mesg(0, 0, 1, debug, "Output file '%s' already exists.\nUse option --overwrite if you want to replace its content.\n", target);
                 }
-                log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
+                log_mesg(0, 0, 1, debug, "open target fail %s: %s (%i)\n", target, strerror(errno), errno);
             }
         }
     } else if((opt->restore) || (opt->dd)){		    /// always is device, restore to device=target

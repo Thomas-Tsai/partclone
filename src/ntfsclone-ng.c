@@ -233,11 +233,12 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     }
  
     ntfs_bitmap = (unsigned char*)malloc(bitmap_size);
-    memset(ntfs_bitmap, 0, bitmap_size);
+    //ntfs_bitmap = (unsigned char*)calloc(sizeof(unsigned char), bitmap_size);
 
     if ((bitmap == NULL) || (ntfs_bitmap == NULL)) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap alloc error\n", __FILE__);
     }
+    memset(ntfs_bitmap, 0, bitmap_size);
 
     pos = 0;
     used_block = 0;
@@ -292,6 +293,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
         log_mesg(0, 1, 1, fs_opt.debug, "%s: used blocks count mismatch: %llu in header, %llu from readbitmap\n", __FILE__,
                 image_hdr.usedblocks, used_block);
     }
+
 }
 
 /// read super block and write to image head
