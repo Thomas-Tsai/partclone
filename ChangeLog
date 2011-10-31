@@ -1,3 +1,31 @@
+2011-10-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update script folder done
+
+	update debain/control
+
+	re release 0.2.33
+
+	update test script
+
+2011-10-27  root  <root@debian.(none)>
+
+	update memory mangment
+
+	update memory managment
+
+2011-10-26  root  <root@debian.(none)>
+
+	update ncurses
+
+2011-10-26  Thomas Tsai  <thomas@nchc.org.tw>
+
+	test ncurses progress bar
+
+2011-10-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update 0.2.33
+
 2011-10-19  Thomas Tsai  <thomas@nchc.org.tw>
 
 	release 0.2.32

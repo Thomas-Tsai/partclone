@@ -1,3 +1,9 @@
+partclone (0.2.34) sid; urgency=low
+
+  * update autoconf and automake for squeeze 
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 31 Oct 2011 11:31:50 +0800
+
 partclone (0.2.33) sid; urgency=low
 
   * update makefile for ncurses static linking 

@@ -429,6 +429,10 @@ AC_ARG_ENABLE(static,
 )
 AM_CONDITIONAL(ENABLE_STATIC, test "$enable_static" = yes)
 
+AC_CHECK_LIB([tinfo], [initscr], tinfo=1,
+    AC_MSG_WARN([*** tinfo library (libtinfo) not found]))
+AM_CONDITIONAL(ENABLE_TINFO, test "$tinfo" = 1)
+
 ##memory tracing##
 AC_ARG_ENABLE(mtrace,
 	AS_HELP_STRING(--enable-mtrace, enable memory tracing), 

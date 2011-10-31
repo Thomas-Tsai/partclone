@@ -7,6 +7,9 @@ BTRFS_SOURCE= btrfs/crc32c.c btrfs/disk-io.c btrfs/extent-tree.c btrfs/inode-map
 
 if ENABLE_STATIC
 LDFLAGS+=-static 
+endif
+
+if ENABLE_TINFO
 LIBS+=-ltinfo
 endif
 

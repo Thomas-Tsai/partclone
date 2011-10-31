@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2011-08-01 17:08+0800\n"
+"POT-Creation-Date: 2011-10-31 11:21+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -50,40 +50,40 @@ msgstr ""
 msgid "%s"
 msgstr ""
 
-#: src/progress.c:246
+#: src/progress.c:245
 msgid " "
 msgstr ""
 
-#: src/progress.c:247
+#: src/progress.c:246
 #, c-format
 msgid "Elapsed: %s"
 msgstr ""
 
-#: src/progress.c:248
+#: src/progress.c:247
 #, c-format
 msgid "Remaining: %s"
 msgstr ""
 
-#: src/progress.c:250
+#: src/progress.c:249
 #, c-format
 msgid "Rate: %6.2f%s/min"
 msgstr ""
 
-#: src/progress.c:272
+#: src/progress.c:260
 #, c-format
 msgid "Total Time: %s"
 msgstr ""
 
-#: src/progress.c:273
+#: src/progress.c:261
 msgid "Remaining: 0"
 msgstr ""
 
-#: src/progress.c:275
+#: src/progress.c:263
 #, c-format
 msgid "Ave. Rate: %6.2f%s/min"
 msgstr ""
 
-#: src/progress.c:317
+#: src/progress.c:303
 #, c-format
 msgid ""
 "  Elapsed: %s\n"
@@ -92,7 +92,7 @@ msgid ""
 "  Rate: %6.2f%s/min, "
 msgstr ""
 
-#: src/progress.c:319
+#: src/progress.c:305
 #, c-format
 msgid ""
 "  Elapsed: %s\n"
@@ -100,7 +100,7 @@ msgid ""
 "  Completed:%6.2f%%"
 msgstr ""
 
-#: src/progress.c:324
+#: src/progress.c:310
 #, c-format
 msgid ""
 "  Total Time: %s\n"
@@ -108,94 +108,94 @@ msgid ""
 " 100.00%%  completed!\n"
 msgstr ""
 
-#: src/progress.c:326
+#: src/progress.c:312
 #, c-format
 msgid ""
 "  Total Time: %s\n"
 "  100.00%%  completed!\n"
 msgstr ""
 
-#: src/partclone.c:1008
+#: src/partclone.c:1016
 #, c-format
 msgid "Partclone v%s http://partclone.org\n"
 msgstr ""
 
-#: src/partclone.c:1010
+#: src/partclone.c:1018
 #, c-format
 msgid "Starting to check image (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1012
+#: src/partclone.c:1020
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1014
+#: src/partclone.c:1022
 #, c-format
 msgid "Starting to restore image (%s) to device (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1016
+#: src/partclone.c:1024
 #, c-format
 msgid "Starting to back up device(%s) to device(%s)\n"
 msgstr ""
 
-#: src/partclone.c:1018
+#: src/partclone.c:1026
 #, c-format
 msgid "Starting to map device (%s) to domain log (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1036
+#: src/partclone.c:1044
 #, c-format
 msgid "File system:  %s\n"
 msgstr ""
 
-#: src/partclone.c:1039
+#: src/partclone.c:1047
 #, c-format
 msgid "Device size:  %s\n"
 msgstr ""
 
-#: src/partclone.c:1042
+#: src/partclone.c:1050
 #, c-format
 msgid "Space in use: %s\n"
 msgstr ""
 
-#: src/partclone.c:1045
+#: src/partclone.c:1053
 #, c-format
 msgid "Free Space:   %s\n"
 msgstr ""
 
-#: src/partclone.c:1047
+#: src/partclone.c:1055
 #, c-format
 msgid "Block size:   %i Byte\n"
 msgstr ""
 
-#: src/partclone.c:1048
+#: src/partclone.c:1056
 #, c-format
 msgid "Used block :  %lli\n"
 msgstr ""
 
-#: src/partclone.c:1060
+#: src/partclone.c:1068
 #, c-format
 msgid "Partclone successfully checked the image (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1062
+#: src/partclone.c:1070
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1064
+#: src/partclone.c:1072
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1066
+#: src/partclone.c:1074
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1068
+#: src/partclone.c:1076
 #, c-format
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
 msgstr ""

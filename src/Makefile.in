@@ -41,7 +41,7 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 	$(am__EXEEXT_7) $(am__EXEEXT_8) $(am__EXEEXT_9) \
 	$(am__EXEEXT_10) $(am__EXEEXT_11) $(am__EXEEXT_12)
 @ENABLE_STATIC_TRUE@am__append_1 = -static 
-@ENABLE_STATIC_TRUE@am__append_2 = -ltinfo
+@ENABLE_TINFO_TRUE@am__append_2 = -ltinfo
 @ENABLE_MEMTRACE_TRUE@am__append_3 = -DMEMTRACE -DMEMWATCH -DMW_STDIO
 @ENABLE_EXTFS_TRUE@am__append_4 = partclone.extfs
 @ENABLE_REISERFS_TRUE@am__append_5 = partclone.reiserfs
