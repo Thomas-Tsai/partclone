@@ -96,7 +96,7 @@ then
   file="src/version.h"
   GIT_REPOSITORY=`git remote -v | grep partclone`
   GIT_REVISION=`git log -1 | grep commit | sed 's/commit //'`
-  GIT_REVISION_UPSTREAM=`git log upstream -1 | grep commit | sed 's/commit //'`
+  GIT_REVISION_UPSTREAM=`git log master -1 | grep commit | sed 's/commit //'`
   git_ver="none"
 
   if [ "${GIT_REPOSITORY}" = "" ];
@@ -136,5 +136,5 @@ if test "${action}" = "changelog"
 then
     # get source code from Jim Meyering at 
     # http://git.mymadcat.com/index.php/p/tracker/source/tree/master/gitlog-to-changelog
-    perl gitlog-to-changelog > ChangeLog
+    perl gitlog-to-changelog --since 1999-01-01 > ChangeLog
 fi
