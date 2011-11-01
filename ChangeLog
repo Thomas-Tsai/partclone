@@ -1,3 +1,13 @@
+2011-11-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update control for debian-sid
+
+	move debian folder to README.Packages as sample
+
+2011-10-31  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update autoconf and automake for squeeze
+
 2011-10-27  Thomas Tsai  <thomas@nchc.org.tw>
 
 	update script folder done
