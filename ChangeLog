@@ -1,4 +1,40 @@
+2011-11-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'master' into debian-sid
+
+	Merge branch 'debian-sid' of ssh://partclone.nchc.org.tw/home/partclone into debian-sid
+
+	update toolbox
+
+	update toolbox
+
+	update toolbox
+
+	update toolbox
+
+	align version and tag
+
+	update
+
 2011-11-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	move partclone.spec to README.Packages/partclone.spec
+
+	add debian
+
+	remove debian
+
+	add debian
+
+	update TODO
+
+	re remove debian
+
+	add debian
+
+	update version script
+
+	save last changelog ($version)
 
 	update control for debian-sid
 
