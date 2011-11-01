@@ -96,7 +96,7 @@ then
   file="src/version.h"
   GIT_REPOSITORY=`git remote -v | grep partclone`
   GIT_REVISION=`git log -1 | grep commit | sed 's/commit //'`
-  GIT_REVISION_UPSTREAM=`git log upstream -1 | grep commit | sed 's/commit //'`
+  GIT_REVISION_UPSTREAM=`git log debian-sid HEAD~1 -1 | grep commit | sed 's/commit //'`
   git_ver="none"
 
   if [ "${GIT_REPOSITORY}" = "" ];
