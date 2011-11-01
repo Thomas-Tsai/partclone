@@ -1,9 +1,3 @@
-partclone (0.2.35) UNRELEASED; urgency=low
-
-  * [[[insert-git-dch-commit-message-here]]]
-
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 01 Nov 2011 14:31:03 +0800
-
 partclone (0.2.34) sid; urgency=low
 
   * update autoconf and automake for squeeze 
