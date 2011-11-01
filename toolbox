@@ -96,6 +96,8 @@ then
   file="src/version.h"
   GIT_REPOSITORY=`git remote -v | grep partclone`
   GIT_REVISION=`git log -1 | grep commit | sed 's/commit //'`
+  GIT_REVISION_UPSTREAM=`git log upstream -1 | grep commit | sed 's/commit //'`
+  git_ver="none"
 
   if [ "${GIT_REPOSITORY}" = "" ];
   then
@@ -103,7 +105,15 @@ then
     exit 0
   fi
 
-  if [ "${GIT_REVISION}" != "" ];
+  if [ "${GIT_REVISION_UPSTREAM}" != "" ]; then
+      git_ver=$GIT_REVISION_UPSTREAM
+  elif [ "${GIT_REVISION}" != "" ]; then
+      git_ver=$GIT_REVISION
+  else
+      git_ver="none"
+  fi
+
+  if [ "$git_ver" != "none" ];
   then
 
   echo "create ${file}"
@@ -113,10 +123,9 @@ cat > ${file} << EOF
  * WHETHER THEY ARE BUILT BY OTHERS OR DURING DEVELOPMENT OR FOR THE
  * OFFICIAL PARTCLONE RELEASES.
  */
-#define git_version  "${GIT_REVISION}"
+#define git_version  "$git_ver"
 
 EOF
-
   fi
 
   exit 0
