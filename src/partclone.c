@@ -356,7 +356,7 @@ extern int open_ncurses(){
     int log_row = 60;
     int log_y_pos = (terminal_y-24)/2+2;
     int log_x_pos = (terminal_x-log_row)/2;
-    int gap = 2;
+    int gap = 0;
     int p_line = 8;
     int p_row = log_row;
     int p_y_pos = log_y_pos+log_line+gap;
