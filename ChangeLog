@@ -1,6 +1,14 @@
-2011-11-09  Thomas Tsai  <thomas@nchc.org.tw>
+2011-11-23  Thomas Tsai  <thomas@nchc.org.tw>
 
 	Merge branch 'master' into debian-sid
+
+	release 0.2.37
+
+	add -I/usr/include/ncursesw/
+
+2011-11-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.36
 
 	0.2.36
 

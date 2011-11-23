@@ -11,6 +11,7 @@ endif
 
 if ENABLE_TINFO
 LIBS+=-ltinfo
+CFLAGS+=-I/usr/include/ncursesw
 endif
 
 if ENABLE_MEMTRACE
