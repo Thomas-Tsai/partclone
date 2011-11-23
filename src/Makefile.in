@@ -42,23 +42,22 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 	$(am__EXEEXT_10) $(am__EXEEXT_11) $(am__EXEEXT_12)
 @ENABLE_STATIC_TRUE@am__append_1 = -static 
 @ENABLE_TINFO_TRUE@am__append_2 = -ltinfo
-@ENABLE_TINFO_TRUE@am__append_3 = -I/usr/include/ncursesw
-@ENABLE_MEMTRACE_TRUE@am__append_4 = -DMEMTRACE -DMEMWATCH -DMW_STDIO
-@ENABLE_EXTFS_TRUE@am__append_5 = partclone.extfs
-@ENABLE_REISERFS_TRUE@am__append_6 = partclone.reiserfs
-@ENABLE_REISER4_TRUE@am__append_7 = partclone.reiser4
-@ENABLE_HFSP_TRUE@am__append_8 = partclone.hfsp
-@ENABLE_XFS_TRUE@am__append_9 = partclone.xfs
-@ENABLE_FAT_TRUE@am__append_10 = partclone.fat
-@ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@am__append_11 = partclone.ntfs \
+@ENABLE_MEMTRACE_TRUE@am__append_3 = -DMEMTRACE -DMEMWATCH -DMW_STDIO
+@ENABLE_EXTFS_TRUE@am__append_4 = partclone.extfs
+@ENABLE_REISERFS_TRUE@am__append_5 = partclone.reiserfs
+@ENABLE_REISER4_TRUE@am__append_6 = partclone.reiser4
+@ENABLE_HFSP_TRUE@am__append_7 = partclone.hfsp
+@ENABLE_XFS_TRUE@am__append_8 = partclone.xfs
+@ENABLE_FAT_TRUE@am__append_9 = partclone.fat
+@ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@am__append_10 = partclone.ntfs \
 @ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@	partclone.ntfsfixboot
-@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@am__append_12 =  \
+@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@am__append_11 =  \
 @ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@	partclone.ntfs \
 @ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@	partclone.ntfsfixboot
-@ENABLE_UFS_TRUE@am__append_13 = partclone.ufs
-@ENABLE_VMFS_TRUE@am__append_14 = partclone.vmfs partclone.fstype
-@ENABLE_JFS_TRUE@am__append_15 = partclone.jfs
-@ENABLE_BTRFS_TRUE@am__append_16 = partclone.btrfs
+@ENABLE_UFS_TRUE@am__append_12 = partclone.ufs
+@ENABLE_VMFS_TRUE@am__append_13 = partclone.vmfs partclone.fstype
+@ENABLE_JFS_TRUE@am__append_14 = partclone.jfs
+@ENABLE_BTRFS_TRUE@am__append_15 = partclone.btrfs
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -324,7 +323,7 @@ AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
-CFLAGS = @CFLAGS@ $(am__append_3) $(am__append_4)
+CFLAGS = @CFLAGS@ $(am__append_3) -I/usr/include/ncursesw
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
