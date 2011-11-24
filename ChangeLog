@@ -1,4 +1,26 @@
+2011-11-23  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update for makefile for ncursesw
+
+	release 0.2.37
+
+	add -I/usr/include/ncursesw/
+
+2011-11-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	0.2.36
+
+	update ncurses size
+
 2011-11-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update toolbox
+
+	update toolbox
+
+	update toolbox
+
+	update toolbox
 
 	update
 

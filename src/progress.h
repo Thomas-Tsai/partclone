@@ -40,7 +40,7 @@ struct prog_stat_t{
     char Rformated[10];
     float percent;
     float speed;
-    char speed_unit[3];
+    char speed_unit[5];
     
 };
 typedef struct prog_stat_t prog_stat_t;
