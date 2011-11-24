@@ -11,14 +11,15 @@ endif
 
 if ENABLE_TINFO
 LIBS+=-ltinfo
-CFLAGS+=-I/usr/include/ncursesw
 endif
 
 if ENABLE_MEMTRACE
 CFLAGS+=-DMEMTRACE -DMEMWATCH -DMW_STDIO
 endif
 
-
+if ENABLE_NCURSESW
+CFLAGS+=-I/usr/include/ncursesw
+endif
 
 version.h: FORCE
 	$(TOOLBOX) --update-version
