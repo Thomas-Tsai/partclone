@@ -1,6 +1,12 @@
-2011-11-25  Thomas Tsai  <thomas@nchc.org.tw>
+2011-12-12  Thomas Tsai  <thomas@nchc.org.tw>
 
 	Merge branch 'master' into debian-sid
+
+	update ntfsfixboot.c to version 1.0
+
+2011-11-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.38
 
 	0.2.38
 
