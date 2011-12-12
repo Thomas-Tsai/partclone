@@ -1,3 +1,10 @@
+partclone (0.2.39) sid; urgency=low
+
+  * 0.2.39
+  * updaet ntfsfixboot to version 1.0
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 12 Dec 2011 14:30:04 +0800
+
 partclone (0.2.38) sid; urgency=low
 
   * update for makefile for ncursesw

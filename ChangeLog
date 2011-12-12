@@ -2,6 +2,10 @@
 
 	Merge branch 'master' into debian-sid
 
+	0.2.39
+
+	release 0.2.38
+
 	update ntfsfixboot.c to version 1.0
 
 2011-11-25  Thomas Tsai  <thomas@nchc.org.tw>
