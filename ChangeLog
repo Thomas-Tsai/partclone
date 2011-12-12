@@ -2,6 +2,10 @@
 
 	Merge branch 'master' into debian-sid
 
+	update version to "1.0" at ntfsfixboot.c line 218
+
+	release 0.2.39
+
 	0.2.39
 
 	release 0.2.38

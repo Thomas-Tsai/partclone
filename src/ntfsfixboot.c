@@ -215,7 +215,7 @@ int main(int argc, char *argv[]) {
   char bak_sector[512];
   const int geomsize = sizeof(struct ntfs_geometry);
 
-  puts("ntfsfixboot version 0.9");
+  puts("ntfsfixboot version 1.0");
 
   // read program options (into global variables)
   opt_res = read_options(argc, argv);
