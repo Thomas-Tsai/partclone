@@ -1,6 +1,6 @@
 /*
 ntfsfixboot - deals with braindeadness with moving NTFS filesystems.
-version 0.9
+version 1.0
 
 Copyright (C) 2009  Orgad Shaneh
 Loosely based on the work of Daniel J. Grace (2006)
@@ -15,11 +15,10 @@ It is designed for NT4/2000/XP and later versions.
 Like any other program that tinkers with the contents of your HD, this
 program may cause data corruption. USE AT YOUR OWN RISK. You have been warned.
 
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,8 +26,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #define _LARGEFILE64_SOURCE
@@ -224,7 +222,7 @@ int main(int argc, char *argv[]) {
   if (opt_res) return opt_res;
 
   // verify that we can open the device in readonly mode
-  if (!(device = open(optDeviceName, (optWrite ? O_RDWR : O_RDONLY) | O_SYNC))) {
+  if ((device = open(optDeviceName, (optWrite ? O_RDWR : O_RDONLY) | O_SYNC)) < 0) {
     perror("open");
     return 2;
   }
@@ -322,9 +320,9 @@ int main(int argc, char *argv[]) {
 
   // HS   Start  tgt HS  tgt Start
   // 0      0     part     part  (if no partition geometry, use fs)
-  // 0      1      fs       opt
-  // 1      0      opt      fs
-  // 1      1      opt      opt
+  // 0      1     fs       opt
+  // 1      0     opt      part 
+  // 1      1     opt      opt
   if (!optSpecifyHS && !optSpecifyStart) {
     if (haveGeom) {
       set_geom.heads = part_geom.heads;
@@ -336,7 +334,7 @@ int main(int argc, char *argv[]) {
   } else {
     set_geom = opt_geom;
     if (!optSpecifyStart) {
-      set_geom.start = fs_geom.start;
+      set_geom.start = part_geom.start;
     }
     if (!optSpecifyHS) {
       set_geom.heads = fs_geom.heads;
