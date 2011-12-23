@@ -1,3 +1,17 @@
+2011-12-12  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update version to "1.0" at ntfsfixboot.c line 218
+
+	0.2.39
+
+	update ntfsfixboot.c to version 1.0
+
+2011-11-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	0.2.38
+
+	update for progress
+
 2011-11-23  Thomas Tsai  <thomas@nchc.org.tw>
 
 	update for makefile for ncursesw

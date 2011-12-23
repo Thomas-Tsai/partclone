@@ -49,20 +49,6 @@ extern void progress_init(struct progress_bar *prog, int start, unsigned long lo
     }
     prog->rate = 0.0;
     prog->pui = PUI;
-
-    /*
-    if (RES){
-        prog->resolution = RES*100;
-    } else {
-        if (stop <= 5000){
-            prog->resolution = 100;
-	} else if ((stop > 5000) && (stop <= 50000)){
-	    prog->resolution = 300;
-        } else {
-            prog->resolution = 1000;
-        }
-    }
-    */
 }
 
 /// open progress interface
@@ -116,8 +102,8 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
     percent  = prog->unit * current;
     if (percent <= 0)
 	percent = 1;
-    else if (percent > 100)
-	percent = 100;
+    else if (percent >= 100)
+	percent = 99.99;
 
 
     elapsed  = (time(0) - prog->initial_time);
@@ -194,27 +180,23 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 
-        if ((current+1) == prog->stop){
-	    fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Seeking...,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed));
-	} else {
-	    if((int)prog_stat.speed > 0)
-	    fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2f%s/min,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed), prog_stat.speed_unit);
-	    else
-		fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
-	}
+	fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
+
+	if((int)prog_stat.speed > 0)
+	    fprintf(stderr, _(", %6.2f%s/min,"), prog_stat.speed, prog_stat.speed_unit);
+	//fprintf(stderr, "current block=%lld%s", current, "\x1b[A");
     } else {
 	setlocale(LC_ALL, "");
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 
+	fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed: 100.00%%"), clear_buf, prog_stat.Eformated, prog_stat.Rformated);
 	if((int)prog_stat.speed > 0)
-	    fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%, Rate: %6.2f%s/min,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed), prog_stat.speed_unit);
-	else
-	    fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%,"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
+	   fprintf(stderr, _(", Rate: %6.2f%s/min,"), prog_stat.speed, prog_stat.speed_unit);
 
         fprintf(stderr, _("\nTotal Time: %s, "), prog_stat.Eformated);
 	if((int)prog_stat.speed > 0)
-	    fprintf(stderr, _("Ave. Rate: %6.1f%s/min, "), (float)(prog_stat.speed), prog_stat.speed_unit);
+	    fprintf(stderr, _("Ave. Rate: %6.1f%s/min, "), prog_stat.speed, prog_stat.speed_unit);
         fprintf(stderr, _("%s"), "100.00% completed!\n");
     }
 }
@@ -246,7 +228,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
         mvwprintw(p_win, 1, 0, _("Elapsed: %s") , prog_stat.Eformated);
         mvwprintw(p_win, 2, 0, _("Remaining: %s"), prog_stat.Rformated);
 	if ((int)prog_stat.speed > 0)
-	    mvwprintw(p_win, 3, 0, _("Rate: %6.2f%s/min"), (float)(prog_stat.speed), prog_stat.speed_unit);
+	    mvwprintw(p_win, 3, 0, _("Rate: %6.2f%s/min"), prog_stat.speed, prog_stat.speed_unit);
         p_block = calloc(sizeof(char), 50);
         memset(p_block, ' ', (size_t)(prog_stat.percent*0.5));
         wattrset(bar_win, COLOR_PAIR(4));
@@ -260,13 +242,13 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
         mvwprintw(p_win, 1, 0, _("Total Time: %s"), prog_stat.Eformated);
         mvwprintw(p_win, 2, 0, _("Remaining: 0"));
 	if ((int)prog_stat.speed > 0)
-	    mvwprintw(p_win, 3, 0, _("Ave. Rate: %6.2f%s/min"), (float)prog_stat.speed, prog_stat.speed_unit);
+	    mvwprintw(p_win, 3, 0, _("Ave. Rate: %6.2f%s/min"), prog_stat.speed, prog_stat.speed_unit);
 
         wattrset(bar_win, COLOR_PAIR(4));
 	mvwprintw(bar_win, 0, 0, "%50s", " ");
         wattroff(bar_win, COLOR_PAIR(4));
 
-        mvwprintw(p_win, 5, 52, "%6.2f%%", prog_stat.percent);
+        mvwprintw(p_win, 5, 52, "100.00%%");
         wrefresh(p_win);
         wrefresh(bar_win);
         refresh();
