@@ -1,2 +1,7 @@
-* add support to back up broken hard drive, like --rescue
-* add suport to transform partclone image to raw image (like dd image)
+* multuthread
+* multi output device for restore
+* nilfs support
+* exfat support
+* wbfs support
+* zfs support
+
