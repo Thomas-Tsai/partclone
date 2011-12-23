@@ -39,7 +39,6 @@
 
 /// global variable
 cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
-p_dialog_mesg	m_dialog;			/// dialog format string
 
 /**
  * Include different filesystem header depend on what flag you want.
@@ -168,9 +167,6 @@ int main(int argc, char **argv){
     if (opt.ncurses){
         pui = NCURSES;
         log_mesg(1, 0, 0, debug, "Using Ncurses User Interface mode.\n");
-    } else if (opt.dialog){
-        pui = DIALOG;
-        log_mesg(1, 0, 0, debug, "Using Dialog User Interface mode.\n");
     } else
         pui = TEXT;
 
@@ -178,8 +174,6 @@ int main(int argc, char **argv){
     if ((opt.ncurses) && (tui == 0)){
         opt.ncurses = 0;
         log_mesg(1, 0, 0, debug, "Open Ncurses User Interface Error.\n");
-    } else if ((opt.dialog) && (tui == 1)){
-        m_dialog.percent = 1;
     }
 
     /// print partclone info
@@ -400,7 +394,7 @@ int main(int argc, char **argv){
     stop = (image_hdr.usedblocks);	/// get the end of progress number, only used block
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
-    progress_init(&prog, start, stop, image_hdr.block_size);
+    progress_init(&prog, start, stop, image_hdr.totalblock, IO, image_hdr.block_size);
     copied = 0;				/// initial number is 0
 
     /**

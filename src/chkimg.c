@@ -41,7 +41,6 @@
 
 /// global variable
 cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
-p_dialog_mesg	m_dialog;			/// dialog format string
 char *EXECNAME="partclone.chkimg";
 
 static void usage_chkimg(void)
@@ -56,7 +55,6 @@ static void usage_chkimg(void)
 #ifdef HAVE_LIBNCURSESW
             "    -N,  --ncurses          Using Ncurses User Interface\n"
 #endif
-            "    -X,  --dialog           output message as Dialog Format\n"
             "    -F,  --force            force progress\n"
 	    "         --ignore_crc       Ignore crc check error\n"
             "    -f,  --UI-fresh         fresh times of progress\n"
@@ -73,7 +71,6 @@ static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
         { "debug",		optional_argument,  NULL,   'd' },
         { "UI-fresh",	required_argument,  NULL,   'u' },
         { "check",		no_argument,	    NULL,   'C' },
-        { "dialog",		no_argument,	    NULL,   'X' },
         { "logfile",	required_argument,  NULL,   'L' },
         { "force",		no_argument,	    NULL,   'F' },
 	{ "ignore_crc",     no_argument,    NULL,   'i' },
@@ -120,12 +117,6 @@ static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
 	    case 'i':
 		option->ignore_crc = 1;
 		break;
-            case 'X':
-                /// output message as dialog format, reference
-                /// dialog --guage is text height width percent
-                ///    A guage box displays a meter along the bottom of the box. The meter indicates the percentage. New percentages are read from standard input, one integer per line. The meter is updated to reflect each new percentage. If stdin is XXX, then the first line following is taken as an integer percentage, then subsequent lines up to another XXX are used for a new prompt. The guage exits when EOF is reached on stdin. 
-                option->dialog = 1;
-                break;
 #ifdef HAVE_LIBNCURSESW
             case 'N':
                 option->ncurses = 1;
@@ -205,9 +196,6 @@ int main(int argc, char **argv){
     if (opt.ncurses){
         pui = NCURSES;
         log_mesg(1, 0, 0, debug, "Using Ncurses User Interface mode.\n");
-    } else if (opt.dialog){
-        pui = DIALOG;
-        log_mesg(1, 0, 0, debug, "Using Dialog User Interface mode.\n");
     } else
         pui = TEXT;
 
@@ -215,8 +203,6 @@ int main(int argc, char **argv){
     if ((opt.ncurses) && (tui == 0)){
         opt.ncurses = 0;
         log_mesg(1, 0, 0, debug, "Open Ncurses User Interface Error.\n");
-    } else if ((opt.dialog) && (tui == 1)){
-        m_dialog.percent = 1;
     }
 
     /// print partclone info
@@ -293,7 +279,7 @@ int main(int argc, char **argv){
     stop = image_hdr.usedblocks;	/// get the end of progress number, only used block
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
-    progress_init(&prog, start, stop, image_hdr.block_size);
+    progress_init(&prog, start, stop, image_hdr.totalblock, IO, image_hdr.block_size);
     copied = 1;				/// initial number is 1
 
     /**

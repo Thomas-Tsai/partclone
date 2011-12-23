@@ -213,7 +213,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     uint64_t bfree = 0;
 
     /// init progress
-    progress_init(&prog, start, image_hdr.totalblock, bit_size);
+    progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
 
     fs_open(device);
 

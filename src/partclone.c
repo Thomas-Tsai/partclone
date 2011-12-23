@@ -54,6 +54,7 @@ WINDOW *log_win;
 WINDOW *p_win;
 WINDOW *box_win;
 WINDOW *bar_win;
+WINDOW *tbar_win;
 int log_y_line = 0;
 #endif
 
@@ -116,7 +117,6 @@ extern void usage(void)
 #ifdef HAVE_LIBNCURSESW
             "    -N,  --ncurses          Using Ncurses User Interface\n"
 #endif
-            "    -X,  --dialog           Output message as Dialog Format\n"
             "    -I,  --ignore_fschk     Ignore filesystem check\n"
 	    "         --ignore_crc       Ignore crc check error\n"
             "    -F,  --force            Force progress\n"
@@ -159,7 +159,6 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "UI-fresh",		required_argument,  NULL,   'f' },
         { "max_block_cache",	required_argument,  NULL,   'm' },
         { "check",		no_argument,	    NULL,   'C' },
-        { "dialog",		no_argument,	    NULL,   'X' },
         { "ignore_fschk",	no_argument,	    NULL,   'I' },
 	{ "ignore_crc",		no_argument,	    NULL,   'i' },
         { "force",		no_argument,	    NULL,   'F' },
@@ -252,12 +251,6 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
                 break;
             case 'R':
                 opt->rescue++;
-                break;
-            case 'X':
-                /// output message as dialog format, reference
-                /// dialog --guage is text height width percent
-                ///    A guage box displays a meter along the bottom of the box. The meter indicates the percentage. New percentages are read from standard input, one integer per line. The meter is updated to reflect each new percentage. If stdin is XXX, then the first line following is taken as an integer percentage, then subsequent lines up to another XXX are used for a new prompt. The guage exits when EOF is reached on stdin. 
-                opt->dialog = 1;
                 break;
 #ifdef HAVE_LIBNCURSESW
             case 'N':
@@ -412,11 +405,14 @@ extern int open_ncurses(){
     // init progress window
     p_win = subwin(stdscr, p_line, p_row, p_y_pos, p_x_pos);
     wbkgd(p_win, COLOR_PAIR(3));
-    mvwprintw(p_win, 5, 52, "  0.00%%\n");
 
     // init progress window
-    bar_win = subwin(stdscr, 1, p_row-10, p_y_pos+5, p_x_pos);
+    bar_win = subwin(stdscr, 1, p_row-10, p_y_pos+4, p_x_pos);
     wbkgd(bar_win, COLOR_PAIR(1));
+
+    // init total block progress window
+    tbar_win = subwin(stdscr, 1, p_row-10, p_y_pos+7, p_x_pos);
+    //wbkgd(tbar_win, COLOR_PAIR(1));
 
     scrollok(log_win, TRUE);
 
@@ -467,7 +463,6 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
     va_list args;
     va_start(args, fmt);
     extern cmd_opt opt;
-    extern p_dialog_mesg m_dialog;
     char tmp_str[512];
 
     vsprintf(tmp_str, fmt, args);
@@ -492,13 +487,6 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
             log_y_line++;
         }
 #endif
-    } else if (opt.dialog) {
-        /// write log to stderr if log_stderr is true
-        if((log_stderr) && (log_level <= debug)){
-            //vsprintf(tmp_str, fmt, args);
-            strncat(m_dialog.data, tmp_str, strlen(tmp_str));
-            fprintf(stderr, "XXX\n%i\n%s\nXXX\n", m_dialog.percent, m_dialog.data);
-        }
     } else {
         /// write log to stderr if log_stderr is true
         if((log_stderr == 1) && (log_level <= debug)){
@@ -999,7 +987,6 @@ extern void print_opt(cmd_opt opt){
 #ifdef HAVE_LIBNCURSESW
     log_mesg(1, 0, 0, debug, "NCURSES: %i\n", opt.ncurses);
 #endif
-    log_mesg(1, 0, 0, debug, "DIALOG: %i\n", opt.dialog);
     log_mesg(1, 0, 0, debug, "OFFSET DOMAIN: 0x%llX\n", opt.offset_domain);
 
 }

@@ -372,7 +372,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
-    progress_init(&prog, start, cluster_count, bit_size);
+    progress_init(&prog, start, cluster_count, image_hdr.totalblock, BITMAP, bit_size);
 
     /// init bitmap
     memset(bitmap, 0xFF, sizeof(unsigned long)*LONGS(total_sector));

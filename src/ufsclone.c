@@ -119,7 +119,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     /// init progress
     progress_bar   bprog;	/// progress_bar structure defined in progress.h
-    progress_init(&bprog, start, image_hdr.totalblock, bit_size);
+    progress_init(&bprog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
 
     total_block = 0;
     /// read group

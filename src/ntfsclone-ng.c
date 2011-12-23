@@ -247,7 +247,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     /// init progress
     progress_bar   prog;
-    progress_init(&prog, start, image_hdr.totalblock, bit_size);
+    progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
 
     if (count == -1){					    // On error and nothing has been read
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: read ntfs attr error: %s\n", __FILE__, strerror(errno));

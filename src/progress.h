@@ -19,11 +19,11 @@
 #define NCURSES 1
 #define DIALOG 2
 
-
 /// the progress bar structure
 struct progress_bar {
         int start;
 	unsigned long long stop;
+	unsigned long long total;
         unsigned long long resolution;
 	int block_size;
 	float rate;
@@ -31,7 +31,9 @@ struct progress_bar {
 	time_t resolution_time;
 	time_t interval_time;
         float unit;
+        float total_unit;
 	int pui;
+	int flag;
 };
 typedef struct progress_bar progress_bar;
 
@@ -39,6 +41,7 @@ struct prog_stat_t{
     char Eformated[10];
     char Rformated[10];
     float percent;
+    float total_percent;
     float speed;
     char speed_unit[5];
     
@@ -51,7 +54,7 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
 extern void update_pui(struct progress_bar *prog, unsigned long long current, int done);
 
 /// initial progress bar
-extern void progress_init(struct progress_bar *prog, int start, unsigned long long stop, int size);
+extern void progress_init(struct progress_bar *prog, int start, unsigned long long stop, unsigned long long total, int flag, int size);
 
 /// update number
 extern void progress_update(struct progress_bar *prog, unsigned long long current, int done);

@@ -31,7 +31,6 @@
 #include "partclone.h"
 
 cmd_opt             opt;                    /// cmd_opt structure defined in partclone.h
-p_dialog_mesg	    m_dialog;
 
 /**
  * main functiom - print Image file metadata.
