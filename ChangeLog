@@ -1,3 +1,19 @@
+2011-12-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add thread to dd, restore and chkimg
+
+2011-12-26  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add thread to display progress, draft
+
+	update progress bar
+
+2011-12-23  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add block status
+
+	update progress seeking at 100%
+
 2011-12-12  Thomas Tsai  <thomas@nchc.org.tw>
 
 	update version to "1.0" at ntfsfixboot.c line 218
