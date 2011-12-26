@@ -119,7 +119,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     /// init progress
     progress_bar   bprog;	/// progress_bar structure defined in progress.h
-    progress_init(&bprog, start, image_hdr.totalblock, bit_size);
+    progress_init(&bprog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
 
     total_block = 0;
     /// read group
@@ -139,7 +139,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
                 log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %lli\n", __FILE__, block);
             }
 	    total_block++;
-            update_pui(&bprog, total_block ,done);
+            update_pui(&bprog, total_block, total_block,done);
         }
         log_mesg(1, 0, 0, fs_opt.debug, "%s: read bitmap done\n", __FILE__);
 
@@ -148,8 +148,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     fs_close();
 
     log_mesg(1, 0, 0, fs_opt.debug, "%s: total used = %lli, total free = %lli\n", __FILE__, bused, bfree);
-    done = 1;
-    update_pui(&bprog, 1, done);
+    update_pui(&bprog, 1, 1, 1);
 
 }
 

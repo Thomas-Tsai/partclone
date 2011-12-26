@@ -58,6 +58,10 @@
 #define write_all(f, b, s, o) io_all((f), (b), (s), 1, (o))
 
 
+// progress flag
+#define BITMAP 1
+#define IO 2
+
 char *EXECNAME;
 
 /**
@@ -83,7 +87,6 @@ struct cmd_opt
     int check;
     int max_block_cache;
     int ncurses;
-    int dialog;
     int force;
     int ignore_fschk;
     int ignore_crc;
@@ -103,12 +106,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt);
  */
 extern int open_ncurses();
 extern void close_ncurses();
-struct dialog_mesg
-{
-    int	    percent;
-    char    data[1024];
-};
-typedef struct dialog_mesg p_dialog_mesg;
+
 /**
  * debug message
  * open_log	- to open file /var/log/partclone.log

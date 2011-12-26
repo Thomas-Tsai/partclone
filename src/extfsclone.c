@@ -133,7 +133,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     /// init progress
     progress_bar	prog;		/// progress_bar structure defined in progress.h
-    progress_init(&prog, start, image_hdr.totalblock, bit_size);
+    progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
 
     /// each group
     for (group = 0; group < fs->group_desc_count; group++) {
@@ -172,7 +172,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 		    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %llu at group %i\n", __FILE__, current_block, group);
 		}
 		/// update progress
-		update_pui(&prog, current_block, 0);//keep update
+		update_pui(&prog, current_block, current_block, 0);//keep update
 	    }
 	    blk_itr += fs->super->s_blocks_per_group;
 	}
@@ -197,7 +197,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     fs_close();
     /// update progress
-    update_pui(&prog, 1, 1);//finish
+    update_pui(&prog, 1, 1, 1);//finish
 }
 
 /// get extfs type

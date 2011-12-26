@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.2.40], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.2.41], [thomas@nchc.org.tw])
 #AC_CONFIG_AUX_DIR([build-aux])
 #AC CONFIG SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -37,6 +37,8 @@ fi
 
 dnl Check for uuid 
 PKG_CHECK_MODULES(UUID, uuid,,exit)
+
+AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([*** pthread library (libpthread) not found]))
 
 ##ext2/3##
 AC_ARG_ENABLE(extfs,
@@ -282,7 +284,8 @@ if test "$enable_ntfs" = "yes"; then
 fi
 
 AM_CONDITIONAL(ENABLE_NTFS_3G, test "$ntfs_3g_l" = 1)
-AM_CONDITIONAL(ENABLE_NTFS, test "$ntfsprogs_l" = 1)
+AM_CONDITIONAL(ENABLE_NTFS_PROGS, test "$ntfsprogs_l" = 1)
+AM_CONDITIONAL(ENABLE_NTFS, test "$ntfsprogs_l" = 1 -o "$ntfs_3g_l" = 1)
 define_ntfs_version="ntfs-3g"
 if test "$ntfs_3g_h" = 1 -a "$ntfs_3g_l" = 1; then
     supported_fs=$supported_fs" ntfs"
@@ -318,6 +321,8 @@ elif test "$ntfsprogs_h" = 1 -a "$ntfsprogs_l" = 1; then
         supported_fs=$supported_fs" ntfs"
     fi
     define_ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor"
+else
+    AC_MSG_ERROR(Can't find ntfs library!)
 fi
 #end of check ntfs
 

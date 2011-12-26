@@ -38,8 +38,8 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 	partclone.restore$(EXEEXT) partclone.chkimg$(EXEEXT) \
 	$(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 	$(am__EXEEXT_4) $(am__EXEEXT_5) $(am__EXEEXT_6) \
-	$(am__EXEEXT_7) $(am__EXEEXT_8) $(am__EXEEXT_9) \
-	$(am__EXEEXT_10) $(am__EXEEXT_11) $(am__EXEEXT_12)
+	partclone.ntfsfixboot$(EXEEXT) $(am__EXEEXT_7) $(am__EXEEXT_8) \
+	$(am__EXEEXT_9) $(am__EXEEXT_10) $(am__EXEEXT_11)
 @ENABLE_STATIC_TRUE@am__append_1 = -static 
 @ENABLE_TINFO_TRUE@am__append_2 = -ltinfo
 @ENABLE_MEMTRACE_TRUE@am__append_3 = -DMEMTRACE -DMEMWATCH -DMW_STDIO
@@ -50,15 +50,11 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 @ENABLE_HFSP_TRUE@am__append_8 = partclone.hfsp
 @ENABLE_XFS_TRUE@am__append_9 = partclone.xfs
 @ENABLE_FAT_TRUE@am__append_10 = partclone.fat
-@ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@am__append_11 = partclone.ntfs \
-@ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@	partclone.ntfsfixboot
-@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@am__append_12 =  \
-@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@	partclone.ntfs \
-@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@	partclone.ntfsfixboot
-@ENABLE_UFS_TRUE@am__append_13 = partclone.ufs
-@ENABLE_VMFS_TRUE@am__append_14 = partclone.vmfs partclone.fstype
-@ENABLE_JFS_TRUE@am__append_15 = partclone.jfs
-@ENABLE_BTRFS_TRUE@am__append_16 = partclone.btrfs
+@ENABLE_NTFS_TRUE@am__append_11 = partclone.ntfs
+@ENABLE_UFS_TRUE@am__append_12 = partclone.ufs
+@ENABLE_VMFS_TRUE@am__append_13 = partclone.vmfs partclone.fstype
+@ENABLE_JFS_TRUE@am__append_14 = partclone.jfs
+@ENABLE_BTRFS_TRUE@am__append_15 = partclone.btrfs
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -79,15 +75,12 @@ CONFIG_CLEAN_VPATH_FILES =
 @ENABLE_HFSP_TRUE@am__EXEEXT_4 = partclone.hfsp$(EXEEXT)
 @ENABLE_XFS_TRUE@am__EXEEXT_5 = partclone.xfs$(EXEEXT)
 @ENABLE_FAT_TRUE@am__EXEEXT_6 = partclone.fat$(EXEEXT)
-@ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@am__EXEEXT_7 = partclone.ntfs$(EXEEXT) \
-@ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@	partclone.ntfsfixboot$(EXEEXT)
-@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@am__EXEEXT_8 = partclone.ntfs$(EXEEXT) \
-@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@	partclone.ntfsfixboot$(EXEEXT)
-@ENABLE_UFS_TRUE@am__EXEEXT_9 = partclone.ufs$(EXEEXT)
-@ENABLE_VMFS_TRUE@am__EXEEXT_10 = partclone.vmfs$(EXEEXT) \
+@ENABLE_NTFS_TRUE@am__EXEEXT_7 = partclone.ntfs$(EXEEXT)
+@ENABLE_UFS_TRUE@am__EXEEXT_8 = partclone.ufs$(EXEEXT)
+@ENABLE_VMFS_TRUE@am__EXEEXT_9 = partclone.vmfs$(EXEEXT) \
 @ENABLE_VMFS_TRUE@	partclone.fstype$(EXEEXT)
-@ENABLE_JFS_TRUE@am__EXEEXT_11 = partclone.jfs$(EXEEXT)
-@ENABLE_BTRFS_TRUE@am__EXEEXT_12 = partclone.btrfs$(EXEEXT)
+@ENABLE_JFS_TRUE@am__EXEEXT_10 = partclone.jfs$(EXEEXT)
+@ENABLE_BTRFS_TRUE@am__EXEEXT_11 = partclone.btrfs$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
 am__partclone_btrfs_SOURCES_DIST = main.c partclone.c progress.c \
@@ -198,23 +191,16 @@ partclone_jfs_LINK = $(CCLD) $(partclone_jfs_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__partclone_ntfs_SOURCES_DIST = main.c partclone.c progress.c \
 	ntfsclone-ng.c ntfsclone-ng.h partclone.h progress.h gettext.h
-@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@am_partclone_ntfs_OBJECTS = partclone_ntfs-main.$(OBJEXT) \
-@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@	partclone_ntfs-partclone.$(OBJEXT) \
-@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@	partclone_ntfs-progress.$(OBJEXT) \
-@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@	partclone_ntfs-ntfsclone-ng.$(OBJEXT)
-@ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@am_partclone_ntfs_OBJECTS = partclone_ntfs-main.$(OBJEXT) \
-@ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@	partclone_ntfs-partclone.$(OBJEXT) \
-@ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@	partclone_ntfs-progress.$(OBJEXT) \
-@ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@	partclone_ntfs-ntfsclone-ng.$(OBJEXT)
+@ENABLE_NTFS_TRUE@am_partclone_ntfs_OBJECTS =  \
+@ENABLE_NTFS_TRUE@	partclone_ntfs-main.$(OBJEXT) \
+@ENABLE_NTFS_TRUE@	partclone_ntfs-partclone.$(OBJEXT) \
+@ENABLE_NTFS_TRUE@	partclone_ntfs-progress.$(OBJEXT) \
+@ENABLE_NTFS_TRUE@	partclone_ntfs-ntfsclone-ng.$(OBJEXT)
 partclone_ntfs_OBJECTS = $(am_partclone_ntfs_OBJECTS)
 partclone_ntfs_DEPENDENCIES =
 partclone_ntfs_LINK = $(CCLD) $(partclone_ntfs_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__partclone_ntfsfixboot_SOURCES_DIST = ntfsfixboot.c
-@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@am_partclone_ntfsfixboot_OBJECTS =  \
-@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@	ntfsfixboot.$(OBJEXT)
-@ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@am_partclone_ntfsfixboot_OBJECTS =  \
-@ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@	ntfsfixboot.$(OBJEXT)
+am_partclone_ntfsfixboot_OBJECTS = ntfsfixboot.$(OBJEXT)
 partclone_ntfsfixboot_OBJECTS = $(am_partclone_ntfsfixboot_OBJECTS)
 partclone_ntfsfixboot_LDADD = $(LDADD)
 partclone_ntfsfixboot_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -307,7 +293,7 @@ DIST_SOURCES = $(am__partclone_btrfs_SOURCES_DIST) \
 	$(am__partclone_hfsp_SOURCES_DIST) $(partclone_info_SOURCES) \
 	$(am__partclone_jfs_SOURCES_DIST) \
 	$(am__partclone_ntfs_SOURCES_DIST) \
-	$(am__partclone_ntfsfixboot_SOURCES_DIST) \
+	$(partclone_ntfsfixboot_SOURCES) \
 	$(am__partclone_reiser4_SOURCES_DIST) \
 	$(am__partclone_reiserfs_SOURCES_DIST) \
 	$(partclone_restore_SOURCES) $(am__partclone_ufs_SOURCES_DIST) \
@@ -458,14 +444,12 @@ partclone_dd_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h d
 @ENABLE_XFS_TRUE@partclone_xfs_LDADD = -lxfs -lrt -lpthread
 @ENABLE_FAT_TRUE@partclone_fat_SOURCES = main.c partclone.c progress.c fatclone.c fatclone.h partclone.h progress.h gettext.h
 @ENABLE_FAT_TRUE@partclone_fat_CFLAGS = -DFAT
-@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@partclone_ntfs_SOURCES = main.c partclone.c progress.c ntfsclone-ng.c ntfsclone-ng.h partclone.h progress.h gettext.h
-@ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@partclone_ntfs_SOURCES = main.c partclone.c progress.c ntfsclone-ng.c ntfsclone-ng.h partclone.h progress.h gettext.h
+partclone_ntfsfixboot_SOURCES = ntfsfixboot.c
+@ENABLE_NTFS_TRUE@partclone_ntfs_SOURCES = main.c partclone.c progress.c ntfsclone-ng.c ntfsclone-ng.h partclone.h progress.h gettext.h
 @ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@partclone_ntfs_CFLAGS = -DNTFS
 @ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@partclone_ntfs_CFLAGS = -DNTFS3G
 @ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@partclone_ntfs_LDADD = -lntfs
 @ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@partclone_ntfs_LDADD = -lntfs-3g
-@ENABLE_NTFS_3G_FALSE@@ENABLE_NTFS_TRUE@partclone_ntfsfixboot_SOURCES = ntfsfixboot.c
-@ENABLE_NTFS_3G_TRUE@@ENABLE_NTFS_TRUE@partclone_ntfsfixboot_SOURCES = ntfsfixboot.c
 @ENABLE_UFS_TRUE@partclone_ufs_SOURCES = main.c partclone.c progress.c ufsclone.c ufsclone.h partclone.h progress.h gettext.h
 @ENABLE_UFS_TRUE@partclone_ufs_CFLAGS = -DUFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64
 @ENABLE_UFS_TRUE@partclone_ufs_LDADD = -lufs -lbsd

@@ -25,11 +25,19 @@
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 /**
  * progress.h - only for progress bar
  */
 #include "progress.h"
+
+void *thread_update_pui(void *arg);
+progress_bar	prog;		/// progress_bar structure defined in progress.h
+unsigned long long copied;
+unsigned long long block_id;
+int done;
+
 
 /**
  * partclone.h - include some structures like image_head, opt_cmd, ....
@@ -39,7 +47,6 @@
 
 /// global variable
 cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
-p_dialog_mesg	m_dialog;			/// dialog format string
 
 /**
  * Include different filesystem header depend on what flag you want.
@@ -99,7 +106,7 @@ int main(int argc, char **argv){
     char*		buffer2;			/// buffer data for malloc used
     int			dfr, dfw;		/// file descriptor for source and target
     int			r_size, w_size;		/// read and write size
-    unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
+    //unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
     /// copied is copied block count
     off_t		offset = 0, sf = 0;	/// seek postition, lseek result
     int			start, stop;		/// start, range, stop number for progress bar
@@ -117,7 +124,7 @@ int main(int argc, char **argv){
     int			c_size;			/// CRC32 code size
     int			n_crc_size = CRC_SIZE;
     char*		crc_buffer;		/// buffer data for malloc crc code
-    int			done = 0;
+    //int			done = 0;
     int			s_count = 0;
     int			rescue_num = 0;
     unsigned long long			rescue_pos = 0;
@@ -129,6 +136,9 @@ int main(int argc, char **argv){
     char*               cache_buffer;
     int                 nx_current=0;
     char                bbuffer[4096];
+    int pres;
+    pthread_t prog_thread;
+    void *p_result;
 
     char *bad_sectors_warning_msg =
         "*************************************************************************\n"
@@ -168,9 +178,6 @@ int main(int argc, char **argv){
     if (opt.ncurses){
         pui = NCURSES;
         log_mesg(1, 0, 0, debug, "Using Ncurses User Interface mode.\n");
-    } else if (opt.dialog){
-        pui = DIALOG;
-        log_mesg(1, 0, 0, debug, "Using Dialog User Interface mode.\n");
     } else
         pui = TEXT;
 
@@ -178,8 +185,6 @@ int main(int argc, char **argv){
     if ((opt.ncurses) && (tui == 0)){
         opt.ncurses = 0;
         log_mesg(1, 0, 0, debug, "Open Ncurses User Interface Error.\n");
-    } else if ((opt.dialog) && (tui == 1)){
-        m_dialog.percent = 1;
     }
 
     /// print partclone info
@@ -395,13 +400,18 @@ int main(int argc, char **argv){
     /**
      * initial progress bar
      */
-    progress_bar	prog;		/// progress_bar structure defined in progress.h
+    //progress_bar	prog;		/// progress_bar structure defined in progress.h
     start = 0;				/// start number of progress bar
     stop = (image_hdr.usedblocks);	/// get the end of progress number, only used block
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
-    progress_init(&prog, start, stop, image_hdr.block_size);
+    progress_init(&prog, start, stop, image_hdr.totalblock, IO, image_hdr.block_size);
     copied = 0;				/// initial number is 0
+
+    /**
+     * thread to print progress
+     */
+    pres = pthread_create(&prog_thread, NULL, thread_update_pui, NULL);
 
     /**
      * start read and write data between device and image file
@@ -505,10 +515,10 @@ int main(int argc, char **argv){
 #endif
             }
 	    if (!opt.quiet)
-		update_pui(&prog, copied, done);
+		update_pui(&prog, copied, block_id, done);
         } /// end of for    
 	done = 1;
-	update_pui(&prog, copied, done);
+	update_pui(&prog, copied, block_id, done);
         sync_data(dfw, &opt);	
         free(buffer);
 
@@ -541,6 +551,7 @@ int main(int argc, char **argv){
 
         /// start restore image file to partition
         log_mesg(1, 0, 0, debug, "start restore data...\n");
+
         for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
 
             r_size = 0;
@@ -661,13 +672,13 @@ int main(int argc, char **argv){
 #endif
 		}
             }
-	    if (!opt.quiet)
-		update_pui(&prog, copied, done);
+	    //if (!opt.quiet)
+		//update_pui(&prog, copied, block_id, done);
         } // end of for
 	/// free buffer
 	free(buffer);
 	done = 1;
-	update_pui(&prog, copied, done);
+	update_pui(&prog, copied, block_id, done);
         sync_data(dfw, &opt);	
     } else if (opt.dd){
         sf = lseek(dfr, 0, SEEK_SET);
@@ -751,10 +762,10 @@ int main(int argc, char **argv){
 #endif
             }
 	    if (!opt.quiet)
-		update_pui(&prog, copied, done);
+		update_pui(&prog, copied, block_id, done);
         } /// end of for
 	done = 1;
-	update_pui(&prog, copied, done);
+	update_pui(&prog, copied, block_id, done);
 	/// free buffer
 	free(buffer);
         sync_data(dfw, &opt);
@@ -790,7 +801,7 @@ int main(int argc, char **argv){
             // don't bother updating progress
         } /// end of for
         done = 1;
-        update_pui(&prog, copied, done);
+        update_pui(&prog, copied, block_id, done);
         sync_data(dfw, &opt);
     }
 
@@ -807,4 +818,13 @@ int main(int argc, char **argv){
     muntrace();
 #endif
     return 0;	    /// finish
+}
+
+void *thread_update_pui(void *arg){
+
+    while (done == 0) {
+        if(!opt.quiet)
+		update_pui(&prog, copied, block_id, done);
+    }
+    pthread_exit("exit");
 }

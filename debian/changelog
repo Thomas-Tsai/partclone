@@ -1,3 +1,13 @@
+partclone (0.2.41) sid; urgency=low
+
+  * add block status
+  * update progress bar
+  * add thread to display progress, draft
+  * add thread to dd, restore and chkimg
+  * 0.2.41
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 27 Dec 2011 00:53:41 +0800
+
 partclone (0.2.40) sid; urgency=low
 
   * update progress seeking at 100%

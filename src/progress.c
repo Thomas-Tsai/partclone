@@ -27,6 +27,7 @@
 #include <ncurses.h>
 extern WINDOW *p_win;
 extern WINDOW *bar_win;
+extern WINDOW *tbar_win;
 int color_support = 1;
 #endif
 
@@ -34,12 +35,14 @@ int PUI;
 unsigned long RES=0;
 
 /// initial progress bar
-extern void progress_init(struct progress_bar *prog, int start, unsigned long long stop, int size)
+extern void progress_init(struct progress_bar *prog, int start, unsigned long long stop, unsigned long long total, int flag, int size)
 {
     memset(prog, 0, sizeof(progress_bar));
     prog->start = start;
     prog->stop = stop;
+    prog->total = total;
     prog->unit = 100.0 / (stop - start);
+    prog->total_unit = 100.0 / (total - start);
     prog->initial_time = time(0);
     prog->resolution_time = time(0);
     prog->interval_time = 1;
@@ -49,6 +52,7 @@ extern void progress_init(struct progress_bar *prog, int start, unsigned long lo
     }
     prog->rate = 0.0;
     prog->pui = PUI;
+    prog->flag = flag;
 }
 
 /// open progress interface
@@ -74,16 +78,14 @@ extern void close_pui(int pui){
     }
 }
 
-extern void update_pui(struct progress_bar *prog, unsigned long long current, int done){
+extern void update_pui(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done){
     if (prog->pui == NCURSES)
-        Ncurses_progress_update(prog, current, done);
-    else if (prog->pui == DIALOG)
-        Dialog_progress_update(prog, current, done);
+        Ncurses_progress_update(prog, copied, current, done);
     else if (prog->pui == TEXT)
-        progress_update(prog, current, done);
+        progress_update(prog, copied, current, done);
 }
 
-static void calculate_speed(struct progress_bar *prog, unsigned long long current, int done, prog_stat_t *prog_stat){
+static void calculate_speed(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done, prog_stat_t *prog_stat){
     char *format = "%H:%M:%S";
     uint64_t speedps = 1;
     uint64_t speed = 1;
@@ -99,23 +101,18 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
     uint64_t kbyte=1000;
 
 
-    percent  = prog->unit * current;
+    percent  = prog->unit * copied;
     if (percent <= 0)
 	percent = 1;
     else if (percent >= 100)
 	percent = 99.99;
 
-
     elapsed  = (time(0) - prog->initial_time);
     if (elapsed <= 0)
 	elapsed = 1;
 
-    speedps  = prog->block_size * current / elapsed;
+    speedps  = prog->block_size * copied / elapsed;
     speed = speedps * 60.0;
-
-    if(prog->block_size == 1){ // don't show bitmap rate, bit_size = 1
-	speed = 0;	
-    }
 
     prog_stat->percent   = percent;
 
@@ -136,6 +133,8 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
 	strncpy(speed_unit, "byte", 5);
 	strncpy(prog_stat->speed_unit, speed_unit, 5);
     }
+
+    prog_stat->total_percent = prog->total_unit * current;
 
     prog_stat->speed     = dspeed;
 
@@ -162,17 +161,17 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
 }
 
 /// update information at progress bar
-extern void progress_update(struct progress_bar *prog, unsigned long long current, int done)
+extern void progress_update(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done)
 {
     char clear_buf = ' ';
     prog_stat_t prog_stat;
 
     if (done != 1)
-	if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && current != 0)
+	if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && copied != 0)
 	    return;
 
     memset(&prog_stat, 0, sizeof(prog_stat_t));
-    calculate_speed(prog, current, done, &prog_stat);
+    calculate_speed(prog, copied, current, done, &prog_stat);
 
     if (done != 1){
 	prog->resolution_time = time(0);
@@ -180,37 +179,40 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 
-	fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed:%6.2f%%"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
+	fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed: %6.2f%%"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
 
-	if((int)prog_stat.speed > 0)
+	if(prog->flag == IO) {
 	    fprintf(stderr, _(", %6.2f%s/min,"), prog_stat.speed, prog_stat.speed_unit);
-	//fprintf(stderr, "current block=%lld%s", current, "\x1b[A");
+	    fprintf(stderr, "\n\r%80c\rcurrent block: %10lld, total block: %10lld, Complete: %6.2f%%%s\r", clear_buf, current, prog->total, prog_stat.total_percent, "\x1b[A");
+	}
     } else {
 	setlocale(LC_ALL, "");
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 
 	fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed: 100.00%%"), clear_buf, prog_stat.Eformated, prog_stat.Rformated);
-	if((int)prog_stat.speed > 0)
-	   fprintf(stderr, _(", Rate: %6.2f%s/min,"), prog_stat.speed, prog_stat.speed_unit);
+	if(prog->flag == IO){
+	    fprintf(stderr, _(", Rate: %6.2f%s/min,"), prog_stat.speed, prog_stat.speed_unit);
+	    fprintf(stderr, "\n\r%80c\rcurrent block: %10lld, total block: %10lld, Complete: 100.00%%\r", clear_buf, current, prog->total);
+	}
 
         fprintf(stderr, _("\nTotal Time: %s, "), prog_stat.Eformated);
-	if((int)prog_stat.speed > 0)
+	if(prog->flag == IO)
 	    fprintf(stderr, _("Ave. Rate: %6.1f%s/min, "), prog_stat.speed, prog_stat.speed_unit);
         fprintf(stderr, _("%s"), "100.00% completed!\n");
     }
 }
 
 /// update information at ncurses mode
-extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long long current, int done)
+extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done)
 {
 #ifdef HAVE_LIBNCURSESW
 
-    char *p_block;
+    char *p_block, *t_block;
     prog_stat_t prog_stat;
 
     memset(&prog_stat, 0, sizeof(prog_stat_t));
-    calculate_speed(prog, current, done, &prog_stat);
+    calculate_speed(prog, copied, current, done, &prog_stat);
 
     /// set bar color
     init_pair(4, COLOR_RED, COLOR_RED);
@@ -224,75 +226,69 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
             return;
 	prog->resolution_time = time(0);
 
-        mvwprintw(p_win, 0, 0, _(" "));
-        mvwprintw(p_win, 1, 0, _("Elapsed: %s") , prog_stat.Eformated);
-        mvwprintw(p_win, 2, 0, _("Remaining: %s"), prog_stat.Rformated);
-	if ((int)prog_stat.speed > 0)
-	    mvwprintw(p_win, 3, 0, _("Rate: %6.2f%s/min"), prog_stat.speed, prog_stat.speed_unit);
+        mvwprintw(p_win, 0, 0, _("Elapsed: %s Remaining: %s ") , prog_stat.Eformated, prog_stat.Rformated);
+	if (prog->flag == IO){
+	    mvwprintw(p_win, 0, 40, _("Rate: %6.2f%s/min"), prog_stat.speed, prog_stat.speed_unit);
+	    mvwprintw(p_win, 1, 0, _("Current Block: %lld  Total Block: %lld ") , current, prog->total);
+	}
         p_block = calloc(sizeof(char), 50);
+        t_block = calloc(sizeof(char), 50);
         memset(p_block, ' ', (size_t)(prog_stat.percent*0.5));
-        wattrset(bar_win, COLOR_PAIR(4));
+        memset(t_block, ' ', (size_t)(prog_stat.total_percent*0.5));
+        
+	if (prog->flag == IO)
+	    mvwprintw(p_win, 3, 0, "Data Block Process:");
+	else if (prog->flag == BITMAP)
+	    mvwprintw(p_win, 3, 0, "Calculating Bitmap Process:");
+	wattrset(bar_win, COLOR_PAIR(4));
         mvwprintw(bar_win, 0, 0, "%s", p_block);
         wattroff(bar_win, COLOR_PAIR(4));
-	free(p_block);
-        mvwprintw(p_win, 5, 52, "%6.2f%%", prog_stat.percent);
-        wrefresh(p_win);
-        wrefresh(bar_win);
-    } else {
-        mvwprintw(p_win, 1, 0, _("Total Time: %s"), prog_stat.Eformated);
-        mvwprintw(p_win, 2, 0, _("Remaining: 0"));
-	if ((int)prog_stat.speed > 0)
-	    mvwprintw(p_win, 3, 0, _("Ave. Rate: %6.2f%s/min"), prog_stat.speed, prog_stat.speed_unit);
+        mvwprintw(p_win, 4, 52, "%6.2f%%", prog_stat.percent);
+        
+	if (prog->flag == IO) {
+	    werase(tbar_win);
+	    mvwprintw(p_win, 6, 0, "Total Block Process:");
+	    wattrset(tbar_win, COLOR_PAIR(4));
+	    mvwprintw(tbar_win, 0, 0, "%s", t_block);
+	    wattroff(tbar_win, COLOR_PAIR(4));
+	    mvwprintw(p_win, 7, 52, "%6.2f%%", prog_stat.total_percent);
+	}
 
+	free(p_block);
+	free(t_block);
+        
+	wrefresh(p_win);
+        wrefresh(bar_win);
+        wrefresh(tbar_win);
+    } else {
+        mvwprintw(p_win, 0, 0, _("Total Time: %s Remaining: %s "), prog_stat.Eformated, prog_stat.Rformated);
+	if (prog->flag == IO)
+	    mvwprintw(p_win, 1, 0, _("Ave. Rate: %6.2f%s/min"), prog_stat.speed, prog_stat.speed_unit);
+
+	if (prog->flag == IO)
+	    mvwprintw(p_win, 3, 0, "Data Block Process:");
+	else if (prog->flag == BITMAP)
+	    mvwprintw(p_win, 3, 0, "Calculating Bitmap Process:");
         wattrset(bar_win, COLOR_PAIR(4));
 	mvwprintw(bar_win, 0, 0, "%50s", " ");
         wattroff(bar_win, COLOR_PAIR(4));
+        mvwprintw(p_win, 4, 52, "100.00%%");
 
-        mvwprintw(p_win, 5, 52, "100.00%%");
+	if (prog->flag == IO) {
+	    werase(tbar_win);
+	    mvwprintw(p_win, 6, 0, "Total Block Process:");
+	    wattrset(tbar_win, COLOR_PAIR(4));
+	    mvwprintw(tbar_win, 0, 0, "%50s", " ");
+	    wattroff(tbar_win, COLOR_PAIR(4));
+	    mvwprintw(p_win, 7, 52, "100.00%%");
+	}
+
         wrefresh(p_win);
         wrefresh(bar_win);
+        wrefresh(tbar_win);
         refresh();
 	sleep(1);
     }
 
 #endif
-}
-
-/// update information as dialog format, refernece source code of dialog
-/// # mkfifo pipe
-/// # (./clone.extfs -d -c -X -s /dev/loop0 2>pipe | cat - > test.img) | ./gauge < pipe
-/// # (cat test - |./clone.extfs -d -X -r -s - -o /dev/loop0 2>pipe) | ./gauge < pipe
-extern void Dialog_progress_update(struct progress_bar *prog, unsigned long long current, int done){
-    setlocale(LC_ALL, "");
-    bindtextdomain(PACKAGE, LOCALEDIR);
-    textdomain(PACKAGE);
-    extern p_dialog_mesg m_dialog;
-
-    char tmp_str[128];
-    char *clear_buf = NULL;
-    prog_stat_t prog_stat;
-
-    memset(&prog_stat, 0, sizeof(prog_stat_t));
-    calculate_speed(prog, current, done, &prog_stat);
-
-    if (done != 1){
-        if (difftime(time(0), prog->resolution_time) < prog->interval_time)
-            return;
-	prog->resolution_time = time(0);
-
-        m_dialog.percent = (int)prog_stat.percent;
-	if ((int)prog_stat.speed > 0)
-	    sprintf(tmp_str, _("  Elapsed: %s\n  Remaining: %s\n  Completed:%6.2f%%\n  Rate: %6.2f%s/min, "), prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent, (float)(prog_stat.speed), prog_stat.speed_unit);
-	else
-	    sprintf(tmp_str, _("  Elapsed: %s\n  Remaining: %s\n  Completed:%6.2f%%"), prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
-        fprintf(stderr, "XXX\n%i\n%s\n%s\nXXX\n", m_dialog.percent, m_dialog.data, tmp_str);
-    } else {
-        m_dialog.percent = 100;
-	if ((int)prog_stat.speed > 0)
-	    sprintf(tmp_str, _("  Total Time: %s\n  Ave. Rate: %6.1f%s/min\n 100.00%%  completed!\n"), prog_stat.Eformated, (float)prog_stat.speed, prog_stat.speed_unit);
-	else
-	    sprintf(tmp_str, _("  Total Time: %s\n  100.00%%  completed!\n"), prog_stat.Eformated);
-        fprintf(stderr, "XXX\n%i\n%s\n%s\nXXX\n", m_dialog.percent, m_dialog.data, tmp_str);
-    }
-
 }
