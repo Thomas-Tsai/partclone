@@ -270,12 +270,12 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
             free_block++;
         }
         /// update progress
-        update_pui(&prog, current_block, 0);
+        update_pui(&prog, current_block, current_block, 0);
 
     }
 
     /// update progress
-    update_pui(&prog, 1, 1);
+    update_pui(&prog, 1, 1, 1);
 
     log_mesg(3, 0, 0, fs_opt.debug, "%s: [bitmap] Used Block\t: %llu\n", __FILE__, used_block);
     log_mesg(3, 0, 0, fs_opt.debug, "%s: [bitmap] Free Block\t: %llu\n", __FILE__, free_block);

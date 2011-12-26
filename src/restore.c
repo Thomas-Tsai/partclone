@@ -382,13 +382,13 @@ int main(int argc, char **argv){
 		}
 	    }
 	    if (!opt.quiet)
-		update_pui(&prog, copied, done);
+		update_pui(&prog, copied, block_id, done);
 	} // end of for
 	/// free buffer
 	free(cache_buffer);
 	free(buffer);
 	done = 1;
-	update_pui(&prog, copied, done);
+	update_pui(&prog, copied, block_id, done);
 	sync_data(dfw, &opt);	
     } else if ((opt.restore) && (raw)){
 	/// start clone partition to image file
@@ -450,7 +450,7 @@ int main(int argc, char **argv){
 	    log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
 
 	    if (!opt.quiet)
-		update_pui(&prog, copied, done);
+		update_pui(&prog, copied, block_id, done);
 	} while (done == 0);/// end of for    
 	sync_data(dfw, &opt);	
 	/// free buffer

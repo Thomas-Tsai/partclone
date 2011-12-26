@@ -256,7 +256,7 @@ int main(int argc, char **argv){
         log_mesg(1, 0, 0, debug, "end\n");
         block_id++;
 	if (!opt.quiet)
-	    update_pui(&prog, copied, done);
+	    update_pui(&prog, copied, block_id, done);
     } while (done == 0);/// end of for    
     sync_data(dfw, &opt);	
     /// free buffer

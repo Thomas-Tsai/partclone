@@ -364,10 +364,10 @@ int main(int argc, char **argv){
             log_mesg(1, 0, 0, debug, "end\n");
         }
 
-	update_pui(&prog, copied, done);
+	update_pui(&prog, copied, block_id, done);
     } // end of for
     done = 1;
-    update_pui(&prog, copied, done);
+    update_pui(&prog, copied, block_id, done);
     print_finish_info(opt);
 
     close (dfr);    /// close source

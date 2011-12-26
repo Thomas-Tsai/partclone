@@ -499,10 +499,10 @@ int main(int argc, char **argv){
 #endif
             }
 	    if (!opt.quiet)
-		update_pui(&prog, copied, done);
+		update_pui(&prog, copied, block_id, done);
         } /// end of for    
 	done = 1;
-	update_pui(&prog, copied, done);
+	update_pui(&prog, copied, block_id, done);
         sync_data(dfw, &opt);	
         free(buffer);
 
@@ -656,12 +656,12 @@ int main(int argc, char **argv){
 		}
             }
 	    if (!opt.quiet)
-		update_pui(&prog, copied, done);
+		update_pui(&prog, copied, block_id, done);
         } // end of for
 	/// free buffer
 	free(buffer);
 	done = 1;
-	update_pui(&prog, copied, done);
+	update_pui(&prog, copied, block_id, done);
         sync_data(dfw, &opt);	
     } else if (opt.dd){
         sf = lseek(dfr, 0, SEEK_SET);
@@ -745,10 +745,10 @@ int main(int argc, char **argv){
 #endif
             }
 	    if (!opt.quiet)
-		update_pui(&prog, copied, done);
+		update_pui(&prog, copied, block_id, done);
         } /// end of for
 	done = 1;
-	update_pui(&prog, copied, done);
+	update_pui(&prog, copied, block_id, done);
 	/// free buffer
 	free(buffer);
         sync_data(dfw, &opt);
@@ -784,7 +784,7 @@ int main(int argc, char **argv){
             // don't bother updating progress
         } /// end of for
         done = 1;
-        update_pui(&prog, copied, done);
+        update_pui(&prog, copied, block_id, done);
         sync_data(dfw, &opt);
     }
 

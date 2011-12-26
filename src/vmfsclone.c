@@ -84,11 +84,11 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	}
 
 	log_mesg(2, 0, 0, fs_opt.debug, "%s: Block 0x%8.8x status:", __FILE__, current, status);
-	update_pui(&prog, current, 0);
+	update_pui(&prog, current, current, 0);
 
     }
-    update_pui(&prog, current, 1);
     fs_close();
+    update_pui(&prog, 1, 1, 1);
 
     log_mesg(0, 0, 0, fs_opt.debug, "%s: Used:%u, Free:%u, Status err:%u\n", __FILE__, used_block, free_block, err_block);
 

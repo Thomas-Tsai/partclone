@@ -78,14 +78,14 @@ extern void close_pui(int pui){
     }
 }
 
-extern void update_pui(struct progress_bar *prog, unsigned long long current, int done){
+extern void update_pui(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done){
     if (prog->pui == NCURSES)
-        Ncurses_progress_update(prog, current, done);
+        Ncurses_progress_update(prog, copied, current, done);
     else if (prog->pui == TEXT)
-        progress_update(prog, current, done);
+        progress_update(prog, copied, current, done);
 }
 
-static void calculate_speed(struct progress_bar *prog, unsigned long long current, int done, prog_stat_t *prog_stat){
+static void calculate_speed(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done, prog_stat_t *prog_stat){
     char *format = "%H:%M:%S";
     uint64_t speedps = 1;
     uint64_t speed = 1;
@@ -101,7 +101,7 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
     uint64_t kbyte=1000;
 
 
-    percent  = prog->unit * current;
+    percent  = prog->unit * copied;
     if (percent <= 0)
 	percent = 1;
     else if (percent >= 100)
@@ -111,7 +111,7 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
     if (elapsed <= 0)
 	elapsed = 1;
 
-    speedps  = prog->block_size * current / elapsed;
+    speedps  = prog->block_size * copied / elapsed;
     speed = speedps * 60.0;
 
     prog_stat->percent   = percent;
@@ -161,17 +161,17 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long curren
 }
 
 /// update information at progress bar
-extern void progress_update(struct progress_bar *prog, unsigned long long current, int done)
+extern void progress_update(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done)
 {
     char clear_buf = ' ';
     prog_stat_t prog_stat;
 
     if (done != 1)
-	if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && current != 0)
+	if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && copied != 0)
 	    return;
 
     memset(&prog_stat, 0, sizeof(prog_stat_t));
-    calculate_speed(prog, current, done, &prog_stat);
+    calculate_speed(prog, copied, current, done, &prog_stat);
 
     if (done != 1){
 	prog->resolution_time = time(0);
@@ -204,7 +204,7 @@ extern void progress_update(struct progress_bar *prog, unsigned long long curren
 }
 
 /// update information at ncurses mode
-extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long long current, int done)
+extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done)
 {
 #ifdef HAVE_LIBNCURSESW
 
@@ -212,7 +212,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
     prog_stat_t prog_stat;
 
     memset(&prog_stat, 0, sizeof(prog_stat_t));
-    calculate_speed(prog, current, done, &prog_stat);
+    calculate_speed(prog, copied, current, done, &prog_stat);
 
     /// set bar color
     init_pair(4, COLOR_RED, COLOR_RED);

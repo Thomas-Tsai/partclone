@@ -173,7 +173,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
             }
             block++;
             /// update progress
-            update_pui(&prog, block, 0);
+            update_pui(&prog, block, block, 0);
 
         }
         free(extent_bitmap);
@@ -189,7 +189,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     fs_close();
     /// update progress
-    update_pui(&prog, 1, 1);
+    update_pui(&prog, 1, 1, 1);
 }
 
 extern void initial_image_hdr(char* device, image_head* image_hdr)

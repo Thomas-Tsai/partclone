@@ -121,7 +121,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
             log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is free %lli", block, __FILE__);
         }
         /// update progress
-        update_pui(&prog, bit, 0);
+        update_pui(&prog, bit, bit, 0);
 
     }
 
@@ -130,7 +130,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     fs_close();
     /// update progress
-    update_pui(&prog, bit, 1);
+    update_pui(&prog, 1, 1, 1);
 }
 
 /// read super block and write to image head
