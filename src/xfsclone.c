@@ -203,7 +203,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     int		    log_length;
 
     struct xfs_btree_block *block;
-    uint64_t current_block, block_count;
+    uint64_t current_block, block_count, prog_cur_block = 0;
 
     int start = 0;
     int bit_size = 1;
@@ -213,7 +213,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     uint64_t bfree = 0;
 
     /// init progress
-    progress_init(&prog, start, image_hdr.totalblock, bit_size);
+    progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
 
     fs_open(device);
 
@@ -466,7 +466,8 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
 	log_mesg(2, 0, 0, fs_opt.debug, "write a clean log done\n");
 
-	update_pui(&prog, (image_hdr.totalblock/num_ags*(agno+1)-1), 0);
+	prog_cur_block = image_hdr.totalblock/num_ags*(agno+1)-1;
+	update_pui(&prog, prog_cur_block, prog_cur_block, 0);
     }
 
     for(current_block = 0; current_block <= image_hdr.totalblock; current_block++){
@@ -478,7 +479,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     log_mesg(0, 0, 0, fs_opt.debug, "bused = %lli, bfree = %lli\n", bused, bfree);
 
     fs_close();
-    update_pui(&prog, 1, 1);
+    update_pui(&prog, 1, 1, 1);
 
 }
 

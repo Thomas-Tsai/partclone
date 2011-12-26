@@ -81,7 +81,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     
     /// init progress
     progress_bar   bprog;	/// progress_bar structure defined in progress.h
-    progress_init(&bprog, start, fs->super->s_v1.sb_block_count, bit_size);
+    progress_init(&bprog, start, fs->super->s_v1.sb_block_count, fs->super->s_v1.sb_block_count, BITMAP, bit_size);
 
     for( blk = 0; blk < (unsigned long long)fs->super->s_v1.sb_block_count; blk++ ){
 	
@@ -95,7 +95,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	    pc_clear_bit(blk, bitmap);
 	}
 	/// update progress
-	update_pui(&bprog, blk, done);
+	update_pui(&bprog, blk, blk, done);
 
     }
 
@@ -104,8 +104,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     fs_close();
     /// update progress
-    done = 1;
-    update_pui(&bprog, 1, done);
+    update_pui(&bprog, 1, 1, 1);
 
 }
 

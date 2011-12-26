@@ -1,6 +1,16 @@
+2011-12-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add thread to dd, restore and chkimg
+
+2011-12-26  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add thread to display progress, draft
+
+	update progress bar
+
 2011-12-23  Thomas Tsai  <thomas@nchc.org.tw>
 
-	Merge branch 'master' into debian-sid
+	add block status
 
 	update progress seeking at 100%
 

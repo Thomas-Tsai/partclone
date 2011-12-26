@@ -372,7 +372,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
-    progress_init(&prog, start, cluster_count, bit_size);
+    progress_init(&prog, start, cluster_count, image_hdr.totalblock, BITMAP, bit_size);
 
     /// init bitmap
     memset(bitmap, 0xFF, sizeof(unsigned long)*LONGS(total_sector));
@@ -408,14 +408,14 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
         } else 
             log_mesg(2, 0, 0, fs_opt.debug, "%s: error fs\n", __FILE__);
         /// update progress
-        update_pui(&prog, i, 0);//keep update
+        update_pui(&prog, i, i, 0);//keep update
     }
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s: done\n", __FILE__);
     fs_close();
 
     /// update progress
-    update_pui(&prog, 1, 1);//finish
+    update_pui(&prog, 1, 1, 1);//finish
 }
 
 /// get_used_block - get FAT used blocks
