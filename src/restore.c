@@ -24,11 +24,18 @@
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 /**
  * progress.h - only for progress bar
  */
 #include "progress.h"
+
+void *thread_update_pui(void *arg);
+progress_bar    prog;           /// progress_bar structure defined in progress.h
+unsigned long long copied;
+unsigned long long block_id;
+int done;
 
 /**
  * partclone.h - include some structures like image_head, opt_cmd, ....
@@ -52,7 +59,7 @@ int main(int argc, char **argv){
     char*		buffer2;			/// buffer data for malloc used
     int			dfr, dfw;		/// file descriptor for source and target
     int			r_size, w_size;		/// read and write size
-    unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
+    //unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
     /// copied is copied block count
     off_t		offset = 0, sf = 0;	/// seek postition, lseek result
     int			start, stop;		/// start, range, stop number for progress bar
@@ -69,7 +76,7 @@ int main(int argc, char **argv){
     unsigned long	crc_ck2 = 0xffffffffL;	/// CRC32 check code for checking
     int			c_size;			/// CRC32 code size
     char*		crc_buffer;		/// buffer data for malloc crc code
-    int			done = 0;
+    //int			done = 0;
     int			s_count = 0;
     int			tui = 0;		/// text user interface
     int			pui = 0;		/// progress mode(default text)
@@ -79,8 +86,11 @@ int main(int argc, char **argv){
     unsigned long long	next_block_id;
     char*		cache_buffer;
     int			nx_current=0;
-
-    progress_bar	prog;			/// progress_bar structure defined in progress.h
+    pthread_t prog_thread;
+    int pres;
+    void *p_result;
+	
+    //progress_bar	prog;			/// progress_bar structure defined in progress.h
     image_head		image_hdr;		/// image_head structure defined in partclone.h
 
     /**
@@ -234,6 +244,11 @@ int main(int argc, char **argv){
     copied = 0;				/// initial number is 0
 
     /**
+     * thread to print progress
+     */
+    pres = pthread_create(&prog_thread, NULL, thread_update_pui, NULL);
+
+    /**
      * start read and write data between device and image file
      */
     if ((opt.restore) && (!raw)) {
@@ -381,8 +396,8 @@ int main(int argc, char **argv){
 #endif
 		}
 	    }
-	    if (!opt.quiet)
-		update_pui(&prog, copied, block_id, done);
+	    //if (!opt.quiet)
+	//	update_pui(&prog, copied, block_id, done);
 	} // end of for
 	/// free buffer
 	free(cache_buffer);
@@ -449,8 +464,8 @@ int main(int argc, char **argv){
 	    total_write += (unsigned long long)(w_size);	/// count copied size
 	    log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
 
-	    if (!opt.quiet)
-		update_pui(&prog, copied, block_id, done);
+	    //if (!opt.quiet)
+		//update_pui(&prog, copied, block_id, done);
 	} while (done == 0);/// end of for    
 	sync_data(dfw, &opt);	
 	/// free buffer
@@ -468,3 +483,13 @@ int main(int argc, char **argv){
 	close_log();
     return 0;	    /// finish
 }
+
+void *thread_update_pui(void *arg){
+
+    while (done == 0) {
+	if(!opt.quiet)
+	    update_pui(&prog, copied, block_id, done);
+    }
+    pthread_exit("exit");
+}
+

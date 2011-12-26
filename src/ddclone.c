@@ -24,11 +24,17 @@
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 /**
  * progress.h - only for progress bar
  */
 #include "progress.h"
+void *thread_update_pui(void *arg);
+progress_bar    prog;           /// progress_bar structure defined in progress.h
+unsigned long long copied;
+unsigned long long block_id;
+int done;
 
 /**
  * partclone.h - include some structures like image_head, opt_cmd, ....
@@ -50,7 +56,7 @@ int main(int argc, char **argv){
     char*		buffer;			/// buffer data for malloc used
     int			dfr, dfw;		/// file descriptor for source and target
     int			r_size, w_size;		/// read and write size
-    unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
+    //unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
     /// copied is copied block count
     off_t		offset = 0, sf = 0;	/// seek postition, lseek result
     int			start, stop;		/// start, range, stop number for progress bar
@@ -61,12 +67,15 @@ int main(int argc, char **argv){
     char		bitmagic_r[8];		/// read magic string from image
     int			cmp;			/// compare magic string
     int			debug = 0;		/// debug or not
-    int			done = 0;
+    //int			done = 0;
     int			s_count = 0;
     int			rescue_num = 0;
     unsigned long long	rescue_pos = 0;
     int			tui = 0;		/// text user interface
     int			pui = 0;		/// progress mode(default text)
+    int pres;
+    pthread_t prog_thread;
+    void *p_result;
     char *bad_sectors_warning_msg =
         "*************************************************************************\n"
         "* WARNING: The disk has bad sector. This means physical damage on the   *\n"
@@ -75,8 +84,10 @@ int main(int argc, char **argv){
         "* Use the --rescue option to efficiently save as much data as possible! *\n"
         "*************************************************************************\n";
 
-    progress_bar	prog;			/// progress_bar structure defined in progress.h
+    //progress_bar	prog;			/// progress_bar structure defined in progress.h
     image_head		image_hdr;		/// image_head structure defined in partclone.h
+
+
 
     /**
      * get option and assign to opt structure
@@ -184,6 +195,11 @@ int main(int argc, char **argv){
     copied = 0;				/// initial number is 0
 
     /**
+     * thread to print progress
+     */
+    pres = pthread_create(&prog_thread, NULL, thread_update_pui, NULL);
+
+    /**
      * start read and write data between device and image file
      */
 
@@ -255,8 +271,8 @@ int main(int argc, char **argv){
             log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
         log_mesg(1, 0, 0, debug, "end\n");
         block_id++;
-	if (!opt.quiet)
-	    update_pui(&prog, copied, block_id, done);
+	//if (!opt.quiet)
+	    //update_pui(&prog, copied, block_id, done);
     } while (done == 0);/// end of for    
     sync_data(dfw, &opt);	
     /// free buffer
@@ -272,3 +288,12 @@ int main(int argc, char **argv){
         close_log();
     return 0;	    /// finish
 }
+void *thread_update_pui(void *arg){
+
+    while (done == 0) {
+	if(!opt.quiet)
+	    update_pui(&prog, copied, block_id, done);
+    }
+    pthread_exit("exit");
+}
+

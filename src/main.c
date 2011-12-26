@@ -409,6 +409,11 @@ int main(int argc, char **argv){
     copied = 0;				/// initial number is 0
 
     /**
+     * thread to print progress
+     */
+    pres = pthread_create(&prog_thread, NULL, thread_update_pui, NULL);
+
+    /**
      * start read and write data between device and image file
      */
     if (opt.clone) {
@@ -547,12 +552,6 @@ int main(int argc, char **argv){
         /// start restore image file to partition
         log_mesg(1, 0, 0, debug, "start restore data...\n");
 
-	/**
-	 * thread to print progress
-	 */
-	pres = pthread_create(&prog_thread, NULL, thread_update_pui, NULL);
-
-	//pres = pthread_join(prog_thread, &p_result);
         for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
 
             r_size = 0;

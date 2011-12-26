@@ -25,12 +25,18 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <pthread.h>
 #include "version.h"
 
 /**
  * progress.h - only for progress bar
  */
 #include "progress.h"
+void *thread_update_pui(void *arg);
+progress_bar    prog;           /// progress_bar structure defined in progress.h
+unsigned long long copied;
+unsigned long long block_id;
+int done;
 
 /**
  * partclone.h - include some structures like image_head, opt_cmd, ....
@@ -152,7 +158,7 @@ int main(int argc, char **argv){
     int			r_size;		/// read and write size
     char*		buffer;		/// buffer data
     char*		buffer2;		/// buffer data
-    unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
+    //unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
     /// copied is copied block count
     off_t		offset = 0, sf = 0;	/// seek postition, lseek result
     int			start, stop;		/// start, range, stop number for progress bar
@@ -166,7 +172,7 @@ int main(int argc, char **argv){
     unsigned long	crc_ck2 = 0xffffffffL;	/// CRC32 check code for checking
     int			c_size;			/// CRC32 code size
     char*		crc_buffer;		/// buffer data for malloc crc code
-    int			done = 0;
+    //int			done = 0;
     int			s_count = 0;
     int			rescue_num = 0;
     int			tui = 0;		/// text user interface
@@ -174,7 +180,11 @@ int main(int argc, char **argv){
     int			raw = 0;
     char		image_hdr_magic[512];
 
-    progress_bar	prog;			/// progress_bar structure defined in progress.h
+    int pres;
+    pthread_t prog_thread;
+    void *p_result;
+
+    //progress_bar	prog;			/// progress_bar structure defined in progress.h
     image_head		image_hdr;		/// image_head structure defined in partclone.h
 
     /**
@@ -283,6 +293,11 @@ int main(int argc, char **argv){
     copied = 1;				/// initial number is 1
 
     /**
+     * thread to print progress
+     */
+    pres = pthread_create(&prog_thread, NULL, thread_update_pui, NULL);
+
+    /**
      * start read and write data between device and image file
      */
 
@@ -364,7 +379,7 @@ int main(int argc, char **argv){
             log_mesg(1, 0, 0, debug, "end\n");
         }
 
-	update_pui(&prog, copied, block_id, done);
+	//update_pui(&prog, copied, block_id, done);
     } // end of for
     done = 1;
     update_pui(&prog, copied, block_id, done);
@@ -378,3 +393,13 @@ int main(int argc, char **argv){
         close_log();
     return 0;	    /// finish
 }
+
+void *thread_update_pui(void *arg){
+
+    while (done == 0) {
+	if(!opt.quiet)
+	    update_pui(&prog, copied, block_id, done);
+    }
+    pthread_exit("exit");
+}
+
