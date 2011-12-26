@@ -25,11 +25,19 @@
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 /**
  * progress.h - only for progress bar
  */
 #include "progress.h"
+
+void *thread_update_pui(void *arg);
+progress_bar	prog;		/// progress_bar structure defined in progress.h
+unsigned long long copied;
+unsigned long long block_id;
+int done;
+
 
 /**
  * partclone.h - include some structures like image_head, opt_cmd, ....
@@ -98,7 +106,7 @@ int main(int argc, char **argv){
     char*		buffer2;			/// buffer data for malloc used
     int			dfr, dfw;		/// file descriptor for source and target
     int			r_size, w_size;		/// read and write size
-    unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
+    //unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
     /// copied is copied block count
     off_t		offset = 0, sf = 0;	/// seek postition, lseek result
     int			start, stop;		/// start, range, stop number for progress bar
@@ -116,7 +124,7 @@ int main(int argc, char **argv){
     int			c_size;			/// CRC32 code size
     int			n_crc_size = CRC_SIZE;
     char*		crc_buffer;		/// buffer data for malloc crc code
-    int			done = 0;
+    //int			done = 0;
     int			s_count = 0;
     int			rescue_num = 0;
     unsigned long long			rescue_pos = 0;
@@ -128,6 +136,9 @@ int main(int argc, char **argv){
     char*               cache_buffer;
     int                 nx_current=0;
     char                bbuffer[4096];
+    int pres;
+    pthread_t prog_thread;
+    void *p_result;
 
     char *bad_sectors_warning_msg =
         "*************************************************************************\n"
@@ -389,7 +400,7 @@ int main(int argc, char **argv){
     /**
      * initial progress bar
      */
-    progress_bar	prog;		/// progress_bar structure defined in progress.h
+    //progress_bar	prog;		/// progress_bar structure defined in progress.h
     start = 0;				/// start number of progress bar
     stop = (image_hdr.usedblocks);	/// get the end of progress number, only used block
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
@@ -535,6 +546,13 @@ int main(int argc, char **argv){
 
         /// start restore image file to partition
         log_mesg(1, 0, 0, debug, "start restore data...\n");
+
+	/**
+	 * thread to print progress
+	 */
+	pres = pthread_create(&prog_thread, NULL, thread_update_pui, NULL);
+
+	//pres = pthread_join(prog_thread, &p_result);
         for( block_id = 0; block_id < image_hdr.totalblock; block_id++ ){
 
             r_size = 0;
@@ -655,8 +673,8 @@ int main(int argc, char **argv){
 #endif
 		}
             }
-	    if (!opt.quiet)
-		update_pui(&prog, copied, block_id, done);
+	    //if (!opt.quiet)
+		//update_pui(&prog, copied, block_id, done);
         } // end of for
 	/// free buffer
 	free(buffer);
@@ -801,4 +819,13 @@ int main(int argc, char **argv){
     muntrace();
 #endif
     return 0;	    /// finish
+}
+
+void *thread_update_pui(void *arg){
+
+    while (done == 0) {
+        if(!opt.quiet)
+		update_pui(&prog, copied, block_id, done);
+    }
+    pthread_exit("exit");
 }
