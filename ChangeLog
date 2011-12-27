@@ -2,6 +2,12 @@
 
 	Merge branch 'master' into debian-sid
 
+	0.2.42
+
+	add finish progress to dd
+
+	release 0.2.41
+
 	0.2.41
 
 	add thread to dd, restore and chkimg

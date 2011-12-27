@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.2.41], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.2.42], [thomas@nchc.org.tw])
 #AC_CONFIG_AUX_DIR([build-aux])
 #AC CONFIG SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
