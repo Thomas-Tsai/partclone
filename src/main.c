@@ -136,6 +136,7 @@ int main(int argc, char **argv){
     char*               cache_buffer;
     int                 nx_current=0;
     char                bbuffer[4096];
+    int flag;
     int pres;
     pthread_t prog_thread;
     void *p_result;
@@ -405,7 +406,11 @@ int main(int argc, char **argv){
     stop = (image_hdr.usedblocks);	/// get the end of progress number, only used block
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
-    progress_init(&prog, start, stop, image_hdr.totalblock, IO, image_hdr.block_size);
+    if (opt.no_block_detail)
+	flag = NO_BLOCK_DETAIL;
+    else
+	flag = IO;
+    progress_init(&prog, start, stop, image_hdr.totalblock, flag, image_hdr.block_size);
     copied = 0;				/// initial number is 0
 
     /**
@@ -514,14 +519,8 @@ int main(int argc, char **argv){
                 log_mesg(2, 0, 0, debug, "end\n");
 #endif
             }
-	    if (!opt.quiet)
-		update_pui(&prog, copied, block_id, done);
         } /// end of for    
-	done = 1;
-	update_pui(&prog, copied, block_id, done);
-        sync_data(dfw, &opt);	
-        free(buffer);
-
+	free(buffer);
     } else if (opt.restore) {
 
         /**
@@ -672,14 +671,8 @@ int main(int argc, char **argv){
 #endif
 		}
             }
-	    //if (!opt.quiet)
-		//update_pui(&prog, copied, block_id, done);
         } // end of for
-	/// free buffer
 	free(buffer);
-	done = 1;
-	update_pui(&prog, copied, block_id, done);
-        sync_data(dfw, &opt);	
     } else if (opt.dd){
         sf = lseek(dfr, 0, SEEK_SET);
         log_mesg(1, 0, 0, debug, "seek %lli for reading data string\n",sf);
@@ -764,11 +757,7 @@ int main(int argc, char **argv){
 	    if (!opt.quiet)
 		update_pui(&prog, copied, block_id, done);
         } /// end of for
-	done = 1;
-	update_pui(&prog, copied, block_id, done);
-	/// free buffer
 	free(buffer);
-        sync_data(dfw, &opt);
     } else if (opt.domain) {
         log_mesg(0, 0, 0, debug, "Total block %i\n", image_hdr.totalblock);
         log_mesg(1, 0, 0, debug, "start writing domain log...\n");
@@ -800,11 +789,12 @@ int main(int argc, char **argv){
             }
             // don't bother updating progress
         } /// end of for
-        done = 1;
-        update_pui(&prog, copied, block_id, done);
-        sync_data(dfw, &opt);
     }
 
+    done = 1;
+    pres = pthread_join(prog_thread, &p_result);
+    update_pui(&prog, copied, block_id, done);
+    sync_data(dfw, &opt);	
     print_finish_info(opt);
 
     close (dfr);    /// close source

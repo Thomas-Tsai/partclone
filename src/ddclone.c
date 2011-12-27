@@ -73,6 +73,7 @@ int main(int argc, char **argv){
     unsigned long long	rescue_pos = 0;
     int			tui = 0;		/// text user interface
     int			pui = 0;		/// progress mode(default text)
+    int	flag;
     int pres;
     pthread_t prog_thread;
     void *p_result;
@@ -191,7 +192,11 @@ int main(int argc, char **argv){
     stop = (image_hdr.usedblocks+1);	/// get the end of progress number, only used block
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
-    progress_init(&prog, start, stop, image_hdr.totalblock, IO, image_hdr.block_size);
+    if (opt.no_block_detail)
+	flag = NO_BLOCK_DETAIL;
+    else
+	flag = IO;
+    progress_init(&prog, start, stop, image_hdr.totalblock, flag, image_hdr.block_size);
     copied = 0;				/// initial number is 0
 
     /**
@@ -274,6 +279,7 @@ int main(int argc, char **argv){
 	//if (!opt.quiet)
 	    //update_pui(&prog, copied, block_id, done);
     } while (done == 0);/// end of for    
+    pres = pthread_join(prog_thread, &p_result);
     update_pui(&prog, copied, block_id, done);
     sync_data(dfw, &opt);	
     /// free buffer
