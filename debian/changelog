@@ -1,3 +1,9 @@
+partclone (0.2.43) sid; urgency=low
+
+  * 0.2.43
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 27 Dec 2011 16:25:57 +0800
+
 partclone (0.2.42) sid; urgency=low
 
   * add option B to disable block detail; old progress style.
