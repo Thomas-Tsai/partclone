@@ -1,16 +1,10 @@
 2011-12-27  Thomas Tsai  <thomas@nchc.org.tw>
 
-	Merge branch 'master' into debian-sid
-
 	add option B to disable block detail
-
-	release 0.2.42
 
 	0.2.42
 
 	add finish progress to dd
-
-	release 0.2.41
 
 	0.2.41
 
