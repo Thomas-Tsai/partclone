@@ -86,6 +86,7 @@ int main(int argc, char **argv){
     unsigned long long	next_block_id;
     char*		cache_buffer;
     int			nx_current=0;
+    int	flag;
     pthread_t prog_thread;
     int pres;
     void *p_result;
@@ -240,7 +241,11 @@ int main(int argc, char **argv){
     stop = (image_hdr.usedblocks+1);	/// get the end of progress number, only used block
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
-    progress_init(&prog, start, stop, image_hdr.totalblock, IO, image_hdr.block_size);
+    if (opt.no_block_detail)
+	flag = NO_BLOCK_DETAIL;
+    else
+	flag = IO;
+    progress_init(&prog, start, stop, image_hdr.totalblock, flag, image_hdr.block_size);
     copied = 0;				/// initial number is 0
 
     /**
@@ -403,6 +408,7 @@ int main(int argc, char **argv){
 	free(cache_buffer);
 	free(buffer);
 	done = 1;
+	pres = pthread_join(prog_thread, &p_result);
 	update_pui(&prog, copied, block_id, done);
 	sync_data(dfw, &opt);	
     } else if ((opt.restore) && (raw)){
@@ -467,6 +473,7 @@ int main(int argc, char **argv){
 	    //if (!opt.quiet)
 		//update_pui(&prog, copied, block_id, done);
 	} while (done == 0);/// end of for    
+	pres = pthread_join(prog_thread, &p_result);
 	update_pui(&prog, copied, block_id, done);
 	sync_data(dfw, &opt);	
 	/// free buffer

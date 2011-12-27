@@ -61,6 +61,7 @@
 // progress flag
 #define BITMAP 1
 #define IO 2
+#define NO_BLOCK_DETAIL 3
 
 char *EXECNAME;
 
@@ -91,6 +92,7 @@ struct cmd_opt
     int ignore_fschk;
     int ignore_crc;
     int quiet;
+    int no_block_detail;
     int restore_row_file;
     unsigned long fresh;
     unsigned long long offset_domain;

@@ -1,4 +1,4 @@
-/**
+    /**
  * partclone.c - Part of Partclone project.
  *
  * Copyright (c) 2007~ Thomas Tsai <thomas at nchc org tw>
@@ -101,7 +101,7 @@ extern void usage(void)
             "\n"
             "    -o,  --output FILE      Output FILE\n"
             "    -O   --overwrite FILE   Output FILE, overwriting if exists\n"
-            "         --restore_row_file create special row file for loop device\n"
+            "    -W   --restore_row_file create special row file for loop device\n"
             "    -s,  --source FILE      Source FILE\n"
             "    -L,  --logfile FILE     Log FILE\n"
 #ifndef	RESTORE
@@ -118,11 +118,12 @@ extern void usage(void)
             "    -N,  --ncurses          Using Ncurses User Interface\n"
 #endif
             "    -I,  --ignore_fschk     Ignore filesystem check\n"
-	    "         --ignore_crc       Ignore crc check error\n"
+	    "    -i,  --ignore_crc       Ignore crc check error\n"
             "    -F,  --force            Force progress\n"
             "    -f,  --UI-fresh         Fresh times of progress\n"
             "    -m,  --max_block_cache  The used block will be cache until max number\n"
             "    -q,  --quiet		 Disable progress message\n"
+            "    -B,  --no_block_detail  Show progress message without block detail\n"
             "    -v,  --version          Display partclone version\n"
             "    -h,  --help             Display this help\n"
             , EXECNAME, VERSION, EXECNAME);
@@ -140,7 +141,7 @@ enum {
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hvd::L:cbrDo:O:s:f:m:RCXFINiql";
+    static const char *sopt = "-hvd::L:cbrDo:O:s:f:m:RCXFINiqWB";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "print_version",	no_argument,	    NULL,   'v' },
@@ -148,7 +149,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "overwrite",		required_argument,  NULL,   'O' },
         { "source",		required_argument,  NULL,   's' },
         { "restore-image",	no_argument,	    NULL,   'r' },
-        { "restore_row_file",	no_argument,	    NULL,   'l' },
+        { "restore_row_file",	no_argument,	    NULL,   'W' },
         { "clone-image",	no_argument,	    NULL,   'c' },
         { "dev-to-dev",		no_argument,	    NULL,   'b' },
         { "domain",		no_argument,	    NULL,   'D' },
@@ -163,6 +164,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 	{ "ignore_crc",		no_argument,	    NULL,   'i' },
         { "force",		no_argument,	    NULL,   'F' },
         { "quiet",		no_argument,	    NULL,   'q' },
+        { "no_block_detail",	no_argument,	    NULL,   'B' },
 #ifdef HAVE_LIBNCURSESW
         { "ncurses",		no_argument,	    NULL,   'N' },
 #endif
@@ -178,6 +180,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     opt->check = 1;
     opt->ignore_crc = 0;
     opt->quiet = 0;
+    opt->no_block_detail = 0;
     opt->logfile = "/var/log/partclone.log";
 
 #ifdef RESTORE
@@ -243,11 +246,14 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
             case 'i':
                 opt->ignore_crc = 1;
                 break;
-            case 'l':
+            case 'W':
                 opt->restore_row_file = 1;
                 break;
             case 'q':
                 opt->quiet = 1;
+                break;
+            case 'B':
+                opt->no_block_detail = 1;
                 break;
             case 'R':
                 opt->rescue++;

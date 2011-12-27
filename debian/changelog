@@ -1,9 +1,10 @@
 partclone (0.2.42) sid; urgency=low
 
+  * add option B to disable block detail; old progress style.
   * add finish progress to dd
   * 0.2.42
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 27 Dec 2011 10:45:35 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 27 Dec 2011 15:58:55 +0800
 
 partclone (0.2.41) sid; urgency=low
 
