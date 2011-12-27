@@ -181,20 +181,20 @@ extern void progress_update(struct progress_bar *prog, unsigned long long copied
 
 	fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed: %6.2f%%"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
 
-	if(prog->flag == IO) {
+	if((prog->flag == IO) || (prog->flag == NO_BLOCK_DETAIL))
 	    fprintf(stderr, _(", %6.2f%s/min,"), prog_stat.speed, prog_stat.speed_unit);
+	if(prog->flag == IO)
 	    fprintf(stderr, "\n\r%80c\rcurrent block: %10lld, total block: %10lld, Complete: %6.2f%%%s\r", clear_buf, current, prog->total, prog_stat.total_percent, "\x1b[A");
-	}
     } else {
 	setlocale(LC_ALL, "");
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 
 	fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed: 100.00%%"), clear_buf, prog_stat.Eformated, prog_stat.Rformated);
-	if(prog->flag == IO){
+	if((prog->flag == IO) || (prog->flag == NO_BLOCK_DETAIL))
 	    fprintf(stderr, _(", Rate: %6.2f%s/min,"), prog_stat.speed, prog_stat.speed_unit);
+	if(prog->flag == IO)
 	    fprintf(stderr, "\n\r%80c\rcurrent block: %10lld, total block: %10lld, Complete: 100.00%%\r", clear_buf, current, prog->total);
-	}
 
         fprintf(stderr, _("\nTotal Time: %s, "), prog_stat.Eformated);
 	if(prog->flag == IO)
@@ -227,10 +227,10 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 	prog->resolution_time = time(0);
 
         mvwprintw(p_win, 0, 0, _("Elapsed: %s Remaining: %s ") , prog_stat.Eformated, prog_stat.Rformated);
-	if (prog->flag == IO){
+	if((prog->flag == IO) || (prog->flag == NO_BLOCK_DETAIL))
 	    mvwprintw(p_win, 0, 40, _("Rate: %6.2f%s/min"), prog_stat.speed, prog_stat.speed_unit);
+	if (prog->flag == IO)
 	    mvwprintw(p_win, 1, 0, _("Current Block: %lld  Total Block: %lld ") , current, prog->total);
-	}
         p_block = calloc(sizeof(char), 50);
         t_block = calloc(sizeof(char), 50);
         memset(p_block, ' ', (size_t)(prog_stat.percent*0.5));
@@ -262,7 +262,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
         wrefresh(tbar_win);
     } else {
         mvwprintw(p_win, 0, 0, _("Total Time: %s Remaining: %s "), prog_stat.Eformated, prog_stat.Rformated);
-	if (prog->flag == IO)
+	if((prog->flag == IO) || (prog->flag == NO_BLOCK_DETAIL))
 	    mvwprintw(p_win, 1, 0, _("Ave. Rate: %6.2f%s/min"), prog_stat.speed, prog_stat.speed_unit);
 
 	if (prog->flag == IO)

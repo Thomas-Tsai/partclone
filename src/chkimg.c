@@ -63,6 +63,7 @@ static void usage_chkimg(void)
 #endif
             "    -F,  --force            force progress\n"
 	    "         --ignore_crc       Ignore crc check error\n"
+	    "    -B,  --no_block_detail  Show progress without block detail\n"
             "    -f,  --UI-fresh         fresh times of progress\n"
             "    -h,  --help             Display this help\n"
             , EXECNAME, VERSION, EXECNAME);
@@ -70,7 +71,7 @@ static void usage_chkimg(void)
 }
 
 static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
-    static const char *sopt = "-hd::L:s:f:CXFNi";
+    static const char *sopt = "-hd::L:s:f:CXFNiB";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "source",		required_argument,  NULL,   's' },
@@ -80,6 +81,7 @@ static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
         { "logfile",	required_argument,  NULL,   'L' },
         { "force",		no_argument,	    NULL,   'F' },
 	{ "ignore_crc",     no_argument,    NULL,   'i' },
+	{ "no_block_detail",     no_argument,    NULL,   'B' },
 #ifdef HAVE_LIBNCURSESW
         { "ncurses",		no_argument,	    NULL,   'N' },
 #endif
@@ -93,6 +95,7 @@ static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
     option->restore = 1;
     option->chkimg = 1;
     option->ignore_crc = 0;
+    option->no_block_detail = 0;
     option->logfile = "/var/log/partclone.log";
     while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != (char)-1) {
         switch (c) {
@@ -122,6 +125,9 @@ static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
 		break;
 	    case 'i':
 		option->ignore_crc = 1;
+		break;
+	    case 'B':
+		option->no_block_detail = 1;
 		break;
 #ifdef HAVE_LIBNCURSESW
             case 'N':
@@ -178,6 +184,7 @@ int main(int argc, char **argv){
     int			tui = 0;		/// text user interface
     int			pui = 0;		/// progress mode(default text)
     int			raw = 0;
+    int			flag = 0;
     char		image_hdr_magic[512];
 
     int pres;
@@ -289,7 +296,11 @@ int main(int argc, char **argv){
     stop = image_hdr.usedblocks;	/// get the end of progress number, only used block
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
-    progress_init(&prog, start, stop, image_hdr.totalblock, IO, image_hdr.block_size);
+    if (opt.no_block_detail)
+	flag = NO_BLOCK_DETAIL;
+    else
+	flag = IO;
+    progress_init(&prog, start, stop, image_hdr.totalblock, flag, image_hdr.block_size);
     copied = 0;
 
     /**
@@ -382,6 +393,7 @@ int main(int argc, char **argv){
 	//update_pui(&prog, copied, block_id, done);
     } // end of for
     done = 1;
+    pres = pthread_join(prog_thread, &p_result);
     update_pui(&prog, copied, block_id, done);
     print_finish_info(opt);
 
