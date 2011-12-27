@@ -1,5 +1,13 @@
 2011-12-27  Thomas Tsai  <thomas@nchc.org.tw>
 
+	add option B to disable block detail
+
+	0.2.42
+
+	add finish progress to dd
+
+	0.2.41
+
 	add thread to dd, restore and chkimg
 
 2011-12-26  Thomas Tsai  <thomas@nchc.org.tw>
