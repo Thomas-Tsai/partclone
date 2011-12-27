@@ -290,7 +290,7 @@ int main(int argc, char **argv){
     log_mesg(1, 0, 0, debug, "Initial Progress bar\n");
     /// Initial progress bar
     progress_init(&prog, start, stop, image_hdr.totalblock, IO, image_hdr.block_size);
-    copied = 1;				/// initial number is 1
+    copied = 0;
 
     /**
      * thread to print progress
