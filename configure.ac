@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.2.44], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.2.45], [thomas@nchc.org.tw])
 #AC_CONFIG_AUX_DIR([build-aux])
 #AC CONFIG SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -322,7 +322,9 @@ elif test "$ntfsprogs_h" = 1 -a "$ntfsprogs_l" = 1; then
     fi
     define_ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor"
 else
-    AC_MSG_ERROR(Can't find ntfs library!)
+    if test "$enable_ntfs" = "yes"; then
+	AC_MSG_ERROR(Can't find ntfs library!)
+    fi
 fi
 #end of check ntfs
 

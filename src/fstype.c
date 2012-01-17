@@ -3,6 +3,7 @@
 //#include <vmfs/vmfs_fs.h>
 
 vmfs_fs_t *fs;
+vmfs_volume_t *vol;
 vmfs_dir_t *root_dir;
 
 /// open device
@@ -18,6 +19,17 @@ static int pvmfs_fs_open(char** device){
 	fprintf(stderr, "type: Unable to open volume.\n");
 	return 1;
     }
+    
+    vol = vmfs_vol_open(*device, flags);
+
+    /* Read FS info */
+    /*
+    if (vmfs_fsinfo_read(fs) == -1) {
+	fprintf(stderr,"VMFS: Unable to read FS information\n");
+	vmfs_fs_close(fs);
+	return NULL;
+    }
+    */
 
     if (!(root_dir = vmfs_dir_open_from_blkid(fs,VMFS_BLK_FD_BUILD(0,0)))) {
 	fprintf(stderr, "Unable to open root directory\n");
@@ -47,7 +59,7 @@ int main (int argc, char **argv){
     source=&argv[1];
     ret = pvmfs_fs_open(source);
     if(ret == 0){
-	fprintf(stdout, "TYPE=\"vmfs\"\n");
+	fprintf(stdout, "TYPE=\"vmfs%i\"\n", vol->vol_info.version);
     }else{
         fprintf(stderr, "error exit\n");
 	return 1;
