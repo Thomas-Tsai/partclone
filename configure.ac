@@ -37,6 +37,7 @@ fi
 
 dnl Check for uuid 
 PKG_CHECK_MODULES(UUID, uuid,,exit)
+uuidcfg=`pkg-config --cflags --libs uuid`
 
 AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([*** pthread library (libpthread) not found]))
 
@@ -368,7 +369,8 @@ AC_CHECKING([for VMFS Library files ... ])
 AC_CHECK_LIB([vmfs -luuid], [vmfs_host_init], true,
         AC_MSG_ERROR([*** vmfs depend library (libvmfs) not found]))
 supported_fs=$supported_fs" vmfs"
-vmfs_version="unknown, suggest 0.2.0"
+vmfs_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lvmfs -DVMFS $uuidcfg`
+vmfs_version=`$srcdir/get_lib_version vmfs`
 fi
 #end of check vmfs
 

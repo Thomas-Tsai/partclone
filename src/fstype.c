@@ -15,21 +15,34 @@ static int pvmfs_fs_open(char** device){
     flags.packed = 0;
     flags.allow_missing_extents = 1;
 
+#ifdef VMFS5_ZLA_BASE
     if (!(fs = vmfs_fs_open(device, flags))) {
+	fprintf(stderr, "type: Unable to open volume (vmfs5).\n");
+	return 1;
+    }
+    vol = vmfs_vol_open(*device, flags);
+#else
+    if (!(lvm = vmfs_lvm_create(flags))) {
+	fprintf(stderr, "Unable to create LVM structure\n");
+	return 1;
+    }
+    vol = vmfs_vol_open(*device, flags);
+    if (vmfs_lvm_add_extent(lvm, vol) == -1) {
+	fprintf(stderr, "Unable to open device/file \"%s\".\n", device);
+	return 1;
+    }
+
+    if (!(fs = vmfs_fs_create(lvm))) {
+	fprintf(stderr, "Unable to open filesystem\n");
+	return 1;
+    }
+
+    if (vmfs_fs_open(fs) == -1) {
+
 	fprintf(stderr, "type: Unable to open volume.\n");
 	return 1;
     }
-    
-    vol = vmfs_vol_open(*device, flags);
-
-    /* Read FS info */
-    /*
-    if (vmfs_fsinfo_read(fs) == -1) {
-	fprintf(stderr,"VMFS: Unable to read FS information\n");
-	vmfs_fs_close(fs);
-	return NULL;
-    }
-    */
+#endif
 
     if (!(root_dir = vmfs_dir_open_from_blkid(fs,VMFS_BLK_FD_BUILD(0,0)))) {
 	fprintf(stderr, "Unable to open root directory\n");
@@ -47,7 +60,7 @@ static void pvmfs_vmfs_close(){
 }
 
 int main (int argc, char **argv){
-    
+
     char* source;			/// source data
     int ret;
 
@@ -61,7 +74,7 @@ int main (int argc, char **argv){
     if(ret == 0){
 	fprintf(stdout, "TYPE=\"vmfs%i\"\n", vol->vol_info.version);
     }else{
-        fprintf(stderr, "error exit\n");
+	fprintf(stderr, "error exit\n");
 	return 1;
     }
 
