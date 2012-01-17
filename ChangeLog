@@ -1,6 +1,16 @@
+2012-01-17  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.44
+
+	update pui for mode dev-yo-dev
+
+2012-01-05  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update for vmfs
+
 2011-12-27  Thomas Tsai  <thomas@nchc.org.tw>
 
-	Merge branch 'master' into debian-sid
+	release 0.2.43
 
 	0.2.43
 

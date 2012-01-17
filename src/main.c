@@ -754,8 +754,6 @@ int main(int argc, char **argv){
                     log_mesg(0, 1, 1, debug, "clone seek error %lli errno=%i\n", (long long)offset, (int)errno);
 #endif
             }
-	    if (!opt.quiet)
-		update_pui(&prog, copied, block_id, done);
         } /// end of for
 	free(buffer);
     } else if (opt.domain) {

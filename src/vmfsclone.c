@@ -57,7 +57,7 @@ static void fs_close(){
 /// readbitmap - read bitmap
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
-    uint32_t current, used_block, free_block, err_block, total, alloc;
+    uint32_t current = 0, used_block = 0, free_block = 0, err_block = 0, total = 0, alloc = 0;
     int status = 0;
     int start = 0;
     int bit_size = 1;
@@ -83,14 +83,14 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	    pc_clear_bit(current, bitmap);
 	}
 
-	log_mesg(2, 0, 0, fs_opt.debug, "%s: Block 0x%8.8x status:", __FILE__, current, status);
+	log_mesg(2, 0, 0, fs_opt.debug, "%s: Block 0x%8.8x status: %i\n", __FILE__, current, status);
 	update_pui(&prog, current, current, 0);
 
     }
     fs_close();
     update_pui(&prog, 1, 1, 1);
 
-    log_mesg(0, 0, 0, fs_opt.debug, "%s: Used:%u, Free:%u, Status err:%u\n", __FILE__, used_block, free_block, err_block);
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: Used:%lld, Free:%lld, Status err:%lld\n", __FILE__, used_block, free_block, err_block);
 
 }
 
