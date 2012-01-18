@@ -1,4 +1,12 @@
+2012-01-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'master' into debian-sid
+
+	add compatibility of vmfs3 and vmfs5
+
 2012-01-17  Thomas Tsai  <thomas@nchc.org.tw>
+
+	print vmfs version from fstype
 
 	release 0.2.44
 
