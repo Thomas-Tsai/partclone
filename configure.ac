@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.2.44], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.2.45], [thomas@nchc.org.tw])
 #AC_CONFIG_AUX_DIR([build-aux])
 #AC CONFIG SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -37,6 +37,7 @@ fi
 
 dnl Check for uuid 
 PKG_CHECK_MODULES(UUID, uuid,,exit)
+uuidcfg=`pkg-config --cflags --libs uuid`
 
 AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([*** pthread library (libpthread) not found]))
 
@@ -322,7 +323,9 @@ elif test "$ntfsprogs_h" = 1 -a "$ntfsprogs_l" = 1; then
     fi
     define_ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor"
 else
-    AC_MSG_ERROR(Can't find ntfs library!)
+    if test "$enable_ntfs" = "yes"; then
+	AC_MSG_ERROR(Can't find ntfs library!)
+    fi
 fi
 #end of check ntfs
 
@@ -366,7 +369,8 @@ AC_CHECKING([for VMFS Library files ... ])
 AC_CHECK_LIB([vmfs -luuid], [vmfs_host_init], true,
         AC_MSG_ERROR([*** vmfs depend library (libvmfs) not found]))
 supported_fs=$supported_fs" vmfs"
-vmfs_version="unknown, suggest 0.2.0"
+vmfs_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lvmfs -DVMFS $uuidcfg`
+vmfs_version=`$srcdir/get_lib_version vmfs`
 fi
 #end of check vmfs
 
