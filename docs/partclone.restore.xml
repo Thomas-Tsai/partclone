@@ -400,7 +400,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
   partclone.restore -d -s hda1.img -o /dev/hda1
 
  restore image from clonezilla(split, gzip,) with stdin source 
-  cat  sda1.ext3-ptcl-img.gz.a*  > gunzip -c | partclone.restore -d -s - -o /dev/sda1
+  cat  sda1.ext3-ptcl-img.gz.a*  | gunzip -c | partclone.restore -d -s - -o /dev/sda1
 
  restore  row  image  from  partclone.dd  
   partclone.dd  -d  -c  -s  /dev/sda1  -o  - | partclone.restore -d -s - -o /dev/sdb1

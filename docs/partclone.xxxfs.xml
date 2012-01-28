@@ -16,6 +16,8 @@ manual page with: nroff -man <package>.<section> | less'. A typical entry
 in a Makefile or Makefile.am is:
 
 DB2MAN = /usr/share/sgml/docbookstylesheet/xsl/docbook-xsl/manpages/docbook.xsl
+or
+DB2MAN = /usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
 XP     = xsltproc -''-nonet -''-param man.charmap.use.subset "0"
 
 manpage.1: manpage.xml
@@ -451,7 +453,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
    partclone.extfs -r -d -s hda1.img -o /dev/hda1
 
  restore image from clonezilla(split, gzip,) with stdin source
-   cat sda1.ext3-ptcl-img.gz.a* > gunzip -c | partclone.ext3 -d -r -s - -o /dev/sda1
+   cat sda1.ext3-ptcl-img.gz.a* | gunzip -c | partclone.ext3 -d -r -s - -o /dev/sda1
     </screen>
     </refsect1>
   <refsect1 id="diagnostics">
