@@ -11,6 +11,8 @@
 #elif FAT
 #elif NTFS
     #include <ntfs/version.h>
+#elif VMFS
+    #include <vmfs/vmfs.h>
 #endif
 
 int main(int argc, char **argv){
@@ -30,6 +32,8 @@ int main(int argc, char **argv){
 	err = libextfs_version();
     } else if (strcmp(libfs, "reiserfs") == 0) {
 	err = libreiserfs_version();
+    } else if (strcmp(libfs, "vmfs") == 0) {
+	err = libvmfs_version();
     } else if (strcmp(libfs, "reiser4") == 0) {
 	err = libpreiser4_version();
     }
@@ -39,6 +43,17 @@ int main(int argc, char **argv){
     }
     return 0;
 
+}
+
+int libvmfs_version(){
+#ifdef VMFS
+    char *version;
+    version = "0.2.0";
+#ifdef VMFS5_ZLA_BASE
+    version = "0.2.1";
+#endif
+    printf("%s\n", version);
+#endif
 }
 
 int libntfs_version(){
