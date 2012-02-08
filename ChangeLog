@@ -1,6 +1,22 @@
-2012-01-18  Thomas Tsai  <thomas@nchc.org.tw>
+2012-02-08  Thomas Tsai  <thomas@nchc.org.tw>
 
 	Merge branch 'master' into debian-sid
+
+	0.2.46
+
+	* accept patch from Rommer to update memory usage
+
+	* update document, some example error. * update vmfsclone to backup vmfs5 well
+
+2012-01-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	merge
+
+	update manpages
+
+2012-01-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.45
 
 	add compatibility of vmfs3 and vmfs5
 

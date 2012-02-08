@@ -1,3 +1,13 @@
+partclone (0.2.46) sid; urgency=low
+
+  * update manpages
+  * update document, some example error. 
+  * update vmfsclone to backup vmfs5 well
+  * accept patch from Rommer to update memory usage
+  * and release 0.2.46
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 08 Feb 2012 14:43:07 +0800
+
 partclone (0.2.45) sid; urgency=low
 
   * print vmfs version from fstype

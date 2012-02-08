@@ -226,6 +226,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+XSLTPROC = xsltproc
+MAN_STYLESHEET = /usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
 man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 \
 	partclone.restore.8 partclone.xxxfs.8 $(am__append_1) \
 	$(am__append_2) $(am__append_3) $(am__append_4) \
@@ -514,6 +516,18 @@ uninstall-man: uninstall-man8
 	mostlyclean mostlyclean-generic pdf pdf-am ps ps-am uninstall \
 	uninstall-am uninstall-man uninstall-man8
 
+
+chunk:
+	partclone.xxxfs.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
+	partclone.chkimg.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
+	partclone.info.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
+	partclone.dd.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
+	partclone.restore.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

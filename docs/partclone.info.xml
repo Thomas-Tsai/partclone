@@ -208,8 +208,6 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
     <title>DIAGNOSTICS</title>
     <para>The following diagnostics may be issued
       on <filename class="devicefile">stderr</filename>:</para>
-    <variablelist>
-    </variablelist>
     <para><command>&dhpackage;</command> provides some return codes, that can
       be used in scripts:</para>
     <segmentedlist>

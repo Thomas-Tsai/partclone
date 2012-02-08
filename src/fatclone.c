@@ -435,8 +435,7 @@ static unsigned long long get_used_block()
     total_sector = get_total_sector();
     cluster_count = get_cluster_count();
 
-    //fat_bitmap = (unsigned long *)malloc(sizeof(unsigned long)*LONGS(total_sector));
-    fat_bitmap = (unsigned long *)calloc(sizeof(unsigned long), sizeof(unsigned long)*LONGS(total_sector));
+    fat_bitmap = (unsigned long *)calloc(sizeof(unsigned long), LONGS(total_sector));
     if (fat_bitmap == NULL)
         log_mesg(2, 0, 0, fs_opt.debug, "%s: bitmapalloc error\n", __FILE__);
     memset(fat_bitmap, 0xFF, sizeof(unsigned long)*LONGS(total_sector));

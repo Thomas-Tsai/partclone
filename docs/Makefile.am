@@ -1,3 +1,18 @@
+XSLTPROC=xsltproc
+MAN_STYLESHEET=/usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
+
+chunk:
+	partclone.xxxfs.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
+	partclone.chkimg.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
+	partclone.info.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
+	partclone.dd.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
+	partclone.restore.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
+
 man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 partclone.restore.8 partclone.xxxfs.8
 
 if ENABLE_EXTFS
