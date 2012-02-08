@@ -2,6 +2,14 @@
 
 	Merge branch 'master' into debian-sid
 
+2012-02-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add vmfs5clone.c to clone vmfs5 update vmfs5 update makefile to create partclone.vmfs5
+
+2012-02-08  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.46
+
 	0.2.46
 
 	* accept patch from Rommer to update memory usage
