@@ -241,6 +241,10 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <seg></seg>
         <seg>partclone.vfat</seg>
       </seglistitem>
+      <seglistitem>
+        <seg>exfat</seg>
+        <seg>partclone.exfat</seg>
+      </seglistitem>
     </segmentedlist>
 
     </para>

@@ -1,18 +1,19 @@
+XSLTPROC=xsltproc
+MAN_STYLESHEET=/usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
+
+chunk:
+	partclone.xxxfs.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
+	partclone.chkimg.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
+	partclone.info.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
+	partclone.dd.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
+	partclone.restore.xml
+	$(XSLTPROC) $(MAN_STYLESHEET) $<
+
 man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 partclone.restore.8 partclone.xxxfs.8
-DB2MAN = /usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
-XP     = xsltproc -''-nonet -''-param man.charmap.use.subset "0"
-
-partclone.info.8: partclone.info.xml
-        $(XP) $(DB2MAN) $<
-partclone.chkimg.8: partclone.chkimg.xml
-        $(XP) $(DB2MAN) $<
-partclone.dd.8: partclone.dd.xml
-        $(XP) $(DB2MAN) $<
-partclone.restore.8: partclone.restore.xml
-        $(XP) $(DB2MAN) $<
-partclone.xxxfs.8: partclone.xxxfs.xml
-        $(XP) $(DB2MAN) $<
-
 
 if ENABLE_EXTFS
 man_MANS += partclone.extfs.8

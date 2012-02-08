@@ -146,6 +146,7 @@ if ENABLE_FAT
 endif
 if ENABLE_VMFS
 	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.VMFS_volume_member
+	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs3
 endif
 
 uninstall-local:
