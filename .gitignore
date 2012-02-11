@@ -29,6 +29,7 @@ src/partclone.reiserfs
 src/partclone.restore
 src/partclone.ufs
 src/partclone.vmfs
+src/partclone.vmfs5
 src/partclone.xfs
 src/test
 stamp-h1

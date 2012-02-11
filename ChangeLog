@@ -1,12 +1,18 @@
-2012-02-08  Thomas Tsai  <thomas@nchc.org.tw>
+2012-02-11  Thomas Tsai  <thomas@nchc.org.tw>
 
 	Merge branch 'master' into debian-sid
+
+	add partclone.vmfs5 ignored
+
+	update vmfs5
 
 2012-02-09  Thomas Tsai  <thomas@nchc.org.tw>
 
 	add vmfs5clone.c to clone vmfs5 update vmfs5 update makefile to create partclone.vmfs5
 
 2012-02-08  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.46
 
 	release 0.2.46
 
