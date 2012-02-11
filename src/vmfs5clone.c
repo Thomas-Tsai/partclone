@@ -145,15 +145,16 @@ vmfs_blk_map_t *vmfs_block_map_get(vmfs_blk_map_t **ht,uint32_t blk_id)
 /* print block id pos */
 unsigned long long print_pos_by_id (const vmfs_fs_t *fs, uint32_t blk_id)
 {
-    size_t pos = 0;
+    unsigned long long pos = 0;
     uint32_t blk_type = VMFS_BLK_TYPE(blk_id);
     unsigned long long current;
 
     switch(blk_type) {
 	/* File Block */
 	case VMFS_BLK_TYPE_FB:
-	    pos = (uint64_t)VMFS_BLK_FB_ITEM(blk_id) * vmfs_fs_get_blocksize(fs);
-	    pos += 0x100000 + 0x1000000; /* reference vmfs-tools/libvmfs/vmfs_volume.c */
+	    pos = (unsigned long long)VMFS_BLK_FB_ITEM(blk_id) * vmfs_fs_get_blocksize(fs);
+	    /* reference vmfs-tools/libvmfs/vmfs_volume.c */
+	    pos += 1048576 + 16777216;
 	    break;
 
 	    /* Sub-Block */
