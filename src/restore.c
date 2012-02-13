@@ -75,7 +75,6 @@ int main(int argc, char **argv){
     unsigned long	crc_ck = 0xffffffffL;	/// CRC32 check code for checking
     unsigned long	crc_ck2 = 0xffffffffL;	/// CRC32 check code for checking
     int			c_size;			/// CRC32 code size
-    char*		crc_buffer;		/// buffer data for malloc crc code
     //int			done = 0;
     int			s_count = 0;
     int			tui = 0;		/// text user interface
@@ -299,10 +298,7 @@ int main(int argc, char **argv){
 
 		/// read crc32 code and check it.
 		crc_ck = crc32(crc_ck, buffer, r_size);
-		crc_buffer = (char*)malloc(CRC_SIZE); ///alloc a memory to copy data
-		if(crc_buffer == NULL){
-		    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-		}
+		char crc_buffer[CRC_SIZE];
 		c_size = read_all(&dfr, crc_buffer, CRC_SIZE, &opt);
 		if (c_size < CRC_SIZE)
 		    log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno));
@@ -374,8 +370,6 @@ int main(int argc, char **argv){
 		    nx_current=0;
 		}
 
-		/// free buffer
-		free(crc_buffer);
 		copied++;					/// count copied block
 		total_write += (unsigned long long) w_size;	/// count copied size
 
