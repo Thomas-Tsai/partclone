@@ -141,7 +141,7 @@ int main(int argc, char **argv){
     pthread_t prog_thread;
     void *p_result;
 
-    char *bad_sectors_warning_msg =
+    static const char *const bad_sectors_warning_msg =
         "*************************************************************************\n"
         "* WARNING: The disk has bad sectors. This means physical damage on the  *\n"
         "* disk surface caused by deterioration, manufacturing faults, or        *\n"
