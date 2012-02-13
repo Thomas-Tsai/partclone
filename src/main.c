@@ -143,10 +143,11 @@ int main(int argc, char **argv){
 
     char *bad_sectors_warning_msg =
         "*************************************************************************\n"
-        "* WARNING: The disk has bad sector. This means physical damage on the   *\n"
-        "* disk surface caused by deterioration, manufacturing faults or other   *\n"
-        "* reason. The reliability of the disk may stay stable or degrade fast.  *\n"
-        "* Use the --rescue option to efficiently save as much data as possible! *\n"
+        "* WARNING: The disk has bad sectors. This means physical damage on the  *\n"
+        "* disk surface caused by deterioration, manufacturing faults, or        *\n"
+        "* another reason. The reliability of the disk may remain stable or      *\n"
+        "* degrade quickly. Use the --rescue option to efficiently save as much  *\n"
+        "* data as possible!                                                     *\n"
         "*************************************************************************\n";
 
     image_head		image_hdr;		/// image_head structure defined in partclone.h
@@ -198,7 +199,7 @@ int main(int argc, char **argv){
 
     /// ignore crc check
     if(opt.ignore_crc)
-	log_mesg(1, 0, 1, debug, "Ignore CRC error\n");
+	log_mesg(1, 0, 1, debug, "Ignore CRC errors\n");
 
     /**
      * open source and target 
@@ -213,12 +214,12 @@ int main(int argc, char **argv){
     target = opt.target;
     dfr = open_source(source, &opt);
     if (dfr == -1) {
-        log_mesg(0, 1, 1, debug, "Erro EXIT.\n");
+        log_mesg(0, 1, 1, debug, "Error exit\n");
     }
 
     dfw = open_target(target, &opt);
     if (dfw == -1) {
-        log_mesg(0, 1, 1, debug, "Error Exit.\n");
+        log_mesg(0, 1, 1, debug, "Error exit\n");
     }
 
     /**
@@ -235,7 +236,7 @@ int main(int argc, char **argv){
 
         /// check memory size
         if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
-            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %lld bytes memory\n", needed_mem);
+            log_mesg(0, 1, 1, debug, "There is not enough free memory, partclone suggests you should have %lld bytes memory\n", needed_mem);
 
 	strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
@@ -526,7 +527,7 @@ int main(int argc, char **argv){
 
         /// seek to the first
         sf = lseek(dfw, 0, SEEK_SET);
-        log_mesg(1, 0, 0, debug, "seek %lli for writing dtat string\n",sf);
+        log_mesg(1, 0, 0, debug, "seek %lli for writing data string\n",sf);
         if (sf == (off_t)-1)
             log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
 
