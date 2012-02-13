@@ -173,9 +173,9 @@ int main(int argc, char **argv){
     int			cmp;			/// compare magic string
     unsigned long	*bitmap;		/// the point for bitmap data
     int			debug = 0;		/// debug or not
-    unsigned long	crc = 0xffffffffL;	/// CRC32 check code for writint to image
-    unsigned long	crc_ck = 0xffffffffL;	/// CRC32 check code for checking
-    unsigned long	crc_ck2 = 0xffffffffL;	/// CRC32 check code for checking
+    uint32_t            crc = UINT32_C(0xffffffff);     /// CRC32 check code for writing to image
+    uint32_t            crc_ck = UINT32_C(0xffffffff);  /// CRC32 check code for checking
+    uint32_t            crc_ck2 = UINT32_C(0xffffffff); /// CRC32 check code for checking
     int			c_size;			/// CRC32 code size
     //int			done = 0;
     int			s_count = 0;
