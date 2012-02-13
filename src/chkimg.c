@@ -348,8 +348,7 @@ int main(int argc, char **argv){
                 log_mesg(0, 0, 1, debug, "read CRC size (%i), %s. \n", c_size, strerror(errno));
 		lseek(dfr, (int)(CRC_SIZE-c_size), SEEK_CUR);
 		}
-            memcpy(&crc, crc_buffer, CRC_SIZE);
-            if ((memcmp(&crc, &crc_ck, CRC_SIZE) != 0) && (!opt.ignore_crc)){
+            if ((memcmp(crc_buffer, &crc_ck, CRC_SIZE) != 0) && (!opt.ignore_crc)){
 		log_mesg(1, 0, 0, debug, "Ignore_crc 2 %i\n ", opt.ignore_crc);
 
                 log_mesg(1, 0, 0, debug, "CRC Check error. 64bit bug before v0.1.0 (Rev:250M), enlarge crc size and recheck again....\n ");
