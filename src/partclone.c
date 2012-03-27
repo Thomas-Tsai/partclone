@@ -941,6 +941,7 @@ extern uint32_t crc32(uint32_t crc, char *buf, int size){
     int init = 0, s = 0 ;
 
     do{
+	char c = buf[s++];
         memcpy(&c, buf, sizeof(char));
         s = s + sizeof(char);
         /// initial crc table
