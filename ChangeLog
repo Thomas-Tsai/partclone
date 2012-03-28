@@ -2,6 +2,16 @@
 
 	Merge branch 'master' into debian-sid
 
+	update for vmfs-tool 0.2.5
+
+	come back
+
+	Merge branch 'master' of partclone.nchc.org.tw:/home/partclone
+
+	update for vmfs-tool 0.2.5
+
+	release 0.2.46
+
 	Merge branch 'fixcrc'
 
 	remove new crc and accept vmfs5
