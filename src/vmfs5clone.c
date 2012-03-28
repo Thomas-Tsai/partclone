@@ -90,7 +90,7 @@ vmfs_dir_map_t *vmfs_dir_map_alloc_root(void)
     vmfs_dir_map_t *map;
     uint32_t root_blk_id;
 
-    root_blk_id = VMFS_BLK_FD_BUILD(0,0,0);
+    root_blk_id = VMFS_BLK_FD_BUILD(0,0);
 
     if (!(map = vmfs_dir_map_alloc("/",root_blk_id)))
 	return NULL;
@@ -257,7 +257,7 @@ static void fs_open(char* device){
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to open volume.\n", __FILE__);
     }
 
-    if (!(root_dir = vmfs_dir_open_from_blkid(fs,VMFS_BLK_FD_BUILD(0,0,0)))) {
+    if (!(root_dir = vmfs_dir_open_from_blkid(fs,VMFS_BLK_FD_BUILD(0,0)))) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to open root directory\n", __FILE__);
     }
 
@@ -301,7 +301,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	item  = i % fdc_bmp->items_per_bitmap_entry;
 
 	/* Skip undefined/deleted inodes */
-	if ((vmfs_inode_get(fs,VMFS_BLK_FD_BUILD(entry,item,0),&inode) == -1) ||
+	if ((vmfs_inode_get(fs,VMFS_BLK_FD_BUILD(entry,item),&inode) == -1) ||
 		!inode.nlink)
 	    continue;
 

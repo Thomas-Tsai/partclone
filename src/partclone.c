@@ -933,25 +933,24 @@ extern void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *
 /// Mail: info@lammertbies.nl
 /// http://www.lammertbies.nl/comm/info/nl_crc-calculation.html 
 /// generate crc32 code
-extern uint32_t crc32(uint32_t crc, char *buf, int size){
+extern unsigned long crc32(unsigned long crc, char *buf, int size){
 
-    uint32_t crc_tab32[256];
-    uint32_t init_crc, init_p = 0xEDB88320L;
-    uint32_t tmp, long_c;
-    int init = 0, s = 0 ;
+    unsigned long crc_tab32[256];
+    unsigned long init_crc, init_p;
+    unsigned long tmp, long_c;
+    int i, j, init = 0, s = 0 ;
+    char c;
+    init_p = 0xEDB88320L;
 
     do{
-	char c = buf[s++];
         memcpy(&c, buf, sizeof(char));
         s = s + sizeof(char);
         /// initial crc table
         if (init == 0){
-            uint32_t i;
             for (i=0; i<256; i++) {
-                init_crc = i;
-                uint32_t j;
+                init_crc = (unsigned long) i;
                 for (j=0; j<8; j++) {
-                    if ( init_crc & UINT32_C(0x00000001) ) init_crc = ( init_crc >> 1 ) ^ init_p;
+                    if ( init_crc & 0x00000001L ) init_crc = ( init_crc >> 1 ) ^ init_p;
                     else                     init_crc =   init_crc >> 1;
                 }
                 crc_tab32[i] = init_crc;
@@ -960,9 +959,9 @@ extern uint32_t crc32(uint32_t crc, char *buf, int size){
         }
 
         /// update crc
-        long_c = UINT32_C(0x000000ff) & c;
+        long_c = 0x000000ffL & (unsigned long) c;
         tmp = crc ^ long_c;
-        crc = (crc >> 8) ^ crc_tab32[ tmp & UINT32_C(0x000000ff) ];
+        crc = (crc >> 8) ^ crc_tab32[ tmp & 0xff ];
     }while(s < size);
 
     return crc;

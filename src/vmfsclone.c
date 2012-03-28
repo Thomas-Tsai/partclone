@@ -58,7 +58,7 @@ static void fs_open(char* device){
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to open volume.\n", __FILE__);
     }
 
-    if (!(root_dir = vmfs_dir_open_from_blkid(fs,VMFS_BLK_FD_BUILD(0,0,0)))) {
+    if (!(root_dir = vmfs_dir_open_from_blkid(fs,VMFS_BLK_FD_BUILD(0,0)))) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to open root directory\n", __FILE__);
     }
 
@@ -87,7 +87,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     alloc = vmfs_bitmap_allocated_items(fs->fbb);
 
     for(current = 0; current < total; current++){
-	status = vmfs_block_get_status(fs, VMFS_BLK_FB_BUILD(current,0));
+	status = vmfs_block_get_status(fs, VMFS_BLK_FB_BUILD(current));
 	if (status == -1) {
 	    err_block++;
 	    pc_clear_bit(current, bitmap);
