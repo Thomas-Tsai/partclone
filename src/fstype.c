@@ -44,7 +44,7 @@ static int pvmfs_fs_open(char** device){
     }
 #endif
 
-    if (!(root_dir = vmfs_dir_open_from_blkid(fs,VMFS_BLK_FD_BUILD(0,0)))) {
+    if (!(root_dir = vmfs_dir_open_from_blkid(fs,VMFS_BLK_FD_BUILD(0,0,0)))) {
 	fprintf(stderr, "Unable to open root directory\n");
 	return 1;
     }
