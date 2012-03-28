@@ -168,7 +168,7 @@ extern void check_free_space(int* ret, unsigned long long size);
 extern int check_mem_size(image_head image_hdr, cmd_opt opt, unsigned long long *mem_size);
 
 /// generate crc32 code
-extern unsigned long crc32(unsigned long crc, char *buf, int size);
+extern uint32_t crc32(uint32_t crc, char *buf, int size);
 
 /// print partclone info
 extern void print_partclone_info(cmd_opt opt);

@@ -1,6 +1,30 @@
+2012-03-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.46
+
+	update for vmfs-tool 0.2.5
+
+2012-03-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	crc32
+
+2012-02-17  Matthew Booth  <mbooth@redhat.com>
+
+	Make crc32() explicitly 32 bit
+
+	Remove redundant copy of crc_buffer
+
+	Allocate crc_buffer on the stack
+	Avoid repeated malloc/free of a 4 byte buffer by allocating crc_buffer on the
+	stack.
+
+	Make constant string static const *const
+
+	Minor log message cleanup
+
 2012-02-11  Thomas Tsai  <thomas@nchc.org.tw>
 
-	Merge branch 'master' into debian-sid
+	release 0.2.46
 
 	add partclone.vmfs5 ignored
 
