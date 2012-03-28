@@ -1,5 +1,6 @@
 partclone (0.2.46) sid; urgency=low
 
+  * accept part of patch from Matthew Booth's review
   * update partclone.vmfs for version 5
   * update manpages
   * update document, some example error. 
@@ -7,7 +8,7 @@ partclone (0.2.46) sid; urgency=low
   * accept patch from Rommer to update memory usage
   * and release 0.2.46
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 28 Mar 2012 13:21:58 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 28 Mar 2012 16:06:09 +0800
 
 partclone (0.2.45) sid; urgency=low
 

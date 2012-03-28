@@ -1,5 +1,11 @@
 2012-03-28  Thomas Tsai  <thomas@nchc.org.tw>
 
+	Merge branch 'master' into debian-sid
+
+	Merge branch 'fixcrc'
+
+	remove new crc and accept vmfs5
+
 	release 0.2.46
 
 	update for vmfs-tool 0.2.5
