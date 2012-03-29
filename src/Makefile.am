@@ -101,10 +101,10 @@ partclone_vmfs_SOURCES=main.c partclone.c progress.c vmfsclone.c vmfsclone.h par
 partclone_vmfs_CFLAGS=-DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
 partclone_vmfs_LDADD=-lvmfs -luuid
 
-sbin_PROGRAMS += partclone.vmfs5
-partclone_vmfs5_SOURCES=main.c partclone.c progress.c vmfs5clone.c vmfsclone.h partclone.h progress.h gettext.h
-partclone_vmfs5_CFLAGS=-DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
-partclone_vmfs5_LDADD=-lvmfs -luuid
+#sbin_PROGRAMS += partclone.vmfs5
+#partclone_vmfs5_SOURCES=main.c partclone.c progress.c vmfs5clone.c vmfsclone.h partclone.h progress.h gettext.h
+#partclone_vmfs5_CFLAGS=-DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
+#partclone_vmfs5_LDADD=-lvmfs -luuid
 
 sbin_PROGRAMS += partclone.fstype
 partclone_fstype_SOURCES=fstype.c
@@ -152,6 +152,7 @@ endif
 if ENABLE_VMFS
 	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.VMFS_volume_member
 	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs3
+	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs5
 endif
 
 uninstall-local:
