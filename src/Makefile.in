@@ -52,12 +52,8 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 @ENABLE_FAT_TRUE@am__append_10 = partclone.fat
 @ENABLE_NTFS_TRUE@am__append_11 = partclone.ntfs
 @ENABLE_UFS_TRUE@am__append_12 = partclone.ufs
-
-#sbin_PROGRAMS += partclone.vmfs5
-#partclone_vmfs5_SOURCES=main.c partclone.c progress.c vmfs5clone.c vmfsclone.h partclone.h progress.h gettext.h
-#partclone_vmfs5_CFLAGS=-DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
-#partclone_vmfs5_LDADD=-lvmfs -luuid
-@ENABLE_VMFS_TRUE@am__append_13 = partclone.vmfs partclone.fstype
+@ENABLE_VMFS_TRUE@am__append_13 = partclone.vmfs partclone.vmfs5 \
+@ENABLE_VMFS_TRUE@	partclone.fstype
 @ENABLE_JFS_TRUE@am__append_14 = partclone.jfs
 @ENABLE_BTRFS_TRUE@am__append_15 = partclone.btrfs
 subdir = src
@@ -83,6 +79,7 @@ CONFIG_CLEAN_VPATH_FILES =
 @ENABLE_NTFS_TRUE@am__EXEEXT_7 = partclone.ntfs$(EXEEXT)
 @ENABLE_UFS_TRUE@am__EXEEXT_8 = partclone.ufs$(EXEEXT)
 @ENABLE_VMFS_TRUE@am__EXEEXT_9 = partclone.vmfs$(EXEEXT) \
+@ENABLE_VMFS_TRUE@	partclone.vmfs5$(EXEEXT) \
 @ENABLE_VMFS_TRUE@	partclone.fstype$(EXEEXT)
 @ENABLE_JFS_TRUE@am__EXEEXT_10 = partclone.jfs$(EXEEXT)
 @ENABLE_BTRFS_TRUE@am__EXEEXT_11 = partclone.btrfs$(EXEEXT)
@@ -262,6 +259,17 @@ partclone_vmfs_OBJECTS = $(am_partclone_vmfs_OBJECTS)
 partclone_vmfs_DEPENDENCIES =
 partclone_vmfs_LINK = $(CCLD) $(partclone_vmfs_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__partclone_vmfs5_SOURCES_DIST = main.c partclone.c progress.c \
+	vmfs5clone.c vmfsclone.h partclone.h progress.h gettext.h
+@ENABLE_VMFS_TRUE@am_partclone_vmfs5_OBJECTS =  \
+@ENABLE_VMFS_TRUE@	partclone_vmfs5-main.$(OBJEXT) \
+@ENABLE_VMFS_TRUE@	partclone_vmfs5-partclone.$(OBJEXT) \
+@ENABLE_VMFS_TRUE@	partclone_vmfs5-progress.$(OBJEXT) \
+@ENABLE_VMFS_TRUE@	partclone_vmfs5-vmfs5clone.$(OBJEXT)
+partclone_vmfs5_OBJECTS = $(am_partclone_vmfs5_OBJECTS)
+partclone_vmfs5_DEPENDENCIES =
+partclone_vmfs5_LINK = $(CCLD) $(partclone_vmfs5_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__partclone_xfs_SOURCES_DIST = main.c partclone.c progress.c \
 	xfsclone.c xfsclone.h partclone.h progress.h gettext.h
 @ENABLE_XFS_TRUE@am_partclone_xfs_OBJECTS =  \
@@ -289,7 +297,7 @@ SOURCES = $(partclone_btrfs_SOURCES) $(partclone_chkimg_SOURCES) \
 	$(partclone_ntfsfixboot_SOURCES) $(partclone_reiser4_SOURCES) \
 	$(partclone_reiserfs_SOURCES) $(partclone_restore_SOURCES) \
 	$(partclone_ufs_SOURCES) $(partclone_vmfs_SOURCES) \
-	$(partclone_xfs_SOURCES)
+	$(partclone_vmfs5_SOURCES) $(partclone_xfs_SOURCES)
 DIST_SOURCES = $(am__partclone_btrfs_SOURCES_DIST) \
 	$(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
 	$(am__partclone_extfs_SOURCES_DIST) \
@@ -303,6 +311,7 @@ DIST_SOURCES = $(am__partclone_btrfs_SOURCES_DIST) \
 	$(am__partclone_reiserfs_SOURCES_DIST) \
 	$(partclone_restore_SOURCES) $(am__partclone_ufs_SOURCES_DIST) \
 	$(am__partclone_vmfs_SOURCES_DIST) \
+	$(am__partclone_vmfs5_SOURCES_DIST) \
 	$(am__partclone_xfs_SOURCES_DIST)
 ETAGS = etags
 CTAGS = ctags
@@ -359,12 +368,17 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PKG_CONFIG = @PKG_CONFIG@
+PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
+PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 POSUB = @POSUB@
 RM = @RM@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
 USE_NLS = @USE_NLS@
+UUID_CFLAGS = @UUID_CFLAGS@
+UUID_LIBS = @UUID_LIBS@
 VERSION = @VERSION@
 XGETTEXT = @XGETTEXT@
 XGETTEXT_015 = @XGETTEXT_015@
@@ -456,6 +470,9 @@ partclone_ntfsfixboot_SOURCES = ntfsfixboot.c
 @ENABLE_VMFS_TRUE@partclone_vmfs_SOURCES = main.c partclone.c progress.c vmfsclone.c vmfsclone.h partclone.h progress.h gettext.h
 @ENABLE_VMFS_TRUE@partclone_vmfs_CFLAGS = -DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
 @ENABLE_VMFS_TRUE@partclone_vmfs_LDADD = -lvmfs -luuid
+@ENABLE_VMFS_TRUE@partclone_vmfs5_SOURCES = main.c partclone.c progress.c vmfs5clone.c vmfsclone.h partclone.h progress.h gettext.h
+@ENABLE_VMFS_TRUE@partclone_vmfs5_CFLAGS = -DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
+@ENABLE_VMFS_TRUE@partclone_vmfs5_LDADD = -lvmfs -luuid
 @ENABLE_VMFS_TRUE@partclone_fstype_SOURCES = fstype.c
 @ENABLE_VMFS_TRUE@partclone_fstype_CFLAGS = -DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
 @ENABLE_VMFS_TRUE@partclone_fstype_LDADD = -lvmfs -luuid
@@ -585,6 +602,9 @@ partclone.ufs$(EXEEXT): $(partclone_ufs_OBJECTS) $(partclone_ufs_DEPENDENCIES) $
 partclone.vmfs$(EXEEXT): $(partclone_vmfs_OBJECTS) $(partclone_vmfs_DEPENDENCIES) $(EXTRA_partclone_vmfs_DEPENDENCIES) 
 	@rm -f partclone.vmfs$(EXEEXT)
 	$(partclone_vmfs_LINK) $(partclone_vmfs_OBJECTS) $(partclone_vmfs_LDADD) $(LIBS)
+partclone.vmfs5$(EXEEXT): $(partclone_vmfs5_OBJECTS) $(partclone_vmfs5_DEPENDENCIES) $(EXTRA_partclone_vmfs5_DEPENDENCIES) 
+	@rm -f partclone.vmfs5$(EXEEXT)
+	$(partclone_vmfs5_LINK) $(partclone_vmfs5_OBJECTS) $(partclone_vmfs5_LDADD) $(LIBS)
 partclone.xfs$(EXEEXT): $(partclone_xfs_OBJECTS) $(partclone_xfs_DEPENDENCIES) $(EXTRA_partclone_xfs_DEPENDENCIES) 
 	@rm -f partclone.xfs$(EXEEXT)
 	$(partclone_xfs_LINK) $(partclone_xfs_OBJECTS) $(partclone_xfs_LDADD) $(LIBS)
@@ -660,6 +680,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_vmfs-partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_vmfs-progress.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_vmfs-vmfsclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_vmfs5-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_vmfs5-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_vmfs5-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_vmfs5-vmfs5clone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_xfs-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_xfs-partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_xfs-progress.Po@am__quote@
@@ -1520,6 +1544,62 @@ partclone_vmfs-vmfsclone.obj: vmfsclone.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs_CFLAGS) $(CFLAGS) -c -o partclone_vmfs-vmfsclone.obj `if test -f 'vmfsclone.c'; then $(CYGPATH_W) 'vmfsclone.c'; else $(CYGPATH_W) '$(srcdir)/vmfsclone.c'; fi`
 
+partclone_vmfs5-main.o: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -MT partclone_vmfs5-main.o -MD -MP -MF $(DEPDIR)/partclone_vmfs5-main.Tpo -c -o partclone_vmfs5-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_vmfs5-main.Tpo $(DEPDIR)/partclone_vmfs5-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_vmfs5-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -c -o partclone_vmfs5-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+
+partclone_vmfs5-main.obj: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -MT partclone_vmfs5-main.obj -MD -MP -MF $(DEPDIR)/partclone_vmfs5-main.Tpo -c -o partclone_vmfs5-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_vmfs5-main.Tpo $(DEPDIR)/partclone_vmfs5-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_vmfs5-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -c -o partclone_vmfs5-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+
+partclone_vmfs5-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -MT partclone_vmfs5-partclone.o -MD -MP -MF $(DEPDIR)/partclone_vmfs5-partclone.Tpo -c -o partclone_vmfs5-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_vmfs5-partclone.Tpo $(DEPDIR)/partclone_vmfs5-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_vmfs5-partclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -c -o partclone_vmfs5-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+
+partclone_vmfs5-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -MT partclone_vmfs5-partclone.obj -MD -MP -MF $(DEPDIR)/partclone_vmfs5-partclone.Tpo -c -o partclone_vmfs5-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_vmfs5-partclone.Tpo $(DEPDIR)/partclone_vmfs5-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_vmfs5-partclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -c -o partclone_vmfs5-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+
+partclone_vmfs5-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -MT partclone_vmfs5-progress.o -MD -MP -MF $(DEPDIR)/partclone_vmfs5-progress.Tpo -c -o partclone_vmfs5-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_vmfs5-progress.Tpo $(DEPDIR)/partclone_vmfs5-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_vmfs5-progress.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -c -o partclone_vmfs5-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+
+partclone_vmfs5-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -MT partclone_vmfs5-progress.obj -MD -MP -MF $(DEPDIR)/partclone_vmfs5-progress.Tpo -c -o partclone_vmfs5-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_vmfs5-progress.Tpo $(DEPDIR)/partclone_vmfs5-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_vmfs5-progress.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -c -o partclone_vmfs5-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+
+partclone_vmfs5-vmfs5clone.o: vmfs5clone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -MT partclone_vmfs5-vmfs5clone.o -MD -MP -MF $(DEPDIR)/partclone_vmfs5-vmfs5clone.Tpo -c -o partclone_vmfs5-vmfs5clone.o `test -f 'vmfs5clone.c' || echo '$(srcdir)/'`vmfs5clone.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_vmfs5-vmfs5clone.Tpo $(DEPDIR)/partclone_vmfs5-vmfs5clone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='vmfs5clone.c' object='partclone_vmfs5-vmfs5clone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -c -o partclone_vmfs5-vmfs5clone.o `test -f 'vmfs5clone.c' || echo '$(srcdir)/'`vmfs5clone.c
+
+partclone_vmfs5-vmfs5clone.obj: vmfs5clone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -MT partclone_vmfs5-vmfs5clone.obj -MD -MP -MF $(DEPDIR)/partclone_vmfs5-vmfs5clone.Tpo -c -o partclone_vmfs5-vmfs5clone.obj `if test -f 'vmfs5clone.c'; then $(CYGPATH_W) 'vmfs5clone.c'; else $(CYGPATH_W) '$(srcdir)/vmfs5clone.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_vmfs5-vmfs5clone.Tpo $(DEPDIR)/partclone_vmfs5-vmfs5clone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='vmfs5clone.c' object='partclone_vmfs5-vmfs5clone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_vmfs5_CFLAGS) $(CFLAGS) -c -o partclone_vmfs5-vmfs5clone.obj `if test -f 'vmfs5clone.c'; then $(CYGPATH_W) 'vmfs5clone.c'; else $(CYGPATH_W) '$(srcdir)/vmfs5clone.c'; fi`
+
 partclone_xfs-main.o: main.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT partclone_xfs-main.o -MD -MP -MF $(DEPDIR)/partclone_xfs-main.Tpo -c -o partclone_xfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
 @am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_xfs-main.Tpo $(DEPDIR)/partclone_xfs-main.Po
@@ -1800,7 +1880,7 @@ install-exec-hook:
 @ENABLE_FAT_TRUE@	$(LN_S) -f partclone.fat $(DESTDIR)$(sbindir)/partclone.vfat
 @ENABLE_VMFS_TRUE@	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.VMFS_volume_member
 @ENABLE_VMFS_TRUE@	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs3
-@ENABLE_VMFS_TRUE@	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs5
+#	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs5
 
 uninstall-local:
 @ENABLE_EXTFS_TRUE@	$(RM) -f $(sbindir)/partclone.ext4dev
