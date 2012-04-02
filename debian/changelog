@@ -8,7 +8,7 @@ partclone (0.2.46) sid; urgency=low
   * accept patch from Rommer to update memory usage
   * and release 0.2.46
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 29 Mar 2012 10:54:37 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 02 Apr 2012 09:14:23 +0800
 
 partclone (0.2.45) sid; urgency=low
 

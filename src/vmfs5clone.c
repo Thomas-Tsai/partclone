@@ -153,7 +153,9 @@ unsigned long long print_pos_by_id (const vmfs_fs_t *fs, uint32_t blk_id)
 	/* File Block */
 	case VMFS_BLK_TYPE_FB:
 	    pos = (unsigned long long)VMFS_BLK_FB_ITEM(blk_id) * vmfs_fs_get_blocksize(fs);
-	    /* reference vmfs-tools/libvmfs/vmfs_volume.c */
+	    /* reference vmfs-tools/libvmfs/vmfs_volume.c 
+	       pos += vol->vmfs_base + 0x1000000;
+	     */
 	    pos += 1048576 + 16777216;
 	    break;
 
@@ -216,6 +218,24 @@ static int vmfs_dump_store_inode(const vmfs_fs_t *fs,vmfs_blk_map_t **ht,
     print_pos_by_id(fs, inode->id);
 }
 
+
+/* dump other bitmap */
+void dump_bitmaps (vmfs_bitmap_t *b,uint32_t addr, void *opt)
+{  
+    vmfs_fs_t *fs = opt;
+    uint32_t entry,item;
+    uint32_t blk_id;
+
+    entry = addr / b->bmh.items_per_bitmap_entry;
+    item  = addr % b->bmh.items_per_bitmap_entry;
+
+    blk_id = VMFS_BLK_SB_BUILD(entry, item, 0);
+    //fprintf(stderr, "%s %s addr %i blkid %i\n", __FILE__, __func__, addr, blk_id);
+
+    print_pos_by_id(fs, blk_id);
+}
+
+
 /* Initialize dump structures */
 static void vmfs_dump_init(vmfs_dump_info_t *fi)
 {
@@ -239,6 +259,8 @@ static void fs_open(char* device){
 
 #ifdef VMFS5_ZLA_BASE
     if (!(fs=vmfs_fs_open(&mdev, flags))) {
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to open volume.\n", __FILE__);
+    }
 #else
     if (!(lvm = vmfs_lvm_create(flags))) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to create LVM structure\n", __FILE__);
@@ -253,9 +275,9 @@ static void fs_open(char* device){
     }
 
     if (vmfs_fs_open(fs) == -1) {
-#endif	
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to open volume.\n", __FILE__);
     }
+#endif	
 
     if (!(root_dir = vmfs_dir_open_from_blkid(fs,VMFS_BLK_FD_BUILD(0,0,0)))) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to open root directory\n", __FILE__);
@@ -310,6 +332,9 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	vmfs_inode_foreach_block(&inode,vmfs_dump_store_block,dump_info.blk_map);
     }
 
+    vmfs_bitmap_foreach(fs->fbb,dump_bitmaps,fs);
+    vmfs_bitmap_foreach(fs->sbc,dump_bitmaps,fs);
+    vmfs_bitmap_foreach(fs->pbc,dump_bitmaps,fs);
 
     fs_close();
     update_pui(&prog, 1, 1, 1);
