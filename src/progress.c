@@ -79,6 +79,13 @@ extern void close_pui(int pui){
 }
 
 extern void update_pui(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done){
+    
+    if (done != 1) {
+	if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && copied != 0){
+	    sleep(prog->interval_time);
+	    return;
+	}
+    }
     if (prog->pui == NCURSES)
         Ncurses_progress_update(prog, copied, current, done);
     else if (prog->pui == TEXT)
@@ -166,9 +173,9 @@ extern void progress_update(struct progress_bar *prog, unsigned long long copied
     char clear_buf = ' ';
     prog_stat_t prog_stat;
 
-    if (done != 1)
-	if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && copied != 0)
-	    return;
+    //if (done != 1)
+	//if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && copied != 0)
+	//    return;
 
     memset(&prog_stat, 0, sizeof(prog_stat_t));
     calculate_speed(prog, copied, current, done, &prog_stat);
@@ -222,8 +229,8 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
     werase(bar_win);
 
     if (done != 1){
-        if (difftime(time(0), prog->resolution_time) < prog->interval_time)
-            return;
+    //    if (difftime(time(0), prog->resolution_time) < prog->interval_time)
+    //        return;
 	prog->resolution_time = time(0);
 
         mvwprintw(p_win, 0, 0, _("Elapsed: %s Remaining: %s ") , prog_stat.Eformated, prog_stat.Rformated);
