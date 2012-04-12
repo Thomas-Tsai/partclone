@@ -196,7 +196,7 @@ int main(int argc, char **argv){
 	    get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
 	    /// check the dest partition size.
-	    if (opt.restore_row_file)
+	    if (opt.restore_raw_file)
 		check_free_space(&dfw, image_hdr.device_size);
 	    else if(opt.check)
 		check_size(&dfw, image_hdr.device_size);
@@ -376,8 +376,8 @@ int main(int argc, char **argv){
 		//	log_mesg(0, 1, 1, debug, "read and write different\n");
 		log_mesg(1, 0, 0, debug, "end\n");
 	    } else {
-		/// for restore to row file, mount -o loop used.
-		if ((block_id == (image_hdr.totalblock-1)) && (opt.restore_row_file)){
+		/// for restore to raw file, mount -o loop used.
+		if ((block_id == (image_hdr.totalblock-1)) && (opt.restore_raw_file)){
 		    write_last_block(&dfw, image_hdr.block_size, block_id, &opt);
 
 		} else {
