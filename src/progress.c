@@ -81,10 +81,9 @@ extern void close_pui(int pui){
 extern void update_pui(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done){
     
     if (done != 1) {
-	if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && copied != 0){
-	    sleep(prog->interval_time);
+	if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && copied != 0)
 	    return;
-	}
+	
     }
     if (prog->pui == NCURSES)
         Ncurses_progress_update(prog, copied, current, done);
