@@ -93,7 +93,7 @@ struct cmd_opt
     int ignore_crc;
     int quiet;
     int no_block_detail;
-    int restore_row_file;
+    int restore_raw_file;
     unsigned long fresh;
     unsigned long long offset_domain;
 };

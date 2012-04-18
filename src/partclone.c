@@ -101,7 +101,7 @@ extern void usage(void)
             "\n"
             "    -o,  --output FILE      Output FILE\n"
             "    -O   --overwrite FILE   Output FILE, overwriting if exists\n"
-            "    -W   --restore_row_file create special row file for loop device\n"
+            "    -W   --restore_raw_file create special raw file for loop device\n"
             "    -s,  --source FILE      Source FILE\n"
             "    -L,  --logfile FILE     Log FILE\n"
 #ifndef	RESTORE
@@ -149,7 +149,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "overwrite",		required_argument,  NULL,   'O' },
         { "source",		required_argument,  NULL,   's' },
         { "restore-image",	no_argument,	    NULL,   'r' },
-        { "restore_row_file",	no_argument,	    NULL,   'W' },
+        { "restore_raw_file",	no_argument,	    NULL,   'W' },
         { "clone-image",	no_argument,	    NULL,   'c' },
         { "dev-to-dev",		no_argument,	    NULL,   'b' },
         { "domain",		no_argument,	    NULL,   'D' },
@@ -181,6 +181,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     opt->ignore_crc = 0;
     opt->quiet = 0;
     opt->no_block_detail = 0;
+    opt->fresh = 2;
     opt->logfile = "/var/log/partclone.log";
 
 #ifdef RESTORE
@@ -247,7 +248,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
                 opt->ignore_crc = 1;
                 break;
             case 'W':
-                opt->restore_row_file = 1;
+                opt->restore_raw_file = 1;
                 break;
             case 'q':
                 opt->quiet = 1;

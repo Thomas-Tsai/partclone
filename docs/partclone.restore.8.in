@@ -13,7 +13,7 @@ Partclone is a project like the well-known backup utility "Partition Image" a.k.
 Output FILE
 .TP
 .B -O   --overwrite FILE   Output FILE, overwriting if exists
---restore_row_file create special row file for loop device
+--restore_row_file create special raw file for loop device
 .TP
 .B -s,  --source FILE
 Source FILE
@@ -64,7 +64,7 @@ restore image from clonezilla(split, gzip,) with stdin source
 .sp 1
 cat sda1.ext3-ptcl-img.gz.a* > gunzip -c | partclone.restore -d -s - -o /dev/sda1
 .sp 1
-restore row image from partclone.dd
+restore raw image from partclone.dd
 .sp 1
 partclone.dd -d -c -s /dev/sda1 -o - | partclone.restore -d -s - -o /dev/sdb1
 .SH REPORTING BUGS

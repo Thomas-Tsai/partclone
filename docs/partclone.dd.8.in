@@ -1,6 +1,6 @@
 .TH partclone.dd 8 "Nov 2007" "partclone @VERSION@"
 .SH NAME
-partclone.dd \- The utility to clone/restore row file like dd.
+partclone.dd \- The utility to clone/restore raw file like dd.
 .SH SYNOPSIS
 partclone.dd [options]... [MODE] [SOURCE FILE] [OUTPUT FILE]
 .SH DESCRIPTION
