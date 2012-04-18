@@ -1,3 +1,23 @@
+2012-04-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update fresh done
+
+	update fresh, add sleep in progress thread to reduce cpu usage, contributed and bug information from http://sourceforge.net/tracker/?func=detail&aid=3509757&group_id=115473&atid=671650
+
+2012-04-12  Thomas Tsai  <thomas@nchc.org.tw>
+
+	change row to raw, noticed from Vincent van Adrighem
+
+	try to fix ID: 3509757 from clonezilla track system
+
+2012-04-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update vmfs5
+
+2012-03-29  Thomas Tsai  <thomas@nchc.org.tw>
+
+	remove vmfs5clone.c
+
 2012-03-28  Thomas Tsai  <thomas@nchc.org.tw>
 
 	update for vmfs-tool 0.2.5
