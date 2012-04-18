@@ -181,6 +181,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     opt->ignore_crc = 0;
     opt->quiet = 0;
     opt->no_block_detail = 0;
+    opt->fresh = 2;
     opt->logfile = "/var/log/partclone.log";
 
 #ifdef RESTORE
