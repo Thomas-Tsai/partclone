@@ -315,7 +315,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
       <varlistentry>
         <term><option>--restore_row_file</option></term>
         <listitem>
-          <para>Creating special row file for loop device.</para>
+          <para>Creating special raw file for loop device.</para>
         </listitem>
       </varlistentry>
       <varlistentry>

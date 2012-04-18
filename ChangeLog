@@ -1,6 +1,22 @@
-2012-04-02  Thomas Tsai  <thomas@nchc.org.tw>
+2012-04-18  Thomas Tsai  <thomas@nchc.org.tw>
 
 	Merge branch 'master' into debian-sid
+
+	0.2.47
+
+	update fresh done
+
+	update fresh, add sleep in progress thread to reduce cpu usage, contributed and bug information from http://sourceforge.net/tracker/?func=detail&aid=3509757&group_id=115473&atid=671650
+
+2012-04-12  Thomas Tsai  <thomas@nchc.org.tw>
+
+	change row to raw, noticed from Vincent van Adrighem
+
+	try to fix ID: 3509757 from clonezilla track system
+
+2012-04-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.46
 
 2012-04-01  Thomas Tsai  <thomas@nchc.org.tw>
 
