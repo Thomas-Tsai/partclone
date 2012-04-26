@@ -26,6 +26,8 @@ vmfs_dir_t *root_dir;
 char *EXECNAME = "partclone.vmfs";
 extern fs_cmd_opt fs_opt;
 unsigned long *blk_bitmap;
+progress_bar   prog;        /// progress_bar structure defined in progress.h
+unsigned long long checked = 0;
 
 /* Forward declarations */
 typedef struct vmfs_dir_map vmfs_dir_map_t;
@@ -172,6 +174,7 @@ unsigned long long print_pos_by_id (const vmfs_fs_t *fs, uint32_t blk_id)
 	    /* File Descriptor / Inode */
 	case VMFS_BLK_TYPE_FD:
 	    pos = vmfs_bitmap_get_item_pos(fs->fdc,VMFS_BLK_FD_ENTRY(blk_id), VMFS_BLK_FD_ITEM(blk_id));
+	    update_pui(&prog, checked, checked, 0);
 	    break;
 
 	default:
@@ -179,6 +182,7 @@ unsigned long long print_pos_by_id (const vmfs_fs_t *fs, uint32_t blk_id)
 	    //fprintf(stderr,"Unsupported block type 0x%2.2x\n",blk_type);
     }
     current = pos/vmfs_fs_get_blocksize(fs);
+    checked++;
     log_mesg(3, 0, 0, fs_opt.debug, "Blockid = 0x%8.8x, Type = 0x%2.2x, Pos: %lli, bitmapid: %lli\n", blk_id, blk_type, pos, current);
     pc_set_bit(current, blk_bitmap);
 }
@@ -314,7 +318,6 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     fs_open(device);
     /// init progress
-    progress_bar   prog;        /// progress_bar structure defined in progress.h
     progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
 
     vmfs_dump_init(&dump_info);
