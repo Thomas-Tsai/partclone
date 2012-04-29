@@ -222,11 +222,12 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     unsigned char	*ntfs_bitmap;
     unsigned long long	current_block, used_block, free_block, pos;
     long long int	count;
-    unsigned long	bitmap_size = (ntfs->nr_clusters + 7) / 8;
+    unsigned long	bitmap_size;
     int start = 0;
     int bit_size = 1;
 
     fs_open(device);
+    bitmap_size = (ntfs->nr_clusters + 7) / 8;
 
     if (bitmap_size > ntfs->lcnbmp_na->data_size) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: calculated bitmap size (%lu) > lcnbmp_na->data_size (%llu)\n", __FILE__, bitmap_size, ntfs->lcnbmp_na->data_size);
