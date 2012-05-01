@@ -1,6 +1,30 @@
-2012-04-18  Thomas Tsai  <thomas@nchc.org.tw>
+2012-05-01  Thomas Tsai  <thomas@nchc.org.tw>
 
 	Merge branch 'master' into debian-sid
+
+	Merge branch 'master' of partclone.nchc.org.tw:/home/partclone
+
+	update vmfs for some unallocated block
+
+2012-04-29  Thomas Tsai  <thomas@nchc.org.tw>
+
+	A partclone bug found when it backs up  WindowsServer2008R2 (64bit)  on
+
+2012-04-26  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update bitmap progress
+
+2012-04-26  thomas  <thomas@T-68.nchc.org.tw>
+
+	ignore unallocated block for vmfs
+
+2012-04-19  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update control for vmfs
+
+2012-04-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.47
 
 	0.2.47
 

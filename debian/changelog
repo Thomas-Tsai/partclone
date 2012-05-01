@@ -1,3 +1,18 @@
+partclone (0.2.48) sid; urgency=low
+
+  [ Thomas Tsai ]
+  * update debian control for vmfs-tools
+
+  [ thomas ]
+  * ignore unallocated block for vmfs
+
+  [ Thomas Tsai ]
+  * update bitmap progress
+  * A partclone bug found when it backs up  WindowsServer2008R2 (64bit)
+  * update vmfs for some unallocated block
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 01 May 2012 11:28:46 +0800
+
 partclone (0.2.47) sid; urgency=low
 
   * try to fix ID: 3509757 from clonezilla track system

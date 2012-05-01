@@ -50,7 +50,7 @@ int libvmfs_version(){
     char *version;
     version = "0.2.0";
 #ifdef VMFS5_ZLA_BASE
-    version = "0.2.1";
+    version = "0.2.5";
 #endif
     printf("%s\n", version);
 #endif
