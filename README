@@ -8,7 +8,11 @@ Partclone supports ext2, ext3, hfs+, reiser3.5, reiser3.6, reiser4 and ext4 now.
 * partclone.reiser4
 * partclone.xfs
 * partclone.fat
+* partclone.ntfs
 * partclone.hfsp
+* partclone.vmfs
+* partclone.ufs
+* partclone.jfs
 * partclone.info 
 ...
 
