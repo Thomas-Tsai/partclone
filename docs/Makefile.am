@@ -1,19 +1,7 @@
 XSLTPROC=xsltproc
 MAN_STYLESHEET=/usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
 
-chunk:
-	partclone.xxxfs.xml
-	$(XSLTPROC) $(MAN_STYLESHEET) $<
-	partclone.chkimg.xml
-	$(XSLTPROC) $(MAN_STYLESHEET) $<
-	partclone.info.xml
-	$(XSLTPROC) $(MAN_STYLESHEET) $<
-	partclone.dd.xml
-	$(XSLTPROC) $(MAN_STYLESHEET) $<
-	partclone.restore.xml
-	$(XSLTPROC) $(MAN_STYLESHEET) $<
-
-man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 partclone.restore.8 partclone.xxxfs.8
+man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 partclone.restore.8 partclone.8
 
 if ENABLE_EXTFS
 man_MANS += partclone.extfs.8
@@ -66,3 +54,14 @@ endif
 if ENABLE_NTFS
 man_MANS += partclone.ntfs.8
 endif
+
+partclone.dd.8: partclone.dd.xml
+	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.dd.xml)
+partclone.chkimg.8: partclone.chkimg.xml
+	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.chkimg.xml)
+partclone.info.8: partclone.info.xml
+	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.info.xml)
+partclone.restore.8: partclone.restore.xml
+	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.restore.xml)
+partclone.8: partclone.xml
+	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.xml)

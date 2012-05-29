@@ -8232,7 +8232,7 @@ fi
 
 ac_config_headers="$ac_config_headers config.h"
 
-ac_config_files="$ac_config_files Makefile src/Makefile po/Makefile.in docs/Makefile docs/partclone.xxxfs.8 docs/partclone.extfs.8 docs/partclone.ext2.8 docs/partclone.ext3.8 docs/partclone.ext4.8 docs/partclone.ext4dev.8 docs/partclone.jfs.8 docs/partclone.xfs.8 docs/partclone.ufs.8 docs/partclone.ntfs.8 docs/partclone.vmfs.8 docs/partclone.hfsplus.8 docs/partclone.hfs+.8 docs/partclone.vfat.8 docs/partclone.fat12.8 docs/partclone.fat16.8 docs/partclone.fat32.8 docs/partclone.btrfs.8 docs/partclone.reiserfs.8 docs/partclone.reiser4.8 docs/partclone.restore.8 docs/partclone.dd.8 docs/partclone.chkimg.8 docs/partclone.info.8"
+ac_config_files="$ac_config_files Makefile src/Makefile po/Makefile.in docs/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -9053,30 +9053,6 @@ do
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "po/Makefile.in") CONFIG_FILES="$CONFIG_FILES po/Makefile.in" ;;
     "docs/Makefile") CONFIG_FILES="$CONFIG_FILES docs/Makefile" ;;
-    "docs/partclone.xxxfs.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.xxxfs.8" ;;
-    "docs/partclone.extfs.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.extfs.8" ;;
-    "docs/partclone.ext2.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.ext2.8" ;;
-    "docs/partclone.ext3.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.ext3.8" ;;
-    "docs/partclone.ext4.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.ext4.8" ;;
-    "docs/partclone.ext4dev.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.ext4dev.8" ;;
-    "docs/partclone.jfs.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.jfs.8" ;;
-    "docs/partclone.xfs.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.xfs.8" ;;
-    "docs/partclone.ufs.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.ufs.8" ;;
-    "docs/partclone.ntfs.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.ntfs.8" ;;
-    "docs/partclone.vmfs.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.vmfs.8" ;;
-    "docs/partclone.hfsplus.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.hfsplus.8" ;;
-    "docs/partclone.hfs+.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.hfs+.8" ;;
-    "docs/partclone.vfat.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.vfat.8" ;;
-    "docs/partclone.fat12.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.fat12.8" ;;
-    "docs/partclone.fat16.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.fat16.8" ;;
-    "docs/partclone.fat32.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.fat32.8" ;;
-    "docs/partclone.btrfs.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.btrfs.8" ;;
-    "docs/partclone.reiserfs.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.reiserfs.8" ;;
-    "docs/partclone.reiser4.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.reiser4.8" ;;
-    "docs/partclone.restore.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.restore.8" ;;
-    "docs/partclone.dd.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.dd.8" ;;
-    "docs/partclone.chkimg.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.chkimg.8" ;;
-    "docs/partclone.info.8") CONFIG_FILES="$CONFIG_FILES docs/partclone.info.8" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

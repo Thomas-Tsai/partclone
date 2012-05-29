@@ -11,6 +11,9 @@
           /usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl \
           manpage.xml'
 
+# comment by thomas
+install 'docbook-xsl' to access style
+
 A manual page <package>.<section> will be generated. You may view the
 manual page with: nroff -man <package>.<section> | less'. A typical entry
 in a Makefile or Makefile.am is:
@@ -59,8 +62,8 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
   <!-- TITLE should be something like "User commands" or similar (see
        http://www.tldp.org/HOWTO/Man-Page/q2.html). -->
   <!ENTITY dhtitle     "Partclone User Manual">
-  <!ENTITY dhucpackage "PARTCLONE.EXTFS">
-  <!ENTITY dhpackage   "partclone.extfs">
+  <!ENTITY dhucpackage "PARTCLONE">
+  <!ENTITY dhpackage   "partclone">
 ]>
 
 <refentry>
@@ -99,7 +102,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
   </refmeta>
   <refnamediv>
     <refname>&dhpackage;</refname>
-    <refpurpose> The utility for clone and restore an etx2/ext3 partition.</refpurpose>
+    <refpurpose> The utility for clone and restore a partition.</refpurpose>
   </refnamediv>
   <refsynopsisdiv>
     <cmdsynopsis>
@@ -198,13 +201,13 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
   </refsynopsisdiv>
   <refsect1 id="description">
     <title>DESCRIPTION</title>
-    <para><command>&dhpackage;</command> is a part of <command>Partclone</command> project for ext2/3 file system. Partclone provide utilities to backup used blocks and design for higher compatibility of the file system by using existing library, e.g. e2fslibs is used to read the used block of ext2 partition.</para>
+    <para><command>&dhpackage;</command> is a part of <command>Partclone</command> project. Partclone provide utilities to backup used blocks and design for higher compatibility of the file system by using existing library, e.g. e2fslibs is used to read the used block of ext2 partition.</para>
     <para><command>Partclone</command> supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX. Also  support some non-linux operation system, ex: NTFS and  FAT (for Windows), HFS plus(APPLE MAC OS), UFS2(FreeBSD), VMFS(VMWare Vsphere).
     </para>
-    <para>All partclone utils could be run like partclone.xxx is very smiliar fsck or mkfs. For example, for backup/restore hfsplus, just run partclone.hfsp.
+    <para>All partclone utils could be run like partclone.fstype is very smiliar fsck or mkfs. For example, for backup/restore hfsplus, just run partclone.hfsp.
     <segmentedlist>
       <segtitle>File System</segtitle>
-      <segtitle>partclone.xxx</segtitle>
+      <segtitle>partclone.fstype</segtitle>
       <seglistitem>
         <seg>btrfs</seg>
         <seg>partclone.btrfs</seg>

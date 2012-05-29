@@ -456,30 +456,6 @@ AC_CONFIG_FILES([
 	src/Makefile
 	po/Makefile.in
 	docs/Makefile
-	docs/partclone.xxxfs.8
-	docs/partclone.extfs.8
-	docs/partclone.ext2.8
-	docs/partclone.ext3.8
-	docs/partclone.ext4.8
-	docs/partclone.ext4dev.8
-	docs/partclone.jfs.8
-	docs/partclone.xfs.8
-	docs/partclone.ufs.8
-	docs/partclone.ntfs.8
-	docs/partclone.vmfs.8
-	docs/partclone.hfsplus.8
-	docs/partclone.hfs+.8
-	docs/partclone.vfat.8
-	docs/partclone.fat12.8
-	docs/partclone.fat16.8
-	docs/partclone.fat32.8
-	docs/partclone.btrfs.8
-	docs/partclone.reiserfs.8
-	docs/partclone.reiser4.8
-	docs/partclone.restore.8
-	docs/partclone.dd.8
-	docs/partclone.chkimg.8
-	docs/partclone.info.8
 	])
 AC_OUTPUT
 
