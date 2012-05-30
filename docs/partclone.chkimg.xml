@@ -150,67 +150,9 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
   </refsynopsisdiv>
   <refsect1 id="description">
     <title>DESCRIPTION</title>
-    <para><command>&dhpackage;</command> is a part of <command>Partclone</command> project to veritfy image file. Partclone provide utilities to backup used blocks and design for higher compatibility of the file system by using existing library, e.g. e2fslibs is used to read the used block of ext2 partition.</para>
-    <para><command>Partclone</command> supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX. Also  support some non-linux operation system, ex: NTFS and  FAT (for Windows), HFS plus(APPLE MAC OS), UFS2(FreeBSD), VMFS(VMWare Vsphere).
-    </para>
-    <para>All partclone utils could be run like partclone.xxx is very smiliar fsck or mkfs. For example, for backup/restore hfsplus, just run partclone.hfsp.
-    <segmentedlist>
-      <segtitle>File System</segtitle>
-      <segtitle>partclone.xxx</segtitle>
-      <seglistitem>
-        <seg>btrfs</seg>
-        <seg>partclone.btrfs</seg>
-      </seglistitem>
-      <seglistitem>
-        <seg>ext2 | ext3 | ext4</seg>
-        <seg>partclone.ext2 | partclone.ext3 | partclone.ext4</seg>
-      </seglistitem>
-      <seglistitem>
-        <seg></seg>
-        <seg>partclone.extfs</seg>
-      </seglistitem>
-      <seglistitem>
-        <seg>reiserfs 3.5</seg>
-        <seg>partclone.reiserfs</seg>
-      </seglistitem>
-      <seglistitem>
-        <seg>reiser 4</seg>
-        <seg>partclone.reiser4</seg>
-      </seglistitem>
-      <seglistitem>
-        <seg>xfs</seg>
-        <seg>partclone.xfs</seg>
-      </seglistitem>
-      <seglistitem>
-        <seg>ufs | ufs2</seg>
-        <seg>partclone.ufs</seg>
-      </seglistitem>
-      <seglistitem>
-        <seg>jfs</seg>
-        <seg>partclone.jfs</seg>
-      </seglistitem>
-      <seglistitem>
-        <seg>hfs plusfs</seg>
-        <seg>partclone.hfs+ | partclone.hfsplus</seg>
-      </seglistitem>
-      <seglistitem>
-        <seg>vmfs</seg>
-        <seg>partclone.vmfs</seg>
-      </seglistitem>
-      <seglistitem>
-        <seg>ntfs</seg>
-        <seg>partclone.ntfs</seg>
-      </seglistitem>
-      <seglistitem>
-        <seg>fat12 | fat16 | fat32</seg>
-        <seg>partclone.fat12 | partclone.fat16 | partclone.fat32</seg>
-      </seglistitem>
-      <seglistitem>
-        <seg></seg>
-        <seg>partclone.vfat</seg>
-      </seglistitem>
-    </segmentedlist>
-
+    <para><command>&dhpackage;</command> is a part of <command>Partclone</command> project to veritfy image file. 
+    Partclone provide utilities to backup used blocks and design for higher compatibility of the file system by using existing library, e.g. e2fslibs is used to read the used block of ext2 partition.</para>
+    <para><command>Partclone</command> supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX. Also  support some non-linux operation system, ex: NTFS and  FAT (for Windows), HFS plus(APPLE MAC OS), UFS2(FreeBSD), VMFS(VMWare Vsphere). All partclone utils could be run like partclone.xxx is very smiliar fsck or mkfs. For example, for backup/restore hfsplus, just run partclone.hfsp.
     </para>
   </refsect1>
   <refsect1 id="options">
@@ -343,7 +285,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
   <refsect1 id="bugs">
     <!-- Or use this section to tell about upstream BTS. -->
     <title>BUGS</title>
-    <para>Report bugs to &dhemail; or <ulink url="http://sourceforge.net/projects/partclone"/>.</para>
+    <para>Report bugs to &dhemail; or <ulink url="http://partclone.org"/>.</para>
     <para>You can get support at http://partclone.org</para>
 
   </refsect1>
@@ -352,6 +294,9 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
     <!-- In alpabetical order. -->
     <para>
     <citerefentry>
+        <refentrytitle>partclone</refentrytitle>
+        <manvolnum>8</manvolnum>
+      </citerefentry>, <citerefentry>
         <refentrytitle>partclone.chkimg</refentrytitle>
         <manvolnum>8</manvolnum>
       </citerefentry>, <citerefentry>
