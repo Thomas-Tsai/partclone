@@ -792,8 +792,8 @@ void *thread_update_pui(void *arg){
     while (done == 0) {
 	if(!opt.quiet){
 	    update_pui(&prog, copied, block_id, done);
-	    sleep(opt.fresh);
-	}
+	} 
+	sleep(opt.fresh);
     }
     pthread_exit("exit");
 }
