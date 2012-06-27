@@ -1038,16 +1038,16 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
     log_mesg(0, 0, 1, debug, _("File system:  %s\n"), image_hdr.fs);
 
     print_readable_size_str(total*block_s, size_str);
-    log_mesg(0, 0, 1, debug, _("Device size:  %s\n"), size_str);
+    log_mesg(0, 0, 1, debug, _("Device size:  %s = %lld Blocks = %lld Bytes\n"), size_str, total, (unsigned long long)(total*block_s));
     
     print_readable_size_str(used*block_s, size_str);
-    log_mesg(0, 0, 1, debug, _("Space in use: %s\n"), size_str);
+    log_mesg(0, 0, 1, debug, _("Space in use: %s = %lld Blocks = %lld Bytes\n"), size_str, used, (unsigned long long)(used*block_s));
     
     print_readable_size_str((total-used)*block_s, size_str);
-    log_mesg(0, 0, 1, debug, _("Free Space:   %s\n"), size_str);
+    log_mesg(0, 0, 1, debug, _("Free Space:   %s = %lld Blocks = %lld Bytes\n"), size_str, (total-used), (unsigned long long)((total-used)*block_s));
     
     log_mesg(0, 0, 1, debug, _("Block size:   %i Byte\n"), block_s);
-    log_mesg(0, 0, 1, debug, _("Used block :  %lli\n"), used);
+    //log_mesg(0, 0, 1, debug, _("Used block :  %lli\n"), used);
 }
 
 /// print finish message
