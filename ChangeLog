@@ -1,3 +1,49 @@
+2012-07-10  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add exfat
+
+2012-06-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add more detail message in image head output
+
+2012-06-15  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add partclone.btrfs.8
+
+	update control
+
+	update control
+
+	fix quiet mode issue. The issue make partclone can't stop/finish even action is done. bug report from pille
+
+2012-05-30  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update manpage
+
+2012-05-29  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update docs
+
+	update docs
+
+2012-05-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	minor update readme
+
+2012-05-16  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update TODO
+
+2012-05-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'master' of partclone.nchc.org.tw:/home/partclone
+
+	update vmfs for some unallocated block
+
+2012-04-29  Thomas Tsai  <thomas@nchc.org.tw>
+
+	A partclone bug found when it backs up  WindowsServer2008R2 (64bit)  on
+
 2012-04-26  Thomas Tsai  <thomas@nchc.org.tw>
 
 	update bitmap progress
@@ -72,9 +118,11 @@
 
 	update vmfs5
 
-2012-02-08  Thomas Tsai  <thomas@nchc.org.tw>
+2012-02-09  Thomas Tsai  <thomas@nchc.org.tw>
 
 	add vmfs5clone.c to clone vmfs5 update vmfs5 update makefile to create partclone.vmfs5
+
+2012-02-08  Thomas Tsai  <thomas@nchc.org.tw>
 
 	0.2.46
 
@@ -88,9 +136,11 @@
 
 	update manpages
 
-2012-01-17  Thomas Tsai  <thomas@nchc.org.tw>
+2012-01-18  Thomas Tsai  <thomas@nchc.org.tw>
 
 	add compatibility of vmfs3 and vmfs5
+
+2012-01-17  Thomas Tsai  <thomas@nchc.org.tw>
 
 	print vmfs version from fstype
 
@@ -110,11 +160,11 @@
 
 	add finish progress to dd
 
-2011-12-26  Thomas Tsai  <thomas@nchc.org.tw>
-
 	0.2.41
 
 	add thread to dd, restore and chkimg
+
+2011-12-26  Thomas Tsai  <thomas@nchc.org.tw>
 
 	add thread to display progress, draft
 
@@ -134,7 +184,7 @@
 
 	update ntfsfixboot.c to version 1.0
 
-2011-11-24  Thomas Tsai  <thomas@nchc.org.tw>
+2011-11-25  Thomas Tsai  <thomas@nchc.org.tw>
 
 	0.2.38
 
@@ -154,7 +204,7 @@
 
 	update ncurses size
 
-2011-11-01  Thomas Tsai  <thomas@nchc.org.tw>
+2011-11-02  Thomas Tsai  <thomas@nchc.org.tw>
 
 	update toolbox
 
@@ -165,6 +215,8 @@
 	update toolbox
 
 	update
+
+2011-11-01  Thomas Tsai  <thomas@nchc.org.tw>
 
 	move partclone.spec to README.Packages/partclone.spec
 
@@ -234,6 +286,8 @@
 
 	release 0.2.31
 
+2011-10-13  Thomas Tsai  <thomas@nchc.org.tw>
+
 	update for vmfs5
 
 2011-10-11  Thomas Tsai  <thomas@nchc.org.tw>
@@ -254,7 +308,7 @@
 
 	release 0.2.29
 
-2011-09-08  Thomas Tsai  <thomas@nchc.org.tw>
+2011-09-09  Thomas Tsai  <thomas@nchc.org.tw>
 
 	make e2fs compact for squeeze
 
@@ -316,7 +370,7 @@
 
 	compact ntfs and ntfs-3g
 
-2011-07-27  Thomas Tsai  <thomas@nchc.org.tw>
+2011-07-28  Thomas Tsai  <thomas@nchc.org.tw>
 
 	add ntfs-3g library support for ntfs accept patch from Arkadiusz Patyk because In PLD Linux now we switch from ntfsprog to ntfs-3g. update patch and try to keep ntfsprogs.
 
@@ -326,7 +380,7 @@
 
 	    * accept patch from Ian Abbott.     * Ian Abbott realized it would be quicker if it only copied the in-use     areas of the partition.  ddrescue has a '--domain-log=FILE' option which     can be used to restrict it to certain areas, so the problem is to create     such a domain log file to cover the areas used by the filesystem on the     partition.     ... check mail list to get more details...
 
-2011-05-13  Thomas Tsai  <thomas@nchc.org.tw>
+2011-05-14  Thomas Tsai  <thomas@nchc.org.tw>
 
 	Merge branch '0.2.8-update' of partclone.nchc.org.tw:/home/partclone into 0.2.8-update
 
@@ -468,9 +522,9 @@
 
 	fix jfs: set unknown status bock as used
 
-2010-06-30  Thomas Tsai  <thomas@nchc.org.tw>
-
 	fix bug for jfs_logform
+
+2010-06-30  Thomas Tsai  <thomas@nchc.org.tw>
 
 	update changelog
 
@@ -1020,7 +1074,7 @@
 	Updated for version 0.1.1-8.
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@283 93b75dfe-da2d-4241-a08d-2141769abc04
 
-2009-06-01  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
+2009-06-02  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update message for restore
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@282 93b75dfe-da2d-4241-a08d-2141769abc04
@@ -1103,10 +1157,10 @@
 	add link of partclone.ntfsreloc
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@264 93b75dfe-da2d-4241-a08d-2141769abc04
 
-2009-05-21  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
-
 	It's possible to create new file as target for restore after this commit...
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@263 93b75dfe-da2d-4241-a08d-2141769abc04
+
+2009-05-21  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	add argument -f, --UI-fresh to set fresh time of progress bar ex: -f 10 // set fresh progress per 10*100 blocks The default fresh is 10000...
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@262 93b75dfe-da2d-4241-a08d-2141769abc04
@@ -1270,7 +1324,7 @@
 	Update chnagelog for release 0.1.0-4
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@224 93b75dfe-da2d-4241-a08d-2141769abc04
 
-2009-04-15  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
+2009-04-16  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update * EXECNAME in xxxclone.c * change description of dd-mode as dev-to-dev Local copy... * fix bug about get_partition size
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@223 93b75dfe-da2d-4241-a08d-2141769abc04
@@ -1296,12 +1350,10 @@
 	    * --enable-static is on again.
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@218 93b75dfe-da2d-4241-a08d-2141769abc04
 
-2009-04-09  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
-
 	* Disable static linking * e2fslibs-dev (>= 1.41.3) is required for partclone.ext4.
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@217 93b75dfe-da2d-4241-a08d-2141769abc04
 
-2009-04-09  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
+2009-04-10  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	add ext4 link again....
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@216 93b75dfe-da2d-4241-a08d-2141769abc04
@@ -1337,7 +1389,7 @@
 	update size of device and volume
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@209 93b75dfe-da2d-4241-a08d-2141769abc04
 
-2009-03-04  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
+2009-03-05  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	merger from unstable
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@208 93b75dfe-da2d-4241-a08d-2141769abc04
@@ -1347,6 +1399,8 @@
 
 	update for va_start, make sure vsprintf is right for x86_64
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@206 93b75dfe-da2d-4241-a08d-2141769abc04
+
+2009-03-04  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	update deplib_version.c to check library version
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@205 93b75dfe-da2d-4241-a08d-2141769abc04
@@ -1370,8 +1424,6 @@
 
 	update confiure
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@198 93b75dfe-da2d-4241-a08d-2141769abc04
-
-2009-03-03  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	 r201@T-X61:  thomas | 2009-03-04 00:46:06 +0800  test by svk
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@197 93b75dfe-da2d-4241-a08d-2141769abc04
@@ -1863,18 +1915,16 @@
 	    add function "check_free_space" to make sure the free space is enough to save image file.
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@86 93b75dfe-da2d-4241-a08d-2141769abc04
 
-2008-01-21  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
-
 	    Changeset 84 and 85     * set debug level, set -dX or --debug=X. X = 0 is no debug 					     X = 1 is normal debug 					     X = 2 is large log messgae     * update log_mesg for different debug level.     * add new function "print_option" to print options and argument at debug=1.     * configure --enable-all to enable alll supported file systems.
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@85 93b75dfe-da2d-4241-a08d-2141769abc04
+
+2008-01-21  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    update debug message mode but not finish.
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@84 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	    fix #24
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@83 93b75dfe-da2d-4241-a08d-2141769abc04
-
-2008-01-20  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    fix #24, Remove extra space.
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@82 93b75dfe-da2d-4241-a08d-2141769abc04
@@ -2100,8 +2150,6 @@
 
 	    fix the ticke about "The better informatio at clone/restore"
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@36 93b75dfe-da2d-4241-a08d-2141769abc04
-
-2008-01-02  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
 	    update zh_tw.gmo
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@35 93b75dfe-da2d-4241-a08d-2141769abc04

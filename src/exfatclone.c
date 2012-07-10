@@ -32,13 +32,18 @@ struct exfat ef;
 
 /// open device
 static void fs_open(char* device){
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: exfat_mount\n", __FILE__); 
     if (exfat_mount(&ef, device, "ro") != 0)
-	log_mesg(0, 1, 1, fs_opt.debug, "%s: exfat open fail\n", __FILE__);
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: File system exfat open fail\n", __FILE__);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: exfat_mount done\n", __FILE__);
 }
 
 /// close device
 static void fs_close(){
+
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: exfat_umount\n", __FILE__); 
     exfat_unmount(&ef);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: exfat_umount done\n", __FILE__);
 }
 
 ///  readbitmap - read bitmap
@@ -59,7 +64,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	printf("block %lli %lli \n", a, b);
 	for (block = a; block <= b; block++){
 	    pc_set_bit((uint64_t)block, bitmap);
-	    log_mesg(2, 0, 0, fs_opt.debug, "%s: used block %lli \n", __FILE__, block);
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %lli \n", __FILE__, block);
 	    /// update progress
 	    update_pui(&prog, block, block, 0);
 	}

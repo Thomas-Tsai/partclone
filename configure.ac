@@ -269,7 +269,7 @@ if test "$enable_exfat" = "yes"; then
 supported_fs=$supported_fs" exfat"
 exfat_version="build-in"
 fi
-#end of check fat
+#end of check exfat
 
 
 ##NTFS##
