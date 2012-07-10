@@ -16,7 +16,7 @@ restore_file="restore_file_device"
 to_be_remove=""
 
 ## file system
-normal_fs="ext2 ext3 ext4 vfat"
+normal_fs="ext2 ext3 ext4 vfat exfat"
 featured_fs="$normal_fs jfs xfs reiserfs hfsplus"
 extra_fs="$featured_fs ntfs btrfs"
 read_only_fs="ufs reiser4 vmfs"
