@@ -35,6 +35,7 @@
 #define ext4_MAGIC "EXT4"
 #define hfsplus_MAGIC "HFS Plus"
 #define fat_MAGIC "FAT"
+#define exfat_MAGIC "EXFAT"
 #define ntfs_MAGIC "NTFS"
 #define ufs_MAGIC "UFS"
 #define vmfs_MAGIC "VMFS"

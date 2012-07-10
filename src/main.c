@@ -86,6 +86,9 @@ cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
 #elif BTRFS
 #include "btrfsclone.h"
 #define FS "BTRFS"
+#elif EXFAT
+#include "exfatclone.h"
+#define FS "EXFAT"
 #endif
 
 /// fs option
