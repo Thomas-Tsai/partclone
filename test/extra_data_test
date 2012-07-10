@@ -5,11 +5,11 @@ set -e
 
 ##default_value
 test_data_path=""
-row_file_path=""
+raw_file_path=""
 logfile_path=""
 image_path=""
 test_data_md5=""
-keep_row=0
+keep_raw=0
 partition_size=384
 restore_device=""
 restore_file="restore_file_device"
@@ -37,14 +37,14 @@ USAGE() {
 	-t, --test_data_path        file in this path will be copy to generated
 	                            loop device and prepare md5 file.
 	-m, --test_data_md5	    specify md5 file for test data set
-	-s, --partition_size        if -t option enabled, use dd to create row 
+	-s, --partition_size        if -t option enabled, use dd to create raw 
 	                            file with this MB size
-	-r, --row_file_path         path to collect all generated row files
+	-r, --raw_file_path         path to collect all generated raw files
 	-i, --image_path            path to collect all generated partclone 
 	                            image files
 	-l, --logfile_path          path to collect all log files
 	-f, --file-system           what file system you want to test 
-	-k, --keep_row_files        Don't delete all generated row file
+	-k, --keep_raw_files        Don't delete all generated raw file
 	-h, --help                  show this help
 EOF
     
@@ -95,16 +95,16 @@ check_option(){
 		    shift
 		fi
 		;;
-	    -r|--row_file_path)
+	    -r|--raw_file_path)
 		shift
 		if [ -z "$(echo $1 |grep ^-.)" ]; then
-		    row_file_path=$(abs_path $1)
+		    raw_file_path=$(abs_path $1)
 		    shift
 		fi
 		;;
-	    -k|--keep_row_files)
+	    -k|--keep_raw_files)
 		shift
-		keep_row=1
+		keep_raw=1
 		;;
 	    -i|--image_path)
 		shift
@@ -161,19 +161,19 @@ generate_test_data_md5(){
 }
 
 prepare_restore_device(){
-    if [ -f $row_file_path/$restore_file ]; then
+    if [ -f $raw_file_path/$restore_file ]; then
 	echo "file exist"
     else
 	echo "start create restore device"
-	dd if=/dev/zero of=$row_file_path/$restore_file bs=1M count=$partition_size
+	dd if=/dev/zero of=$raw_file_path/$restore_file bs=1M count=$partition_size
 	echo "device generate done ($restore_device)  "
     fi
-    to_be_remove="$to_be_remove $row_file_path/$restore_file"
+    to_be_remove="$to_be_remove $raw_file_path/$restore_file"
 
     if [ -z $(losetup -a | grep $restore_file) ]; then
 	restore_device=`losetup -f`
 	echo "attach loop device"
-	losetup $restore_device $row_file_path/$restore_file
+	losetup $restore_device $raw_file_path/$restore_file
 	echo "done"
     else
 	echo "loop device exist"
@@ -182,15 +182,15 @@ prepare_restore_device(){
 }
 prepare_data(){
     fs=$1
-    target_file=$row_file_path/source_row_device.$fs
-    target_mpt=$row_file_path/mpt.$fs
+    target_file=$raw_file_path/source_raw_device.$fs
+    target_mpt=$raw_file_path/mpt.$fs
 
     target_device=`losetup -f`
     echo "generate $target_file as loop device($target_device) for $fs test"
     dd if=/dev/zero of=$target_file bs=1M count=$partition_size
     losetup $target_device $target_file
 
-    echo "format $target_device as $fs row partition"
+    echo "format $target_device as $fs raw partition"
     mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $target_device
 
     echo "copy data to $target_mpt"
@@ -207,7 +207,7 @@ prepare_data(){
 
 check_source(){
     fs=$1
-    target_file=$row_file_path/source_row_device.$fs
+    target_file=$raw_file_path/source_raw_device.$fs
     if [ -f $target_file ]; then
 	target_device=`losetup -f`
 	losetup $target_device  $target_file
@@ -227,14 +227,14 @@ check_image(){
 
 check_target(){
     fs=$1
-    img=$row_file_path/$fs-$(prefix_name).restore.row
+    img=$raw_file_path/$fs-$(prefix_name).restore.raw
     [ -f $img ] && rm $img
     echo $img
 }
 
 restore_device_file_check(){
     target_md5=$test_data_md5
-    target_mpt=$row_file_path/mpt.restore
+    target_mpt=$raw_file_path/mpt.restore
     [ -f $target_md5 ] || exit 2
     cur_path=`pwd`
     mkdir -p $target_mpt
@@ -253,11 +253,11 @@ restore_device_file_check(){
     fi
     
 }
-restore_row_data_check() {
+restore_raw_data_check() {
  
     fs=$1
     target_md5=$test_data_md5
-    target_mpt=$row_file_path/mpt.restore
+    target_mpt=$raw_file_path/mpt.restore
     [ -f $target_md5 ] || exit 2
     cur_path=`pwd`
     mkdir -p $target_mpt
@@ -298,8 +298,8 @@ fi
 clear_loop
 
 if [ -z "$test_fata_md5" ]; then 
-    touch "$row_file_path/test_data.md5"
-    test_data_md5=$(abs_path "$row_file_path/test_data.md5")
+    touch "$raw_file_path/test_data.md5"
+    test_data_md5=$(abs_path "$raw_file_path/test_data.md5")
 fi
 
 [ -z "$manual_fs" ] || test_fs=$manual_fs
@@ -318,18 +318,18 @@ for fs in $test_fs; do
     ncurses="-N -f 1"
     debug="-d"
 
-    to_be_remove="$to_be_remove $row_file_path/source_row_device.$fs"
+    to_be_remove="$to_be_remove $raw_file_path/source_raw_device.$fs"
     echo "clone $source_device to $partclone_img"
     partclone.$fs $debug $ncurses -c -s $source_device -O $partclone_img -L $logfile.clone
 
     echo "do image checking"
     partclone.chkimg -s $partclone_img -L $logfile.imgchk
 
-    echo "restore $partclone_img to row file $target_device"
-    partclone.restore -s $partclone_img -o $target_device --restore_row_file -L $logfile.restore-row
+    echo "restore $partclone_img to raw file $target_device"
+    partclone.restore -s $partclone_img -o $target_device --restore_raw_file -L $logfile.restore-raw
 
     echo "md5 check"
-    restore_row_data_check $fs
+    restore_raw_data_check $fs
 
     echo "restore $partclone_img to device $restore_device"
     prepare_restore_device
@@ -344,7 +344,7 @@ for fs in $test_fs; do
     losetup -d $restore_device
 
     echo "detach all loop device ..."
-    other_loop=$(losetup -a | grep $(basename $row_file_path) | awk {'print $1'} | sed s/://)
+    other_loop=$(losetup -a | grep $(basename $raw_file_path) | awk {'print $1'} | sed s/://)
     for loop_dev in $other_loop; do
 	losetup -d $loop_dev
     done
@@ -352,8 +352,8 @@ done
 
 clear_loop
 
-if [ $keep_row == 0  ]; then
-    echo "remove all row files: $to_be_remove"
+if [ $keep_raw == 0  ]; then
+    echo "remove all raw files: $to_be_remove"
     remove_files=$(echo $to_be_remove | tr ' ' '\012'| uniq)
     rm -i $remove_files
 fi

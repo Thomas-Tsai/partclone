@@ -3,8 +3,8 @@
 current_dir=`pwd`
 logfile='test.log'
 img='floppy.img'
-row='floppy.row'
-md5=$row'.md5'
+raw='floppy.raw'
+md5=$raw'.md5'
 dd_bs=1024
 normal_size=$((1024*256))
 floppy_size=1024
@@ -33,30 +33,30 @@ check_return_code(){
 #main
 for fs in $test_fs; do
 
-    echo "create row file $row"
-    [ -f $row ] && rm $row
-    dd if=/dev/zero of=$row bs=$dd_bs count=$dd_count
+    echo "create raw file $raw"
+    [ -f $raw ] && rm $raw
+    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
 
-    echo "format $row as $fs row partition"
-    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $row
+    echo "format $raw as $fs raw partition"
+    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw
 
-    echo "create md5 for $row file"
-    md5sum $row > $md5
+    echo "create md5 for $raw file"
+    md5sum $raw > $md5
 
-    echo "clone $row to $img"
+    echo "clone $raw to $img"
     [ -f $img ] && rm $img
-    partclone.$fs -d -N -c -s $row -O $img -F -L $logfile
+    partclone.$fs -d -N -c -s $raw -O $img -F -L $logfile
     check_return_code
 
     echo "do image checking"
     partclone.chkimg -s $img -L $logfile
     check_return_code
 
-    echo "remove $row"
-    [ -f $row ] && rm $row
+    echo "remove $raw"
+    [ -f $raw ] && rm $raw
 
-    echo "restore $img to $row"
-    partclone.restore -s $img -o $row -C --restore_row_file -F -L $logfile
+    echo "restore $img to $raw"
+    partclone.restore -s $img -o $raw -C --restore_raw_file -F -L $logfile
     check_return_code
 
     echo "md5 check"
@@ -64,11 +64,11 @@ for fs in $test_fs; do
 
     if [ -z "$ret" ]; then
 	echo "$fs test ok"
-	echo "clear tmp files $img $row $logfile $md5"
-	rm $img $row $logfile $md5
+	echo "clear tmp files $img $raw $logfile $md5"
+	rm $img $raw $logfile $md5
     else
 	echo "$fs test fail"
-	echo "keep the files for bug report $img $row $logfile $md5"
+	echo "keep the files for bug report $img $raw $logfile $md5"
     fi
 
 done
