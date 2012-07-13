@@ -230,6 +230,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
        vmfs                    partclone.vmfs
        ntfs                    partclone.ntfs
        fat12, fat16, fat32     partclone.[fat12|fat16|fat32]
+       exfat                   partclone.exfat
     </screen>
   </refsect1>
   <refsect1 id="options">

@@ -59,6 +59,7 @@ if ENABLE_NTFS
 man_MANS += partclone.ntfs.8
 endif
 
+FORCE:
 partclone.dd.8: partclone.dd.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.dd.xml)
 partclone.chkimg.8: partclone.chkimg.xml

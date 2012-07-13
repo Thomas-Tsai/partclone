@@ -1,5 +1,13 @@
 2012-07-10  Thomas Tsai  <thomas@nchc.org.tw>
 
+	version 0.2.50
+
+	update test and size information
+
+	add test for exfat
+
+	update exfat and add exfat man docs
+
 	add exfat
 
 2012-06-27  Thomas Tsai  <thomas@nchc.org.tw>
