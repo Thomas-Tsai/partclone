@@ -147,19 +147,32 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long copied
     if (done != 1){
         remained = (time_t)((elapsed/percent*100) - elapsed);
 
-        Rtm = gmtime(&remained);
-        strftime(Rformated, sizeof(Rformated), format, Rtm);
+	if ((unsigned int)remained > 86400){
+	    sprintf(Rformated," > %3i hrs ", ((int)remained/3600));
+	}else{
+	    Rtm = gmtime(&remained);
+	    strftime(Rformated, sizeof(Rformated), format, Rtm);
+	}
 
-        Etm = gmtime(&elapsed);
-        strftime(Eformated, sizeof(Eformated), format, Etm);
+	if ((unsigned int)elapsed > 86400){
+	    sprintf(Eformated,"> %3i hrs ", ((int)elapsed/3600));
+	}else{
+	    Etm = gmtime(&elapsed);
+	    strftime(Eformated, sizeof(Eformated), format, Etm);
+	}
 
     } else {
         prog_stat->percent=100;
         remained = (time_t)0;
         Rtm = gmtime(&remained);
-        strftime(Rformated, sizeof(Rformated), format, Rtm);
-        Etm = gmtime(&elapsed);
-        strftime(Eformated, sizeof(Eformated), format, Etm);
+	strftime(Rformated, sizeof(Rformated), format, Rtm);
+
+	if ((unsigned int)elapsed > 86400){
+	    sprintf(Eformated," > %3i hrs ", ((int)elapsed/3600));
+	}else{
+	    Etm = gmtime(&elapsed);
+	    strftime(Eformated, sizeof(Eformated), format, Etm);
+	}
     }
 
     strncpy(prog_stat->Eformated, Eformated, 10);
