@@ -1,3 +1,17 @@
+2012-07-30  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update version to 0.2.51
+
+	update process for elapsed time over 24hr
+
+2012-07-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update supported list
+
+2012-07-13  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update makefile
+
 2012-07-10  Thomas Tsai  <thomas@nchc.org.tw>
 
 	version 0.2.50

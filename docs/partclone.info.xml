@@ -113,7 +113,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
     <para><command>&dhpackage;</command> is a part of <command>Partclone</command> project to retrive partition head information from image file. 
     
     Partclone provide utilities to backup used blocks and design for higher compatibility of the file system by using existing library, e.g. e2fslibs is used to read the used block of ext2 partition.</para>
-    <para><command>Partclone</command> supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX. Also  support some non-linux operation system, ex: NTFS and  FAT (for Windows), HFS plus(APPLE MAC OS), UFS2(FreeBSD), VMFS(VMWare Vsphere). All partclone utils could be run like partclone.xxx is very smiliar fsck or mkfs. For example, for backup/restore hfsplus, just run partclone.hfsp.
+    <para><command>Partclone</command> supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX. Also  support some non-linux operation system, ex: NTFS, FAT, EXFAT(for Windows), HFS plus(APPLE MAC OS), UFS2(FreeBSD), VMFS(VMWare Vsphere). All partclone utils could be run like partclone.xxx is very smiliar fsck or mkfs. For example, for backup/restore hfsplus, just run partclone.hfsp.
 
     </para>
 

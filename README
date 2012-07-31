@@ -9,6 +9,7 @@ We made some utilies:
 * partclone.reiserfs
 * partclone.reiser4
 * partclone.xfs
+* partclone.exfat
 * partclone.fat
 * partclone.ntfs
 * partclone.hfsp
@@ -16,12 +17,8 @@ We made some utilies:
 * partclone.ufs
 * partclone.jfs
 * partclone.info 
+* partclone.restore
+* partclone.chkimg
 ...
-
-Some programs were included here to make clone better:
-*  ntfsreloc: A GPL program for adjusting FS geometry on NTFS partitions
-   Ref: http://www.linux-ntfs.org/doku.php?id=contrib:ntfsreloc
-   It's renamed as partclone.ntfsreloc in partclone.
-
 
 For more info about partclone, check our website http://partclone.org.
