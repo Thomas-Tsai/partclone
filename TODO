@@ -1,10 +1,7 @@
-* multuthread
 * multi output device for restore
 * nilfs support
-* exfat support
 * wbfs support
 * zfs support
 * source code update
 * add exfat version test
 * add exfat in web page and partclone.xml...
-* update test restore_row_file to restore-raw-file
