@@ -477,7 +477,7 @@ int main(int argc, char **argv){
     close (dfw);    /// close target
     free(bitmap);   /// free bitmp
     close_pui(pui);
-    printf("Cloned successfully.\n");
+    fprintf(stderr, "Cloned successfully.\n");
     if(opt.debug)
 	close_log();
     return 0;	    /// finish

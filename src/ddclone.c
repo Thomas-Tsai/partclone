@@ -290,7 +290,7 @@ int main(int argc, char **argv){
     close (dfr);    /// close source
     close (dfw);    /// close target
     close_pui(pui);    /// close target
-    printf("Cloned successfully.\n");
+    fprintf(stderr, "Cloned successfully.\n");
     if(opt.debug)
         close_log();
     return 0;	    /// finish

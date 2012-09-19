@@ -55,6 +55,8 @@ WINDOW *p_win;
 WINDOW *box_win;
 WINDOW *bar_win;
 WINDOW *tbar_win;
+WINDOW *ptclscr_win;
+SCREEN *ptclscr;
 int log_y_line = 0;
 #endif
 
@@ -311,21 +313,12 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
             exit(0);
         }
 
-        if ((strcmp(opt->target, "-") == 0) || (opt->target == NULL)) {
-            if (opt->ncurses){
-                fprintf(stderr, "Warning: Partclone can't save output to stdout with ncurses interface.\n");
-                opt->ncurses = 0;
-            }
-
-        }
-
     }
 
     if (opt->restore){
 
         if ((strcmp(opt->target, "-") == 0) || (opt->target == NULL)) {
             fprintf(stderr, "Partclone can't restore to stdout.\nFor help,type: %s -h\n", EXECNAME);
-            //usage();
             exit(0);
         }
 
@@ -343,13 +336,22 @@ extern int open_ncurses(){
     int debug = 1;
 
 #ifdef HAVE_LIBNCURSESW
+    FILE *in = fopen( "/dev/stderr", "r" );
+    FILE *out = fopen( "/dev/stderr", "w" );
     extern cmd_opt opt;
     int terminal_x = 0;
     int terminal_y = 0;
-    initscr();
+
+    ptclscr = newterm( NULL, out, in);
+    refresh();
+    if ( ptclscr == NULL )
+        log_mesg(0, 1, 1, debug, "partclone ncurses initial error\n");
+    if ( set_term( ptclscr ) == NULL )
+        log_mesg(0, 1, 1, debug, "partclone ncurses set term error\n");
+    ptclscr_win = newwin(LINES, COLS, 0, 0);
 
     // check terminal width and height
-    getmaxyx(stdscr, terminal_y, terminal_x);
+    getmaxyx(ptclscr_win, terminal_y, terminal_x);
 
     // set window position
     int log_line = 12;
@@ -392,13 +394,15 @@ extern int open_ncurses(){
 
     /// write background color
     bkgd(COLOR_PAIR(1));
-    touchwin(stdscr);
+    wbkgd(ptclscr_win,COLOR_PAIR(2));
+    touchwin(ptclscr_win);
     refresh();
 
     /// init main box
     attrset(COLOR_PAIR(2));
-    box_win = subwin(stdscr, (log_line+gap+p_line+2), log_row+2, log_y_pos-1, log_x_pos-1);
+    box_win = subwin(ptclscr_win, (log_line+gap+p_line+2), log_row+2, log_y_pos-1, log_x_pos-1);
     box(box_win, ACS_VLINE, ACS_HLINE);
+    wrefresh(box_win);
     wbkgd(box_win, COLOR_PAIR(2));
     mvprintw((log_y_pos-1), ((terminal_x-9)/2), " Partclone ");
     attroff(COLOR_PAIR(2));
@@ -406,28 +410,34 @@ extern int open_ncurses(){
     attrset(COLOR_PAIR(3));
 
     /// init log window
-    log_win = subwin(stdscr, log_line, log_row, log_y_pos, log_x_pos);
+    log_win = subwin(ptclscr_win, log_line, log_row, log_y_pos, log_x_pos);
     wbkgd(log_win, COLOR_PAIR(3));
+    touchwin(log_win);
+    refresh();
 
     // init progress window
-    p_win = subwin(stdscr, p_line, p_row, p_y_pos, p_x_pos);
+    p_win = subwin(ptclscr_win, p_line, p_row, p_y_pos, p_x_pos);
     wbkgd(p_win, COLOR_PAIR(3));
+    touchwin(p_win);
+    refresh();
 
     // init progress window
-    bar_win = subwin(stdscr, 1, p_row-10, p_y_pos+4, p_x_pos);
+    bar_win = subwin(ptclscr_win, 1, p_row-10, p_y_pos+4, p_x_pos);
     wbkgd(bar_win, COLOR_PAIR(1));
+    touchwin(bar_win);
+    refresh();
 
     // init total block progress window
-    tbar_win = subwin(stdscr, 1, p_row-10, p_y_pos+7, p_x_pos);
-    //wbkgd(tbar_win, COLOR_PAIR(1));
+    tbar_win = subwin(ptclscr_win, 1, p_row-10, p_y_pos+7, p_x_pos);
+    wbkgd(tbar_win, COLOR_PAIR(1));
+    touchwin(tbar_win);
+    refresh();
 
     scrollok(log_win, TRUE);
 
-    if( touchwin(stdscr) == ERR ){
+    if( touchwin(ptclscr_win) == ERR ){
         return 0;
     }
-
-    //clear();
 
     refresh();
 
@@ -443,8 +453,9 @@ extern void close_ncurses(){
     delwin(p_win);
     delwin(bar_win);
     delwin(box_win);
-    touchwin(stdscr);
+    touchwin(ptclscr_win);
     endwin();
+    delscreen (ptclscr);
 #endif
 }
 
