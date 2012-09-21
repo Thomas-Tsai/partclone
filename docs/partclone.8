@@ -1,0 +1,273 @@
+'\" t
+.\"     Title: PARTCLONE
+.\"    Author: Yu-Chin Tsai <thomas@nchc.org.tw>
+.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 09/21/2012
+.\"    Manual: Partclone User Manual
+.\"    Source: partclone
+.\"  Language: English
+.\"
+.TH "PARTCLONE" "8" "09/21/2012" "partclone" "Partclone User Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+partclone \- The utility for clone and restore a partition\&.
+.SH "SYNOPSIS"
+.HP \w'\fBpartclone\&.[fstype]\fR\ 'u
+\fBpartclone\&.[fstype]\fR {[\fB\-c\fR\ |\ \fB\-\-clone\fR]\ [\fB\-r\fR\ |\ \fB\-\-restore\fR]\ [\fB\-b\fR\ |\ \fB\-\-dev\-to\-dev\fR]} {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_row_file\fR]] [[\fB\-M\fR\ |\ \fB\-\-max_block_cache\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]] [[\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]] [[\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]] [[\fB\-\-ignore_crc\fR]\ [\fB\-X\fR\ |\ \fB\-\-dialog\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]] [[\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR]
+.SH "DESCRIPTION"
+.PP
+\fBpartclone\fR\&.[fstype] is a part of
+\fBPartclone\fR
+project\&. Partclone provide utilities to backup used blocks and design for higher compatibility of the file system by using existing library, e\&.g\&. e2fslibs is used to read the used block of ext2 partition\&.
+.PP
+\fBPartclone\fR
+supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX\&. Also support some non\-linux operation system, ex: NTFS, FAT and EXFAT(for Windows), HFS plus(APPLE MAC OS), UFS2(FreeBSD), VMFS(VMWare Vsphere)\&.
+.PP
+All partclone utils could be run like partclone\&.[fstype] is very smiliar fsck or mkfs\&. For example, for backup/restore hfsplus, just run partclone\&.hfsp
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+       File System             partclone\&.[fstype]
+
+       btrfs                   partclone\&.btrfs
+       ext2, ext3, ext4        partclone\&.[ext2|ext3|ext4]
+       reiserfs 3\&.5            partclone\&.reiserfs
+       reiser 4                partclone\&.reiser4
+       xfs                     partclone\&.xfs
+       ufs | ufs2              partclone\&.ufs
+       jfs                     partclone\&.jfs
+       hfs plusfs              partclone\&.[hfs+|hfsplus]
+       vmfs                    partclone\&.vmfs
+       ntfs                    partclone\&.ntfs
+       fat12, fat16, fat32     partclone\&.[fat12|fat16|fat32]
+       exfat                   partclone\&.exfat
+    
+.fi
+.if n \{\
+.RE
+.\}
+.SH "OPTIONS"
+.PP
+The program follows the usual GNU command line syntax, with long options starting with two dashes (`\-\*(Aq)\&. A summary of options is included below\&.
+.PP
+\fB\-s \fR\fB\fIFILE\fR\fR, \fB\-\-source \fR\fB\fIFILE\fR\fR
+.RS 4
+Source FILE\&. The FILE could be a image file(made by partclone) or device depend on your action\&. Normanly, backup source is device, restore source is image file\&.
+.sp
+Receving data from pipe line is supported ONLY for restoring, just ignore \-s option or use \*(Aq\-\*(Aq means receive data from stdin\&.
+.RE
+.PP
+\fB\-o \fR\fB\fIFILE\fR\fR, \fB\-\-output \fR\fB\fIFILE\fR\fR
+.RS 4
+Output FILE\&. The FILE could be a image file(partclone will generate) or device depend on your action\&. Normanly, backup output to image file and restore output to device\&.
+.sp
+Sending data to pipe line is also supported ONLY for back\-up, just ignore \-o option or use \*(Aq\-\*(Aq means send data to stdout\&.
+.RE
+.PP
+\fB\-O \fR\fB\fIFILE\fR\fR, \fB\-\-overwrite \fR\fB\fIFILE\fR\fR
+.RS 4
+Overwrite FILE, overwriting if exists\&.
+.RE
+.PP
+\fB\-c\fR, \fB\-\-clone\fR
+.RS 4
+Save partition to the special image format\&.
+.RE
+.PP
+\fB\-r\fR, \fB\-\-restore\fR
+.RS 4
+Restore partition from the special image format\&.
+.RE
+.PP
+\fB\-b\fR, \fB\-\-dev\-to\-dev\fR
+.RS 4
+Local device to device copy on\-the\-fly, source and output both are device\&.
+.RE
+.PP
+\fB\-D\fR, \fB\-\-domain\fR
+.RS 4
+Create GNU Ddrescue domain log file from source device
+.RE
+.PP
+\fB\-\-offset_domain=X\fR
+.RS 4
+Add X (in bytes) to all positions reported in the domain log file
+.RE
+.PP
+\fB\-\-restore_row_file\fR
+.RS 4
+Creating special raw file for loop device\&.
+.RE
+.PP
+\fB\-l \fR\fB\fIFILE\fR\fR, \fB\-\-logfile \fR\fB\fIFILE\fR\fR
+.RS 4
+put special path to record partclone log information\&.(default /var/log/partclone\&.log)
+.RE
+.PP
+\fB\-R\fR, \fB\-\-rescue\fR
+.RS 4
+Continue after disk read errors\&.
+.RE
+.PP
+\fB\-C\fR, \fB\-\-no_check\fR
+.RS 4
+Don\*(Aqt check device size and free space\&.
+.RE
+.PP
+\fB\-N\fR, \fB\-\-ncurse\fR
+.RS 4
+Using Ncurses Text User Interface\&.
+.RE
+.PP
+\fB\-X\fR, \fB\-\-dialog\fR
+.RS 4
+Output message as Dialog Format\&.
+.RE
+.PP
+\fB\-I\fR, \fB\-\-ignore_fschk\fR
+.RS 4
+Ignore filesystem check\&.
+.RE
+.PP
+\fB\-\-ignore_crc\fR
+.RS 4
+Ignore crc check error\&.
+.RE
+.PP
+\fB\-F\fR, \fB\-\-force\fR
+.RS 4
+Force progress\&.
+.RE
+.PP
+\fB\-f \fR\fB\fIsec\fR\fR, \fB\-\-UI\-fresh \fR\fB\fIsec\fR\fR
+.RS 4
+put special second to different interval\&.
+.RE
+.PP
+\fB\-m \fR\fB\fImax\fR\fR, \fB\-\-max_block_cache \fR\fB\fImax\fR\fR
+.RS 4
+The used block will be cache until max number\&.
+.RE
+.PP
+\fB\-q\fR, \fB\-\-quiet\fR
+.RS 4
+Disable progress message\&.
+.RE
+.PP
+\fB\-d\fR\fB\fIlevel\fR\fR, \fB\-\-debug \fR\fB\fIlevel\fR\fR
+.RS 4
+Set the debug level [1|2|3]
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Show summary of options\&.
+.RE
+.PP
+\fB\-v\fR, \fB\-\-version\fR
+.RS 4
+Show version of program\&.
+.RE
+.SH "FILES"
+.PP
+/var/log/partclone\&.log
+.RS 4
+The log file of
+partclone
+.RE
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+ clone /dev/hda1 to hda1\&.img and display debug information\&.
+   partclone\&.ext3 \-c \-d \-s /dev/hda1 \-o hda1\&.img
+
+ restore /dev/hda1 from hda1\&.img and display debug information\&.
+   partclone\&.extfs \-r \-d \-s hda1\&.img \-o /dev/hda1
+
+ restore image from clonezilla(split, gzip,) with stdin source
+   cat sda1\&.ext3\-ptcl\-img\&.gz\&.a* | gunzip \-c | partclone\&.ext3 \-d \-r \-s \- \-o /dev/sda1
+    
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.PP
+The following diagnostics may be issued on
+stderr:
+.PP
+\fBpartclone\fR
+provides some return codes, that can be used in scripts:
+.\" line length increase to cope w/ tbl weirdness
+.ll +(\n(LLu * 62u / 100u)
+.TS
+ll.
+\fICode\fR	\fIDiagnostic\fR
+T{
+\fB0\fR
+T}	T{
+Program exited successfully\&.
+T}
+T{
+\fB1\fR
+T}	T{
+Clone or Restore seem failed\&.
+T}
+.TE
+.\" line length decrease back to previous value
+.ll -(\n(LLu * 62u / 100u)
+.sp
+.SH "BUGS"
+.PP
+Report bugs to thomas@nchc\&.org\&.tw or
+\m[blue]\fB\%http://partclone.org\fR\m[]\&.
+.PP
+You can get support at http://partclone\&.org
+.SH "SEE ALSO"
+.PP
+
+\fBpartclone\fR(8),
+\fBpartclone.chkimg\fR(8),
+\fBpartclone.restore\fR(8),
+\fBpartclone.dd\fR(8),
+\fBpartclone.info\fR(8)
+.SH "AUTHOR"
+.PP
+\fBYu\-Chin Tsai\fR <\&thomas@nchc\&.org\&.tw\&>
+.RS 4
+.RE
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2007 Yu-Chin Tsai
+.br
+.PP
+This manual page was written for the Debian system (and may be used by others)\&.
+.PP
+Permission is granted to copy, distribute and/or modify this document under the terms of the GNU General Public License, Version 2 or (at your option) any later version published by the Free Software Foundation\&.
+.PP
+On Debian systems, the complete text of the GNU General Public License can be found in
+/usr/share/common\-licenses/GPL\&.
+.sp

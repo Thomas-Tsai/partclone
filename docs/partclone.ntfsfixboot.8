@@ -1,0 +1,149 @@
+'\" t
+.\"     Title: PARTCLONE.NTFSFIXBOOT
+.\"    Author: Yu-Chin Tsai <thomas@nchc.org.tw>
+.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 09/21/2012
+.\"    Manual: Partclone User Manual
+.\"    Source: partclone.ntfsfixboot
+.\"  Language: English
+.\"
+.TH "PARTCLONE\&.NTFSFIXB" "8" "09/21/2012" "partclone.ntfsfixboot" "Partclone User Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+partclone.ntfsfixboot \- deals with braindeadness with moving NTFS filesystems\&.
+.SH "SYNOPSIS"
+.HP \w'\fBpartclone\&.ntfsfixboot\fR\ 'u
+\fBpartclone\&.ntfsfixboot\fR [\fB\-w\fR] [\fB\-h\fR\ \fIn\fR] [\fB\-t\fR\ \fIn\fR] [\fB\-s\fR\ \fIn\fR] [\fB\-b\fR] [\fB\-f\fR] [\fB\-p\fR] {\fIDEVICE\fR}
+.SH "DESCRIPTION"
+.PP
+\fBpartclone\&.ntfsfixboot\fR
+is NOT a part of
+\fBPartclone\fR
+project but included to fix ntfs boot issue\&. Partclone provide utilities to backup used blocks and design for higher compatibility of the file system by using existing library, e\&.g\&. e2fslibs is used to read the used block of ext2 partition\&.
+.PP
+\fBPartclone\&.ntfsfixboot\fR
+deals with braindeadness with moving NTFS filesystems\&. writted by Orgad Shaneh (2009) and Daniel J\&. Grace (2006)\&.
+.SH "OPTIONS"
+.PP
+The program follows the usual GNU command line syntax,a summary of options is included below\&.
+.PP
+\fB \-w \fR
+.RS 4
+Write new start sector to the partition\&.
+.RE
+.PP
+\fB \-h \fR\fInum\fR
+.RS 4
+Specify number of heads per track\&. If omitted, determined via ioctl\&.
+.RE
+.PP
+\fB \-t \fR\fInum\fR
+.RS 4
+Specify number of sectors per track\&. If omitted, determined via ioctl\&.
+.RE
+.PP
+\fB \-s \fR\fInum\fR
+.RS 4
+New start sector to write\&. If omitted, determined via ioctl\&.
+.RE
+.PP
+\fB \-b \fR
+.RS 4
+Proceed even if the specified device is not a partition\&.
+.RE
+.PP
+\fB \-f \fR
+.RS 4
+Force the operation to occur even if device does not look like a valid NTFS partition or values are equal\&.
+.RE
+.PP
+\fB \-p \fR
+.RS 4
+Print debug information (values read, values requested etc\&.
+.RE
+.PP
+\fB\fIdevice\fR\fR
+.RS 4
+where device points to an NTFS partition
+.RE
+.SH "DIAGNOSTICS"
+.PP
+The following diagnostics may be issued on
+stderr:
+.PP
+\fBpartclone\&.ntfsfixboot\fR
+provides some return codes, that can be used in scripts:
+.\" line length increase to cope w/ tbl weirdness
+.ll +(\n(LLu * 62u / 100u)
+.TS
+ll.
+\fICode\fR	\fIDiagnostic\fR
+T{
+\fB0\fR
+T}	T{
+success (values are correct, or changed successfully)
+T}
+T{
+\fB1\fR
+T}	T{
+a change is needed, but \-w was not specified
+T}
+T{
+\fB2\fR
+T}	T{
+an error occured
+T}
+.TE
+.\" line length decrease back to previous value
+.ll -(\n(LLu * 62u / 100u)
+.sp
+.SH "BUGS"
+.PP
+Report bugs to thomas@nchc\&.org\&.tw or
+\m[blue]\fB\%http://partclone.org\fR\m[]\&.
+.PP
+Report bugs to upstrem
+\m[blue]\fB\%http://sourceforge.net/projects/ntfsfixboot/\fR\m[]\&.
+.SH "SEE ALSO"
+.PP
+
+\fBpartclone\fR(8),
+\fBpartclone.chkimg\fR(8),
+\fBpartclone.restore\fR(8),
+\fBpartclone.dd\fR(8),
+\fBpartclone.info\fR(8)
+.SH "AUTHOR"
+.PP
+\fBYu\-Chin Tsai\fR <\&thomas@nchc\&.org\&.tw\&>
+.RS 4
+.RE
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2007 Yu-Chin Tsai
+.br
+.PP
+This manual page was written for the Debian system (and may be used by others)\&.
+.PP
+Permission is granted to copy, distribute and/or modify this document under the terms of the GNU General Public License, Version 2 or (at your option) any later version published by the Free Software Foundation\&.
+.PP
+On Debian systems, the complete text of the GNU General Public License can be found in
+/usr/share/common\-licenses/GPL\&.
+.sp
