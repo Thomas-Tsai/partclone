@@ -1,1 +1,22 @@
-please access partclone.org
+#required library
+
+e2fsprogs (official library)
+ntfs3g | ntfsprogs (official library)
+libreiserfs (official library)
+btrfs-tools (build-in)
+hfs plus (build-in)
+fat (build-in)
+reiserfs4progs (patched library, not in debian)
+vmfs-tools (patched library, not in debian)
+ufs (patched library, not in debian)
+jfs (patched library, not in debian)
+xfs (patched library, not in debian)
+
+#check patched library here: http://free.nchc.org.tw/drbl-core/pool/drbl/dev/
+
+# Installation
+./configure --enabel-ncursesw --enable-all
+make
+sudo make install
+
+please access partclone.org for more information

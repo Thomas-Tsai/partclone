@@ -212,7 +212,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
     <!-- Or use this section to tell about upstream BTS. -->
     <title>BUGS</title>
     <para>Report bugs to &dhemail; or <ulink url="http://partclone.org"/>.</para>
-    <para>You can get support at http://partclone.org</para>
+    <para>Report bugs to upstrem <ulink url="http://sourceforge.net/projects/ntfsfixboot/"/>.</para>
 
   </refsect1>
   <refsect1 id="see_also">

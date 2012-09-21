@@ -57,9 +57,9 @@ endif
 
 if ENABLE_NTFS
 man_MANS += partclone.ntfs.8
+man_MANS += partclone.ntfsfixboot.8
 endif
 
-FORCE:
 partclone.dd.8: partclone.dd.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.dd.xml)
 partclone.chkimg.8: partclone.chkimg.xml
@@ -70,3 +70,5 @@ partclone.restore.8: partclone.restore.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.restore.xml)
 partclone.8: partclone.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.xml)
+partclone.ntfsfixboot.8: partclone.ntfsfixboot.xml
+	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.ntfsfixboot.xml)

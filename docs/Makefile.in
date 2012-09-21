@@ -64,7 +64,8 @@ host_triplet = @host@
 @ENABLE_VMFS_TRUE@am__append_9 = partclone.vmfs.8
 @ENABLE_JFS_TRUE@am__append_10 = partclone.jfs.8
 @ENABLE_BTRFS_TRUE@am__append_11 = partclone.btrfs.8
-@ENABLE_NTFS_TRUE@am__append_12 = partclone.ntfs.8
+@ENABLE_NTFS_TRUE@am__append_12 = partclone.ntfs.8 \
+@ENABLE_NTFS_TRUE@	partclone.ntfsfixboot.8
 subdir = docs
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -487,7 +488,6 @@ uninstall-man: uninstall-man8
 	uninstall-am uninstall-man uninstall-man8
 
 
-FORCE:
 partclone.dd.8: partclone.dd.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.dd.xml)
 partclone.chkimg.8: partclone.chkimg.xml
@@ -498,6 +498,8 @@ partclone.restore.8: partclone.restore.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.restore.xml)
 partclone.8: partclone.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.xml)
+partclone.ntfsfixboot.8: partclone.ntfsfixboot.xml
+	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.ntfsfixboot.xml)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
