@@ -22,6 +22,7 @@ endif
 if ENABLE_HFSP
 man_MANS += partclone.hfsplus.8
 man_MANS += partclone.hfs+.8
+man_MANS += partclone.hfsp.8
 endif
 
 if ENABLE_XFS
@@ -33,6 +34,7 @@ man_MANS += partclone.exfat.8
 endif
 
 if ENABLE_FAT
+man_MANS += partclone.fat.8
 man_MANS += partclone.vfat.8
 man_MANS += partclone.fat12.8
 man_MANS += partclone.fat16.8
@@ -45,6 +47,10 @@ endif
 
 if ENABLE_VMFS
 man_MANS += partclone.vmfs.8
+man_MANS += partclone.vmfs3.8
+man_MANS += partclone.vmfs5.8
+man_MANS += partclone.VMFS_volume_member.8
+man_MANS += partclone.fstype.8
 endif
 
 if ENABLE_JFS
@@ -58,6 +64,7 @@ endif
 if ENABLE_NTFS
 man_MANS += partclone.ntfs.8
 man_MANS += partclone.ntfsfixboot.8
+man_MANS += partclone.ntfsreloc.8
 endif
 
 partclone.dd.8: partclone.dd.xml
@@ -72,3 +79,5 @@ partclone.8: partclone.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.xml)
 partclone.ntfsfixboot.8: partclone.ntfsfixboot.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.ntfsfixboot.xml)
+partclone.fstype.8: partclone.fstype.xml
+	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.fstype.xml)

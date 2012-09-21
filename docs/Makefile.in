@@ -55,17 +55,23 @@ host_triplet = @host@
 @ENABLE_EXTFS_TRUE@	partclone.ext4dev.8
 @ENABLE_REISERFS_TRUE@am__append_2 = partclone.reiserfs.8
 @ENABLE_REISER4_TRUE@am__append_3 = partclone.reiser4.8
-@ENABLE_HFSP_TRUE@am__append_4 = partclone.hfsplus.8 partclone.hfs+.8
+@ENABLE_HFSP_TRUE@am__append_4 = partclone.hfsplus.8 partclone.hfs+.8 \
+@ENABLE_HFSP_TRUE@	partclone.hfsp.8
 @ENABLE_XFS_TRUE@am__append_5 = partclone.xfs.8
 @ENABLE_EXFAT_TRUE@am__append_6 = partclone.exfat.8
-@ENABLE_FAT_TRUE@am__append_7 = partclone.vfat.8 partclone.fat12.8 \
-@ENABLE_FAT_TRUE@	partclone.fat16.8 partclone.fat32.8
+@ENABLE_FAT_TRUE@am__append_7 = partclone.fat.8 partclone.vfat.8 \
+@ENABLE_FAT_TRUE@	partclone.fat12.8 partclone.fat16.8 \
+@ENABLE_FAT_TRUE@	partclone.fat32.8
 @ENABLE_UFS_TRUE@am__append_8 = partclone.ufs.8
-@ENABLE_VMFS_TRUE@am__append_9 = partclone.vmfs.8
+@ENABLE_VMFS_TRUE@am__append_9 = partclone.vmfs.8 partclone.vmfs3.8 \
+@ENABLE_VMFS_TRUE@	partclone.vmfs5.8 \
+@ENABLE_VMFS_TRUE@	partclone.VMFS_volume_member.8 \
+@ENABLE_VMFS_TRUE@	partclone.fstype.8
 @ENABLE_JFS_TRUE@am__append_10 = partclone.jfs.8
 @ENABLE_BTRFS_TRUE@am__append_11 = partclone.btrfs.8
 @ENABLE_NTFS_TRUE@am__append_12 = partclone.ntfs.8 \
-@ENABLE_NTFS_TRUE@	partclone.ntfsfixboot.8
+@ENABLE_NTFS_TRUE@	partclone.ntfsfixboot.8 \
+@ENABLE_NTFS_TRUE@	partclone.ntfsreloc.8
 subdir = docs
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -500,6 +506,8 @@ partclone.8: partclone.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.xml)
 partclone.ntfsfixboot.8: partclone.ntfsfixboot.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.ntfsfixboot.xml)
+partclone.fstype.8: partclone.fstype.xml
+	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.fstype.xml)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
