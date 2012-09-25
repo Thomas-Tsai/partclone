@@ -1,2 +1,2 @@
 #!/bin/bash
-./mini_clone_restore_test vmfs
+#./mini_clone_restore_test vmfs

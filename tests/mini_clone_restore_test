@@ -36,7 +36,7 @@ for fs in $test_fs; do
 
     echo "format $raw as $fs raw partition"
     echo "mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw"
-    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw
+    /sbin/mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw
 
     echo "create md5 for $raw file"
     md5sum $raw > $md5
