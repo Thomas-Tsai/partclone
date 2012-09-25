@@ -1,19 +1,14 @@
 #!/bin/bash
 
-current_dir=`pwd`
-logfile='test.log'
-img='floppy.img'
-raw='floppy.raw'
-md5=$raw'.md5'
-dd_bs=1024
-normal_size=$((1024*256))
-floppy_size=1024
-
+. _common
 ## file system
 normal_fs="ext2 ext3 ext4 vfat exfat"
 featured_fs="$normal_fs jfs xfs reiserfs hfsplus"
 extra_fs="$featured_fs ufs vmfs reiser4 ntfs btrfs"
 
+mkfs_option_for_ext2='-F'
+mkfs_option_for_ext3='-F'
+mkfs_option_for_ext4='-F'
 mkfs_option_for_reiserfs='-f'
 mkfs_option_for_ntfs='-f -F'
 
@@ -21,7 +16,7 @@ manual_fs=$1
 
 test_fs=$featured_fs
 dd_count=$normal_size
-[ -n $manual_fs ] || test_fs=$manual_fs
+[ -z $manual_fs ] || test_fs=$manual_fs
 
 check_return_code(){
     if [ $? != 0 ]; then
@@ -32,12 +27,15 @@ check_return_code(){
 
 #main
 for fs in $test_fs; do
-
+    
+    ptlfs=$(partclone_fsname $fs)
     echo "create raw file $raw"
     [ -f $raw ] && rm $raw
+    echo "dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count"
     dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
 
     echo "format $raw as $fs raw partition"
+    echo "mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw"
     mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw
 
     echo "create md5 for $raw file"
@@ -45,18 +43,21 @@ for fs in $test_fs; do
 
     echo "clone $raw to $img"
     [ -f $img ] && rm $img
-    partclone.$fs -d -N -c -s $raw -O $img -F -L $logfile
+    echo "$ptldir/partclone.$ptlfs -d -c -s $raw -O $img -F -L $logfile"
+    $ptldir/partclone.$ptlfs -d -c -s $raw -O $img -F -L $logfile
     check_return_code
 
     echo "do image checking"
-    partclone.chkimg -s $img -L $logfile
+    echo "$ptldir/partclone.chkimg -s $img -L $logfile"
+    $ptldir/partclone.chkimg -s $img -L $logfile
     check_return_code
 
     echo "remove $raw"
     [ -f $raw ] && rm $raw
 
     echo "restore $img to $raw"
-    partclone.restore -s $img -o $raw -C --restore_raw_file -F -L $logfile
+    echo "$ptldir/partclone.restore -s $img -o $raw -C --restore_raw_file -F -L $logfile"
+    $ptldir/partclone.restore -s $img -o $raw -C --restore_raw_file -F -L $logfile
     check_return_code
 
     echo "md5 check"
@@ -65,7 +66,7 @@ for fs in $test_fs; do
     if [ -z "$ret" ]; then
 	echo "$fs test ok"
 	echo "clear tmp files $img $raw $logfile $md5"
-	rm $img $raw $logfile $md5
+	rm -f $img $raw $logfile $md5
     else
 	echo "$fs test fail"
 	echo "keep the files for bug report $img $raw $logfile $md5"

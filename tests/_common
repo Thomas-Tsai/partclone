@@ -1,0 +1,52 @@
+#!/bin/bash
+
+current_dir=`pwd`
+logfile='test.log'
+img='floppy.img'
+raw='floppy.raw'
+md5=$raw'.md5'
+dd_bs=1024
+normal_size=$((1024*256))
+floppy_size=1024
+ptldir="../src/"
+
+partclone_fsname(){
+    fs=$1
+    case "$fs" in
+	ext2|ext3|ext4|extfs)
+	    echo "extfs"
+	;;
+	fat16|fat12|fat32|fat|vfat)
+	    echo "vfat"
+	;;
+	reiserfs)
+	    echo "reiserfs"
+	;;
+	reiser4)
+	    echo "reiser4"
+	;;
+	exfat)
+	    echo "exfat"
+	;;
+	ntfs)
+	    echo "ntfs"
+	;;
+	xfs)
+	    echo "xfs"
+	;;
+	jfs)
+	    echo "jfs"
+	;;
+	ufs)
+	    echo "ufs"
+	;;
+	btrfs)
+	    echo "btrfs"
+	;;
+	vmfs)
+	    echo "vmfs"
+	;;
+    esac
+
+    
+}

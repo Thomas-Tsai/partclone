@@ -1,3 +1,43 @@
+2012-09-24  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add debian.squeeze back and rename debian to debian.sid
+
+2012-09-21  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update makefile
+
+	add more man pages
+
+	update man page
+
+	add man page
+
+	remove sid squeeze
+
+	update debian folder
+
+2012-09-20  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update ncurses interface.
+	fix issue: ncurses interface can't work on saving partition with pipe because both use stdout at the same time.
+
+	since initscr() use stdout default, and we try to replace with newterm() with stderr.
+
+	set ncurses window to stderr
+		modified:   src/Makefile.in
+		modified:   src/ddclone.c
+		modified:   src/main.c
+		modified:   src/partclone.c
+		modified:   src/restore.c
+
+2012-09-17  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update TODO
+
+2012-07-31  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update some docs
+
 2012-07-30  Thomas Tsai  <thomas@nchc.org.tw>
 
 	update version to 0.2.51

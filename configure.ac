@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.2.52], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.2.53], [thomas@nchc.org.tw])
 #AC_CONFIG_AUX_DIR([build-aux])
 #AC CONFIG SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -472,6 +472,7 @@ AC_CONFIG_FILES([
 	src/Makefile
 	po/Makefile.in
 	docs/Makefile
+	tests/Makefile
 	])
 AC_OUTPUT
 
