@@ -1,16 +1,11 @@
 #!/bin/bash
+set -e
 
 . _common
 ## file system
 normal_fs="ext2 ext3 ext4 vfat exfat"
 featured_fs="$normal_fs jfs xfs reiserfs hfsplus"
 extra_fs="$featured_fs ufs vmfs reiser4 ntfs btrfs"
-
-mkfs_option_for_ext2='-F'
-mkfs_option_for_ext3='-F'
-mkfs_option_for_ext4='-F'
-mkfs_option_for_reiserfs='-f'
-mkfs_option_for_ntfs='-f -F'
 
 manual_fs=$1
 
@@ -28,7 +23,8 @@ check_return_code(){
 #main
 for fs in $test_fs; do
     
-    ptlfs=$(partclone_fsname $fs)
+    ptlfs=$(_fsname $fs)
+    mkfs=$(_findmkfs $fs)
     echo "create raw file $raw"
     [ -f $raw ] && rm $raw
     echo "dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count"
@@ -36,7 +32,7 @@ for fs in $test_fs; do
 
     echo "format $raw as $fs raw partition"
     echo "mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw"
-    /sbin/mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw
+    $mkfs `eval echo "$"mkfs_option_for_$fs""` $raw
 
     echo "create md5 for $raw file"
     md5sum $raw > $md5

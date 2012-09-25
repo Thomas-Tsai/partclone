@@ -10,7 +10,25 @@ normal_size=$((1024*256))
 floppy_size=1024
 ptldir="../src/"
 
-partclone_fsname(){
+mkfs_option_for_ext2='-F'
+mkfs_option_for_ext3='-F'
+mkfs_option_for_ext4='-F'
+mkfs_option_for_reiserfs='-f'
+mkfs_option_for_ntfs='-f -F'
+
+
+_findmkfs(){
+    fs=$1
+    mkfs_path=$(locate mkfs.$fs|grep sbin)
+    if [ -z $mkfs_path ]; then
+	echo  >&2 "can't find mkfs.$fs"
+	exit 1
+    fi
+    echo $mkfs_path
+
+}
+
+_fsname(){
     fs=$1
     case "$fs" in
 	ext2|ext3|ext4|extfs)
@@ -19,33 +37,8 @@ partclone_fsname(){
 	fat16|fat12|fat32|fat|vfat)
 	    echo "vfat"
 	;;
-	reiserfs)
-	    echo "reiserfs"
-	;;
-	reiser4)
-	    echo "reiser4"
-	;;
-	exfat)
-	    echo "exfat"
-	;;
-	ntfs)
-	    echo "ntfs"
-	;;
-	xfs)
-	    echo "xfs"
-	;;
-	jfs)
-	    echo "jfs"
-	;;
-	ufs)
-	    echo "ufs"
-	;;
-	btrfs)
-	    echo "btrfs"
-	;;
-	vmfs)
-	    echo "vmfs"
-	;;
+	*)
+	    echo $fs
     esac
 
     
