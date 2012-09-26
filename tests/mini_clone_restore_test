@@ -23,49 +23,47 @@ check_return_code(){
 #main
 for fs in $test_fs; do
     
-    ptlfs=$(_fsname $fs)
+    ptlfs=$(_ptlname $fs)
     mkfs=$(_findmkfs $fs)
     echo "create raw file $raw"
+    _ptlbreak
     [ -f $raw ] && rm $raw
     echo "dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count"
     dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
 
     echo "format $raw as $fs raw partition"
     echo "mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw"
+    _ptlbreak
     $mkfs `eval echo "$"mkfs_option_for_$fs""` $raw
-
-    echo "create md5 for $raw file"
-    md5sum $raw > $md5
 
     echo "clone $raw to $img"
     [ -f $img ] && rm $img
-    echo "$ptldir/partclone.$ptlfs -d -c -s $raw -O $img -F -L $logfile"
-    $ptldir/partclone.$ptlfs -d -c -s $raw -O $img -F -L $logfile
+    echo "$ptlfs -d -c -s $raw -O $img -F -L $logfile"
+    _ptlbreak
+    $ptlfs -d -c -s $raw -O $img -F -L $logfile
     check_return_code
 
     echo "do image checking"
-    echo "$ptldir/partclone.chkimg -s $img -L $logfile"
-    $ptldir/partclone.chkimg -s $img -L $logfile
+    echo "$ptlchkimg -s $img -L $logfile"
+    _ptlbreak
+    $ptlchkimg -s $img -L $logfile
     check_return_code
 
-    echo "remove $raw"
+    echo "create raw file $raw for restore"
+    _ptlbreak
     [ -f $raw ] && rm $raw
+    echo "dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count"
+    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
 
     echo "restore $img to $raw"
-    echo "$ptldir/partclone.restore -s $img -o $raw -C --restore_raw_file -F -L $logfile"
-    $ptldir/partclone.restore -s $img -o $raw -C --restore_raw_file -F -L $logfile
+    echo "$ptlrestore -s $img -O $raw -C -F -L $logfile"
+    _ptlbreak
+    $ptlrestore -s $img -O $raw -C -F -L $logfile
     check_return_code
 
-    echo "md5 check"
-    ret=`md5sum --quiet -c $md5`
-
-    if [ -z "$ret" ]; then
-	echo "$fs test ok"
-	echo "clear tmp files $img $raw $logfile $md5"
-	rm -f $img $raw $logfile $md5
-    else
-	echo "$fs test fail"
-	echo "keep the files for bug report $img $raw $logfile $md5"
-    fi
+    echo "$fs test ok"
+    echo "clear tmp files $img $raw $logfile $md5"
+    _ptlbreak
+    rm -f $img $raw $logfile $md5
 
 done

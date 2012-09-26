@@ -1,14 +1,17 @@
 #!/bin/bash
 
-current_dir=`pwd`
+break_debug=1
 logfile='test.log'
 img='floppy.img'
 raw='floppy.raw'
-md5=$raw'.md5'
 dd_bs=1024
 normal_size=$((1024*256))
 floppy_size=1024
-ptldir="../src/"
+current_dir=`pwd`
+ptldir="../src"
+
+ptlchkimg=$ptldir/partclone.chkimg
+ptlrestore=$ptldir/partclone.restore
 
 mkfs_option_for_ext2='-F'
 mkfs_option_for_ext3='-F'
@@ -16,6 +19,17 @@ mkfs_option_for_ext4='-F'
 mkfs_option_for_reiserfs='-f'
 mkfs_option_for_ntfs='-f -F'
 
+_ptlbreak(){
+    if [ $break_debug -ne 0 ];then
+
+	echo "continue test process(Y/n)? default yes"
+	read con
+	if [ "$con" == "n" ];then
+	    exit 1
+	fi
+    fi
+
+}
 
 _findmkfs(){
     fs=$1
@@ -28,18 +42,22 @@ _findmkfs(){
 
 }
 
-_fsname(){
+_ptlname(){
     fs=$1
     case "$fs" in
 	ext2|ext3|ext4|extfs)
-	    echo "extfs"
+	    ptl="$ptldir/partclone.extfs"
 	;;
 	fat16|fat12|fat32|fat|vfat)
-	    echo "vfat"
+	    ptl="$ptldir/partclone.vfat"
 	;;
 	*)
-	    echo $fs
+	    ptl="$ptldir/partclone.$fs"
     esac
 
-    
+    if [ ! -f $ptl ]; then
+	echo >&2 "can't find $ptl"
+	exit 1
+    fi
+    echo "$ptl"
 }
