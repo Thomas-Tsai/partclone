@@ -50,21 +50,31 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@ENABLE_EXTFS_TRUE@am__append_1 = ext2.test ext3.test ext4.test
-@ENABLE_BTRFS_TRUE@am__append_2 = btrfs.test
-@ENABLE_FAT_TRUE@am__append_3 = fat.test
-@ENABLE_REISERFS_TRUE@am__append_4 = reiserfs.test
-@ENABLE_REISER4_TRUE@am__append_5 = reiser4.test
-@ENABLE_HFSP_TRUE@am__append_6 = hpfs.test
-@ENABLE_XFS_TRUE@am__append_7 = xfs.test
-@ENABLE_EXFAT_TRUE@am__append_8 = exfat.test
-@ENABLE_NTFS_TRUE@am__append_9 = ntfs.test
-@ENABLE_UFS_TRUE@am__append_10 = ufs.test
-@ENABLE_VMFS_TRUE@am__append_11 = vmfs.test
-@ENABLE_JFS_TRUE@am__append_12 = jfs.test
-@ENABLE_BTRFS_TRUE@am__append_13 = btrfs.test
+@ENABLE_EXTFS_TRUE@@ENABLE_FS_TEST_TRUE@am__append_1 = ext2.test \
+@ENABLE_EXTFS_TRUE@@ENABLE_FS_TEST_TRUE@	ext3.test ext4.test
+@ENABLE_BTRFS_TRUE@@ENABLE_FS_TEST_TRUE@am__append_2 = btrfs.test
+@ENABLE_FAT_TRUE@@ENABLE_FS_TEST_TRUE@am__append_3 = fat.test
+@ENABLE_FS_TEST_TRUE@@ENABLE_REISERFS_TRUE@am__append_4 = reiserfs.test
+
+#if ENABLE_REISER4
+#TESTS += reiser4.test
+#endif
+@ENABLE_FS_TEST_TRUE@@ENABLE_HFSP_TRUE@am__append_5 = hfsplus.test
+@ENABLE_FS_TEST_TRUE@@ENABLE_XFS_TRUE@am__append_6 = xfs.test
+@ENABLE_EXFAT_TRUE@@ENABLE_FS_TEST_TRUE@am__append_7 = exfat.test
+@ENABLE_FS_TEST_TRUE@@ENABLE_NTFS_TRUE@am__append_8 = ntfs.test
+
+#if ENABLE_UFS
+#TESTS += ufs.test
+#endif
+
+#if ENABLE_VMFS
+#TESTS += vmfs.test
+#endif
+@ENABLE_FS_TEST_TRUE@@ENABLE_JFS_TRUE@am__append_9 = jfs.test
+@ENABLE_BTRFS_TRUE@@ENABLE_FS_TEST_TRUE@am__append_10 = btrfs.test
 subdir = tests
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in TODO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
 	$(top_srcdir)/m4/iconv.m4 $(top_srcdir)/m4/lib-ld.m4 \
@@ -203,11 +213,10 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-TESTS = imgchk.test $(am__append_1) $(am__append_2) $(am__append_3) \
+TESTS = dd.test $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
 	$(am__append_7) $(am__append_8) $(am__append_9) \
-	$(am__append_10) $(am__append_11) $(am__append_12) \
-	$(am__append_13)
+	$(am__append_10)
 CLEANFILES = floppy*
 all: all-am
 

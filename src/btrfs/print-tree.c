@@ -239,7 +239,7 @@ static void print_extent_item(struct extent_buffer *eb, int slot)
 			       btrfs_shared_data_ref_count(eb, sref));
 			break;
 		default:
-			BUG();
+			return;
 		}
 		ptr += btrfs_extent_inline_ref_size(type);
 	}
@@ -351,6 +351,9 @@ static void print_key_type(u8 type)
 	case BTRFS_DEV_EXTENT_KEY:
 		printf("DEV_EXTENT");
 		break;
+	case BTRFS_BALANCE_ITEM_KEY:
+		printf("BALANCE_ITEM");
+		break;
 	case BTRFS_STRING_ITEM_KEY:
 		printf("STRING_ITEM");
 		break;
@@ -391,6 +394,9 @@ static void print_objectid(unsigned long long objectid, u8 type)
 	case BTRFS_CSUM_TREE_OBJECTID:
 		printf("CSUM_TREE");
 		break;
+	case BTRFS_BALANCE_OBJECTID:
+		printf("BALANCE");
+		break;
 	case BTRFS_ORPHAN_OBJECTID:
 		printf("ORPHAN");
 		break;
@@ -413,8 +419,11 @@ static void print_objectid(unsigned long long objectid, u8 type)
 		printf("MULTIPLE");
 		break;
 	case BTRFS_FIRST_CHUNK_TREE_OBJECTID:
-		printf("FIRST_CHUNK_TREE");
-		break;
+		if (type == BTRFS_CHUNK_ITEM_KEY) {
+			printf("FIRST_CHUNK_TREE");
+			break;
+		}
+		/* fall-thru */
 	default:
 		printf("%llu", objectid);
 	}
@@ -441,7 +450,6 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 	struct btrfs_dir_item *di;
 	struct btrfs_inode_item *ii;
 	struct btrfs_file_extent_item *fi;
-	struct btrfs_csum_item *ci;
 	struct btrfs_block_group_item *bi;
 	struct btrfs_extent_data_ref *dref;
 	struct btrfs_shared_data_ref *sref;
@@ -494,7 +502,7 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 		case BTRFS_DIR_LOG_ITEM_KEY:
 			dlog = btrfs_item_ptr(l, i, struct btrfs_dir_log_item);
 			printf("\t\tdir log end %Lu\n",
-			       btrfs_dir_log_end(l, dlog));
+			       (unsigned long long)btrfs_dir_log_end(l, dlog));
 		       break;
 		case BTRFS_ORPHAN_ITEM_KEY:
 			printf("\t\torphan item\n");
@@ -502,11 +510,12 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 		case BTRFS_ROOT_ITEM_KEY:
 			ri = btrfs_item_ptr(l, i, struct btrfs_root_item);
 			read_extent_buffer(l, &root_item, (unsigned long)ri, sizeof(root_item));
-			printf("\t\troot data bytenr %llu level %d dirid %llu refs %u\n",
+			printf("\t\troot data bytenr %llu level %d dirid %llu refs %u gen %llu\n",
 				(unsigned long long)btrfs_root_bytenr(&root_item),
 				btrfs_root_level(&root_item),
 				(unsigned long long)btrfs_root_dirid(&root_item),
-				btrfs_root_refs(&root_item));
+				btrfs_root_refs(&root_item),
+				(unsigned long long)btrfs_root_generation(&root_item));
 			if (btrfs_root_refs(&root_item) == 0) {
 				struct btrfs_key drop_key;
 				btrfs_disk_key_to_cpu(&drop_key,
@@ -553,11 +562,9 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 #endif
 			break;
 		case BTRFS_CSUM_ITEM_KEY:
-			ci = btrfs_item_ptr(l, i, struct btrfs_csum_item);
 			printf("\t\tcsum item\n");
 			break;
 		case BTRFS_EXTENT_CSUM_KEY:
-			ci = btrfs_item_ptr(l, i, struct btrfs_csum_item);
 			printf("\t\textent csum item\n");
 			break;
 		case BTRFS_EXTENT_DATA_KEY:
@@ -607,7 +614,7 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 	}
 }
 
-void btrfs_print_tree(struct btrfs_root *root, struct extent_buffer *eb)
+void btrfs_print_tree(struct btrfs_root *root, struct extent_buffer *eb, int follow)
 {
 	int i;
 	u32 nr;
@@ -643,6 +650,9 @@ void btrfs_print_tree(struct btrfs_root *root, struct extent_buffer *eb)
 		       (unsigned long long)btrfs_node_ptr_generation(eb, i));
 		fflush(stdout);
 	}
+	if (!follow)
+		return;
+
 	for (i = 0; i < nr; i++) {
 		struct extent_buffer *next = read_tree_block(root,
 					     btrfs_node_blockptr(eb, i),
@@ -660,8 +670,7 @@ void btrfs_print_tree(struct btrfs_root *root, struct extent_buffer *eb)
 		if (btrfs_header_level(next) !=
 			btrfs_header_level(eb) - 1)
 			BUG();
-		btrfs_print_tree(root, next);
+		btrfs_print_tree(root, next, 1);
 		free_extent_buffer(next);
 	}
 }
-

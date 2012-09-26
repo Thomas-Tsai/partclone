@@ -1,0 +1,40 @@
+#!/bin/bash
+set -e
+
+. _common
+fs="dd"
+ptlfs="../src/partclone.dd"
+dd_count=$((normal_size/2))
+
+echo "create raw file $raw"
+_ptlbreak
+[ -f $raw ] && rm $raw
+echo "dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count"
+dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
+
+echo "clone $raw to $img"
+[ -f $img ] && rm $img
+echo "$ptlfs -d -c -s $raw -O $img -F -L $logfile"
+_ptlbreak
+$ptlfs -d -c -s $raw -O $img -F -L $logfile
+_check_return_code
+
+
+echo "create raw file $raw for restore"
+_ptlbreak
+[ -f $raw ] && rm $raw
+echo "dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count"
+dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
+
+echo "restore $img to $raw"
+echo "$ptlrestore -s $img -O $raw -C -F -L $logfile"
+_ptlbreak
+$ptlrestore -s $img -O $raw -C -F -L $logfile
+_check_return_code
+
+echo "$fs test ok"
+echo "clear tmp files $img $raw $logfile $md5"
+_ptlbreak
+rm -f $img $raw $logfile $md5
+
+

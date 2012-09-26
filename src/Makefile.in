@@ -116,7 +116,8 @@ am__partclone_btrfs_SOURCES_DIST = main.c partclone.c progress.c \
 	btrfs/print-tree.h btrfs/transaction.h btrfs/volumes.h \
 	btrfs/ctree.h btrfs/extent_io.h btrfs/kerncompat.h \
 	btrfs/radix-tree.h btrfs/utils.h btrfs/disk-io.h btrfs/hash.h \
-	btrfs/list.h btrfs/rbtree.h btrfs/version.h
+	btrfs/list.h btrfs/rbtree.h btrfs/version.h btrfs/repair.h \
+	btrfs/repair.c
 am__objects_1 = partclone_btrfs-crc32c.$(OBJEXT) \
 	partclone_btrfs-disk-io.$(OBJEXT) \
 	partclone_btrfs-extent-tree.$(OBJEXT) \
@@ -132,7 +133,8 @@ am__objects_1 = partclone_btrfs-crc32c.$(OBJEXT) \
 	partclone_btrfs-extent_io.$(OBJEXT) \
 	partclone_btrfs-inode-item.$(OBJEXT) \
 	partclone_btrfs-radix-tree.$(OBJEXT) \
-	partclone_btrfs-utils.$(OBJEXT)
+	partclone_btrfs-utils.$(OBJEXT) \
+	partclone_btrfs-repair.$(OBJEXT)
 @ENABLE_BTRFS_TRUE@am_partclone_btrfs_OBJECTS =  \
 @ENABLE_BTRFS_TRUE@	partclone_btrfs-main.$(OBJEXT) \
 @ENABLE_BTRFS_TRUE@	partclone_btrfs-partclone.$(OBJEXT) \
@@ -485,7 +487,8 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\"
 LDADD = $(LIBINTL)
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
-BTRFS_SOURCE = btrfs/crc32c.c btrfs/disk-io.c btrfs/extent-tree.c btrfs/inode-map.c btrfs/rbtree.c btrfs/volumes.c btrfs/ctree.c btrfs/extent-cache.c btrfs/file-item.c btrfs/print-tree.c btrfs/root-tree.c btrfs/dir-item.c btrfs/extent_io.c btrfs/inode-item.c btrfs/radix-tree.c btrfs/utils.c btrfs/crc32c.h btrfs/extent-cache.h btrfs/ioctl.h btrfs/print-tree.h btrfs/transaction.h btrfs/volumes.h btrfs/ctree.h btrfs/extent_io.h btrfs/kerncompat.h btrfs/radix-tree.h btrfs/utils.h btrfs/disk-io.h btrfs/hash.h btrfs/list.h btrfs/rbtree.h btrfs/version.h
+BTRFS_SOURCE = btrfs/crc32c.c btrfs/disk-io.c btrfs/extent-tree.c btrfs/inode-map.c btrfs/rbtree.c btrfs/volumes.c btrfs/ctree.c btrfs/extent-cache.c btrfs/file-item.c btrfs/print-tree.c btrfs/root-tree.c btrfs/dir-item.c btrfs/extent_io.c btrfs/inode-item.c btrfs/radix-tree.c btrfs/utils.c btrfs/crc32c.h btrfs/extent-cache.h btrfs/ioctl.h btrfs/print-tree.h btrfs/transaction.h btrfs/volumes.h btrfs/ctree.h btrfs/extent_io.h btrfs/kerncompat.h btrfs/radix-tree.h btrfs/utils.h btrfs/disk-io.h btrfs/hash.h btrfs/list.h btrfs/rbtree.h btrfs/version.h btrfs/repair.h btrfs/repair.c
+#BTRFS_SOURCE= btrfs/*
 EXFATFS_SOURCE = exfat/byteorder.h exfat/cluster.c exfat/exfatfs.h exfat/exfat.h exfat/io.c exfat/libexfat.a exfat/log.c exfat/lookup.c exfat/mount.c exfat/node.c exfat/time.c exfat/utf.c exfat/utils.c exfat/version.h
 partclone_info_SOURCES = infoclone.c partclone.c partclone.h fs_common.h
 partclone_restore_SOURCES = partclone.c partclone.h progress.c progress.h gettext.h restore.c
@@ -696,6 +699,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-progress.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-radix-tree.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-rbtree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-repair.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-root-tree.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_btrfs-volumes.Po@am__quote@
@@ -1055,6 +1059,20 @@ partclone_btrfs-utils.obj: btrfs/utils.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/utils.c' object='partclone_btrfs-utils.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-utils.obj `if test -f 'btrfs/utils.c'; then $(CYGPATH_W) 'btrfs/utils.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/utils.c'; fi`
+
+partclone_btrfs-repair.o: btrfs/repair.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-repair.o -MD -MP -MF $(DEPDIR)/partclone_btrfs-repair.Tpo -c -o partclone_btrfs-repair.o `test -f 'btrfs/repair.c' || echo '$(srcdir)/'`btrfs/repair.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-repair.Tpo $(DEPDIR)/partclone_btrfs-repair.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/repair.c' object='partclone_btrfs-repair.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-repair.o `test -f 'btrfs/repair.c' || echo '$(srcdir)/'`btrfs/repair.c
+
+partclone_btrfs-repair.obj: btrfs/repair.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -MT partclone_btrfs-repair.obj -MD -MP -MF $(DEPDIR)/partclone_btrfs-repair.Tpo -c -o partclone_btrfs-repair.obj `if test -f 'btrfs/repair.c'; then $(CYGPATH_W) 'btrfs/repair.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/repair.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_btrfs-repair.Tpo $(DEPDIR)/partclone_btrfs-repair.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='btrfs/repair.c' object='partclone_btrfs-repair.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_btrfs_CFLAGS) $(CFLAGS) -c -o partclone_btrfs-repair.obj `if test -f 'btrfs/repair.c'; then $(CYGPATH_W) 'btrfs/repair.c'; else $(CYGPATH_W) '$(srcdir)/btrfs/repair.c'; fi`
 
 partclone_exfat-main.o: main.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-main.o -MD -MP -MF $(DEPDIR)/partclone_exfat-main.Tpo -c -o partclone_exfat-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c

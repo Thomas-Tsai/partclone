@@ -46,7 +46,13 @@ int clean_tree_block(struct btrfs_trans_handle *trans,
 struct btrfs_root *open_ctree(const char *filename, u64 sb_bytenr, int writes);
 struct btrfs_root *open_ctree_fd(int fp, const char *path, u64 sb_bytenr,
 				 int writes);
+struct btrfs_root *open_ctree_recovery(const char *filename, u64 sb_bytenr,
+				       u64 root_tree_bytenr);
+struct btrfs_fs_info *open_ctree_fs_info(const char *filename,
+					 u64 sb_bytenr, int writes,
+					 int partial);
 int close_ctree(struct btrfs_root *root);
+int write_all_supers(struct btrfs_root *root);
 int write_ctree_super(struct btrfs_trans_handle *trans,
 		      struct btrfs_root *root);
 int btrfs_read_dev_super(int fd, struct btrfs_super_block *sb, u64 sb_bytenr);

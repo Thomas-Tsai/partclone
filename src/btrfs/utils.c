@@ -31,6 +31,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <mntent.h>
+#include <linux/loop.h>
+#include <linux/major.h>
+#include <linux/kdev_t.h>
+#include <limits.h>
 #include "kerncompat.h"
 #include "radix-tree.h"
 #include "ctree.h"
@@ -45,6 +49,20 @@
 #define BLKGETSIZE64 0
 static inline int ioctl(int fd, int define, u64 *size) { return 0; }
 #endif
+
+#ifndef BLKDISCARD
+#define BLKDISCARD	_IO(0x12,119)
+#endif
+
+static int
+discard_blocks(int fd, u64 start, u64 len)
+{
+	u64 range[2] = { start, len };
+
+	if (ioctl(fd, BLKDISCARD, &range) < 0)
+		return errno;
+	return 0;
+}
 
 static u64 reference_root_table[] = {
 	[1] =	BTRFS_ROOT_TREE_OBJECTID,
@@ -103,8 +121,9 @@ int make_btrfs(int fd, const char *device, const char *label,
 	btrfs_set_super_stripesize(&super, stripesize);
 	btrfs_set_super_csum_type(&super, BTRFS_CSUM_TYPE_CRC32);
 	btrfs_set_super_chunk_root_generation(&super, 1);
+	btrfs_set_super_cache_generation(&super, -1);
 	if (label)
-		strcpy(super.label, label);
+		strncpy(super.label, label, BTRFS_LABEL_SIZE - 1);
 
 	buf = malloc(sizeof(*buf) + max(sectorsize, leafsize));
 
@@ -193,6 +212,8 @@ int make_btrfs(int fd, const char *device, const char *label,
 	BUG_ON(ret != leafsize);
 
 	/* create the items for the extent tree */
+	memset(buf->data+sizeof(struct btrfs_header), 0,
+		leafsize-sizeof(struct btrfs_header));
 	nritems = 0;
 	itemoff = __BTRFS_LEAF_DATA_SIZE(leafsize);
 	for (i = 1; i < 7; i++) {
@@ -238,6 +259,8 @@ int make_btrfs(int fd, const char *device, const char *label,
 	BUG_ON(ret != leafsize);
 
 	/* create the chunk tree */
+	memset(buf->data+sizeof(struct btrfs_header), 0,
+		leafsize-sizeof(struct btrfs_header));
 	nritems = 0;
 	item_size = sizeof(*dev_item);
 	itemoff = __BTRFS_LEAF_DATA_SIZE(leafsize) - item_size;
@@ -319,6 +342,8 @@ int make_btrfs(int fd, const char *device, const char *label,
 	ret = pwrite(fd, buf->data, leafsize, blocks[3]);
 
 	/* create the device tree */
+	memset(buf->data+sizeof(struct btrfs_header), 0,
+		leafsize-sizeof(struct btrfs_header));
 	nritems = 0;
 	itemoff = __BTRFS_LEAF_DATA_SIZE(leafsize) -
 		sizeof(struct btrfs_dev_extent);
@@ -352,6 +377,8 @@ int make_btrfs(int fd, const char *device, const char *label,
 	ret = pwrite(fd, buf->data, leafsize, blocks[4]);
 
 	/* create the FS root */
+	memset(buf->data+sizeof(struct btrfs_header), 0,
+		leafsize-sizeof(struct btrfs_header));
 	btrfs_set_header_bytenr(buf, blocks[5]);
 	btrfs_set_header_owner(buf, BTRFS_FS_TREE_OBJECTID);
 	btrfs_set_header_nritems(buf, 0);
@@ -360,6 +387,8 @@ int make_btrfs(int fd, const char *device, const char *label,
 	BUG_ON(ret != leafsize);
 
 	/* finally create the csum root */
+	memset(buf->data+sizeof(struct btrfs_header), 0,
+		leafsize-sizeof(struct btrfs_header));
 	btrfs_set_header_bytenr(buf, blocks[6]);
 	btrfs_set_header_owner(buf, BTRFS_CSUM_TREE_OBJECTID);
 	btrfs_set_header_nritems(buf, 0);
@@ -507,7 +536,8 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 	return 0;
 }
 
-int btrfs_prepare_device(int fd, char *file, int zero_end, u64 *block_count_ret)
+int btrfs_prepare_device(int fd, char *file, int zero_end, u64 *block_count_ret,
+			 int *mixed)
 {
 	u64 block_count;
 	u64 bytenr;
@@ -527,11 +557,17 @@ int btrfs_prepare_device(int fd, char *file, int zero_end, u64 *block_count_ret)
 	}
 	zero_end = 1;
 
-	if (block_count < 256 * 1024 * 1024) {
-		fprintf(stderr, "device %s is too small "
-		        "(must be at least 256 MB)\n", file);
-		exit(1);
+	if (block_count < 1024 * 1024 * 1024 && !(*mixed)) {
+		printf("SMALL VOLUME: forcing mixed metadata/data groups\n");
+		*mixed = 1;
 	}
+
+	/*
+	 * We intentionally ignore errors from the discard ioctl.  It is
+	 * not necessary for the mkfs functionality but just an optimization.
+	 */
+	discard_blocks(fd, 0, block_count);
+
 	ret = zero_dev_start(fd);
 	if (ret) {
 		fprintf(stderr, "failed to zero device start %d\n", ret);
@@ -561,6 +597,7 @@ int btrfs_make_root_dir(struct btrfs_trans_handle *trans,
 {
 	int ret;
 	struct btrfs_inode_item inode_item;
+	time_t now = time(NULL);
 
 	memset(&inode_item, 0, sizeof(inode_item));
 	btrfs_set_stack_inode_generation(&inode_item, trans->transid);
@@ -568,6 +605,14 @@ int btrfs_make_root_dir(struct btrfs_trans_handle *trans,
 	btrfs_set_stack_inode_nlink(&inode_item, 1);
 	btrfs_set_stack_inode_nbytes(&inode_item, root->leafsize);
 	btrfs_set_stack_inode_mode(&inode_item, S_IFDIR | 0555);
+	btrfs_set_stack_timespec_sec(&inode_item.atime, now);
+	btrfs_set_stack_timespec_nsec(&inode_item.atime, 0);
+	btrfs_set_stack_timespec_sec(&inode_item.ctime, now);
+	btrfs_set_stack_timespec_nsec(&inode_item.ctime, 0);
+	btrfs_set_stack_timespec_sec(&inode_item.mtime, now);
+	btrfs_set_stack_timespec_nsec(&inode_item.mtime, 0);
+	btrfs_set_stack_timespec_sec(&inode_item.otime, 0);
+	btrfs_set_stack_timespec_nsec(&inode_item.otime, 0);
 
 	if (root->fs_info->tree_root == root)
 		btrfs_set_super_root_dir(&root->fs_info->super_copy, objectid);
@@ -586,56 +631,279 @@ error:
 	return ret;
 }
 
+/* checks if a device is a loop device */
+int is_loop_device (const char* device) {
+	struct stat statbuf;
+
+	if(stat(device, &statbuf) < 0)
+		return -errno;
+
+	return (S_ISBLK(statbuf.st_mode) &&
+		MAJOR(statbuf.st_rdev) == LOOP_MAJOR);
+}
+
+
+/* Takes a loop device path (e.g. /dev/loop0) and returns
+ * the associated file (e.g. /images/my_btrfs.img) */
+int resolve_loop_device(const char* loop_dev, char* loop_file, int max_len)
+{
+	int loop_fd;
+	int ret_ioctl;
+	struct loop_info loopinfo;
+
+	if ((loop_fd = open(loop_dev, O_RDONLY)) < 0)
+		return -errno;
+
+	ret_ioctl = ioctl(loop_fd, LOOP_GET_STATUS, &loopinfo);
+	close(loop_fd);
+
+	if (ret_ioctl == 0)
+		strncpy(loop_file, loopinfo.lo_name, max_len);
+	else
+		return -errno;
+
+	return 0;
+}
+
+/* Checks whether a and b are identical or device
+ * files associated with the same block device
+ */
+int is_same_blk_file(const char* a, const char* b)
+{
+	struct stat st_buf_a, st_buf_b;
+	char real_a[PATH_MAX];
+	char real_b[PATH_MAX];
+
+	if(!realpath(a, real_a) ||
+	   !realpath(b, real_b))
+	{
+		return -errno;
+	}
+
+	/* Identical path? */
+	if(strcmp(real_a, real_b) == 0)
+		return 1;
+
+	if(stat(a, &st_buf_a) < 0 ||
+	   stat(b, &st_buf_b) < 0)
+	{
+		if (errno == ENOENT)
+			return 0;
+		return -errno;
+	}
+
+	/* Same blockdevice? */
+	if(S_ISBLK(st_buf_a.st_mode) &&
+	   S_ISBLK(st_buf_b.st_mode) &&
+	   st_buf_a.st_rdev == st_buf_b.st_rdev)
+	{
+		return 1;
+	}
+
+	/* Hardlink? */
+	if (st_buf_a.st_dev == st_buf_b.st_dev &&
+	    st_buf_a.st_ino == st_buf_b.st_ino)
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
+/* checks if a and b are identical or device
+ * files associated with the same block device or
+ * if one file is a loop device that uses the other
+ * file.
+ */
+int is_same_loop_file(const char* a, const char* b)
+{
+	char res_a[PATH_MAX];
+	char res_b[PATH_MAX];
+	const char* final_a;
+	const char* final_b;
+	int ret;
+
+	/* Resolve a if it is a loop device */
+	if((ret = is_loop_device(a)) < 0) {
+		if (ret == -ENOENT)
+			return 0;
+		return ret;
+	} else if (ret) {
+		if ((ret = resolve_loop_device(a, res_a, sizeof(res_a))) < 0)
+			return ret;
+
+		final_a = res_a;
+	} else {
+		final_a = a;
+	}
+
+	/* Resolve b if it is a loop device */
+	if ((ret = is_loop_device(b)) < 0) {
+		if (ret == -ENOENT)
+			return 0;
+		return ret;
+	} else if (ret) {
+		if((ret = resolve_loop_device(b, res_b, sizeof(res_b))) < 0)
+			return ret;
+
+		final_b = res_b;
+	} else {
+		final_b = b;
+	}
+
+	return is_same_blk_file(final_a, final_b);
+}
+
+/* Checks if a file exists and is a block or regular file*/
+int is_existing_blk_or_reg_file(const char* filename)
+{
+	struct stat st_buf;
+
+	if(stat(filename, &st_buf) < 0) {
+		if(errno == ENOENT)
+			return 0;
+		else
+			return -errno;
+	}
+
+	return (S_ISBLK(st_buf.st_mode) || S_ISREG(st_buf.st_mode));
+}
+
+/* Checks if a file is used (directly or indirectly via a loop device)
+ * by a device in fs_devices
+ */
+int blk_file_in_dev_list(struct btrfs_fs_devices* fs_devices, const char* file)
+{
+	int ret;
+	struct list_head *head;
+	struct list_head *cur;
+	struct btrfs_device *device;
+
+	head = &fs_devices->devices;
+	list_for_each(cur, head) {
+		device = list_entry(cur, struct btrfs_device, dev_list);
+
+		if((ret = is_same_loop_file(device->name, file)))
+			return ret;
+	}
+
+	return 0;
+}
+
 /*
  * returns 1 if the device was mounted, < 0 on error or 0 if everything
- * is safe to continue.  TODO, this should also scan multi-device filesystems
+ * is safe to continue.
  */
-int check_mounted(char *file)
+int check_mounted(const char* file)
 {
-	struct mntent *mnt;
-	struct stat st_buf;
-	dev_t file_dev = 0;
-	dev_t file_rdev = 0;
-	ino_t file_ino = 0;
-	FILE *f;
-	int ret = 0;
+	int fd;
+	int ret;
 
+	fd = open(file, O_RDONLY);
+	if (fd < 0) {
+		fprintf (stderr, "check_mounted(): Could not open %s\n", file);
+		return -errno;
+	}
+
+	ret =  check_mounted_where(fd, file, NULL, 0, NULL);
+	close(fd);
+
+	return ret;
+}
+
+int check_mounted_where(int fd, const char *file, char *where, int size,
+			struct btrfs_fs_devices **fs_dev_ret)
+{
+	int ret;
+	u64 total_devs = 1;
+	int is_btrfs;
+	struct btrfs_fs_devices *fs_devices_mnt = NULL;
+	FILE *f;
+	struct mntent *mnt;
+
+	/* scan the initial device */
+	ret = btrfs_scan_one_device(fd, file, &fs_devices_mnt,
+				    &total_devs, BTRFS_SUPER_INFO_OFFSET);
+	is_btrfs = (ret >= 0);
+
+	/* scan other devices */
+	if (is_btrfs && total_devs > 1) {
+		if((ret = btrfs_scan_for_fsid(fs_devices_mnt, total_devs, 1)))
+			return ret;
+	}
+
+	/* iterate over the list of currently mountes filesystems */
 	if ((f = setmntent ("/proc/mounts", "r")) == NULL)
 		return -errno;
 
-	if (stat(file, &st_buf) < 0) {
-		return -errno;
-	} else {
-		if (S_ISBLK(st_buf.st_mode)) {
-			file_rdev = st_buf.st_rdev;
-		} else {
-			file_dev = st_buf.st_dev;
-			file_ino = st_buf.st_ino;
-		}
-	}
-
 	while ((mnt = getmntent (f)) != NULL) {
-		if (strcmp(file, mnt->mnt_fsname) == 0)
-			break;
+		if(is_btrfs) {
+			if(strcmp(mnt->mnt_type, "btrfs") != 0)
+				continue;
 
-		if (stat(mnt->mnt_fsname, &st_buf) == 0) {
-			if (S_ISBLK(st_buf.st_mode)) {
-				if (file_rdev && (file_rdev == st_buf.st_rdev))
-					break;
-			} else if (file_dev && ((file_dev == st_buf.st_dev) &&
-						(file_ino == st_buf.st_ino))) {
-					break;
-			}
+			ret = blk_file_in_dev_list(fs_devices_mnt, mnt->mnt_fsname);
+		} else {
+			/* ignore entries in the mount table that are not
+			   associated with a file*/
+			if((ret = is_existing_blk_or_reg_file(mnt->mnt_fsname)) < 0)
+				goto out_mntloop_err;
+			else if(!ret)
+				continue;
+
+			ret = is_same_loop_file(file, mnt->mnt_fsname);
 		}
+
+		if(ret < 0)
+			goto out_mntloop_err;
+		else if(ret)
+			break;
 	}
 
-	if (mnt) {
-		/* found an entry in mnt table */
-		ret = 1;
-	}
+	/* Did we find an entry in mnt table? */
+	if (mnt && size && where)
+		strncpy(where, mnt->mnt_dir, size);
+	if (fs_dev_ret)
+		*fs_dev_ret = fs_devices_mnt;
 
+	ret = (mnt != NULL);
+
+out_mntloop_err:
 	endmntent (f);
+
 	return ret;
+}
+
+/* Gets the mount point of btrfs filesystem that is using the specified device.
+ * Returns 0 is everything is good, <0 if we have an error.
+ * TODO: Fix this fucntion and check_mounted to work with multiple drive BTRFS
+ * setups.
+ */
+int get_mountpt(char *dev, char *mntpt, size_t size)
+{
+       struct mntent *mnt;
+       FILE *f;
+       int ret = 0;
+
+       f = setmntent("/proc/mounts", "r");
+       if (f == NULL)
+               return -errno;
+
+       while ((mnt = getmntent(f)) != NULL )
+       {
+               if (strcmp(dev, mnt->mnt_fsname) == 0)
+               {
+                       strncpy(mntpt, mnt->mnt_dir, size);
+                       break;
+               }
+       }
+
+       if (mnt == NULL)
+       {
+               /* We didn't find an entry so lets report an error */
+               ret = -1;
+       }
+
+       return ret;
 }
 
 struct pending_dir {
@@ -648,6 +916,7 @@ void btrfs_register_one_device(char *fname)
 	struct btrfs_ioctl_vol_args args;
 	int fd;
 	int ret;
+	int e;
 
 	fd = open("/dev/btrfs-control", O_RDONLY);
 	if (fd < 0) {
@@ -655,8 +924,13 @@ void btrfs_register_one_device(char *fname)
 			"skipping device registration\n");
 		return;
 	}
-	strcpy(args.name, fname);
+	strncpy(args.name, fname, BTRFS_PATH_NAME_MAX);
 	ret = ioctl(fd, BTRFS_IOC_SCAN_DEV, &args);
+	e = errno;
+	if(ret<0){
+		fprintf(stderr, "ERROR: unable to scan the device '%s' - %s\n",
+			fname, strerror(e));
+	}
 	close(fd);
 }
 
@@ -694,7 +968,7 @@ again:
 	}
 	dirp = opendir(dirname);
 	if (!dirp) {
-		fprintf(stderr, "Unable to open /sys/block for scanning\n");
+		fprintf(stderr, "Unable to open %s for scanning\n", dirname);
 		return -ENOENT;
 	}
 	while(1) {
@@ -729,7 +1003,8 @@ again:
 		}
 		fd = open(fullpath, O_RDONLY);
 		if (fd < 0) {
-			fprintf(stderr, "failed to read %s\n", fullpath);
+			fprintf(stderr, "failed to read %s: %s\n", fullpath,
+					strerror(errno));
 			continue;
 		}
 		ret = btrfs_scan_one_device(fd, fullpath, &tmp_devices,
@@ -759,7 +1034,12 @@ fail:
 int btrfs_scan_for_fsid(struct btrfs_fs_devices *fs_devices, u64 total_devs,
 			int run_ioctls)
 {
-	return btrfs_scan_one_dir("/dev", run_ioctls);
+	int ret;
+
+	ret = btrfs_scan_block_devices(run_ioctls);
+	if (ret)
+		ret = btrfs_scan_one_dir("/dev", run_ioctls);
+	return ret;
 }
 
 int btrfs_device_already_in_root(struct btrfs_root *root, int fd,
@@ -798,6 +1078,7 @@ static char *size_strs[] = { "", "KB", "MB", "GB", "TB",
 char *pretty_sizes(u64 size)
 {
 	int num_divs = 0;
+        int pretty_len = 16;
 	u64 last_size = size;
 	u64 fract_size = size;
 	float fraction;
@@ -815,8 +1096,113 @@ char *pretty_sizes(u64 size)
 		return NULL;
 
 	fraction = (float)fract_size / 1024;
-	pretty = malloc(16);
-	sprintf(pretty, "%.2f%s", fraction, size_strs[num_divs-1]);
+	pretty = malloc(pretty_len);
+	snprintf(pretty, pretty_len, "%.2f%s", fraction, size_strs[num_divs-1]);
 	return pretty;
+}
+
+/*
+ * Checks to make sure that the label matches our requirements.
+ * Returns:
+       0    if everything is safe and usable
+      -1    if the label is too long
+      -2    if the label contains an invalid character
+ */
+int check_label(char *input)
+{
+       int i;
+       int len = strlen(input);
+
+       if (len > BTRFS_LABEL_SIZE) {
+               return -1;
+       }
+
+       for (i = 0; i < len; i++) {
+               if (input[i] == '/' || input[i] == '\\') {
+                       return -2;
+               }
+       }
+
+       return 0;
+}
+
+int btrfs_scan_block_devices(int run_ioctl)
+{
+
+	struct stat st;
+	int ret;
+	int fd;
+	struct btrfs_fs_devices *tmp_devices;
+	u64 num_devices;
+	FILE *proc_partitions;
+	int i;
+	char buf[1024];
+	char fullpath[110];
+	int scans = 0;
+	int special;
+
+scan_again:
+	proc_partitions = fopen("/proc/partitions","r");
+	if (!proc_partitions) {
+		fprintf(stderr, "Unable to open '/proc/partitions' for scanning\n");
+		return -ENOENT;
+	}
+	/* skip the header */
+	for(i=0; i < 2 ; i++)
+		if(!fgets(buf, 1023, proc_partitions)){
+		fprintf(stderr, "Unable to read '/proc/partitions' for scanning\n");
+		fclose(proc_partitions);
+		return -ENOENT;
+	}
+
+	strcpy(fullpath,"/dev/");
+	while(fgets(buf, 1023, proc_partitions)) {
+		i = sscanf(buf," %*d %*d %*d %99s", fullpath+5);
+
+		/*
+		 * multipath and MD devices may register as a btrfs filesystem
+		 * both through the original block device and through
+		 * the special (/dev/mapper or /dev/mdX) entry.
+		 * This scans the special entries last
+		 */
+		special = strncmp(fullpath, "/dev/dm-", strlen("/dev/dm-")) == 0;
+		if (!special)
+			special = strncmp(fullpath, "/dev/md", strlen("/dev/md")) == 0;
+
+		if (scans == 0 && special)
+			continue;
+		if (scans > 0 && !special)
+			continue;
+
+		ret = lstat(fullpath, &st);
+		if (ret < 0) {
+			fprintf(stderr, "failed to stat %s\n", fullpath);
+			continue;
+		}
+		if (!S_ISBLK(st.st_mode)) {
+			continue;
+		}
+
+		fd = open(fullpath, O_RDONLY);
+		if (fd < 0) {
+			fprintf(stderr, "failed to read %s\n", fullpath);
+			continue;
+		}
+		ret = btrfs_scan_one_device(fd, fullpath, &tmp_devices,
+					    &num_devices,
+					    BTRFS_SUPER_INFO_OFFSET);
+		if (ret == 0 && run_ioctl > 0) {
+			btrfs_register_one_device(fullpath);
+		}
+		close(fd);
+	}
+
+	fclose(proc_partitions);
+
+	if (scans == 0) {
+		scans++;
+		goto scan_again;
+	}
+	return 0;
 }
 

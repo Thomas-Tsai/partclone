@@ -50,21 +50,31 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = i686-pc-linux-gnu
 host_triplet = i686-pc-linux-gnu
-am__append_1 = ext2.test ext3.test ext4.test
+am__append_1 = ext2.test \
+	ext3.test ext4.test
 am__append_2 = btrfs.test
 am__append_3 = fat.test
 am__append_4 = reiserfs.test
-am__append_5 = reiser4.test
-am__append_6 = hpfs.test
-am__append_7 = xfs.test
-am__append_8 = exfat.test
-am__append_9 = ntfs.test
-am__append_10 = ufs.test
-am__append_11 = vmfs.test
-am__append_12 = jfs.test
-am__append_13 = btrfs.test
+
+#if ENABLE_REISER4
+#TESTS += reiser4.test
+#endif
+am__append_5 = hfsplus.test
+am__append_6 = xfs.test
+am__append_7 = exfat.test
+am__append_8 = ntfs.test
+
+#if ENABLE_UFS
+#TESTS += ufs.test
+#endif
+
+#if ENABLE_VMFS
+#TESTS += vmfs.test
+#endif
+am__append_9 = jfs.test
+am__append_10 = btrfs.test
 subdir = tests
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in TODO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
 	$(top_srcdir)/m4/iconv.m4 $(top_srcdir)/m4/lib-ld.m4 \
@@ -87,11 +97,11 @@ am__can_run_installinfo = \
 am__tty_colors = \
 red=; grn=; lgn=; blu=; std=
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-ACLOCAL = ${SHELL} /home/thomas/work_house/partclone/missing --run aclocal-1.11
+ACLOCAL = ${SHELL} /home/thomas/partclone/missing --run aclocal-1.11
 AMTAR = $${TAR-tar}
-AUTOCONF = ${SHELL} /home/thomas/work_house/partclone/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/thomas/work_house/partclone/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/thomas/work_house/partclone/missing --run automake-1.11
+AUTOCONF = ${SHELL} /home/thomas/partclone/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/thomas/partclone/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/thomas/partclone/missing --run automake-1.11
 AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
@@ -120,12 +130,12 @@ LDFLAGS =
 LIBICONV = -liconv
 LIBINTL = 
 LIBOBJS = 
-LIBS = -lpthread 
+LIBS = -lncursesw -lpthread 
 LN_S = ln -s
 LTLIBICONV = -liconv
 LTLIBINTL = 
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /home/thomas/work_house/partclone/missing --run makeinfo
+MAKEINFO = ${SHELL} /home/thomas/partclone/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
 MSGFMT = /usr/bin/msgfmt
 MSGFMT_015 = /usr/bin/msgfmt
@@ -134,10 +144,10 @@ OBJEXT = o
 PACKAGE = partclone
 PACKAGE_BUGREPORT = thomas@nchc.org.tw
 PACKAGE_NAME = Partclone
-PACKAGE_STRING = Partclone 0.2.53
+PACKAGE_STRING = Partclone 0.2.54
 PACKAGE_TARNAME = partclone
 PACKAGE_URL = 
-PACKAGE_VERSION = 0.2.53
+PACKAGE_VERSION = 0.2.54
 PATH_SEPARATOR = :
 PKG_CONFIG = /usr/bin/pkg-config
 PKG_CONFIG_LIBDIR = 
@@ -150,13 +160,13 @@ STRIP =
 USE_NLS = yes
 UUID_CFLAGS = -I/usr/include/uuid  
 UUID_LIBS = -luuid  
-VERSION = 0.2.53
+VERSION = 0.2.54
 XGETTEXT = /usr/bin/xgettext
 XGETTEXT_015 = /usr/bin/xgettext
-abs_builddir = /home/thomas/work_house/partclone/tests
-abs_srcdir = /home/thomas/work_house/partclone/tests
-abs_top_builddir = /home/thomas/work_house/partclone
-abs_top_srcdir = /home/thomas/work_house/partclone
+abs_builddir = /home/thomas/partclone/tests
+abs_srcdir = /home/thomas/partclone/tests
+abs_top_builddir = /home/thomas/partclone
+abs_top_srcdir = /home/thomas/partclone
 ac_ct_CC = gcc
 am__include = include
 am__leading_dot = .
@@ -183,7 +193,7 @@ host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/thomas/work_house/partclone/install-sh
+install_sh = ${SHELL} /home/thomas/partclone/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -203,11 +213,10 @@ target_alias =
 top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
-TESTS = imgchk.test $(am__append_1) $(am__append_2) $(am__append_3) \
+TESTS = dd.test $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
 	$(am__append_7) $(am__append_8) $(am__append_9) \
-	$(am__append_10) $(am__append_11) $(am__append_12) \
-	$(am__append_13)
+	$(am__append_10)
 CLEANFILES = floppy*
 all: all-am
 

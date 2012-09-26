@@ -1,6 +1,6 @@
 #!/bin/bash
 
-break_debug=1
+break_debug=0
 logfile='test.log'
 img='floppy.img'
 raw='floppy.raw'
@@ -16,8 +16,17 @@ ptlrestore=$ptldir/partclone.restore
 mkfs_option_for_ext2='-F'
 mkfs_option_for_ext3='-F'
 mkfs_option_for_ext4='-F'
-mkfs_option_for_reiserfs='-f'
+mkfs_option_for_reiserfs='-q'
+mkfs_option_for_reiser4='-f -y'
 mkfs_option_for_ntfs='-f -F'
+mkfs_option_for_jfs='-q'
+
+_check_return_code(){
+    if [ $? != 0 ]; then
+	echo "return code fail"
+	exit
+    fi
+}
 
 _ptlbreak(){
     if [ $break_debug -ne 0 ];then
@@ -33,7 +42,7 @@ _ptlbreak(){
 
 _findmkfs(){
     fs=$1
-    mkfs_path=$(locate mkfs.$fs|grep sbin)
+    mkfs_path=$(locate mkfs.$fs|grep sbin|head -n 1)
     if [ -z $mkfs_path ]; then
 	echo  >&2 "can't find mkfs.$fs"
 	exit 1
@@ -49,7 +58,10 @@ _ptlname(){
 	    ptl="$ptldir/partclone.extfs"
 	;;
 	fat16|fat12|fat32|fat|vfat)
-	    ptl="$ptldir/partclone.vfat"
+	    ptl="$ptldir/partclone.fat"
+	;;
+	hfsplus)
+	    ptl="$ptldir/partclone.hfsp"
 	;;
 	*)
 	    ptl="$ptldir/partclone.$fs"

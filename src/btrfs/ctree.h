@@ -19,11 +19,14 @@
 #ifndef __BTRFS__
 #define __BTRFS__
 
+#include <stdint.h>
+
 #include "list.h"
 #include "kerncompat.h"
 #include "radix-tree.h"
 #include "extent-cache.h"
 #include "extent_io.h"
+#include "ioctl.h"
 
 struct btrfs_root;
 struct btrfs_trans_handle;
@@ -60,6 +63,9 @@ struct btrfs_trans_handle;
 #define BTRFS_CSUM_TREE_OBJECTID 7ULL
 
 
+/* for storing balance parameters in the root tree */
+#define BTRFS_BALANCE_OBJECTID -4ULL
+
 /* oprhan objectid for tracking unlinked/truncated files */
 #define BTRFS_ORPHAN_OBJECTID -5ULL
 
@@ -77,6 +83,15 @@ struct btrfs_trans_handle;
  * for fsyncs
  */
 #define BTRFS_EXTENT_CSUM_OBJECTID -10ULL
+
+/* For storing free space cache */
+#define BTRFS_FREE_SPACE_OBJECTID -11ULL
+
+/*
+ * The inode number assigned to the special inode for sotring
+ * free ino cache
+ */
+#define BTRFS_FREE_INO_OBJECTID -12ULL
 
 /* dummy objectid represents multiple objectids */
 #define BTRFS_MULTIPLE_OBJECTIDS -255ULL
@@ -250,7 +265,6 @@ static inline unsigned long btrfs_chunk_item_size(int num_stripes)
 		sizeof(struct btrfs_stripe) * (num_stripes - 1);
 }
 
-#define BTRFS_FSID_SIZE 16
 #define BTRFS_HEADER_FLAG_WRITTEN		(1ULL << 0)
 #define BTRFS_HEADER_FLAG_RELOC			(1ULL << 1)
 #define BTRFS_SUPER_FLAG_SEEDING		(1ULL << 32)
@@ -290,6 +304,9 @@ struct btrfs_header {
 #define BTRFS_MAX_INLINE_DATA_SIZE(r) (BTRFS_LEAF_DATA_SIZE(r) - \
 					sizeof(struct btrfs_item) - \
 					sizeof(struct btrfs_file_extent_item))
+#define BTRFS_MAX_XATTR_SIZE(r)	(BTRFS_LEAF_DATA_SIZE(r) - \
+				 sizeof(struct btrfs_item) -\
+				 sizeof(struct btrfs_dir_item))
 
 
 /*
@@ -298,6 +315,47 @@ struct btrfs_header {
  */
 #define BTRFS_SYSTEM_CHUNK_ARRAY_SIZE 2048
 #define BTRFS_LABEL_SIZE 256
+
+/*
+ * just in case we somehow lose the roots and are not able to mount,
+ * we store an array of the roots from previous transactions
+ * in the super.
+ */
+#define BTRFS_NUM_BACKUP_ROOTS 4
+struct btrfs_root_backup {
+	__le64 tree_root;
+	__le64 tree_root_gen;
+
+	__le64 chunk_root;
+	__le64 chunk_root_gen;
+
+	__le64 extent_root;
+	__le64 extent_root_gen;
+
+	__le64 fs_root;
+	__le64 fs_root_gen;
+
+	__le64 dev_root;
+	__le64 dev_root_gen;
+
+	__le64 csum_root;
+	__le64 csum_root_gen;
+
+	__le64 total_bytes;
+	__le64 bytes_used;
+	__le64 num_devices;
+	/* future */
+	__le64 unsed_64[4];
+
+	u8 tree_root_level;
+	u8 chunk_root_level;
+	u8 extent_root_level;
+	u8 fs_root_level;
+	u8 dev_root_level;
+	u8 csum_root_level;
+	/* future and to align */
+	u8 unused_8[10];
+} __attribute__ ((__packed__));
 
 /*
  * the super block basically lists the main trees of the FS
@@ -340,9 +398,12 @@ struct btrfs_super_block {
 
 	char label[BTRFS_LABEL_SIZE];
 
+	__le64 cache_generation;
+
 	/* future expansion */
-	__le64 reserved[32];
+	__le64 reserved[31];
 	u8 sys_chunk_array[BTRFS_SYSTEM_CHUNK_ARRAY_SIZE];
+	struct btrfs_root_backup super_roots[BTRFS_NUM_BACKUP_ROOTS];
 } __attribute__ ((__packed__));
 
 /*
@@ -350,11 +411,32 @@ struct btrfs_super_block {
  * ones specified below then we will fail to mount
  */
 #define BTRFS_FEATURE_INCOMPAT_MIXED_BACKREF	(1ULL << 0)
+#define BTRFS_FEATURE_INCOMPAT_DEFAULT_SUBVOL	(1ULL << 1)
+#define BTRFS_FEATURE_INCOMPAT_MIXED_GROUPS	(1ULL << 2)
+#define BTRFS_FEATURE_INCOMPAT_COMPRESS_LZO	(1ULL << 3)
+/*
+ * some patches floated around with a second compression method
+ * lets save that incompat here for when they do get in
+ * Note we don't actually support it, we're just reserving the
+ * number
+ */
+#define BTRFS_FEATURE_INCOMPAT_COMPRESS_LZOv2   (1ULL << 4)
+
+/*
+ * older kernels tried to do bigger metadata blocks, but the
+ * code was pretty buggy.  Lets not let them try anymore.
+ */
+#define BTRFS_FEATURE_INCOMPAT_BIG_METADATA     (1ULL << 5)
+
 
 #define BTRFS_FEATURE_COMPAT_SUPP		0ULL
 #define BTRFS_FEATURE_COMPAT_RO_SUPP		0ULL
-#define BTRFS_FEATURE_INCOMPAT_SUPP		\
-	BTRFS_FEATURE_INCOMPAT_MIXED_BACKREF
+#define BTRFS_FEATURE_INCOMPAT_SUPP			\
+	(BTRFS_FEATURE_INCOMPAT_MIXED_BACKREF |		\
+	 BTRFS_FEATURE_INCOMPAT_DEFAULT_SUBVOL |	\
+	 BTRFS_FEATURE_INCOMPAT_COMPRESS_LZO |		\
+	 BTRFS_FEATURE_INCOMPAT_BIG_METADATA |		\
+	 BTRFS_FEATURE_INCOMPAT_MIXED_GROUPS)
 
 /*
  * A leaf is full of items. offset and size tell us where to find
@@ -499,9 +581,11 @@ struct btrfs_timespec {
 } __attribute__ ((__packed__));
 
 typedef enum {
-	BTRFS_COMPRESS_NONE = 0,
-	BTRFS_COMPRESS_ZLIB = 1,
-	BTRFS_COMPRESS_LAST = 2,
+	BTRFS_COMPRESS_NONE  = 0,
+	BTRFS_COMPRESS_ZLIB  = 1,
+	BTRFS_COMPRESS_LZO   = 2,
+	BTRFS_COMPRESS_TYPES = 2,
+	BTRFS_COMPRESS_LAST  = 3,
 } btrfs_compression_type;
 
 /* we don't understand any encryption methods right now */
@@ -633,13 +717,17 @@ struct btrfs_csum_item {
 } __attribute__ ((__packed__));
 
 /* tag for the radix tree of block groups in ram */
-#define BTRFS_BLOCK_GROUP_DATA     (1 << 0)
-#define BTRFS_BLOCK_GROUP_SYSTEM   (1 << 1)
-#define BTRFS_BLOCK_GROUP_METADATA (1 << 2)
-#define BTRFS_BLOCK_GROUP_RAID0    (1 << 3)
-#define BTRFS_BLOCK_GROUP_RAID1    (1 << 4)
-#define BTRFS_BLOCK_GROUP_DUP	   (1 << 5)
-#define BTRFS_BLOCK_GROUP_RAID10   (1 << 6)
+#define BTRFS_BLOCK_GROUP_DATA		(1ULL << 0)
+#define BTRFS_BLOCK_GROUP_SYSTEM	(1ULL << 1)
+#define BTRFS_BLOCK_GROUP_METADATA	(1ULL << 2)
+#define BTRFS_BLOCK_GROUP_RAID0		(1ULL << 3)
+#define BTRFS_BLOCK_GROUP_RAID1		(1ULL << 4)
+#define BTRFS_BLOCK_GROUP_DUP		(1ULL << 5)
+#define BTRFS_BLOCK_GROUP_RAID10	(1ULL << 6)
+#define BTRFS_BLOCK_GROUP_RESERVED	BTRFS_AVAIL_ALLOC_BIT_SINGLE
+
+/* used in struct btrfs_balance_args fields */
+#define BTRFS_AVAIL_ALLOC_BIT_SINGLE	(1ULL << 48)
 
 struct btrfs_block_group_item {
 	__le64 used;
@@ -726,6 +814,13 @@ struct btrfs_fs_info {
 	struct list_head space_info;
 	int system_allocs;
 	int readonly;
+	int (*free_extent_hook)(struct btrfs_trans_handle *trans,
+				struct btrfs_root *root,
+				u64 bytenr, u64 num_bytes, u64 parent,
+				u64 root_objectid, u64 owner, u64 offset,
+				int refs_to_drop);
+	struct cache_tree *fsck_extent_cache;
+	struct cache_tree *corrupt_blocks;
 };
 
 /*
@@ -847,6 +942,8 @@ struct btrfs_root {
 #define BTRFS_DEV_ITEM_KEY	216
 #define BTRFS_CHUNK_ITEM_KEY	228
 
+#define BTRFS_BALANCE_ITEM_KEY	248
+
 /*
  * string items are for debugging.  They just store a short string of
  * data in the FS
@@ -875,13 +972,17 @@ struct btrfs_root {
 static inline u##bits btrfs_##name(struct extent_buffer *eb)		\
 {									\
 	struct btrfs_header *h = (struct btrfs_header *)eb->data;	\
-	return le##bits##_to_cpu(h->member);				\
+	uint##bits##_t t;						\
+	memcpy(&t, &h->member, sizeof(h->member));			\
+	return le##bits##_to_cpu(t);					\
 }									\
 static inline void btrfs_set_##name(struct extent_buffer *eb,		\
 				    u##bits val)			\
 {									\
 	struct btrfs_header *h = (struct btrfs_header *)eb->data;	\
-	h->member = cpu_to_le##bits(val);				\
+	uint##bits##_t t;						\
+	t = cpu_to_le##bits(val);					\
+	memcpy(&h->member, &t, sizeof(h->member));			\
 }
 
 #define BTRFS_SETGET_FUNCS(name, type, member, bits)			\
@@ -889,25 +990,33 @@ static inline u##bits btrfs_##name(struct extent_buffer *eb,		\
 				   type *s)				\
 {									\
 	unsigned long offset = (unsigned long)s;			\
+	uint##bits##_t t;						\
 	type *p = (type *) (eb->data + offset);				\
-	return le##bits##_to_cpu(p->member);				\
+	memcpy(&t, &p->member, sizeof(p->member));			\
+	return le##bits##_to_cpu(t);					\
 }									\
 static inline void btrfs_set_##name(struct extent_buffer *eb,		\
 				    type *s, u##bits val)		\
 {									\
 	unsigned long offset = (unsigned long)s;			\
+	uint##bits##_t t;						\
 	type *p = (type *) (eb->data + offset);				\
-	p->member = cpu_to_le##bits(val);				\
+	t = cpu_to_le##bits(val);					\
+	memcpy(&p->member, &t, sizeof(p->member));			\
 }
 
 #define BTRFS_SETGET_STACK_FUNCS(name, type, member, bits)		\
 static inline u##bits btrfs_##name(type *s)				\
 {									\
-	return le##bits##_to_cpu(s->member);				\
+	uint##bits##_t t;						\
+	memcpy(&t, &s->member, sizeof(s->member));			\
+	return le##bits##_to_cpu(t);					\
 }									\
 static inline void btrfs_set_##name(type *s, u##bits val)		\
 {									\
-	s->member = cpu_to_le##bits(val);				\
+	uint##bits##_t t;						\
+	t = cpu_to_le##bits(val);					\
+	memcpy(&s->member, &t, sizeof(s->member));			\
 }
 
 BTRFS_SETGET_FUNCS(device_type, struct btrfs_dev_item, type, 64);
@@ -1047,6 +1156,7 @@ BTRFS_SETGET_STACK_FUNCS(block_group_flags,
 
 /* struct btrfs_inode_ref */
 BTRFS_SETGET_FUNCS(inode_ref_name_len, struct btrfs_inode_ref, name_len, 16);
+BTRFS_SETGET_STACK_FUNCS(stack_inode_ref_name_len, struct btrfs_inode_ref, name_len, 16);
 BTRFS_SETGET_FUNCS(inode_ref_index, struct btrfs_inode_ref, index, 64);
 
 /* struct btrfs_inode_item */
@@ -1325,6 +1435,10 @@ BTRFS_SETGET_FUNCS(root_ref_dirid, struct btrfs_root_ref, dirid, 64);
 BTRFS_SETGET_FUNCS(root_ref_sequence, struct btrfs_root_ref, sequence, 64);
 BTRFS_SETGET_FUNCS(root_ref_name_len, struct btrfs_root_ref, name_len, 16);
 
+BTRFS_SETGET_STACK_FUNCS(stack_root_ref_dirid, struct btrfs_root_ref, dirid, 64);
+BTRFS_SETGET_STACK_FUNCS(stack_root_ref_sequence, struct btrfs_root_ref, sequence, 64);
+BTRFS_SETGET_STACK_FUNCS(stack_root_ref_name_len, struct btrfs_root_ref, name_len, 16);
+
 /* struct btrfs_dir_item */
 BTRFS_SETGET_FUNCS(dir_data_len, struct btrfs_dir_item, data_len, 16);
 BTRFS_SETGET_FUNCS(dir_type, struct btrfs_dir_item, type, 8);
@@ -1510,6 +1624,55 @@ BTRFS_SETGET_STACK_FUNCS(root_last_snapshot, struct btrfs_root_item,
 			 last_snapshot, 64);
 
 
+/* struct btrfs_root_backup */
+BTRFS_SETGET_STACK_FUNCS(backup_tree_root, struct btrfs_root_backup,
+		   tree_root, 64);
+BTRFS_SETGET_STACK_FUNCS(backup_tree_root_gen, struct btrfs_root_backup,
+		   tree_root_gen, 64);
+BTRFS_SETGET_STACK_FUNCS(backup_tree_root_level, struct btrfs_root_backup,
+		   tree_root_level, 8);
+
+BTRFS_SETGET_STACK_FUNCS(backup_chunk_root, struct btrfs_root_backup,
+		   chunk_root, 64);
+BTRFS_SETGET_STACK_FUNCS(backup_chunk_root_gen, struct btrfs_root_backup,
+		   chunk_root_gen, 64);
+BTRFS_SETGET_STACK_FUNCS(backup_chunk_root_level, struct btrfs_root_backup,
+		   chunk_root_level, 8);
+
+BTRFS_SETGET_STACK_FUNCS(backup_extent_root, struct btrfs_root_backup,
+		   extent_root, 64);
+BTRFS_SETGET_STACK_FUNCS(backup_extent_root_gen, struct btrfs_root_backup,
+		   extent_root_gen, 64);
+BTRFS_SETGET_STACK_FUNCS(backup_extent_root_level, struct btrfs_root_backup,
+		   extent_root_level, 8);
+
+BTRFS_SETGET_STACK_FUNCS(backup_fs_root, struct btrfs_root_backup,
+		   fs_root, 64);
+BTRFS_SETGET_STACK_FUNCS(backup_fs_root_gen, struct btrfs_root_backup,
+		   fs_root_gen, 64);
+BTRFS_SETGET_STACK_FUNCS(backup_fs_root_level, struct btrfs_root_backup,
+		   fs_root_level, 8);
+
+BTRFS_SETGET_STACK_FUNCS(backup_dev_root, struct btrfs_root_backup,
+		   dev_root, 64);
+BTRFS_SETGET_STACK_FUNCS(backup_dev_root_gen, struct btrfs_root_backup,
+		   dev_root_gen, 64);
+BTRFS_SETGET_STACK_FUNCS(backup_dev_root_level, struct btrfs_root_backup,
+		   dev_root_level, 8);
+
+BTRFS_SETGET_STACK_FUNCS(backup_csum_root, struct btrfs_root_backup,
+		   csum_root, 64);
+BTRFS_SETGET_STACK_FUNCS(backup_csum_root_gen, struct btrfs_root_backup,
+		   csum_root_gen, 64);
+BTRFS_SETGET_STACK_FUNCS(backup_csum_root_level, struct btrfs_root_backup,
+		   csum_root_level, 8);
+BTRFS_SETGET_STACK_FUNCS(backup_total_bytes, struct btrfs_root_backup,
+		   total_bytes, 64);
+BTRFS_SETGET_STACK_FUNCS(backup_bytes_used, struct btrfs_root_backup,
+		   bytes_used, 64);
+BTRFS_SETGET_STACK_FUNCS(backup_num_devices, struct btrfs_root_backup,
+		   num_devices, 64);
+
 /* struct btrfs_super_block */
 
 BTRFS_SETGET_STACK_FUNCS(super_bytenr, struct btrfs_super_block, bytenr, 64);
@@ -1557,6 +1720,8 @@ BTRFS_SETGET_STACK_FUNCS(super_incompat_flags, struct btrfs_super_block,
 			 incompat_flags, 64);
 BTRFS_SETGET_STACK_FUNCS(super_csum_type, struct btrfs_super_block,
 			 csum_type, 16);
+BTRFS_SETGET_STACK_FUNCS(super_cache_generation, struct btrfs_super_block,
+			 cache_generation, 64);
 
 static inline int btrfs_super_csum_size(struct btrfs_super_block *s)
 {
@@ -1572,6 +1737,7 @@ static inline unsigned long btrfs_leaf_data(struct extent_buffer *l)
 
 /* struct btrfs_file_extent_item */
 BTRFS_SETGET_FUNCS(file_extent_type, struct btrfs_file_extent_item, type, 8);
+BTRFS_SETGET_STACK_FUNCS(stack_file_extent_type, struct btrfs_file_extent_item, type, 8);
 
 static inline unsigned long btrfs_file_extent_inline_start(struct
 						   btrfs_file_extent_item *e)
@@ -1588,17 +1754,29 @@ static inline u32 btrfs_file_extent_calc_inline_size(u32 datasize)
 
 BTRFS_SETGET_FUNCS(file_extent_disk_bytenr, struct btrfs_file_extent_item,
 		   disk_bytenr, 64);
+BTRFS_SETGET_STACK_FUNCS(stack_file_extent_disk_bytenr, struct btrfs_file_extent_item,
+		   disk_bytenr, 64);
 BTRFS_SETGET_FUNCS(file_extent_generation, struct btrfs_file_extent_item,
+		   generation, 64);
+BTRFS_SETGET_STACK_FUNCS(stack_file_extent_generation, struct btrfs_file_extent_item,
 		   generation, 64);
 BTRFS_SETGET_FUNCS(file_extent_disk_num_bytes, struct btrfs_file_extent_item,
 		   disk_num_bytes, 64);
 BTRFS_SETGET_FUNCS(file_extent_offset, struct btrfs_file_extent_item,
 		  offset, 64);
+BTRFS_SETGET_STACK_FUNCS(stack_file_extent_offset, struct btrfs_file_extent_item,
+		  offset, 64);
 BTRFS_SETGET_FUNCS(file_extent_num_bytes, struct btrfs_file_extent_item,
+		   num_bytes, 64);
+BTRFS_SETGET_STACK_FUNCS(stack_file_extent_num_bytes, struct btrfs_file_extent_item,
 		   num_bytes, 64);
 BTRFS_SETGET_FUNCS(file_extent_ram_bytes, struct btrfs_file_extent_item,
 		   ram_bytes, 64);
+BTRFS_SETGET_STACK_FUNCS(stack_file_extent_ram_bytes, struct btrfs_file_extent_item,
+		   ram_bytes, 64);
 BTRFS_SETGET_FUNCS(file_extent_compression, struct btrfs_file_extent_item,
+		   compression, 8);
+BTRFS_SETGET_STACK_FUNCS(stack_file_extent_compression, struct btrfs_file_extent_item,
 		   compression, 8);
 BTRFS_SETGET_FUNCS(file_extent_encryption, struct btrfs_file_extent_item,
 		   encryption, 8);
@@ -1643,6 +1821,10 @@ static inline u32 btrfs_level_size(struct btrfs_root *root, int level) {
 	btrfs_item_offset_nr(leaf, slot)))
 
 /* extent-tree.c */
+int btrfs_fix_block_accounting(struct btrfs_trans_handle *trans,
+				 struct btrfs_root *root);
+int btrfs_check_block_accounting(struct btrfs_root *root);
+void btrfs_pin_extent(struct btrfs_fs_info *fs_info, u64 bytenr, u64 num_bytes);
 int btrfs_extent_post_op(struct btrfs_trans_handle *trans,
 			 struct btrfs_root *root);
 int btrfs_copy_pinned(struct btrfs_root *root, struct extent_io_tree *copy);
@@ -1705,6 +1887,20 @@ int btrfs_update_block_group(struct btrfs_trans_handle *trans,
 			     struct btrfs_root *root, u64 bytenr, u64 num,
 			     int alloc, int mark_free);
 /* ctree.c */
+int btrfs_del_ptr(struct btrfs_trans_handle *trans, struct btrfs_root *root,
+		   struct btrfs_path *path, int level, int slot);
+int btrfs_check_node(struct btrfs_root *root,
+		      struct btrfs_disk_key *parent_key,
+		      struct extent_buffer *buf);
+int btrfs_check_leaf(struct btrfs_root *root,
+		      struct btrfs_disk_key *parent_key,
+		      struct extent_buffer *buf);
+int btrfs_fsck_reinit_root(struct btrfs_trans_handle *trans,
+		      struct btrfs_root *root);
+void reada_for_search(struct btrfs_root *root, struct btrfs_path *path,
+			     int level, int slot, u64 objectid);
+struct extent_buffer *read_node_slot(struct btrfs_root *root,
+				   struct extent_buffer *parent, int slot);
 int btrfs_previous_item(struct btrfs_root *root,
 			struct btrfs_path *path, u64 min_objectid,
 			int type);

@@ -28,7 +28,8 @@
 #include "extent_io.h"
 #include "list.h"
 
-u64 cache_max = 1024 * 1024 * 32;
+u64 cache_soft_max = 1024 * 1024 * 256;
+u64 cache_hard_max = 1 * 1024 * 1024 * 1024;
 
 void extent_io_tree_init(struct extent_io_tree *tree)
 {
@@ -296,7 +297,6 @@ int set_extent_bits(struct extent_io_tree *tree, u64 start,
 	struct extent_state *prealloc = NULL;
 	struct cache_extent *node;
 	int err = 0;
-	int set;
 	u64 last_start;
 	u64 last_end;
 again:
@@ -327,7 +327,6 @@ again:
 	 * Just lock what we found and keep going
 	 */
 	if (state->start == start && state->end <= end) {
-		set = state->state & bits;
 		state->state |= bits;
 		merge_state(tree, state);
 		if (last_end == (u64)-1)
@@ -352,7 +351,6 @@ again:
 	 * desired bit on it.
 	 */
 	if (state->start < start) {
-		set = state->state & bits;
 		err = split_state(tree, state, prealloc, start);
 		BUG_ON(err == -EEXIST);
 		prealloc = NULL;
@@ -398,7 +396,6 @@ again:
 	 * We need to split the extent, and set the bit
 	 * on the first half
 	 */
-	set = state->state & bits;
 	err = split_state(tree, state, prealloc, end + 1);
 	BUG_ON(err == -EEXIST);
 
@@ -544,18 +541,19 @@ static int free_some_buffers(struct extent_io_tree *tree)
 	struct extent_buffer *eb;
 	struct list_head *node, *next;
 
-	if (tree->cache_size < cache_max)
+	if (tree->cache_size < cache_soft_max)
 		return 0;
+
 	list_for_each_safe(node, next, &tree->lru) {
 		eb = list_entry(node, struct extent_buffer, lru);
 		if (eb->refs == 1) {
 			free_extent_buffer(eb);
-			if (tree->cache_size < cache_max)
+			if (tree->cache_size < cache_hard_max)
 				break;
 		} else {
 			list_move_tail(&eb->lru, &tree->lru);
 		}
-		if (nrscan++ > 64)
+		if (nrscan++ > 64 && tree->cache_size < cache_hard_max)
 			break;
 	}
 	return 0;
@@ -572,6 +570,7 @@ static struct extent_buffer *__alloc_extent_buffer(struct extent_io_tree *tree,
 		BUG();
 		return NULL;
 	}
+	memset(eb, 0, sizeof(struct extent_buffer) + blocksize);
 
 	eb->start = bytenr;
 	eb->len = blocksize;
@@ -657,7 +656,6 @@ struct extent_buffer *alloc_extent_buffer(struct extent_io_tree *tree,
 		if (cache) {
 			eb = container_of(cache, struct extent_buffer,
 					  cache_node);
-			BUG_ON(eb->refs != 1);
 			free_extent_buffer(eb);
 		}
 		eb = __alloc_extent_buffer(tree, bytenr, blocksize);
@@ -710,6 +708,9 @@ int clear_extent_buffer_uptodate(struct extent_io_tree *tree,
 
 int extent_buffer_uptodate(struct extent_buffer *eb)
 {
+	if (!eb)
+		return 0;
+
 	if (eb->flags & EXTENT_UPTODATE)
 		return 1;
 	return 0;
