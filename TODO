@@ -1,7 +1,6 @@
+* add data test for autocheck
 * multi output device for restore
 * nilfs support
 * wbfs support
 * zfs support
 * source code update
-* add exfat version test
-* add exfat in web page and partclone.xml...
