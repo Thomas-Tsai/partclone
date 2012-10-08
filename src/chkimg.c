@@ -267,7 +267,7 @@ int main(int argc, char **argv){
         log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     }
 
-    log_mesg(2, 0, 0, debug, "initial main bitmap pointer %lli\n", bitmap);
+    log_mesg(2, 0, 0, debug, "initial main bitmap pointer %p\n", bitmap);
     log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
     /// read and check bitmap from image file
@@ -275,7 +275,7 @@ int main(int argc, char **argv){
     log_mesg(0, 0, 1, debug, "Please wait... ");
     get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
-    log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
+    log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
     log_mesg(0, 0, 1, debug, "done!\n");
 
     log_mesg(1, 0, 0, debug, "print image_head\n");
@@ -326,7 +326,7 @@ int main(int argc, char **argv){
 
         if (pc_test_bit(block_id, bitmap)){
             /// The block is used
-            log_mesg(2, 0, 0, debug, "block_id=%lli, ",block_id);
+            log_mesg(2, 0, 0, debug, "block_id=%llu, ",block_id);
             log_mesg(1, 0, 0, debug, "bitmap=%i, ",pc_test_bit(block_id, bitmap));
 
             offset = (off_t)(block_id * image_hdr.block_size);
@@ -367,7 +367,7 @@ int main(int argc, char **argv){
                     log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file. \n", strerror(errno));
                 memcpy(&crc, crc_buffer, CRC_SIZE);
                 if ((memcmp(&crc, &crc_ck2, CRC_SIZE) != 0) && (!opt.ignore_crc)){
-                    log_mesg(0, 1, 1, debug, "CRC error again at %i...\n ", sf);
+                    log_mesg(0, 1, 1, debug, "CRC error again at %ji...\n ", (intmax_t)sf);
                 } else {
                     crc_ck = crc_ck2;
                 }

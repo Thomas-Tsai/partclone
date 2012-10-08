@@ -13,7 +13,7 @@
  */
 
 #include <stdio.h>
-#include <stdio.h>
+#include <inttypes.h>
 #include <vmfs/vmfs.h>
 #include <pthread.h>
 
@@ -189,7 +189,7 @@ unsigned long long print_pos_by_id (const vmfs_fs_t *fs, uint32_t blk_id)
 	    //fprintf(stderr,"Unsupported block type 0x%2.2x\n",blk_type);
     }
     current = pos/vmfs_fs_get_blocksize(fs);
-    log_mesg(3, 0, 0, fs_opt.debug, "Blockid = 0x%8.8x, Type = 0x%2.2x, Pos: %lli, bitmapid: %lli, c: %lli\n", blk_id, blk_type, pos, current, checked);
+    log_mesg(3, 0, 0, fs_opt.debug, "Blockid = 0x%8.8x, Type = 0x%2.2x, Pos: %llu, bitmapid: %llu, c: %llu\n", blk_id, blk_type, pos, current, checked);
     pc_set_bit(current, blk_bitmap);
 }
 
@@ -246,7 +246,7 @@ void dump_bitmaps (vmfs_bitmap_t *b,uint32_t addr, void *opt)
     item  = addr % b->bmh.items_per_bitmap_entry;
 
     blk_id = VMFS_BLK_SB_BUILD(entry, item, 0);
-    //fprintf(stderr, "%s %s addr %i blkid %i\n", __FILE__, __func__, addr, blk_id);
+    //fprintf(stderr, "%s %s addr %"PRIu32" blkid %"PRIu32"\n", __FILE__, __func__, addr, blk_id);
 
     print_pos_by_id(fs, blk_id);
 }
@@ -353,20 +353,20 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	vmfs_inode_foreach_block(&inode,vmfs_dump_store_block,dump_info.blk_map);
     }
 
-    log_mesg(3, 0, 0, fs_opt.debug, "fdc checked block %lli\n", checked);
+    log_mesg(3, 0, 0, fs_opt.debug, "fdc checked block %llu\n", checked);
     vmfs_bitmap_foreach(fs->fbb,dump_bitmaps,fs);
-    log_mesg(3, 0, 0, fs_opt.debug, "fbb checked block %lli\n", checked);
+    log_mesg(3, 0, 0, fs_opt.debug, "fbb checked block %llu\n", checked);
     vmfs_bitmap_foreach(fs->sbc,dump_bitmaps,fs);
-    log_mesg(3, 0, 0, fs_opt.debug, "sbc checked block %lli\n", checked);
+    log_mesg(3, 0, 0, fs_opt.debug, "sbc checked block %llu\n", checked);
     vmfs_bitmap_foreach(fs->pbc,dump_bitmaps,fs);
-    log_mesg(3, 0, 0, fs_opt.debug, "pbc checked block %lli\n", checked);
+    log_mesg(3, 0, 0, fs_opt.debug, "pbc checked block %llu\n", checked);
 
     fs_close();
     bitmap_done = 1;
     update_pui(&prog, 1, 1, 1);
 
-    log_mesg(3, 0, 0, fs_opt.debug, "checked block %lli\n", checked);
-    log_mesg(0, 0, 0, fs_opt.debug, "%s: Used:%lld, Free:%lld, Status err:%lld\n", __FILE__, used_block, free_block, err_block);
+    log_mesg(3, 0, 0, fs_opt.debug, "checked block %llu\n", checked);
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: Used:%llu, Free:%llu, Status err:%llu\n", __FILE__, used_block, free_block, err_block);
 
 }
 
@@ -386,10 +386,10 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     sbc_allocated = vmfs_bitmap_allocated_items(fs->pbc);
     pbc_allocated = vmfs_bitmap_allocated_items(fs->pbc);
     alloc = fdc_allocated + fbb_allocated + sbc_allocated + pbc_allocated;
-    log_mesg(3, 0, 0, fs_opt.debug, "allocated fdc %u\n", fdc_allocated);
-    log_mesg(3, 0, 0, fs_opt.debug, "allocated fbb %u\n", fbb_allocated);
-    log_mesg(3, 0, 0, fs_opt.debug, "allocated sbc %u\n", sbc_allocated);
-    log_mesg(3, 0, 0, fs_opt.debug, "allocated pbc %u\n", pbc_allocated);
+    log_mesg(3, 0, 0, fs_opt.debug, "allocated fdc %"PRIu32"\n", fdc_allocated);
+    log_mesg(3, 0, 0, fs_opt.debug, "allocated fbb %"PRIu32"\n", fbb_allocated);
+    log_mesg(3, 0, 0, fs_opt.debug, "allocated sbc %"PRIu32"\n", sbc_allocated);
+    log_mesg(3, 0, 0, fs_opt.debug, "allocated pbc %"PRIu32"\n", pbc_allocated);
 
     image_hdr->block_size  = vmfs_fs_get_blocksize(fs);
     image_hdr->totalblock  = total;

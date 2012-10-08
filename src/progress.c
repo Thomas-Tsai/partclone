@@ -243,7 +243,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 	if((prog->flag == IO) || (prog->flag == NO_BLOCK_DETAIL))
 	    mvwprintw(p_win, 0, 40, _("Rate: %6.2f%s/min"), prog_stat.speed, prog_stat.speed_unit);
 	if (prog->flag == IO)
-	    mvwprintw(p_win, 1, 0, _("Current Block: %lld  Total Block: %lld ") , current, prog->total);
+	    mvwprintw(p_win, 1, 0, _("Current Block: %llu  Total Block: %llu ") , current, prog->total);
         p_block = calloc(sizeof(char), 50);
         t_block = calloc(sizeof(char), 50);
         memset(p_block, ' ', (size_t)(prog_stat.percent*0.5));

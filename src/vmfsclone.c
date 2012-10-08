@@ -12,7 +12,7 @@
  */
 
 #include <stdio.h>
-#include <stdio.h>
+#include <inttypes.h>
 #include <vmfs/vmfs.h>
 
 #include "partclone.h"
@@ -70,10 +70,20 @@ static void fs_close(){
     vmfs_fs_close(fs);
 }
 
+/// calculate offset of logical volume
+static uint32_t logical_volume_offset(vmfs_fs_t *fs)
+{
+    /* reference vmfs-tools/libvmfs/vmfs_volume.c 
+       pos += vol->vmfs_base + 0x1000000;
+     */
+    return (VMFS_VOLINFO_BASE + 0x1000000) / vmfs_fs_get_blocksize(fs);
+}
+
 /// readbitmap - read bitmap
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
-    uint32_t current = 0, used_block = 0, free_block = 0, err_block = 0, total = 0, alloc = 0;
+    uint32_t offset, total, alloc, current;
+    uint32_t used_block = 0, free_block = 0, err_block = 0;
     int status = 0;
     int start = 0;
     int bit_size = 1;
@@ -83,11 +93,20 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     progress_bar   prog;        /// progress_bar structure defined in progress.h
     progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
 
-    total = fs->fbb->bmh.total_items;
-    alloc = vmfs_bitmap_allocated_items(fs->fbb);
+    offset = logical_volume_offset(fs);
+    total = fs->fbb->bmh.total_items + offset;
+    alloc = vmfs_bitmap_allocated_items(fs->fbb) + offset;
 
-    for(current = 0; current < total; current++){
-	status = vmfs_block_get_status(fs, VMFS_BLK_FB_BUILD(current,0));
+    // containing the volume information and the LVM information
+    for(current = 0; current < offset; current++){
+        pc_set_bit(current, bitmap);
+        used_block++;
+        update_pui(&prog, current, current, 0);
+    }
+
+    // the logical volume
+    for(current = offset; current < total; current++){
+	status = vmfs_block_get_status(fs, VMFS_BLK_FB_BUILD(current-offset,0));
 	if (status == -1) {
 	    err_block++;
 	    pc_clear_bit(current, bitmap);
@@ -106,21 +125,21 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     fs_close();
     update_pui(&prog, 1, 1, 1);
 
-    log_mesg(0, 0, 0, fs_opt.debug, "%s: Used:%lld, Free:%lld, Status err:%lld\n", __FILE__, used_block, free_block, err_block);
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: Used:%"PRIu32", Free:%"PRIu32", Status err:%"PRIu32"\n", __FILE__, used_block, free_block, err_block);
 
 }
 
 /// read super block and write to image head
 extern void initial_image_hdr(char* device, image_head* image_hdr)
 {
-
-    uint32_t alloc,total;
+    uint32_t offset, total, alloc;
 
     fs_open(device);
     strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
     strncpy(image_hdr->fs, vmfs_MAGIC, FS_MAGIC_SIZE);
-    total = fs->fbb->bmh.total_items;
-    alloc = vmfs_bitmap_allocated_items(fs->fbb);
+    offset = logical_volume_offset(fs);
+    total = fs->fbb->bmh.total_items + offset;
+    alloc = vmfs_bitmap_allocated_items(fs->fbb) + offset;
 
     image_hdr->block_size  = vmfs_fs_get_blocksize(fs);
     image_hdr->totalblock  = total;

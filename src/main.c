@@ -238,7 +238,7 @@ int main(int argc, char **argv){
 
         /// check memory size
         if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
-            log_mesg(0, 1, 1, debug, "There is not enough free memory, partclone suggests you should have %lld bytes memory\n", needed_mem);
+            log_mesg(0, 1, 1, debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_mem);
 
 	strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
@@ -290,7 +290,7 @@ int main(int argc, char **argv){
 
         /// check memory size
         if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
-            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %lld bytes memory\n", needed_mem);
+            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %llu bytes memory\n", needed_mem);
 
         /// alloc a memory to restore bitmap
         bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
@@ -330,7 +330,7 @@ int main(int argc, char **argv){
 
         /// check memory size
         if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
-            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %lld bytes memory\n", needed_mem);
+            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %llu bytes memory\n", needed_mem);
 
 	strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
@@ -363,7 +363,7 @@ int main(int argc, char **argv){
 
         /// check memory size
         if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
-            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %lld bytes memory\n", needed_mem);
+            log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %llu bytes memory\n", needed_mem);
 
 	strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 

@@ -164,7 +164,7 @@ int main(int argc, char **argv){
 
     /// check memory size
     if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
-        log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %i bytes memory\n", needed_mem);
+        log_mesg(0, 1, 1, debug, "Ther is no enough free memory, partclone suggests you should have %llu bytes memory\n", needed_mem);
 
     needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
 
@@ -209,7 +209,7 @@ int main(int argc, char **argv){
      */
 
     /// read data from the first block and log the offset
-    log_mesg(0, 0, 0, debug, "Total block %i\n", image_hdr.totalblock);
+    log_mesg(0, 0, 0, debug, "Total block %llu\n", image_hdr.totalblock);
 
     /// start clone partition to image file
     block_id = 0;
@@ -224,7 +224,7 @@ int main(int argc, char **argv){
         w_size = 0;
 	memset(buffer, 0, image_hdr.block_size);
 
-        log_mesg(1, 0, 0, debug, "block_id=%lli, ",block_id);
+        log_mesg(1, 0, 0, debug, "block_id=%llu, ",block_id);
 
         /// read data from source to buffer
 	rescue_pos = lseek(dfr, 0, SEEK_CUR);
@@ -253,7 +253,7 @@ int main(int argc, char **argv){
         if (r_size == image_hdr.block_size){
             /// write buffer to target
             w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
-            log_mesg(2, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
+            log_mesg(2, 0, 0, debug, "bs=%llu and w=%i, ",image_hdr.block_size, w_size);
             if (w_size != (int)image_hdr.block_size)
                 log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
         } else if (r_size < image_hdr.block_size){

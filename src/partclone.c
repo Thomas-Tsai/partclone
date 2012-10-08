@@ -32,6 +32,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <inttypes.h>
 #include "gettext.h"
 #include <linux/fs.h>
 #define _(STRING) gettext(STRING)
@@ -70,7 +71,7 @@ extern void print_readable_size_str(unsigned long long size_byte, char *new_size
     uint64_t kbyte=1000;
     
     if (size_byte == 0)
-	snprintf(new_size_str, 11, "%lli", size_byte);
+	snprintf(new_size_str, 11, "%llu", size_byte);
 
     if (size_byte >= tbyte){
 	new_size = (float)size_byte / (float)tbyte;
@@ -597,7 +598,7 @@ extern unsigned long long get_partition_size(int* ret){
             if (ioctl(*ret, BLKGETSIZE64, &dest_size) < 0) {
                 log_mesg(0, 0, 0, debug, "get device size error, Use option -C to disable size checking(Dangerous).\n");
             }
-            log_mesg(1, 0, 0, debug, "get device size %lli by ioctl BLKGETSIZE64,\n", dest_size);
+            log_mesg(1, 0, 0, debug, "get device size %llu by ioctl BLKGETSIZE64,\n", dest_size);
             return dest_size;
 #endif
 
@@ -605,7 +606,7 @@ extern unsigned long long get_partition_size(int* ret){
             if (ioctl(*ret, BLKGETSIZE, &dest_block) >= 0) {
                 dest_size = (unsigned long long)(dest_block * 512);
             }
-            log_mesg(1, 0, 0, debug, "get block %li and device size %lli by ioctl BLKGETSIZE,\n", dest_block, dest_size);
+            log_mesg(1, 0, 0, debug, "get block %lu and device size %llu by ioctl BLKGETSIZE,\n", dest_block, dest_size);
             return dest_size;
 #endif
         }
@@ -625,7 +626,7 @@ extern int check_size(int* ret, unsigned long long size){
 
     dest_size = get_partition_size(ret);
     if (dest_size < size){
-        log_mesg(0, 1, 1, debug, "Target partition size(%lli MB) is smaller than source(%lli MB). Use option -C to disable size checking(Dangerous).\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
+        log_mesg(0, 1, 1, debug, "Target partition size(%llu MB) is smaller than source(%llu MB). Use option -C to disable size checking(Dangerous).\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
         return 1;
     }
 
@@ -674,7 +675,7 @@ extern int check_mem_size(image_head image_hdr, cmd_opt opt, unsigned long long 
     bitmap_size = sizeof(unsigned long)*LONGS(image_hdr.totalblock);
     crc_io_size = CRC_SIZE+image_hdr.block_size;
     *mem_size = image_head_size + bitmap_size + crc_io_size;
-    log_mesg(0, 0, 0, 1, "we need memory: %lld bytes\nimage head %lld, bitmap %lld, crc %i bytes\n", *mem_size, image_head_size, bitmap_size, crc_io_size);
+    log_mesg(0, 0, 0, 1, "we need memory: %llu bytes\nimage head %llu, bitmap %llu, crc %i bytes\n", *mem_size, image_head_size, bitmap_size, crc_io_size);
 
     test_mem = malloc(*mem_size);
     if (test_mem == NULL){
@@ -722,7 +723,7 @@ extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, unsign
                 err_exit = 0;
             else
                 err_exit = 1;
-            log_mesg(0, err_exit, 1, debug, "The Used Block count is different.(bitmap %lli != image_head %lli)\nTry to use --force to skip the metadata error.\n", bused, image_hdr.usedblocks);
+            log_mesg(0, err_exit, 1, debug, "The Used Block count is different.(bitmap %llu != image_head %llu)\nTry to use --force to skip the metadata error.\n", bused, image_hdr.usedblocks);
         }	
     } 
 }
@@ -907,7 +908,7 @@ extern int io_all(int *fd, char *buf, unsigned long long count, int do_write, cm
         } else {
             count -= i;
             buf = i + (char *) buf;
-            log_mesg(2, 0, 0, debug, "%s: read %lli, %lli left.\n",__func__, i, count);
+            log_mesg(2, 0, 0, debug, "%s: read %lli, %llu left.\n",__func__, i, count);
         }
     }
     return size;
@@ -926,14 +927,14 @@ extern void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *
     const char *badsector_magic = "BADSECTOR\0";
 
     if (lseek(*fd, pos, SEEK_SET) == (off_t)-1){
-        log_mesg(0, 0, 1, opt->debug, "WARNING: lseek error at %lli\n", pos);
+        log_mesg(0, 0, 1, opt->debug, "WARNING: lseek error at %llu\n", pos);
         memset(buff, '?', SECTOR_SIZE);
         memmove(buff, badsector_magic, sizeof(badsector_magic));
 	return;
     }
 
     if (io_all(fd, buff, SECTOR_SIZE, 0, opt) == -1) { /// read_all
-        log_mesg(0, 0, 1, opt->debug, "WARNING: Can't read sector at %llu, lost data.\n", (unsigned long long)pos);
+        log_mesg(0, 0, 1, opt->debug, "WARNING: Can't read sector at %llu, lost data.\n", pos);
         memset(buff, '?', SECTOR_SIZE);
         memmove(buff, badsector_magic, sizeof(badsector_magic));
     }
@@ -1049,16 +1050,16 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
     log_mesg(0, 0, 1, debug, _("File system:  %s\n"), image_hdr.fs);
 
     print_readable_size_str(total*block_s, size_str);
-    log_mesg(0, 0, 1, debug, _("Device size:  %s = %lld Blocks\n"), size_str, total, (unsigned long long)(total*block_s));
+    log_mesg(0, 0, 1, debug, _("Device size:  %s = %llu Blocks\n"), size_str, total);
     
     print_readable_size_str(used*block_s, size_str);
-    log_mesg(0, 0, 1, debug, _("Space in use: %s = %lld Blocks\n"), size_str, used, (unsigned long long)(used*block_s));
+    log_mesg(0, 0, 1, debug, _("Space in use: %s = %llu Blocks\n"), size_str, used);
     
     print_readable_size_str((total-used)*block_s, size_str);
-    log_mesg(0, 0, 1, debug, _("Free Space:   %s = %lld Blocks\n"), size_str, (total-used), (unsigned long long)((total-used)*block_s));
+    log_mesg(0, 0, 1, debug, _("Free Space:   %s = %llu Blocks\n"), size_str, (total-used));
     
     log_mesg(0, 0, 1, debug, _("Block size:   %i Byte\n"), block_s);
-    //log_mesg(0, 0, 1, debug, _("Used block :  %lli\n"), used);
+    //log_mesg(0, 0, 1, debug, _("Used block :  %llu\n"), used);
 }
 
 /// print finish message
@@ -1126,5 +1127,5 @@ void write_last_block(int* dfw, int size, unsigned long long id, cmd_opt* opt){
     buffer = (char*)malloc(size);
     memset(buffer, 0, size);
     st = io_all(dfw, buffer, size, 1, opt);
-    log_mesg(1, 0, 0, opt->debug, "write last block%lli, size %i ,status %i\n", id, size, st);
+    log_mesg(1, 0, 0, opt->debug, "write last block%llu, size %i ,status %ji\n", id, size, (intmax_t)st);
 }

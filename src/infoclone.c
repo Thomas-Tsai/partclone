@@ -75,13 +75,13 @@ int main(int argc, char **argv){
     /// alloc a memory to restore bitmap
     bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
 
-    log_mesg(0, 0, 0, debug, "initial main bitmap pointer %lli\n", bitmap);
+    log_mesg(0, 0, 0, debug, "initial main bitmap pointer %p\n", bitmap);
     log_mesg(0, 0, 0, debug, "Initial image hdr: read bitmap table\n");
 
     /// read and check bitmap from image file
     get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
-    log_mesg(0, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
+    log_mesg(0, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
     log_mesg(0, 0, 0, debug, "print image_head\n");
 
     /// print image_head

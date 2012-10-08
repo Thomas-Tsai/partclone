@@ -244,7 +244,7 @@ unsigned long long check_fat32_entry(unsigned long* fat_bitmap, unsigned long lo
         log_mesg(2, 0, 0, fs_opt.debug, "%s: read Fat32_Entry error\n", __FILE__);
     if (Fat32_Entry  == 0x0FFFFFF7) { /// bad FAT32 cluster
         DamagedClusters++;
-        log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %i\n", __FILE__, block);
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %llu\n", __FILE__, block);
         for (j=0; j < fat_sb.cluster_size; j++,block++)
             pc_clear_bit(block, fat_bitmap);
     } else if (Fat32_Entry == 0x0000){ /// free
@@ -271,7 +271,7 @@ unsigned long long check_fat16_entry(unsigned long* fat_bitmap, unsigned long lo
         log_mesg(2, 0, 0, fs_opt.debug, "%s: read Fat16_Entry error\n", __FILE__);
     if (Fat16_Entry  == 0xFFF7) { /// bad FAT16 cluster
         DamagedClusters++;
-        log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %i\n", __FILE__, block);
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %llu\n", __FILE__, block);
         for (j=0; j < fat_sb.cluster_size; j++,block++)
             pc_clear_bit(block, fat_bitmap);
     } else if (Fat16_Entry == 0x0000){ /// free
@@ -299,7 +299,7 @@ unsigned long long check_fat12_entry(unsigned long* fat_bitmap, unsigned long lo
     Fat12_Entry = Fat16_Entry>>4;
     if (Fat12_Entry  == 0xFFF7) { /// bad FAT12 cluster
         DamagedClusters++;
-        log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %i\n", __FILE__, block);
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %llu\n", __FILE__, block);
         for (j=0; j < fat_sb.cluster_size; j++,block++)
             pc_clear_bit(block, fat_bitmap);
     } else if (Fat12_Entry == 0x0000){ /// free
@@ -341,9 +341,9 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     image_hdr->device_size = (unsigned long long)(total_sector * image_hdr->block_size);
     image_hdr->usedblocks  = (unsigned long long)bused;
     log_mesg(2, 0, 0, fs_opt.debug, "%s: Block Size:%i\n", __FILE__, image_hdr->block_size);
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: Total Blocks:%i\n", __FILE__, image_hdr->totalblock);
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: Used Blocks:%i\n", __FILE__, image_hdr->usedblocks);
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: Device Size:%i\n", __FILE__, image_hdr->device_size);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: Total Blocks:%llu\n", __FILE__, image_hdr->totalblock);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: Used Blocks:%llu\n", __FILE__, image_hdr->usedblocks);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: Device Size:%llu\n", __FILE__, image_hdr->device_size);
 
     fs_close();
     log_mesg(2, 0, 0, fs_opt.debug, "%s: initial_image down\n", __FILE__);
