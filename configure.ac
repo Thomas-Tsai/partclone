@@ -467,8 +467,8 @@ AM_CONDITIONAL(ENABLE_MEMTRACE, test "$enable_memtrace" = yes)
 
 
 ##extra test
-AC_ARG_ENABLE(fs_test,
-        AS_HELP_STRING(--enable_fs_test, enable file system clone/restore test),
+AC_ARG_ENABLE(fs-test,
+        AS_HELP_STRING(--enable-fs-test, enable file system clone/restore test),
         enable_fs_test=yes,
 )
 AM_CONDITIONAL(ENABLE_FS_TEST, test "$enable_fs_test" = yes)

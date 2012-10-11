@@ -1458,7 +1458,7 @@ Optional Features:
   --enable-ncursesw       enable TEXT User Interface
   --enable-static         enable static linking
   --enable-mtrace         enable memory tracing
-  --enable_fs_test        enable file system clone/restore test
+  --enable-fs-test        enable file system clone/restore test
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -8283,7 +8283,7 @@ fi
 
 
 ##extra test
-# Check whether --enable-fs_test was given.
+# Check whether --enable-fs-test was given.
 if test "${enable_fs_test+set}" = set; then :
   enableval=$enable_fs_test; enable_fs_test=yes
 fi
