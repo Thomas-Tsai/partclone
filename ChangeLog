@@ -1,3 +1,26 @@
+2012-10-08  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix bug from sourceforge track system:     some files restored by partclone.vmfs3 is corrupted     incorrect information in the log accept patch files:     partclone-0.2.54-fix-printf-format-1.patch from Masayuki Moriyama     partclone-fix-wrong-bitmap-of-vmfsclone.patch from Masayuki Moriyama
+	Masayuki Moriyama report two bugs and patchs, Thank You.
+
+2012-10-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update TODO
+
+2012-09-26  Thomas Tsai  <thomas@nchc.org.tw>
+
+	* upgrade btrfs  version (still 0.19 accept patches from debian source) * add --enable-fs-test to run file system clone/restore test suite * add dd test as default test * versioin 0.2.54
+
+	update test script
+
+2012-09-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update tests
+
+	comment some test
+
+	add tests add make check but not work well set version 0.2.53
+
 2012-09-24  Thomas Tsai  <thomas@nchc.org.tw>
 
 	add debian.squeeze back and rename debian to debian.sid
