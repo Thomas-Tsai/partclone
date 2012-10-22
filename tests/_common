@@ -50,7 +50,7 @@ _ptlbreak(){
 _findmkfs(){
     fs=$1
     mkfs_path=$(locate mkfs.$fs|grep sbin|head -n 1)
-    if [ -z $mkfs_path ]; then
+    if [ -z "$mkfs_path" ]; then
 	echo  >&2 "can't find mkfs.$fs"
 	exit 1
     fi
