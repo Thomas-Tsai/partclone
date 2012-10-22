@@ -127,6 +127,7 @@ extern void usage(void)
             "    -m,  --max_block_cache  The used block will be cache until max number\n"
             "    -q,  --quiet		 Disable progress message\n"
             "    -B,  --no_block_detail  Show progress message without block detail\n"
+            "    -E,  --offset=X	 Add offset X (bytes) to OUTPUT\n"
             "    -v,  --version          Display partclone version\n"
             "    -h,  --help             Display this help\n"
             , EXECNAME, VERSION, EXECNAME);
@@ -144,7 +145,7 @@ enum {
 
 extern void parse_options(int argc, char **argv, cmd_opt* opt)
 {
-    static const char *sopt = "-hvd::L:cbrDo:O:s:f:m:RCXFINiqWB";
+    static const char *sopt = "-hvd::L:cbrDo:O:s:f:m:RCXFINiqWBE:";
     static const struct option lopt[] = {
         { "help",		no_argument,	    NULL,   'h' },
         { "print_version",	no_argument,	    NULL,   'v' },
@@ -167,6 +168,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
 	{ "ignore_crc",		no_argument,	    NULL,   'i' },
         { "force",		no_argument,	    NULL,   'F' },
         { "quiet",		no_argument,	    NULL,   'q' },
+        { "offset",		required_argument,  NULL,   'E' },
         { "no_block_detail",	no_argument,	    NULL,   'B' },
 #ifdef HAVE_LIBNCURSESW
         { "ncurses",		no_argument,	    NULL,   'N' },
@@ -178,6 +180,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     int mode = 0;
     memset(opt, 0, sizeof(cmd_opt));
     opt->debug = 0;
+    opt->offset = 0;
     opt->rescue = 0;
     opt->max_block_cache = 8;
     opt->check = 1;
@@ -259,7 +262,10 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
             case 'B':
                 opt->no_block_detail = 1;
                 break;
-            case 'R':
+            case 'E':
+                opt->offset = atol(optarg);
+                break;
+	    case 'R':
                 opt->rescue++;
                 break;
 #ifdef HAVE_LIBNCURSESW

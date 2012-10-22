@@ -276,7 +276,7 @@ int main(int argc, char **argv){
 	}
 
 	/// seek to the first
-	sf = lseek(dfw, 0, SEEK_SET);
+	sf = lseek(dfw, opt.offset, SEEK_SET);
 	log_mesg(1, 0, 0, debug, "seek %lli for writing dtat string\n",sf);
 	if (sf == (off_t)-1)
 	    log_mesg(0, 1, 1, debug, "seek set %ji\n", (intmax_t)sf);
@@ -354,7 +354,7 @@ int main(int argc, char **argv){
 
 		if ((next == next_count) && (nx_current == next)){
 #ifdef _FILE_OFFSET_BITS
-		    offset = (off_t)((block_id-next+1) * image_hdr.block_size);
+		    offset = (off_t)(((block_id-next+1) * image_hdr.block_size)+opt.offset);
 		    sf = lseek(dfw, offset, SEEK_SET);
 		    if (sf == -1)
 			log_mesg(0, 1, 1, debug, "target seek error = %ji, ", (intmax_t)sf);

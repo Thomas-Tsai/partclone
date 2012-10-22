@@ -21,6 +21,13 @@ mkfs_option_for_reiser4='-f -y'
 mkfs_option_for_ntfs='-f -F'
 mkfs_option_for_jfs='-q'
 
+_check_root(){
+    if [[ $UID -ne 0 ]]; then
+	echo "$0 must be run as root"
+	exit 1
+    fi
+}
+
 _check_return_code(){
     if [ $? != 0 ]; then
 	echo "return code fail"

@@ -322,7 +322,7 @@ int main(int argc, char **argv){
         log_mesg(2, 0, 0, debug, "check main bitmap pointer %i\n", bitmap);
         log_mesg(0, 0, 1, debug, "done!\n");
     } else if (opt.dd){
-        log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
+	log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
         log_mesg(1, 0, 1, debug, "Reading Super Block\n");
 
         /// get Super Block information from partition
@@ -522,7 +522,7 @@ int main(int argc, char **argv){
             log_mesg(0, 1, 1, debug, "bitmagic error %i\n", cmp);
 
         /// seek to the first
-        sf = lseek(dfw, 0, SEEK_SET);
+        sf = lseek(dfw, opt.offset, SEEK_SET);
         log_mesg(1, 0, 0, debug, "seek %lli for writing data string\n",sf);
         if (sf == (off_t)-1)
             log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
@@ -614,7 +614,7 @@ int main(int argc, char **argv){
 
 		if ((next == next_count) && (nx_current == next)){
 #ifdef _FILE_OFFSET_BITS
-		    offset = (off_t)((block_id-next+1) * image_hdr.block_size);
+		    offset = (off_t)(((block_id-next+1) * image_hdr.block_size)+opt.offset);
 		    sf = lseek(dfw, offset, SEEK_SET);
 		    if (sf == -1)
 			log_mesg(0, 1, 1, debug, "target seek error = %lli, ",sf);
@@ -661,7 +661,7 @@ int main(int argc, char **argv){
         if (sf == (off_t)-1)
             log_mesg(0, 1, 1, debug, "seek set %lli\n", sf);
 
-	main_pos = lseek(dfr, 0, SEEK_CUR);
+	main_pos = lseek(dfw, opt.offset, SEEK_CUR);
 	log_mesg(1, 0, 0, debug, "man pos = %lli\n", main_pos);
 
         log_mesg(0, 0, 0, debug, "Total block %i\n", image_hdr.totalblock);
@@ -684,10 +684,10 @@ int main(int argc, char **argv){
                 log_mesg(2, 0, 0, debug, "bitmap=%i, ",pc_test_bit(block_id, bitmap));
                 offset = (off_t)(block_id * image_hdr.block_size);
 #ifdef _FILE_OFFSET_BITS
-                sf = lseek(dfr, offset, SEEK_SET);
+                sf = lseek(dfr, (off_t)offset, SEEK_SET);
                 if (sf == -1)
                     log_mesg(0, 1, 1, debug, "source seek error = %lli, ",sf);
-                sf = lseek(dfw, offset, SEEK_SET);
+                sf = lseek(dfw, (off_t)(offset+opt.offset), SEEK_SET);
                 if (sf == -1)
                     log_mesg(0, 1, 1, debug, "target seek error = %lli, ",sf);
 #endif

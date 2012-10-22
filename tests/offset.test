@@ -1,0 +1,35 @@
+#!/bin/bash
+set -e
+. _common
+
+disk_size=$((512*1024576))
+row_A_file=$0.row_A
+row_B_file=$0.row_B
+OFFSET=1048576
+ptlfs=$(_ptlname "extfs")
+
+_check_root
+
+dd if=/dev/zero of=$row_A_file count=1 bs=$disk_size
+dd if=/dev/zero of=$row_B_file count=1 bs=$(($disk_size+$OFFSET))
+part_loop_device=$(losetup -f)
+losetup $part_loop_device $row_A_file
+offset_loop_device=$(losetup -f)
+losetup $offset_loop_device $row_B_file
+sleep 2
+
+mkfs.ext3 $part_loop_device
+_ptlbreak
+echo "$ptlfs -d3 -b -s $part_loop_device -o $offset_loop_device --offset=$OFFSET"
+$ptlfs -d3 -b -s $part_loop_device -o $offset_loop_device --offset=$OFFSET
+_check_return_code
+
+echo "mount -o offset=$OFFSET $offset_loop_device /mnt"
+mount -o offset=$OFFSET $offset_loop_device /mnt
+_check_return_code
+mount
+umout /mnt
+mount
+
+losetup -d $part_loop_device
+losetup -d $offset_loop_device
