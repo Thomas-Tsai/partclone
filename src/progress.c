@@ -175,8 +175,8 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long copied
 	}
     }
 
-    strncpy(prog_stat->Eformated, Eformated, 10);
-    strncpy(prog_stat->Rformated, Rformated, 10);
+    strncpy(prog_stat->Eformated, Eformated, sizeof(prog_stat->Eformated));
+    strncpy(prog_stat->Rformated, Rformated, sizeof(prog_stat->Rformated));
 }
 
 /// update information at progress bar
