@@ -38,8 +38,8 @@ struct progress_bar {
 typedef struct progress_bar progress_bar;
 
 struct prog_stat_t{
-    char Eformated[10];
-    char Rformated[10];
+    char Eformated[12];
+    char Rformated[12];
     float percent;
     float total_percent;
     float speed;
