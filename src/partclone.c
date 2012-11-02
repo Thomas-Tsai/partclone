@@ -763,6 +763,7 @@ extern int check_mount(const char* device, char* mount_p){
 
     real_fsname = malloc(PATH_MAX + 1);
     if (!real_fsname){
+	free(real_file);
 	free(real_fsname);
         return -1;
         //err = errno;
