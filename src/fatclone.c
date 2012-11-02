@@ -443,7 +443,7 @@ static unsigned long long get_used_block()
 
     fat_bitmap = (unsigned long *)calloc(sizeof(unsigned long), LONGS(total_sector));
     if (fat_bitmap == NULL)
-        log_mesg(2, 0, 0, fs_opt.debug, "%s: bitmapalloc error\n", __FILE__);
+        log_mesg(2, 1, 1, fs_opt.debug, "%s: bitmapalloc error\n", __FILE__);
     memset(fat_bitmap, 0xFF, sizeof(unsigned long)*LONGS(total_sector));
 
     /// A) B) C)
