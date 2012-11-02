@@ -213,11 +213,17 @@ static void fs_open(char* device)
     ret = open(device, O_RDONLY);
 
     buffer = (char*)malloc(sizeof(FatBootSector));
+    if(buffer == NULL){
+        log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+    }
     r = read (ret, buffer, sizeof(FatBootSector));
     memcpy(&fat_sb, buffer, sizeof(FatBootSector));
     free(buffer);
 
     buffer = (char*)malloc(sizeof(FatFsInfo));
+    if(buffer == NULL){
+        log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+    }
     r = read(ret, &fatfs_info, sizeof(FatFsInfo));
     memcpy(&fatfs_info, buffer, sizeof(FatFsInfo));
     free(buffer);
