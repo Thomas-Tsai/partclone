@@ -557,6 +557,8 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
     int debug = opt->debug;
 
     buffer = (char*)malloc(sizeof(image_head));
+    if (buffer == NULL)
+        log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     memset(buffer, 0, sizeof(image_head));
     r_size = read_all(ret, buffer, sizeof(image_head), opt);
     if (r_size == -1)
@@ -574,6 +576,8 @@ extern void restore_image_hdr_sp(int* ret, cmd_opt* opt, image_head* image_hdr, 
     int debug = opt->debug;
 
     buffer = (char*)malloc(sizeof(image_head));
+    if (buffer == NULL)
+        log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     memset(buffer, 0, sizeof(image_head));
     memcpy(buffer, first_sec, 512);
     r_size = read_all(ret, (buffer+512), (sizeof(image_head)-512), opt);
@@ -804,6 +808,8 @@ extern int open_source(char* source, cmd_opt* opt){
     if((opt->clone) || (opt->dd) || (opt->domain)){ /// always is device, clone from device=source
 
         mp = malloc(PATH_MAX + 1);
+        if (mp == NULL)
+            log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
         if (check_mount(source, mp) == 1){
             log_mesg(0, 0, 1, debug, "device (%s) is mounted at %s\n", source, mp);
 	    free(mp);
@@ -862,6 +868,8 @@ extern int open_target(char* target, cmd_opt* opt){
 
         /// check mounted
         mp = malloc(PATH_MAX + 1);
+        if (mp == NULL)
+            log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
         if (check_mount(target, mp) == 1){
             log_mesg(0, 0, 1, debug, "device (%s) is mounted at %s\n", target, mp);
 	    free(mp);
@@ -1131,6 +1139,8 @@ void write_last_block(int* dfw, int size, unsigned long long id, cmd_opt* opt){
 
     sf = lseek(*dfw, (size*id), SEEK_SET);
     buffer = (char*)malloc(size);
+    if (buffer == NULL)
+        log_mesg(0, 1, 1, opt->debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     memset(buffer, 0, size);
     st = io_all(dfw, buffer, size, 1, opt);
     log_mesg(1, 0, 0, opt->debug, "write last block%llu, size %i ,status %ji\n", id, size, (intmax_t)st);
