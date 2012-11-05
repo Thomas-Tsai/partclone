@@ -28,7 +28,6 @@ enable_reiserfs="yes"
 enable_reiser4="yes"
 enable_hfsp="yes"
 enable_fat="yes"
-enable_exfat="yes"
 enable_ntfs="yes"
 enable_ufs="yes"
 enable_vmfs="yes"
@@ -257,21 +256,6 @@ fat_version="build-in"
 fi
 #end of check fat
 
-##exfat##
-AC_ARG_ENABLE(exfat,
-	AS_HELP_STRING(--enable-exfat,enable EXFAT file system), 
-	enable_exfat=yes,
-	enable_exfat=no
-)
-AM_CONDITIONAL(ENABLE_EXFAT, test "$enable_exfat" = yes)
-
-if test "$enable_exfat" = "yes"; then
-supported_fs=$supported_fs" exfat"
-exfat_version="build-in"
-fi
-#end of check exfat
-
-
 ##NTFS##
 AC_ARG_ENABLE(ntfs,
 	AS_HELP_STRING(--enable-ntfs,enable NTFS file system), 
@@ -491,7 +475,6 @@ echo "reiser4....... $enable_reiser4, $reiser4_version"
 echo "xfs........... $enable_xfs, $xfs_version"
 echo "ntfs.......... $enable_ntfs, $ntfs_version"
 echo "fat12/16/32... $enable_fat, $fat_version"
-echo "exfat......... $enable_exfat, $exfat_version"
 echo "hfs plus...... $enable_hfsp, $hfs_plus_version"
 echo "ufs .......... $enable_ufs, $ufs_version"
 echo "vmfs ......... $enable_vmfs, $vmfs_version"

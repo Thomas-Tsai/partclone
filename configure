@@ -650,8 +650,6 @@ ENABLE_NTFS_PROGS_FALSE
 ENABLE_NTFS_PROGS_TRUE
 ENABLE_NTFS_3G_FALSE
 ENABLE_NTFS_3G_TRUE
-ENABLE_EXFAT_FALSE
-ENABLE_EXFAT_TRUE
 ENABLE_FAT_FALSE
 ENABLE_FAT_TRUE
 ENABLE_HFSP_FALSE
@@ -794,7 +792,6 @@ enable_reiserfs
 enable_reiser4
 enable_hfsp
 enable_fat
-enable_exfat
 enable_ntfs
 enable_ufs
 enable_vmfs
@@ -1449,7 +1446,6 @@ Optional Features:
   --enable-reiser4        enable Reiser4 file system
   --enable-hfsp           enable HFS plus file system
   --enable-fat            enable FAT file system
-  --enable-exfat          enable EXFAT file system
   --enable-ntfs           enable NTFS file system
   --enable-ufs            enable UFS(1/2) file system
   --enable-vmfs           enable vmfs file system
@@ -6425,7 +6421,6 @@ enable_reiserfs="yes"
 enable_reiser4="yes"
 enable_hfsp="yes"
 enable_fat="yes"
-enable_exfat="yes"
 enable_ntfs="yes"
 enable_ufs="yes"
 enable_vmfs="yes"
@@ -7625,31 +7620,6 @@ fat_version="build-in"
 fi
 #end of check fat
 
-##exfat##
-# Check whether --enable-exfat was given.
-if test "${enable_exfat+set}" = set; then :
-  enableval=$enable_exfat; enable_exfat=yes
-else
-  enable_exfat=no
-
-fi
-
- if test "$enable_exfat" = yes; then
-  ENABLE_EXFAT_TRUE=
-  ENABLE_EXFAT_FALSE='#'
-else
-  ENABLE_EXFAT_TRUE='#'
-  ENABLE_EXFAT_FALSE=
-fi
-
-
-if test "$enable_exfat" = "yes"; then
-supported_fs=$supported_fs" exfat"
-exfat_version="build-in"
-fi
-#end of check exfat
-
-
 ##NTFS##
 # Check whether --enable-ntfs was given.
 if test "${enable_ntfs+set}" = set; then :
@@ -8456,10 +8426,6 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_FAT_TRUE}" && test -z "${ENABLE_FAT_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_FAT\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${ENABLE_EXFAT_TRUE}" && test -z "${ENABLE_EXFAT_FALSE}"; then
-  as_fn_error $? "conditional \"ENABLE_EXFAT\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_NTFS_3G_TRUE}" && test -z "${ENABLE_NTFS_3G_FALSE}"; then
@@ -9967,7 +9933,6 @@ echo "reiser4....... $enable_reiser4, $reiser4_version"
 echo "xfs........... $enable_xfs, $xfs_version"
 echo "ntfs.......... $enable_ntfs, $ntfs_version"
 echo "fat12/16/32... $enable_fat, $fat_version"
-echo "exfat......... $enable_exfat, $exfat_version"
 echo "hfs plus...... $enable_hfsp, $hfs_plus_version"
 echo "ufs .......... $enable_ufs, $ufs_version"
 echo "vmfs ......... $enable_vmfs, $vmfs_version"

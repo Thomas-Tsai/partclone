@@ -29,10 +29,6 @@ if ENABLE_XFS
 man_MANS += partclone.xfs.8
 endif
 
-if ENABLE_EXFAT
-man_MANS += partclone.exfat.8
-endif
-
 if ENABLE_FAT
 man_MANS += partclone.fat.8
 man_MANS += partclone.vfat.8
