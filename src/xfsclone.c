@@ -233,7 +233,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	read_ag_position = (xfs_off_t) read_ag_off * (xfs_off_t) BBSIZE;
 	read_ag_buf = malloc(read_ag_length);
 	if(read_ag_buf == NULL){
-	    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
 	}
 	memset(read_ag_buf, 0, read_ag_length);
 
@@ -261,7 +261,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
 	btree_buf_data = malloc(source_blocksize);
 	if(btree_buf_data == NULL){
-	    log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
 	}
 	memset(btree_buf_data, 0, source_blocksize);
 	memmove(btree_buf_data, ag_hdr.xfs_agf, source_sectorsize);
