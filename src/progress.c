@@ -99,7 +99,7 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long copied
     float percent = 1.0;
     time_t remained;
     time_t elapsed;
-    char Rformated[10], Eformated[10];
+    char Rformated[12], Eformated[12];
     char speed_unit[] = "    ";
     struct tm *Rtm, *Etm;
     uint64_t gbyte=1000000000.0;
@@ -148,14 +148,14 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long copied
         remained = (time_t)((elapsed/percent*100) - elapsed);
 
 	if ((unsigned int)remained > 86400){
-	    sprintf(Rformated," > %3i hrs ", ((int)remained/3600));
+	    snprintf(Rformated, sizeof(Rformated), " > %3i hrs ", ((int)remained/3600));
 	}else{
 	    Rtm = gmtime(&remained);
 	    strftime(Rformated, sizeof(Rformated), format, Rtm);
 	}
 
 	if ((unsigned int)elapsed > 86400){
-	    sprintf(Eformated,"> %3i hrs ", ((int)elapsed/3600));
+	    snprintf(Eformated, sizeof(Eformated), " > %3i hrs ", ((int)elapsed/3600));
 	}else{
 	    Etm = gmtime(&elapsed);
 	    strftime(Eformated, sizeof(Eformated), format, Etm);
@@ -168,15 +168,15 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long copied
 	strftime(Rformated, sizeof(Rformated), format, Rtm);
 
 	if ((unsigned int)elapsed > 86400){
-	    sprintf(Eformated," > %3i hrs ", ((int)elapsed/3600));
+	    snprintf(Eformated, sizeof(Eformated), " > %3i hrs ", ((int)elapsed/3600));
 	}else{
 	    Etm = gmtime(&elapsed);
 	    strftime(Eformated, sizeof(Eformated), format, Etm);
 	}
     }
 
-    strncpy(prog_stat->Eformated, Eformated, 10);
-    strncpy(prog_stat->Rformated, Rformated, 10);
+    strncpy(prog_stat->Eformated, Eformated, sizeof(prog_stat->Eformated));
+    strncpy(prog_stat->Rformated, Rformated, sizeof(prog_stat->Rformated));
 }
 
 /// update information at progress bar
