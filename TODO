@@ -5,3 +5,5 @@
 * zfs support
 * source code update
 * more documents
+* add ufs+ to partclone.fstype
+* add fail-mbr to automake style

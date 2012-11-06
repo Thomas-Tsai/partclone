@@ -61,8 +61,7 @@ host_triplet = i686-pc-linux-gnu
 #endif
 #am__append_5 = hfsplus.test
 #am__append_6 = xfs.test
-#am__append_7 = exfat.test
-#am__append_8 = ntfs.test
+#am__append_7 = ntfs.test
 
 #if ENABLE_UFS
 #TESTS += ufs.test
@@ -71,8 +70,8 @@ host_triplet = i686-pc-linux-gnu
 #if ENABLE_VMFS
 #TESTS += vmfs.test
 #endif
-#am__append_9 = jfs.test
-#am__append_10 = btrfs.test
+#am__append_8 = jfs.test
+#am__append_9 = btrfs.test
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in TODO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -130,7 +129,7 @@ LDFLAGS =
 LIBICONV = -liconv
 LIBINTL = 
 LIBOBJS = 
-LIBS = -lncursesw -lpthread 
+LIBS = -lpthread 
 LN_S = ln -s
 LTLIBICONV = -liconv
 LTLIBINTL = 
@@ -202,7 +201,7 @@ mandir = ${datarootdir}/man
 mkdir_p = /bin/mkdir -p
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /usr/local
+prefix = /home/thomas/tmp
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
@@ -215,8 +214,7 @@ top_builddir = ..
 top_srcdir = ..
 TESTS = dd.test $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
-	$(am__append_7) $(am__append_8) $(am__append_9) \
-	$(am__append_10)
+	$(am__append_7) $(am__append_8) $(am__append_9)
 CLEANFILES = floppy*
 all: all-am
 

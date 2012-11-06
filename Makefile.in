@@ -248,7 +248,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = po src docs tests
+SUBDIRS = po src docs tests fail-mbr
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = m4/ChangeLog  config.rpath toolbox src/deplib_version.c src/version.h src/ufs debian
 all: config.h
