@@ -1,3 +1,21 @@
+2012-11-06  Thomas Tsai  <thomas@nchc.org.tw>
+
+	remove exfat temporarily
+
+2012-10-22  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add test script for offset
+
+	add offset function
+
+2012-10-11  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update TODO
+
+	update configure
+
+	release 0.2.55
+
 2012-10-08  Thomas Tsai  <thomas@nchc.org.tw>
 
 	fix bug from sourceforge track system:     some files restored by partclone.vmfs3 is corrupted     incorrect information in the log accept patch files:     partclone-0.2.54-fix-printf-format-1.patch from Masayuki Moriyama     partclone-fix-wrong-bitmap-of-vmfsclone.patch from Masayuki Moriyama
