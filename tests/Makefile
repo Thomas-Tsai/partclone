@@ -61,7 +61,8 @@ host_triplet = i686-pc-linux-gnu
 #endif
 #am__append_5 = hfsplus.test
 #am__append_6 = xfs.test
-#am__append_7 = ntfs.test
+#am__append_7 = exfat.test
+#am__append_8 = ntfs.test
 
 #if ENABLE_UFS
 #TESTS += ufs.test
@@ -70,8 +71,8 @@ host_triplet = i686-pc-linux-gnu
 #if ENABLE_VMFS
 #TESTS += vmfs.test
 #endif
-#am__append_8 = jfs.test
-#am__append_9 = btrfs.test
+#am__append_9 = jfs.test
+#am__append_10 = btrfs.test
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in TODO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -96,16 +97,16 @@ am__can_run_installinfo = \
 am__tty_colors = \
 red=; grn=; lgn=; blu=; std=
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-ACLOCAL = ${SHELL} /home/thomas/work_house/partclone/missing --run aclocal-1.11
+ACLOCAL = ${SHELL} /home/thomas/partclone/missing --run aclocal-1.11
 AMTAR = $${TAR-tar}
-AUTOCONF = ${SHELL} /home/thomas/work_house/partclone/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/thomas/work_house/partclone/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/thomas/work_house/partclone/missing --run automake-1.11
+AUTOCONF = ${SHELL} /home/thomas/partclone/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/thomas/partclone/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/thomas/partclone/missing --run automake-1.11
 AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
-CPP = 
+CPP = gcc -E
 CPPFLAGS = 
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
@@ -113,11 +114,11 @@ DEPDIR = .deps
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
-EGREP = 
+EGREP = /bin/grep -E
 EXEEXT = 
 GMSGFMT = /usr/bin/msgfmt
 GMSGFMT_015 = /usr/bin/msgfmt
-GREP = 
+GREP = /bin/grep
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -129,12 +130,12 @@ LDFLAGS =
 LIBICONV = -liconv
 LIBINTL = 
 LIBOBJS = 
-LIBS = -lpthread 
+LIBS = -lncursesw -lpthread 
 LN_S = ln -s
 LTLIBICONV = -liconv
 LTLIBINTL = 
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /home/thomas/work_house/partclone/missing --run makeinfo
+MAKEINFO = ${SHELL} /home/thomas/partclone/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
 MSGFMT = /usr/bin/msgfmt
 MSGFMT_015 = /usr/bin/msgfmt
@@ -162,10 +163,10 @@ UUID_LIBS = -luuid
 VERSION = 0.2.55
 XGETTEXT = /usr/bin/xgettext
 XGETTEXT_015 = /usr/bin/xgettext
-abs_builddir = /home/thomas/work_house/partclone/tests
-abs_srcdir = /home/thomas/work_house/partclone/tests
-abs_top_builddir = /home/thomas/work_house/partclone
-abs_top_srcdir = /home/thomas/work_house/partclone
+abs_builddir = /home/thomas/partclone/tests
+abs_srcdir = /home/thomas/partclone/tests
+abs_top_builddir = /home/thomas/partclone
+abs_top_srcdir = /home/thomas/partclone
 ac_ct_CC = gcc
 am__include = include
 am__leading_dot = .
@@ -192,7 +193,7 @@ host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/thomas/work_house/partclone/install-sh
+install_sh = ${SHELL} /home/thomas/partclone/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -214,7 +215,8 @@ top_builddir = ..
 top_srcdir = ..
 TESTS = dd.test $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
-	$(am__append_7) $(am__append_8) $(am__append_9)
+	$(am__append_7) $(am__append_8) $(am__append_9) \
+	$(am__append_10)
 CLEANFILES = floppy*
 all: all-am
 
