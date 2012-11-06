@@ -74,6 +74,8 @@ int main(int argc, char **argv){
 
     /// alloc a memory to restore bitmap
     bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
+    if (bitmap == NULL)
+        log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
 
     log_mesg(0, 0, 0, debug, "initial main bitmap pointer %p\n", bitmap);
     log_mesg(0, 0, 0, debug, "Initial image hdr: read bitmap table\n");
