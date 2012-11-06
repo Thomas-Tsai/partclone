@@ -213,11 +213,17 @@ static void fs_open(char* device)
     ret = open(device, O_RDONLY);
 
     buffer = (char*)malloc(sizeof(FatBootSector));
+    if(buffer == NULL){
+        log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+    }
     r = read (ret, buffer, sizeof(FatBootSector));
     memcpy(&fat_sb, buffer, sizeof(FatBootSector));
     free(buffer);
 
     buffer = (char*)malloc(sizeof(FatFsInfo));
+    if(buffer == NULL){
+        log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+    }
     r = read(ret, &fatfs_info, sizeof(FatFsInfo));
     memcpy(&fatfs_info, buffer, sizeof(FatFsInfo));
     free(buffer);
@@ -437,7 +443,7 @@ static unsigned long long get_used_block()
 
     fat_bitmap = (unsigned long *)calloc(sizeof(unsigned long), LONGS(total_sector));
     if (fat_bitmap == NULL)
-        log_mesg(2, 0, 0, fs_opt.debug, "%s: bitmapalloc error\n", __FILE__);
+        log_mesg(2, 1, 1, fs_opt.debug, "%s: bitmapalloc error\n", __FILE__);
     memset(fat_bitmap, 0xFF, sizeof(unsigned long)*LONGS(total_sector));
 
     /// A) B) C)
