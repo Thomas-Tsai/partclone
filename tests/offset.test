@@ -27,16 +27,9 @@ _check_return_code
 echo "mount -o offset=$OFFSET $offset_loop_device /mnt"
 mount -o offset=$OFFSET $offset_loop_device /mnt
 _check_return_code
-mount_result=$(mount 2>&1 | grep $offset_loop_device)
-
-if [ -z "$mount_result" ]; then
-    echo "offset restore fail"
-    exit
-else
-    echo "offset restore ok"
-    umount /mnt
-fi
-
 mount
+umout /mnt
+mount
+
 losetup -d $part_loop_device
 losetup -d $offset_loop_device
