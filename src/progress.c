@@ -246,10 +246,10 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 	    mvwprintw(p_win, 1, 0, _("Current Block: %llu  Total Block: %llu ") , current, prog->total);
         p_block = calloc(sizeof(char), 50);
         if (p_block == NULL)
-            log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+            log_mesg(0, 1, 1, 0, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
         t_block = calloc(sizeof(char), 50);
         if (t_block == NULL)
-            log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+            log_mesg(0, 1, 1, 0, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
         memset(p_block, ' ', (size_t)(prog_stat.percent*0.5));
         memset(t_block, ' ', (size_t)(prog_stat.total_percent*0.5));
         

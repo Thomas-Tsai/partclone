@@ -214,7 +214,7 @@ static void fs_open(char* device)
 
     buffer = (char*)malloc(sizeof(FatBootSector));
     if(buffer == NULL){
-        log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+        log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     }
     r = read (ret, buffer, sizeof(FatBootSector));
     memcpy(&fat_sb, buffer, sizeof(FatBootSector));
@@ -222,7 +222,7 @@ static void fs_open(char* device)
 
     buffer = (char*)malloc(sizeof(FatFsInfo));
     if(buffer == NULL){
-        log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+        log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     }
     r = read(ret, &fatfs_info, sizeof(FatFsInfo));
     memcpy(&fatfs_info, buffer, sizeof(FatFsInfo));
