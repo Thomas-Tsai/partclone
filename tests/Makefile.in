@@ -61,8 +61,7 @@ host_triplet = @host@
 #endif
 @ENABLE_FS_TEST_TRUE@@ENABLE_HFSP_TRUE@am__append_5 = hfsplus.test
 @ENABLE_FS_TEST_TRUE@@ENABLE_XFS_TRUE@am__append_6 = xfs.test
-@ENABLE_EXFAT_TRUE@@ENABLE_FS_TEST_TRUE@am__append_7 = exfat.test
-@ENABLE_FS_TEST_TRUE@@ENABLE_NTFS_TRUE@am__append_8 = ntfs.test
+@ENABLE_FS_TEST_TRUE@@ENABLE_NTFS_TRUE@am__append_7 = ntfs.test
 
 #if ENABLE_UFS
 #TESTS += ufs.test
@@ -71,8 +70,8 @@ host_triplet = @host@
 #if ENABLE_VMFS
 #TESTS += vmfs.test
 #endif
-@ENABLE_FS_TEST_TRUE@@ENABLE_JFS_TRUE@am__append_9 = jfs.test
-@ENABLE_BTRFS_TRUE@@ENABLE_FS_TEST_TRUE@am__append_10 = btrfs.test
+@ENABLE_FS_TEST_TRUE@@ENABLE_JFS_TRUE@am__append_8 = jfs.test
+@ENABLE_BTRFS_TRUE@@ENABLE_FS_TEST_TRUE@am__append_9 = btrfs.test
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in TODO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -215,8 +214,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 TESTS = dd.test $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
-	$(am__append_7) $(am__append_8) $(am__append_9) \
-	$(am__append_10)
+	$(am__append_7) $(am__append_8) $(am__append_9)
 CLEANFILES = floppy*
 all: all-am
 

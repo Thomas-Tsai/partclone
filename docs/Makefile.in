@@ -58,18 +58,17 @@ host_triplet = @host@
 @ENABLE_HFSP_TRUE@am__append_4 = partclone.hfsplus.8 partclone.hfs+.8 \
 @ENABLE_HFSP_TRUE@	partclone.hfsp.8
 @ENABLE_XFS_TRUE@am__append_5 = partclone.xfs.8
-@ENABLE_EXFAT_TRUE@am__append_6 = partclone.exfat.8
-@ENABLE_FAT_TRUE@am__append_7 = partclone.fat.8 partclone.vfat.8 \
+@ENABLE_FAT_TRUE@am__append_6 = partclone.fat.8 partclone.vfat.8 \
 @ENABLE_FAT_TRUE@	partclone.fat12.8 partclone.fat16.8 \
 @ENABLE_FAT_TRUE@	partclone.fat32.8
-@ENABLE_UFS_TRUE@am__append_8 = partclone.ufs.8
-@ENABLE_VMFS_TRUE@am__append_9 = partclone.vmfs.8 partclone.vmfs3.8 \
+@ENABLE_UFS_TRUE@am__append_7 = partclone.ufs.8
+@ENABLE_VMFS_TRUE@am__append_8 = partclone.vmfs.8 partclone.vmfs3.8 \
 @ENABLE_VMFS_TRUE@	partclone.vmfs5.8 \
 @ENABLE_VMFS_TRUE@	partclone.VMFS_volume_member.8 \
 @ENABLE_VMFS_TRUE@	partclone.fstype.8
-@ENABLE_JFS_TRUE@am__append_10 = partclone.jfs.8
-@ENABLE_BTRFS_TRUE@am__append_11 = partclone.btrfs.8
-@ENABLE_NTFS_TRUE@am__append_12 = partclone.ntfs.8 \
+@ENABLE_JFS_TRUE@am__append_9 = partclone.jfs.8
+@ENABLE_BTRFS_TRUE@am__append_10 = partclone.btrfs.8
+@ENABLE_NTFS_TRUE@am__append_11 = partclone.ntfs.8 \
 @ENABLE_NTFS_TRUE@	partclone.ntfsfixboot.8 \
 @ENABLE_NTFS_TRUE@	partclone.ntfsreloc.8
 subdir = docs
@@ -248,7 +247,7 @@ man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 \
 	$(am__append_2) $(am__append_3) $(am__append_4) \
 	$(am__append_5) $(am__append_6) $(am__append_7) \
 	$(am__append_8) $(am__append_9) $(am__append_10) \
-	$(am__append_11) $(am__append_12)
+	$(am__append_11)
 all: all-am
 
 .SUFFIXES:
