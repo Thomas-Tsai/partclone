@@ -50,18 +50,19 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = i686-pc-linux-gnu
 host_triplet = i686-pc-linux-gnu
-#am__append_1 = ext2.test \
-#	ext3.test ext4.test
-#am__append_2 = btrfs.test
-#am__append_3 = fat.test
-#am__append_4 = reiserfs.test
+##am__append_1 = ext2.test \
+##	ext3.test ext4.test
+##am__append_2 = btrfs.test
+##am__append_3 = fat.test
+##am__append_4 = reiserfs.test
 
 #if ENABLE_REISER4
 #TESTS += reiser4.test
 #endif
-#am__append_5 = hfsplus.test
-#am__append_6 = xfs.test
-#am__append_7 = ntfs.test
+##am__append_5 = hfsplus.test
+##am__append_6 = xfs.test
+##am__append_7 = exfat.test
+##am__append_8 = ntfs.test
 
 #if ENABLE_UFS
 #TESTS += ufs.test
@@ -70,8 +71,8 @@ host_triplet = i686-pc-linux-gnu
 #if ENABLE_VMFS
 #TESTS += vmfs.test
 #endif
-#am__append_8 = jfs.test
-#am__append_9 = btrfs.test
+##am__append_9 = jfs.test
+##am__append_10 = btrfs.test
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in TODO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -105,7 +106,7 @@ AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
-CPP = gcc -E
+CPP = 
 CPPFLAGS = 
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
@@ -113,11 +114,11 @@ DEPDIR = .deps
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
-EGREP = /bin/grep -E
+EGREP = 
 EXEEXT = 
 GMSGFMT = /usr/bin/msgfmt
 GMSGFMT_015 = /usr/bin/msgfmt
-GREP = /bin/grep
+GREP = 
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -201,7 +202,7 @@ mandir = ${datarootdir}/man
 mkdir_p = /bin/mkdir -p
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /home/thomas/tmp
+prefix = /usr/local
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
@@ -214,7 +215,8 @@ top_builddir = ..
 top_srcdir = ..
 TESTS = dd.test $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
-	$(am__append_7) $(am__append_8) $(am__append_9)
+	$(am__append_7) $(am__append_8) $(am__append_9) \
+	$(am__append_10)
 CLEANFILES = floppy*
 all: all-am
 
