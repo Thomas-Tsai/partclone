@@ -133,7 +133,8 @@ int main(int argc, char **argv){
     unsigned long long			main_pos = 0;
     int			tui = 0;		/// text user interface
     int			pui = 0;		/// progress mode(default text)
-    int                 next=1,next_int=1,next_max_count=7,next_count=7,i;
+    int                 next=1,next_int=1,next_max_count=7,next_count=7;
+    unsigned long long  i;
     unsigned long long  next_block_id;
     char*               cache_buffer;
     int                 nx_current=0;
