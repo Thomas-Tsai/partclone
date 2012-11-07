@@ -230,7 +230,7 @@ int main(int argc, char **argv){
 	rescue_pos = lseek(dfr, 0, SEEK_CUR);
         r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
         log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
-        if (r_size != (int)image_hdr.block_size){
+        if (r_size != image_hdr.block_size){
 
             if ((r_size == -1) && (errno == EIO)){
                 if (opt.rescue){
@@ -254,7 +254,7 @@ int main(int argc, char **argv){
             /// write buffer to target
             w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
             log_mesg(2, 0, 0, debug, "bs=%llu and w=%i, ",image_hdr.block_size, w_size);
-            if (w_size != (int)image_hdr.block_size)
+            if (w_size != image_hdr.block_size)
                 log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
         } else if (r_size < image_hdr.block_size){
             /// write readed buffer to target
