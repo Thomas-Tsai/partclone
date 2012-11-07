@@ -269,7 +269,7 @@ int main(int argc, char **argv){
 
         copied++;					/// count copied block
         total_write += (unsigned long long)(w_size);	/// count copied size
-        log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
+        log_mesg(1, 0, 0, debug, "total=%llu, ", total_write);
 
         /// read or write error
         if (r_size != w_size)
