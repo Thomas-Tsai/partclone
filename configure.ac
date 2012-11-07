@@ -36,6 +36,16 @@ enable_jfs="yes"
 enable_btrfs="yes"
 fi
 
+ORIGINAL_CFLAGS="$CFLAGS"
+AC_SUBST(ORIGINAL_CFLAGS)
+
+if test "x$GCC" = "xyes"; then
+  case " $CFLAGS " in
+  *[\ \	]-Wall[\ \	]*) ;;
+  *) CFLAGS="$CFLAGS -Wall" ;;
+  esac
+fi
+
 dnl Check for uuid 
 PKG_CHECK_MODULES(UUID, uuid,,exit)
 uuidcfg=`pkg-config --cflags --libs uuid`
