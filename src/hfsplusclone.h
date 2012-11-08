@@ -66,20 +66,6 @@ struct HFSPlusVolumeHeader {
 };
 typedef struct HFSPlusVolumeHeader HFSPlusVolumeHeader;
 
-static short reverseShort(short s);
-
-static int reverseInt(int i);
-
-static int IsAllocationBlockUsed(UInt32 thisAllocationBlock, UInt8* allocationFileContents);
-
-static void print_fork_data(HFSPlusForkData* fork);
-
-/// open device
-static void fs_open(char* device);
-
-/// close device
-static void fs_close();
-
 /// read super block and write to image head
 extern void initial_image_hdr(char* device, image_head* image_hdr);
 
