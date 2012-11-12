@@ -68,7 +68,6 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 {
     reiserfs_bitmap_t    *fs_bitmap;
     reiserfs_tree_t	 *tree;
-    reiserfs_block_t	 *node;
     unsigned long long	 blk = 0;
     unsigned long long 	 bused = 0, bfree = 0;
     int start = 0;
