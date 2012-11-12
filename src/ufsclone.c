@@ -181,7 +181,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 static unsigned long long get_used_block()
 {
     unsigned long long     block, bused = 0, bfree = 0;
-    int                    i = 0, start = 0, bit_size = 1;
+    int                    i = 0;
     char		   *p;
 
 
