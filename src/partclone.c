@@ -345,7 +345,6 @@ extern int open_ncurses(){
 
     FILE *in = fopen( "/dev/stderr", "r" );
     FILE *out = fopen( "/dev/stderr", "w" );
-    extern cmd_opt opt;
     int terminal_x = 0;
     int terminal_y = 0;
 
