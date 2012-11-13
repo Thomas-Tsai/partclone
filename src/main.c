@@ -125,9 +125,7 @@ int main(int argc, char **argv){
     unsigned long	crc_ck = 0xffffffffL;	/// CRC32 check code for checking
     unsigned long	crc_ck2 = 0xffffffffL;	/// CRC32 check code for checking
     int			c_size;			/// CRC32 code size
-    int			n_crc_size = CRC_SIZE;
     //int			done = 0;
-    int			s_count = 0;
     int			rescue_num = 0;
     unsigned long long			rescue_pos = 0;
     unsigned long long			main_pos = 0;
