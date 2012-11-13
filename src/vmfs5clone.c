@@ -150,7 +150,7 @@ vmfs_blk_map_t *vmfs_block_map_get(vmfs_blk_map_t **ht,uint32_t blk_id)
 }
 
 /* print block id pos */
-unsigned long long print_pos_by_id (const vmfs_fs_t *fs, uint32_t blk_id)
+void print_pos_by_id (const vmfs_fs_t *fs, uint32_t blk_id)
 {
     unsigned long long pos = 0;
     uint32_t blk_type = VMFS_BLK_TYPE(blk_id);
@@ -233,6 +233,8 @@ static int vmfs_dump_store_inode(const vmfs_fs_t *fs,vmfs_blk_map_t **ht,
 	log_mesg(0, 0, 0, fs_opt.debug, "%s: Block 0x%8.8x is used but not allocated.\n", __FILE__, inode->id);
     } else
 	print_pos_by_id(fs, inode->id);
+
+    return 0;
 }
 
 
