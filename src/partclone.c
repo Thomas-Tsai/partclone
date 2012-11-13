@@ -340,9 +340,9 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
  * close_ncurses    - close text window
  */
 extern int open_ncurses(){
+#ifdef HAVE_LIBNCURSESW
     int debug = 1;
 
-#ifdef HAVE_LIBNCURSESW
     FILE *in = fopen( "/dev/stderr", "r" );
     FILE *out = fopen( "/dev/stderr", "w" );
     extern cmd_opt opt;
