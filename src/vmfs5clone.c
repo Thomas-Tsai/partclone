@@ -13,6 +13,7 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <inttypes.h>
 #include <vmfs/vmfs.h>
 #include <pthread.h>
