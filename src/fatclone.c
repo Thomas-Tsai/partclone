@@ -243,7 +243,7 @@ unsigned long long check_fat32_entry(unsigned long* fat_bitmap, unsigned long lo
 {
     uint32_t Fat32_Entry = 0;
     int rd = 0;
-    unsigned long long i = 0, j = 0;
+    unsigned long long j = 0;
 
     rd = read(ret, &Fat32_Entry, sizeof(Fat32_Entry));
     if (rd == -1)
@@ -271,7 +271,7 @@ unsigned long long check_fat16_entry(unsigned long* fat_bitmap, unsigned long lo
 {
     uint16_t Fat16_Entry = 0;
     int rd = 0;
-    unsigned long long i = 0, j = 0;
+    unsigned long long j = 0;
     rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
     if (rd == -1)
         log_mesg(2, 0, 0, fs_opt.debug, "%s: read Fat16_Entry error\n", __FILE__);
@@ -298,7 +298,7 @@ unsigned long long check_fat12_entry(unsigned long* fat_bitmap, unsigned long lo
     uint16_t Fat16_Entry = 0;
     uint16_t Fat12_Entry = 0;
     int rd = 0;
-    unsigned long long i = 0, j = 0;
+    unsigned long long j = 0;
     rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
     if (rd == -1)
         log_mesg(2, 0, 0, fs_opt.debug, "%s: read Fat12_Entry error\n", __FILE__);
@@ -323,13 +323,8 @@ unsigned long long check_fat12_entry(unsigned long* fat_bitmap, unsigned long lo
 /// read super block and write to image head
 extern void initial_image_hdr(char* device, image_head* image_hdr)
 {
-    char sig;
     unsigned long long total_sector = 0;
     unsigned long long bused = 0;
-    unsigned long long data_sec = 0;
-    unsigned long long sec_per_fat = 0;
-    unsigned long long cluster_count = 0;
-    unsigned long long free_blocks = 0;
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s: initial_image start\n", __FILE__);
     fs_open(device);
@@ -358,16 +353,12 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 /// readbitmap - read and check bitmap
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
-    unsigned long long i = 0, j = 0;
-    int rd = 0;
+    unsigned long long i = 0;
     int fat_stat = 0;
     unsigned long long block = 0, bfree = 0, bused = 0, DamagedClusters = 0;
     unsigned long long cluster_count = 0;
     unsigned long long total_sector = 0;
     unsigned long long FatReservedBytes = 0;
-    uint16_t Fat16_Entry = 0;
-    uint32_t Fat32_Entry = 0;
-    extern cmd_opt opt;
     int start = 0;
     int bit_size = 1;
 
@@ -428,7 +419,6 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 static unsigned long long get_used_block()
 {
     unsigned long long i = 0;
-    int rd = 0;
     int fat_stat = 0;
     unsigned long long block = 0, bfree = 0, bused = 0, DamagedClusters = 0;
     unsigned long long cluster_count = 0, total_sector = 0;
