@@ -262,10 +262,11 @@ static void vmfs_dump_init(vmfs_dump_info_t *fi)
 
 /// open device
 static void fs_open(char* device){
+#ifndef VMFS5_ZLA_BASE
     vmfs_lvm_t *lvm;
+#endif
     vmfs_flags_t flags;
     char *mdev[] = {device, NULL};
-    char *next = NULL;
 
     vmfs_host_init();
     flags.packed = 0;
@@ -310,9 +311,7 @@ static void fs_close(){
 /// readbitmap - read bitmap
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
-    unsigned long long used_block = 0, free_block = 0, err_block = 0, prog_total = 0;
-    uint32_t total = 0;
-    int status = 0;
+    unsigned long long used_block = 0, free_block = 0, err_block = 0;
     int start = 0;
     int bit_size = 1;
 
