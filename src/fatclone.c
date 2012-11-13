@@ -34,6 +34,8 @@ char *fat_type = "FATXX";
 char *EXECNAME = "partclone.fat";
 extern fs_cmd_opt fs_opt;
 
+static unsigned long long get_used_block();
+
 /// get fet type
 static void get_fat_type(){
 
