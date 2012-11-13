@@ -82,7 +82,7 @@ static int block_size(){
 
 /// get device size
 static unsigned long long device_size(char* device){
-    int size;
+    blk_t size;
     unsigned long long dev_size;
     ext2fs_get_device_size(device, EXT2_BLOCK_SIZE(fs->super), &size);
     dev_size = (unsigned long long)(size * EXT2_BLOCK_SIZE(fs->super));
