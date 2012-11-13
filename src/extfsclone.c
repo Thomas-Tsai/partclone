@@ -190,11 +190,12 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	}
     }
     /// check all free blocks in partition
-    if (free != fs->super->s_free_blocks_count)
+    if (free != fs->super->s_free_blocks_count) {
 	if ((fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM) && (ext4_gfree_mismatch))
 	    log_mesg(1, 0, 0, fs_opt.debug, "%s: EXT4 bitmap metadata mismatch\n", __FILE__);
 	else
 	    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, free:%llu\n", __FILE__, free);
+    }
 
     fs_close();
     /// update progress
