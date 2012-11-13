@@ -1053,7 +1053,6 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
     int block_s  = image_hdr.block_size;
     unsigned long long total    = image_hdr.totalblock;
     unsigned long long used     = image_hdr.usedblocks;
-    unsigned long long dev_size = image_hdr.device_size;
     int debug = opt.debug;
     char size_str[11];
 
@@ -1122,12 +1121,8 @@ extern void initial_dd_hdr(int ret, image_head* image_hdr){
 
 /// initial bitmap
 extern void dd_bitmap(image_head image_hdr, unsigned long* bitmap){
-
-    int block;
-
     /// initial image bitmap as 1 (all block are used)
     memset(bitmap, 0xFF, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
-
 }
 
 /// write last block
