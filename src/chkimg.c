@@ -159,7 +159,6 @@ static void parse_option_chkimg(int argc, char** argv, cmd_opt* option){
  */
 int main(int argc, char **argv){ 
 
-    char*		source;			/// source data
     int			dfr;		/// file descriptor for source and target
     int			r_size;		/// read and write size
     char*		buffer;		/// buffer data
@@ -178,13 +177,9 @@ int main(int argc, char **argv){
     unsigned long	crc_ck2 = 0xffffffffL;	/// CRC32 check code for checking
     int			c_size;			/// CRC32 code size
     //int			done = 0;
-    int			s_count = 0;
-    int			rescue_num = 0;
     int			tui = 0;		/// text user interface
     int			pui = 0;		/// progress mode(default text)
-    int			raw = 0;
     int			flag = 0;
-    char		image_hdr_magic[512];
 
     int pres;
     pthread_t prog_thread;
