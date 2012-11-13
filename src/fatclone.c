@@ -243,7 +243,7 @@ unsigned long long check_fat32_entry(unsigned long* fat_bitmap, unsigned long lo
 {
     uint32_t Fat32_Entry = 0;
     int rd = 0;
-    unsigned long long j = 0;
+    unsigned long long i = 0;
 
     rd = read(ret, &Fat32_Entry, sizeof(Fat32_Entry));
     if (rd == -1)
@@ -251,15 +251,15 @@ unsigned long long check_fat32_entry(unsigned long* fat_bitmap, unsigned long lo
     if (Fat32_Entry  == 0x0FFFFFF7) { /// bad FAT32 cluster
         DamagedClusters++;
         log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %llu\n", __FILE__, block);
-        for (j=0; j < fat_sb.cluster_size; j++,block++)
+        for (i=0; i < fat_sb.cluster_size; i++,block++)
             pc_clear_bit(block, fat_bitmap);
     } else if (Fat32_Entry == 0x0000){ /// free
         bfree++;
-        for (j=0; j < fat_sb.cluster_size; j++,block++)
+        for (i=0; i < fat_sb.cluster_size; i++,block++)
             pc_clear_bit(block, fat_bitmap);
     } else {
         bused++;
-        for (j=0; j < fat_sb.cluster_size; j++,block++)
+        for (i=0; i < fat_sb.cluster_size; i++,block++)
             pc_set_bit(block, fat_bitmap);
     }
 
@@ -271,22 +271,22 @@ unsigned long long check_fat16_entry(unsigned long* fat_bitmap, unsigned long lo
 {
     uint16_t Fat16_Entry = 0;
     int rd = 0;
-    unsigned long long j = 0;
+    unsigned long long i = 0;
     rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
     if (rd == -1)
         log_mesg(2, 0, 0, fs_opt.debug, "%s: read Fat16_Entry error\n", __FILE__);
     if (Fat16_Entry  == 0xFFF7) { /// bad FAT16 cluster
         DamagedClusters++;
         log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %llu\n", __FILE__, block);
-        for (j=0; j < fat_sb.cluster_size; j++,block++)
+        for (i=0; i < fat_sb.cluster_size; i++,block++)
             pc_clear_bit(block, fat_bitmap);
     } else if (Fat16_Entry == 0x0000){ /// free
         bfree++;
-        for (j=0; j < fat_sb.cluster_size; j++,block++)
+        for (i=0; i < fat_sb.cluster_size; i++,block++)
             pc_clear_bit(block, fat_bitmap);
     } else {
         bused++;
-        for (j=0; j < fat_sb.cluster_size; j++,block++)
+        for (i=0; i < fat_sb.cluster_size; i++,block++)
             pc_set_bit(block, fat_bitmap);
     }
     return block;
@@ -298,7 +298,7 @@ unsigned long long check_fat12_entry(unsigned long* fat_bitmap, unsigned long lo
     uint16_t Fat16_Entry = 0;
     uint16_t Fat12_Entry = 0;
     int rd = 0;
-    unsigned long long j = 0;
+    unsigned long long i = 0;
     rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
     if (rd == -1)
         log_mesg(2, 0, 0, fs_opt.debug, "%s: read Fat12_Entry error\n", __FILE__);
@@ -306,15 +306,15 @@ unsigned long long check_fat12_entry(unsigned long* fat_bitmap, unsigned long lo
     if (Fat12_Entry  == 0xFFF7) { /// bad FAT12 cluster
         DamagedClusters++;
         log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %llu\n", __FILE__, block);
-        for (j=0; j < fat_sb.cluster_size; j++,block++)
+        for (i=0; i < fat_sb.cluster_size; i++,block++)
             pc_clear_bit(block, fat_bitmap);
     } else if (Fat12_Entry == 0x0000){ /// free
         bfree++;
-        for (j=0; j < fat_sb.cluster_size; j++,block++)
+        for (i=0; i < fat_sb.cluster_size; i++,block++)
             pc_clear_bit(block, fat_bitmap);
     } else {
         bused++;
-        for (j=0; j < fat_sb.cluster_size; j++,block++)
+        for (i=0; i < fat_sb.cluster_size; i++,block++)
             pc_set_bit(block, fat_bitmap);
     }
     return block;
