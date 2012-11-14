@@ -177,7 +177,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     int             read_ag_length;
     void            *read_ag_buf = NULL;
     xfs_off_t	    read_ag_position;            /* xfs_types.h: typedef __s64 */
-    uint64_t	    sk, res, s_pos = 0;
+    uint64_t	    sk, res;
     void            *btree_buf_data = NULL;
     int		    btree_buf_length;
     xfs_off_t	    btree_buf_position;
