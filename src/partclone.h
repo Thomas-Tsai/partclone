@@ -145,6 +145,7 @@ typedef struct image_head image_head;
 extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr);
 extern void restore_image_hdr_sp(int* ret, cmd_opt* opt, image_head* image_hdr, char* first_sec);
 extern void get_image_hdr(int* ret, cmd_opt opt, image_head image_hdr, unsigned long* bitmap);
+extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, unsigned long* bitmap);
 
 /**
  * for open and close
@@ -186,3 +187,6 @@ extern void initial_dd_hdr(int ret, image_head* image_hdr);
 
 /// initial bitmap
 extern void dd_bitmap(image_head image_hdr, unsigned long* bitmap);
+
+/// write last block
+extern void write_last_block(int* dfw, int size, unsigned long long id, cmd_opt* opt);
