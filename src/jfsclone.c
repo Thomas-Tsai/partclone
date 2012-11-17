@@ -123,7 +123,6 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     struct dmap d_map;
     int dmap_i, l0, l1;
     int next = 1;
-    int64_t btotal, bfree;
     int64_t tub;
     int64_t tb=0;
     int64_t pb = 1;
@@ -296,23 +295,11 @@ extern void initial_image_hdr(char* device, image_head* image_hdr){
 /// get_all_used_blocks
 extern uint64_t get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks){
 
-    int64_t lblock = 0;
     int64_t address;
     int64_t cntl_addr;
     int ret = 1;
     struct dinode bmap_inode;
     struct dbmap cntl_page;
-    int dmap_l2bpp;
-    int64_t d_address;
-    struct dmap d_map;
-    int dmap, l0, l1;
-    int next = 1;
-    int64_t btotal, bfree;
-    int64_t tub;
-    int64_t tb=0;
-    int64_t pb = 0;
-    int64_t block_used = 0;
-    int64_t block_free = 0;
     int64_t bytes_on_device = 0;
     int logsize = 0;
 
