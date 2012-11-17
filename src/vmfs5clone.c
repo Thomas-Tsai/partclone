@@ -274,7 +274,7 @@ static void fs_open(char* device){
     log_mesg(3, 0, 0, fs_opt.debug, "%s: device %s\n", __FILE__, device);
 
 #ifdef VMFS5_ZLA_BASE
-    if (!(fs=vmfs_fs_open(&mdev, flags))) {
+    if (!(fs=vmfs_fs_open(mdev, flags))) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to open volume.\n", __FILE__);
     }
 #else
