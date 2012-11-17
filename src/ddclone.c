@@ -58,17 +58,12 @@ int main(int argc, char **argv){
     int			r_size, w_size;		/// read and write size
     //unsigned long long	block_id, copied = 0;	/// block_id is every block in partition
     /// copied is copied block count
-    off_t		offset = 0, sf = 0;	/// seek postition, lseek result
     int			start, stop;		/// start, range, stop number for progress bar
     unsigned long long	total_write = 0;	/// the copied size 
     unsigned long long	needed_size = 0;	/// the copied size 
     unsigned long long	needed_mem  = 0;	/// the copied size 
-    char		bitmagic[8] = "BiTmAgIc";// only for check postition
-    char		bitmagic_r[8];		/// read magic string from image
-    int			cmp;			/// compare magic string
     int			debug = 0;		/// debug or not
     //int			done = 0;
-    int			s_count = 0;
     int			rescue_num = 0;
     unsigned long long	rescue_pos = 0;
     int			tui = 0;		/// text user interface
@@ -230,7 +225,7 @@ int main(int argc, char **argv){
 	rescue_pos = lseek(dfr, 0, SEEK_CUR);
         r_size = read_all(&dfr, buffer, image_hdr.block_size, &opt);
         log_mesg(1, 0, 0, debug, "bs=%i and r=%i, ",image_hdr.block_size, r_size);
-        if (r_size != (int)image_hdr.block_size){
+        if (r_size != image_hdr.block_size){
 
             if ((r_size == -1) && (errno == EIO)){
                 if (opt.rescue){
@@ -254,7 +249,7 @@ int main(int argc, char **argv){
             /// write buffer to target
             w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
             log_mesg(2, 0, 0, debug, "bs=%llu and w=%i, ",image_hdr.block_size, w_size);
-            if (w_size != (int)image_hdr.block_size)
+            if (w_size != image_hdr.block_size)
                 log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
         } else if (r_size < image_hdr.block_size){
             /// write readed buffer to target
@@ -269,7 +264,7 @@ int main(int argc, char **argv){
 
         copied++;					/// count copied block
         total_write += (unsigned long long)(w_size);	/// count copied size
-        log_mesg(1, 0, 0, debug, "total=%lli, ", total_write);
+        log_mesg(1, 0, 0, debug, "total=%llu, ", total_write);
 
         /// read or write error
         if (r_size != w_size)
