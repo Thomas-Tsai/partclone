@@ -1142,5 +1142,6 @@ void write_last_block(int* dfw, int size, unsigned long long id, cmd_opt* opt){
         log_mesg(0, 1, 1, opt->debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     memset(buffer, 0, size);
     st = io_all(dfw, buffer, size, 1, opt);
+    free(buffer);
     log_mesg(1, 0, 0, opt->debug, "write last block%llu, size %i ,status %ji\n", id, size, (intmax_t)st);
 }
