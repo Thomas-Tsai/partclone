@@ -114,11 +114,11 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
         if(reiser4_bitmap_test(fs_bitmap, bit)){
             bused++;
             pc_set_bit(block, bitmap);
-            log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %lli", block, __FILE__);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %llu", __FILE__, block);
         } else {
             pc_clear_bit(block, bitmap);
             bfree++;
-            log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is free %lli", block, __FILE__);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is free %llu", __FILE__, block);
         }
         /// update progress
         update_pui(&prog, bit, bit, 0);
@@ -126,7 +126,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     }
 
     if(bfree != reiser4_format_get_free(fs->format))
-        log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, bfree:%lli, sfree=%lli\n", __FILE__, bfree, reiser4_format_get_free(fs->format));
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, bfree:%llu, sfree=%llu\n", __FILE__, bfree, reiser4_format_get_free(fs->format));
 
     fs_close();
     /// update progress
