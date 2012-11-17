@@ -490,7 +490,7 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
     extern cmd_opt opt;
     char tmp_str[512];
 
-    vsprintf(tmp_str, fmt, args);
+    vsnprintf(tmp_str, sizeof(tmp_str), fmt, args);
     if (opt.ncurses) {
 #ifdef HAVE_LIBNCURSESW
         setlocale(LC_ALL, "");
