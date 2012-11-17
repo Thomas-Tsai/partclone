@@ -126,7 +126,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     int rd = 0, IsUsed = 0, sk = 0;
     UInt8 *extent_bitmap;
     UInt32 bused = 0, bfree = 0, mused = 0;
-    UInt32 block = 0, extent_block = 0, tb = 0, i = 0;
+    UInt32 block = 0, extent_block = 0, tb = 0;
     int allocation_exten = 0;
     UInt32 allocation_start_block;
     UInt32 allocation_block_size;
