@@ -44,7 +44,7 @@ extern fs_cmd_opt fs_opt;
 /// open device
 static void fs_open(char* device){
 
-    int fsflags;
+    int fsflags = 0;
 
     log_mesg(3, 0, 0, fs_opt.debug, "%s: UFS partition Open\n", __FILE__);
     if (ufs_disk_fillout(&disk, device) == -1){
@@ -81,9 +81,9 @@ static void fs_open(char* device){
 
     /// get ufs flags
     if (afs.fs_old_flags & FS_FLAGS_UPDATED)
-        fsflags == afs.fs_flags;
+        fsflags = afs.fs_flags;
     else
-        fsflags == afs.fs_old_flags;
+        fsflags = afs.fs_old_flags;
 
     /// check ufs status
     if(fs_opt.ignore_fschk){
@@ -181,7 +181,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 static unsigned long long get_used_block()
 {
     unsigned long long     block, bused = 0, bfree = 0;
-    int                    i = 0, start = 0, bit_size = 1;
+    int                    i = 0;
     char		   *p;
 
 
