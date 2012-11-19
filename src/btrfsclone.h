@@ -11,12 +11,6 @@
  * (at your option) any later version.
  */
 
-/// open device
-static void fs_open(char* device);
-
-/// close device
-static void fs_close();
-
 ///  readbitmap - read bitmap
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui);
 
