@@ -11,29 +11,8 @@
  * (at your option) any later version.
  */
 
-/// open device
-static void fs_open(char* device);
-
-/// close device
-static void fs_close();
-
-/// get block size from super block
-static int block_size();
-
-/// get device size
-static unsigned long long device_size(char* device);
-
-/// get total block from super block
-static unsigned long long block_count();
-
-/// get used blocks ( total - free ) from super block
-static unsigned long long get_used_blocks();
-
 /// readbitmap - cread and heck bitmap, reference dumpe2fs
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui);
-
-/// get extfs type
-static int test_extfs_type(char* device);
 
 /// read super block and write to image head
 extern void initial_image_hdr(char* device, image_head* image_hdr);
