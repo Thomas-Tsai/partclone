@@ -85,23 +85,11 @@ struct FatFsInfo{
 
 typedef struct FatFsInfo FatFsInfo;
 
-/// open device
-static void fs_open(char* device);
-
-/// close device
-static void fs_close();
-
 /// read super block and write to image head
 extern void initial_image_hdr(char* device, image_head* image_hdr);
 
 /// readbitmap - cread and heck bitmap, reference dumpe2fs
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui);
-
-/// return used block count
-static unsigned long long get_used_block();
-
-///get fat type
-static  void get_fat_type();
 
 /// return total sectors
 unsigned long long get_total_sector();
@@ -117,10 +105,6 @@ unsigned long long get_cluster_count();
 
 /// check fat statu
 extern int check_fat_status();
-
-/// mark reserved sectors as used
-static unsigned long long mark_reserved_sectors(unsigned long* fat_bitmap, unsigned long long block);
-
 
 /// check per FAT32 entry
 unsigned long long check_fat32_entry(unsigned long* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters);
