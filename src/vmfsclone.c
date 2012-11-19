@@ -27,10 +27,11 @@ extern fs_cmd_opt fs_opt;
 
 /// open device
 static void fs_open(char* device){
+#ifndef VMFS5_ZLA_BASE
     vmfs_lvm_t *lvm;
+#endif
     vmfs_flags_t flags;
     char *mdev[] = {device, NULL};
-    char *next = NULL;
 
     vmfs_host_init();
     flags.packed = 0;
