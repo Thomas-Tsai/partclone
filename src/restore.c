@@ -65,19 +65,16 @@ int main(int argc, char **argv){
     off_t		offset = 0, sf = 0;	/// seek postition, lseek result
     int			start, stop;		/// start, range, stop number for progress bar
     unsigned long long	total_write = 0;	/// the copied size 
-    unsigned long long	needed_size = 0;	/// the copied size 
     unsigned long long	needed_mem  = 0;	/// the copied size 
     char		bitmagic[8] = "BiTmAgIc";// only for check postition
     char		bitmagic_r[8];		/// read magic string from image
     int			cmp;			/// compare magic string
     unsigned long	*bitmap;		/// the point for bitmap data
     int			debug = 0;		/// debug or not
-    unsigned long	crc = 0xffffffffL;	/// CRC32 check code for writint to image
     unsigned long	crc_ck = 0xffffffffL;	/// CRC32 check code for checking
     unsigned long	crc_ck2 = 0xffffffffL;	/// CRC32 check code for checking
     int			c_size;			/// CRC32 code size
     //int			done = 0;
-    int			s_count = 0;
     int			tui = 0;		/// text user interface
     int			pui = 0;		/// progress mode(default text)
     int			raw = 0;
