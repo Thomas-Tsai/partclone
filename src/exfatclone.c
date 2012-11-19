@@ -49,8 +49,6 @@ static void fs_close(){
 ///  readbitmap - read bitmap
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
-    struct exfat_super_block* sb;
-    uint64_t free_sectors, free_clusters;
     off_t a = 0, b = 0;
     off_t block = 0;;
     int start = 0;
