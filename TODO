@@ -1,3 +1,7 @@
+* update jfs
+* list file system library version
+* fstype for pcbsd
+* terminal width
 * add data test for autocheck
 * multi output device for restore
 * nilfs support
