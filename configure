@@ -672,6 +672,7 @@ UUID_CFLAGS
 PKG_CONFIG_LIBDIR
 PKG_CONFIG_PATH
 PKG_CONFIG
+ORIGINAL_CFLAGS
 ENABLE_ALL_FALSE
 ENABLE_ALL_TRUE
 LN_S
@@ -6431,6 +6432,16 @@ enable_ufs="yes"
 enable_vmfs="yes"
 enable_jfs="yes"
 enable_btrfs="yes"
+fi
+
+ORIGINAL_CFLAGS="$CFLAGS"
+
+
+if test "x$GCC" = "xyes"; then
+  case " $CFLAGS " in
+  *\ \	-Wall\ \	*) ;;
+  *) CFLAGS="$CFLAGS -Wall" ;;
+  esac
 fi
 
 
