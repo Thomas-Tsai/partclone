@@ -125,15 +125,14 @@ int main(int argc, char **argv){
     unsigned long	crc_ck = 0xffffffffL;	/// CRC32 check code for checking
     unsigned long	crc_ck2 = 0xffffffffL;	/// CRC32 check code for checking
     int			c_size;			/// CRC32 code size
-    int			n_crc_size = CRC_SIZE;
     //int			done = 0;
-    int			s_count = 0;
     int			rescue_num = 0;
     unsigned long long			rescue_pos = 0;
     unsigned long long			main_pos = 0;
     int			tui = 0;		/// text user interface
     int			pui = 0;		/// progress mode(default text)
-    int                 next=1,next_int=1,next_max_count=7,next_count=7,i;
+    int                 next=1,next_int=1,next_max_count=7,next_count=7;
+    unsigned long long  i;
     unsigned long long  next_block_id;
     char*               cache_buffer;
     int                 nx_current=0;

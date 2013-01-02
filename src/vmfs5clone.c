@@ -13,6 +13,7 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <inttypes.h>
 #include <vmfs/vmfs.h>
 #include <pthread.h>
@@ -149,7 +150,7 @@ vmfs_blk_map_t *vmfs_block_map_get(vmfs_blk_map_t **ht,uint32_t blk_id)
 }
 
 /* print block id pos */
-unsigned long long print_pos_by_id (const vmfs_fs_t *fs, uint32_t blk_id)
+void print_pos_by_id (const vmfs_fs_t *fs, uint32_t blk_id)
 {
     unsigned long long pos = 0;
     uint32_t blk_type = VMFS_BLK_TYPE(blk_id);
@@ -232,6 +233,8 @@ static int vmfs_dump_store_inode(const vmfs_fs_t *fs,vmfs_blk_map_t **ht,
 	log_mesg(0, 0, 0, fs_opt.debug, "%s: Block 0x%8.8x is used but not allocated.\n", __FILE__, inode->id);
     } else
 	print_pos_by_id(fs, inode->id);
+
+    return 0;
 }
 
 
@@ -262,10 +265,11 @@ static void vmfs_dump_init(vmfs_dump_info_t *fi)
 
 /// open device
 static void fs_open(char* device){
+#ifndef VMFS5_ZLA_BASE
     vmfs_lvm_t *lvm;
+#endif
     vmfs_flags_t flags;
     char *mdev[] = {device, NULL};
-    char *next = NULL;
 
     vmfs_host_init();
     flags.packed = 0;
@@ -274,7 +278,7 @@ static void fs_open(char* device){
     log_mesg(3, 0, 0, fs_opt.debug, "%s: device %s\n", __FILE__, device);
 
 #ifdef VMFS5_ZLA_BASE
-    if (!(fs=vmfs_fs_open(&mdev, flags))) {
+    if (!(fs=vmfs_fs_open(mdev, flags))) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to open volume.\n", __FILE__);
     }
 #else
@@ -310,9 +314,7 @@ static void fs_close(){
 /// readbitmap - read bitmap
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
-    unsigned long long used_block = 0, free_block = 0, err_block = 0, prog_total = 0;
-    uint32_t total = 0;
-    int status = 0;
+    unsigned long long used_block = 0, free_block = 0, err_block = 0;
     int start = 0;
     int bit_size = 1;
 

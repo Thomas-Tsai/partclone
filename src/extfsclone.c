@@ -82,7 +82,7 @@ static int block_size(){
 
 /// get device size
 static unsigned long long device_size(char* device){
-    int size;
+    blk_t size;
     unsigned long long dev_size;
     ext2fs_get_device_size(device, EXT2_BLOCK_SIZE(fs->super), &size);
     dev_size = (unsigned long long)(size * EXT2_BLOCK_SIZE(fs->super));
@@ -190,11 +190,12 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	}
     }
     /// check all free blocks in partition
-    if (free != fs->super->s_free_blocks_count)
+    if (free != fs->super->s_free_blocks_count) {
 	if ((fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM) && (ext4_gfree_mismatch))
 	    log_mesg(1, 0, 0, fs_opt.debug, "%s: EXT4 bitmap metadata mismatch\n", __FILE__);
 	else
 	    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, free:%llu\n", __FILE__, free);
+    }
 
     fs_close();
     /// update progress

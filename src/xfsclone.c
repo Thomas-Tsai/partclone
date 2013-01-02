@@ -177,7 +177,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     int             read_ag_length;
     void            *read_ag_buf = NULL;
     xfs_off_t	    read_ag_position;            /* xfs_types.h: typedef __s64 */
-    uint64_t	    sk, res, s_pos = 0;
+    uint64_t	    sk, res;
     void            *btree_buf_data = NULL;
     int		    btree_buf_length;
     xfs_off_t	    btree_buf_position;
@@ -232,6 +232,9 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	read_ag_length = first_agbno * source_blocksize;
 	read_ag_position = (xfs_off_t) read_ag_off * (xfs_off_t) BBSIZE;
 	read_ag_buf = malloc(read_ag_length);
+	if(read_ag_buf == NULL){
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+	}
 	memset(read_ag_buf, 0, read_ag_length);
 
 	log_mesg(2, 0, 0, fs_opt.debug, "seek to read_ag_position %lli\n", read_ag_position);
@@ -257,6 +260,9 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	/* save what we need (agf) in the btree buffer */
 
 	btree_buf_data = malloc(source_blocksize);
+	if(btree_buf_data == NULL){
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+	}
 	memset(btree_buf_data, 0, source_blocksize);
 	memmove(btree_buf_data, ag_hdr.xfs_agf, source_sectorsize);
 	ag_hdr.xfs_agf = (xfs_agf_t *) btree_buf_data;

@@ -6,3 +6,5 @@
 * source code update
 * more documents
 * branch exfat
+* add ufs+ to partclone.fstype
+* add fail-mbr to automake style

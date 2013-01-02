@@ -41,10 +41,36 @@ struct uufsd disk;
 char *EXECNAME = "partclone.ufs";
 extern fs_cmd_opt fs_opt;
 
+/// get_used_block - get FAT used blocks
+static unsigned long long get_used_block()
+{
+    unsigned long long     block, bused = 0, bfree = 0;
+    int                    i = 0;
+    char		   *p;
+
+
+    /// read group
+    while ((i = cgread(&disk)) != 0) {
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: \ncg = %d\n", __FILE__, disk.d_lcg);
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: blocks = %i\n", __FILE__, acg.cg_ndblk);
+        p = cg_blksfree(&acg);
+
+        for (block = 0; block < acg.cg_ndblk; block++){
+            if (isset(p, block)) {
+                bfree++;
+            } else {
+                bused++;
+            }
+        }
+
+    }
+    log_mesg(1, 0, 0, fs_opt.debug, "%s: total used = %lli, total free = %lli\n", __FILE__, bused, bfree);
+    return bused;
+}
 /// open device
 static void fs_open(char* device){
 
-    int fsflags;
+    int fsflags = 0;
 
     log_mesg(3, 0, 0, fs_opt.debug, "%s: UFS partition Open\n", __FILE__);
     if (ufs_disk_fillout(&disk, device) == -1){
@@ -81,9 +107,9 @@ static void fs_open(char* device){
 
     /// get ufs flags
     if (afs.fs_old_flags & FS_FLAGS_UPDATED)
-        fsflags == afs.fs_flags;
+        fsflags = afs.fs_flags;
     else
-        fsflags == afs.fs_old_flags;
+        fsflags = afs.fs_old_flags;
 
     /// check ufs status
     if(fs_opt.ignore_fschk){
@@ -177,29 +203,3 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     fs_close();
 }
 
-/// get_used_block - get FAT used blocks
-static unsigned long long get_used_block()
-{
-    unsigned long long     block, bused = 0, bfree = 0;
-    int                    i = 0, start = 0, bit_size = 1;
-    char		   *p;
-
-
-    /// read group
-    while ((i = cgread(&disk)) != 0) {
-        log_mesg(2, 0, 0, fs_opt.debug, "%s: \ncg = %d\n", __FILE__, disk.d_lcg);
-        log_mesg(2, 0, 0, fs_opt.debug, "%s: blocks = %i\n", __FILE__, acg.cg_ndblk);
-        p = cg_blksfree(&acg);
-
-        for (block = 0; block < acg.cg_ndblk; block++){
-            if (isset(p, block)) {
-                bfree++;
-            } else {
-                bused++;
-            }
-        }
-
-    }
-    log_mesg(1, 0, 0, fs_opt.debug, "%s: total used = %lli, total free = %lli\n", __FILE__, bused, bfree);
-    return bused;
-}

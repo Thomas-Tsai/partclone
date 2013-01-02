@@ -1,4 +1,4 @@
-SUBDIRS= po src docs tests
+SUBDIRS= po src docs tests fail-mbr
 
 ACLOCAL_AMFLAGS = -I m4
 

@@ -7,26 +7,27 @@ vmfs_volume_t *vol;
 vmfs_dir_t *root_dir;
 
 /// open device
-static int pvmfs_fs_open(char** device){
+static int pvmfs_fs_open(char* device){
     vmfs_lvm_t *lvm;
     vmfs_flags_t flags;
+    char *mdev[] = {device, NULL};
 
     vmfs_host_init();
     flags.packed = 0;
     flags.allow_missing_extents = 1;
 
 #ifdef VMFS5_ZLA_BASE
-    if (!(fs = vmfs_fs_open(device, flags))) {
+    if (!(fs = vmfs_fs_open(mdev, flags))) {
 	fprintf(stderr, "type: Unable to open volume (vmfs5).\n");
 	return 1;
     }
-    vol = vmfs_vol_open(*device, flags);
+    vol = vmfs_vol_open(device, flags);
 #else
     if (!(lvm = vmfs_lvm_create(flags))) {
 	fprintf(stderr, "Unable to create LVM structure\n");
 	return 1;
     }
-    vol = vmfs_vol_open(*device, flags);
+    vol = vmfs_vol_open(device, flags);
     if (vmfs_lvm_add_extent(lvm, vol) == -1) {
 	fprintf(stderr, "Unable to open device/file \"%s\".\n", device);
 	return 1;
@@ -69,7 +70,7 @@ int main (int argc, char **argv){
 	return 1;
     }
 
-    source=&argv[1];
+    source=argv[1];
     ret = pvmfs_fs_open(source);
     if(ret == 0){
 	fprintf(stdout, "TYPE=\"vmfs%i\"\n", vol->vol_info.version);

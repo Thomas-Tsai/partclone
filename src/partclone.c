@@ -340,12 +340,11 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
  * close_ncurses    - close text window
  */
 extern int open_ncurses(){
+#ifdef HAVE_LIBNCURSESW
     int debug = 1;
 
-#ifdef HAVE_LIBNCURSESW
     FILE *in = fopen( "/dev/stderr", "r" );
     FILE *out = fopen( "/dev/stderr", "w" );
-    extern cmd_opt opt;
     int terminal_x = 0;
     int terminal_y = 0;
 
@@ -490,7 +489,7 @@ extern void log_mesg(int log_level, int log_exit, int log_stderr, int debug, con
     extern cmd_opt opt;
     char tmp_str[512];
 
-    vsprintf(tmp_str, fmt, args);
+    vsnprintf(tmp_str, sizeof(tmp_str), fmt, args);
     if (opt.ncurses) {
 #ifdef HAVE_LIBNCURSESW
         setlocale(LC_ALL, "");
@@ -557,6 +556,8 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr){
     int debug = opt->debug;
 
     buffer = (char*)malloc(sizeof(image_head));
+    if (buffer == NULL)
+        log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     memset(buffer, 0, sizeof(image_head));
     r_size = read_all(ret, buffer, sizeof(image_head), opt);
     if (r_size == -1)
@@ -574,6 +575,8 @@ extern void restore_image_hdr_sp(int* ret, cmd_opt* opt, image_head* image_hdr, 
     int debug = opt->debug;
 
     buffer = (char*)malloc(sizeof(image_head));
+    if (buffer == NULL)
+        log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     memset(buffer, 0, sizeof(image_head));
     memcpy(buffer, first_sec, 512);
     r_size = read_all(ret, (buffer+512), (sizeof(image_head)-512), opt);
@@ -757,13 +760,12 @@ extern int check_mount(const char* device, char* mount_p){
 
     real_file = malloc(PATH_MAX + 1);
     if (!real_file){
-	free(real_file);
         return -1;
     }
 
     real_fsname = malloc(PATH_MAX + 1);
     if (!real_fsname){
-	free(real_fsname);
+	free(real_file);
         return -1;
         //err = errno;
     }
@@ -804,6 +806,8 @@ extern int open_source(char* source, cmd_opt* opt){
     if((opt->clone) || (opt->dd) || (opt->domain)){ /// always is device, clone from device=source
 
         mp = malloc(PATH_MAX + 1);
+        if (mp == NULL)
+            log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
         if (check_mount(source, mp) == 1){
             log_mesg(0, 0, 1, debug, "device (%s) is mounted at %s\n", source, mp);
 	    free(mp);
@@ -862,6 +866,8 @@ extern int open_target(char* target, cmd_opt* opt){
 
         /// check mounted
         mp = malloc(PATH_MAX + 1);
+        if (mp == NULL)
+            log_mesg(0, 1, 1, debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
         if (check_mount(target, mp) == 1){
             log_mesg(0, 0, 1, debug, "device (%s) is mounted at %s\n", target, mp);
 	    free(mp);
@@ -1046,7 +1052,6 @@ extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt){
     int block_s  = image_hdr.block_size;
     unsigned long long total    = image_hdr.totalblock;
     unsigned long long used     = image_hdr.usedblocks;
-    unsigned long long dev_size = image_hdr.device_size;
     int debug = opt.debug;
     char size_str[11];
 
@@ -1115,12 +1120,8 @@ extern void initial_dd_hdr(int ret, image_head* image_hdr){
 
 /// initial bitmap
 extern void dd_bitmap(image_head image_hdr, unsigned long* bitmap){
-
-    int block;
-
     /// initial image bitmap as 1 (all block are used)
     memset(bitmap, 0xFF, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
-
 }
 
 /// write last block
@@ -1131,7 +1132,10 @@ void write_last_block(int* dfw, int size, unsigned long long id, cmd_opt* opt){
 
     sf = lseek(*dfw, (size*id), SEEK_SET);
     buffer = (char*)malloc(size);
+    if (buffer == NULL)
+        log_mesg(0, 1, 1, opt->debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     memset(buffer, 0, size);
     st = io_all(dfw, buffer, size, 1, opt);
+    free(buffer);
     log_mesg(1, 0, 0, opt->debug, "write last block%llu, size %i ,status %ji\n", id, size, (intmax_t)st);
 }
