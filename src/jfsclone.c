@@ -78,6 +78,13 @@ unsigned jfs_type;
 char *EXECNAME = "partclone.jfs";
 extern fs_cmd_opt fs_opt;
 
+/// libfs/jfs_endian.h
+#define GET 0
+
+/// libfs/devices.h
+
+/// xpeek.h
+#define AGGREGATE_2ND_I -1
 /// open device
 static void fs_open(char* device){
     fp = fopen(device, "r+");
@@ -123,7 +130,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     struct dmap d_map;
     int dmap_i, l0, l1;
     int next = 1;
-    int64_t tub;
+    uint64_t tub=0;
     int64_t tb=0;
     int64_t pb = 1;
     int64_t block_used = 0;
@@ -199,7 +206,8 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	decode_pagenum(lblock, &l1, &l0, &dmap_i);
 	ret = ujfs_rwdaddr(fp, &d_address, &bmap_inode, (lblock) << dmap_l2bpp, GET, bsize);
 	if (ret){
-	    log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):ujfs_rwdaddr error.\n", __FILE__, __LINE__);
+	    //log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):ujfs_rwdaddr error(%s).\n", __FILE__, __LINE__, strerror(ret));
+	    log_mesg(2, 0, 0, fs_opt.debug, "%s(%i):ujfs_rwdaddr error(%s).\n", __FILE__, __LINE__, strerror(ret));
 	}
 
 	ret = xRead(d_address, sizeof(struct dmap), (char *)&d_map);
@@ -217,6 +225,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
 	/// display bitmap  
 
+	block_used = 0;
 	for (pb = 0; (pb < d_map.nblocks) && (tb < dn_mapsize); pb++){
 
 	    if (jfs_bit_inuse(d_map.wmap, pb) == 1){
@@ -232,9 +241,15 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	    update_pui(&prog, tb, tb, 0);//keep update
 
 	}
+
 	log_mesg(2, 0, 0, fs_opt.debug, "%s:block_used %lli block_free %lli\n", __FILE__, block_used, block_free);
 	tub += block_used;
-
+	next = 0;
+	if (((lblock-4)*d_map.nblocks)<image_hdr.totalblock){
+	    lblock++;
+	    next = 1;
+	}
+	/*
         next = 0;
 	if (dmap_i < LPERCTL - 1){
 	    lblock = DMAPPAGE(l1, l0, dmap_i + 1);
@@ -250,27 +265,34 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
                 next = 1;
             }
         }
-
+	*/
+	/*
         if (tb >= dn_mapsize)
             next = 0;
 
 	if (d_map.nblocks == 0)
 	    next = 0;
+	 */
     }
 
+    log_mesg(2, 0, 0, fs_opt.debug, "%s:data_used = %llu\n", __FILE__, tub);
+    block_used = 0;
     /// log
+
+    log_mesg(2, 0, 0, fs_opt.debug, "%s:%llu log %llu\n", __FILE__, logloc, (logloc+logsize));
     for (;tb <= image_hdr.totalblock; tb++){
 
 	if ((tb >= logloc) && (tb < (logloc+logsize))){
 	    pc_set_bit(tb, bitmap);
 	    block_used++;
-	    log_mesg(3, 0, 0, fs_opt.debug, "%s: log used pb = %lli tb = %lli\n", __FILE__, pb, tb);
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: log used tb = %llu\n", __FILE__, pb, tb);
 	}
 	update_pui(&prog, tb, tb, 0);//keep update
 
     }
 
-    log_mesg(2, 0, 0, fs_opt.debug, "%s:total_used = %lli\n", __FILE__, tub);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s:log_used = %llu\n", __FILE__, block_used);
+    log_mesg(1, 0, 0, fs_opt.debug, "%s:total_used = %llu\n", __FILE__, tub+block_used);
     fs_close();
     update_pui(&prog, 1, 1, 1);//finish
 
