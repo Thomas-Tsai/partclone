@@ -1,5 +1,5 @@
-PREFIX=         /usr/local
-INSTPREFIX=     $(BUILD_ROOT)$(PREFIX)
+PREFIX=         $(prefix)
+INSTPREFIX=     $(DESTDIR)$(PREFIX)
 INSTLIBDIR=     $(INSTPREFIX)/lib/partclone
 INSTALL=        install
 
