@@ -228,6 +228,9 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	block_used = 0;
 	for (pb = 0; (pb < d_map.nblocks) && (tb < dn_mapsize); pb++){
 
+	    if (tb > dn_mapsize)
+		break;
+
 	    if (jfs_bit_inuse(d_map.wmap, pb) == 1){
 		block_used++;
 		log_mesg(3, 0, 0, fs_opt.debug, "%s: used pb = %lli tb = %lli\n", __FILE__, pb, tb);
@@ -249,30 +252,8 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	    lblock++;
 	    next = 1;
 	}
-	/*
-        next = 0;
-	if (dmap_i < LPERCTL - 1){
-	    lblock = DMAPPAGE(l1, l0, dmap_i + 1);
-	    next = 1;
-        }
-        if (dmap_level > 0) {
-            if (l0 < LPERCTL - 1){
-                lblock = DMAPPAGE(l1, l0+1, 0);
-                next = 1;
-            }
-            if ((dmap_level == 2) && (l1 < LPERCTL - 1)) {
-                lblock = DMAPPAGE(l1+1, 0, 0);
-                next = 1;
-            }
-        }
-	*/
-	/*
         if (tb >= dn_mapsize)
             next = 0;
-
-	if (d_map.nblocks == 0)
-	    next = 0;
-	 */
     }
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s:data_used = %llu\n", __FILE__, tub);
