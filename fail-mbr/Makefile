@@ -9,6 +9,8 @@ all: fail-mbr.bin
 clean:
 	rm -f *~ *.o *.image *.bin *.hex*
 
+distclean: clean
+
 compare: fail-mbr.bin
 	hd fail-mbr.bin > fail-mbr.hex
 	hd fail-mbr.bin.orig > fail-mbr.hex.orig
@@ -28,6 +30,7 @@ install: fail-mbr.bin
 	$(INSTALL) fail-mbr.bin $(INSTLIBDIR)
 	
 
-check: compare
+#check: compare
 
-.PHONY: all compare install
+#.PHONY: all compare install
+.PHONY: all install
