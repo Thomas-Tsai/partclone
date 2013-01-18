@@ -54,5 +54,9 @@ endif
 if ENABLE_BTRFS
 TESTS += btrfs.test
 endif
+
+if ENABLE_NCURSESW
+TESTS += ncursesw.test
+endif
 endif
 CLEANFILES = floppy*

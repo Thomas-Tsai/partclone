@@ -358,6 +358,7 @@ extern int open_ncurses(){
 
     // check terminal width and height
     getmaxyx(ptclscr_win, terminal_y, terminal_x);
+    //fprintf(stderr, "x = %i, y = %i\n", terminal_x, terminal_y);
 
     // set window position
     int log_line = 12;
