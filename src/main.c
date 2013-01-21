@@ -187,6 +187,7 @@ int main(int argc, char **argv){
     tui = open_pui(pui, opt.fresh);
     if ((opt.ncurses) && (tui == 0)){
         opt.ncurses = 0;
+	pui = TEXT;
         log_mesg(1, 0, 0, debug, "Open Ncurses User Interface Error.\n");
     }
 

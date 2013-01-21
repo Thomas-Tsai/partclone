@@ -62,6 +62,8 @@ extern int open_pui(int pui, unsigned long res){
         tui = open_ncurses();
         if (tui == 0){
             close_ncurses();
+	    PUI = TEXT;
+	    pui = TEXT;
         }
     } else if (pui == DIALOG){
         tui = 1;
