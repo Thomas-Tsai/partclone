@@ -622,8 +622,12 @@ int main(int argc, char **argv){
 		    /// write block from buffer to partition
 		    w_size = write_all(&dfw, cache_buffer, (image_hdr.block_size*nx_current), &opt);
 		    log_mesg(1, 0, 0, debug, "bs=%i and w=%i, ",(image_hdr.block_size*nx_current), w_size);
-		    if (w_size != (int)image_hdr.block_size*nx_current)
-			log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
+		    if (w_size != (int)image_hdr.block_size*nx_current){
+			if (opt.skip_write_error == 0)
+			    log_mesg(0, 1, 1, debug, "write block %lli error %i \n", (block_id-next+1), w_size);
+			else
+			    log_mesg(0, 0, 1, debug, "skip write block %lli error %i \n", (block_id-next+1), w_size);
+		    }
 		    next = 1;
 		    next_count = next_max_count;
 		    nx_current=0;
@@ -714,15 +718,23 @@ int main(int argc, char **argv){
                 /// write buffer to target
                 w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
                 log_mesg(3, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
-                if (w_size != (int)image_hdr.block_size)
-                    log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
+		if (w_size != (int)image_hdr.block_size){
+		    if (opt.skip_write_error == 0)
+			log_mesg(0, 1, 1, debug, "write block %lli error %i \n", block_id, w_size);
+		    else
+			log_mesg(0, 0, 1, debug, "skip write block %lli error %i \n", block_id, w_size);
+		}
 
                 copied++;                                       /// count copied block
                 total_write += (unsigned long long)(w_size);    /// count copied size
                 log_mesg(2, 0, 0, debug, "total=%lli, ", total_write);
                 /// read or write error
-                if (r_size != w_size)
-                    log_mesg(0, 1, 1, debug, "read and write different\n");
+                if (r_size != w_size){
+		    if (opt.skip_write_error == 0)
+			log_mesg(0, 1, 1, debug, "read and write different\n");
+		    else
+			log_mesg(0, 0, 1, debug, "read and write different\n");
+		}
                 log_mesg(1, 0, 0, debug, "end\n");
             } else {
 #ifndef _FILE_OFFSET_BITS

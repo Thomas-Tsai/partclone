@@ -95,6 +95,7 @@ struct cmd_opt
     int quiet;
     int no_block_detail;
     int restore_raw_file;
+    int skip_write_error;
     unsigned long offset;
     unsigned long fresh;
     unsigned long long offset_domain;

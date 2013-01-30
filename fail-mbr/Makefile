@@ -1,6 +1,6 @@
 PREFIX=         $(prefix)
 INSTPREFIX=     $(DESTDIR)$(PREFIX)
-INSTLIBDIR=     $(INSTPREFIX)/usr/share/partclone
+INSTLIBDIR=     $(INSTPREFIX)/share/partclone
 INSTALL=        install
 
 

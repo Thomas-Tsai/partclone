@@ -249,14 +249,22 @@ int main(int argc, char **argv){
             /// write buffer to target
             w_size = write_all(&dfw, buffer, image_hdr.block_size, &opt);
             log_mesg(2, 0, 0, debug, "bs=%llu and w=%i, ",image_hdr.block_size, w_size);
-            if (w_size != image_hdr.block_size)
-                log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
+            if (w_size != image_hdr.block_size){
+		if (opt.skip_write_error == 0)
+		    log_mesg(0, 1, 1, debug, "write block %lli error %i \n", block_id, w_size);
+		else
+		    log_mesg(0, 0, 1, debug, "skip write block %lli error %i \n", block_id, w_size);
+	    }
         } else if (r_size < image_hdr.block_size){
             /// write readed buffer to target
             w_size = write_all(&dfw, buffer, r_size, &opt);
             log_mesg(2, 0, 0, debug, "bs=%i and w=%i, ",image_hdr.block_size, w_size);
-            if (w_size != r_size)
-                log_mesg(0, 1, 1, debug, "write error %i \n", w_size);
+            if (w_size != r_size){
+		if (opt.skip_write_error == 0)
+		    log_mesg(0, 1, 1, debug, "write block %lli error %i \n", block_id, w_size);
+		else
+		    log_mesg(0, 0, 1, debug, "skip write block %lli error %i \n", block_id, w_size);
+	    }
         } else {
             w_size = 0;
         }
@@ -267,8 +275,12 @@ int main(int argc, char **argv){
         log_mesg(1, 0, 0, debug, "total=%llu, ", total_write);
 
         /// read or write error
-        if (r_size != w_size)
-            log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
+        if (r_size != w_size){
+	    if(opt.skip_write_error == 0)
+		log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
+	    else
+		log_mesg(0, 0, 1, debug, "skip read(%i) and write(%i) different\n", r_size, w_size);
+	}
         log_mesg(1, 0, 0, debug, "end\n");
         block_id++;
 	//if (!opt.quiet)

@@ -113,8 +113,9 @@ extern void usage(void)
             "    -b,  --dev-to-dev       Local device to device copy mode\n"
             "    -D,  --domain           Create ddrescue domain log from source device\n"
             "         --offset_domain=X  Add offset X (bytes) to domain log values\n"
-            "    -R,  --rescue           Continue after disk read errors\n"
+            "    -R,  --rescue           Continue clone while disk read errors\n"
 #endif
+            "    -w,  --skip_write_error Continue restore while write errors\n"
             "    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
             "    -C,  --no_check         Don't check device size and free space\n"
 #ifdef HAVE_LIBNCURSESW
@@ -160,6 +161,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
         { "offset_domain",	required_argument,  NULL,   OPT_OFFSET_DOMAIN },
         { "debug",		optional_argument,  NULL,   'd' },
         { "logfile",		required_argument,  NULL,   'L' },
+        { "skip_write_error",	no_argument,	    NULL,   'w' },
         { "rescue",		no_argument,	    NULL,   'R' },
         { "UI-fresh",		required_argument,  NULL,   'f' },
         { "max_block_cache",	required_argument,  NULL,   'm' },
@@ -182,6 +184,7 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
     opt->debug = 0;
     opt->offset = 0;
     opt->rescue = 0;
+    opt->skip_write_error = 0;
     opt->max_block_cache = 8;
     opt->check = 1;
     opt->ignore_crc = 0;
@@ -264,6 +267,9 @@ extern void parse_options(int argc, char **argv, cmd_opt* opt)
                 break;
             case 'E':
                 opt->offset = atol(optarg);
+                break;
+	    case 'w':
+                opt->skip_write_error = 1;
                 break;
 	    case 'R':
                 opt->rescue++;
