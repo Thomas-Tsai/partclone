@@ -57,7 +57,7 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 	$(am__EXEEXT_4) $(am__EXEEXT_5) $(am__EXEEXT_6) \
 	$(am__EXEEXT_7) partclone.ntfsfixboot$(EXEEXT) $(am__EXEEXT_8) \
 	$(am__EXEEXT_9) $(am__EXEEXT_10) $(am__EXEEXT_11) \
-	$(am__EXEEXT_12)
+	$(am__EXEEXT_12) $(am__EXEEXT_13)
 @ENABLE_STATIC_TRUE@am__append_1 = -static 
 @ENABLE_TINFO_TRUE@am__append_2 = -ltinfo
 @ENABLE_MEMTRACE_TRUE@am__append_3 = -DMEMTRACE -DMEMWATCH -DMW_STDIO
@@ -75,6 +75,7 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 @ENABLE_VMFS_TRUE@	partclone.fstype
 @ENABLE_JFS_TRUE@am__append_15 = partclone.jfs
 @ENABLE_BTRFS_TRUE@am__append_16 = partclone.btrfs
+@ENABLE_MINIX_TRUE@am__append_17 = partclone.minix
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -103,6 +104,7 @@ CONFIG_CLEAN_VPATH_FILES =
 @ENABLE_VMFS_TRUE@	partclone.fstype$(EXEEXT)
 @ENABLE_JFS_TRUE@am__EXEEXT_11 = partclone.jfs$(EXEEXT)
 @ENABLE_BTRFS_TRUE@am__EXEEXT_12 = partclone.btrfs$(EXEEXT)
+@ENABLE_MINIX_TRUE@am__EXEEXT_13 = partclone.minix$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
 am__partclone_btrfs_SOURCES_DIST = main.c partclone.c progress.c \
@@ -236,6 +238,18 @@ partclone_jfs_OBJECTS = $(am_partclone_jfs_OBJECTS)
 partclone_jfs_DEPENDENCIES =
 partclone_jfs_LINK = $(CCLD) $(partclone_jfs_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__partclone_minix_SOURCES_DIST = main.c partclone.c progress.c \
+	minixclone.c minixclone.h partclone.h progress.h gettext.h
+@ENABLE_MINIX_TRUE@am_partclone_minix_OBJECTS =  \
+@ENABLE_MINIX_TRUE@	partclone_minix-main.$(OBJEXT) \
+@ENABLE_MINIX_TRUE@	partclone_minix-partclone.$(OBJEXT) \
+@ENABLE_MINIX_TRUE@	partclone_minix-progress.$(OBJEXT) \
+@ENABLE_MINIX_TRUE@	partclone_minix-minixclone.$(OBJEXT)
+partclone_minix_OBJECTS = $(am_partclone_minix_OBJECTS)
+partclone_minix_LDADD = $(LDADD)
+partclone_minix_DEPENDENCIES = $(am__DEPENDENCIES_1)
+partclone_minix_LINK = $(CCLD) $(partclone_minix_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__partclone_ntfs_SOURCES_DIST = main.c partclone.c progress.c \
 	ntfsclone-ng.c ntfsclone-ng.h partclone.h progress.h gettext.h
 @ENABLE_NTFS_TRUE@am_partclone_ntfs_OBJECTS =  \
@@ -339,11 +353,11 @@ SOURCES = $(partclone_btrfs_SOURCES) $(partclone_chkimg_SOURCES) \
 	$(partclone_extfs_SOURCES) $(partclone_fat_SOURCES) \
 	$(partclone_fstype_SOURCES) $(partclone_hfsp_SOURCES) \
 	$(partclone_info_SOURCES) $(partclone_jfs_SOURCES) \
-	$(partclone_ntfs_SOURCES) $(partclone_ntfsfixboot_SOURCES) \
-	$(partclone_reiser4_SOURCES) $(partclone_reiserfs_SOURCES) \
-	$(partclone_restore_SOURCES) $(partclone_ufs_SOURCES) \
-	$(partclone_vmfs_SOURCES) $(partclone_vmfs5_SOURCES) \
-	$(partclone_xfs_SOURCES)
+	$(partclone_minix_SOURCES) $(partclone_ntfs_SOURCES) \
+	$(partclone_ntfsfixboot_SOURCES) $(partclone_reiser4_SOURCES) \
+	$(partclone_reiserfs_SOURCES) $(partclone_restore_SOURCES) \
+	$(partclone_ufs_SOURCES) $(partclone_vmfs_SOURCES) \
+	$(partclone_vmfs5_SOURCES) $(partclone_xfs_SOURCES)
 DIST_SOURCES = $(am__partclone_btrfs_SOURCES_DIST) \
 	$(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
 	$(am__partclone_exfat_SOURCES_DIST) \
@@ -352,6 +366,7 @@ DIST_SOURCES = $(am__partclone_btrfs_SOURCES_DIST) \
 	$(am__partclone_fstype_SOURCES_DIST) \
 	$(am__partclone_hfsp_SOURCES_DIST) $(partclone_info_SOURCES) \
 	$(am__partclone_jfs_SOURCES_DIST) \
+	$(am__partclone_minix_SOURCES_DIST) \
 	$(am__partclone_ntfs_SOURCES_DIST) \
 	$(partclone_ntfsfixboot_SOURCES) \
 	$(am__partclone_reiser4_SOURCES_DIST) \
@@ -540,6 +555,8 @@ partclone_ntfsfixboot_SOURCES = ntfsfixboot.c
 @ENABLE_BTRFS_TRUE@partclone_btrfs_SOURCES = main.c partclone.c progress.c btrfsclone.c btrfsclone.h partclone.h progress.h gettext.h $(BTRFS_SOURCE)
 @ENABLE_BTRFS_TRUE@partclone_btrfs_CFLAGS = -DBTRFS -D_FILE_OFFSET_BITS=64
 @ENABLE_BTRFS_TRUE@partclone_btrfs_LDADD = -luuid
+@ENABLE_MINIX_TRUE@partclone_minix_SOURCES = main.c partclone.c progress.c minixclone.c minixclone.h partclone.h progress.h gettext.h
+@ENABLE_MINIX_TRUE@partclone_minix_CFLAGS = -DMINIX
 all: all-am
 
 .SUFFIXES:
@@ -644,6 +661,9 @@ partclone.info$(EXEEXT): $(partclone_info_OBJECTS) $(partclone_info_DEPENDENCIES
 partclone.jfs$(EXEEXT): $(partclone_jfs_OBJECTS) $(partclone_jfs_DEPENDENCIES) $(EXTRA_partclone_jfs_DEPENDENCIES) 
 	@rm -f partclone.jfs$(EXEEXT)
 	$(partclone_jfs_LINK) $(partclone_jfs_OBJECTS) $(partclone_jfs_LDADD) $(LIBS)
+partclone.minix$(EXEEXT): $(partclone_minix_OBJECTS) $(partclone_minix_DEPENDENCIES) $(EXTRA_partclone_minix_DEPENDENCIES) 
+	@rm -f partclone.minix$(EXEEXT)
+	$(partclone_minix_LINK) $(partclone_minix_OBJECTS) $(partclone_minix_LDADD) $(LIBS)
 partclone.ntfs$(EXEEXT): $(partclone_ntfs_OBJECTS) $(partclone_ntfs_DEPENDENCIES) $(EXTRA_partclone_ntfs_DEPENDENCIES) 
 	@rm -f partclone.ntfs$(EXEEXT)
 	$(partclone_ntfs_LINK) $(partclone_ntfs_OBJECTS) $(partclone_ntfs_LDADD) $(LIBS)
@@ -734,6 +754,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_jfs-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_jfs-partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_jfs-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_minix-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_minix-minixclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_minix-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_minix-progress.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ntfs-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ntfs-ntfsclone-ng.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ntfs-partclone.Po@am__quote@
@@ -1494,6 +1518,62 @@ partclone_jfs-jfsclone.obj: jfsclone.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='jfsclone.c' object='partclone_jfs-jfsclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -c -o partclone_jfs-jfsclone.obj `if test -f 'jfsclone.c'; then $(CYGPATH_W) 'jfsclone.c'; else $(CYGPATH_W) '$(srcdir)/jfsclone.c'; fi`
+
+partclone_minix-main.o: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -MT partclone_minix-main.o -MD -MP -MF $(DEPDIR)/partclone_minix-main.Tpo -c -o partclone_minix-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_minix-main.Tpo $(DEPDIR)/partclone_minix-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_minix-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -c -o partclone_minix-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+
+partclone_minix-main.obj: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -MT partclone_minix-main.obj -MD -MP -MF $(DEPDIR)/partclone_minix-main.Tpo -c -o partclone_minix-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_minix-main.Tpo $(DEPDIR)/partclone_minix-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_minix-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -c -o partclone_minix-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+
+partclone_minix-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -MT partclone_minix-partclone.o -MD -MP -MF $(DEPDIR)/partclone_minix-partclone.Tpo -c -o partclone_minix-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_minix-partclone.Tpo $(DEPDIR)/partclone_minix-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_minix-partclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -c -o partclone_minix-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+
+partclone_minix-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -MT partclone_minix-partclone.obj -MD -MP -MF $(DEPDIR)/partclone_minix-partclone.Tpo -c -o partclone_minix-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_minix-partclone.Tpo $(DEPDIR)/partclone_minix-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_minix-partclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -c -o partclone_minix-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+
+partclone_minix-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -MT partclone_minix-progress.o -MD -MP -MF $(DEPDIR)/partclone_minix-progress.Tpo -c -o partclone_minix-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_minix-progress.Tpo $(DEPDIR)/partclone_minix-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_minix-progress.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -c -o partclone_minix-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+
+partclone_minix-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -MT partclone_minix-progress.obj -MD -MP -MF $(DEPDIR)/partclone_minix-progress.Tpo -c -o partclone_minix-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_minix-progress.Tpo $(DEPDIR)/partclone_minix-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_minix-progress.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -c -o partclone_minix-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+
+partclone_minix-minixclone.o: minixclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -MT partclone_minix-minixclone.o -MD -MP -MF $(DEPDIR)/partclone_minix-minixclone.Tpo -c -o partclone_minix-minixclone.o `test -f 'minixclone.c' || echo '$(srcdir)/'`minixclone.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_minix-minixclone.Tpo $(DEPDIR)/partclone_minix-minixclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='minixclone.c' object='partclone_minix-minixclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -c -o partclone_minix-minixclone.o `test -f 'minixclone.c' || echo '$(srcdir)/'`minixclone.c
+
+partclone_minix-minixclone.obj: minixclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -MT partclone_minix-minixclone.obj -MD -MP -MF $(DEPDIR)/partclone_minix-minixclone.Tpo -c -o partclone_minix-minixclone.obj `if test -f 'minixclone.c'; then $(CYGPATH_W) 'minixclone.c'; else $(CYGPATH_W) '$(srcdir)/minixclone.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_minix-minixclone.Tpo $(DEPDIR)/partclone_minix-minixclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='minixclone.c' object='partclone_minix-minixclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -c -o partclone_minix-minixclone.obj `if test -f 'minixclone.c'; then $(CYGPATH_W) 'minixclone.c'; else $(CYGPATH_W) '$(srcdir)/minixclone.c'; fi`
 
 partclone_ntfs-main.o: main.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -MT partclone_ntfs-main.o -MD -MP -MF $(DEPDIR)/partclone_ntfs-main.Tpo -c -o partclone_ntfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c

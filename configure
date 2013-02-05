@@ -636,6 +636,8 @@ ENABLE_STATIC_FALSE
 ENABLE_STATIC_TRUE
 ENABLE_NCURSESW_FALSE
 ENABLE_NCURSESW_TRUE
+ENABLE_MINIX_FALSE
+ENABLE_MINIX_TRUE
 ENABLE_BTRFS_FALSE
 ENABLE_BTRFS_TRUE
 ENABLE_JFS_FALSE
@@ -801,6 +803,7 @@ enable_ufs
 enable_vmfs
 enable_jfs
 enable_btrfs
+enable_minix
 enable_ncursesw
 enable_static
 enable_mtrace
@@ -1456,6 +1459,7 @@ Optional Features:
   --enable-vmfs           enable vmfs file system
   --enable-jfs            enable jfs file system
   --enable-btrfs          enable btrfs file system
+  --enable-minix          enable minix file system
   --enable-ncursesw       enable TEXT User Interface
   --enable-static         enable static linking
   --enable-mtrace         enable memory tracing
@@ -6432,6 +6436,7 @@ enable_ufs="yes"
 enable_vmfs="yes"
 enable_jfs="yes"
 enable_btrfs="yes"
+enable_minix="yes"
 fi
 
 ORIGINAL_CFLAGS="$CFLAGS"
@@ -8125,6 +8130,30 @@ btrfs_version="0.19"
 fi
 #end of check btrfs
 
+##minix##
+# Check whether --enable-minix was given.
+if test "${enable_minix+set}" = set; then :
+  enableval=$enable_minix; enable_minix=yes
+else
+  enable_minix=no
+
+fi
+
+ if test "$enable_minix" = yes; then
+  ENABLE_MINIX_TRUE=
+  ENABLE_MINIX_FALSE='#'
+else
+  ENABLE_MINIX_TRUE='#'
+  ENABLE_MINIX_FALSE=
+fi
+
+
+if test "$enable_minix" = "yes"; then
+supported_fs=$supported_fs" minix"
+minix_version="build-in"
+fi
+#end of check minix
+
 
 ##libncursesw##
 # Check whether --enable-ncursesw was given.
@@ -8499,6 +8528,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_BTRFS_TRUE}" && test -z "${ENABLE_BTRFS_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_BTRFS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_MINIX_TRUE}" && test -z "${ENABLE_MINIX_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_MINIX\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_NCURSESW_TRUE}" && test -z "${ENABLE_NCURSESW_FALSE}"; then
@@ -9984,4 +10017,5 @@ echo "ufs .......... $enable_ufs, $ufs_version"
 echo "vmfs ......... $enable_vmfs, $vmfs_version"
 echo "jfs .......... $enable_jfs, $jfs_version"
 echo "btrfs......... $enable_btrfs, $btrfs_version"
+echo "minix......... $enable_minix, $minix_version"
 #echo $supported_fs

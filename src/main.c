@@ -89,6 +89,9 @@ cmd_opt		opt;			/// cmd_opt structure defined in partclone.h
 #elif EXFAT
 #include "exfatclone.h"
 #define FS "EXFAT"
+#elif MINIX
+#include "minixclone.h"
+#define FS "MINIX"
 #endif
 
 /// fs option

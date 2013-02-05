@@ -136,6 +136,13 @@ partclone_btrfs_CFLAGS=-DBTRFS -D_FILE_OFFSET_BITS=64
 partclone_btrfs_LDADD=-luuid
 endif
 
+if ENABLE_MINIX
+sbin_PROGRAMS += partclone.minix
+partclone_minix_SOURCES=main.c partclone.c progress.c minixclone.c minixclone.h partclone.h progress.h gettext.h
+partclone_minix_CFLAGS=-DMINIX
+endif
+
+
 # Extra
 install-exec-hook:
 if ENABLE_EXTFS

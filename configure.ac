@@ -34,6 +34,7 @@ enable_ufs="yes"
 enable_vmfs="yes"
 enable_jfs="yes"
 enable_btrfs="yes"
+enable_minix="yes"
 fi
 
 ORIGINAL_CFLAGS="$CFLAGS"
@@ -437,6 +438,20 @@ btrfs_version="0.19"
 fi
 #end of check btrfs
 
+##minix##
+AC_ARG_ENABLE(minix,
+	AS_HELP_STRING(--enable-minix,enable minix file system), 
+	enable_minix=yes,
+	enable_minix=no
+)
+AM_CONDITIONAL(ENABLE_MINIX, test "$enable_minix" = yes)
+
+if test "$enable_minix" = "yes"; then
+supported_fs=$supported_fs" minix"
+minix_version="build-in"
+fi
+#end of check minix
+
 
 ##libncursesw##
 AC_ARG_ENABLE(ncursesw,
@@ -507,4 +522,5 @@ echo "ufs .......... $enable_ufs, $ufs_version"
 echo "vmfs ......... $enable_vmfs, $vmfs_version"
 echo "jfs .......... $enable_jfs, $jfs_version"
 echo "btrfs......... $enable_btrfs, $btrfs_version"
+echo "minix......... $enable_minix, $minix_version"
 #echo $supported_fs
