@@ -26,7 +26,6 @@
 
 char *super_block_buffer;
 #define inode_in_use(x, map) (isset(map,(x)) != 0)
-#define zone_in_use(x, map) (isset(map,(x)) != 0)
 #define Super (*(struct minix_super_block *) super_block_buffer)
 #define Super3 (*(struct minix3_super_block *) super_block_buffer)
 #define MAGIC (Super.s_magic)
@@ -143,6 +142,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr){
 	fs_version = 2;
     } else
 	printf("bad magic number in super-block");
+
     if (get_zone_size() != 0 || MINIX_BLOCK_SIZE != 1024)
 	printf("Only 1k blocks/zones supported");
     if (get_nimaps() * MINIX_BLOCK_SIZE * 8 < get_ninodes() + 1)
@@ -150,6 +150,9 @@ extern void initial_image_hdr(char* device, image_head* image_hdr){
     if (get_nzmaps() * MINIX_BLOCK_SIZE * 8 < get_nzones() - get_first_zone() + 1)
 	printf("bad s_zmap_blocks field in super-block");
 
+    printf("get_first_zone %lu\n", get_first_zone());
+    printf("get_nzones %lu\n", get_nzones());
+    printf("zones map size %lu\n", get_nzmaps());
     strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
     strncpy(image_hdr->fs, minix_MAGIC, FS_MAGIC_SIZE);
     image_hdr->block_size  = MINIX_BLOCK_SIZE;
@@ -166,9 +169,8 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     unsigned long zmaps = get_nzmaps();
     char * inode_map;
     char * zone_map;
-    unsigned long x, y;
     ssize_t rc;
-    unsigned long test_block = 0, test_inode = 0;
+    unsigned long test_block = 0, test_inode = 0, test_zone = 0;
 
     fs_open(device);
     inode_map = malloc(imaps * MINIX_BLOCK_SIZE);
@@ -189,6 +191,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	printf("Unable to read zone map");
 
     printf("%ld blocks\n", zones);
+    printf("log2 block/zone: %lu\n", get_zone_size());
     printf("Zonesize=%d\n",MINIX_BLOCK_SIZE<<get_zone_size());
     printf("Maxsize=%ld\n", get_max_size());
     printf("Filesystem state=%d\n", Super.s_state);
@@ -200,16 +203,19 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	    printf("test_inode %lu not use\n", test_inode);    
 	}
     }
-
+/*
     for (test_block = 0; test_block <=get_first_zone(); test_block++){
-	pc_set_bit((uint64_t)test_block, bitmap);
+	pc_set_bit(test_block, bitmap);
     }
+*/
 
-
-    for (test_block = get_first_zone(); test_block < zones; test_block++){
-	if(isset(zone_map,test_block)){
+    for (test_block = 0; test_block < zones; test_block++){
+	test_zone = test_block - get_first_zone()+1;
+	if ((test_zone < 0) || (test_zone > zones+get_first_zone()))
+	    test_zone = 0;
+	if(isset(zone_map,test_zone)){
 	    printf("test_block %lu in use\n", test_block);    
-	    pc_set_bit((uint64_t)test_block, bitmap);
+	    pc_set_bit(test_block, bitmap);
 	}else{
 	    printf("test_block %lu not use\n", test_block);    
 	}
