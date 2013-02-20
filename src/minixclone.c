@@ -142,6 +142,54 @@ static void fs_close(){
     close(dev);   
 }
 
+static unsigned long count_used_block(){
+    unsigned long zones = get_nzones();
+    unsigned long imaps = get_nimaps();
+    unsigned long zmaps = get_nzmaps();
+    char * inode_map;
+    char * zone_map;
+    ssize_t rc;
+    unsigned long test_block = 0, test_zone = 0;
+    unsigned long used_block = 0;
+    unsigned long block_size = get_block_size();
+
+    if (fs_version == 3){
+	if (lseek(dev, block_size*2, SEEK_SET) != 8192)
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s: seek failed", __FILE__);
+    }
+
+    inode_map = malloc(imaps * block_size);
+    if (!inode_map)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to allocate buffer for inode map", __FILE__);
+    zone_map = malloc(zmaps * block_size);
+    if (!inode_map)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to allocate buffer for zone map", __FILE__);
+    memset(inode_map,0,sizeof(inode_map));
+    memset(zone_map,0,sizeof(zone_map));
+
+    rc = read(dev, inode_map, imaps * block_size);
+    if (rc < 0 || imaps * block_size != (size_t) rc)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to read inode map", __FILE__);
+
+    rc = read(dev, zone_map, zmaps * block_size);
+    if (rc < 0 || zmaps * block_size != (size_t) rc)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to read zone map", __FILE__);
+
+    for (test_block = 0; test_block < zones; test_block++){
+	test_zone = test_block - get_first_zone()+1;
+	if ((test_zone < 0) || (test_zone > zones+get_first_zone()))
+	    test_zone = 0;
+	if(isset(zone_map,test_zone)){
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu in use\n", __FILE__, test_block);    
+	    used_block++;
+	}else{
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu not use\n", __FILE__, test_block);    
+	}
+    }
+    return used_block;
+}
+
+
 extern void initial_image_hdr(char* device, image_head* image_hdr){
     fs_open(device);
     if (MAGIC == MINIX_SUPER_MAGIC) {
@@ -164,10 +212,12 @@ extern void initial_image_hdr(char* device, image_head* image_hdr){
     strncpy(image_hdr->fs, minix_MAGIC, FS_MAGIC_SIZE);
     image_hdr->block_size  = get_block_size();
     image_hdr->totalblock  = get_nzones();
-    image_hdr->usedblocks  = get_nzones();
+    image_hdr->usedblocks  = count_used_block();
     image_hdr->device_size = get_nzones()*get_block_size();
     fs_close();
 }
+
+
 
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui){
     unsigned long zones = get_nzones();
