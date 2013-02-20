@@ -29,6 +29,7 @@ char *super_block_buffer;
 #define Super (*(struct minix_super_block *) super_block_buffer)
 #define Super3 (*(struct minix3_super_block *) super_block_buffer)
 #define MAGIC (Super.s_magic)
+#define MAGIC3 (Super3.s_magic)
 
 int dev;
 int fs_version = 1;
@@ -101,6 +102,17 @@ static inline unsigned long get_zone_size(void)
 }
 
 
+static inline unsigned long get_block_size(void)
+{               
+    switch (fs_version) {
+	case 3: 
+	    return (unsigned long)Super3.s_blocksize;
+	default:
+	    return MINIX_BLOCK_SIZE;
+    }       
+}       
+
+
 static inline unsigned long get_first_zone(void)
 {               
     switch (fs_version) {
@@ -114,16 +126,16 @@ static inline unsigned long get_first_zone(void)
 
 static void fs_open(char *device) {
     dev = open(device,O_RDONLY);
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: open minix fs\n", __FILE__); 
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: open minix fs\n", __FILE__); 
     if (MINIX_BLOCK_SIZE != lseek(dev, MINIX_BLOCK_SIZE, SEEK_SET))
-	printf("seek failed");
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: seek failed\n", __FILE__);
 
     super_block_buffer = calloc(1, MINIX_BLOCK_SIZE);
     if (!super_block_buffer)
-	printf("unable to alloc buffer for superblock");
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: unable to alloc buffer for superblock", __FILE__);
 
     if (MINIX_BLOCK_SIZE != read(dev, super_block_buffer, MINIX_BLOCK_SIZE))
-	printf("unable to read super block");
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: unable to read super block", __FILE__);
 }
 
 static void fs_close(){
@@ -140,84 +152,73 @@ extern void initial_image_hdr(char* device, image_head* image_hdr){
 	fs_version = 2;
     } else if (MAGIC == MINIX2_SUPER_MAGIC2) {
 	fs_version = 2;
+    } else if (MAGIC3 == MINIX3_SUPER_MAGIC){
+	fs_version = 3;
     } else
-	printf("bad magic number in super-block");
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: bad magic number in super-block", __FILE__);
 
-    if (get_zone_size() != 0 || MINIX_BLOCK_SIZE != 1024)
-	printf("Only 1k blocks/zones supported");
-    if (get_nimaps() * MINIX_BLOCK_SIZE * 8 < get_ninodes() + 1)
-	printf("bad s_imap_blocks field in super-block");
-    if (get_nzmaps() * MINIX_BLOCK_SIZE * 8 < get_nzones() - get_first_zone() + 1)
-	printf("bad s_zmap_blocks field in super-block");
-
-    printf("get_first_zone %lu\n", get_first_zone());
-    printf("get_nzones %lu\n", get_nzones());
-    printf("zones map size %lu\n", get_nzmaps());
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: get_first_zone %lu\n", __FILE__, get_first_zone());
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: get_nzones %lu\n", __FILE__, get_nzones());
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: zones map size %lu\n", __FILE__, get_nzmaps());
     strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
     strncpy(image_hdr->fs, minix_MAGIC, FS_MAGIC_SIZE);
-    image_hdr->block_size  = MINIX_BLOCK_SIZE;
+    image_hdr->block_size  = get_block_size();
     image_hdr->totalblock  = get_nzones();
     image_hdr->usedblocks  = get_nzones();
-    image_hdr->device_size = get_nzones()*MINIX_BLOCK_SIZE;
+    image_hdr->device_size = get_nzones()*get_block_size();
     fs_close();
 }
 
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui){
-    unsigned long first_zone = get_first_zone();
     unsigned long zones = get_nzones();
     unsigned long imaps = get_nimaps();
     unsigned long zmaps = get_nzmaps();
     char * inode_map;
     char * zone_map;
     ssize_t rc;
-    unsigned long test_block = 0, test_inode = 0, test_zone = 0;
+    unsigned long test_block = 0, test_zone = 0;
 
     fs_open(device);
-    inode_map = malloc(imaps * MINIX_BLOCK_SIZE);
+
+    unsigned long block_size = get_block_size();
+
+    if (fs_version == 3){
+	if (lseek(dev, block_size*2, SEEK_SET) != 8192)
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s: seek failed", __FILE__);
+    }
+
+    inode_map = malloc(imaps * block_size);
     if (!inode_map)
-	printf("Unable to allocate buffer for inode map");
-    zone_map = malloc(zmaps * MINIX_BLOCK_SIZE);
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to allocate buffer for inode map", __FILE__);
+    zone_map = malloc(zmaps * block_size);
     if (!inode_map)
-	printf("Unable to allocate buffer for zone map");
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to allocate buffer for zone map", __FILE__);
     memset(inode_map,0,sizeof(inode_map));
     memset(zone_map,0,sizeof(zone_map));
 
-    rc = read(dev, inode_map, imaps * MINIX_BLOCK_SIZE);
-    if (rc < 0 || imaps * MINIX_BLOCK_SIZE != (size_t) rc)
-	printf("Unable to read inode map");
+    rc = read(dev, inode_map, imaps * block_size);
+    if (rc < 0 || imaps * block_size != (size_t) rc)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to read inode map", __FILE__);
 
-    rc = read(dev, zone_map, zmaps * MINIX_BLOCK_SIZE);
-    if (rc < 0 || zmaps * MINIX_BLOCK_SIZE != (size_t) rc)
-	printf("Unable to read zone map");
+    rc = read(dev, zone_map, zmaps * block_size);
+    if (rc < 0 || zmaps * block_size != (size_t) rc)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to read zone map", __FILE__);
 
-    printf("%ld blocks\n", zones);
-    printf("log2 block/zone: %lu\n", get_zone_size());
-    printf("Zonesize=%d\n",MINIX_BLOCK_SIZE<<get_zone_size());
-    printf("Maxsize=%ld\n", get_max_size());
-    printf("Filesystem state=%d\n", Super.s_state);
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: %ld blocks\n", __FILE__, zones);
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: log2 block/zone: %lu\n", __FILE__, get_zone_size());
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: Zonesize=%d\n", __FILE__,block_size<<get_zone_size());
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: Maxsize=%ld\n", __FILE__, get_max_size());
 
-    for (test_inode = 0; test_inode < imaps; test_inode++){
-	if(isset(inode_map,test_inode)){
-	    printf("test_inode %lu in use\n", test_inode);    
-	}else{
-	    printf("test_inode %lu not use\n", test_inode);    
-	}
-    }
-/*
-    for (test_block = 0; test_block <=get_first_zone(); test_block++){
-	pc_set_bit(test_block, bitmap);
-    }
-*/
 
     for (test_block = 0; test_block < zones; test_block++){
 	test_zone = test_block - get_first_zone()+1;
 	if ((test_zone < 0) || (test_zone > zones+get_first_zone()))
 	    test_zone = 0;
 	if(isset(zone_map,test_zone)){
-	    printf("test_block %lu in use\n", test_block);    
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu in use\n", __FILE__, test_block);    
 	    pc_set_bit(test_block, bitmap);
 	}else{
-	    printf("test_block %lu not use\n", test_block);    
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu not use\n", __FILE__, test_block);    
 	}
     }
     fs_close();
