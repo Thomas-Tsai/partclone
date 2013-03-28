@@ -2,12 +2,12 @@
 .\"     Title: PARTCLONE
 .\"    Author: Yu-Chin Tsai <thomas@nchc.org.tw>
 .\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 02/06/2013
+.\"      Date: 03/28/2013
 .\"    Manual: Partclone User Manual
 .\"    Source: partclone
 .\"  Language: English
 .\"
-.TH "PARTCLONE" "8" "02/06/2013" "partclone" "Partclone User Manual"
+.TH "PARTCLONE" "8" "03/28/2013" "partclone" "Partclone User Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -39,7 +39,7 @@ partclone \- The utility for clone and restore a partition\&.
 project\&. Partclone provide utilities to backup used blocks and design for higher compatibility of the file system by using existing library, e\&.g\&. e2fslibs is used to read the used block of ext2 partition\&.
 .PP
 \fBPartclone\fR
-supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX\&. Also support some non\-linux operation system, ex: NTFS, FAT and EXFAT(for Windows), HFS plus(APPLE MAC OS), UFS2(FreeBSD), VMFS(VMWare Vsphere)\&.
+supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX\&. Also support some non\-linux operation system, ex: NTFS, FAT and EXFAT(for Windows), HFS plus(APPLE MAC OS), UFS2(FreeBSD), VMFS(VMWare Vsphere) and MINIX(MINIX3)\&.
 .PP
 All partclone utils could be run like partclone\&.[fstype] is very smiliar fsck or mkfs\&. For example, for backup/restore hfsplus, just run partclone\&.hfsp
 .sp
@@ -61,6 +61,7 @@ All partclone utils could be run like partclone\&.[fstype] is very smiliar fsck 
        ntfs                    partclone\&.ntfs
        fat12, fat16, fat32     partclone\&.[fat12|fat16|fat32]
        exfat                   partclone\&.exfat
+       minix                   partclone\&.minix
     
 .fi
 .if n \{\

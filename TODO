@@ -1,7 +1,4 @@
-* update jfs
 * list file system library version
-* fstype for pcbsd
-* terminal width
 * add data test for autocheck
 * multi output device for restore
 * nilfs support
@@ -9,6 +6,3 @@
 * zfs support
 * source code update
 * more documents
-* branch exfat
-* add ufs+ to partclone.fstype
-* add fail-mbr to automake style

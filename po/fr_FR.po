@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.2.9\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2012-07-31 10:38+0800\n"
+"POT-Creation-Date: 2013-03-28 22:56+0800\n"
 "PO-Revision-Date: 2010-11-01 10:13+0100\n"
 "Last-Translator: \n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -18,27 +18,27 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: src/progress.c:197
-#, fuzzy, c-format
+#: src/progress.c:199
+#, c-format
 msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: %6.2f%%"
 msgstr "\r%80c\rEcoulé: %s, Restant: %s, Complété:%6.2f%%,"
 
-#: src/progress.c:200
-#, fuzzy, c-format
+#: src/progress.c:202
+#, c-format
 msgid ", %6.2f%s/min,"
-msgstr "Débit: %6.2f%s/mn"
+msgstr ", %6.2f%s/mn"
 
-#: src/progress.c:208
+#: src/progress.c:210
 #, fuzzy, c-format
 msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: 100.00%%"
 msgstr "\r%80c\rEcoulé: %s, Restant: %s, Complété:%6.2f%%,"
 
-#: src/progress.c:210
-#, fuzzy, c-format
+#: src/progress.c:212
+#, c-format
 msgid ", Rate: %6.2f%s/min,"
-msgstr "Débit: %6.2f%s/mn"
+msgstr ", Débit: %6.2f%s/mn,"
 
-#: src/progress.c:214
+#: src/progress.c:216
 #, c-format
 msgid ""
 "\n"
@@ -47,17 +47,17 @@ msgstr ""
 "\n"
 "Durée totale: %s, "
 
-#: src/progress.c:216
+#: src/progress.c:218
 #, c-format
 msgid "Ave. Rate: %6.1f%s/min, "
 msgstr "Débit moyen: %6.1f%s/mn, "
 
-#: src/progress.c:217
+#: src/progress.c:219
 #, c-format
 msgid "%s"
 msgstr "%s"
 
-#: src/progress.c:242
+#: src/progress.c:244
 #, fuzzy, c-format
 msgid "Elapsed: %s Remaining: %s "
 msgstr ""
@@ -65,106 +65,106 @@ msgstr ""
 "  Restant: %s\n"
 "  Complété:%6.2f%%"
 
-#: src/progress.c:244
+#: src/progress.c:246
 #, c-format
 msgid "Rate: %6.2f%s/min"
 msgstr "Débit: %6.2f%s/mn"
 
-#: src/progress.c:246
+#: src/progress.c:248
 #, c-format
-msgid "Current Block: %lld  Total Block: %lld "
+msgid "Current Block: %llu  Total Block: %llu "
 msgstr ""
 
-#: src/progress.c:277
+#: src/progress.c:283
 #, fuzzy, c-format
 msgid "Total Time: %s Remaining: %s "
 msgstr ""
 "\n"
 "Durée totale: %s, "
 
-#: src/progress.c:279
+#: src/progress.c:285
 #, c-format
 msgid "Ave. Rate: %6.2f%s/min"
 msgstr "Débit moyen: %6.2f%s/min"
 
-#: src/partclone.c:1010
+#: src/partclone.c:1041
 #, c-format
 msgid "Partclone v%s http://partclone.org\n"
 msgstr "Partclone v%s http://partclone.org\n"
 
-#: src/partclone.c:1012
+#: src/partclone.c:1043
 #, c-format
 msgid "Starting to check image (%s)\n"
 msgstr "Démarrage audit image (%s)\n"
 
-#: src/partclone.c:1014
+#: src/partclone.c:1045
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
 msgstr "Démarrage clonage périphérique (%s) vers image (%s)\n"
 
-#: src/partclone.c:1016
+#: src/partclone.c:1047
 #, c-format
 msgid "Starting to restore image (%s) to device (%s)\n"
 msgstr "Démarrage restauration image (%s) vers périphérique (%s)\n"
 
-#: src/partclone.c:1018
+#: src/partclone.c:1049
 #, c-format
 msgid "Starting to back up device(%s) to device(%s)\n"
 msgstr "Démarrage sauvegarde périphérique (%s) vers périphérique (%s)\n"
 
-#: src/partclone.c:1020
+#: src/partclone.c:1051
 #, fuzzy, c-format
 msgid "Starting to map device (%s) to domain log (%s)\n"
 msgstr "Démarrage clonage périphérique (%s) vers image (%s)\n"
 
-#: src/partclone.c:1038
+#: src/partclone.c:1068
 #, c-format
 msgid "File system:  %s\n"
 msgstr "Système de fichiers:  %s\n"
 
-#: src/partclone.c:1041
+#: src/partclone.c:1071
 #, fuzzy, c-format
-msgid "Device size:  %s = %lld Blocks\n"
+msgid "Device size:  %s = %llu Blocks\n"
 msgstr "Taille du périphérique: %s\n"
 
-#: src/partclone.c:1044
+#: src/partclone.c:1074
 #, fuzzy, c-format
-msgid "Space in use: %s = %lld Blocks\n"
+msgid "Space in use: %s = %llu Blocks\n"
 msgstr "Espace utilisé: %s\n"
 
-#: src/partclone.c:1047
+#: src/partclone.c:1077
 #, fuzzy, c-format
-msgid "Free Space:   %s = %lld Blocks\n"
+msgid "Free Space:   %s = %llu Blocks\n"
 msgstr "Espace libre:  %s\n"
 
-#: src/partclone.c:1049
+#: src/partclone.c:1079
 #, c-format
 msgid "Block size:   %i Byte\n"
 msgstr "Taille de bloc:  %i octets\n"
 
-#: src/partclone.c:1062
+#: src/partclone.c:1092
 #, fuzzy, c-format
 msgid "Partclone successfully checked the image (%s)\n"
 msgstr "Partclone a réussi à auditer l'image (%s)\n"
 
-#: src/partclone.c:1064
+#: src/partclone.c:1094
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr "Partclone a réussi à cloner le périphérique (%s) vers l'image (%s)\n"
 
-#: src/partclone.c:1066
+#: src/partclone.c:1096
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr ""
 "Partclone a réussi à restaurer l'image (%s) vers le périphérique (%s)\n"
 
-#: src/partclone.c:1068
+#: src/partclone.c:1098
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr ""
 "Partclone a réussi à cloner le périphérique (%s) vers le périphérique (%s)\n"
 
-#: src/partclone.c:1070
+#: src/partclone.c:1100
 #, fuzzy, c-format
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
 msgstr "Partclone a réussi à cloner le périphérique (%s) vers l'image (%s)\n"

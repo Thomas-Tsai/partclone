@@ -1,6 +1,427 @@
+2013-03-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update rules for squeeze
+
+2013-02-21  Thomas Tsai  <thomas@nchc.org.tw>
+
+	0.2.59
+
+2013-02-20  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add count_used_block
+
+	update git ignore
+
+	fix minix version 3
+
+2013-02-06  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix minix clone error
+
+2013-02-05  Thomas Tsai  <thomas@nchc.org.tw>
+
+	initial minix clone
+
+2013-01-30  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add option w, --skip_write_error to skip block write erro and keep restoring data
+
+2013-01-22  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix path of fallmbr
+
+	0.2.58
+
+2013-01-21  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update small screen issue
+
+2013-01-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add test file
+
+	try to fix terminal size issue
+
+2013-01-14  Thomas Tsai  <thomas@nchc.org.tw>
+
+	package failmbr
+
+	update makefile for fail-mbr
+
+	0.2.57
+
+	update jfs
+
+2013-01-10  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix jfs clone issue
+
+2013-01-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update todo
+
+	Merge branch 'master' into free
+	Conflicts:
+		TODO
+
+	update ufs
+
+2012-11-19  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #28 from okkez/add-missing-declarations
+	Add missing declarations.
+
+	Merge pull request #27 from okkez/suppress-warnings-by-gcc-xfs
+	Suppress warnings reported by gcc for xfsclone.[ch]
+
+	Merge pull request #26 from okkez/suppress-warnings-by-gcc-vmfs
+	Suppress warnings reported by gcc for vmfsclone.[ch] and vmfs5clone.c
+
+	Merge pull request #25 from okkez/suppress-warnings-by-gcc-extfs
+	Suppress warnings reported by gcc for extfsclone.[ch]
+
+	Merge pull request #24 from okkez/suppress-warnings-by-gcc-fat
+	Suppress warnings reported by gcc for fatclone.[ch]
+
+	Merge pull request #23 from okkez/cleanup-common
+	Suppress warnings reported by gcc for main.c, partclone.c, progress.h
+
+	Merge pull request #22 from okkez/cleanup-restore
+	Remove unused variables in restore.c
+
+	Merge pull request #21 from okkez/cleanup-chkimg
+	Remove unused variables in chkimg.c.
+
+	Merge pull request #20 from okkez/suppress-warnings-by-gcc-exfat
+	Suppress warnings reported by gcc for exfatclone.[ch]
+
+	Merge pull request #19 from okkez/suppress-warnings-by-gcc-btrfs
+	Suppress warnings reported by gcc for btrfsclone.h.
+
+	Merge pull request #18 from okkez/fix-ufs-problems
+	Fix ufs problems
+
+2012-11-17  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #17 from okkez/fix-jfs-problems
+	Fix jfs problems
+
+	Merge pull request #16 from okkez/fix-format-string-for-reiser4
+	Fix format string for reiser4clone.c
+
+	Merge pull request #15 from okkez/suppress-warnings-by-gcc-reiser4
+	Suppress warnings reported by gcc for reiser4clone.h
+
+	Merge pull request #14 from okkez/suppress-warnings-by-gcc-reiserfs
+	Suppress warnings reported by gcc for reiserfsclone.[ch]
+
+	Merge pull request #13 from okkez/suppress-warnings-by-gcc-hfsp
+	Suppress warnings by gcc for hfspclone.[ch]
+
+	Merge pull request #12 from moriyama/fix-calling-vmfs_fs_open
+	Fix calling vmfs_fs_open()
+
+	Merge pull request #11 from okkez/cleanup-ddclone
+	Cleanup ddclone
+
+	Merge pull request #10 from okkez/add-default-cflags
+	Add default CFLAGS
+
+	Merge pull request #8 from okkez/use-vsnprintf
+	Use vsnprintf() instead of vsprintf() in src/partclone.c
+
+	Merge pull request #7 from okkez/fix-infinite-loop
+	Avoid infinite loop in src/main.c
+
+	Merge pull request #6 from okkez/plug-a-memory-leak
+	Plug a memory leak in src/partclone.c
+
+2012-11-14  Kenji Okimoto  <okimoto@clear-code.com>
+
+	Add missing declarations.
+	main.c:314: warning: implicit declaration of function 'get_image_bitmap'
+	main.c:642: warning: implicit declaration of function 'write_last_block'
+
+	Remove an unused variable.
+	xfsclone.c:180: warning: unused variable 's_pos'
+
+	Do not declare static functions in header file.
+	xfsclone.h:40: warning: 'set_bitmap' declared 'static' but never defined
+	xfsclone.h:43: warning: 'fs_open' declared 'static' but never defined
+	xfsclone.h:46: warning: 'fs_close' declared 'static' but never defined
+
+2012-11-13  Kenji Okimoto  <okimoto@clear-code.com>
+
+	Suppress warnings reported by gcc
+	vmfs5clone.c:235: warning: control reaches end of non-void function
+	vmfs5clone.c:194: warning: control reaches end of non-void function
+
+	Add missing include to suppress a warning
+	vmfs5clone.c:405: warning: implicit declaration of function 'sleep'
+
+	Suppress warnings reported by gcc.
+	vmfs5clone.c:268: warning: unused variable 'next'
+	vmfs5clone.c:265: warning: unused variable 'lvm'
+	vmfs5clone.c:315: warning: unused variable 'status'
+	vmfs5clone.c:314: warning: unused variable 'total'
+	vmfs5clone.c:313: warning: unused variable 'prog_total'
+
+	Suppress warnings reported by gcc
+	vmfsclone.c:33: warning: unused variable 'next'
+	vmfsclone.c:30: warning: unused variable 'lvm'
+
+	Do not declare static functions in header file.
+	vmfsclone.h:15: warning: 'fs_open' declared 'static' but never defined
+	vmfsclone.h:18: warning: 'fs_close' declared 'static' but never defined
+
+	Use blk_t instead of int to suppress a warning.
+	extfsclone.c: In function ‘device_size’:
+	extfsclone.c:87:5: warning: pointer targets in passing argument 3 of ‘ext2fs_get_device_size’ differ in signedness [-Wpointer-sign]
+	In file included from extfsclone.c:17:0:
+	/usr/include/ext2fs/ext2fs.h:1196:18: note: expected ‘blk_t *’ but argument is of type ‘int *’
+
+	Add missing braces to suppress a warning
+	extfsclone.c:193:8: warning: suggest explicit braces to avoid ambiguous ‘else’ [-Wparentheses]
+
+	Do not declare static functions in header file.
+	extfsclone.h:15:13: warning: ‘fs_open’ declared ‘static’ but never defined [-Wunused-function]
+	extfsclone.h:18:13: warning: ‘fs_close’ declared ‘static’ but never defined [-Wunused-function]
+	extfsclone.h:21:12: warning: ‘block_size’ declared ‘static’ but never defined [-Wunused-function]
+	extfsclone.h:24:27: warning: ‘device_size’ declared ‘static’ but never defined [-Wunused-function]
+	extfsclone.h:27:27: warning: ‘block_count’ declared ‘static’ but never defined [-Wunused-function]
+	extfsclone.h:30:27: warning: ‘get_used_blocks’ declared ‘static’ but never defined [-Wunused-function]
+	extfsclone.h:36:12: warning: ‘test_extfs_type’ declared ‘static’ but never defined [-Wunused-function]
+
+	Add prototype declaration
+
+	Rename variable name j -> i
+
+	Remove unused variables in fatclone.c
+	fatclone.c:246:24: warning: unused variable ‘i’ [-Wunused-variable]
+	fatclone.c:274:24: warning: unused variable ‘i’ [-Wunused-variable]
+	fatclone.c:301:24: warning: unused variable ‘i’ [-Wunused-variable]
+	fatclone.c:332:24: warning: unused variable ‘free_blocks’ [-Wunused-variable]
+	fatclone.c:331:24: warning: unused variable ‘cluster_count’ [-Wunused-variable]
+	fatclone.c:330:24: warning: unused variable ‘sec_per_fat’ [-Wunused-variable]
+	fatclone.c:329:24: warning: unused variable ‘data_sec’ [-Wunused-variable]
+	fatclone.c:326:10: warning: unused variable ‘sig’ [-Wunused-variable]
+	fatclone.c:370:20: warning: unused variable ‘opt’ [-Wunused-variable]
+	fatclone.c:369:14: warning: unused variable ‘Fat32_Entry’ [-Wunused-variable]
+	fatclone.c:368:14: warning: unused variable ‘Fat16_Entry’ [-Wunused-variable]
+	fatclone.c:362:9: warning: unused variable ‘rd’ [-Wunused-variable]
+	fatclone.c:361:31: warning: unused variable ‘j’ [-Wunused-variable]
+	fatclone.c:431:9: warning: unused variable ‘rd’ [-Wunused-variable]
+
+	Do not declare static functions in header file.
+	fatclone.h:89:13: warning: ‘fs_open’ declared ‘static’ but never defined [-Wunused-function]
+	fatclone.h:92:13: warning: ‘fs_close’ declared ‘static’ but never defined [-Wunused-function]
+	fatclone.h:101:27: warning: ‘get_used_block’ declared ‘static’ but never defined [-Wunused-function]
+	fatclone.h:104:14: warning: ‘get_fat_type’ declared ‘static’ but never defined [-Wunused-function]
+	fatclone.h:122:27: warning: ‘mark_reserved_sectors’ declared ‘static’ but never defined [-Wunused-function]
+
+	Remove an unused variable
+	partclone.c:348:20: warning: unused variable ‘opt’ [-Wunused-variable]
+
+	This warning is displayed if specified "--enable-ncursesw".
+
+	Remove unused variables in main.c
+	main.c:130:11: warning: unused variable ‘s_count’ [-Wunused-variable]
+	main.c:128:11: warning: unused variable ‘n_crc_size’ [-Wunused-variable]
+
+	Do not declare static functions in header file.
+	progress.h:53:13: warning: ‘calculate_speed’ declared ‘static’ but never defined [-Wunused-function]
+	progress.h:63:8: warning: ‘open_p_ncurses’ declared ‘static’ but never defined [-Wunused-function]
+	progress.h:64:8: warning: ‘close_p_ncurses’ declared ‘static’ but never defined [-Wunused-function]
+
+	Remove unused variables in partclone.c
+	partclone.c:1056:24: warning: unused variable ‘dev_size’ [-Wunused-variable]
+	partclone.c:1126:9: warning: unused variable ‘block’ [-Wunused-variable]
+
+	Suppress a warning reported by gcc.
+	partclone.c:343:9: warning: unused variable ‘debug’ [-Wunused-variable]
+
+	This warning is displayed if specify "--enable-ncursesw".
+
+	Remove unused variables in restore.c
+	restore.c:80:11: warning: unused variable ‘s_count’ [-Wunused-variable]
+	restore.c:75:19: warning: unused variable ‘crc’ [-Wunused-variable]
+	restore.c:68:24: warning: unused variable ‘needed_size’ [-Wunused-variable]
+
+	Remove unused variables in chkimg.c.
+	chkimg.c:187:11: warning: unused variable ‘image_hdr_magic’ [-Wunused-variable]
+	chkimg.c:185:11: warning: unused variable ‘raw’ [-Wunused-variable]
+	chkimg.c:182:11: warning: unused variable ‘rescue_num’ [-Wunused-variable]
+	chkimg.c:181:11: warning: unused variable ‘s_count’ [-Wunused-variable]
+	chkimg.c:162:12: warning: unused variable ‘source’ [-Wunused-variable]
+
+	Remove unused variables.
+	ddclone.c:77:9: warning: variable ‘pres’ set but not used [-Wunused-but-set-variable]
+	ddclone.c:71:11: warning: unused variable ‘s_count’ [-Wunused-variable]
+	ddclone.c:68:11: warning: unused variable ‘cmp’ [-Wunused-variable]
+	ddclone.c:67:11: warning: unused variable ‘bitmagic_r’ [-Wunused-variable]
+	ddclone.c:66:11: warning: unused variable ‘bitmagic’ [-Wunused-variable]
+	ddclone.c:61:24: warning: unused variable ‘sf’ [-Wunused-variable]
+	ddclone.c:61:12: warning: unused variable ‘offset’ [-Wunused-variable]
+
+	Remove unused variables.
+	exfatclone.c:53: warning: unused variable 'free_clusters'
+	exfatclone.c:53: warning: unused variable 'free_sectors'
+	exfatclone.c:52: warning: unused variable 'sb'
+
+	Suppress warnings reported by gcc.
+	exfatclone.h:15: warning: 'fs_open' declared 'static' but never defined
+	exfatclone.h:18: warning: 'fs_close' declared 'static' but never defined
+
+2012-11-12  Kenji Okimoto  <okimoto@clear-code.com>
+
+	Suppress warnings reported by gcc.
+	btrfsclone.h:15: warning: 'fs_open' declared 'static' but never defined
+	btrfsclone.h:18: warning: 'fs_close' declared 'static' but never defined
+
+	Remove unused variables reported by cppcheck.
+	[src/jfsclone.c:126]: (style) Unused variable: btotal
+	[src/jfsclone.c:126]: (style) Unused variable: bfree
+	[src/jfsclone.c:299]: (style) Variable 'lblock' is assigned a value that is never used
+	[src/jfsclone.c:305]: (style) Unused variable: dmap_l2bpp
+	[src/jfsclone.c:306]: (style) Unused variable: d_address
+	[src/jfsclone.c:307]: (style) Unused variable: d_map
+	[src/jfsclone.c:308]: (style) Unused variable: dmap
+	[src/jfsclone.c:308]: (style) Unused variable: l0
+	[src/jfsclone.c:308]: (style) Unused variable: l1
+	[src/jfsclone.c:309]: (style) Variable 'next' is assigned a value that is never used
+	[src/jfsclone.c:310]: (style) Unused variable: btotal
+	[src/jfsclone.c:310]: (style) Unused variable: bfree
+	[src/jfsclone.c:311]: (style) Unused variable: tub
+	[src/jfsclone.c:312]: (style) Variable 'tb' is assigned a value that is never used
+	[src/jfsclone.c:313]: (style) Variable 'pb' is assigned a value that is never used
+	[src/jfsclone.c:314]: (style) Variable 'block_used' is assigned a value that is never used
+	[src/jfsclone.c:315]: (style) Variable 'block_free' is assigned a value that is never used
+
+	Do not declare static functions in header file.
+	This fix suppresses GCC warnings.
+
+	Remove unused variables reported by cppcheck.
+	[src/ufsclone.c:184]: (style) Variable 'start' is assigned a value that is never used
+	[src/ufsclone.c:184]: (style) Variable 'bit_size' is assigned a value that is never used
+
+	Initialize `fsflags` and update it correctly.
+	Before apply this patch, sometimes this program can crash.
+
+	Do not declare static functions in header file.
+	This fix suppresses GCC warnings.
+
+	Use "%llu" instead of "%lli".
+	Because `block` and `bfree` are unsigned long long.
+
+	Fix arguments order
+
+	Suppress warnings reported by gcc
+	reiser4clone.h:15:13: warning: ‘fs_open’ declared ‘static’ but never defined [-Wunused-function]
+	reiser4clone.h:18:13: warning: ‘fs_close’ declared ‘static’ but never defined [-Wunused-function]
+
+	Remove an unused variable.
+	reiserfsclone.c:71: warning: unused variable 'node'
+
+	Suppress warnings reported by gcc
+	reiserfsclone.h:15: warning: 'fs_open' declared 'static' but never defined
+	reiserfsclone.h:18: warning: 'fs_close' declared 'static' but never defined
+
+2012-11-08  Masayuki Moriyama  <masayuki.moriyama@miraclelinux.com>
+
+	fstype.c: fix incompatible pointer types warning
+
+	vmfs5clone.c: fix incompatible pointer types warning
+
+	vmfsclone.c: fix incompatible pointer types warning
+
+2012-11-08  Kenji Okimoto  <okimoto@clear-code.com>
+
+	Remove an unused variable reported by gcc
+	hfsplusclone.c:129: warning: unused variable 'i'
+
+	Suppress warnings reported by gcc.
+	hfsplusclone.h:69: warning: 'reverseShort' declared 'static' but never defined
+	hfsplusclone.h:71: warning: 'reverseInt' declared 'static' but never defined
+	hfsplusclone.h:73: warning: 'IsAllocationBlockUsed' declared 'static' but never defined
+	hfsplusclone.h:75: warning: 'print_fork_data' declared 'static' but never defined
+	hfsplusclone.h:78: warning: 'fs_open' declared 'static' but never defined
+	hfsplusclone.h:81: warning: 'fs_close' declared 'static' but never defined
+
+2012-11-07  Kenji Okimoto  <okimoto@clear-code.com>
+
+	Add default CFLAGS
+
+	Remove needless cast
+
+	Use "%llu" instead of "%lli" because total_write is unsigned long long
+
+2012-11-06  Kenji Okimoto  <okimoto@clear-code.com>
+
+	Use vsnprintf() instead of vsprintf().
+	This may avoid buffer overflow
+
 2012-11-06  Thomas Tsai  <thomas@nchc.org.tw>
 
+	add check to fail-mbr
+
+	add fail-mbr
+
+	fix error: ‘debug’ undeclared again
+
+	fix error: ‘debug’ undeclared
+
+2012-11-06  Kenji Okimoto  <okimoto@clear-code.com>
+
+	Plug a memory leak
+
+	Use unsigned long long instead of int
+	image_hdr.totalblock may be unsigned 64 bits in size.
+
+2012-11-06  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #4 from okkez/malloc-check
+	Add malloc/calloc result check
+
+	Merge pull request #3 from okkez/fix-problems-reported-by-cppcheck
+	Fix problems reported by cppcheck
+
+2012-11-06  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Revert "remove exfat temporarily"
+	This reverts commit cda497b0bc6f6dda2777e1eacd45841b5766a35b.
+
+	Merge branch 'master' of ssh://free.nchc.org.tw:3322/home/gitpool/partclone
+
+	Revert "add test script for offset" rollback exfat
+	This reverts commit ca18098bebb3585545e62a62bb651c3d0534891c.
+
+	try to branch exfat
+
+	release 0.2.56
+
 	remove exfat temporarily
+
+2012-11-02  Kenji Okimoto  <okimoto@clear-code.com>
+
+	Add check calloc() result
+
+	Add check calloc() result
+
+	Exit if calloc() failed
+
+	Add check malloc() result
+
+	Add check malloc() result
+
+	Add check malloc() result
+
+	ensure NULL terminated string
+
+	do not free NULL
+
+	plug a memory leak
+
+	fix buffer overflow
 
 2012-10-22  Thomas Tsai  <thomas@nchc.org.tw>
 
