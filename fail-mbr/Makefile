@@ -29,7 +29,7 @@ install: fail-mbr.bin
 	-mkdir -p $(INSTLIBDIR)
 	$(INSTALL) fail-mbr.bin $(INSTLIBDIR)
 	
-
+check:
 #check: compare
 
 #.PHONY: all compare install
