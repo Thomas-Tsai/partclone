@@ -46,6 +46,7 @@
 
 #define IMAGE_VERSION "0001"
 #define VERSION_SIZE 4
+#define BUFFER_SIZE 262144
 #define SECTOR_SIZE 512
 #define CRC_SIZE 4
 
@@ -88,7 +89,6 @@ struct cmd_opt
     int overwrite;
     int rescue;
     int check;
-    int max_block_cache;
     int ncurses;
     int force;
     int ignore_fschk;
@@ -145,7 +145,6 @@ struct image_head
 typedef struct image_head image_head;
 
 extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr);
-extern void restore_image_hdr_sp(int* ret, cmd_opt* opt, image_head* image_hdr, char* first_sec);
 extern void get_image_hdr(int* ret, cmd_opt opt, image_head image_hdr, unsigned long* bitmap);
 extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, unsigned long* bitmap);
 
@@ -184,11 +183,5 @@ extern void print_opt(cmd_opt opt);
 /// print finish mesg
 extern void print_finish_info(cmd_opt opt);
 
-/// initial dd hdr
-extern void initial_dd_hdr(int ret, image_head* image_hdr);
-
-/// initial bitmap
-extern void dd_bitmap(image_head image_hdr, unsigned long* bitmap);
-
-/// write last block
-extern void write_last_block(int* dfw, int size, unsigned long long id, cmd_opt* opt);
+/// get partition size
+extern unsigned long long get_partition_size(int* ret);

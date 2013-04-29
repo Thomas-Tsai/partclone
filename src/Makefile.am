@@ -8,7 +8,7 @@ BTRFS_SOURCE= btrfs/crc32c.c btrfs/disk-io.c btrfs/extent-tree.c btrfs/inode-map
 EXFATFS_SOURCE= exfat/byteorder.h exfat/cluster.c exfat/exfatfs.h exfat/exfat.h exfat/io.c exfat/libexfat.a exfat/log.c exfat/lookup.c exfat/mount.c exfat/node.c exfat/time.c exfat/utf.c exfat/utils.c exfat/version.h
 
 if ENABLE_STATIC
-LDFLAGS+=-static 
+LDFLAGS+=-static
 endif
 
 if ENABLE_TINFO
@@ -23,17 +23,21 @@ if ENABLE_NCURSESW
 CFLAGS+=-I/usr/include/ncursesw
 endif
 
+CFLAGS+=-D_FILE_OFFSET_BITS=64
+
 version.h: FORCE
 	$(TOOLBOX) --update-version
 
-partclone_info_SOURCES=infoclone.c partclone.c partclone.h fs_common.h
+partclone_info_SOURCES=info.c partclone.c partclone.h fs_common.h
 
-partclone_restore_SOURCES=partclone.c partclone.h progress.c progress.h gettext.h restore.c
-partclone_restore_CFLAGS=-DRESTORE
+partclone_restore_SOURCES=main.c partclone.c progress.c ddclone.c ddclone.h partclone.h progress.h gettext.h
+partclone_restore_CFLAGS=-DRESTORE -DDD
 
-partclone_chkimg_SOURCES=partclone.c partclone.h progress.c progress.h gettext.h chkimg.c
+partclone_chkimg_SOURCES=main.c partclone.c progress.c ddclone.c ddclone.h partclone.h progress.h gettext.h
+partclone_chkimg_CFLAGS=-DCHKIMG -DDD
 
-partclone_dd_SOURCES=partclone.c partclone.h progress.c progress.h gettext.h ddclone.c
+partclone_dd_SOURCES=main.c partclone.c progress.c ddclone.c ddclone.h partclone.h progress.h gettext.h
+partclone_dd_CFLAGS=-DDD
 
 if ENABLE_EXTFS
 sbin_PROGRAMS += partclone.extfs
@@ -65,7 +69,7 @@ endif
 if ENABLE_XFS
 sbin_PROGRAMS += partclone.xfs
 partclone_xfs_SOURCES=main.c partclone.c progress.c xfsclone.c xfsclone.h partclone.h progress.h gettext.h
-partclone_xfs_CFLAGS=-DXFS -D_FILE_OFFSET_BITS=64
+partclone_xfs_CFLAGS=-DXFS
 partclone_xfs_LDFLAGS=
 partclone_xfs_LDADD=-lxfs -lrt -lpthread
 endif
@@ -73,7 +77,7 @@ endif
 if ENABLE_EXFAT
 sbin_PROGRAMS += partclone.exfat
 partclone_exfat_SOURCES=main.c partclone.c progress.c exfatclone.c exfatclone.h partclone.h progress.h gettext.h $(EXFATFS_SOURCE)
-partclone_exfat_CFLAGS=-DEXFAT -D_FILE_OFFSET_BITS=64
+partclone_exfat_CFLAGS=-DEXFAT
 endif
 
 if ENABLE_FAT
@@ -99,24 +103,24 @@ endif
 if ENABLE_UFS
 sbin_PROGRAMS += partclone.ufs
 partclone_ufs_SOURCES=main.c partclone.c progress.c ufsclone.c ufsclone.h partclone.h progress.h gettext.h
-partclone_ufs_CFLAGS=-DUFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64
+partclone_ufs_CFLAGS=-DUFS -D_GNU_SOURCE
 partclone_ufs_LDADD=-lufs -lbsd
 endif
 
 if ENABLE_VMFS
 sbin_PROGRAMS += partclone.vmfs
 partclone_vmfs_SOURCES=main.c partclone.c progress.c vmfsclone.c vmfsclone.h partclone.h progress.h gettext.h
-partclone_vmfs_CFLAGS=-DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
+partclone_vmfs_CFLAGS=-DVMFS -D_GNU_SOURCE $(UUID_CFLAGS)
 partclone_vmfs_LDADD=-lvmfs -luuid
 
 sbin_PROGRAMS += partclone.vmfs5
 partclone_vmfs5_SOURCES=main.c partclone.c progress.c vmfs5clone.c vmfsclone.h partclone.h progress.h gettext.h
-partclone_vmfs5_CFLAGS=-DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
+partclone_vmfs5_CFLAGS=-DVMFS -D_GNU_SOURCE $(UUID_CFLAGS)
 partclone_vmfs5_LDADD=-lvmfs -luuid
 
 sbin_PROGRAMS += partclone.fstype
 partclone_fstype_SOURCES=fstype.c
-partclone_fstype_CFLAGS=-DVMFS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 $(UUID_CFLAGS)
+partclone_fstype_CFLAGS=-DVMFS -D_GNU_SOURCE $(UUID_CFLAGS)
 partclone_fstype_LDADD=-lvmfs -luuid
 
 endif
@@ -132,7 +136,7 @@ endif
 if ENABLE_BTRFS
 sbin_PROGRAMS += partclone.btrfs
 partclone_btrfs_SOURCES=main.c partclone.c progress.c btrfsclone.c btrfsclone.h partclone.h progress.h gettext.h $(BTRFS_SOURCE)
-partclone_btrfs_CFLAGS=-DBTRFS -D_FILE_OFFSET_BITS=64
+partclone_btrfs_CFLAGS=-DBTRFS
 partclone_btrfs_LDADD=-luuid
 endif
 
