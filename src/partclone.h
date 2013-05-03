@@ -46,7 +46,7 @@
 
 #define IMAGE_VERSION "0001"
 #define VERSION_SIZE 4
-#define BUFFER_SIZE 262144
+#define DEFAULT_BUFFER_SIZE 262144
 #define SECTOR_SIZE 512
 #define CRC_SIZE 4
 
@@ -97,6 +97,7 @@ struct cmd_opt
     int no_block_detail;
     int restore_raw_file;
     int skip_write_error;
+    int buffer_size;
     unsigned long offset;
     unsigned long fresh;
     unsigned long long offset_domain;

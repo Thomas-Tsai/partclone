@@ -399,7 +399,7 @@ int main(int argc, char **argv) {
 		unsigned long crc = 0xffffffffL;
 		int block_size = image_hdr.block_size;
 		unsigned long long blocks_total = image_hdr.totalblock;
-		int blocks_in_buffer = block_size < BUFFER_SIZE ? BUFFER_SIZE / block_size : 1;
+		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 		char *read_buffer, *write_buffer;
 
 		read_buffer = (char*)malloc(blocks_in_buffer * block_size);
@@ -498,7 +498,7 @@ int main(int argc, char **argv) {
 		int block_size = image_hdr.block_size;
 		unsigned long long blocks_used = image_hdr.usedblocks;
 		unsigned long long blocks_total = image_hdr.totalblock;
-		int blocks_in_buffer = block_size < BUFFER_SIZE ? BUFFER_SIZE / block_size : 1;
+		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 
 		read_buffer = (char*)malloc(blocks_in_buffer * (block_size + 2 * CRC_SIZE));
 		write_buffer = (char*)malloc(blocks_in_buffer * (block_size + CRC_SIZE));
@@ -652,7 +652,7 @@ int main(int argc, char **argv) {
 		char *buffer;
 		int block_size = image_hdr.block_size;
 		unsigned long long blocks_total = image_hdr.totalblock;
-		int blocks_in_buffer = block_size < BUFFER_SIZE ? BUFFER_SIZE / block_size : 1;
+		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 
 		buffer = (char*)malloc(blocks_in_buffer * block_size);
 		if (buffer == NULL) {

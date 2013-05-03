@@ -98,7 +98,15 @@ void print_readable_size_str(unsigned long long size_byte, char *new_size_str) {
  */
 void usage(void) {
 	fprintf(stderr, "%s v%s http://partclone.org\nUsage: %s [OPTIONS]\n"
+#ifdef CHKIMG
+		"    Check partclone image.\n"
+#else
+#ifdef RESTORE
+		"    Restore partclone image to a device or standard output.\n"
+#else
 		"    Efficiently clone to a image, device or standard output.\n"
+#endif
+#endif
 		"\n"
 #ifndef CHKIMG
 		"    -o,  --output FILE      Output FILE\n"
@@ -120,23 +128,24 @@ void usage(void) {
 #endif
 		"    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
 		"    -C,  --no_check         Don't check device size and free space\n"
-#ifndef CHKIMG
 #ifdef HAVE_LIBNCURSESW
 		"    -N,  --ncurses          Using Ncurses User Interface\n"
 #endif
+#ifndef CHKIMG
 		"    -I,  --ignore_fschk     Ignore filesystem check\n"
 #endif
 		"    -i,  --ignore_crc       Ignore crc check error\n"
 		"    -F,  --force            Force progress\n"
 		"    -f,  --UI-fresh         Fresh times of progress\n"
 		"    -B,  --no_block_detail  Show progress message without block detail\n"
+		"    -z,  --buffer_size SIZE Read/write buffer size (default: %d)\n"
 #ifndef CHKIMG
 		"    -q,  --quiet            Disable progress message\n"
 		"    -E,  --offset=X         Add offset X (bytes) to OUTPUT\n"
 #endif
 		"    -v,  --version          Display partclone version\n"
 		"    -h,  --help             Display this help\n"
-		, EXECNAME, VERSION, EXECNAME);
+		, EXECNAME, VERSION, EXECNAME, DEFAULT_BUFFER_SIZE);
 	exit(0);
 }
 
@@ -151,12 +160,12 @@ enum {
 
 void parse_options(int argc, char **argv, cmd_opt* opt) {
 #ifdef CHKIMG
-	static const char *sopt = "-hvd::L:s:f:CFiB";
+	static const char *sopt = "-hvd::L:s:f:CFiBz:N";
 #else
 #ifdef RESTORE
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBE:";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:";
 #else
-	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBE:";
+	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBz:E:";
 #endif
 #endif
 	static const struct option lopt[] = {
@@ -171,6 +180,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "ignore_crc",		no_argument,		NULL,   'i' },
 		{ "force",		no_argument,		NULL,   'F' },
 		{ "no_block_detail",	no_argument,		NULL,   'B' },
+		{ "buffer_size",	required_argument,	NULL,   'z' },
 // not RESTORE and not CHKIMG
 #ifndef CHKIMG
 #ifndef RESTORE
@@ -191,9 +201,9 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "ignore_fschk",	no_argument,		NULL,   'I' },
 		{ "quiet",		no_argument,		NULL,   'q' },
 		{ "offset",		required_argument,	NULL,   'E' },
+#endif
 #ifdef HAVE_LIBNCURSESW
 		{ "ncurses",		no_argument,		NULL,   'N' },
-#endif
 #endif
 		{ NULL,			0,			NULL,    0  }
 	};
@@ -211,6 +221,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	opt->no_block_detail = 0;
 	opt->fresh = 2;
 	opt->logfile = "/var/log/partclone.log";
+	opt->buffer_size = DEFAULT_BUFFER_SIZE;
 
 #ifdef RESTORE
 	opt->restore++;
@@ -256,6 +267,9 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				break;
 			case 'B':
 				opt->no_block_detail = 1;
+				break;
+			case 'z':
+				opt->buffer_size = atol(optarg);
 				break;
 #ifndef CHKIMG
 #ifndef RESTORE
@@ -304,11 +318,11 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 			case 'E':
 				opt->offset = atol(optarg);
 				break;
+#endif
 #ifdef HAVE_LIBNCURSESW
 			case 'N':
 				opt->ncurses = 1;
 				break;
-#endif
 #endif
 			default:
 				fprintf(stderr, "Unknown option '%s'.\n", argv[optind-1]);
@@ -325,7 +339,12 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	}
 
 	if ((!opt->target) && (!opt->source)) {
-		fprintf(stderr, "There is no image name. or --help get more info.\n");
+		fprintf(stderr, "There is no image name. Use --help get more info.\n");
+		exit(0);
+	}
+
+	if (opt->buffer_size < 512) {
+		fprintf(stderr, "Too small or bad buffer size. Use --help get more info.\n");
 		exit(0);
 	}
 
