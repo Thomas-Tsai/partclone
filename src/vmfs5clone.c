@@ -337,6 +337,9 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
      * thread to print progress
      */
     bres = pthread_create(&prog_bitmap_thread, NULL, thread_update_bitmap_pui, NULL);
+    if(bres){
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, thread create error\n", __func__, __LINE__);
+    }
 
     fdc_bmp = &fs->fdc->bmh;
     log_mesg(3, 0, 0, fs_opt.debug, "Scanning %u FDC entries...\n",fdc_bmp->total_items);

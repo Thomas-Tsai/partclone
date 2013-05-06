@@ -33,10 +33,12 @@
 #include <ntfs-3g/device.h>
 #include <ntfs-3g/volume.h>
 #include <ntfs-3g/bitmap.h>
+#include <ntfs-3g/misc.h>
 #else
 #include <ntfs/device.h>
 #include <ntfs/volume.h>
 #include <ntfs/bitmap.h>
+#include <ntfs/support.h>
 #endif
 
 #include "partclone.h"
@@ -74,6 +76,7 @@ ntfs_volume *ntfs;
 
 #define BITCOUNT(x) (((BCX(x) + (BCX(x) >> 4)) & 0x0F0F0F0F) % 255)
 
+#ifndef NTFS3G
 static u8 *ntfs_init_lut256(void)
 {
         int i;
@@ -86,7 +89,6 @@ static u8 *ntfs_init_lut256(void)
         return lut;
 }
 
-#ifndef NTFS3G
 static s64 ntfs_attr_get_free_bits(ntfs_attr *na)
 {
         u8 *buf, *lut;

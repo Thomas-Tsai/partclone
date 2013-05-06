@@ -765,7 +765,6 @@ int check_mount(const char* device, char* mount_p){
 	FILE * f;
 	struct mntent * mnt;
 	int isMounted = 0;
-	int err = 0;
 
 	real_file = malloc(PATH_MAX + 1);
 	if (!real_file) {
@@ -779,7 +778,7 @@ int check_mount(const char* device, char* mount_p){
 	}
 
 	if (!realpath(device, real_file))
-		err = errno;
+		return -1;
 
 	if ((f = setmntent(MOUNTED, "r")) == 0) {
 		free(real_file);
@@ -803,7 +802,7 @@ int check_mount(const char* device, char* mount_p){
 }
 
 int open_source(char* source, cmd_opt* opt) {
-	int ret;
+	int ret = 0;
 	int debug = opt->debug;
 	char *mp;
 	int flags = O_RDONLY | O_LARGEFILE;
@@ -840,7 +839,7 @@ int open_source(char* source, cmd_opt* opt) {
 }
 
 int open_target(char* target, cmd_opt* opt) {
-	int ret;
+	int ret = 0;
 	int debug = opt->debug;
 	char *mp;
 	int flags = O_WRONLY | O_LARGEFILE;
@@ -939,14 +938,14 @@ void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt) {
 
 	if (lseek(*fd, pos, SEEK_SET) == (off_t)-1) {
 		log_mesg(0, 0, 1, opt->debug, "WARNING: lseek error at %llu\n", pos);
-		memset(buff, '?', SECTOR_SIZE);
+		memset(buff, '?', PART_SECTOR_SIZE);
 		memmove(buff, badsector_magic, sizeof(badsector_magic));
 		return;
 	}
 
-	if (io_all(fd, buff, SECTOR_SIZE, 0, opt) == -1) { /// read_all
+	if (io_all(fd, buff, PART_SECTOR_SIZE, 0, opt) == -1) { /// read_all
 		log_mesg(0, 0, 1, opt->debug, "WARNING: Can't read sector at %llu, lost data.\n", pos);
-		memset(buff, '?', SECTOR_SIZE);
+		memset(buff, '?', PART_SECTOR_SIZE);
 		memmove(buff, badsector_magic, sizeof(badsector_magic));
 	}
 }

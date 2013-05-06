@@ -11,6 +11,7 @@
  */
 
 #include <string.h>
+#include <unistd.h>
 #include "partclone.h"
 
 extern cmd_opt opt;
@@ -31,9 +32,9 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 	}
 	strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
 	strncpy(image_hdr->fs, raw_MAGIC, FS_MAGIC_SIZE);
-	image_hdr->block_size  = SECTOR_SIZE;
+	image_hdr->block_size  = PART_SECTOR_SIZE;
 	image_hdr->device_size = get_partition_size(&src);
-	image_hdr->totalblock  = image_hdr->device_size / SECTOR_SIZE;
-	image_hdr->usedblocks  = image_hdr->device_size / SECTOR_SIZE;
+	image_hdr->totalblock  = image_hdr->device_size / PART_SECTOR_SIZE;
+	image_hdr->usedblocks  = image_hdr->device_size / PART_SECTOR_SIZE;
 	close(src);
 }

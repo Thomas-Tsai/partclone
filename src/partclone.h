@@ -46,8 +46,8 @@
 
 #define IMAGE_VERSION "0001"
 #define VERSION_SIZE 4
-#define DEFAULT_BUFFER_SIZE 262144
-#define SECTOR_SIZE 512
+#define DEFAULT_BUFFER_SIZE 1048576
+#define PART_SECTOR_SIZE 512
 #define CRC_SIZE 4
 
 // Reference: ntfsclone.c

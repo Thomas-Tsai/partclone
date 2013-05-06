@@ -80,16 +80,18 @@ static void print_fork_data(HFSPlusForkData* fork){
 /// open device
 static void fs_open(char* device){
 
-    int s, r;
     char *buffer;
     short HFS_Version;
     char HFS_Signature[2];
     int HFS_Clean = 0;
 
     ret = open(device, O_RDONLY);
-    s = lseek(ret, 1024, SEEK_SET);
+    if(lseek(ret, 1024, SEEK_SET) != 1024)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: device %s seek fail\n", __FILE__, device);
+	
     buffer = (char*)malloc(sizeof(HFSPlusVolumeHeader));
-    r = read (ret, buffer, sizeof(HFSPlusVolumeHeader));
+    if (read (ret, buffer, sizeof(HFSPlusVolumeHeader)) != sizeof(HFSPlusVolumeHeader))
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: read HFSPlusVolumeHeader fail\n", __FILE__);
     memcpy(&sb, buffer, sizeof(HFSPlusVolumeHeader));
 
     HFS_Signature[0] = (char)sb.signature;
@@ -123,7 +125,7 @@ static void fs_close(){
 
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui){
 
-    int rd = 0, IsUsed = 0, sk = 0;
+    int IsUsed = 0;
     UInt8 *extent_bitmap;
     UInt32 bused = 0, bfree = 0, mused = 0;
     UInt32 block = 0, extent_block = 0, tb = 0;
@@ -157,9 +159,11 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
             continue;
         }
 
-        sk = lseek(ret, allocation_start_block, SEEK_SET);
+        if(lseek(ret, allocation_start_block, SEEK_SET) != allocation_start_block)
+	     log_mesg(0, 1, 1, fs_opt.debug, "%s: start_block %i seek fail\n", __FILE__, allocation_start_block);
         extent_bitmap = (UInt8*)malloc(allocation_block_size);
-        rd = read(ret, extent_bitmap, allocation_block_size);
+        if(read(ret, extent_bitmap, allocation_block_size) != allocation_block_size)
+	    log_mesg(0, 0, 1, fs_opt.debug, "%s: read hfsp bitmap fail\n", __FILE__);
         for(extent_block = 0 ; (extent_block < allocation_block_size*8) && (block< tb); extent_block++){
             IsUsed = IsAllocationBlockUsed(extent_block, extent_bitmap);
             if (IsUsed){

@@ -183,7 +183,6 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     xfs_off_t	    btree_buf_position;
     xfs_agblock_t   bno;
     uint	    current_level;
-    uint	    btree_levels;
     xfs_daddr_t     begin, next_begin, ag_begin, new_begin, ag_end;
 						/* xfs_types.h: typedef __s64*/
     xfs_off_t       pos;
@@ -272,7 +271,6 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
 	bno = be32_to_cpu(ag_hdr.xfs_agf->agf_roots[XFS_BTNUM_BNOi]);
 	current_level = 0;
-	btree_levels = be32_to_cpu(ag_hdr.xfs_agf->agf_levels[XFS_BTNUM_BNOi]);
 
 	ag_end = XFS_AGB_TO_DADDR(mp, agno, be32_to_cpu(ag_hdr.xfs_agf->agf_length) - 1) + source_blocksize / BBSIZE;
 

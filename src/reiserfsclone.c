@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <linux/types.h>
 #include <reiserfs/reiserfs.h>
+#include <dal/file_dal.h>
 #include "partclone.h"
 #include "reiserfsclone.h"
 #include "progress.h"

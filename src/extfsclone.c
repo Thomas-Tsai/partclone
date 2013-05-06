@@ -80,15 +80,6 @@ static int block_size(){
     return EXT2_BLOCK_SIZE(fs->super);
 }
 
-/// get device size
-static unsigned long long device_size(char* device){
-    blk_t size;
-    unsigned long long dev_size;
-    ext2fs_get_device_size(device, EXT2_BLOCK_SIZE(fs->super), &size);
-    dev_size = (unsigned long long)(size * EXT2_BLOCK_SIZE(fs->super));
-    return dev_size;
-}
-
 /// get total block from super block
 static unsigned long long block_count(){
     return (unsigned long long)fs->super->s_blocks_count;
@@ -227,13 +218,13 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 {
     int fs_type = 0;
     fs_type = test_extfs_type(device);
+    log_mesg(1, 0, 0, fs_opt.debug, "%s: extfs version is %i\n", __FILE__, fs_type);
     strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
     strncpy(image_hdr->fs, extfs_MAGIC, FS_MAGIC_SIZE);
     fs_open(device);
     image_hdr->block_size = (int)block_size();
     image_hdr->totalblock = (unsigned long long)block_count();
     image_hdr->usedblocks = (unsigned long long)get_used_blocks();
-    //image_hdr->device_size = (unsigned long long)device_size(device);
     image_hdr->device_size = (unsigned long long)(image_hdr->block_size * image_hdr->totalblock);
     fs_close();
 }

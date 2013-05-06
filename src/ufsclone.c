@@ -19,6 +19,7 @@
 #include "ufs/sys/disklabel.h"
 #include "ufs/libufs.h"
 
+#include <string.h>
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -46,7 +47,7 @@ static unsigned long long get_used_block()
 {
     unsigned long long     block, bused = 0, bfree = 0;
     int                    i = 0;
-    char		   *p;
+    unsigned char	   *p;
 
 
     /// read group
@@ -138,7 +139,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 {
     unsigned long long     total_block, block, bused = 0, bfree = 0;
     int                    done = 0, i = 0, start = 0, bit_size = 1;
-    char* p;
+    unsigned char* p;
 
 
     fs_open(device);

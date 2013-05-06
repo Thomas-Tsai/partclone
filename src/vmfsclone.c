@@ -83,7 +83,7 @@ static uint32_t logical_volume_offset(vmfs_fs_t *fs)
 /// readbitmap - read bitmap
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
-    uint32_t offset, total, alloc, current;
+    uint32_t offset, total, current;
     uint32_t used_block = 0, free_block = 0, err_block = 0;
     int status = 0;
     int start = 0;
@@ -96,7 +96,6 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     offset = logical_volume_offset(fs);
     total = fs->fbb->bmh.total_items + offset;
-    alloc = vmfs_bitmap_allocated_items(fs->fbb) + offset;
 
     // containing the volume information and the LVM information
     for(current = 0; current < offset; current++){

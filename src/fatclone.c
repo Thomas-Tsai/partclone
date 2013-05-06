@@ -208,7 +208,6 @@ static unsigned long long mark_reserved_sectors(unsigned long* fat_bitmap, unsig
 /// open device
 static void fs_open(char* device)
 {
-    int r = 0;
     char *buffer;
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s: open device\n", __FILE__);
@@ -218,7 +217,8 @@ static void fs_open(char* device)
     if(buffer == NULL){
         log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     }
-    r = read (ret, buffer, sizeof(FatBootSector));
+    if(read (ret, buffer, sizeof(FatBootSector)) != sizeof(FatBootSector))
+	log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     memcpy(&fat_sb, buffer, sizeof(FatBootSector));
     free(buffer);
 
@@ -226,7 +226,8 @@ static void fs_open(char* device)
     if(buffer == NULL){
         log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     }
-    r = read(ret, &fatfs_info, sizeof(FatFsInfo));
+    if (read(ret, &fatfs_info, sizeof(FatFsInfo)) != sizeof(FatFsInfo))
+	log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
     memcpy(&fatfs_info, buffer, sizeof(FatFsInfo));
     free(buffer);
 

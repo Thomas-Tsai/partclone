@@ -35,6 +35,7 @@
 #include <jfs/jfs_xtree.h>
 #include <jfs/jfs_byteorder.h>
 #include <jfs/devices.h>
+#include <jfs/super.h>
 
 #include "partclone.h"
 #include "jfsclone.h"
@@ -62,12 +63,13 @@
 }
 
 
+int ujfs_rwdaddr(FILE *, int64_t *, struct dinode *, int64_t, int32_t, int32_t);
 static int decode_pagenum(int64_t page, int *l1, int *l0, int *dmap);
 static int find_iag(unsigned iagnum, unsigned which_table, int64_t * address);
 static int find_inode(unsigned inum, unsigned which_table, int64_t * address);
 static int xRead(int64_t, unsigned, char *);
 static int jfs_bit_inuse(unsigned *bitmap, uint64_t block);
-static uint64_t get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks);
+static void get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks);
 
 struct superblock sb;
 FILE *fp;
@@ -137,7 +139,6 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     int64_t block_free = 0;
     uint64_t logloc = 0;
     int logsize = 0;
-    int dmap_level = 0;
     int64_t dn_mapsize = 0;
 
     int start = 0;
@@ -166,7 +167,6 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):xRead error %i\n", __FILE__, __LINE__);
     }
     dn_mapsize = cntl_page.dn_mapsize;
-    dmap_level = BMAPSZTOLEV(cntl_page.dn_mapsize);
     dmap_l2bpp = cntl_page.dn_l2nbperpage;
 
     /// display leaf 
@@ -296,7 +296,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr){
 }
 
 /// get_all_used_blocks
-extern uint64_t get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks){
+extern void get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks){
 
     int64_t address;
     int64_t cntl_addr;

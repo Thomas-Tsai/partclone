@@ -75,6 +75,9 @@ cmd_opt opt;
 #elif NTFS
 #include "ntfsclone-ng.h"
 #define FS "NTFS"
+#elif NTFS3G
+#include "ntfsclone-ng.h"
+#define FS "NTFS"
 #elif UFS
 #include "ufsclone.h"
 #define FS "UFS"
@@ -133,7 +136,7 @@ int main(int argc, char **argv) {
 	int			pui = 0;		/// progress mode(default text)
 	
 	int			flag;
-	int			pres;
+	int			pres = 0;
 	pthread_t		prog_thread;
 	void			*p_result;
 
@@ -205,6 +208,7 @@ int main(int argc, char **argv) {
 	 */
 	source = opt.source;
 	target = opt.target;
+	log_mesg(1, 0, 0, debug, "source=%s, target=%s \n", source, target);
 	dfr = open_source(source, &opt);
 	if (dfr == -1) {
 		log_mesg(0, 1, 1, debug, "Error exit\n");
@@ -390,6 +394,9 @@ int main(int argc, char **argv) {
 	 * thread to print progress
 	 */
 	pres = pthread_create(&prog_thread, NULL, thread_update_pui, NULL);
+	if(pres)
+	    log_mesg(0, 1, 1, debug, "%s, %i, thread create error\n", __func__, __LINE__);
+
 
 	/**
 	 * start read and write data between source and destination
@@ -454,7 +461,7 @@ int main(int argc, char **argv) {
 				if ((r_size == -1) && (errno == EIO)) {
 					if (opt.rescue) {
 						memset(read_buffer, 0, blocks_read * block_size);
-						for (r_size = 0; r_size < blocks_read * block_size; r_size += SECTOR_SIZE)
+						for (r_size = 0; r_size < blocks_read * block_size; r_size += PART_SECTOR_SIZE)
 							rescue_sector(&dfr, offset + r_size, read_buffer + r_size, &opt);
 					} else
 						log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
@@ -705,7 +712,7 @@ int main(int argc, char **argv) {
 				if ((r_size == -1) && (errno == EIO)) {
 					if (opt.rescue) {
 						memset(buffer, 0, blocks_read * block_size);
-						for (r_size = 0; r_size < blocks_read * block_size; r_size += SECTOR_SIZE)
+						for (r_size = 0; r_size < blocks_read * block_size; r_size += PART_SECTOR_SIZE)
 							rescue_sector(&dfr, offset + r_size, buffer + r_size, &opt);
 					} else
 						log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
@@ -781,6 +788,8 @@ int main(int argc, char **argv) {
 
 	done = 1;
 	pres = pthread_join(prog_thread, &p_result);
+	if(pres)
+	    log_mesg(0, 1, 1, debug, "%s, %i, thread join error\n", __func__, __LINE__);
 	update_pui(&prog, copied, block_id, done);
 #ifndef CHKIMG
 	sync_data(dfw, &opt);

@@ -8,7 +8,6 @@ vmfs_dir_t *root_dir;
 
 /// open device
 static int pvmfs_fs_open(char* device){
-    vmfs_lvm_t *lvm;
     vmfs_flags_t flags;
     char *mdev[] = {device, NULL};
 
@@ -23,6 +22,7 @@ static int pvmfs_fs_open(char* device){
     }
     vol = vmfs_vol_open(device, flags);
 #else
+    vmfs_lvm_t *lvm;
     if (!(lvm = vmfs_lvm_create(flags))) {
 	fprintf(stderr, "Unable to create LVM structure\n");
 	return 1;
@@ -78,6 +78,7 @@ int main (int argc, char **argv){
 	fprintf(stderr, "error exit\n");
 	return 1;
     }
+    pvmfs_vmfs_close();
 
     return 0;
 }

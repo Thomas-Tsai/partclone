@@ -61,6 +61,8 @@ static void fs_close(){
     int ret = 0;
     btrfs_free_path(path);
     ret = close_ctree(root);
+    if(ret)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: close ctree fail\n", __FILE__);
 
 }
 
