@@ -1,4 +1,31 @@
+2013-05-20  Thomas Tsai  <thomas@nchc.org.tw>
+
+	0.2.61
+
+2013-05-06  Thomas Tsai  <thomas@nchc.org.tw>
+
+	find a lot of warning from -Wall and fix it. change default buffer size to 1M
+
+2013-05-03  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add ncurses display for chkimg. add option to assign buffer size update usage of partclone.restore
+
+2013-04-29  Thomas Tsai  <thomas@nchc.org.tw>
+
+	accept patch from Роман Шишнев to fix: 1. cpu usage, partclone uses too much cpu. The main problem is too short buffer (fs block size) for almost all io operations. To increase buffer size I had to rewrite most part of main.c. 2. duplicate code, duplicated bugs.
+	after patch which contains all my changes for partclone, Now the cpu usage is the only crc-checksumming.
+
+2013-03-29  Thomas Tsai  <thomas@nchc.org.tw>
+
+	accept patch from Jumpei Ogawa to fix memory leak. this issue also fixed to btrfs git http://git.kernel.org/cgit/linux/kernel/git/mason/btrfs-progs.git/commit/?id=1cce8d72f2d0d00bd5c9322b16176de0fb56aff6
+
+	update test exfat
+
 2013-03-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	ignore check failmbr
+
+	ready to release 0.2.60
 
 	update rules for squeeze
 

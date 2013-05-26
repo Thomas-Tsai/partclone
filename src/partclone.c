@@ -104,7 +104,7 @@ void usage(void) {
 #ifdef RESTORE
 		"    Restore partclone image to a device or standard output.\n"
 #else
-		"    Efficiently clone to a image, device or standard output.\n"
+		"    Efficiently clone to an image, device or standard output.\n"
 #endif
 #endif
 		"\n"

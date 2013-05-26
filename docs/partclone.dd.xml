@@ -146,8 +146,8 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--restore_row_file</option></arg>
 	</group>
 	<group choice="opt">
-	    <arg choice="plain"><option>-M</option></arg>
-	    <arg choice="plain"><option>--max_block_cache</option></arg>
+	    <arg choice="plain"><option>-z</option></arg>
+	    <arg choice="plain"><option>--buffer_size</option></arg>
 	</group>
 	<group choice="opt">
 	    <arg choice="plain"><option>-N</option></arg>
@@ -323,10 +323,10 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         </listitem>
       </varlistentry>
        <varlistentry>
-        <term><option>-m <replaceable>max</replaceable></option></term>
-        <term><option>--max_block_cache <replaceable>max</replaceable></option></term>
+        <term><option>-z <replaceable>size</replaceable></option></term>
+        <term><option>--buffer_size <replaceable>size</replaceable></option></term>
         <listitem>
-          <para>The used block will be cache until max number.</para>
+          <para>Read/write buffer size (default: 1048576)</para>
         </listitem>
       </varlistentry>
        <varlistentry>
