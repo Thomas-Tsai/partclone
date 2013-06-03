@@ -33,66 +33,127 @@
 /// cmd_opt structure defined in partclone.h
 cmd_opt opt;
 
+void info_usage(void) {
+	fprintf(stderr, "partclone v%s http://partclone.org\nUsage: partclone.info [OPTIONS]\n"
+	"\n"
+		"    -s,  --source FILE      Source FILE\n"
+		"    -L,  --logfile FILE     Log FILE\n"
+		"    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
+		"    -q,  --quiet            Disable progress message\n"
+		"    -v,  --version          Display partclone version\n"
+		"    -h,  --help             Display this help\n"
+		, VERSION);
+	exit(0);
+}
+
+
+void info_options (int argc, char **argv){
+
+    static const char *sopt = "-hvqd::L:s:";
+    static const struct option lopt[] = {
+	{ "help",	no_argument,	    NULL,   'h' },
+	{ "print_version",  no_argument,	NULL,   'v' },
+	{ "source",	required_argument,  NULL,   's' },
+	{ "debug",	optional_argument,  NULL,   'd' },
+	{ "logfile",	    required_argument,	NULL,   'L' },
+	{ "quiet",              no_argument,            NULL,   'q' },
+	{ NULL,			0,			NULL,    0  }
+    };
+	int c;
+	memset(&opt, 0, sizeof(cmd_opt));
+	opt.debug = 0;
+	opt.quiet = 0;
+	opt.logfile = "/var/log/partclone.log";
+	opt.target  = 0;
+	opt.clone   = 0;
+	opt.restore = 0;
+
+    while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != -1) {
+	switch (c) {
+	    case 'h':
+	    case '?':
+		info_usage();
+		break;
+	    case 'v':
+		print_version();
+		break;
+	    case 's':
+		opt.source = optarg;
+		break;
+	    case 'q':
+		opt.quiet = 1;
+		break;
+	    case 'd':
+		if (optarg)
+		    opt.debug = atol(optarg);
+		else
+		    opt.debug = 1;
+		break;
+	    case 'L':
+		opt.logfile = optarg;
+		break;
+	    default:
+		fprintf(stderr, "Unknown option '%s'.\n", argv[optind-1]);
+		info_usage();
+	}
+    }
+
+}
+
 /**
  * main functiom - print Image file metadata.
  */
 int main(int argc, char **argv){ 
 
-	char*		source;			/// source data
-	int		dfr;			/// file descriptor for source and target
-	unsigned long	*bitmap;		/// the point for bitmap data
-	image_head	image_hdr;		/// image_head structure defined in partclone.h
-	int		debug = 1;
+    int		dfr;			/// file descriptor for source and target
+    unsigned long	*bitmap;		/// the point for bitmap data
+    image_head	image_hdr;		/// image_head structure defined in partclone.h
 
-	if (!argv[1]) {
-		printf("Please give the image file name.\n");
-		exit(0);
-	}
-
+    if (argc == 2){
+	memset(&opt, 0, sizeof(cmd_opt));
 	opt.source  = argv[1];
-	opt.target  = 0;
-	opt.debug   = 0;
-	opt.clone   = 0;
-	opt.restore = 0;
 	opt.logfile = "/var/log/partclone.log";
-	open_log(opt.logfile);
-
-	/// print partclone info
-	print_partclone_info(opt);
-
-	/**
-	 * open Image file
-	 */
-	source = argv[1];
-
-	dfr = open(source, O_RDONLY);
+	dfr = open(opt.source, O_RDONLY);
 	if (dfr == -1)
-		printf("Can't open file(%s)\n", source);
+	    info_options(argc, argv);
+    } else
+	info_options(argc, argv);
+    open_log(opt.logfile);
 
-	/// get image information from image file
-	restore_image_hdr(&dfr, &opt, &image_hdr);
-	if (memcmp(image_hdr.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE) != 0)
-		log_mesg(0, 1, 1, debug, "The Image magic error. This file is NOT partclone Image\n");
+    /// print partclone info
+    print_partclone_info(opt);
 
-	/// alloc a memory to restore bitmap
-	bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
-	if (bitmap == NULL)
-		log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
+    /**
+     * open Image file
+     */
+    dfr = open(opt.source, O_RDONLY);
+    if (dfr == -1)
+	printf("Can't open file(%s)\n", opt.source);
 
-	log_mesg(0, 0, 0, debug, "initial main bitmap pointer %p\n", bitmap);
-	log_mesg(0, 0, 0, debug, "Initial image hdr: read bitmap table\n");
+    /// get image information from image file
+    restore_image_hdr(&dfr, &opt, &image_hdr);
+    if (memcmp(image_hdr.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE) != 0)
+	log_mesg(0, 1, 1, opt.debug, "The Image magic error. This file is NOT partclone Image\n");
 
-	/// read and check bitmap from image file
-	get_image_bitmap(&dfr, opt, image_hdr, bitmap);
+    /// alloc a memory to restore bitmap
+    bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
+    if (bitmap == NULL)
+	log_mesg(0, 1, 1, opt.debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 
-	log_mesg(0, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
-	log_mesg(0, 0, 0, debug, "print image_head\n");
+    log_mesg(0, 0, 0, opt.debug, "initial main bitmap pointer %p\n", bitmap);
+    log_mesg(0, 0, 0, opt.debug, "Initial image hdr: read bitmap table\n");
 
-	/// print image_head
-	print_image_hdr_info(image_hdr, opt);
+    /// read and check bitmap from image file
+    get_image_bitmap(&dfr, opt, image_hdr, bitmap);
 
-	close(dfr);     /// close source
-	free(bitmap);   /// free bitmp
-	close_log();
-	return 0;       /// finish
+    log_mesg(0, 0, 0, opt.debug, "check main bitmap pointer %p\n", bitmap);
+    log_mesg(0, 0, 0, opt.debug, "print image_head\n");
+
+    /// print image_head
+    print_image_hdr_info(image_hdr, opt);
+
+    close(dfr);     /// close source
+    free(bitmap);   /// free bitmp
+    close_log();
+    return 0;       /// finish
 }

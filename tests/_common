@@ -1,6 +1,6 @@
 #!/bin/bash
 
-break_debug=0
+break_debug=1
 logfile='test.log'
 img='floppy.img'
 raw='floppy.raw'
@@ -10,6 +10,7 @@ floppy_size=1024
 current_dir=`pwd`
 ptldir="../src"
 
+ptlinfo=$ptldir/partclone.info
 ptlchkimg=$ptldir/partclone.chkimg
 ptlrestore=$ptldir/partclone.restore
 
