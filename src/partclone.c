@@ -957,34 +957,36 @@ void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt) {
 /// generate crc32 code
 unsigned long crc32(unsigned long crc, char *buf, int size){
 
-	unsigned long crc_tab32[256];
-	unsigned long init_crc, init_p;
+	static unsigned long crc_tab32[256];
+	static int init = 0;
+
 	unsigned long tmp, long_c;
-	int i, j, init = 0, s = 0 ;
+	int s = 0;
 	char c;
-	init_p = 0xEDB88320L;
+
+	if (init == 0) {
+		/// initial crc table
+		unsigned long init_crc, init_p;
+		int i, j;
+		init_p = 0xEDB88320L;
+
+		for (i = 0; i < 256; i++) {
+			init_crc = (unsigned long) i;
+			for (j = 0; j < 8; j++) {
+				if ( init_crc & 0x00000001L ) init_crc = ( init_crc >> 1 ) ^ init_p;
+				else init_crc = init_crc >> 1;
+			}
+			crc_tab32[i] = init_crc;
+		}
+		init = 1;
+	}
 
 	do {
-		memcpy(&c, buf, sizeof(char));
-		s = s + sizeof(char);
-		/// initial crc table
-		if (init == 0) {
-			for (i = 0; i < 256; i++) {
-				init_crc = (unsigned long) i;
-				for (j = 0; j < 8; j++) {
-					if ( init_crc & 0x00000001L ) init_crc = ( init_crc >> 1 ) ^ init_p;
-					else init_crc = init_crc >> 1;
-				}
-				crc_tab32[i] = init_crc;
-			}
-			init = 1;
-		}
-
 		/// update crc
-		long_c = 0x000000ffL & (unsigned long) c;
+		long_c = 0x000000ffL & (unsigned long) *buf;
 		tmp = crc ^ long_c;
 		crc = (crc >> 8) ^ crc_tab32[ tmp & 0xff ];
-	} while (s < size);
+	} while (++s < size);
 
 	return crc;
 }
