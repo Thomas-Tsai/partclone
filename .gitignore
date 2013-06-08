@@ -30,4 +30,5 @@ src/partclone.reiserfs
 src/partclone.restore
 src/partclone.xfs
 src/partclone.minix
+src/version.h
 stamp-h1
