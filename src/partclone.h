@@ -103,6 +103,26 @@ struct cmd_opt
     unsigned long long offset_domain;
 };
 typedef struct cmd_opt cmd_opt;
+
+/* Disable fields alignment for struct stored in the image */
+#pragma pack(push, 1)
+
+struct image_head
+{
+    char magic[IMAGE_MAGIC_SIZE];
+    char fs[FS_MAGIC_SIZE];
+    char version[VERSION_SIZE];
+    char padding[2];
+    int  block_size;
+    unsigned long long device_size;
+    unsigned long long totalblock;
+    unsigned long long usedblocks;
+    char buff[4096];
+};
+typedef struct image_head image_head;
+
+#pragma pack(pop)
+
 extern void usage(void);
 extern void print_version(void);
 extern void parse_options(int argc, char **argv, cmd_opt* opt);
@@ -128,23 +148,6 @@ extern void close_log();
 extern int io_all(int *fd, char *buffer, unsigned long long count, int do_write, cmd_opt *opt);
 extern void sync_data(int fd, cmd_opt* opt);
 extern void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt);
-/**
- * for restore used functions
- * restore_image_hdr	- get image_head from image file 
- * get_image_bitmap	- read bitmap data from image file
- */
-struct image_head 
-{
-    char magic[IMAGE_MAGIC_SIZE];
-    char fs[FS_MAGIC_SIZE];
-    char version[VERSION_SIZE];
-    int block_size;
-    unsigned long long device_size;
-    unsigned long long totalblock;
-    unsigned long long usedblocks;
-    char buff[4096];
-};
-typedef struct image_head image_head;
 
 extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr);
 extern void get_image_hdr(int* ret, cmd_opt opt, image_head image_hdr, unsigned long* bitmap);
