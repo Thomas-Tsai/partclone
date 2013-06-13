@@ -198,19 +198,21 @@ static int test_extfs_type(char* device){
     int ext2 = 1;
     int ext3 = 2;
     int ext4 = 3;
+    int device_type;
+
     fs_open(device);
     if(fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM){
 	log_mesg(1, 0, 0, fs_opt.debug, "%s: test feature as EXT4\n", __FILE__);
-	return ext4;
+	device_type = ext4;
     } else if (fs->super->s_feature_compat & EXT3_FEATURE_COMPAT_HAS_JOURNAL){
 	log_mesg(1, 0, 0, fs_opt.debug, "%s: test feature as EXT3\n", __FILE__);
-	return ext3;
+	device_type = ext3;
     } else {
 	log_mesg(1, 0, 0, fs_opt.debug, "%s: test feature as EXT2\n", __FILE__);
-	return ext2;
+	device_type = ext2;
     }
     fs_close();
-    return 0;
+    return device_type;
 }
 
 /// read super block and write to image head
