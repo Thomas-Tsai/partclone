@@ -962,7 +962,6 @@ unsigned long crc32(unsigned long crc, char *buf, int size){
 
 	unsigned long tmp, long_c;
 	int s = 0;
-	char c;
 
 	if (init == 0) {
 		/// initial crc table
