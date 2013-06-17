@@ -1,8 +1,10 @@
 *.o
 */Makefile
 Makefile
+Makefile.in
 autom4te.cache/
 config.h
+config.h.in
 config.log
 config.status
 get_lib_version
@@ -10,6 +12,7 @@ po/Makefile.in
 fail-mbr/fail-mbr.bin
 fail-mbr/fail-mbr.image
 src/.deps/
+src/Makefile.in
 src/partclone.btrfs
 src/partclone.fstype
 src/partclone.jfs
@@ -31,4 +34,5 @@ src/partclone.restore
 src/partclone.xfs
 src/partclone.minix
 src/version.h
+tests/Makefile.in
 stamp-h1
