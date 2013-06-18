@@ -503,9 +503,19 @@ int main(int argc, char **argv) {
 		unsigned long crc = 0xffffffffL;
 		char *read_buffer, *write_buffer;
 		int block_size = image_hdr.block_size;
+		unsigned long long blocks_used_fix = 0, test_block = 0;
 		unsigned long long blocks_used = image_hdr.usedblocks;
 		unsigned long long blocks_total = image_hdr.totalblock;
 		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
+
+
+		// fix some super block record incorrect
+		for (test_block = 0; test_block < blocks_total; test_block++)
+		    if ( pc_test_bit(test_block, bitmap))
+			blocks_used_fix++;
+		
+		if (blocks_used_fix != blocks_used)
+		    blocks_used = blocks_used_fix;
 
 		read_buffer = (char*)malloc(blocks_in_buffer * (block_size + 2 * CRC_SIZE));
 		write_buffer = (char*)malloc(blocks_in_buffer * (block_size + CRC_SIZE));
