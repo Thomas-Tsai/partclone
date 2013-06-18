@@ -97,7 +97,7 @@ then
   file="$scriptdir/src/version.h"
   GIT_REPOSITORY=`git remote -v | grep partclone`
   GIT_REVISION=`git log -1 | grep commit | sed 's/commit //'`
-  GIT_REVISION_UPSTREAM=`git log master -1 | grep commit | sed 's/commit //'`
+  #GIT_REVISION_UPSTREAM=`git log master -1 | grep commit | sed 's/commit //'`
   git_ver="none"
 
   if [ "${GIT_REPOSITORY}" = "" ];
@@ -106,9 +106,10 @@ then
     exit 0
   fi
 
-  if [ "${GIT_REVISION_UPSTREAM}" != "" ]; then
-      git_ver=$GIT_REVISION_UPSTREAM
-  elif [ "${GIT_REVISION}" != "" ]; then
+  #if [ "${GIT_REVISION_UPSTREAM}" != "" ]; then
+  #    git_ver=$GIT_REVISION_UPSTREAM
+  #el
+  if [ "${GIT_REVISION}" != "" ]; then
       git_ver=$GIT_REVISION
   else
       git_ver="none"
