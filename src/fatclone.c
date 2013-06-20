@@ -375,7 +375,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     progress_init(&prog, start, cluster_count, image_hdr.totalblock, BITMAP, bit_size);
 
     /// init bitmap
-    memset(bitmap, 0xFF, sizeof(unsigned long)*LONGS(total_sector));
+    pc_init_bitmap(bitmap, 0xFF, total_sector);
 
     /// A) B) C)
     block = mark_reserved_sectors(bitmap, block);
@@ -434,10 +434,10 @@ static unsigned long long get_used_block()
     total_sector = get_total_sector();
     cluster_count = get_cluster_count();
 
-    fat_bitmap = (unsigned long *)calloc(sizeof(unsigned long), LONGS(total_sector));
+    fat_bitmap = pc_alloc_bitmap(total_sector);
     if (fat_bitmap == NULL)
         log_mesg(2, 1, 1, fs_opt.debug, "%s: bitmapalloc error\n", __FILE__);
-    memset(fat_bitmap, 0xFF, sizeof(unsigned long)*LONGS(total_sector));
+    pc_init_bitmap(fat_bitmap, 0xFF, total_sector);
 
     /// A) B) C)
     block = mark_reserved_sectors(fat_bitmap, block);

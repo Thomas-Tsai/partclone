@@ -20,7 +20,7 @@ extern cmd_opt opt;
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
 	/// initial image bitmap as 1 (all block are used)
-	memset(bitmap, 0xFF, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
+	pc_init_bitmap(bitmap, 0xFF, image_hdr.totalblock);
 }
 
 /// read super block and write to image head

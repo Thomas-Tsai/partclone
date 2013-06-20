@@ -54,11 +54,13 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     int start = 0;
     int bit_size = 1;
 
+    pc_init_bitmap(bitmap, 0x00, image_hdr.totalblock);
+
     fs_open(device);
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
     progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
-    memset(bitmap, 0x00, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
+    pc_init_bitmap(bitmap, 0x00, image_hdr.totalblock);
     while (exfat_find_used_sectors(&ef, &a, &b) == 0){
 	printf("block %li %li \n", a, b);
 	for (block = a; block <= b; block++){

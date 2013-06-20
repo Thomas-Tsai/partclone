@@ -117,7 +117,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	block_bitmap = malloc(block_nbytes);
 
     /// initial image bitmap as 1 (all block are used)
-    memset(bitmap, 0xFF, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
+    pc_init_bitmap(bitmap, 0xFF, image_hdr.totalblock);
 
     free = 0;
     current_block = 0;

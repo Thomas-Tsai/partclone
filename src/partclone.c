@@ -690,7 +690,7 @@ int check_mem_size(image_head image_hdr, cmd_opt opt, unsigned long long *mem_si
 	void *test_mem;
 
 	image_head_size = sizeof(image_head);
-	bitmap_size = sizeof(unsigned long)*LONGS(image_hdr.totalblock);
+	bitmap_size = PART_BYTES_PER_LONG * BITS_TO_LONGS(image_hdr.totalblock);
 	crc_io_size = CRC_SIZE+image_hdr.block_size;
 	*mem_size = image_head_size + bitmap_size + crc_io_size;
 	log_mesg(0, 0, 0, 1, "we need memory: %llu bytes\nimage head %llu, bitmap %llu, crc %i bytes\n", *mem_size, image_head_size, bitmap_size, crc_io_size);
@@ -714,7 +714,7 @@ void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, unsigned long
 	int i, debug = opt.debug;
 	int err_exit = 1;
 
-	size = sizeof(char)*image_hdr.totalblock;
+	size = image_hdr.totalblock;
 
 	while (size > 0) {
 		r_need = size > sizeof(buffer) ? sizeof(buffer) : size;

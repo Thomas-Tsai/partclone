@@ -245,7 +245,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to allocate buffer for zone map", __FILE__);
     memset(inode_map,0,sizeof(inode_map));
     memset(zone_map,0,sizeof(zone_map));
-    memset(bitmap,0,sizeof(unsigned long)*LONGS(image_hdr.totalblock));
+    pc_init_bitmap(bitmap, 0x00, image_hdr.totalblock);
 
     rc = read(dev, inode_map, imaps * block_size);
     if (rc < 0 || imaps * block_size != (size_t) rc)
