@@ -87,7 +87,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     fs_open(device);
     block_size = image_hdr.block_size;
     //initial all block as free
-    memset(bitmap, 0, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
+    pc_init_bitmap(bitmap, 0x00, image_hdr.totalblock);
 
     // set super block and tree as used
     super_block = BTRFS_SUPER_INFO_OFFSET / block_size;

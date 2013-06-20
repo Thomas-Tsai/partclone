@@ -245,7 +245,7 @@ int main(int argc, char **argv) {
 		strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
 		/// alloc a memory to store bitmap
-		bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
+		bitmap = pc_alloc_bitmap(image_hdr.totalblock);
 		if (bitmap == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
@@ -257,7 +257,7 @@ int main(int argc, char **argv) {
 		log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
 		readbitmap(source, image_hdr, bitmap, pui);
 
-		needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
+		needed_size = (unsigned long long)(((image_hdr.block_size+CRC_SIZE)*image_hdr.usedblocks)+sizeof(image_hdr)+image_hdr.totalblock);
 		if (opt.check)
 			check_free_space(&dfw, needed_size);
 
@@ -298,7 +298,7 @@ int main(int argc, char **argv) {
 			log_mesg(0, 1, 1, debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_mem);
 
 		/// alloc a memory to restore bitmap
-		bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
+		bitmap = pc_alloc_bitmap(image_hdr.totalblock);
 		if (bitmap == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
@@ -346,7 +346,7 @@ int main(int argc, char **argv) {
 		strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
 
 		/// alloc a memory to restore bitmap
-		bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
+		bitmap = pc_alloc_bitmap(image_hdr.totalblock);
 		if (bitmap == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}

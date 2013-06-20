@@ -136,7 +136,7 @@ int main(int argc, char **argv){
 	log_mesg(0, 1, 1, opt.debug, "The Image magic error. This file is NOT partclone Image\n");
 
     /// alloc a memory to restore bitmap
-    bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
+    bitmap = pc_alloc_bitmap(image_hdr.totalblock);
     if (bitmap == NULL)
 	log_mesg(0, 1, 1, opt.debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 

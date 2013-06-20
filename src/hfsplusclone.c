@@ -143,7 +143,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     progress_bar   prog;	/// progress_bar structure defined in progress.h
     progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
 
-    memset(bitmap, 0xFF, sizeof(unsigned long)*LONGS(tb));
+    pc_init_bitmap(bitmap, 0xFF, tb);
 
     for (allocation_exten = 0; allocation_exten <= 7; allocation_exten++){
         allocation_start_block = 4096*reverseInt(sb.allocationFile.extents[allocation_exten].startBlock);

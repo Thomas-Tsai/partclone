@@ -332,7 +332,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     /// init progress
     progress_init(&prog, start, image_hdr.usedblocks, image_hdr.usedblocks, BITMAP, bit_size);
-    memset(bitmap, 0x00, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
+    pc_init_bitmap(bitmap, 0x00, image_hdr.totalblock);
     checked = 0;
     /**
      * thread to print progress
