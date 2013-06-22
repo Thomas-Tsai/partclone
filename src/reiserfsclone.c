@@ -64,8 +64,7 @@ static void fs_close(){
 
 }
 
-///  readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     reiserfs_bitmap_t    *fs_bitmap;
     reiserfs_tree_t	 *tree;
@@ -108,8 +107,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
 }
 
-/// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr)
+void initial_image_hdr(char* device, image_head* image_hdr)
 {
     fs_open(device);
     strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);

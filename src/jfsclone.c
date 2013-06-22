@@ -118,8 +118,7 @@ static void fs_close(){
     fclose(fp);
 }
 
-/// readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui){
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui) {
 
     int64_t lblock = 0;
     int64_t address;
@@ -280,8 +279,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 }
 
 
-/// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr){
+void initial_image_hdr(char* device, image_head* image_hdr) {
     uint64_t used_blocks = 0;
     uint64_t total_blocks = 0;
     fs_open(device);

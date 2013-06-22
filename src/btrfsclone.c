@@ -66,8 +66,7 @@ static void fs_close(){
 
 }
 
-/// readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     u64 super_block = 0;
     struct btrfs_root *extent_root;
@@ -163,8 +162,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     fs_close();
 }
 
-/// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr)
+void initial_image_hdr(char* device, image_head* image_hdr)
 {    
     fs_open(device);
 

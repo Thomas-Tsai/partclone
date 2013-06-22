@@ -92,8 +92,7 @@ static void fs_close(){
     aal_device_close(fs_device);
 }
 
-/// readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     reiser4_bitmap_t       *fs_bitmap;
     unsigned long long     bit, block, bused = 0, bfree = 0;
@@ -133,8 +132,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     update_pui(&prog, 1, 1, 1);
 }
 
-/// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr)
+void initial_image_hdr(char* device, image_head* image_hdr)
 {
     reiser4_bitmap_t       *fs_bitmap;
     unsigned long long free_blocks=0;

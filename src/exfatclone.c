@@ -46,8 +46,7 @@ static void fs_close(){
     log_mesg(2, 0, 0, fs_opt.debug, "%s: exfat_umount done\n", __FILE__);
 }
 
-///  readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     off_t a = 0, b = 0;
     off_t block = 0;;
@@ -76,8 +75,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     update_pui(&prog, 1, 1, 1);
 }
 
-/// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr)
+void initial_image_hdr(char* device, image_head* image_hdr)
 {
     struct exfat_super_block* sb;
     uint64_t free_sectors, free_clusters;

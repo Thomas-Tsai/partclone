@@ -134,8 +134,7 @@ static void fs_close(){
     log_mesg(1, 0, 0, fs_opt.debug, "%s: done\n\n", __FILE__);
 }
 
-/// readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     unsigned long long     total_block, block, bused = 0, bfree = 0;
     int                    done = 0, i = 0, start = 0, bit_size = 1;
@@ -179,8 +178,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
 }
 
-/// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr)
+void initial_image_hdr(char* device, image_head* image_hdr)
 {
 
     fs_open(device);

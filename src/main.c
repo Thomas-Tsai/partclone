@@ -255,7 +255,7 @@ int main(int argc, char **argv) {
 
 		/// read and check bitmap from partition
 		log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
-		readbitmap(source, image_hdr, bitmap, pui);
+		read_bitmap(source, image_hdr, bitmap, pui);
 
 		needed_size = (unsigned long long)(((image_hdr.block_size+CRC_SIZE)*image_hdr.usedblocks)+sizeof(image_hdr)+image_hdr.totalblock);
 		if (opt.check)
@@ -356,7 +356,7 @@ int main(int argc, char **argv) {
 
 		/// read and check bitmap from partition
 		log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
-		readbitmap(source, image_hdr, bitmap, pui);
+		read_bitmap(source, image_hdr, bitmap, pui);
 
 		/// check the dest partition size.
 		if (opt.dd && opt.check) {

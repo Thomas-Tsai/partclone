@@ -90,8 +90,8 @@ static unsigned long long get_used_blocks(){
     return (unsigned long long)(fs->super->s_blocks_count - fs->super->s_free_blocks_count);
 }
 
-/// readbitmap - cread and heck bitmap, reference dumpe2fs
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui){
+// reference dumpe2fs
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui) {
     errcode_t retval;
     unsigned long group;
     unsigned long long current_block, block;
@@ -105,7 +105,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     int B_UN_INIT = 0;
     int ext4_gfree_mismatch = 0;
 
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: readbitmap %p\n", __FILE__, bitmap);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: read_bitmap %p\n", __FILE__, bitmap);
 
     fs_open(device);
     retval = ext2fs_read_bitmaps(fs); /// open extfs bitmap
@@ -215,8 +215,7 @@ static int test_extfs_type(char* device){
     return device_type;
 }
 
-/// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr)
+void initial_image_hdr(char* device, image_head* image_hdr)
 {
     int fs_type = 0;
     fs_type = test_extfs_type(device);

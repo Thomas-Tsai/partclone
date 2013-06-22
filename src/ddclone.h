@@ -9,8 +9,3 @@
  * (at your option) any later version.
  */
 
-/// readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui);
-
-/// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr);
