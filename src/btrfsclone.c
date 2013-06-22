@@ -93,7 +93,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     super_block = BTRFS_SUPER_INFO_OFFSET / block_size;
     leafsize = btrfs_super_leafsize(&root->fs_info->super_copy);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: leafsize %i\n", __FILE__, leafsize);
-    log_mesg(1, 0, 0, fs_opt.debug, "%s: super block %i\n", __FILE__, super_block);
+    log_mesg(1, 0, 0, fs_opt.debug, "%s: super block %llu\n", __FILE__, super_block);
     pc_set_bit(super_block, bitmap);
     for (i = 1; i < 7; i++) {
 	bytenr = (BTRFS_SUPER_INFO_OFFSET + 1024 * 1024 + leafsize * i ) / block_size;
