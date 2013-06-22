@@ -85,12 +85,6 @@ struct FatFsInfo{
 
 typedef struct FatFsInfo FatFsInfo;
 
-/// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr);
-
-/// readbitmap - cread and heck bitmap, reference dumpe2fs
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui);
-
 /// return total sectors
 unsigned long long get_total_sector();
 

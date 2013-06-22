@@ -148,7 +148,7 @@ static void fs_close()
     log_mesg(0, 0, 0, fs_opt.debug, "fs_close\n");
 }
 
-extern void initial_image_hdr(char* device, image_head* image_hdr)
+void initial_image_hdr(char* device, image_head* image_hdr)
 {
     fs_open(device);
     strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
@@ -166,7 +166,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 
 }
 
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
 
     xfs_agnumber_t  agno = 0;

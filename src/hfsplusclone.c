@@ -123,7 +123,7 @@ static void fs_close(){
 
 }
 
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui){
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui) {
 
     int IsUsed = 0;
     UInt8 *extent_bitmap;
@@ -196,7 +196,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     update_pui(&prog, 1, 1, 1);
 }
 
-extern void initial_image_hdr(char* device, image_head* image_hdr)
+void initial_image_hdr(char* device, image_head* image_hdr)
 {
 
     fs_open(device);

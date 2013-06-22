@@ -190,7 +190,7 @@ static unsigned long count_used_block(){
 }
 
 
-extern void initial_image_hdr(char* device, image_head* image_hdr){
+void initial_image_hdr(char* device, image_head* image_hdr) {
     fs_open(device);
     if (MAGIC == MINIX_SUPER_MAGIC) {
 	fs_version = 1;
@@ -219,7 +219,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr){
 
 
 
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui){
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui) {
     unsigned long zones = get_nzones();
     unsigned long imaps = get_nimaps();
     unsigned long zmaps = get_nzmaps();

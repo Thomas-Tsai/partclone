@@ -219,8 +219,7 @@ static void fs_close(){
     }
 }
 
-///  readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     unsigned char	*ntfs_bitmap;
     unsigned long long	current_block, used_block, free_block, pos;
@@ -294,14 +293,13 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     log_mesg(3, 0, 0, fs_opt.debug, "%s: fs_close done\n", __FILE__);
 
     if (used_block != image_hdr.usedblocks) {
-        log_mesg(0, 1, 1, fs_opt.debug, "%s: used blocks count mismatch: %llu in header, %llu from readbitmap\n", __FILE__,
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: used blocks count mismatch: %llu in header, %llu from read_bitmap\n", __FILE__,
                 image_hdr.usedblocks, used_block);
     }
 
 }
 
-/// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr)
+void initial_image_hdr(char* device, image_head* image_hdr)
 {
     fs_open(device);
     strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);

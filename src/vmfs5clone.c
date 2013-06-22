@@ -311,8 +311,7 @@ static void fs_close(){
     vmfs_fs_close(fs);
 }
 
-/// readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     unsigned long long used_block = 0, free_block = 0, err_block = 0;
     int start = 0;
@@ -376,8 +375,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
 }
 
-/// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr)
+void initial_image_hdr(char* device, image_head* image_hdr)
 {
 
     uint32_t alloc,total;

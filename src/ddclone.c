@@ -16,15 +16,13 @@
 
 extern cmd_opt opt;
 
-/// readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
 	/// initial image bitmap as 1 (all block are used)
 	pc_init_bitmap(bitmap, 0xFF, image_hdr.totalblock);
 }
 
-/// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr)
+void initial_image_hdr(char* device, image_head* image_hdr)
 {
 	int src;
 	if ((src = open_source(device, &opt)) == -1) {

@@ -80,8 +80,7 @@ static uint32_t logical_volume_offset(vmfs_fs_t *fs)
     return (VMFS_VOLINFO_BASE + 0x1000000) / vmfs_fs_get_blocksize(fs);
 }
 
-/// readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     uint32_t offset, total, current;
     uint32_t used_block = 0, free_block = 0, err_block = 0;
@@ -129,8 +128,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
 }
 
-/// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr)
+void initial_image_hdr(char* device, image_head* image_hdr)
 {
     uint32_t offset, total, alloc;
 

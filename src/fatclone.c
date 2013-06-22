@@ -323,8 +323,7 @@ unsigned long long check_fat12_entry(unsigned long* fat_bitmap, unsigned long lo
     return block;
 }
 
-/// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr)
+void initial_image_hdr(char* device, image_head* image_hdr)
 {
     unsigned long long total_sector = 0;
     unsigned long long bused = 0;
@@ -353,8 +352,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     log_mesg(2, 0, 0, fs_opt.debug, "%s: initial_image down\n", __FILE__);
 }
 
-/// readbitmap - read and check bitmap
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     unsigned long long i = 0;
     int fat_stat = 0;

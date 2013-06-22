@@ -151,6 +151,13 @@ extern void get_image_hdr(int* ret, cmd_opt opt, image_head image_hdr, unsigned 
 extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, unsigned long* bitmap);
 
 /**
+ * The next two functions are not defined in partclone.c. They must be defined by each
+ * file system specialisation. They are the only ones who need access to the file system's library.
+ */
+extern void initial_image_hdr(char* device, image_head* image_hdr);
+extern void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui);
+
+/**
  * for open and close
  * open_source	- open device or image or stdin
  * open_target	- open device or image or stdout
