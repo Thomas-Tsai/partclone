@@ -60,10 +60,10 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
     memset(bitmap, 0x00, sizeof(unsigned long)*LONGS(image_hdr.totalblock));
     while (exfat_find_used_sectors(&ef, &a, &b) == 0){
-	printf("block %lli %lli \n", a, b);
+	printf("block %li %li \n", a, b);
 	for (block = a; block <= b; block++){
 	    pc_set_bit((uint64_t)block, bitmap);
-	    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %lli \n", __FILE__, block);
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %li \n", __FILE__, block);
 	    /// update progress
 	    update_pui(&prog, block, block, 0);
 	}
