@@ -69,16 +69,16 @@ static void fs_close(){
 /// readbitmap - read bitmap
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
-    uint64_t super_block = 0;
+    u64 super_block = 0;
     struct btrfs_root *extent_root;
     struct btrfs_extent_item *ei;
     struct extent_buffer *leaf;
     struct extent_buffer *eb;
     struct btrfs_key key;
-    uint64_t bytenr;
-    uint64_t num_bytes;
-    uint64_t length;
-    uint64_t block_offset;
+    u64 bytenr;
+    u64 num_bytes;
+    u64 length;
+    u64 block_offset;
     int leafsize = 0;
     struct btrfs_multi_bio *multi = NULL;
     int ret;
