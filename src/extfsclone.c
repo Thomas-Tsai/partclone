@@ -32,7 +32,6 @@
 
 ext2_filsys  fs;
 char *EXECNAME = "partclone.extfs";
-extern fs_cmd_opt fs_opt;
 
 /// open device
 static void fs_open(char* device){

@@ -27,7 +27,6 @@
 
 char *EXECNAME = "partclone.exfat";
 
-extern fs_cmd_opt fs_opt;
 struct exfat ef;
 
 /// open device

@@ -26,10 +26,9 @@
 #include "progress.h"
 #include "fs_common.h"
 
-char	*EXECNAME = "partclone.xfs";
-extern  fs_cmd_opt fs_opt;
-int	source_fd = -1;
-int     first_residue;
+char *EXECNAME = "partclone.xfs";
+int  source_fd = -1;
+int  first_residue;
 
 xfs_mount_t     *mp;
 xfs_mount_t     mbuf;

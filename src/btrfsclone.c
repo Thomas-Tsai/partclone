@@ -24,7 +24,6 @@
 #include "fs_common.h"
 
 char *EXECNAME = "partclone.btrfs";
-extern fs_cmd_opt fs_opt;
 
 struct btrfs_root *root;
 struct btrfs_path *path;

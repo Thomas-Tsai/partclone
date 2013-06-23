@@ -40,7 +40,6 @@ struct uufsd disk;
 #include "fs_common.h"
 
 char *EXECNAME = "partclone.ufs";
-extern fs_cmd_opt fs_opt;
 
 /// get_used_block - get FAT used blocks
 static unsigned long long get_used_block()

@@ -78,7 +78,6 @@ short l2bsize;
 unsigned jfs_type;
 
 char *EXECNAME = "partclone.jfs";
-extern fs_cmd_opt fs_opt;
 
 /// libfs/jfs_endian.h
 #define GET 0

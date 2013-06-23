@@ -55,7 +55,6 @@
 #endif
 
 char *EXECNAME	= "partclone.ntfs";
-extern fs_cmd_opt fs_opt;
 ntfs_volume *ntfs;
 
 

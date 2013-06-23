@@ -38,7 +38,6 @@ aal_device_t           *fs_device;
 reiser4_fs_t           *fs = NULL;
 reiser4_format_t       *format;
 char *EXECNAME = "partclone.reiser4";
-extern fs_cmd_opt fs_opt;
 
 /// open device
 static void fs_open(char* device){

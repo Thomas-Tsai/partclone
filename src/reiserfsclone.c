@@ -34,8 +34,6 @@ dal_t		 *dal;
 reiserfs_fs_t	 *fs;
 char *EXECNAME = "partclone.reiserfs";
 
-extern fs_cmd_opt fs_opt;
-
 /// open device
 static void fs_open(char* device){
 
