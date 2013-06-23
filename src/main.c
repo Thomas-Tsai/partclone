@@ -229,8 +229,7 @@ int main(int argc, char **argv) {
 	 */
 	if (opt.clone) {
 
-		char bbuffer[16384];
-		unsigned long long i, needed_size, needed_mem;
+		unsigned long long needed_size, needed_mem;
 
 		log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
 		log_mesg(0, 0, 1, debug, "Reading Super Block\n");
@@ -265,19 +264,7 @@ int main(int argc, char **argv) {
 		log_mesg(1, 0, 0, debug, "Writing super block and bitmap... ");
 
 		write_image_head(&dfw, image_hdr, &opt);
-
-		/// write bitmap information to image file
-		for (i = 0; i < image_hdr.totalblock; i++) {
-			if (pc_test_bit(i, bitmap)) {
-				bbuffer[i % sizeof(bbuffer)] = 1;
-			} else {
-				bbuffer[i % sizeof(bbuffer)] = 0;
-			}
-			if (i % sizeof(bbuffer) == sizeof(bbuffer) - 1 || i == image_hdr.totalblock - 1) {
-				if (write_all(&dfw, bbuffer, 1 + (i % sizeof(bbuffer)), &opt) == -1)
-					log_mesg(0, 1, 1, debug, "write bitmap to image error\n");
-			}
-		}
+		write_image_bitmap(&dfw, image_hdr, &opt, bitmap);
 
 		log_mesg(0, 0, 1, debug, "done!\n");
 
@@ -412,9 +399,6 @@ int main(int argc, char **argv) {
 		if (read_buffer == NULL || write_buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
-
-		/// write a magic string
-		w_size = write_all(&dfw, bitmagic, 8, &opt);
 
 		/// read data from the first block
 		if (lseek(dfr, 0, SEEK_SET) == (off_t)-1)

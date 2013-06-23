@@ -24,6 +24,8 @@
 
 #define IMAGE_MAGIC "partclone-image"
 #define IMAGE_MAGIC_SIZE 15
+#define BIT_MAGIC "BiTmAgIc"
+#define BIT_MAGIC_SIZE 8
 
 #define FS_MAGIC_SIZE 15
 #define reiserfs_MAGIC "REISERFS"
@@ -153,6 +155,7 @@ extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr);
 extern void get_image_hdr(int* ret, cmd_opt opt, image_head image_hdr, unsigned long* bitmap);
 extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, unsigned long* bitmap);
 extern void write_image_head(int* ret, image_head image_hdr, cmd_opt* opt);
+extern void write_image_bitmap(int* ret, image_head image_hdr, cmd_opt* opt, unsigned long* bitmap);
 
 /**
  * The next two functions are not defined in partclone.c. They must be defined by each

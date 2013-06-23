@@ -608,6 +608,26 @@ void write_image_head(int* ret, image_head image_hdr, cmd_opt* opt) {
 		log_mesg(0, 1, 1, opt->debug, "write image_head to image error: %s\n", strerror(errno));
 }
 
+void write_image_bitmap(int* ret, image_head image_hdr, cmd_opt* opt, unsigned long* bitmap) {
+
+	int i;
+	char bbuffer[16384];
+
+	/// write bitmap information to image file
+	for (i = 0; i < image_hdr.totalblock; i++) {
+		bbuffer[i % sizeof(bbuffer)] = pc_test_bit(i, bitmap);
+
+		if (i % sizeof(bbuffer) == sizeof(bbuffer) - 1 || i == image_hdr.totalblock - 1) {
+			if (write_all(ret, bbuffer, 1 + (i % sizeof(bbuffer)), opt) == -1)
+				log_mesg(0, 1, 1, opt->debug, "write bitmap to image error: %s\n", strerror(errno));
+		}
+	}
+
+	/// write a magic string
+	if (write_all(ret, BIT_MAGIC, BIT_MAGIC_SIZE, opt) != BIT_MAGIC_SIZE)
+		log_mesg(0, 1, 1, opt->debug, "write bitmap to image error: %s\n", strerror(errno));
+}
+
 /// get partition size
 unsigned long long get_partition_size(int* ret) {
 	unsigned long long dest_size = 0;
