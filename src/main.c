@@ -264,9 +264,7 @@ int main(int argc, char **argv) {
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
 		log_mesg(1, 0, 0, debug, "Writing super block and bitmap... ");
 
-		/// write image_head to image file
-		if (write_all(&dfw, (char *)&image_hdr, sizeof(image_head), &opt) == -1)
-			log_mesg(0, 1, 1, debug, "write image_hdr to image error: %s\n", strerror(errno));
+		write_image_head(&dfw, image_hdr, &opt);
 
 		/// write bitmap information to image file
 		for (i = 0; i < image_hdr.totalblock; i++) {

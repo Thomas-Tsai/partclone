@@ -602,6 +602,12 @@ void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr) {
 		image_hdr->device_size = dev_size;
 }
 
+void write_image_head(int* ret, image_head image_hdr, cmd_opt* opt) {
+
+	if (write_all(ret, (char *)&image_hdr, sizeof(image_head), opt) == -1)
+		log_mesg(0, 1, 1, opt->debug, "write image_head to image error: %s\n", strerror(errno));
+}
+
 /// get partition size
 unsigned long long get_partition_size(int* ret) {
 	unsigned long long dest_size = 0;
