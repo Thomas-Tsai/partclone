@@ -600,6 +600,17 @@ void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr) {
 	dev_size = (unsigned long long)(image_hdr->totalblock * image_hdr->block_size);
 	if (image_hdr->device_size != dev_size)
 		image_hdr->device_size = dev_size;
+
+	/// check the image magic
+	if (memcmp(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE))
+		log_mesg(0, 1, 1, debug, "This is not partclone image.\n");
+
+	/// check the image version
+	if (memcmp(image_hdr->version, IMAGE_VERSION, VERSION_SIZE)) {
+		char version[VERSION_SIZE+1] = { '\x00' };
+		memcpy(version, image_hdr->version, VERSION_SIZE);
+		log_mesg(0, 1, 1, debug, "The image version is not supported [%s]\n", version);
+	}
 }
 
 void write_image_head(int* ret, image_head image_hdr, cmd_opt* opt) {
