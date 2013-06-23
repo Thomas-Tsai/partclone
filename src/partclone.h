@@ -46,8 +46,9 @@
 #define minix_MAGIC "MINIX"
 #define raw_MAGIC "raw"
 
-#define IMAGE_VERSION "0001"
-#define VERSION_SIZE 4
+#define IMAGE_VERSION_SIZE 4
+#define IMAGE_VERSION_0001 "0001"
+#define IMAGE_VERSION_CURRENT IMAGE_VERSION_0001
 #define DEFAULT_BUFFER_SIZE 1048576
 #define PART_SECTOR_SIZE 512
 #define CRC_SIZE 4
@@ -113,7 +114,7 @@ struct image_head
 {
     char magic[IMAGE_MAGIC_SIZE];
     char fs[FS_MAGIC_SIZE];
-    char version[VERSION_SIZE];
+    char version[IMAGE_VERSION_SIZE];
     char padding[2];
     int  block_size;
     unsigned long long device_size;
