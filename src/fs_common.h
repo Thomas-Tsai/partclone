@@ -1,4 +1,3 @@
-#include <stdio.h>
 
 struct fs_cmd_opt
 {
@@ -8,4 +7,5 @@ struct fs_cmd_opt
 };
 typedef struct fs_cmd_opt fs_cmd_opt;
 
-
+// This struct must be declared and initialised from main()
+extern fs_cmd_opt fs_opt;

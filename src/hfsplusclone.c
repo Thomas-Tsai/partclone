@@ -32,7 +32,6 @@
 struct HFSPlusVolumeHeader sb;
 int ret;
 char *EXECNAME = "partclone.hfsp";
-extern fs_cmd_opt fs_opt;
 
 static short reverseShort(short s){
     unsigned char c1, c2;
