@@ -739,6 +739,7 @@ void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, unsigned long
 	unsigned long long bused = 0, bfree = 0;
 	int i, debug = opt.debug;
 	int err_exit = 1;
+	char bitmagic_r[8]="00000000";/// read magic string from image
 
 	size = image_hdr.totalblock;
 
@@ -770,6 +771,12 @@ void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, unsigned long
 				"Try to use --force to skip the metadata error.\n", bused, image_hdr.usedblocks);
 		}
 	}
+
+	/// read magic string from image file and check it.
+	if (read_all(ret, bitmagic_r, BIT_MAGIC_SIZE, &opt) != BIT_MAGIC_SIZE)
+		log_mesg(0, 1, 1, debug, "read magic ERROR:%s\n", strerror(errno));
+	if (memcmp(bitmagic_r, BIT_MAGIC, BIT_MAGIC_SIZE))
+		log_mesg(0, 1, 1, debug, "can't find bitmagic\n");
 }
 
 

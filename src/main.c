@@ -128,9 +128,7 @@ int main(int argc, char **argv) {
 	int			dfr, dfw;		/// file descriptor for source and target
 	int			r_size, w_size;		/// read and write size
 	int			start, stop;		/// start, range, stop number for progress bar
-	char			bitmagic[8] = "BiTmAgIc";// only for check postition
-	char			bitmagic_r[8]="00000000";/// read magic string from image
-	unsigned long		*bitmap = NULL;		/// the point for bitmap data
+	unsigned long *bitmap = NULL;		/// the point for bitmap data
 	int			debug = 0;		/// debug level
 	int			tui = 0;		/// text user interface
 	int			pui = 0;		/// progress mode(default text)
@@ -504,12 +502,6 @@ int main(int argc, char **argv) {
 		if (read_buffer == NULL || write_buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
-
-		/// read magic string from image file and check it.
-		if (read_all(&dfr, bitmagic_r, 8, &opt) != 8)
-			log_mesg(0, 1, 1, debug, "read magic ERROR:%s\n", strerror(errno));
-		if (memcmp(bitmagic, bitmagic_r, 8))
-			log_mesg(0, 1, 1, debug, "can't find bitmagic\n");
 
 #ifndef CHKIMG
 		/// seek to the first
