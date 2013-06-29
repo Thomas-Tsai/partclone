@@ -96,6 +96,10 @@ cmd_opt opt;
 #elif MINIX
 #include "minixclone.h"
 #define FS "MINIX"
+#elif IMG
+#include "ddclone.h"
+#define FS "raw"
+char *EXECNAME = "partclone.imager";
 #elif DD
 #include "ddclone.h"
 #define FS "raw"
@@ -229,8 +233,11 @@ int main(int argc, char **argv) {
 	 */
 	if (opt.clone) {
 
+#ifndef DD
 		char bbuffer[16384];
-		unsigned long long i, needed_size, needed_mem;
+		unsigned long long i;
+#endif
+		unsigned long long needed_size, needed_mem;
 
 		log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
 		log_mesg(0, 0, 1, debug, "Reading Super Block\n");
@@ -262,8 +269,8 @@ int main(int argc, char **argv) {
 			check_free_space(&dfw, needed_size);
 
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
+#ifndef DD
 		log_mesg(1, 0, 0, debug, "Writing super block and bitmap... ");
-
 		/// write image_head to image file
 		if (write_all(&dfw, (char *)&image_hdr, sizeof(image_head), &opt) == -1)
 			log_mesg(0, 1, 1, debug, "write image_hdr to image error: %s\n", strerror(errno));
@@ -280,7 +287,7 @@ int main(int argc, char **argv) {
 					log_mesg(0, 1, 1, debug, "write bitmap to image error\n");
 			}
 		}
-
+#endif
 		log_mesg(0, 0, 1, debug, "done!\n");
 
 	} else if (opt.restore) {
@@ -403,7 +410,9 @@ int main(int argc, char **argv) {
 	 */
 	if (opt.clone) {
 
+#ifndef DD
 		unsigned long crc = 0xffffffffL;
+#endif
 		int block_size = image_hdr.block_size;
 		unsigned long long blocks_total = image_hdr.totalblock;
 		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
@@ -414,10 +423,10 @@ int main(int argc, char **argv) {
 		if (read_buffer == NULL || write_buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
-
+#ifndef DD
 		/// write a magic string
 		w_size = write_all(&dfw, bitmagic, 8, &opt);
-
+#endif
 		/// read data from the first block
 		if (lseek(dfr, 0, SEEK_SET) == (off_t)-1)
 			log_mesg(0, 1, 1, debug, "source seek ERROR:%s\n", strerror(errno));
@@ -469,6 +478,7 @@ int main(int argc, char **argv) {
 					log_mesg(0, 1, 1, debug, "read error: %s\n", strerror(errno));
 			}
 
+#ifndef DD
 			/// calculate crc
 			for (i = 0; i < blocks_read; i++) {
 				crc = crc32(crc, read_buffer + i * block_size, block_size);
@@ -493,6 +503,30 @@ int main(int argc, char **argv) {
 			if (r_size + blocks_read * CRC_SIZE != w_size)
 				log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
 
+#else
+			/// NO calculate crc
+			for (i = 0; i < blocks_read; i++) {
+				memcpy(write_buffer + i * block_size,
+					read_buffer + i * block_size, block_size);
+			}
+
+			/// write buffer to target
+			w_size = write_all(&dfw, write_buffer, blocks_read * block_size, &opt);
+			if (w_size != blocks_read * block_size)
+				log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
+
+			/// count copied block
+			copied += blocks_read;
+
+			/// next block
+			block_id += blocks_read;
+
+			/// read or write error
+			if (r_size != w_size)
+				log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
+
+
+#endif
 		} while (1);
 
 		free(write_buffer);

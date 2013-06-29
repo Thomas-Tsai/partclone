@@ -53,11 +53,11 @@ build_triplet = @build@
 host_triplet = @host@
 sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 	partclone.restore$(EXEEXT) partclone.chkimg$(EXEEXT) \
-	$(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
-	$(am__EXEEXT_4) $(am__EXEEXT_5) $(am__EXEEXT_6) \
-	$(am__EXEEXT_7) partclone.ntfsfixboot$(EXEEXT) $(am__EXEEXT_8) \
-	$(am__EXEEXT_9) $(am__EXEEXT_10) $(am__EXEEXT_11) \
-	$(am__EXEEXT_12) $(am__EXEEXT_13)
+	partclone.imager$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
+	$(am__EXEEXT_3) $(am__EXEEXT_4) $(am__EXEEXT_5) \
+	$(am__EXEEXT_6) $(am__EXEEXT_7) partclone.ntfsfixboot$(EXEEXT) \
+	$(am__EXEEXT_8) $(am__EXEEXT_9) $(am__EXEEXT_10) \
+	$(am__EXEEXT_11) $(am__EXEEXT_12) $(am__EXEEXT_13)
 @ENABLE_STATIC_TRUE@am__append_1 = -static
 @ENABLE_TINFO_TRUE@am__append_2 = -ltinfo
 @ENABLE_MEMTRACE_TRUE@am__append_3 = -DMEMTRACE -DMEMWATCH -DMW_STDIO
@@ -230,6 +230,15 @@ partclone_hfsp_LDADD = $(LDADD)
 partclone_hfsp_DEPENDENCIES = $(am__DEPENDENCIES_1)
 partclone_hfsp_LINK = $(CCLD) $(partclone_hfsp_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_partclone_imager_OBJECTS = partclone_imager-main.$(OBJEXT) \
+	partclone_imager-partclone.$(OBJEXT) \
+	partclone_imager-progress.$(OBJEXT) \
+	partclone_imager-ddclone.$(OBJEXT)
+partclone_imager_OBJECTS = $(am_partclone_imager_OBJECTS)
+partclone_imager_LDADD = $(LDADD)
+partclone_imager_DEPENDENCIES = $(am__DEPENDENCIES_1)
+partclone_imager_LINK = $(CCLD) $(partclone_imager_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_partclone_info_OBJECTS = info.$(OBJEXT) partclone.$(OBJEXT)
 partclone_info_OBJECTS = $(am_partclone_info_OBJECTS)
 partclone_info_LDADD = $(LDADD)
@@ -360,20 +369,21 @@ SOURCES = $(partclone_btrfs_SOURCES) $(partclone_chkimg_SOURCES) \
 	$(partclone_dd_SOURCES) $(partclone_exfat_SOURCES) \
 	$(partclone_extfs_SOURCES) $(partclone_fat_SOURCES) \
 	$(partclone_fstype_SOURCES) $(partclone_hfsp_SOURCES) \
-	$(partclone_info_SOURCES) $(partclone_jfs_SOURCES) \
-	$(partclone_minix_SOURCES) $(partclone_ntfs_SOURCES) \
-	$(partclone_ntfsfixboot_SOURCES) $(partclone_reiser4_SOURCES) \
-	$(partclone_reiserfs_SOURCES) $(partclone_restore_SOURCES) \
-	$(partclone_ufs_SOURCES) $(partclone_vmfs_SOURCES) \
-	$(partclone_vmfs5_SOURCES) $(partclone_xfs_SOURCES)
+	$(partclone_imager_SOURCES) $(partclone_info_SOURCES) \
+	$(partclone_jfs_SOURCES) $(partclone_minix_SOURCES) \
+	$(partclone_ntfs_SOURCES) $(partclone_ntfsfixboot_SOURCES) \
+	$(partclone_reiser4_SOURCES) $(partclone_reiserfs_SOURCES) \
+	$(partclone_restore_SOURCES) $(partclone_ufs_SOURCES) \
+	$(partclone_vmfs_SOURCES) $(partclone_vmfs5_SOURCES) \
+	$(partclone_xfs_SOURCES)
 DIST_SOURCES = $(am__partclone_btrfs_SOURCES_DIST) \
 	$(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
 	$(am__partclone_exfat_SOURCES_DIST) \
 	$(am__partclone_extfs_SOURCES_DIST) \
 	$(am__partclone_fat_SOURCES_DIST) \
 	$(am__partclone_fstype_SOURCES_DIST) \
-	$(am__partclone_hfsp_SOURCES_DIST) $(partclone_info_SOURCES) \
-	$(am__partclone_jfs_SOURCES_DIST) \
+	$(am__partclone_hfsp_SOURCES_DIST) $(partclone_imager_SOURCES) \
+	$(partclone_info_SOURCES) $(am__partclone_jfs_SOURCES_DIST) \
 	$(am__partclone_minix_SOURCES_DIST) \
 	$(am__partclone_ntfs_SOURCES_DIST) \
 	$(partclone_ntfsfixboot_SOURCES) \
@@ -522,6 +532,8 @@ partclone_chkimg_SOURCES = main.c partclone.c progress.c ddclone.c ddclone.h par
 partclone_chkimg_CFLAGS = -DCHKIMG -DDD
 partclone_dd_SOURCES = main.c partclone.c progress.c ddclone.c ddclone.h partclone.h progress.h gettext.h
 partclone_dd_CFLAGS = -DDD
+partclone_imager_SOURCES = main.c partclone.c progress.c ddclone.c ddclone.h partclone.h progress.h gettext.h
+partclone_imager_CFLAGS = -DIMG
 @ENABLE_EXTFS_TRUE@partclone_extfs_SOURCES = main.c partclone.c progress.c extfsclone.c extfsclone.h partclone.h progress.h gettext.h
 @ENABLE_EXTFS_TRUE@partclone_extfs_CFLAGS = -DEXTFS
 @ENABLE_EXTFS_TRUE@partclone_extfs_LDADD = -lext2fs -lcom_err -lpthread
@@ -666,6 +678,9 @@ partclone.fstype$(EXEEXT): $(partclone_fstype_OBJECTS) $(partclone_fstype_DEPEND
 partclone.hfsp$(EXEEXT): $(partclone_hfsp_OBJECTS) $(partclone_hfsp_DEPENDENCIES) $(EXTRA_partclone_hfsp_DEPENDENCIES) 
 	@rm -f partclone.hfsp$(EXEEXT)
 	$(partclone_hfsp_LINK) $(partclone_hfsp_OBJECTS) $(partclone_hfsp_LDADD) $(LIBS)
+partclone.imager$(EXEEXT): $(partclone_imager_OBJECTS) $(partclone_imager_DEPENDENCIES) $(EXTRA_partclone_imager_DEPENDENCIES) 
+	@rm -f partclone.imager$(EXEEXT)
+	$(partclone_imager_LINK) $(partclone_imager_OBJECTS) $(partclone_imager_LDADD) $(LIBS)
 partclone.info$(EXEEXT): $(partclone_info_OBJECTS) $(partclone_info_DEPENDENCIES) $(EXTRA_partclone_info_DEPENDENCIES) 
 	@rm -f partclone.info$(EXEEXT)
 	$(LINK) $(partclone_info_OBJECTS) $(partclone_info_LDADD) $(LIBS)
@@ -767,6 +782,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_hfsp-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_imager-ddclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_imager-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_imager-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_imager-progress.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_jfs-jfsclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_jfs-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_jfs-partclone.Po@am__quote@
@@ -1591,6 +1610,62 @@ partclone_hfsp-hfsplusclone.obj: hfsplusclone.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='hfsplusclone.c' object='partclone_hfsp-hfsplusclone.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_hfsp_CFLAGS) $(CFLAGS) -c -o partclone_hfsp-hfsplusclone.obj `if test -f 'hfsplusclone.c'; then $(CYGPATH_W) 'hfsplusclone.c'; else $(CYGPATH_W) '$(srcdir)/hfsplusclone.c'; fi`
+
+partclone_imager-main.o: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -MT partclone_imager-main.o -MD -MP -MF $(DEPDIR)/partclone_imager-main.Tpo -c -o partclone_imager-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_imager-main.Tpo $(DEPDIR)/partclone_imager-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_imager-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -c -o partclone_imager-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+
+partclone_imager-main.obj: main.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -MT partclone_imager-main.obj -MD -MP -MF $(DEPDIR)/partclone_imager-main.Tpo -c -o partclone_imager-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_imager-main.Tpo $(DEPDIR)/partclone_imager-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='main.c' object='partclone_imager-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -c -o partclone_imager-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+
+partclone_imager-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -MT partclone_imager-partclone.o -MD -MP -MF $(DEPDIR)/partclone_imager-partclone.Tpo -c -o partclone_imager-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_imager-partclone.Tpo $(DEPDIR)/partclone_imager-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_imager-partclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -c -o partclone_imager-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+
+partclone_imager-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -MT partclone_imager-partclone.obj -MD -MP -MF $(DEPDIR)/partclone_imager-partclone.Tpo -c -o partclone_imager-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_imager-partclone.Tpo $(DEPDIR)/partclone_imager-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='partclone.c' object='partclone_imager-partclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -c -o partclone_imager-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+
+partclone_imager-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -MT partclone_imager-progress.o -MD -MP -MF $(DEPDIR)/partclone_imager-progress.Tpo -c -o partclone_imager-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_imager-progress.Tpo $(DEPDIR)/partclone_imager-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_imager-progress.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -c -o partclone_imager-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+
+partclone_imager-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -MT partclone_imager-progress.obj -MD -MP -MF $(DEPDIR)/partclone_imager-progress.Tpo -c -o partclone_imager-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_imager-progress.Tpo $(DEPDIR)/partclone_imager-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='progress.c' object='partclone_imager-progress.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -c -o partclone_imager-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+
+partclone_imager-ddclone.o: ddclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -MT partclone_imager-ddclone.o -MD -MP -MF $(DEPDIR)/partclone_imager-ddclone.Tpo -c -o partclone_imager-ddclone.o `test -f 'ddclone.c' || echo '$(srcdir)/'`ddclone.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_imager-ddclone.Tpo $(DEPDIR)/partclone_imager-ddclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ddclone.c' object='partclone_imager-ddclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -c -o partclone_imager-ddclone.o `test -f 'ddclone.c' || echo '$(srcdir)/'`ddclone.c
+
+partclone_imager-ddclone.obj: ddclone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -MT partclone_imager-ddclone.obj -MD -MP -MF $(DEPDIR)/partclone_imager-ddclone.Tpo -c -o partclone_imager-ddclone.obj `if test -f 'ddclone.c'; then $(CYGPATH_W) 'ddclone.c'; else $(CYGPATH_W) '$(srcdir)/ddclone.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/partclone_imager-ddclone.Tpo $(DEPDIR)/partclone_imager-ddclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ddclone.c' object='partclone_imager-ddclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_imager_CFLAGS) $(CFLAGS) -c -o partclone_imager-ddclone.obj `if test -f 'ddclone.c'; then $(CYGPATH_W) 'ddclone.c'; else $(CYGPATH_W) '$(srcdir)/ddclone.c'; fi`
 
 partclone_jfs-main.o: main.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_jfs_CFLAGS) $(CFLAGS) -MT partclone_jfs-main.o -MD -MP -MF $(DEPDIR)/partclone_jfs-main.Tpo -c -o partclone_jfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c

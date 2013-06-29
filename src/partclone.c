@@ -117,9 +117,11 @@ void usage(void) {
 		"    -L,  --logfile FILE     Log FILE\n"
 #ifndef CHKIMG
 #ifndef RESTORE
+#ifndef DD
 		"    -c,  --clone            Save to the special image format\n"
 		"    -r,  --restore          Restore from the special image format\n"
 		"    -b,  --dev-to-dev       Local device to device copy mode\n"
+#endif
 		"    -D,  --domain           Create ddrescue domain log from source device\n"
 		"         --offset_domain=X  Add offset X (bytes) to domain log values\n"
 		"    -R,  --rescue           Continue clone while disk read errors\n"
@@ -164,6 +166,8 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #else
 #ifdef RESTORE
 	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:";
+#elif DD
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:";
 #else
 	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBz:E:";
 #endif
@@ -184,9 +188,11 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 // not RESTORE and not CHKIMG
 #ifndef CHKIMG
 #ifndef RESTORE
+#ifndef DD
 		{ "clone",		no_argument,		NULL,   'c' },
 		{ "restore",		no_argument,		NULL,   'r' },
 		{ "dev-to-dev",		no_argument,		NULL,   'b' },
+#endif
 		{ "domain",		no_argument,		NULL,   'D' },
 		{ "offset_domain",	required_argument,	NULL,   OPT_OFFSET_DOMAIN },
 		{ "rescue",		no_argument,		NULL,   'R' },
@@ -223,14 +229,23 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	opt->logfile = "/var/log/partclone.log";
 	opt->buffer_size = DEFAULT_BUFFER_SIZE;
 
+#ifdef DD
+#ifndef RESTORE
+#ifndef CHKIMG
+    opt->clone++;
+    mode=1;
+#endif
+#endif
+#endif
+
 #ifdef RESTORE
 	opt->restore++;
-	mode++;
+	mode=1;
 #endif
 #ifdef CHKIMG
 	opt->restore++;
 	opt->chkimg++;
-	mode++;
+	mode=1;
 #endif
 	while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != -1) {
 		switch (c) {
@@ -273,21 +288,23 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				break;
 #ifndef CHKIMG
 #ifndef RESTORE
+#ifndef DD
 			case 'c':
 				opt->clone++;
-				mode++;
+				mode=1;
 				break;
 			case 'r':
 				opt->restore++;
-				mode++;
+				mode=1;
 				break;
 			case 'b':
 				opt->dd++;
-				mode++;
+				mode=1;
 				break;
+#endif
 			case 'D':
 				opt->domain++;
-				mode++;
+				mode=1;
 				break;
 			case OPT_OFFSET_DOMAIN:
 				opt->offset_domain = strtoull(optarg, NULL, 0);
