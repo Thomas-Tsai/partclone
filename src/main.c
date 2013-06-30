@@ -884,6 +884,10 @@ int main(int argc, char **argv) {
 							rescue_sector(&dfr, r_size, buffer + r_size, &opt);
 					} else
 						log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
+				} else if (r_size == 0){ // done for ddd
+				    /// write buffer to target
+				    w_size = write_all(&dfw, buffer, r_size, &opt);
+				    break;
 				} else
 					log_mesg(0, 1, 1, debug, "source read ERROR %s\n", strerror(errno));
 			}

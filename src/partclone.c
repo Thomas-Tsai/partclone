@@ -823,9 +823,23 @@ int open_source(char* source, cmd_opt* opt) {
 	int debug = opt->debug;
 	char *mp;
 	int flags = O_RDONLY | O_LARGEFILE;
+        struct stat st_dev;
+	int ddd_block_device = -1;
 
 	log_mesg(1, 0, 0, debug, "open source file/device %s\n", source);
-	if ((opt->clone) || (opt->dd) || (opt->domain)) { /// always is device, clone from device=source
+
+	if (opt->ddd) {
+	    if (stat(source, &st_dev) != -1) {
+		if (S_ISBLK(st_dev.st_mode)) 
+		    ddd_block_device = 1;
+		else
+		    ddd_block_device = 0;
+	    }else{
+		ddd_block_device = 0;   
+	    }
+	    log_mesg(1, 0, 0, debug, "ddd source file(0) or device(1) ? %i \n", ddd_block_device);
+	}
+	if ((opt->clone) || (opt->dd) || (opt->domain) || (ddd_block_device == 1)) { /// always is device, clone from device=source
 
 		mp = malloc(PATH_MAX + 1);
 		if (!mp)
@@ -841,7 +855,7 @@ int open_source(char* source, cmd_opt* opt) {
 		if ((ret = open(source, flags, S_IRUSR)) == -1)
 			log_mesg(0, 1, 1, debug, "clone: open %s error\n", source);
 
-	} else if ((opt->restore) || (opt->ddd)) {
+	} else if ((opt->restore) || (ddd_block_device == 0)) {
 
 		if (strcmp(source, "-") == 0) {
 			if ((ret = fileno(stdin)) == -1)
@@ -861,9 +875,21 @@ int open_target(char* target, cmd_opt* opt) {
 	char *mp;
 	int flags = O_WRONLY | O_LARGEFILE;
 	struct stat st_dev;
+	int ddd_block_device = -1;
 
-	log_mesg(1, 0, 0, debug, "open target file/device\n");
-	if (opt->clone || opt->domain || opt->ddd) {
+	log_mesg(1, 0, 0, debug, "open target file/device %s\n", target);
+	if (opt->ddd) {
+	    if (stat(target, &st_dev) != -1) {
+		if (S_ISBLK(st_dev.st_mode)) 
+		    ddd_block_device = 1;
+		else
+		    ddd_block_device = 0;
+	    }else{
+		ddd_block_device = 0;   
+	    }
+	    log_mesg(1, 0, 0, debug, "ddd target file(0) or device(1) ? %i \n", ddd_block_device);
+	}
+	if (opt->clone || opt->domain || (ddd_block_device == 0)) {
 		if (strcmp(target, "-") == 0) {
 			if ((ret = fileno(stdout)) == -1)
 				log_mesg(0, 1, 1, debug, "clone: open %s(stdout) error\n", target);
@@ -879,7 +905,7 @@ int open_target(char* target, cmd_opt* opt) {
 				log_mesg(0, 0, 1, debug, "open target fail %s: %s (%i)\n", target, strerror(errno), errno);
 			}
 		}
-	} else if ((opt->restore) || (opt->dd)) {    /// always is device, restore to device=target
+	} else if ((opt->restore) || (opt->dd) || (ddd_block_device == 1)) {    /// always is device, restore to device=target
 
 		/// check mounted
 		mp = malloc(PATH_MAX + 1);

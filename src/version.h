@@ -3,5 +3,5 @@
  * WHETHER THEY ARE BUILT BY OTHERS OR DURING DEVELOPMENT OR FOR THE
  * OFFICIAL PARTCLONE RELEASES.
  */
-#define git_version  "f56fd844beabd25ff36db3b835d71a0dc24de451"
+#define git_version  "95bb5fc97c32d12f147a76a4e3a584e4f2eeb328"
 
