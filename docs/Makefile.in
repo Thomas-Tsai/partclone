@@ -246,11 +246,12 @@ top_srcdir = @top_srcdir@
 XSLTPROC = xsltproc
 MAN_STYLESHEET = /usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
 man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 \
-	partclone.restore.8 partclone.8 $(am__append_1) \
-	$(am__append_2) $(am__append_3) $(am__append_4) \
-	$(am__append_5) $(am__append_6) $(am__append_7) \
-	$(am__append_8) $(am__append_9) $(am__append_10) \
-	$(am__append_11) $(am__append_12) $(am__append_13)
+	partclone.restore.8 partclone.8 partclone.imager.8 \
+	$(am__append_1) $(am__append_2) $(am__append_3) \
+	$(am__append_4) $(am__append_5) $(am__append_6) \
+	$(am__append_7) $(am__append_8) $(am__append_9) \
+	$(am__append_10) $(am__append_11) $(am__append_12) \
+	$(am__append_13)
 all: all-am
 
 .SUFFIXES:
@@ -496,6 +497,8 @@ uninstall-man: uninstall-man8
 	uninstall-am uninstall-man uninstall-man8
 
 
+partclone.imager.8: partclone.imager.xml
+	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.imager.xml)
 partclone.dd.8: partclone.dd.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.dd.xml)
 partclone.chkimg.8: partclone.chkimg.xml

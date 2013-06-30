@@ -1,7 +1,7 @@
 XSLTPROC=xsltproc
 MAN_STYLESHEET=/usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
 
-man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 partclone.restore.8 partclone.8
+man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 partclone.restore.8 partclone.8 partclone.imager.8
 
 if ENABLE_EXTFS
 man_MANS += partclone.extfs.8
@@ -71,7 +71,8 @@ if ENABLE_MINIX
 man_MANS += partclone.minix.8
 endif
 
-
+partclone.imager.8: partclone.imager.xml
+	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.imager.xml)
 partclone.dd.8: partclone.dd.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.dd.xml)
 partclone.chkimg.8: partclone.chkimg.xml
