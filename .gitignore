@@ -18,6 +18,7 @@ src/partclone.vmfs
 src/partclone.vmfs5
 src/partclone.chkimg
 src/partclone.dd
+src/partclone.imager
 src/partclone.exfat
 src/partclone.extfs
 src/partclone.fat
