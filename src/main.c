@@ -233,10 +233,8 @@ int main(int argc, char **argv) {
 	 */
 	if (opt.clone) {
 
-#ifndef DD
 		char bbuffer[16384];
 		unsigned long long i;
-#endif
 		unsigned long long needed_size, needed_mem;
 
 		log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
@@ -269,7 +267,6 @@ int main(int argc, char **argv) {
 			check_free_space(&dfw, needed_size);
 
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
-#ifndef DD
 		log_mesg(1, 0, 0, debug, "Writing super block and bitmap... ");
 		/// write image_head to image file
 		if (write_all(&dfw, (char *)&image_hdr, sizeof(image_head), &opt) == -1)
@@ -287,7 +284,6 @@ int main(int argc, char **argv) {
 					log_mesg(0, 1, 1, debug, "write bitmap to image error\n");
 			}
 		}
-#endif
 		log_mesg(0, 0, 1, debug, "done!\n");
 
 	} else if (opt.restore) {
@@ -372,6 +368,54 @@ int main(int argc, char **argv) {
 
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
 		log_mesg(0, 0, 1, debug, "done!\n");
+	} else if (opt.ddd){
+	
+		unsigned long long needed_mem, needed_size;
+
+		log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
+		log_mesg(1, 0, 1, debug, "Reading Super Block\n");
+
+		/// get Super Block information from partition
+		if (dfr != 0)
+		    initial_image_hdr(source, &image_hdr);
+		else
+		    initial_image_hdr(target, &image_hdr);
+
+		/// check memory size
+		if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
+			log_mesg(0, 1, 1, debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_mem);
+
+		strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
+
+		/// alloc a memory to restore bitmap
+		bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
+		if (bitmap == NULL) {
+			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
+		}
+
+		log_mesg(2, 0, 0, debug, "initial main bitmap pointer %p\n", bitmap);
+		log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
+
+		/// read and check bitmap from partition
+		log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
+		readbitmap(source, image_hdr, bitmap, pui);
+
+		/// check the dest partition size.
+		if (opt.check) {
+			
+			struct stat target_stat;
+			if ((stat(opt.target, &target_stat) != -1) && (strcmp(opt.target, "-") != 0)) {
+			    if (S_ISBLK(target_stat.st_mode)) 
+				check_size(&dfw, image_hdr.device_size);
+			    else
+				needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
+				check_free_space(&dfw, needed_size);
+			}
+		}
+
+		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
+		log_mesg(0, 0, 1, debug, "done!\n");
+    
 	}
 
 	log_mesg(1, 0, 0, debug, "print image_head\n");
@@ -410,9 +454,7 @@ int main(int argc, char **argv) {
 	 */
 	if (opt.clone) {
 
-#ifndef DD
 		unsigned long crc = 0xffffffffL;
-#endif
 		int block_size = image_hdr.block_size;
 		unsigned long long blocks_total = image_hdr.totalblock;
 		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
@@ -423,10 +465,8 @@ int main(int argc, char **argv) {
 		if (read_buffer == NULL || write_buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
-#ifndef DD
 		/// write a magic string
 		w_size = write_all(&dfw, bitmagic, 8, &opt);
-#endif
 		/// read data from the first block
 		if (lseek(dfr, 0, SEEK_SET) == (off_t)-1)
 			log_mesg(0, 1, 1, debug, "source seek ERROR:%s\n", strerror(errno));
@@ -478,7 +518,6 @@ int main(int argc, char **argv) {
 					log_mesg(0, 1, 1, debug, "read error: %s\n", strerror(errno));
 			}
 
-#ifndef DD
 			/// calculate crc
 			for (i = 0; i < blocks_read; i++) {
 				crc = crc32(crc, read_buffer + i * block_size, block_size);
@@ -503,30 +542,6 @@ int main(int argc, char **argv) {
 			if (r_size + blocks_read * CRC_SIZE != w_size)
 				log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
 
-#else
-			/// NO calculate crc
-			for (i = 0; i < blocks_read; i++) {
-				memcpy(write_buffer + i * block_size,
-					read_buffer + i * block_size, block_size);
-			}
-
-			/// write buffer to target
-			w_size = write_all(&dfw, write_buffer, blocks_read * block_size, &opt);
-			if (w_size != blocks_read * block_size)
-				log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
-
-			/// count copied block
-			copied += blocks_read;
-
-			/// next block
-			block_id += blocks_read;
-
-			/// read or write error
-			if (r_size != w_size)
-				log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
-
-
-#endif
 		} while (1);
 
 		free(write_buffer);
@@ -828,6 +843,85 @@ int main(int argc, char **argv) {
 			}
 			// don't bother updating progress
 		} /// end of for
+	} else if (opt.ddd) {
+
+		char *buffer;
+		int block_size = image_hdr.block_size;
+		unsigned long long blocks_total = image_hdr.totalblock;
+		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
+
+		buffer = (char*)malloc(blocks_in_buffer * block_size);
+		if (buffer == NULL) {
+			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
+		}
+
+		block_id = 0;
+
+
+		log_mesg(0, 0, 0, debug, "Total block %llu\n", blocks_total);
+
+		/// start clone partition to partition
+		log_mesg(1, 0, 0, debug, "start backup data device-to-device...\n");
+		do {
+			/// scan bitmap
+			unsigned long long blocks_read;
+
+			/// read chunk from source
+			for (blocks_read = 0;
+			     block_id + blocks_read < blocks_total && blocks_read < blocks_in_buffer &&
+			     pc_test_bit(block_id + blocks_read, bitmap);
+			     blocks_read++);
+
+			if (!blocks_read)
+				break;
+
+			r_size = read_all(&dfr, buffer, blocks_read * block_size, &opt);
+			if (r_size != (int)(blocks_read * block_size)) {
+				if ((r_size == -1) && (errno == EIO)) {
+					if (opt.rescue) {
+						memset(buffer, 0, blocks_read * block_size);
+						for (r_size = 0; r_size < blocks_read * block_size; r_size += PART_SECTOR_SIZE)
+							rescue_sector(&dfr, r_size, buffer + r_size, &opt);
+					} else
+						log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
+				} else
+					log_mesg(0, 1, 1, debug, "source read ERROR %s\n", strerror(errno));
+			}
+
+			/// write buffer to target
+			w_size = write_all(&dfw, buffer, blocks_read * block_size, &opt);
+			if (w_size != (int)(blocks_read * block_size)) {
+				if (opt.skip_write_error)
+					log_mesg(0, 0, 1, debug, "skip write block %lli error:%s\n", block_id, strerror(errno));
+				else
+					log_mesg(0, 1, 1, debug, "write block %lli ERROR:%s\n", block_id, strerror(errno));
+			}
+
+			/// count copied block
+			copied += blocks_read;
+
+			/// next block
+			block_id += blocks_read;
+
+			/// read or write error
+			if (r_size != w_size) {
+				if (opt.skip_write_error)
+					log_mesg(0, 0, 1, debug, "read and write different\n");
+				else
+					log_mesg(0, 1, 1, debug, "read and write different\n");
+			}
+		} while (1);
+
+		free(buffer);
+
+		/// restore_raw_file option
+		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap)) {
+			if (ftruncate(dfw, (off_t)(blocks_total * block_size)) == -1)
+				log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
+		}
+
+
+
 	}
 
 	done = 1;

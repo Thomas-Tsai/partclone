@@ -232,7 +232,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #ifdef DD
 #ifndef RESTORE
 #ifndef CHKIMG
-    opt->clone++;
+    opt->ddd++;
     mode=1;
 #endif
 #endif
@@ -841,7 +841,7 @@ int open_source(char* source, cmd_opt* opt) {
 		if ((ret = open(source, flags, S_IRUSR)) == -1)
 			log_mesg(0, 1, 1, debug, "clone: open %s error\n", source);
 
-	} else if (opt->restore) {
+	} else if ((opt->restore) || (opt->ddd)) {
 
 		if (strcmp(source, "-") == 0) {
 			if ((ret = fileno(stdin)) == -1)
@@ -863,7 +863,7 @@ int open_target(char* target, cmd_opt* opt) {
 	struct stat st_dev;
 
 	log_mesg(1, 0, 0, debug, "open target file/device\n");
-	if (opt->clone || opt->domain) {
+	if (opt->clone || opt->domain || opt->ddd) {
 		if (strcmp(target, "-") == 0) {
 			if ((ret = fileno(stdout)) == -1)
 				log_mesg(0, 1, 1, debug, "clone: open %s(stdout) error\n", target);

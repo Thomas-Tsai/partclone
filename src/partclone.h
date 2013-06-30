@@ -79,6 +79,7 @@ struct cmd_opt
     int clone;
     int restore;
     int dd;
+    int ddd;
     int domain;
     int chkimg;
     int info;
