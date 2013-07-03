@@ -44,6 +44,8 @@ int done;
 /// cmd_opt structure defined in partclone.h
 cmd_opt opt;
 
+#include "checksum.h"
+
 /**
  * Include different filesystem header depend on what flag you want.
  * If cflag is _EXTFS, output to extfsclone.
@@ -371,7 +373,7 @@ int main(int argc, char **argv) {
 	 */
 	if (opt.clone) {
 
-		unsigned long crc = 0xffffffffL;
+		unsigned char checksum[cs_size];
 		int block_size = fs_info.block_size;
 		unsigned long long blocks_total = fs_info.totalblock;
 		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
@@ -391,6 +393,9 @@ int main(int argc, char **argv) {
 
 		/// start clone partition to image file
 		log_mesg(1, 0, 0, debug, "start backup data...\n");
+
+		log_mesg(1, 0, 0, 1, "# checksum size = %u\n", cs_size);
+		init_checksum(img_opt.checksum_mode, checksum, debug);
 
 		block_id = 0;
 		do {
@@ -434,13 +439,13 @@ int main(int argc, char **argv) {
 					log_mesg(0, 1, 1, debug, "read error: %s\n", strerror(errno));
 			}
 
-			/// calculate crc
+			/// calculate checksum
 			for (i = 0; i < blocks_read; i++) {
-				crc = crc32(crc, read_buffer + i * block_size, block_size);
 				memcpy(write_buffer + i * (block_size + cs_size),
 					read_buffer + i * block_size, block_size);
+				update_checksum(checksum, read_buffer + i * block_size, block_size);
 				memcpy(write_buffer + i * (block_size + cs_size) + block_size,
-					&crc, cs_size);
+					checksum, cs_size);
 			}
 
 			/// write buffer to target
@@ -465,7 +470,7 @@ int main(int argc, char **argv) {
 
 	} else if (opt.restore) {
 
-		unsigned long crc = 0xffffffffL;
+		unsigned char checksum[cs_size];
 		char *read_buffer, *write_buffer;
 		int block_size = fs_info.block_size;
 		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
@@ -496,10 +501,14 @@ int main(int argc, char **argv) {
 		/// start restore image file to partition
 		log_mesg(1, 0, 0, debug, "start restore data...\n");
 
+		log_mesg(1, 0, 0, 1, "# checksum size = %u\n", cs_size);
+		if (!opt.ignore_crc)
+			init_checksum(img_opt.checksum_mode, checksum, debug);
+
 		block_id = 0;
 		do {
 			int i, bugcheck = 0;
-			unsigned long crc_saved;
+			unsigned char cs_saved[cs_size];
 			unsigned long long blocks_written, bytes_skip;
 			// max chunk to read using one read(2) syscall
 			int blocks_read = copied + blocks_in_buffer < blocks_used ?
@@ -518,17 +527,17 @@ int main(int argc, char **argv) {
 			// write buffer should be the follows:
 			// <block1><block2>...
 
-			// fill up write buffer, check crc
-			recheck:
-			crc_saved = crc;
+			// fill up write buffer, validate checksum
+		recheck:
+			memcpy(cs_saved, checksum, cs_size);
 			for (i = 0; i < blocks_read; i++) {
 				memcpy(write_buffer + i * block_size,
 					read_buffer + i * (block_size + cs_size), block_size);
 				if (opt.ignore_crc)
 					continue;
-				// check crc
-				crc = crc32(crc, read_buffer + i * (block_size + cs_size), block_size);
-				if (memcmp(read_buffer + i * (block_size + cs_size) + block_size, &crc, cs_size)) {
+
+				update_checksum(checksum, read_buffer + i * (block_size + cs_size), block_size);
+				if (memcmp(read_buffer + i * (block_size + cs_size) + block_size, checksum, cs_size)) {
 					if (bugcheck)
 						log_mesg(0, 1, 1, debug, "CRC error, block_id=%llu...\n ", block_id + i);
 					else
@@ -561,7 +570,7 @@ int main(int argc, char **argv) {
 						}
 					}
 					memcpy(read_buffer, write_buffer, blocks_read * (block_size + cs_size));
-					crc = crc_saved;
+					memcpy(checksum, cs_saved, cs_size);
 					bugcheck = 1;
 					goto recheck;
 				}
