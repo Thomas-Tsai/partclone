@@ -1,7 +1,9 @@
 #include <string.h>
 
 #define PART_BYTES_PER_LONG ((int)sizeof(unsigned long))
+#define PART_BITS_PER_BYTE  (8)
 #define PART_BITS_PER_LONG  (PART_BYTES_PER_LONG*8)
+#define BITS_TO_BYTES(bits) (((bits)+PART_BITS_PER_BYTE-1)/PART_BITS_PER_BYTE)
 #define BITS_TO_LONGS(bits) (((bits)+PART_BITS_PER_LONG-1)/PART_BITS_PER_LONG)
 
 static inline int pc_test_bit(unsigned int nr, unsigned long *bitmap)

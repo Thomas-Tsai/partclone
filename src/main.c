@@ -122,6 +122,7 @@ int main(int argc, char **argv) {
 	char*			target;			/// target data
 	int			dfr, dfw;		/// file descriptor for source and target
 	int			r_size, w_size;		/// read and write size
+	unsigned		cs_size = 0;		/// checksum_size
 	int			start, stop;		/// start, range, stop number for progress bar
 	unsigned long *bitmap = NULL;		/// the point for bitmap data
 	int			debug = 0;		/// debug level
@@ -143,8 +144,10 @@ int main(int argc, char **argv) {
 		"*************************************************************************\n";
 
 	file_system_info fs_info;   /// description of the file system
+	image_options    img_opt;
 
 	init_fs_info(&fs_info);
+	init_image_options(&img_opt);
 
 	/**
 	 * get option and assign to opt structure
@@ -222,7 +225,9 @@ int main(int argc, char **argv) {
 	 */
 	if (opt.clone) {
 
-		unsigned long long needed_space, needed_mem;
+		log_mesg(1, 0, 0, debug, "Initiate image options - version %s\n", IMAGE_VERSION_CURRENT);
+
+		cs_size = img_opt.checksum_size;
 
 		log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
 		log_mesg(0, 0, 1, debug, "Reading Super Block\n");
@@ -230,9 +235,7 @@ int main(int argc, char **argv) {
 		/// get Super Block information from partition
 		read_super_blocks(source, &fs_info);
 
-		/// check memory size
-		if (check_mem_size(fs_info, opt, &needed_mem) == -1)
-			log_mesg(0, 1, 1, debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_mem);
+		check_mem_size(fs_info, img_opt, opt);
 
 		/// alloc a memory to store bitmap
 		bitmap = pc_alloc_bitmap(fs_info.totalblock);
@@ -247,10 +250,16 @@ int main(int argc, char **argv) {
 		log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
 		read_bitmap(source, fs_info, bitmap, pui);
 
-		needed_space  = sizeof(image_head_v1) + sizeof(file_system_info_v1) + sizeof(image_options_v1);
-		needed_space += (fs_info.block_size + CRC_SIZE) * fs_info.usedblocks + fs_info.totalblock;
-		if (opt.check)
+		if (opt.check) {
+
+			unsigned long long needed_space = 0;
+
+			needed_space += sizeof(image_head_v1) + sizeof(file_system_info_v1) + sizeof(image_options_v1);
+			needed_space += (fs_info.block_size + cs_size) * fs_info.usedblocks;
+			needed_space += fs_info.totalblock; // for bitmap
+
 			check_free_space(&dfw, needed_space);
+		}
 
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
 		log_mesg(1, 0, 0, debug, "Writing super block and bitmap... ");
@@ -262,17 +271,14 @@ int main(int argc, char **argv) {
 
 	} else if (opt.restore) {
 
-		unsigned long long needed_mem;
-
 		log_mesg(1, 0, 0, debug, "restore image hdr - get information from image file\n");
 		log_mesg(1, 0, 1, debug, "Reading Super Block\n");
 
 		/// get image information from image file
-		load_image_desc(&dfr, &opt, &fs_info);
+		load_image_desc(&dfr, &opt, &fs_info, &img_opt);
+		cs_size = img_opt.checksum_size;
 
-		/// check memory size
-		if (check_mem_size(fs_info, opt, &needed_mem) == -1)
-			log_mesg(0, 1, 1, debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_mem);
+		check_mem_size(fs_info, img_opt, opt);
 
 		/// alloc a memory to restore bitmap
 		bitmap = pc_alloc_bitmap(fs_info.totalblock);
@@ -300,17 +306,13 @@ int main(int argc, char **argv) {
 
 	} else if (opt.dd || opt.domain) {
 
-		unsigned long long needed_mem;
-
 		log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
 		log_mesg(1, 0, 1, debug, "Reading Super Block\n");
 
 		/// get Super Block information from partition
 		read_super_blocks(source, &fs_info);
 
-		/// check memory size
-		if (check_mem_size(fs_info, opt, &needed_mem) == -1)
-			log_mesg(0, 1, 1, debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_mem);
+		check_mem_size(fs_info, img_opt, opt);
 
 		/// alloc a memory to restore bitmap
 		bitmap = pc_alloc_bitmap(fs_info.totalblock);
@@ -376,7 +378,7 @@ int main(int argc, char **argv) {
 		char *read_buffer, *write_buffer;
 
 		read_buffer = (char*)malloc(blocks_in_buffer * block_size);
-		write_buffer = (char*)malloc(blocks_in_buffer * (block_size + CRC_SIZE));
+		write_buffer = (char*)malloc(blocks_in_buffer * (block_size + cs_size));
 		if (read_buffer == NULL || write_buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
@@ -435,15 +437,15 @@ int main(int argc, char **argv) {
 			/// calculate crc
 			for (i = 0; i < blocks_read; i++) {
 				crc = crc32(crc, read_buffer + i * block_size, block_size);
-				memcpy(write_buffer + i * (block_size + CRC_SIZE),
+				memcpy(write_buffer + i * (block_size + cs_size),
 					read_buffer + i * block_size, block_size);
-				memcpy(write_buffer + i * (block_size + CRC_SIZE) + block_size,
-					&crc, CRC_SIZE);
+				memcpy(write_buffer + i * (block_size + cs_size) + block_size,
+					&crc, cs_size);
 			}
 
 			/// write buffer to target
-			w_size = write_all(&dfw, write_buffer, blocks_read * (block_size + CRC_SIZE), &opt);
-			if (w_size != blocks_read * (block_size + CRC_SIZE))
+			w_size = write_all(&dfw, write_buffer, blocks_read * (block_size + cs_size), &opt);
+			if (w_size != blocks_read * (block_size + cs_size))
 				log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
 
 			/// count copied block
@@ -453,7 +455,7 @@ int main(int argc, char **argv) {
 			block_id += blocks_read;
 
 			/// read or write error
-			if (r_size + blocks_read * CRC_SIZE != w_size)
+			if (r_size + blocks_read * cs_size != w_size)
 				log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
 
 		} while (1);
@@ -479,8 +481,8 @@ int main(int argc, char **argv) {
 		if (blocks_used_fix != blocks_used)
 		    blocks_used = blocks_used_fix;
 
-		read_buffer = (char*)malloc(blocks_in_buffer * (block_size + 2 * CRC_SIZE));
-		write_buffer = (char*)malloc(blocks_in_buffer * (block_size + CRC_SIZE));
+		read_buffer = (char*)malloc(blocks_in_buffer * (block_size + 2 * cs_size));
+		write_buffer = (char*)malloc(blocks_in_buffer * (block_size + cs_size));
 		if (read_buffer == NULL || write_buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
@@ -506,8 +508,8 @@ int main(int argc, char **argv) {
 				break;
 
 			// read chunk from image
-			r_size = read_all(&dfr, read_buffer, blocks_read * (block_size + CRC_SIZE), &opt);
-			if (r_size != blocks_read * (block_size + CRC_SIZE))
+			r_size = read_all(&dfr, read_buffer, blocks_read * (block_size + cs_size), &opt);
+			if (r_size != blocks_read * (block_size + cs_size))
 				log_mesg(0, 1, 1, debug, "read ERROR:%s\n", strerror(errno));
 
 			// read buffer is the follows:
@@ -521,20 +523,20 @@ int main(int argc, char **argv) {
 			crc_saved = crc;
 			for (i = 0; i < blocks_read; i++) {
 				memcpy(write_buffer + i * block_size,
-					read_buffer + i * (block_size + CRC_SIZE), block_size);
+					read_buffer + i * (block_size + cs_size), block_size);
 				if (opt.ignore_crc)
 					continue;
 				// check crc
-				crc = crc32(crc, read_buffer + i * (block_size + CRC_SIZE), block_size);
-				if (memcmp(read_buffer + i * (block_size + CRC_SIZE) + block_size, &crc, CRC_SIZE)) {
+				crc = crc32(crc, read_buffer + i * (block_size + cs_size), block_size);
+				if (memcmp(read_buffer + i * (block_size + cs_size) + block_size, &crc, cs_size)) {
 					if (bugcheck)
 						log_mesg(0, 1, 1, debug, "CRC error, block_id=%llu...\n ", block_id + i);
 					else
 						log_mesg(1, 0, 0, debug, "CRC Check error. 64bit bug before v0.1.0 (Rev:250M), "
 							"trying enlarge crc size and recheck again...\n");
-					// try to read (blocks_read * CRC_SIZE) bytes to the end of read_buffer
-					if (read_all(&dfr, read_buffer + blocks_read * (block_size + CRC_SIZE),
-						blocks_read * CRC_SIZE, &opt) != blocks_read * CRC_SIZE) {
+					// try to read (blocks_read * cs_size) bytes to the end of read_buffer
+					if (read_all(&dfr, read_buffer + blocks_read * (block_size + cs_size),
+						blocks_read * cs_size, &opt) != blocks_read * cs_size) {
 						log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file.\n",
 							strerror(errno));
 					}
@@ -544,21 +546,21 @@ int main(int argc, char **argv) {
 						// i.e. read buffer is the follows:
 						// <block1><crc1><bug><block2><crc2><bug>...
 						for (i = 0; i < blocks_read; i++) {
-							memcpy(write_buffer + i * (block_size + CRC_SIZE),
-								read_buffer + i * (block_size + 2*CRC_SIZE),
-								block_size + CRC_SIZE);
+							memcpy(write_buffer + i * (block_size + cs_size),
+								read_buffer + i * (block_size + 2*cs_size),
+								block_size + cs_size);
 						}
 					} else {
 						// first block incorrect
 						// i.e. read buffer is the follows:
 						// <bug><block1><crc1><bug><block2><crc2>...
 						for (i = 0; i < blocks_read; i++) {
-							memcpy(write_buffer + i * (block_size + CRC_SIZE),
-								read_buffer + i * (block_size + 2*CRC_SIZE) + CRC_SIZE,
-								block_size + CRC_SIZE);
+							memcpy(write_buffer + i * (block_size + cs_size),
+								read_buffer + i * (block_size + 2*cs_size) + cs_size,
+								block_size + cs_size);
 						}
 					}
-					memcpy(read_buffer, write_buffer, blocks_read * (block_size + CRC_SIZE));
+					memcpy(read_buffer, write_buffer, blocks_read * (block_size + cs_size));
 					crc = crc_saved;
 					bugcheck = 1;
 					goto recheck;

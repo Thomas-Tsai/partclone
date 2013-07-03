@@ -51,7 +51,7 @@
 #define IMAGE_VERSION_CURRENT IMAGE_VERSION_0001
 #define DEFAULT_BUFFER_SIZE 1048576
 #define PART_SECTOR_SIZE 512
-#define CRC_SIZE 4
+#define CRC32_SIZE 4
 
 // Reference: ntfsclone.c
 #define KBYTE (1000)
@@ -153,6 +153,22 @@ typedef struct
 
 } image_options_v1;
 
+typedef struct
+{
+	/// Number of bytes used by this struct
+	uint32_t feature_size;
+
+	/// partclone's compilation flavor: 32 bits or 64 bits
+	uint16_t cpu_bits;
+
+	/// Size of one checksum, in bytes. 0 when NONE, 4 with CRC32, etc.
+	uint16_t checksum_size;
+
+	/// How many consecutive blocks are checksumed together.
+	uint32_t blocks_per_checksum;
+
+} image_options_v2;
+
 /// image format 0001 description
 typedef struct
 {
@@ -164,9 +180,12 @@ typedef struct
 
 #pragma pack(pop)
 
-// Use this typedef when a function handles the current version and use the
-// "versioned" typedef when a function handles a specific version.
+// Use these typedefs when a function handles the current version and use the
+// "versioned" typedefs when a function handles a specific version.
 typedef file_system_info_v2 file_system_info;
+typedef image_options_v2    image_options;
+
+extern image_options img_opt;
 
 extern void usage(void);
 extern void print_version(void);
@@ -195,7 +214,8 @@ extern void sync_data(int fd, cmd_opt* opt);
 extern void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt);
 
 extern void init_fs_info(file_system_info* fs_info);
-extern void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info);
+extern void init_image_options(image_options* img_opt);
+extern void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_options* img_opt);
 extern void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap);
 extern void write_image_desc(int* ret, file_system_info fs_info, cmd_opt* opt);
 extern void write_image_bitmap(int* ret, file_system_info fs_info, unsigned long* bitmap, cmd_opt* opt);
@@ -228,7 +248,7 @@ extern int check_size(int* ret, unsigned long long size);
 extern void check_free_space(int* ret, unsigned long long size);
 
 /// check free memory size
-extern int check_mem_size(file_system_info fs_info, cmd_opt opt, unsigned long long *mem_size);
+extern void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt);
 
 /// generate crc32 code
 extern unsigned long crc32(unsigned long crc, char *buf, int size);
