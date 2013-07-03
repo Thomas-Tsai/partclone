@@ -161,6 +161,9 @@ typedef struct
 	/// partclone's compilation flavor: 32 bits or 64 bits
 	uint16_t cpu_bits;
 
+	/// checksum algorithm used (see checksum_mode_enum
+	uint16_t checksum_mode;
+
 	/// Size of one checksum, in bytes. 0 when NONE, 4 with CRC32, etc.
 	uint16_t checksum_size;
 
@@ -249,9 +252,6 @@ extern void check_free_space(int* ret, unsigned long long size);
 
 /// check free memory size
 extern void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt);
-
-/// generate crc32 code
-extern unsigned long crc32(unsigned long crc, char *buf, int size);
 
 /// print partclone info
 extern void print_partclone_info(cmd_opt opt);

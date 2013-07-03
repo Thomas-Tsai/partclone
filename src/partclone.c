@@ -39,6 +39,7 @@
 //#define PACKAGE "partclone"
 #include "version.h"
 #include "partclone.h"
+#include "checksum.h"
 
 #if defined(linux) && defined(_IO) && !defined(BLKGETSIZE)
 #define BLKGETSIZE      _IO(0x12,96)  /* Get device size in 512-byte blocks. */
@@ -84,9 +85,17 @@ int get_cpu_bits()
 
 /**
  * A version 0001 image does not contains an image_options. Its values are always the same.
+ *
+ * @note
+ * We must use a special version of crc32(), crc32_0001(), because the old crc32() implementation
+ * contains a bug that prevented it from computing the crc32 correctly.
+ *
+ * Also, an old bug affects some images generated from an old 64 bits version of partclone.
+ * In these images, the crc32 is recorded on 8 bytes instead of 4.
  */
 void set_image_options_v1(image_options* img_opt)
 {
+	img_opt->checksum_mode = CSM_CRC32_0001;
 	img_opt->checksum_size = CRC32_SIZE;
 	img_opt->blocks_per_checksum = 1;
 }
@@ -1066,46 +1075,6 @@ void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt) {
 		memset(buff, '?', PART_SECTOR_SIZE);
 		memmove(buff, badsector_magic, sizeof(badsector_magic));
 	}
-}
-
-/// the crc32 function, reference from libcrc.
-/// Author is Lammert Bies  1999-2007
-/// Mail: info@lammertbies.nl
-/// http://www.lammertbies.nl/comm/info/nl_crc-calculation.html 
-/// generate crc32 code
-unsigned long crc32(unsigned long crc, char *buf, int size){
-
-	static unsigned long crc_tab32[256];
-	static int init = 0;
-
-	unsigned long tmp, long_c;
-	int s = 0;
-
-	if (init == 0) {
-		/// initial crc table
-		unsigned long init_crc, init_p;
-		int i, j;
-		init_p = 0xEDB88320L;
-
-		for (i = 0; i < 256; i++) {
-			init_crc = (unsigned long) i;
-			for (j = 0; j < 8; j++) {
-				if ( init_crc & 0x00000001L ) init_crc = ( init_crc >> 1 ) ^ init_p;
-				else init_crc = init_crc >> 1;
-			}
-			crc_tab32[i] = init_crc;
-		}
-		init = 1;
-	}
-
-	do {
-		/// update crc
-		long_c = 0x000000ffL & (unsigned long) *buf;
-		tmp = crc ^ long_c;
-		crc = (crc >> 8) ^ crc_tab32[ tmp & 0xff ];
-	} while (++s < size);
-
-	return crc;
 }
 
 /// print options to log file

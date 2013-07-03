@@ -28,9 +28,9 @@ CFLAGS+=-D_FILE_OFFSET_BITS=64
 version.h: FORCE
 	$(TOOLBOX) --update-version
 
-main_files=main.c partclone.c progress.c partclone.h progress.h gettext.h
+main_files=main.c partclone.c progress.c checksum.c partclone.h progress.h gettext.h checksum.h
 
-partclone_info_SOURCES=info.c partclone.c partclone.h fs_common.h
+partclone_info_SOURCES=info.c partclone.c checksum.c partclone.h fs_common.h checksum.h
 
 partclone_restore_SOURCES=$(main_files) ddclone.c ddclone.h
 partclone_restore_CFLAGS=-DRESTORE -DDD
