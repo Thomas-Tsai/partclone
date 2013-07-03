@@ -944,6 +944,7 @@ int io_all(int *fd, char *buf, unsigned long long count, int do_write, cmd_opt* 
 	long long int i;
 	int debug = opt->debug;
 	unsigned long long size = count;
+	extern unsigned long long rescue_write_size;
 
 	// for sync I/O buffer, when use stdin or pipe.
 	while (count > 0) {
@@ -959,11 +960,17 @@ int io_all(int *fd, char *buf, unsigned long long count, int do_write, cmd_opt* 
 			}
 		} else if (i == 0) {
 			log_mesg(1, 0, 1, debug, "%s: nothing to read. errno = %i(%s)\n",__func__, errno, strerror(errno));
+			rescue_write_size = size - count;
+			log_mesg(1, 0, 0, debug, "%s: rescue write size = %llu\n",__func__, rescue_write_size);
 			return 0;
 		} else {
 			count -= i;
 			buf = i + (char *) buf;
-			log_mesg(2, 0, 0, debug, "%s: read %lli, %llu left.\n",__func__, i, count);
+			if (do_write)
+			    log_mesg(2, 0, 0, debug, "%s: write ",__func__);
+			else
+			    log_mesg(2, 0, 0, debug, "%s: read ",__func__);
+			log_mesg(2, 0, 0, debug, "%lli, %llu left.\n", i, count);
 		}
 	}
 	return size;

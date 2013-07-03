@@ -67,6 +67,7 @@
 #define NO_BLOCK_DETAIL 3
 
 char *EXECNAME;
+unsigned long long rescue_write_size;
 
 /**
  * option
