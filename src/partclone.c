@@ -883,8 +883,27 @@ void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt
 	}
 }
 
-/// get bitmap from image file to restore data
-void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap) {
+void load_image_bitmap_bits(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap) {
+
+	unsigned long long r_size, bitmap_size = BITS_TO_BYTES(fs_info.totalblock);
+	uint32_t r_crc, crc;
+
+	r_size = read_all(ret, (char*)bitmap, bitmap_size, &opt);
+	if (r_size != bitmap_size)
+		log_mesg(0, 1, 1, opt.debug, "unable to read bitmap.\n");
+
+	r_size = read_all(ret, (char*)&r_crc, sizeof(r_crc), &opt);
+	if (r_size != sizeof(r_crc))
+		log_mesg(0, 1, 1, opt.debug, "read bitmap's crc error\n");
+
+	init_crc32(&crc);
+
+	crc = crc32(crc, bitmap, bitmap_size);
+	if (crc != r_crc)
+		log_mesg(0, 1, 1, opt.debug, "read bitmap's crc error\n");
+}
+
+void load_image_bitmap_bytes(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap) {
 
 	unsigned long long size, r_size, r_need;
 	char buffer[16384];
@@ -932,6 +951,29 @@ void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, unsigned
 		log_mesg(0, 1, 1, debug, "can't find bitmagic\n");
 }
 
+/// get bitmap from image file to restore data
+void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, image_options img_opt, unsigned long* bitmap) {
+
+	switch(img_opt.bitmap_mode) {
+
+	case BM_BIT:
+		load_image_bitmap_bits(ret, opt, fs_info, bitmap);
+		break;
+
+	case BM_BYTE:
+		load_image_bitmap_bytes(ret, opt, fs_info, bitmap);
+		break;
+
+	case BM_NONE:
+		// All blocks are present
+		pc_init_bitmap(bitmap, 0xFF, fs_info.totalblock);
+		break;
+
+	default:
+		log_mesg(0, 1, 1, opt.debug, "ERROR: unknown bitmap mode [%d]\n", img_opt.bitmap_mode);
+		break;
+	}
+}
 
 /**
  * for open and close
