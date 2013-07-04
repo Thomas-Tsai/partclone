@@ -230,7 +230,7 @@ extern void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *
 extern void init_fs_info(file_system_info* fs_info);
 extern void init_image_options(image_options* img_opt);
 extern void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_options* img_opt);
-extern void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap);
+extern void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, image_options img_opt, unsigned long* bitmap);
 extern void write_image_desc(int* ret, file_system_info fs_info, cmd_opt* opt);
 extern void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_opt, unsigned long* bitmap, cmd_opt* opt);
 
