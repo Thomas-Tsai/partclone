@@ -267,7 +267,7 @@ int main(int argc, char **argv) {
 		log_mesg(1, 0, 0, debug, "Writing super block and bitmap... ");
 
 		write_image_desc(&dfw, fs_info, &opt);
-		write_image_bitmap(&dfw, fs_info, bitmap, &opt);
+		write_image_bitmap(&dfw, fs_info, img_opt, bitmap, &opt);
 
 		log_mesg(0, 0, 1, debug, "done!\n");
 

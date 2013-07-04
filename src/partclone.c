@@ -98,6 +98,7 @@ void set_image_options_v1(image_options* img_opt)
 	img_opt->checksum_mode = CSM_CRC32_0001;
 	img_opt->checksum_size = CRC32_SIZE;
 	img_opt->blocks_per_checksum = 1;
+	img_opt->bitmap_mode = BM_BYTE;
 }
 
 void init_image_head_v1(image_head_v1* image_hdr, char* fs)
@@ -696,24 +697,79 @@ void write_image_desc(int* ret, file_system_info fs_info, cmd_opt* opt) {
 		log_mesg(0, 1, 1, opt->debug, "error writing image header to image: %s\n", strerror(errno));
 }
 
-void write_image_bitmap(int* ret, file_system_info fs_info, unsigned long* bitmap, cmd_opt* opt) {
+void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_opt, unsigned long* bitmap, cmd_opt* opt) {
 
-	int i;
-	char bbuffer[16384];
+	int i, debug = opt->debug;
 
-	/// write bitmap information to image file
-	for (i = 0; i < fs_info.totalblock; i++) {
-		bbuffer[i % sizeof(bbuffer)] = pc_test_bit(i, bitmap);
+	switch(img_opt.bitmap_mode) {
 
-		if (i % sizeof(bbuffer) == sizeof(bbuffer) - 1 || i == fs_info.totalblock - 1) {
-			if (write_all(ret, bbuffer, 1 + (i % sizeof(bbuffer)), opt) == -1)
-				log_mesg(0, 1, 1, opt->debug, "write bitmap to image error: %s\n", strerror(errno));
-		}
+	case BM_BIT:
+	{
+		if (write_all(ret, (char*)bitmap, BITS_TO_BYTES(fs_info.totalblock), opt) == -1)
+			log_mesg(0, 1, 1, debug, "write bitmap to image error: %s\n", strerror(errno));
+
+		break;
 	}
 
-	/// write a magic string
-	if (write_all(ret, BIT_MAGIC, BIT_MAGIC_SIZE, opt) != BIT_MAGIC_SIZE)
-		log_mesg(0, 1, 1, opt->debug, "write bitmap to image error: %s\n", strerror(errno));
+	case BM_BYTE:
+	{
+		char bbuffer[16384];
+
+		for (i = 0; i < fs_info.totalblock; ++i) {
+
+			bbuffer[i % sizeof(bbuffer)] = pc_test_bit(i, bitmap);
+
+			if (i % sizeof(bbuffer) == sizeof(bbuffer) - 1 || i == fs_info.totalblock - 1) {
+
+				if (write_all(ret, bbuffer, 1 + (i % sizeof(bbuffer)), opt) == -1)
+					log_mesg(0, 1, 1, debug, "write bitmap to image error: %s\n", strerror(errno));
+			}
+		}
+
+		break;
+	}
+
+	case BM_NONE:
+	{
+		// All blocks MUST be present
+		if (fs_info.usedblocks != fs_info.totalblock)
+			log_mesg(0, 1, 1, debug, "ERROR: used blocks count does not match total blocks count\n");
+		break;
+	}
+
+	default:
+		log_mesg(0, 1, 1, debug, "ERROR: unknown bitmap mode [%d]\n", img_opt.bitmap_mode);
+		break;
+	}
+
+	if (img_opt.bitmap_mode != BM_NONE) {
+
+		switch (img_opt.image_version) {
+
+		case 0x0001:
+			if (write_all(ret, BIT_MAGIC, BIT_MAGIC_SIZE, opt) != BIT_MAGIC_SIZE)
+				log_mesg(0, 1, 1, debug, "write bitmap to image error: %s\n", strerror(errno));
+			break;
+
+		case 0x0002: {
+
+			uint32_t crc;
+
+			init_crc32(&crc);
+
+			crc = crc32(crc, bitmap, BITS_TO_BYTES(fs_info.totalblock));
+
+			if (write_all(ret, (char*)&crc, sizeof(crc), opt) != sizeof(crc))
+				log_mesg(0, 1, 1, debug, "write bitmap to image error: %s\n", strerror(errno));
+
+			break;
+		}
+
+		default:
+			log_mesg(0, 1, 1, debug, "image_version is not set or write_image_bitmap() must to be updated [%d]\n", img_opt.image_version);
+			break;
+		}
+	}
 }
 
 /// get partition size

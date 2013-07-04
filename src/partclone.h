@@ -153,6 +153,14 @@ typedef struct
 
 } image_options_v1;
 
+typedef enum
+{
+	BM_NONE = 0x00,
+	BM_BIT  = 0x01,
+	BM_BYTE = 0x08,
+
+} bitmap_mode_t;
+
 typedef struct
 {
 	/// Number of bytes used by this struct
@@ -169,6 +177,9 @@ typedef struct
 
 	/// How many consecutive blocks are checksumed together.
 	uint32_t blocks_per_checksum;
+
+	/// Kind of bitmap stored in the image (see bitmap_mode_enum)
+	uint8_t bitmap_mode;
 
 } image_options_v2;
 
@@ -221,7 +232,7 @@ extern void init_image_options(image_options* img_opt);
 extern void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_options* img_opt);
 extern void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap);
 extern void write_image_desc(int* ret, file_system_info fs_info, cmd_opt* opt);
-extern void write_image_bitmap(int* ret, file_system_info fs_info, unsigned long* bitmap, cmd_opt* opt);
+extern void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_opt, unsigned long* bitmap, cmd_opt* opt);
 
 /**
  * The next two functions are not defined in partclone.c. They must be defined by each
