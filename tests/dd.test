@@ -9,8 +9,8 @@ dd_count=$((normal_size/2))
 echo "create raw file $raw"
 _ptlbreak
 [ -f $raw ] && rm $raw
-echo "dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count"
-dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
+echo "dd if=/dev/urandom of=$raw bs=$dd_bs count=$dd_count"
+dd if=/dev/urandom of=$raw bs=$dd_bs count=$dd_count
 smd5=$(md5sum $raw)
 
 echo "clone $raw to $img"

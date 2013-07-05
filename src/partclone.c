@@ -1052,6 +1052,8 @@ void print_opt(cmd_opt opt) {
 		log_mesg(1, 0, 0, debug, "MODE: device to device\n");
 	else if (opt.domain)
 		log_mesg(1, 0, 0, debug, "MODE: create domain log for ddrescue\n");
+	else if (opt.ddd)
+		log_mesg(1, 0, 0, debug, "MODE: dd\n");
 
 	log_mesg(1, 0, 0, debug, "DEBUG: %i\n", opt.debug);
 	log_mesg(1, 0, 0, debug, "SOURCE: %s\n", opt.source);
@@ -1087,8 +1089,10 @@ void print_partclone_info(cmd_opt opt) {
 		log_mesg(0, 0, 1, debug, _("Starting to back up device(%s) to device(%s)\n"), opt.source, opt.target);
 	else if (opt.domain)
 		log_mesg(0, 0, 1, debug, _("Starting to map device (%s) to domain log (%s)\n"), opt.source, opt.target);
+	else if (opt.ddd)
+		log_mesg(0, 0, 1, debug, _("Starting to clone/restore (%s) to (%s) with dd mode\n"), opt.source, opt.target);
 	else
-		log_mesg(0, 0, 1, debug, "unknow mode\n");
+		log_mesg(0, 0, 1, debug, "Unknown mode\n");
 }
 
 /// print image head
