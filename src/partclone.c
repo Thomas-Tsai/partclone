@@ -95,6 +95,7 @@ int get_cpu_bits()
  */
 void set_image_options_v1(image_options* img_opt)
 {
+	img_opt->image_version = 0x0001;
 	img_opt->checksum_mode = CSM_CRC32_0001;
 	img_opt->checksum_size = CRC32_SIZE;
 	img_opt->blocks_per_checksum = 1;
@@ -437,6 +438,55 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #endif
 }
 
+/**
+ * Convert a number of blocks to the required space in bytes to store these blocks with their checksum
+ *
+ * @param block_count
+ *        number of blocks
+ *
+ * @param block_size
+ *        size of a block in bytes
+ *
+ * @param img_opt
+ *        image's options
+ *
+ * @note
+ * The caller must handle special cases:
+ *
+ * - When blocks_per_cs is greater than the buffer's capacity, blkcs is equals to 0.
+ *   It mains no space is allocated for the checksums and will not always read a
+ *   checksum from the image and it will not be at the same offset each time, ie:
+@verbatim
+	# with blocks_per_cs = 4 and buffer_cap = 3
+	read 1: <block><block><block>
+	read 2: <block><cs><block><block>
+	read 3: <block><block><cs><block>
+	read 4: <block><block><block><cs>
+@endverbatim
+ *
+ * - When buffer_cap does not contains full sets of blocks_per_cs, we will not
+ *   always get the same number of checksum per read, ie:
+@verbatim
+	# with blocks_per_cs = 2 and buffer_cap = 3
+	read 1: <block><block><cs><block>
+	read 2: <block><cs><block><block><cs>
+@endverbatim
+ *
+ */
+unsigned long long cnv_blocks_to_bytes(unsigned int block_count, unsigned int block_size, const image_options* img_opt) {
+
+	unsigned long long bytes = block_count * block_size;
+
+	bytes += get_checksum_count(block_count, img_opt) * img_opt->checksum_size;
+
+	if ((img_opt->blocks_per_checksum > 0) && (block_count % img_opt->blocks_per_checksum)) {
+
+		// add a checksum for a partial chunk
+		bytes += img_opt->checksum_size;
+	}
+
+	return bytes;
+}
 
 /**
  * Ncurses Text User Interface
@@ -821,6 +871,17 @@ int check_size(int* ret, unsigned long long size) {
 
 }
 
+/// return the number of checksum required for the number of blocks
+unsigned long get_checksum_count(unsigned long long block_count, const image_options *img_opt) {
+
+	uint32_t blocks_per_cs = img_opt->blocks_per_checksum;
+
+	if (blocks_per_cs == 0)
+		return 0;
+	else
+		return block_count / blocks_per_cs;
+}
+
 /// check free space 
 void check_free_space(int* ret, unsigned long long size) {
 
@@ -854,14 +915,27 @@ void check_free_space(int* ret, unsigned long long size) {
 
 void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt) {
 
-	const uint32_t block_size = fs_info.block_size;
-	const unsigned long buffer_capacity  = opt.buffer_size > block_size ? opt.buffer_size / block_size : 1; // in blocks
 	const unsigned long long bitmap_size = BITS_TO_BYTES(fs_info.totalblock);
-	unsigned long long raw_io_size, cs_io_size, needed_size = 0;
+
+	const uint32_t blkcs = img_opt.blocks_per_checksum;
+	const uint32_t block_size = fs_info.block_size;
+	const unsigned int buffer_capacity = opt.buffer_size > block_size ? opt.buffer_size / block_size : 1; // in blocks
+
+	const unsigned long long raw_io_size = buffer_capacity * block_size;
+	unsigned long long cs_io_size, needed_size = 0;
 	void *test_bitmap, *test_read, *test_write;
 
-	raw_io_size = buffer_capacity *  block_size;
-	cs_io_size  = buffer_capacity * (block_size + img_opt.checksum_size);
+	if (img_opt.checksum_mode == CSM_NONE)
+
+		cs_io_size = buffer_capacity * block_size;
+
+	else {
+
+		unsigned long long cs_in_buffer = buffer_capacity / blkcs;
+
+		cs_io_size = cs_in_buffer * (blkcs * block_size + img_opt.checksum_size) + buffer_capacity % blkcs * block_size;
+	}
+
 	needed_size = bitmap_size + raw_io_size + cs_io_size;
 
 	log_mesg(0, 0, 0, 1, "memory needed: %llu bytes\nbitmap %llu bytes, blocks 2*%d bytes, checksum %d bytes\n",
@@ -1145,7 +1219,8 @@ int io_all(int *fd, char *buf, unsigned long long count, int do_write, cmd_opt* 
 		} else {
 			count -= i;
 			buf = i + (char *) buf;
-			log_mesg(2, 0, 0, debug, "%s: read %lli, %llu left.\n",__func__, i, count);
+			log_mesg(2, 0, 0, debug, "%s: %s %lli, %llu left.\n",
+				__func__, do_write ? "write" : "read", i, count);
 		}
 	}
 	return size;
