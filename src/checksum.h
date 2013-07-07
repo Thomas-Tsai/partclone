@@ -13,6 +13,8 @@ typedef enum
 extern void init_crc32(uint32_t* seed);
 extern uint32_t crc32(uint32_t seed, void* buf, int size);
 
+extern unsigned get_checksum_size(int checksum_mode, int debug);
+extern const char *get_checksum_str(int checksum_mode);
 extern void init_checksum(int checksum_mode, unsigned char* seed, int debug);
 extern void update_checksum(unsigned char* checksum, char* buf, int size);
 

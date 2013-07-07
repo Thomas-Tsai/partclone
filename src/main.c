@@ -267,7 +267,7 @@ int main(int argc, char **argv) {
 			unsigned long long needed_space = 0;
 
 			needed_space += sizeof(image_head_v1) + sizeof(file_system_info_v1) + sizeof(image_options_v1);
-			needed_space += fs_info.totalblock; // for bitmap
+			needed_space += get_bitmap_size_on_disk(&fs_info, &img_opt, &opt);
 			needed_space += cnv_blocks_to_bytes(fs_info.usedblocks, fs_info.block_size, &img_opt);
 
 			check_free_space(&dfw, needed_space);

@@ -7,6 +7,42 @@
 static uint32_t crc_tab32[256] = { 0 };
 static int cs_mode = CSM_NONE;
 
+unsigned get_checksum_size(int checksum_mode, int debug) {
+
+	switch(checksum_mode) {
+
+	case CSM_NONE:
+		return 0;
+
+	case CSM_CRC32:
+	case CSM_CRC32_0001:
+		return 4;
+
+	default:
+		log_mesg(0, 1, 1, debug, "Unknown checksum mode [%d]\n", checksum_mode);
+		return UINT_LEAST32_MAX;
+		break;
+	}
+}
+
+const char *get_checksum_str(int checksum_mode) {
+
+	switch(checksum_mode) {
+
+	case CSM_NONE:
+		return "NONE";
+
+	case CSM_CRC32:
+		return "CRC32";
+
+	case CSM_CRC32_0001:
+		return "CRC32_0001";
+
+	default:
+		return "UNKNOWN";
+	}
+}
+
 /**
  * Initialise crc32 lookup table if it is not already done and initialise seed
  * the the default implementation seed value

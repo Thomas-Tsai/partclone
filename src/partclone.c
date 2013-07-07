@@ -102,6 +102,18 @@ void set_image_options_v1(image_options* img_opt)
 	img_opt->bitmap_mode = BM_BYTE;
 }
 
+/**
+ * Set the default options for image version 0002.
+ */
+void set_image_options_v2(image_options* img_opt)
+{
+	img_opt->image_version = 0x0002;
+	img_opt->checksum_mode = CSM_CRC32;
+	img_opt->checksum_size = CRC32_SIZE;
+	img_opt->blocks_per_checksum = 0;
+	img_opt->bitmap_mode = BM_BIT;
+}
+
 void init_image_head_v1(image_head_v1* image_hdr, char* fs)
 {
 	memset(image_hdr, 0, sizeof(image_head_v1));
@@ -692,35 +704,17 @@ void close_log(void) {
 	fclose(msg);
 }
 
-/// load the image description from the image file
-void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_options* img_opt) {
+void load_image_desc_v1(file_system_info* fs_info, image_options* img_opt,
+		const image_head_v1 img_hdr_v1, const file_system_info_v1 fs_info_v1, cmd_opt* opt) {
 
-	image_desc_v1 buf_v1;
-	int r_size;
-	unsigned long long dev_size;
-	int debug = opt->debug;
+	unsigned long long dev_size = 0;
 
-	r_size = read_all(ret, (char*)&buf_v1, sizeof(buf_v1), opt);
-	if (r_size != sizeof(buf_v1))
-		log_mesg(0, 1, 1, debug, "read image_hdr error=%d\n", r_size);
+	strncpy(fs_info->fs, img_hdr_v1.fs, FS_MAGIC_SIZE);
 
-	/// check the image magic
-	if (memcmp(buf_v1.head.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE))
-		log_mesg(0, 1, 1, debug, "This is not partclone image.\n");
-
-	/// check the image version
-	if (memcmp(buf_v1.head.version, IMAGE_VERSION_CURRENT, IMAGE_VERSION_SIZE)) {
-		char version[IMAGE_VERSION_SIZE+1] = { '\x00' };
-		memcpy(version, buf_v1.head.version, IMAGE_VERSION_SIZE);
-		log_mesg(0, 1, 1, debug, "The image version is not supported [%s]\n", version);
-	}
-
-	strncpy(fs_info->fs, buf_v1.head.fs, FS_MAGIC_SIZE);
-
-	fs_info->block_size  = buf_v1.fs_info.block_size;
-	fs_info->device_size = buf_v1.fs_info.device_size;
-	fs_info->totalblock  = buf_v1.fs_info.totalblock;
-	fs_info->usedblocks  = buf_v1.fs_info.usedblocks;
+	fs_info->block_size  = fs_info_v1.block_size;
+	fs_info->device_size = fs_info_v1.device_size;
+	fs_info->totalblock  = fs_info_v1.totalblock;
+	fs_info->usedblocks  = fs_info_v1.usedblocks;
 
 	dev_size = fs_info->totalblock * fs_info->block_size;
 	if (fs_info->device_size != dev_size) {
@@ -730,6 +724,79 @@ void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_op
 	}
 
 	set_image_options_v1(img_opt);
+}
+
+void load_image_desc_v2(file_system_info* fs_info, image_options* img_opt,
+		const image_head_v2 img_hdr_v2, const file_system_info_v2 fs_info_v2, const image_options_v2 img_opt_v2, cmd_opt* opt) {
+
+	log_mesg(1, 0, 0, opt->debug, "Image created with Partclone v%s\n", img_hdr_v2.ptc_version);
+
+	if (img_hdr_v2.endianess != ENDIAN_MAGIC)
+		log_mesg(0, 1, 1, opt->debug, "The image have been created from an incompatible architecture\n");
+
+	memcpy(fs_info, &fs_info_v2, sizeof(file_system_info_v2));
+	memcpy(img_opt, &img_opt_v2, sizeof(image_options_v2));
+}
+
+/// load the image description from the image file
+void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_options* img_opt) {
+
+	image_desc_v2 buf_v2;
+	int r_size;
+	int debug = opt->debug;
+	int img_version;
+
+	r_size = read_all(ret, (char*)&buf_v2, sizeof(buf_v2), opt);
+	if (r_size != sizeof(buf_v2))
+		log_mesg(0, 1, 1, debug, "read image_hdr error=%d\n", r_size);
+
+	/// check the image magic
+	if (memcmp(buf_v2.head.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE))
+		log_mesg(0, 1, 1, debug, "This is not partclone image.\n");
+
+	img_version = atol(buf_v2.head.version);
+
+	switch(img_version) {
+
+	case 0x0001: {
+		const image_desc_v1* buf_v1 = (image_desc_v1*)&buf_v2;
+		image_options_v1 extra;
+
+		log_mesg(0, 0, 1, debug, "Image format 0001\n");
+
+		// read the extra bytes
+		if (read_all(ret, extra.buff, sizeof(image_desc_v1) - sizeof(image_desc_v2), opt) == -1)
+			log_mesg(0, 1, 1, debug, "read image_hdr error=%d\n (%s)", r_size, strerror(errno));
+
+		load_image_desc_v1(fs_info, img_opt, buf_v1->head, buf_v1->fs_info, opt);
+		break;
+	}
+
+	case 0x0002: {
+		uint32_t crc;
+
+		log_mesg(0, 0, 1, debug, "Image format 0002\n");
+
+		// Verify checksum
+		init_crc32(&crc);
+		crc = crc32(crc, &buf_v2, sizeof(buf_v2) - CRC32_SIZE);
+		if (crc != buf_v2.crc)
+			log_mesg(0, 1, 1, debug, "Invalid header checksum [0x%08X != 0x%08X]\n", crc, buf_v2.crc);
+
+		load_image_desc_v2(fs_info, img_opt, buf_v2.head, buf_v2.fs_info, buf_v2.options, opt);
+		break;
+	}
+
+	default: {
+
+		char version[IMAGE_VERSION_SIZE+1] = { 0x00 };
+
+		memcpy(version, buf_v2.head.version, IMAGE_VERSION_SIZE);
+		log_mesg(0, 1, 1, debug, "The image version is not supported [%s]\n", version);
+		break;
+	}
+
+	} //switch
 }
 
 void write_image_desc(int* ret, file_system_info fs_info, cmd_opt* opt) {
@@ -880,6 +947,32 @@ unsigned long get_checksum_count(unsigned long long block_count, const image_opt
 		return 0;
 	else
 		return block_count / blocks_per_cs;
+}
+
+unsigned long long get_bitmap_size_on_disk(const file_system_info* fs_info, const image_options* img_opt, cmd_opt* opt)
+{
+	unsigned long long size = 0;
+
+	switch(img_opt->bitmap_mode)
+	{
+	case BM_BIT:
+		size = BITS_TO_BYTES(fs_info->totalblock);
+		break;
+
+	case BM_BYTE:
+		size = fs_info->totalblock;
+		break;
+
+	case BM_NONE:
+		size = 0;
+		break;
+
+	default:
+		log_mesg(0, 1, 1, opt->debug, "ERROR: unknown bitmap mode [%d]\n", img_opt->bitmap_mode);
+		break;
+	}
+
+	return size;
 }
 
 /// check free space 

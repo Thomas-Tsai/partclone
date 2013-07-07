@@ -48,7 +48,9 @@
 
 #define IMAGE_VERSION_SIZE 4
 #define IMAGE_VERSION_0001 "0001"
+#define IMAGE_VERSION_0002 "0002"
 #define IMAGE_VERSION_CURRENT IMAGE_VERSION_0001
+#define PARTCLONE_VERSION_SIZE (FS_MAGIC_SIZE-1)
 #define DEFAULT_BUFFER_SIZE 1048576
 #define PART_SECTOR_SIZE 512
 #define CRC32_SIZE 4
@@ -109,6 +111,8 @@ typedef struct cmd_opt cmd_opt;
 /* Disable fields alignment for struct stored in the image */
 #pragma pack(push, 1)
 
+#define ENDIAN_MAGIC 0x00C0DE00
+
 typedef struct
 {
     char magic[IMAGE_MAGIC_SIZE];
@@ -117,6 +121,21 @@ typedef struct
     char padding[2];
 
 } image_head_v1;
+
+typedef struct
+{
+    char magic[IMAGE_MAGIC_SIZE+1];
+
+    /// Partclone's version who created the image, ex: "2.61"
+    char ptc_version[PARTCLONE_VERSION_SIZE];
+
+    /// Image's version
+    char version[IMAGE_VERSION_SIZE];
+
+    /// 0x00C0DE00 = little-endian, 0x00DEC000 = big-endian
+    uint32_t endianess;
+
+} image_head_v2;
 
 typedef struct
 {
@@ -194,6 +213,15 @@ typedef struct
 
 } image_desc_v1;
 
+typedef struct
+{
+	image_head_v2       head;
+	file_system_info_v2 fs_info;
+	image_options_v2    options;
+	uint32_t            crc;
+
+} image_desc_v2;
+
 #pragma pack(pop)
 
 // Use these typedefs when a function handles the current version and use the
@@ -230,6 +258,8 @@ extern void sync_data(int fd, cmd_opt* opt);
 extern void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt);
 
 extern unsigned long long cnv_blocks_to_bytes(unsigned int block_count, unsigned int block_size, const image_options* img_opt);
+extern unsigned long long get_bitmap_size_on_disk(const file_system_info* fs_info, const image_options* img_opt, cmd_opt* opt);
+extern unsigned long get_checksum_count(unsigned long long block_count, const image_options *img_opt);
 
 extern void init_fs_info(file_system_info* fs_info);
 extern void init_image_options(image_options* img_opt);
