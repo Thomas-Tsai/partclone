@@ -310,7 +310,7 @@ static void fs_close(){
     vmfs_fs_close(fs);
 }
 
-void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui)
 {
     unsigned long long used_block = 0, free_block = 0, err_block = 0;
     int start = 0;
@@ -329,8 +329,8 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
     blk_bitmap = bitmap;
 
     /// init progress
-    progress_init(&prog, start, image_hdr.usedblocks, image_hdr.usedblocks, BITMAP, bit_size);
-    pc_init_bitmap(bitmap, 0x00, image_hdr.totalblock);
+    progress_init(&prog, start, fs_info.usedblocks, fs_info.usedblocks, BITMAP, bit_size);
+    pc_init_bitmap(bitmap, 0x00, fs_info.totalblock);
     checked = 0;
     /**
      * thread to print progress
@@ -374,15 +374,14 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 
 }
 
-void initial_image_hdr(char* device, image_head* image_hdr)
+void read_super_blocks(char* device, file_system_info* fs_info)
 {
 
     uint32_t alloc,total;
     uint32_t fdc_allocated, fbb_allocated, sbc_allocated, pbc_allocated;
 
     fs_open(device);
-    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    strncpy(image_hdr->fs, vmfs_MAGIC, FS_MAGIC_SIZE);
+    strncpy(fs_info->fs, vmfs_MAGIC, FS_MAGIC_SIZE);
     total = fs->fbb->bmh.total_items;
     fdc_allocated = vmfs_bitmap_allocated_items(fs->fdc);
     fbb_allocated = vmfs_bitmap_allocated_items(fs->fbb);
@@ -394,10 +393,10 @@ void initial_image_hdr(char* device, image_head* image_hdr)
     log_mesg(3, 0, 0, fs_opt.debug, "allocated sbc %"PRIu32"\n", sbc_allocated);
     log_mesg(3, 0, 0, fs_opt.debug, "allocated pbc %"PRIu32"\n", pbc_allocated);
 
-    image_hdr->block_size  = vmfs_fs_get_blocksize(fs);
-    image_hdr->totalblock  = total;
-    image_hdr->usedblocks  = alloc;
-    image_hdr->device_size = (vmfs_fs_get_blocksize(fs)*total);
+    fs_info->block_size  = vmfs_fs_get_blocksize(fs);
+    fs_info->totalblock  = total;
+    fs_info->usedblocks  = alloc;
+    fs_info->device_size = vmfs_fs_get_blocksize(fs) * total;
     fs_close();
 }
 

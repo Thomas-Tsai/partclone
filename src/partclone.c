@@ -61,6 +61,20 @@ SCREEN *ptclscr;
 int log_y_line = 0;
 #endif
 
+void init_image_head_v1(image_head_v1* image_hdr, char* fs)
+{
+	memset(image_hdr, 0, sizeof(image_head_v1));
+
+	strncpy(image_hdr->magic,   IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
+	strncpy(image_hdr->version, IMAGE_VERSION_0001, IMAGE_VERSION_SIZE);
+	strncpy(image_hdr->fs, fs, FS_MAGIC_SIZE);
+}
+
+void init_fs_info(file_system_info* fs_info)
+{
+	memset(fs_info, 0, sizeof(file_system_info));
+}
+
 void print_readable_size_str(unsigned long long size_byte, char *new_size_str) {
 
 	float new_size = 1.0;
@@ -578,57 +592,69 @@ void close_log(void) {
 	fclose(msg);
 }
 
-/// get image_head from image file
-void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr) {
+/// load the image description from the image file
+void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info) {
+
+	image_desc_v1 buf_v1;
 	int r_size;
-	char* buffer;
 	unsigned long long dev_size;
 	int debug = opt->debug;
 
-	buffer = (char*)malloc(sizeof(image_head));
-	if (buffer == NULL)
-		log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
-
-	memset(buffer, 0, sizeof(image_head));
-	r_size = read_all(ret, buffer, sizeof(image_head), opt);
-	if (r_size == -1)
-		log_mesg(0, 1, 1, debug, "read image_hdr error\n");
-
-	memcpy(image_hdr, buffer, sizeof(image_head));
-	free(buffer);
-
-	dev_size = (unsigned long long)(image_hdr->totalblock * image_hdr->block_size);
-	if (image_hdr->device_size != dev_size)
-		image_hdr->device_size = dev_size;
+	r_size = read_all(ret, (char*)&buf_v1, sizeof(buf_v1), opt);
+	if (r_size != sizeof(buf_v1))
+		log_mesg(0, 1, 1, debug, "read image_hdr error=%d\n", r_size);
 
 	/// check the image magic
-	if (memcmp(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE))
+	if (memcmp(buf_v1.head.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE))
 		log_mesg(0, 1, 1, debug, "This is not partclone image.\n");
 
 	/// check the image version
-	if (memcmp(image_hdr->version, IMAGE_VERSION_CURRENT, IMAGE_VERSION_SIZE)) {
+	if (memcmp(buf_v1.head.version, IMAGE_VERSION_CURRENT, IMAGE_VERSION_SIZE)) {
 		char version[IMAGE_VERSION_SIZE+1] = { '\x00' };
-		memcpy(version, image_hdr->version, IMAGE_VERSION_SIZE);
+		memcpy(version, buf_v1.head.version, IMAGE_VERSION_SIZE);
 		log_mesg(0, 1, 1, debug, "The image version is not supported [%s]\n", version);
+	}
+
+	strncpy(fs_info->fs, buf_v1.head.fs, FS_MAGIC_SIZE);
+
+	fs_info->block_size  = buf_v1.fs_info.block_size;
+	fs_info->device_size = buf_v1.fs_info.device_size;
+	fs_info->totalblock  = buf_v1.fs_info.totalblock;
+	fs_info->usedblocks  = buf_v1.fs_info.usedblocks;
+
+	dev_size = fs_info->totalblock * fs_info->block_size;
+	if (fs_info->device_size != dev_size) {
+
+		log_mesg(1, 0, 0, opt->debug, "INFO: adjusted device size reported by the image [%llu -> %llu]\n", fs_info->device_size, dev_size);
+		fs_info->device_size = dev_size;
 	}
 }
 
-void write_image_head(int* ret, image_head image_hdr, cmd_opt* opt) {
+void write_image_desc(int* ret, file_system_info fs_info, cmd_opt* opt) {
 
-	if (write_all(ret, (char *)&image_hdr, sizeof(image_head), opt) == -1)
-		log_mesg(0, 1, 1, opt->debug, "write image_head to image error: %s\n", strerror(errno));
+	image_desc_v1 buf_v1;
+
+	init_image_head_v1(&buf_v1.head, fs_info.fs);
+
+	buf_v1.fs_info.block_size  = fs_info.block_size;
+	buf_v1.fs_info.device_size = fs_info.device_size;
+	buf_v1.fs_info.totalblock  = fs_info.totalblock;
+	buf_v1.fs_info.usedblocks  = fs_info.usedblocks;
+
+	if (write_all(ret, (char*)&buf_v1, sizeof(buf_v1), opt) != sizeof(buf_v1))
+		log_mesg(0, 1, 1, opt->debug, "error writing image header to image: %s\n", strerror(errno));
 }
 
-void write_image_bitmap(int* ret, image_head image_hdr, cmd_opt* opt, unsigned long* bitmap) {
+void write_image_bitmap(int* ret, file_system_info fs_info, unsigned long* bitmap, cmd_opt* opt) {
 
 	int i;
 	char bbuffer[16384];
 
 	/// write bitmap information to image file
-	for (i = 0; i < image_hdr.totalblock; i++) {
+	for (i = 0; i < fs_info.totalblock; i++) {
 		bbuffer[i % sizeof(bbuffer)] = pc_test_bit(i, bitmap);
 
-		if (i % sizeof(bbuffer) == sizeof(bbuffer) - 1 || i == image_hdr.totalblock - 1) {
+		if (i % sizeof(bbuffer) == sizeof(bbuffer) - 1 || i == fs_info.totalblock - 1) {
 			if (write_all(ret, bbuffer, 1 + (i % sizeof(bbuffer)), opt) == -1)
 				log_mesg(0, 1, 1, opt->debug, "write bitmap to image error: %s\n", strerror(errno));
 		}
@@ -720,17 +746,16 @@ void check_free_space(int* ret, unsigned long long size) {
 }
 
 /// check free memory size
-int check_mem_size(image_head image_hdr, cmd_opt opt, unsigned long long *mem_size) {
-	unsigned long long image_head_size = 0;
+int check_mem_size(file_system_info fs_info, cmd_opt opt, unsigned long long *mem_size) {
+
 	unsigned long long bitmap_size = 0;
 	int crc_io_size = 0;
 	void *test_mem;
 
-	image_head_size = sizeof(image_head);
-	bitmap_size = PART_BYTES_PER_LONG * BITS_TO_LONGS(image_hdr.totalblock);
-	crc_io_size = CRC_SIZE+image_hdr.block_size;
-	*mem_size = image_head_size + bitmap_size + crc_io_size;
-	log_mesg(0, 0, 0, 1, "we need memory: %llu bytes\nimage head %llu, bitmap %llu, crc %i bytes\n", *mem_size, image_head_size, bitmap_size, crc_io_size);
+	bitmap_size = PART_BYTES_PER_LONG * BITS_TO_LONGS(fs_info.totalblock);
+	crc_io_size = CRC_SIZE+fs_info.block_size;
+	*mem_size   = bitmap_size + crc_io_size;
+	log_mesg(0, 0, 0, 1, "we need memory: %llu bytes\nbitmap %llu bytes, crc %i bytes\n", *mem_size, bitmap_size, crc_io_size);
 
 	test_mem = malloc(*mem_size);
 	if (test_mem == NULL){
@@ -743,7 +768,8 @@ int check_mem_size(image_head image_hdr, cmd_opt opt, unsigned long long *mem_si
 }
 
 /// get bitmap from image file to restore data
-void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, unsigned long* bitmap) {
+void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap) {
+
 	unsigned long long size, r_size, r_need;
 	char buffer[16384];
 	unsigned long long offset = 0;
@@ -752,7 +778,7 @@ void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, unsigned long
 	int err_exit = 1;
 	char bitmagic_r[8]="00000000";/// read magic string from image
 
-	size = image_hdr.totalblock;
+	size = fs_info.totalblock;
 
 	while (size > 0) {
 		r_need = size > sizeof(buffer) ? sizeof(buffer) : size;
@@ -773,13 +799,13 @@ void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, unsigned long
 	}
 
 	if (debug >= 2) {
-		if (image_hdr.usedblocks != bused) {
+		if (fs_info.usedblocks != bused) {
 			if (opt.force)
 				err_exit = 0;
 			else
 				err_exit = 1;
-			log_mesg(0, err_exit, 1, debug, "The Used Block count is different. (bitmap %llu != image_head %llu)\n"
-				"Try to use --force to skip the metadata error.\n", bused, image_hdr.usedblocks);
+			log_mesg(0, err_exit, 1, debug, "The Used Block count is different. (bitmap %llu != file system %llu)\n"
+				"Try to use --force to skip the metadata error.\n", bused, fs_info.usedblocks);
 		}
 	}
 
@@ -1086,18 +1112,18 @@ void print_partclone_info(cmd_opt opt) {
 }
 
 /// print image head
-void print_image_hdr_info(image_head image_hdr, cmd_opt opt) {
+void print_file_system_info(file_system_info fs_info, cmd_opt opt) {
 
-	int block_s  = image_hdr.block_size;
-	unsigned long long total    = image_hdr.totalblock;
-	unsigned long long used     = image_hdr.usedblocks;
+	unsigned int     block_s = fs_info.block_size;
+	unsigned long long total = fs_info.totalblock;
+	unsigned long long used  = fs_info.usedblocks;
 	int debug = opt.debug;
 	char size_str[11];
 
 	setlocale(LC_ALL, "");
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
-	log_mesg(0, 0, 1, debug, _("File system:  %s\n"), image_hdr.fs);
+	log_mesg(0, 0, 1, debug, _("File system:  %s\n"), fs_info.fs);
 
 	print_readable_size_str(total*block_s, size_str);
 	log_mesg(0, 0, 1, debug, _("Device size:  %s = %llu Blocks\n"), size_str, total);

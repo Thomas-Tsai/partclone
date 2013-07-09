@@ -62,7 +62,7 @@ static void fs_close(){
 
 }
 
-void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui)
 {
     reiserfs_bitmap_t    *fs_bitmap;
     reiserfs_tree_t	 *tree;
@@ -105,15 +105,14 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 
 }
 
-void initial_image_hdr(char* device, image_head* image_hdr)
+void read_super_blocks(char* device, file_system_info* fs_info)
 {
     fs_open(device);
-    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    strncpy(image_hdr->fs, reiserfs_MAGIC, FS_MAGIC_SIZE);
-    image_hdr->block_size = (int)fs->super->s_v1.sb_block_size;
-    image_hdr->totalblock = (unsigned long long)fs->super->s_v1.sb_block_count;
-    image_hdr->usedblocks = (unsigned long long)(fs->super->s_v1.sb_block_count - fs->super->s_v1.sb_free_blocks);
-    image_hdr->device_size = (unsigned long long)(image_hdr->block_size * image_hdr->totalblock);
+    strncpy(fs_info->fs, reiserfs_MAGIC, FS_MAGIC_SIZE);
+    fs_info->block_size  = fs->super->s_v1.sb_block_size;
+    fs_info->totalblock  = fs->super->s_v1.sb_block_count;
+    fs_info->usedblocks  = fs->super->s_v1.sb_block_count - fs->super->s_v1.sb_free_blocks;
+    fs_info->device_size = fs_info->block_size * fs_info->totalblock;
     fs_close();
 }
 

@@ -90,7 +90,7 @@ static unsigned long long get_used_blocks(){
 }
 
 // reference dumpe2fs
-void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui) {
+void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui) {
     errcode_t retval;
     unsigned long group;
     unsigned long long current_block, block;
@@ -116,7 +116,7 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 	block_bitmap = malloc(block_nbytes);
 
     /// initial image bitmap as 1 (all block are used)
-    pc_init_bitmap(bitmap, 0xFF, image_hdr.totalblock);
+    pc_init_bitmap(bitmap, 0xFF, fs_info.totalblock);
 
     free = 0;
     current_block = 0;
@@ -124,7 +124,7 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 
     /// init progress
     progress_bar	prog;		/// progress_bar structure defined in progress.h
-    progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
+    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
 
     /// each group
     for (group = 0; group < fs->group_desc_count; group++) {
@@ -149,7 +149,7 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 		    }
 	    }
 	    /// each block in group
-	    for (block = 0; ((block < fs->super->s_blocks_per_group) && (current_block < (image_hdr.totalblock-1))); block++) {
+	    for (block = 0; ((block < fs->super->s_blocks_per_group) && (current_block < (fs_info.totalblock-1))); block++) {
 		current_block = block + blk_itr;
 
 		/// check block is used or not
@@ -214,18 +214,17 @@ static int test_extfs_type(char* device){
     return device_type;
 }
 
-void initial_image_hdr(char* device, image_head* image_hdr)
+void read_super_blocks(char* device, file_system_info* fs_info)
 {
     int fs_type = 0;
     fs_type = test_extfs_type(device);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: extfs version is %i\n", __FILE__, fs_type);
-    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    strncpy(image_hdr->fs, extfs_MAGIC, FS_MAGIC_SIZE);
+    strncpy(fs_info->fs, extfs_MAGIC, FS_MAGIC_SIZE);
     fs_open(device);
-    image_hdr->block_size = (int)block_size();
-    image_hdr->totalblock = (unsigned long long)block_count();
-    image_hdr->usedblocks = (unsigned long long)get_used_blocks();
-    image_hdr->device_size = (unsigned long long)(image_hdr->block_size * image_hdr->totalblock);
+    fs_info->block_size  = block_size();
+    fs_info->totalblock  = block_count();
+    fs_info->usedblocks  = get_used_blocks();
+    fs_info->device_size = fs_info->block_size * fs_info->totalblock;
     fs_close();
 }
 

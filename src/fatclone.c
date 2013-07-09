@@ -116,7 +116,7 @@ unsigned long long get_cluster_count()
 //return - 0 Filesystem is in valid state.
 //return - 1 Filesystem isn't in valid state.
 //return - 2 other error.
-extern int check_fat_status(){
+int check_fat_status() {
     int rd = 0;
     uint16_t Fat16_Entry;
     uint32_t Fat32_Entry;
@@ -322,7 +322,7 @@ unsigned long long check_fat12_entry(unsigned long* fat_bitmap, unsigned long lo
     return block;
 }
 
-void initial_image_hdr(char* device, image_head* image_hdr)
+void read_super_blocks(char* device, file_system_info* fs_info)
 {
     unsigned long long total_sector = 0;
     unsigned long long bused = 0;
@@ -336,22 +336,21 @@ void initial_image_hdr(char* device, image_head* image_hdr)
 
     bused = get_used_block();//so I need calculate by myself.
 
-    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    strncpy(image_hdr->fs, fat_type, FS_MAGIC_SIZE);
-    image_hdr->block_size  = (int)fat_sb.sector_size;
-    image_hdr->totalblock  = (unsigned long long)total_sector;
-    image_hdr->device_size = (unsigned long long)(total_sector * image_hdr->block_size);
-    image_hdr->usedblocks  = (unsigned long long)bused;
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: Block Size:%i\n", __FILE__, image_hdr->block_size);
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: Total Blocks:%llu\n", __FILE__, image_hdr->totalblock);
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: Used Blocks:%llu\n", __FILE__, image_hdr->usedblocks);
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: Device Size:%llu\n", __FILE__, image_hdr->device_size);
+    strncpy(fs_info->fs, fat_type, FS_MAGIC_SIZE);
+    fs_info->block_size  = fat_sb.sector_size;
+    fs_info->totalblock  = total_sector;
+    fs_info->usedblocks  = bused;
+    fs_info->device_size = total_sector * fs_info->block_size;
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: Block Size:%i\n", __FILE__, fs_info->block_size);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: Total Blocks:%llu\n", __FILE__, fs_info->totalblock);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: Used Blocks:%llu\n", __FILE__, fs_info->usedblocks);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: Device Size:%llu\n", __FILE__, fs_info->device_size);
 
     fs_close();
     log_mesg(2, 0, 0, fs_opt.debug, "%s: initial_image down\n", __FILE__);
 }
 
-void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui)
 {
     unsigned long long i = 0;
     int fat_stat = 0;
@@ -369,7 +368,7 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
-    progress_init(&prog, start, cluster_count, image_hdr.totalblock, BITMAP, bit_size);
+    progress_init(&prog, start, cluster_count, fs_info.totalblock, BITMAP, bit_size);
 
     /// init bitmap
     pc_init_bitmap(bitmap, 0xFF, total_sector);

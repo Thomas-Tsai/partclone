@@ -117,7 +117,7 @@ static void fs_close(){
     fclose(fp);
 }
 
-void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui) {
+void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui) {
 
     int64_t lblock = 0;
     int64_t address;
@@ -194,8 +194,8 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 
     /// init progress
     progress_bar        prog;           /// progress_bar structure defined in progress.h
-    progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
-    pc_init_bitmap(bitmap, 0xFF, image_hdr.totalblock);
+    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
+    pc_init_bitmap(bitmap, 0xFF, fs_info.totalblock);
 
     while(next){
 	block_used = 0;
@@ -246,7 +246,7 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 	log_mesg(2, 0, 0, fs_opt.debug, "%s:block_used %lli block_free %lli\n", __FILE__, block_used, block_free);
 	tub += block_used;
 	next = 0;
-	if (((lblock-4)*d_map.nblocks)<image_hdr.totalblock){
+	if (((lblock-4)*d_map.nblocks)<fs_info.totalblock){
 	    lblock++;
 	    next = 1;
 	}
@@ -259,7 +259,7 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
     /// log
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s:%llu log %llu\n", __FILE__, logloc, (logloc+logsize));
-    for (;tb <= image_hdr.totalblock; tb++){
+    for (;tb <= fs_info.totalblock; tb++){
 
 	if ((tb >= logloc) && (tb < (logloc+logsize))){
 	    pc_set_bit(tb, bitmap);
@@ -278,22 +278,21 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 }
 
 
-void initial_image_hdr(char* device, image_head* image_hdr) {
+void read_super_blocks(char* device, file_system_info* fs_info) {
     uint64_t used_blocks = 0;
     uint64_t total_blocks = 0;
     fs_open(device);
     get_all_used_blocks(&total_blocks, &used_blocks);
-    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    strncpy(image_hdr->fs, jfs_MAGIC, FS_MAGIC_SIZE);
-    image_hdr->block_size = (int)sb.s_bsize;
-    image_hdr->totalblock = (unsigned long long)total_blocks;
-    image_hdr->usedblocks = (unsigned long long)used_blocks;
-    image_hdr->device_size =(unsigned long long)(total_blocks * sb.s_bsize);
+    strncpy(fs_info->fs, jfs_MAGIC, FS_MAGIC_SIZE);
+    fs_info->block_size  = sb.s_bsize;
+    fs_info->totalblock  = total_blocks;
+    fs_info->usedblocks  = used_blocks;
+    fs_info->device_size = total_blocks * sb.s_bsize;
     fs_close();
 }
 
 /// get_all_used_blocks
-extern void get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks){
+void get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks) {
 
     int64_t address;
     int64_t cntl_addr;

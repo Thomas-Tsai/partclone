@@ -147,15 +147,14 @@ static void fs_close()
     log_mesg(0, 0, 0, fs_opt.debug, "fs_close\n");
 }
 
-void initial_image_hdr(char* device, image_head* image_hdr)
+void read_super_blocks(char* device, file_system_info* fs_info)
 {
     fs_open(device);
-    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    strncpy(image_hdr->fs, xfs_MAGIC, FS_MAGIC_SIZE);
-    image_hdr->block_size = mp->m_sb.sb_blocksize;
-    image_hdr->totalblock = mp->m_sb.sb_dblocks;
-    image_hdr->usedblocks = mp->m_sb.sb_dblocks - mp->m_sb.sb_fdblocks;
-    image_hdr->device_size = (image_hdr->totalblock * image_hdr->block_size);
+    strncpy(fs_info->fs, xfs_MAGIC, FS_MAGIC_SIZE);
+    fs_info->block_size  = mp->m_sb.sb_blocksize;
+    fs_info->totalblock  = mp->m_sb.sb_dblocks;
+    fs_info->usedblocks  = mp->m_sb.sb_dblocks - mp->m_sb.sb_fdblocks;
+    fs_info->device_size = fs_info->totalblock * fs_info->block_size;
     log_mesg(1, 0, 0, fs_opt.debug, "%s: blcos size= %i\n", __FILE__, mp->m_sb.sb_blocksize);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: total b= %lli\n", __FILE__, mp->m_sb.sb_dblocks);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: free block= %lli\n", __FILE__, mp->m_sb.sb_fdblocks);
@@ -165,7 +164,7 @@ void initial_image_hdr(char* device, image_head* image_hdr)
 
 }
 
-void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui)
 {
 
     xfs_agnumber_t  agno = 0;
@@ -211,8 +210,8 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
     uint64_t bfree = 0;
 
     /// init progress
-    progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
-    pc_init_bitmap(bitmap, 0x00, image_hdr.totalblock);
+    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
+    pc_init_bitmap(bitmap, 0x00, fs_info.totalblock);
 
     fs_open(device);
 
@@ -470,11 +469,11 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 
 	log_mesg(2, 0, 0, fs_opt.debug, "write a clean log done\n");
 
-	prog_cur_block = image_hdr.totalblock/num_ags*(agno+1)-1;
+	prog_cur_block = fs_info.totalblock/num_ags*(agno+1)-1;
 	update_pui(&prog, prog_cur_block, prog_cur_block, 0);
     }
 
-    for(current_block = 0; current_block <= image_hdr.totalblock; current_block++){
+    for(current_block = 0; current_block <= fs_info.totalblock; current_block++){
 	if(pc_test_bit(current_block, bitmap))
 	    bused++;
 	else
