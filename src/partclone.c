@@ -99,10 +99,12 @@ void set_image_options_v1(image_options* img_opt)
 	// reset options
 	memset(img_opt, 0, sizeof(image_options));
 
+	img_opt->feature_size = sizeof(image_options_v1);
 	img_opt->image_version = 0x0001;
 	img_opt->checksum_mode = CSM_CRC32_0001;
 	img_opt->checksum_size = CRC32_SIZE;
 	img_opt->blocks_per_checksum = 1;
+	img_opt->reseed_checksum = 0;
 	img_opt->bitmap_mode = BM_BYTE;
 }
 
@@ -111,10 +113,12 @@ void set_image_options_v1(image_options* img_opt)
  */
 void set_image_options_v2(image_options* img_opt)
 {
+	img_opt->feature_size = sizeof(image_options_v2);
 	img_opt->image_version = 0x0002;
 	img_opt->checksum_mode = CSM_CRC32;
 	img_opt->checksum_size = CRC32_SIZE;
 	img_opt->blocks_per_checksum = 0;
+	img_opt->reseed_checksum = 1;
 	img_opt->bitmap_mode = BM_BIT;
 }
 
@@ -127,6 +131,17 @@ void init_image_head_v1(image_head_v1* image_hdr, char* fs)
 	strncpy(image_hdr->fs, fs, FS_MAGIC_SIZE);
 }
 
+void init_image_head_v2(image_head_v2* image_hdr) {
+
+	memset(image_hdr, 0, sizeof(image_head_v2));
+
+	strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
+	strncpy(image_hdr->version, IMAGE_VERSION_0002, IMAGE_VERSION_SIZE);
+	strncpy(image_hdr->ptc_version, VERSION, PARTCLONE_VERSION_SIZE);
+
+	image_hdr->endianess = ENDIAN_MAGIC;
+}
+
 void init_fs_info(file_system_info* fs_info)
 {
 	memset(fs_info, 0, sizeof(file_system_info));
@@ -136,10 +151,9 @@ void init_image_options(image_options* img_opt)
 {
 	memset(img_opt, 0, sizeof(image_options));
 
-	img_opt->feature_size = sizeof(image_options_v1);
 	img_opt->cpu_bits = get_cpu_bits();
 
-	set_image_options_v1(img_opt);
+	set_image_options_v2(img_opt);
 }
 
 void print_readable_size_str(unsigned long long size_byte, char *new_size_str) {
@@ -204,6 +218,13 @@ void usage(void) {
 		"    -D,  --domain           Create ddrescue domain log from source device\n"
 		"         --offset_domain=X  Add offset X (bytes) to domain log values\n"
 		"    -R,  --rescue           Continue clone while disk read errors\n"
+		"    -aX  --checksum-mode=X  Checksum formula to use to add error detection\n"
+		"                            where X:\n"
+		"                            0: No checksum (no slowdown, smallest image)\n"
+		"                            1: CRC32 (Fast to compute, basic detection)\n"
+		"    -kX  --blocks-per-checksum=X\n"
+		"                            Write one checksum for every X blocks\n"
+		"    -K,  --no-reseed        Do not reseed the checksum at each write (TEST)\n"
 #endif
 		"    -w,  --skip_write_error Continue restore while write errors\n"
 #endif
@@ -215,7 +236,7 @@ void usage(void) {
 #ifndef CHKIMG
 		"    -I,  --ignore_fschk     Ignore filesystem check\n"
 #endif
-		"    -i,  --ignore_crc       Ignore crc check error\n"
+		"    -i,  --ignore_crc       Ignore checksum error\n"
 		"    -F,  --force            Force progress\n"
 		"    -f,  --UI-fresh         Fresh times of progress\n"
 		"    -B,  --no_block_detail  Show progress message without block detail\n"
@@ -235,20 +256,43 @@ void print_version(void){
 	exit(0);
 }
 
+int convert_to_checksum_mode(unsigned long mode) {
+
+	switch(mode) {
+
+	case 0:
+		return CSM_NONE;
+		break;
+
+	case 1:
+		return CSM_CRC32;
+		break;
+
+	// note: we do not allow the user to use CSM_CRC32_0001. That mode exist only
+	// to support image created in format 0001.
+
+	default:
+		fprintf(stderr, "Unknown checksum mode '%lu'.\n", mode);
+		usage();
+		return 0;
+		break;
+	}
+}
+
 enum {
 	OPT_OFFSET_DOMAIN = 1000
 };
 
 void parse_options(int argc, char **argv, cmd_opt* opt) {
-#ifdef CHKIMG
+
+#if CHKIMG
 	static const char *sopt = "-hvd::L:s:f:CFiBz:N";
-#else
-#ifdef RESTORE
+#elif RESTORE
 	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:";
 #else
-	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBz:E:";
+	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBz:E:a:k:K";
 #endif
-#endif
+
 	static const struct option lopt[] = {
 // common options
 		{ "help",		no_argument,		NULL,   'h' },
@@ -271,6 +315,9 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "domain",		no_argument,		NULL,   'D' },
 		{ "offset_domain",	required_argument,	NULL,   OPT_OFFSET_DOMAIN },
 		{ "rescue",		no_argument,		NULL,   'R' },
+		{ "checksum-mode",       required_argument, NULL, 'a' },
+		{ "blocks-per-checksum", required_argument, NULL, 'k' },
+		{ "no-reseed",           no_argument,       NULL, 'K' },
 #endif
 #endif
 // not CHKIMG
@@ -292,6 +339,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	int c;
 	int mode = 0;
 	memset(opt, 0, sizeof(cmd_opt));
+
 	opt->debug = 0;
 	opt->offset = 0;
 	opt->rescue = 0;
@@ -303,6 +351,9 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	opt->fresh = 2;
 	opt->logfile = "/var/log/partclone.log";
 	opt->buffer_size = DEFAULT_BUFFER_SIZE;
+	opt->checksum_mode = CSM_CRC32;
+	opt->reseed_checksum = 1;
+	opt->blocks_per_checksum = 0;
 
 #ifdef RESTORE
 	opt->restore++;
@@ -313,6 +364,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	opt->chkimg++;
 	mode++;
 #endif
+
 	while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != -1) {
 		switch (c) {
 			case 'h':
@@ -375,6 +427,15 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				break;
 			case 'R':
 				opt->rescue++;
+				break;
+			case 'a':
+				opt->checksum_mode = convert_to_checksum_mode(atol(optarg));
+				break;
+			case 'k':
+				opt->blocks_per_checksum = atol(optarg);
+				break;
+			case 'K':
+				opt->reseed_checksum = 0;
 				break;
 #endif
 #endif
@@ -442,6 +503,22 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				EXECNAME);
 			exit(0);
 		}
+	}
+
+	if (opt->checksum_mode == CSM_NONE) {
+
+		if (opt->blocks_per_checksum > 0) {
+			fprintf(stderr, "No checksum mode specified with blocks_per_checksum\n"
+				"Use --help to get more info.\n");
+			exit(0);
+		}
+
+		if (!opt->reseed_checksum) {
+			fprintf(stderr, "No checksum mode specified with reseed_checksum\n"
+				"Use --help to get more info.\n");
+			exit(0);
+		}
+
 	}
 
 #ifndef CHKIMG
@@ -808,18 +885,19 @@ void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_op
 	} //switch
 }
 
-void write_image_desc(int* ret, file_system_info fs_info, cmd_opt* opt) {
+void write_image_desc(int* ret, file_system_info fs_info, image_options img_opt, cmd_opt* opt) {
 
-	image_desc_v1 buf_v1;
+	image_desc_v2 buf_v2;
 
-	init_image_head_v1(&buf_v1.head, fs_info.fs);
+	init_image_head_v2(&buf_v2.head);
 
-	buf_v1.fs_info.block_size  = fs_info.block_size;
-	buf_v1.fs_info.device_size = fs_info.device_size;
-	buf_v1.fs_info.totalblock  = fs_info.totalblock;
-	buf_v1.fs_info.usedblocks  = fs_info.usedblocks;
+	memcpy(&buf_v2.fs_info, &fs_info, sizeof(file_system_info));
+	memcpy(&buf_v2.options, &img_opt, sizeof(image_options));
 
-	if (write_all(ret, (char*)&buf_v1, sizeof(buf_v1), opt) != sizeof(buf_v1))
+	init_crc32(&buf_v2.crc);
+	buf_v2.crc = crc32(buf_v2.crc, &buf_v2, sizeof(image_desc_v2) - CRC32_SIZE);
+
+	if (write_all(ret, (char*)&buf_v2, sizeof(image_desc_v2), opt) != sizeof(image_desc_v2))
 		log_mesg(0, 1, 1, opt->debug, "error writing image header to image: %s\n", strerror(errno));
 }
 
@@ -958,6 +1036,20 @@ unsigned long get_checksum_count(unsigned long long block_count, const image_opt
 	else
 		return block_count / blocks_per_cs;
 }
+
+void update_used_blocks_count(file_system_info* fs_info, unsigned long* bitmap) {
+
+	unsigned long long used = 0;
+	unsigned int i;
+
+	for(i = 0; i < fs_info->totalblock; ++i) {
+		if (pc_test_bit(i, bitmap))
+			++used;
+	}
+
+	fs_info->used_bitmap = used;
+}
+
 
 unsigned long long get_bitmap_size_on_disk(const file_system_info* fs_info, const image_options* img_opt, cmd_opt* opt)
 {
@@ -1375,6 +1467,9 @@ void print_opt(cmd_opt opt) {
 	log_mesg(1, 0, 0, debug, "NCURSES: %i\n", opt.ncurses);
 #endif
 	log_mesg(1, 0, 0, debug, "OFFSET DOMAIN: 0x%llX\n", opt.offset_domain);
+	log_mesg(1, 0, 0, debug, "CHECKSUM: %s\n", get_checksum_str(opt.checksum_mode));
+	log_mesg(1, 0, 0, debug, "CS SIZE: %u\n", get_checksum_size(opt.checksum_mode, debug));
+	log_mesg(1, 0, 0, debug, "BLOCKS/CS: %lu\n", opt.blocks_per_checksum);
 }
 
 /// print partclone info

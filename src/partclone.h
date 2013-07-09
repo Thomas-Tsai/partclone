@@ -49,7 +49,7 @@
 #define IMAGE_VERSION_SIZE 4
 #define IMAGE_VERSION_0001 "0001"
 #define IMAGE_VERSION_0002 "0002"
-#define IMAGE_VERSION_CURRENT IMAGE_VERSION_0001
+#define IMAGE_VERSION_CURRENT IMAGE_VERSION_0002
 #define PARTCLONE_VERSION_SIZE (FS_MAGIC_SIZE-1)
 #define DEFAULT_BUFFER_SIZE 1048576
 #define PART_SECTOR_SIZE 512
@@ -105,6 +105,10 @@ struct cmd_opt
     unsigned long offset;
     unsigned long fresh;
     unsigned long long offset_domain;
+
+    int checksum_mode;
+    int reseed_checksum;
+    unsigned long blocks_per_checksum;
 };
 typedef struct cmd_opt cmd_opt;
 
@@ -160,6 +164,9 @@ typedef struct
 	/// Number of blocks in use as reported by the file system
 	unsigned long long usedblocks;
 
+	/// Number of blocks in use in the bitmap
+	unsigned long long used_bitmap;
+
 	/// Number of bytes in each block
 	unsigned int  block_size;
 
@@ -199,6 +206,9 @@ typedef struct
 	/// How many consecutive blocks are checksumed together.
 	uint32_t blocks_per_checksum;
 
+	/// Reseed the checksum after each write (1 = yes; 0 = no)
+	uint8_t reseed_checksum;
+
 	/// Kind of bitmap stored in the image (see bitmap_mode_enum)
 	uint8_t bitmap_mode;
 
@@ -226,6 +236,7 @@ typedef struct
 
 // Use these typedefs when a function handles the current version and use the
 // "versioned" typedefs when a function handles a specific version.
+typedef image_head_v2       image_head;
 typedef file_system_info_v2 file_system_info;
 typedef image_options_v2    image_options;
 
@@ -260,12 +271,13 @@ extern void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *
 extern unsigned long long cnv_blocks_to_bytes(unsigned long long block_offset, unsigned int block_count, unsigned int block_size, const image_options* img_opt);
 extern unsigned long long get_bitmap_size_on_disk(const file_system_info* fs_info, const image_options* img_opt, cmd_opt* opt);
 extern unsigned long get_checksum_count(unsigned long long block_count, const image_options *img_opt);
+extern void update_used_blocks_count(file_system_info* fs_info, unsigned long* bitmap);
 
 extern void init_fs_info(file_system_info* fs_info);
 extern void init_image_options(image_options* img_opt);
 extern void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_options* img_opt);
 extern void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, image_options img_opt, unsigned long* bitmap);
-extern void write_image_desc(int* ret, file_system_info fs_info, cmd_opt* opt);
+extern void write_image_desc(int* ret, file_system_info fs_info, image_options img_opt, cmd_opt* opt);
 extern void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_opt, unsigned long* bitmap, cmd_opt* opt);
 
 /**
