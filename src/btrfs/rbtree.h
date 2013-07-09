@@ -93,7 +93,11 @@ static inline struct page * rb_insert_page_cache(struct inode * inode,
 
 #ifndef	_LINUX_RBTREE_H
 #define	_LINUX_RBTREE_H
+#if BTRFS_FLAT_INCLUDES
 #include "kerncompat.h"
+#else
+#include <btrfs/kerncompat.h>
+#endif /* BTRFS_FLAT_INCLUDES */
 struct rb_node
 {
 	unsigned long  rb_parent_color;
@@ -145,7 +149,7 @@ extern struct rb_node *rb_first(struct rb_root *);
 extern struct rb_node *rb_last(struct rb_root *);
 
 /* Fast replacement of a single node without remove/rebalance/add/rebalance */
-extern void rb_replace_node(struct rb_node *victim, struct rb_node *new, 
+extern void rb_replace_node(struct rb_node *victim, struct rb_node *xnew,
 			    struct rb_root *root);
 
 static inline void rb_link_node(struct rb_node * node, struct rb_node * parent,

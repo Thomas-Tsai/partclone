@@ -1762,6 +1762,8 @@ static void set_avail_alloc_bits(struct btrfs_fs_info *fs_info, u64 flags)
 	u64 extra_flags = flags & (BTRFS_BLOCK_GROUP_RAID0 |
 				   BTRFS_BLOCK_GROUP_RAID1 |
 				   BTRFS_BLOCK_GROUP_RAID10 |
+				   BTRFS_BLOCK_GROUP_RAID5 |
+				   BTRFS_BLOCK_GROUP_RAID6 |
 				   BTRFS_BLOCK_GROUP_DUP);
 	if (extra_flags) {
 		if (flags & BTRFS_BLOCK_GROUP_DATA)
@@ -1828,12 +1830,12 @@ static int update_block_group(struct btrfs_trans_handle *trans,
 	u64 end;
 
 	/* block accounting for super block */
-	old_val = btrfs_super_bytes_used(&info->super_copy);
+	old_val = btrfs_super_bytes_used(info->super_copy);
 	if (alloc)
 		old_val += num_bytes;
 	else
 		old_val -= num_bytes;
-	btrfs_set_super_bytes_used(&info->super_copy, old_val);
+	btrfs_set_super_bytes_used(info->super_copy, old_val);
 
 	/* block accounting for root item */
 	old_val = btrfs_root_used(&root->root_item);
@@ -2408,6 +2410,8 @@ static int noinline find_free_extent(struct btrfs_trans_handle *trans,
 	WARN_ON(num_bytes < root->sectorsize);
 	btrfs_set_key_type(ins, BTRFS_EXTENT_ITEM_KEY);
 
+	search_start = stripe_align(root, search_start);
+
 	if (hint_byte) {
 		block_group = btrfs_lookup_first_block_group(info, hint_byte);
 		if (!block_group)
@@ -2423,6 +2427,7 @@ static int noinline find_free_extent(struct btrfs_trans_handle *trans,
 	total_needed += empty_size;
 
 check_failed:
+	search_start = stripe_align(root, search_start);
 	if (!block_group) {
 		block_group = btrfs_lookup_first_block_group(info,
 							     search_start);
@@ -2435,7 +2440,6 @@ check_failed:
 	if (ret)
 		goto error;
 
-	search_start = stripe_align(root, search_start);
 	ins->objectid = search_start;
 	ins->offset = num_bytes;
 
@@ -3212,7 +3216,7 @@ int btrfs_make_block_groups(struct btrfs_trans_handle *trans,
 	extent_root = root->fs_info->extent_root;
 	block_group_cache = &root->fs_info->block_group_cache;
 	chunk_objectid = BTRFS_FIRST_CHUNK_TREE_OBJECTID;
-	total_bytes = btrfs_super_total_bytes(&root->fs_info->super_copy);
+	total_bytes = btrfs_super_total_bytes(root->fs_info->super_copy);
 	group_align = 64 * root->sectorsize;
 
 	cur_start = 0;
@@ -3406,7 +3410,7 @@ int btrfs_fix_block_accounting(struct btrfs_trans_handle *trans,
 	}
 
 	while(1) {
-		cache = btrfs_lookup_block_group(fs_info, start);
+		cache = btrfs_lookup_first_block_group(fs_info, start);
 		if (!cache)
 			break;
 		start = cache->key.objectid + cache->key.offset;
@@ -3447,7 +3451,7 @@ int btrfs_fix_block_accounting(struct btrfs_trans_handle *trans,
 		}
 		path.slots[0]++;
 	}
-	btrfs_set_super_bytes_used(&root->fs_info->super_copy, bytes_used);
+	btrfs_set_super_bytes_used(root->fs_info->super_copy, bytes_used);
 	btrfs_release_path(root, &path);
 	return 0;
 }

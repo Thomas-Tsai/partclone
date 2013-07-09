@@ -13,6 +13,8 @@
     #include <ntfs/version.h>
 #elif VMFS
     #include <vmfs/vmfs.h>
+#elif BTRFS
+    #include "btrfs/version.h"
 #endif
 
 int main(int argc, char **argv){
@@ -36,6 +38,8 @@ int main(int argc, char **argv){
 	err = libvmfs_version();
     } else if (strcmp(libfs, "reiser4") == 0) {
 	err = libpreiser4_version();
+    } else if (strcmp(libfs, "btrfs") == 0) {
+	err = libbtrfs_version();
     }
 
     if(err == 1){
@@ -90,6 +94,14 @@ int libreiserfs_version(){
     const char      *lib_ver;
     lib_ver = (const char *)libreiserfs_get_version();
     printf("%s\n", lib_ver);
+    return 0;
+#endif
+    return 1;
+}
+
+int libbtrfs_version(){
+#ifdef BTRFS
+    printf("%s\n", BTRFS_BUILD_VERSION);
     return 0;
 #endif
     return 1;

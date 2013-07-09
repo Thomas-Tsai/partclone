@@ -19,6 +19,8 @@
 #ifndef __UTILS__
 #define __UTILS__
 
+#include "ctree.h"
+
 #define BTRFS_MKFS_SYSTEM_GROUP_SIZE (4 * 1024 * 1024)
 
 int make_btrfs(int fd, const char *device, const char *label,
@@ -26,8 +28,8 @@ int make_btrfs(int fd, const char *device, const char *label,
 	       u32 leafsize, u32 sectorsize, u32 stripesize);
 int btrfs_make_root_dir(struct btrfs_trans_handle *trans,
 			struct btrfs_root *root, u64 objectid);
-int btrfs_prepare_device(int fd, char *file, int zero_end,
-			 u64 *block_count_ret, int *mixed);
+int btrfs_prepare_device(int fd, char *file, int zero_end, u64 *block_count_ret,
+			 u64 max_block_count, int *mixed, int nodiscard);
 int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 		      struct btrfs_root *root, int fd, char *path,
 		      u64 block_count, u32 io_width, u32 io_align,
@@ -42,8 +44,23 @@ int check_mounted_where(int fd, const char *file, char *where, int size,
 int btrfs_device_already_in_root(struct btrfs_root *root, int fd,
 				 int super_offset);
 char *pretty_sizes(u64 size);
-int check_label(char *input);
 int get_mountpt(char *dev, char *mntpt, size_t size);
-
 int btrfs_scan_block_devices(int run_ioctl);
+u64 parse_size(char *s);
+int open_file_or_dir(const char *fname);
+int get_device_info(int fd, u64 devid,
+		    struct btrfs_ioctl_dev_info_args *di_args);
+int get_fs_info(char *path, struct btrfs_ioctl_fs_info_args *fi_args,
+		struct btrfs_ioctl_dev_info_args **di_ret);
+int get_label(const char *btrfs_dev);
+int set_label(const char *btrfs_dev, const char *label);
+
+char *__strncpy__null(char *dest, const char *src, size_t n);
+int is_block_device(const char *file);
+int get_btrfs_mount(const char *path, char *mp, size_t mp_size);
+int open_path_or_dev_mnt(const char *path);
+int is_swap_device(const char *file);
+/* Helper to always get proper size of the destination string */
+#define strncpy_null(dest, src) __strncpy__null(dest, src, sizeof(dest))
+
 #endif

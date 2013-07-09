@@ -1053,7 +1053,7 @@ void print_opt(cmd_opt opt) {
 	else if (opt.domain)
 		log_mesg(1, 0, 0, debug, "MODE: create domain log for ddrescue\n");
 	else if (opt.ddd)
-		log_mesg(1, 0, 0, debug, "MODE: dd\n");
+		log_mesg(1, 0, 0, debug, "MODE: work like command dd\n");
 
 	log_mesg(1, 0, 0, debug, "DEBUG: %i\n", opt.debug);
 	log_mesg(1, 0, 0, debug, "SOURCE: %s\n", opt.source);
