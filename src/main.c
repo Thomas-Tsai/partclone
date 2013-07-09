@@ -229,6 +229,10 @@ int main(int argc, char **argv) {
 
 		log_mesg(1, 0, 0, debug, "Initiate image options - version %s\n", IMAGE_VERSION_CURRENT);
 
+		img_opt.checksum_mode = opt.checksum_mode;
+		img_opt.checksum_size = get_checksum_size(opt.checksum_mode, opt.debug);
+		img_opt.blocks_per_checksum = opt.blocks_per_checksum;
+
 		cs_size = img_opt.checksum_size;
 
 		log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
@@ -261,12 +265,13 @@ int main(int argc, char **argv) {
 		/// read and check bitmap from partition
 		log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... \n");
 		read_bitmap(source, fs_info, bitmap, pui);
+		update_used_blocks_count(&fs_info, bitmap);
 
 		if (opt.check) {
 
 			unsigned long long needed_space = 0;
 
-			needed_space += sizeof(image_head_v1) + sizeof(file_system_info_v1) + sizeof(image_options_v1);
+			needed_space += sizeof(image_head) + sizeof(file_system_info) + sizeof(image_options);
 			needed_space += get_bitmap_size_on_disk(&fs_info, &img_opt, &opt);
 			needed_space += cnv_blocks_to_bytes(fs_info.usedblocks, fs_info.block_size, &img_opt);
 
@@ -276,7 +281,7 @@ int main(int argc, char **argv) {
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
 		log_mesg(1, 0, 0, debug, "Writing super block and bitmap...\n");
 
-		write_image_desc(&dfw, fs_info, &opt);
+		write_image_desc(&dfw, fs_info, img_opt, &opt);
 		write_image_bitmap(&dfw, fs_info, img_opt, bitmap, &opt);
 
 		log_mesg(0, 0, 1, debug, "done!\n");
@@ -476,7 +481,8 @@ int main(int argc, char **argv) {
 					write_offset += cs_size;
 
 					blocks_in_cs = 0;
-					init_checksum(img_opt.checksum_mode, checksum, debug);
+					if (opt.reseed_checksum)
+						init_checksum(img_opt.checksum_mode, checksum, debug);
 				}
 			}
 
@@ -655,7 +661,8 @@ int main(int argc, char **argv) {
 						read_offset += cs_size;
 
 					blocks_in_cs = 0;
-					init_checksum(img_opt.checksum_mode, checksum, debug);
+					if (opt.reseed_checksum)
+						init_checksum(img_opt.checksum_mode, checksum, debug);
 				}
 
 				read_offset += block_size;
