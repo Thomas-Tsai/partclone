@@ -189,7 +189,7 @@ static unsigned long count_used_block(){
 }
 
 
-void initial_image_hdr(char* device, image_head* image_hdr) {
+void read_super_blocks(char* device, file_system_info* fs_info) {
     fs_open(device);
     if (MAGIC == MINIX_SUPER_MAGIC) {
 	fs_version = 1;
@@ -207,18 +207,17 @@ void initial_image_hdr(char* device, image_head* image_hdr) {
     log_mesg(0, 0, 0, fs_opt.debug, "%s: get_first_zone %lu\n", __FILE__, get_first_zone());
     log_mesg(0, 0, 0, fs_opt.debug, "%s: get_nzones %lu\n", __FILE__, get_nzones());
     log_mesg(0, 0, 0, fs_opt.debug, "%s: zones map size %lu\n", __FILE__, get_nzmaps());
-    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    strncpy(image_hdr->fs, minix_MAGIC, FS_MAGIC_SIZE);
-    image_hdr->block_size  = get_block_size();
-    image_hdr->totalblock  = get_nzones();
-    image_hdr->usedblocks  = count_used_block();
-    image_hdr->device_size = get_nzones()*get_block_size();
+    strncpy(fs_info->fs, minix_MAGIC, FS_MAGIC_SIZE);
+    fs_info->block_size  = get_block_size();
+    fs_info->totalblock  = get_nzones();
+    fs_info->usedblocks  = count_used_block();
+    fs_info->device_size = fs_info->totalblock * fs_info->block_size;
     fs_close();
 }
 
 
 
-void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui) {
+void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui) {
     unsigned long zones = get_nzones();
     unsigned long imaps = get_nimaps();
     unsigned long zmaps = get_nzmaps();
@@ -244,7 +243,7 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to allocate buffer for zone map", __FILE__);
     memset(inode_map,0,sizeof(inode_map));
     memset(zone_map,0,sizeof(zone_map));
-    pc_init_bitmap(bitmap, 0x00, image_hdr.totalblock);
+    pc_init_bitmap(bitmap, 0x00, fs_info.totalblock);
 
     rc = read(dev, inode_map, imaps * block_size);
     if (rc < 0 || imaps * block_size != (size_t) rc)

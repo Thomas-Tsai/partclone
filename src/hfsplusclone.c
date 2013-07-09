@@ -122,7 +122,7 @@ static void fs_close(){
 
 }
 
-void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui) {
+void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui) {
 
     int IsUsed = 0;
     UInt8 *extent_bitmap;
@@ -140,7 +140,7 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
-    progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
+    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
 
     pc_init_bitmap(bitmap, 0xFF, tb);
 
@@ -195,16 +195,15 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
     update_pui(&prog, 1, 1, 1);
 }
 
-void initial_image_hdr(char* device, image_head* image_hdr)
+void read_super_blocks(char* device, file_system_info* fs_info)
 {
 
     fs_open(device);
-    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    strncpy(image_hdr->fs, hfsplus_MAGIC, FS_MAGIC_SIZE);
-    image_hdr->block_size  = (int)reverseInt(sb.blockSize);
-    image_hdr->totalblock  = (unsigned long long)reverseInt(sb.totalBlocks);
-    image_hdr->device_size = (unsigned long long)(image_hdr->block_size * image_hdr->totalblock);
-    image_hdr->usedblocks  = (unsigned long long)(reverseInt(sb.totalBlocks) - reverseInt(sb.freeBlocks));
+    strncpy(fs_info->fs, hfsplus_MAGIC, FS_MAGIC_SIZE);
+    fs_info->block_size  = reverseInt(sb.blockSize);
+    fs_info->totalblock  = reverseInt(sb.totalBlocks);
+    fs_info->usedblocks  = reverseInt(sb.totalBlocks) - reverseInt(sb.freeBlocks);
+    fs_info->device_size = fs_info->block_size * fs_info->totalblock;
     log_mesg(2, 0, 0, 2, "%s: blockSize:%i\n", __FILE__, reverseInt(sb.blockSize));
     log_mesg(2, 0, 0, 2, "%s: totalBlocks:%i\n", __FILE__, reverseInt(sb.totalBlocks));
     log_mesg(2, 0, 0, 2, "%s: freeBlocks:%i\n", __FILE__, reverseInt(sb.freeBlocks));

@@ -110,21 +110,63 @@ typedef struct cmd_opt cmd_opt;
 /* Disable fields alignment for struct stored in the image */
 #pragma pack(push, 1)
 
-struct image_head
+typedef struct
 {
     char magic[IMAGE_MAGIC_SIZE];
     char fs[FS_MAGIC_SIZE];
     char version[IMAGE_VERSION_SIZE];
     char padding[2];
+
+} image_head_v1;
+
+typedef struct
+{
     int  block_size;
     unsigned long long device_size;
     unsigned long long totalblock;
     unsigned long long usedblocks;
-    char buff[4096];
-};
-typedef struct image_head image_head;
+
+} file_system_info_v1;
+
+typedef struct
+{
+	/// File system type
+	char fs[FS_MAGIC_SIZE+1];
+
+	/// Size of the source device, in bytes
+	unsigned long long device_size;
+
+	/// Number of blocks in the file system
+	unsigned long long totalblock;
+
+	/// Number of blocks in use as reported by the file system
+	unsigned long long usedblocks;
+
+	/// Number of bytes in each block
+	unsigned int  block_size;
+
+} file_system_info_v2;
+
+typedef struct
+{
+	char buff[4096];
+
+} image_options_v1;
+
+/// image format 0001 description
+typedef struct
+{
+	image_head_v1       head;
+	file_system_info_v1 fs_info;
+	image_options_v1    options;
+
+} image_desc_v1;
 
 #pragma pack(pop)
+
+// Use this typedef when a function handles the current version and use the
+// "versioned" typedef when a function handles a specific version.
+typedef file_system_info_v2 file_system_info;
 
 extern void usage(void);
 extern void print_version(void);
@@ -152,18 +194,18 @@ extern int io_all(int *fd, char *buffer, unsigned long long count, int do_write,
 extern void sync_data(int fd, cmd_opt* opt);
 extern void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt);
 
-extern void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr);
-extern void get_image_hdr(int* ret, cmd_opt opt, image_head image_hdr, unsigned long* bitmap);
-extern void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, unsigned long* bitmap);
-extern void write_image_head(int* ret, image_head image_hdr, cmd_opt* opt);
-extern void write_image_bitmap(int* ret, image_head image_hdr, cmd_opt* opt, unsigned long* bitmap);
+extern void init_fs_info(file_system_info* fs_info);
+extern void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info);
+extern void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap);
+extern void write_image_desc(int* ret, file_system_info fs_info, cmd_opt* opt);
+extern void write_image_bitmap(int* ret, file_system_info fs_info, unsigned long* bitmap, cmd_opt* opt);
 
 /**
  * The next two functions are not defined in partclone.c. They must be defined by each
  * file system specialisation. They are the only ones who need access to the file system's library.
  */
-extern void initial_image_hdr(char* device, image_head* image_hdr);
-extern void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui);
+extern void read_super_blocks(char* device, file_system_info* fs_info);
+extern void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui);
 
 /**
  * for open and close
@@ -186,15 +228,15 @@ extern int check_size(int* ret, unsigned long long size);
 extern void check_free_space(int* ret, unsigned long long size);
 
 /// check free memory size
-extern int check_mem_size(image_head image_hdr, cmd_opt opt, unsigned long long *mem_size);
+extern int check_mem_size(file_system_info fs_info, cmd_opt opt, unsigned long long *mem_size);
 
 /// generate crc32 code
 extern unsigned long crc32(unsigned long crc, char *buf, int size);
 
 /// print partclone info
 extern void print_partclone_info(cmd_opt opt);
-/// print image_head
-extern void print_image_hdr_info(image_head image_hdr, cmd_opt opt);
+/// print file system info
+extern void print_file_system_info(file_system_info fs_info, cmd_opt opt);
 /// print option
 extern void print_opt(cmd_opt opt);
 /// print finish mesg

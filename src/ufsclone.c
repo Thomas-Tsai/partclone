@@ -133,7 +133,7 @@ static void fs_close(){
     log_mesg(1, 0, 0, fs_opt.debug, "%s: done\n\n", __FILE__);
 }
 
-void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui)
 {
     unsigned long long     total_block, block, bused = 0, bfree = 0;
     int                    done = 0, i = 0, start = 0, bit_size = 1;
@@ -144,7 +144,7 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 
     /// init progress
     progress_bar   bprog;	/// progress_bar structure defined in progress.h
-    progress_init(&bprog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
+    progress_init(&bprog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
 
     total_block = 0;
     /// read group
@@ -177,24 +177,24 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 
 }
 
-void initial_image_hdr(char* device, image_head* image_hdr)
+void read_super_blocks(char* device, file_system_info* fs_info)
 {
 
     fs_open(device);
-    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    strncpy(image_hdr->fs, ufs_MAGIC, FS_MAGIC_SIZE);
-    image_hdr->block_size  = afs.fs_fsize;
-    image_hdr->usedblocks  = get_used_block();
+    strncpy(fs_info->fs, ufs_MAGIC, FS_MAGIC_SIZE);
+    fs_info->block_size = afs.fs_fsize;
+    fs_info->usedblocks = get_used_block();
     switch (disk.d_ufs) {
         case 2:
-	    image_hdr->totalblock = (unsigned long long)afs.fs_size;
-            image_hdr->device_size = afs.fs_fsize*afs.fs_size;
+            fs_info->totalblock  = afs.fs_size;
+            fs_info->device_size = afs.fs_fsize*afs.fs_size;
             break;
         case 1:
-	    image_hdr->totalblock = (unsigned long long)afs.fs_old_size;
-            image_hdr->device_size = afs.fs_fsize*afs.fs_old_size;
+            fs_info->totalblock  = afs.fs_old_size;
+            fs_info->device_size = afs.fs_fsize*afs.fs_old_size;
             break;
         default:
+            log_mesg(0, 1, 1, fs_opt.debug, "Warning: unknown ufs's version [%d]", disk.d_ufs);
             break;
     }
 

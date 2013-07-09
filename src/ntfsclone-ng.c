@@ -218,7 +218,7 @@ static void fs_close(){
     }
 }
 
-void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui)
 {
     unsigned char	*ntfs_bitmap;
     unsigned long long	current_block, used_block, free_block, pos;
@@ -249,7 +249,7 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
 
     /// init progress
     progress_bar   prog;
-    progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
+    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
 
     if (count == -1){					    // On error and nothing has been read
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: read ntfs attr error: %s\n", __FILE__, strerror(errno));
@@ -291,31 +291,30 @@ void read_bitmap(char* device, image_head image_hdr, unsigned long* bitmap, int 
     fs_close();
     log_mesg(3, 0, 0, fs_opt.debug, "%s: fs_close done\n", __FILE__);
 
-    if (used_block != image_hdr.usedblocks) {
+    if (used_block != fs_info.usedblocks) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: used blocks count mismatch: %llu in header, %llu from read_bitmap\n", __FILE__,
-                image_hdr.usedblocks, used_block);
+            fs_info.usedblocks, used_block);
     }
 
 }
 
-void initial_image_hdr(char* device, image_head* image_hdr)
+void read_super_blocks(char* device, file_system_info* fs_info)
 {
     fs_open(device);
-    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    strncpy(image_hdr->fs, ntfs_MAGIC, FS_MAGIC_SIZE);
-    image_hdr->block_size  = (int)ntfs->cluster_size;
-    image_hdr->totalblock  = (unsigned long long)ntfs->nr_clusters;
+    strncpy(fs_info->fs, ntfs_MAGIC, FS_MAGIC_SIZE);
+    fs_info->block_size  = ntfs->cluster_size;
+    fs_info->totalblock  = ntfs->nr_clusters;
 #ifdef NTFS3G
     log_mesg(3, 0, 0, fs_opt.debug, "%s: ntfs - nr_free:\t: %"PRId64"\n", __FILE__, ntfs->free_clusters);
-    image_hdr->usedblocks  = (unsigned long long)(ntfs->nr_clusters - ntfs->free_clusters);
+    fs_info->usedblocks  = ntfs->nr_clusters - ntfs->free_clusters;
 #else
     log_mesg(3, 0, 0, fs_opt.debug, "%s: ntfs - nr_free:\t: %ld\n", __FILE__, ntfs->nr_free_clusters);
-    image_hdr->usedblocks  = (unsigned long long)(ntfs->nr_clusters - ntfs->nr_free_clusters);
+    fs_info->usedblocks  = ntfs->nr_clusters - ntfs->nr_free_clusters;
 #endif
-    image_hdr->device_size = (unsigned long long)ntfs_device_size_get(ntfs->dev, 1);
+    fs_info->device_size = ntfs_device_size_get(ntfs->dev, 1);
     fs_close();
 
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: hdr - usedblocks:\t: %llu\n", __FILE__, image_hdr->usedblocks);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: hdr - totalblocks:\t: %llu\n", __FILE__, image_hdr->totalblock);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: hdr - usedblocks:\t: %llu\n", __FILE__, fs_info->usedblocks);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: hdr - totalblocks:\t: %llu\n", __FILE__, fs_info->totalblock);
 }
 
