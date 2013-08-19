@@ -877,7 +877,7 @@ int main(int argc, char **argv) {
 	/// close target
 	if (dfw != -1)
 		close(dfw);
-	/// free bitmp
+	/// free bitmap
 	free(bitmap);
 	close_pui(pui);
 #ifndef CHKIMG

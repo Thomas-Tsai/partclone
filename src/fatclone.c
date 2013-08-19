@@ -38,7 +38,7 @@ static unsigned long long get_used_block();
 /// get fet type
 static void get_fat_type(){
 
-    /// fix, 1. make sure fat_sb; 2. the method shoud be check again
+    /// fix, 1. make sure fat_sb; 2. the method should be checked again
     if (fat_sb.u.fat16.ext_signature == 0x29){
         if (fat_sb.u.fat16.fat_name[4] == '6'){
             FS = FAT_16;

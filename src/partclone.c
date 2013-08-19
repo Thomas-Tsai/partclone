@@ -182,7 +182,7 @@ void print_readable_size_str(unsigned long long size_byte, char *new_size_str) {
  * options
  * usage                    - print message "how to use this"
  * print_version
- * parse_options            - get parameters from agrc, argv
+ * parse_options            - get parameters from argc, argv
  */
 void usage(void) {
 	fprintf(stderr, "%s v%s http://partclone.org\nUsage: %s [OPTIONS]\n"
