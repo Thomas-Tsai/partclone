@@ -232,14 +232,14 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <refentrytitle>partclone.chkimg</refentrytitle>
         <manvolnum>8</manvolnum>
       </citerefentry>, <citerefentry>
-        <refentrytitle>partclone.restore</refentrytitle>
-        <manvolnum>8</manvolnum>
-      </citerefentry>, <citerefentry>
         <refentrytitle>partclone.dd</refentrytitle>
         <manvolnum>8</manvolnum>
       </citerefentry>, <citerefentry>
 	<refentrytitle>partclone.info</refentrytitle>
 	<manvolnum>8</manvolnum>
+      </citerefentry>, <citerefentry>
+        <refentrytitle>partclone.restore</refentrytitle>
+        <manvolnum>8</manvolnum>
       </citerefentry>
       </para>
   </refsect1>
