@@ -97,7 +97,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
   </refmeta>
   <refnamediv>
     <refname>&dhpackage;</refname>
-    <refpurpose>deals with braindeadness with moving NTFS filesystems. </refpurpose>
+    <refpurpose>deals with braindeadness with moving NTFS filesystems.</refpurpose>
   </refnamediv>
   <refsynopsisdiv>
     <cmdsynopsis>
@@ -179,7 +179,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
       <varlistentry>
         <term><option> -p </option></term>
         <listitem>
-          <para>Print debug information (values read, values requested etc.</para>
+          <para>Print debug information (values read, values requested etc.)</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -218,7 +218,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
     <!-- Or use this section to tell about upstream BTS. -->
     <title>BUGS</title>
     <para>Report bugs to &dhemail; or <ulink url="http://partclone.org"/>.</para>
-    <para>Report bugs to upstrem <ulink url="http://sourceforge.net/projects/ntfsfixboot/"/>.</para>
+    <para>Report bugs to upstream <ulink url="http://sourceforge.net/projects/ntfsfixboot/"/>.</para>
 
   </refsect1>
   <refsect1 id="see_also">
