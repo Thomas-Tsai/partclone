@@ -126,8 +126,14 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
   </refsect1>
   <refsect1 id="options">
     <title>OPTIONS</title>
-    <para>The program follows the usual GNU command line syntax,a summary of
-      options is included below.</para>
+    <para>The program follows the usual GNU command line syntax, a summary of
+      options is included below.
+      Desirable data sources for Windows-accepted geometry values might be
+      EDD (BIOS), (s)fdisk, kernel or others, depending on which provide
+      suitable (correct) values for the required geometry model.
+      Having defaults applied might turn out to NOT be what you would want
+      (resulting in boot failure, or perhaps even worse).
+    </para>
     <variablelist>
       <!-- Use the variablelist.term.separator and the
            variablelist.term.break.after parameters to
