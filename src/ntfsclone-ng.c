@@ -255,7 +255,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: read ntfs attr error: %s\n", __FILE__, strerror(errno));
     }
     if (count != bitmap_size){
-	log_mesg(0, 1, 1, fs_opt.debug, "%s: the readed size of ntfs_attr not expected: %s\n", __FILE__, strerror(errno));
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: unexpected size of readout of ntfs_attr: %s\n", __FILE__, strerror(errno));
     }
 
     for (current_block = 0; current_block < ntfs->nr_clusters; current_block++)
