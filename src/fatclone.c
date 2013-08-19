@@ -49,7 +49,7 @@ static void get_fat_type(){
             fat_type = "FAT12";
             log_mesg(2, 0, 0, fs_opt.debug, "%s: FAT Type : FAT 12\n", __FILE__);
         } else {
-            log_mesg(2, 1, 1, fs_opt.debug, "%s: FAT Type : unknow\n" __FILE__);
+            log_mesg(2, 1, 1, fs_opt.debug, "%s: FAT Type : unknown\n" __FILE__);
         }
     } else if (fat_sb.u.fat32.fat_name[4] == '2'){
         FS = FAT_32;
