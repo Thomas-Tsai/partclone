@@ -210,7 +210,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
       </seglistitem>
       <seglistitem>
         <seg><errorcode>2</errorcode></seg>
-        <seg>an error occured</seg>
+        <seg>an error occurred</seg>
       </seglistitem>
     </segmentedlist>
   </refsect1>
