@@ -165,7 +165,7 @@ static void fs_open(char* device){
         log_mesg(3, 0, 0, fs_opt.debug, "%s: NTFS volume version: %d.%d\n", __FILE__, ntfs->major_ver, ntfs->minor_ver);
 
         if (!ntfs_version_is_supported(ntfs)) {
-            log_mesg(3, 0, 0, fs_opt.debug, "%s: libntfs open/mount %s as ntfs successfull\n", __FILE__, device);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: libntfs open/mount %s as ntfs successful\n", __FILE__, device);
         } else {
             log_mesg(0, 1, 1, fs_opt.debug, "%s: Unknown NTFS version\n", __FILE__);
         }

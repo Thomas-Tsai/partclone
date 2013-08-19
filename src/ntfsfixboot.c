@@ -66,7 +66,7 @@ int flip(void *p, int size) {
 
 int usage(char *progname) {
   fprintf(stderr, 
-    "adjust filesystem geometry for a NTFS partition"
+    "adjust filesystem geometry for an NTFS partition"
     "\nUsage: %s [-h # -t #] [-s start] [-b] [-w] [-f] [-p] device"
     "\nwhere device points to an NTFS partition"
     "\n"
@@ -93,7 +93,7 @@ int usage(char *progname) {
     "\nExit status:"
 	"\n* 0 - success (values are correct, or changed successfully)"
 	"\n* 1 - a change is needed, but -w was not specified"
-	"\n* 2 - an error occured"
+	"\n* 2 - an error occurred"
     "\n", progname
     );
   return 0;
@@ -359,7 +359,7 @@ int main(int argc, char *argv[]) {
     && !memcmp(&set_geom, &bak_geom, geomsize)
     && !optForce
     && !memcmp(br_sector, bak_sector, 512)) {
-      puts("No changes neccessary.");
+      puts("No changes necessary.");
       return 0;
   }
 

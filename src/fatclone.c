@@ -388,7 +388,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
         log_mesg(1, 0, 0, fs_opt.debug, "%s: Ignore filesystem check\n", __FILE__);
     }else{
         if (fat_stat == 1)
-            log_mesg(0, 1, 1, fs_opt.debug, "%s: Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n", __FILE__);
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: Filesystem isn't in valid state. Maybe it is not cleanly unmounted.\n\n", __FILE__);
         else if (fat_stat == 2)
             log_mesg(0, 1, 1, fs_opt.debug, "%s: I/O error! %X\n", __FILE__);
     }
@@ -447,7 +447,7 @@ static unsigned long long get_used_block()
     /// The second fat is used to check FAT status
     fat_stat = check_fat_status();
     if (fat_stat == 1)
-        log_mesg(0, 1, 1, fs_opt.debug, "%s: Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n", __FILE__);
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: Filesystem isn't in valid state. Maybe it is not cleanly unmounted.\n\n", __FILE__);
     else if (fat_stat == 2)
         log_mesg(0, 1, 1, fs_opt.debug, "%s: I/O error! %X\n", __FILE__);
 
