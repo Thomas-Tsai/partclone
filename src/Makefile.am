@@ -1,29 +1,29 @@
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\"
 LDADD = $(LIBINTL)
-sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg
+sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg partclone.imager
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 
-BTRFS_SOURCE= btrfs/crc32c.c btrfs/disk-io.c btrfs/extent-tree.c btrfs/inode-map.c btrfs/rbtree.c btrfs/volumes.c btrfs/ctree.c btrfs/extent-cache.c btrfs/file-item.c btrfs/print-tree.c btrfs/root-tree.c btrfs/dir-item.c btrfs/extent_io.c btrfs/inode-item.c btrfs/radix-tree.c btrfs/utils.c btrfs/crc32c.h btrfs/extent-cache.h btrfs/ioctl.h btrfs/print-tree.h btrfs/transaction.h btrfs/volumes.h btrfs/ctree.h btrfs/extent_io.h btrfs/kerncompat.h btrfs/radix-tree.h btrfs/utils.h btrfs/disk-io.h btrfs/hash.h btrfs/list.h btrfs/rbtree.h btrfs/version.h btrfs/repair.h btrfs/repair.c
+BTRFS_SOURCE= btrfs/crc32c.c btrfs/disk-io.c btrfs/extent-tree.c btrfs/inode-map.c btrfs/rbtree.c btrfs/volumes.c btrfs/ctree.c btrfs/extent-cache.c btrfs/file-item.c btrfs/print-tree.c btrfs/root-tree.c btrfs/dir-item.c btrfs/extent_io.c btrfs/inode-item.c btrfs/radix-tree.c btrfs/utils.c btrfs/crc32c.h btrfs/extent-cache.h btrfs/ioctl.h btrfs/print-tree.h btrfs/transaction.h btrfs/volumes.h btrfs/ctree.h btrfs/extent_io.h btrfs/kerncompat.h btrfs/radix-tree.h btrfs/utils.h btrfs/disk-io.h btrfs/hash.h btrfs/list.h btrfs/rbtree.h btrfs/version.h btrfs/repair.h btrfs/repair.c btrfs/raid6.c
 #BTRFS_SOURCE= btrfs/*
 EXFATFS_SOURCE= exfat/byteorder.h exfat/cluster.c exfat/exfatfs.h exfat/exfat.h exfat/io.c exfat/libexfat.a exfat/log.c exfat/lookup.c exfat/mount.c exfat/node.c exfat/time.c exfat/utf.c exfat/utils.c exfat/version.h
 
 if ENABLE_STATIC
-LDFLAGS+=-static
+AM_LDFLAGS=-static
 endif
 
 if ENABLE_TINFO
 LIBS+=-ltinfo
 endif
 
+AM_CFLAGS=-D_FILE_OFFSET_BITS=64
+
 if ENABLE_MEMTRACE
-CFLAGS+=-DMEMTRACE -DMEMWATCH -DMW_STDIO
+AM_CFLAGS+=-DMEMTRACE -DMEMWATCH -DMW_STDIO
 endif
 
 if ENABLE_NCURSESW
-CFLAGS+=-I/usr/include/ncursesw
+AM_CFLAGS+=-I/usr/include/ncursesw
 endif
-
-CFLAGS+=-D_FILE_OFFSET_BITS=64
 
 version.h: FORCE
 	$(TOOLBOX) --update-version
@@ -40,6 +40,9 @@ partclone_chkimg_CFLAGS=-DCHKIMG -DDD
 
 partclone_dd_SOURCES=$(main_files) ddclone.c ddclone.h
 partclone_dd_CFLAGS=-DDD
+
+partclone_imager_SOURCES=main.c partclone.c progress.c ddclone.c ddclone.h partclone.h progress.h gettext.h
+partclone_imager_CFLAGS=-DIMG
 
 if ENABLE_EXTFS
 sbin_PROGRAMS += partclone.extfs

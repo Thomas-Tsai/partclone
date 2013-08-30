@@ -1,10 +1,9 @@
-AC_INIT([Partclone], [0.2.61], [thomas@nchc.org.tw])
-#AC_CONFIG_AUX_DIR([build-aux])
-#AC CONFIG SRCDIR([src/main.c])
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AC_INIT([Partclone], [0.2.66], [thomas@nchc.org.tw])
+AM_INIT_AUTOMAKE([foreign])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PATH_PROG(RM, rm, rm)
 AC_PROG_LN_S
@@ -434,7 +433,8 @@ AM_CONDITIONAL(ENABLE_BTRFS, test "$enable_btrfs" = yes)
 
 if test "$enable_btrfs" = yes; then
 supported_fs=$supported_fs" btrfs"
-btrfs_version="0.19"
+btrfs_version=`gcc  $srcdir/src/deplib_version.c $srcdir/src/btrfs/version.h  -o $srcdir/get_lib_version -DBTRFS`
+btrfs_version=`$srcdir/get_lib_version btrfs`
 fi
 #end of check btrfs
 

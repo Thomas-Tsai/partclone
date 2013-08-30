@@ -20,6 +20,11 @@
 #define __IOCTL_
 #include <asm/types.h>
 #include <linux/ioctl.h>
+#include <time.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define BTRFS_IOCTL_MAGIC 0x94
 #define BTRFS_VOL_NAME_MAX 255
@@ -31,14 +36,49 @@ struct btrfs_ioctl_vol_args {
 	char name[BTRFS_PATH_NAME_MAX + 1];
 };
 
+#define BTRFS_DEVICE_PATH_NAME_MAX 1024
+
+#define BTRFS_SUBVOL_CREATE_ASYNC	(1ULL << 0)
 #define BTRFS_SUBVOL_RDONLY		(1ULL << 1)
+#define BTRFS_SUBVOL_QGROUP_INHERIT	(1ULL << 2)
+
+#define BTRFS_QGROUP_INHERIT_SET_LIMITS	(1ULL << 0)
+
+struct btrfs_qgroup_limit {
+	__u64	flags;
+	__u64	max_referenced;
+	__u64	max_exclusive;
+	__u64	rsv_referenced;
+	__u64	rsv_exclusive;
+};
+
+struct btrfs_qgroup_inherit {
+	__u64	flags;
+	__u64	num_qgroups;
+	__u64	num_ref_copies;
+	__u64	num_excl_copies;
+	struct btrfs_qgroup_limit lim;
+	__u64	qgroups[0];
+};
+
+struct btrfs_ioctl_qgroup_limit_args {
+	__u64	qgroupid;
+	struct btrfs_qgroup_limit lim;
+};
+
 #define BTRFS_SUBVOL_NAME_MAX 4039
 
 struct btrfs_ioctl_vol_args_v2 {
 	__s64 fd;
 	__u64 transid;
 	__u64 flags;
-	__u64 unused[4];
+	union {
+		struct {
+			__u64 size;
+			struct btrfs_qgroup_inherit *qgroup_inherit;
+		};
+		__u64 unused[4];
+	};
 	char name[BTRFS_SUBVOL_NAME_MAX + 1];
 };
 
@@ -74,7 +114,48 @@ struct btrfs_ioctl_scrub_args {
 	__u64 unused[(1024-32-sizeof(struct btrfs_scrub_progress))/8];
 };
 
-#define BTRFS_DEVICE_PATH_NAME_MAX 1024
+#define BTRFS_IOCTL_DEV_REPLACE_CONT_READING_FROM_SRCDEV_MODE_ALWAYS	0
+#define BTRFS_IOCTL_DEV_REPLACE_CONT_READING_FROM_SRCDEV_MODE_AVOID	1
+struct btrfs_ioctl_dev_replace_start_params {
+	__u64 srcdevid;	/* in, if 0, use srcdev_name instead */
+	__u64 cont_reading_from_srcdev_mode;	/* in, see #define
+						 * above */
+	__u8 srcdev_name[BTRFS_DEVICE_PATH_NAME_MAX + 1];	/* in */
+	__u8 tgtdev_name[BTRFS_DEVICE_PATH_NAME_MAX + 1];	/* in */
+};
+
+#define BTRFS_IOCTL_DEV_REPLACE_STATE_NEVER_STARTED	0
+#define BTRFS_IOCTL_DEV_REPLACE_STATE_STARTED		1
+#define BTRFS_IOCTL_DEV_REPLACE_STATE_FINISHED		2
+#define BTRFS_IOCTL_DEV_REPLACE_STATE_CANCELED		3
+#define BTRFS_IOCTL_DEV_REPLACE_STATE_SUSPENDED		4
+struct btrfs_ioctl_dev_replace_status_params {
+	__u64 replace_state;	/* out, see #define above */
+	__u64 progress_1000;	/* out, 0 <= x <= 1000 */
+	__u64 time_started;	/* out, seconds since 1-Jan-1970 */
+	__u64 time_stopped;	/* out, seconds since 1-Jan-1970 */
+	__u64 num_write_errors;	/* out */
+	__u64 num_uncorrectable_read_errors;	/* out */
+};
+
+#define BTRFS_IOCTL_DEV_REPLACE_CMD_START			0
+#define BTRFS_IOCTL_DEV_REPLACE_CMD_STATUS			1
+#define BTRFS_IOCTL_DEV_REPLACE_CMD_CANCEL			2
+#define BTRFS_IOCTL_DEV_REPLACE_RESULT_NO_ERROR			0
+#define BTRFS_IOCTL_DEV_REPLACE_RESULT_NOT_STARTED		1
+#define BTRFS_IOCTL_DEV_REPLACE_RESULT_ALREADY_STARTED		2
+struct btrfs_ioctl_dev_replace_args {
+	__u64 cmd;	/* in */
+	__u64 result;	/* out */
+
+	union {
+		struct btrfs_ioctl_dev_replace_start_params start;
+		struct btrfs_ioctl_dev_replace_status_params status;
+	};	/* in/out */
+
+	__u64 spare[64];
+};
+
 struct btrfs_ioctl_dev_info_args {
 	__u64 devid;				/* in/out */
 	__u8 uuid[BTRFS_UUID_SIZE];		/* in/out */
@@ -272,6 +353,89 @@ struct btrfs_ioctl_logical_ino_args {
 	__u64				inodes;
 };
 
+struct btrfs_ioctl_timespec {
+	__u64 sec;
+	__u32 nsec;
+};
+
+struct btrfs_ioctl_received_subvol_args {
+	char	uuid[BTRFS_UUID_SIZE];	/* in */
+	__u64	stransid;		/* in */
+	__u64	rtransid;		/* out */
+	struct btrfs_ioctl_timespec stime; /* in */
+	struct btrfs_ioctl_timespec rtime; /* out */
+	__u64	flags;			/* in */
+	__u64	reserved[16];		/* in */
+};
+
+/*
+ * Caller doesn't want file data in the send stream, even if the
+ * search of clone sources doesn't find an extent. UPDATE_EXTENT
+ * commands will be sent instead of WRITE commands.
+ */
+#define	BTRFS_SEND_FLAG_NO_FILE_DATA	0x1
+
+struct btrfs_ioctl_send_args {
+	__s64 send_fd;			/* in */
+	__u64 clone_sources_count;	/* in */
+	__u64 *clone_sources;		/* in */
+	__u64 parent_root;		/* in */
+	__u64 flags;			/* in */
+	__u64 reserved[4];		/* in */
+};
+
+#define BTRFS_QUOTA_CTL_ENABLE	1
+#define BTRFS_QUOTA_CTL_DISABLE	2
+#define BTRFS_QUOTA_CTL_RESCAN	3
+struct btrfs_ioctl_quota_ctl_args {
+	__u64 cmd;
+	__u64 status;
+};
+
+struct btrfs_ioctl_qgroup_assign_args {
+	__u64 assign;
+	__u64 src;
+	__u64 dst;
+};
+
+struct btrfs_ioctl_qgroup_create_args {
+	__u64 create;
+	__u64 qgroupid;
+};
+
+enum btrfs_dev_stat_values {
+	/* disk I/O failure stats */
+	BTRFS_DEV_STAT_WRITE_ERRS, /* EIO or EREMOTEIO from lower layers */
+	BTRFS_DEV_STAT_READ_ERRS, /* EIO or EREMOTEIO from lower layers */
+	BTRFS_DEV_STAT_FLUSH_ERRS, /* EIO or EREMOTEIO from lower layers */
+
+	/* stats for indirect indications for I/O failures */
+	BTRFS_DEV_STAT_CORRUPTION_ERRS, /* checksum error, bytenr error or
+					 * contents is illegal: this is an
+					 * indication that the block was damaged
+					 * during read or write, or written to
+					 * wrong location or read from wrong
+					 * location */
+	BTRFS_DEV_STAT_GENERATION_ERRS, /* an indication that blocks have not
+					 * been written */
+
+	BTRFS_DEV_STAT_VALUES_MAX
+};
+
+/* Reset statistics after reading; needs SYS_ADMIN capability */
+#define	BTRFS_DEV_STATS_RESET		(1ULL << 0)
+
+struct btrfs_ioctl_get_dev_stats {
+	__u64 devid;				/* in */
+	__u64 nr_items;				/* in/out */
+	__u64 flags;				/* in/out */
+
+	/* out values: */
+	__u64 values[BTRFS_DEV_STAT_VALUES_MAX];
+
+	__u64 unused[128 - 2 - BTRFS_DEV_STAT_VALUES_MAX]; /* pad to 1k */
+};
+
 /* BTRFS_IOC_SNAP_CREATE is no longer used by the btrfs command */
 #define BTRFS_IOC_SNAP_CREATE _IOW(BTRFS_IOCTL_MAGIC, 1, \
 				   struct btrfs_ioctl_vol_args)
@@ -281,6 +445,13 @@ struct btrfs_ioctl_logical_ino_args {
 				   struct btrfs_ioctl_vol_args)
 #define BTRFS_IOC_SCAN_DEV _IOW(BTRFS_IOCTL_MAGIC, 4, \
 				   struct btrfs_ioctl_vol_args)
+
+struct btrfs_ioctl_clone_range_args {
+	__s64 src_fd;
+	__u64 src_offset, src_length;
+	__u64 dest_offset;
+};
+
 /* trans start and trans end are dangerous, and only for
  * use by applications that know how to avoid the
  * resulting deadlocks
@@ -296,7 +467,8 @@ struct btrfs_ioctl_logical_ino_args {
 				   struct btrfs_ioctl_vol_args)
 #define BTRFS_IOC_BALANCE _IOW(BTRFS_IOCTL_MAGIC, 12, \
 				   struct btrfs_ioctl_vol_args)
-/* 13 is for CLONE_RANGE */
+#define BTRFS_IOC_CLONE_RANGE _IOW(BTRFS_IOCTL_MAGIC, 13, \
+				   struct btrfs_ioctl_clone_range_args)
 #define BTRFS_IOC_SUBVOL_CREATE _IOW(BTRFS_IOCTL_MAGIC, 14, \
 				   struct btrfs_ioctl_vol_args)
 #define BTRFS_IOC_SNAP_DESTROY _IOW(BTRFS_IOCTL_MAGIC, 15, \
@@ -312,6 +484,10 @@ struct btrfs_ioctl_logical_ino_args {
 				    struct btrfs_ioctl_space_args)
 #define BTRFS_IOC_SNAP_CREATE_V2 _IOW(BTRFS_IOCTL_MAGIC, 23, \
 				   struct btrfs_ioctl_vol_args_v2)
+#define BTRFS_IOC_SUBVOL_CREATE_V2 _IOW(BTRFS_IOCTL_MAGIC, 24, \
+				   struct btrfs_ioctl_vol_args_v2)
+#define BTRFS_IOC_SUBVOL_GETFLAGS _IOR(BTRFS_IOCTL_MAGIC, 25, __u64)
+#define BTRFS_IOC_SUBVOL_SETFLAGS _IOW(BTRFS_IOCTL_MAGIC, 26, __u64)
 #define BTRFS_IOC_SCRUB _IOWR(BTRFS_IOCTL_MAGIC, 27, \
 				struct btrfs_ioctl_scrub_args)
 #define BTRFS_IOC_SCRUB_CANCEL _IO(BTRFS_IOCTL_MAGIC, 28)
@@ -330,5 +506,31 @@ struct btrfs_ioctl_logical_ino_args {
 					struct btrfs_ioctl_ino_path_args)
 #define BTRFS_IOC_LOGICAL_INO _IOWR(BTRFS_IOCTL_MAGIC, 36, \
 					struct btrfs_ioctl_ino_path_args)
+#define BTRFS_IOC_DEVICES_READY _IOR(BTRFS_IOCTL_MAGIC, 39, \
+				     struct btrfs_ioctl_vol_args)
+#define BTRFS_IOC_SET_RECEIVED_SUBVOL _IOWR(BTRFS_IOCTL_MAGIC, 37, \
+				struct btrfs_ioctl_received_subvol_args)
+#define BTRFS_IOC_SEND _IOW(BTRFS_IOCTL_MAGIC, 38, struct btrfs_ioctl_send_args)
+
+#define BTRFS_IOC_QUOTA_CTL _IOWR(BTRFS_IOCTL_MAGIC, 40, \
+					struct btrfs_ioctl_quota_ctl_args)
+#define BTRFS_IOC_QGROUP_ASSIGN _IOW(BTRFS_IOCTL_MAGIC, 41, \
+					struct btrfs_ioctl_qgroup_assign_args)
+#define BTRFS_IOC_QGROUP_CREATE _IOW(BTRFS_IOCTL_MAGIC, 42, \
+					struct btrfs_ioctl_qgroup_create_args)
+#define BTRFS_IOC_QGROUP_LIMIT _IOR(BTRFS_IOCTL_MAGIC, 43, \
+					struct btrfs_ioctl_qgroup_limit_args)
+#define BTRFS_IOC_GET_FSLABEL _IOR(BTRFS_IOCTL_MAGIC, 49, \
+				   char[BTRFS_LABEL_SIZE])
+#define BTRFS_IOC_SET_FSLABEL _IOW(BTRFS_IOCTL_MAGIC, 50, \
+				   char[BTRFS_LABEL_SIZE])
+#define BTRFS_IOC_GET_DEV_STATS _IOWR(BTRFS_IOCTL_MAGIC, 52, \
+				      struct btrfs_ioctl_get_dev_stats)
+#define BTRFS_IOC_DEV_REPLACE _IOWR(BTRFS_IOCTL_MAGIC, 53, \
+				    struct btrfs_ioctl_dev_replace_args)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -1,13 +1,13 @@
 '\" t
-.\"     Title: PARTCLONE
+.\"     Title: PARTCLONE.IMAGER
 .\"    Author: Yu-Chin Tsai <thomas@nchc.org.tw>
 .\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 06/28/2013
+.\"      Date: 06/30/2013
 .\"    Manual: Partclone User Manual
-.\"    Source: partclone
+.\"    Source: partclone.imager
 .\"  Language: English
 .\"
-.TH "PARTCLONE" "8" "06/28/2013" "partclone" "Partclone User Manual"
+.TH "PARTCLONE\&.IMAGER" "8" "06/30/2013" "partclone.imager" "Partclone User Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,45 +28,19 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-partclone \- The utility for clone and restore a partition\&.
+partclone.imager \- unsupported file system backup utility\&.(like `dd` )
 .SH "SYNOPSIS"
-.HP \w'\fBpartclone\&.[fstype]\fR\ 'u
-\fBpartclone\&.[fstype]\fR {[\fB\-c\fR\ |\ \fB\-\-clone\fR]\ [\fB\-r\fR\ |\ \fB\-\-restore\fR]\ [\fB\-b\fR\ |\ \fB\-\-dev\-to\-dev\fR]} {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_row_file\fR]] [[\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]] [[\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]] [[\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]] [[\fB\-\-ignore_crc\fR]\ [\fB\-X\fR\ |\ \fB\-\-dialog\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]] [[\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR]
+.HP \w'\fBpartclone\&.imager\fR\ 'u
+\fBpartclone\&.imager\fR {[\fB\-c\fR\ |\ \fB\-\-clone\fR]\ [\fB\-r\fR\ |\ \fB\-\-restore\fR]\ [\fB\-b\fR\ |\ \fB\-\-dev\-to\-dev\fR]} {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_row_file\fR]\ [\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]\ [\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]\ [\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]\ [\fB\-\-ignore_crc\fR]\ [\fB\-X\fR\ |\ \fB\-\-dialog\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR]
 .SH "DESCRIPTION"
 .PP
-\fBpartclone\fR\&.[fstype] is a part of
+\fBpartclone\&.imager\fR
+is a part of
 \fBPartclone\fR
-project\&. Partclone provide utilities to backup used blocks and design for higher compatibility of the file system by using existing library, e\&.g\&. e2fslibs is used to read the used block of ext2 partition\&.
+project to clone unsupported file system with dd method\&. It will backup all block from partition\&. Partclone provide utilities to backup used blocks and design for higher compatibility of the file system by using existing library, e\&.g\&. e2fslibs is used to read the used block of ext2 partition\&.
 .PP
 \fBPartclone\fR
-supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX\&. Also support some non\-linux operation system, ex: NTFS, FAT and EXFAT(for Windows), HFS plus(APPLE MAC OS), UFS2(FreeBSD), VMFS(VMWare Vsphere) and MINIX(MINIX3)\&.
-.PP
-All partclone utils could be run like partclone\&.[fstype] is very smiliar fsck or mkfs\&. For example, for backup/restore hfsplus, just run partclone\&.hfsp
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-       File System             partclone\&.[fstype]
-
-       btrfs                   partclone\&.btrfs
-       ext2, ext3, ext4        partclone\&.[ext2|ext3|ext4]
-       reiserfs 3\&.5            partclone\&.reiserfs
-       reiser 4                partclone\&.reiser4
-       xfs                     partclone\&.xfs
-       ufs | ufs2              partclone\&.ufs
-       jfs                     partclone\&.jfs
-       hfs plusfs              partclone\&.[hfs+|hfsplus]
-       vmfs                    partclone\&.vmfs
-       ntfs                    partclone\&.ntfs
-       fat12, fat16, fat32     partclone\&.[fat12|fat16|fat32]
-       exfat                   partclone\&.exfat
-       minix                   partclone\&.minix
-    
-.fi
-.if n \{\
-.RE
-.\}
+supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX\&. Also support some non\-linux operation system, ex: NTFS and FAT (for Windows), HFS plus(APPLE MAC OS), UFS2(FreeBSD), VMFS(VMWare Vsphere)\&. All partclone utils could be run like partclone\&.xxx is very smiliar fsck or mkfs\&. For example, for backup/restore hfsplus, just run partclone\&.hfsp\&.
 .SH "OPTIONS"
 .PP
 The program follows the usual GNU command line syntax, with long options starting with two dashes (`\-\*(Aq)\&. A summary of options is included below\&.
@@ -103,16 +77,6 @@ Restore partition from the special image format\&.
 \fB\-b\fR, \fB\-\-dev\-to\-dev\fR
 .RS 4
 Local device to device copy on\-the\-fly, source and output both are device\&.
-.RE
-.PP
-\fB\-D\fR, \fB\-\-domain\fR
-.RS 4
-Create GNU Ddrescue domain log file from source device
-.RE
-.PP
-\fB\-\-offset_domain=X\fR
-.RS 4
-Add X (in bytes) to all positions reported in the domain log file
 .RE
 .PP
 \fB\-\-restore_row_file\fR
@@ -194,7 +158,7 @@ Show version of program\&.
 /var/log/partclone\&.log
 .RS 4
 The log file of
-partclone
+partclone\&.imager
 .RE
 .SH "EXAMPLES"
 .sp
@@ -202,14 +166,11 @@ partclone
 .RS 4
 .\}
 .nf
- clone /dev/hda1 to hda1\&.img and display debug information\&.
-   partclone\&.ext3 \-c \-d \-s /dev/hda1 \-o hda1\&.img
+ clone /dev/hda1 to hda1\&.dd\&.img and display debug information\&.
+   partclone\&.dd \-c \-d \-s /dev/hda1 \-o hda1\&.dd\&.img
 
- restore /dev/hda1 from hda1\&.img and display debug information\&.
-   partclone\&.extfs \-r \-d \-s hda1\&.img \-o /dev/hda1
-
- restore image from clonezilla(split, gzip,) with stdin source
-   cat sda1\&.ext3\-ptcl\-img\&.gz\&.a* | gunzip \-c | partclone\&.ext3 \-d \-r \-s \- \-o /dev/sda1
+ restore /dev/hda1 from hda1\&.dd\&.img and display debug information\&.
+   partclone\&.dd \-r \-d \-s hda1\&.dd\&.img \-o /dev/hda1
     
 .fi
 .if n \{\
@@ -220,7 +181,7 @@ partclone
 The following diagnostics may be issued on
 stderr:
 .PP
-\fBpartclone\fR
+\fBpartclone\&.imager\fR
 provides some return codes, that can be used in scripts:
 .\" line length increase to cope w/ tbl weirdness
 .ll +(\n(LLu * 62u / 100u)

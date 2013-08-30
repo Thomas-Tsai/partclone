@@ -2,12 +2,12 @@
 .\"     Title: PARTCLONE.DD
 .\"    Author: Yu-Chin Tsai <thomas@nchc.org.tw>
 .\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 05/26/2013
+.\"      Date: 06/30/2013
 .\"    Manual: Partclone User Manual
 .\"    Source: partclone.dd
 .\"  Language: English
 .\"
-.TH "PARTCLONE\&.DD" "8" "05/26/2013" "partclone.dd" "Partclone User Manual"
+.TH "PARTCLONE\&.DD" "8" "06/30/2013" "partclone.dd" "Partclone User Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,7 +31,7 @@
 partclone.dd \- unsupported file system backup utility\&.(like `dd` )
 .SH "SYNOPSIS"
 .HP \w'\fBpartclone\&.dd\fR\ 'u
-\fBpartclone\&.dd\fR {[\fB\-c\fR\ |\ \fB\-\-clone\fR]\ [\fB\-r\fR\ |\ \fB\-\-restore\fR]\ [\fB\-b\fR\ |\ \fB\-\-dev\-to\-dev\fR]} {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_row_file\fR]\ [\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]\ [\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]\ [\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]\ [\fB\-\-ignore_crc\fR]\ [\fB\-X\fR\ |\ \fB\-\-dialog\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR]
+\fBpartclone\&.dd\fR {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_row_file\fR]\ [\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]\ [\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]\ [\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]\ [\fB\-\-ignore_crc\fR]\ [\fB\-X\fR\ |\ \fB\-\-dialog\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR]
 .SH "DESCRIPTION"
 .PP
 \fBpartclone\&.dd\fR
@@ -62,21 +62,6 @@ Sending data to pipe line is also supported ONLY for back\-up, just ignore \-o o
 \fB\-O \fR\fB\fIFILE\fR\fR, \fB\-\-overwrite \fR\fB\fIFILE\fR\fR
 .RS 4
 Overwrite FILE, overwriting if exists\&.
-.RE
-.PP
-\fB\-c\fR, \fB\-\-clone\fR
-.RS 4
-Save partition to the special image format\&.
-.RE
-.PP
-\fB\-r\fR, \fB\-\-restore\fR
-.RS 4
-Restore partition from the special image format\&.
-.RE
-.PP
-\fB\-b\fR, \fB\-\-dev\-to\-dev\fR
-.RS 4
-Local device to device copy on\-the\-fly, source and output both are device\&.
 .RE
 .PP
 \fB\-\-restore_row_file\fR
@@ -167,10 +152,10 @@ partclone\&.dd
 .\}
 .nf
  clone /dev/hda1 to hda1\&.dd\&.img and display debug information\&.
-   partclone\&.dd \-c \-d \-s /dev/hda1 \-o hda1\&.dd\&.img
+   partclone\&.dd \-d \-s /dev/hda1 \-o hda1\&.dd\&.img
 
  restore /dev/hda1 from hda1\&.dd\&.img and display debug information\&.
-   partclone\&.dd \-r \-d \-s hda1\&.dd\&.img \-o /dev/hda1
+   partclone\&.dd \-d \-s hda1\&.dd\&.img \-o /dev/hda1
     
 .fi
 .if n \{\

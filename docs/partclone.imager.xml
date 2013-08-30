@@ -57,8 +57,8 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
   <!-- TITLE should be something like "User commands" or similar (see
        http://www.tldp.org/HOWTO/Man-Page/q2.html). -->
   <!ENTITY dhtitle     "Partclone User Manual">
-  <!ENTITY dhucpackage "PARTCLONE.DD">
-  <!ENTITY dhpackage   "partclone.dd">
+  <!ENTITY dhucpackage "PARTCLONE.IMAGER">
+  <!ENTITY dhpackage   "partclone.imager">
 ]>
 
 <refentry>
@@ -103,6 +103,20 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
     <cmdsynopsis>
       <command>&dhpackage;</command>
       <!-- These are several examples, how syntaxes could look -->
+	<arg choice="req">
+	<group choice="opt">
+	    <arg choice="plain"><option>-c</option></arg>
+	    <arg choice="plain"><option>--clone</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-r</option></arg>
+	    <arg choice="plain"><option>--restore</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-b</option></arg>
+	    <arg choice="plain"><option>--dev-to-dev</option></arg>
+	</group>
+	</arg>
       <arg choice="req">
 	<group choice="opt">
 	    <arg choice="plain"><option>-s</option></arg>
@@ -217,6 +231,27 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>--overwrite <replaceable>FILE</replaceable></option></term>
         <listitem>
           <para>Overwrite FILE, overwriting if exists.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-c</option></term>
+        <term><option>--clone</option></term>
+        <listitem>
+          <para>Save partition to the special image format.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-r</option></term>
+        <term><option>--restore</option></term>
+        <listitem>
+          <para>Restore partition from the special image format.</para>
+        </listitem>
+      </varlistentry>      
+      <varlistentry>
+        <term><option>-b</option></term>
+        <term><option>--dev-to-dev</option></term>
+        <listitem>
+          <para>Local device to device copy on-the-fly, source and output both are device.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -339,10 +374,10 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
     <title>EXAMPLES</title>
     <screen>
  clone /dev/hda1 to hda1.dd.img and display debug information.
-   partclone.dd -d -s /dev/hda1 -o hda1.dd.img
+   partclone.dd -c -d -s /dev/hda1 -o hda1.dd.img
 
  restore /dev/hda1 from hda1.dd.img and display debug information.
-   partclone.dd -d -s hda1.dd.img -o /dev/hda1
+   partclone.dd -r -d -s hda1.dd.img -o /dev/hda1
     </screen>
     </refsect1>
   <refsect1 id="diagnostics">

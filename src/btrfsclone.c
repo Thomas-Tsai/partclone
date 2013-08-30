@@ -40,12 +40,13 @@ static void set_bitmap(unsigned long* bitmap, uint64_t pos, uint64_t length){
 
     for(block = pos_block; block < (pos_block+count); block++){
 	pc_set_bit(block, bitmap);
-	log_mesg(3, 0, 0, fs_opt.debug, "block %i is used\n", block);
+	log_mesg(3, 0, 0, fs_opt.debug, "%s: block %i is used\n",__FILE__,  block);
     }
 }
 
 /// open device
 static void fs_open(char* device){
+    log_mesg(0, 0, 0, fs_opt.debug, "\n%s: btrfs library version = %s\n", __FILE__, BTRFS_BUILD_VERSION);
     radix_tree_init();
     root = open_ctree(device, 0, 0);
     if(!root){
@@ -89,7 +90,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     // set super block and tree as used
     super_block = BTRFS_SUPER_INFO_OFFSET / block_size;
-    leafsize = btrfs_super_leafsize(&root->fs_info->super_copy);
+    leafsize = btrfs_super_leafsize(root->fs_info->super_copy);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: leafsize %i\n", __FILE__, leafsize);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: super block %llu\n", __FILE__, super_block);
     pc_set_bit(super_block, bitmap);
@@ -125,7 +126,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	bytenr = key.objectid;
         block_offset = bytenr;
 	num_bytes = key.offset;
-        log_mesg(2, 0, 0, fs_opt.debug, "bytenr = %llu, size = %llu\n", bytenr, num_bytes);
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: bytenr = %llu, size = %llu\n", __FILE__, bytenr, num_bytes);
 
         if (btrfs_item_size_nr(leaf, path->slots[0]) > sizeof(*ei)) {
 	    ei = btrfs_item_ptr(leaf, path->slots[0], struct btrfs_extent_item);
@@ -138,22 +139,22 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 		}
 
 		/*READ=0, mirror=0*/
-		ret = btrfs_map_block(&root->fs_info->mapping_tree, 0, bytenr, &length, &multi, 0);
+		ret = btrfs_map_block(&root->fs_info->mapping_tree, 0, bytenr, &length, &multi, 0, NULL);
                 block_offset = multi->stripes[0].physical;
-		log_mesg(2, 0, 0, fs_opt.debug, "1 bytenr = %llu, size = %llu physical=%llu \n", bytenr, num_bytes, block_offset);
+		log_mesg(2, 0, 0, fs_opt.debug, "%s: 1 bytenr = %llu, size = %llu physical=%llu \n", __FILE__, bytenr, num_bytes, block_offset);
 		set_bitmap(bitmap, block_offset, num_bytes);
 	    } else {
 		/*READ=0, mirror=0*/
-		ret = btrfs_map_block(&root->fs_info->mapping_tree, 0, bytenr, &length, &multi, 0);
+		ret = btrfs_map_block(&root->fs_info->mapping_tree, 0, bytenr, &length, &multi, 0, NULL);
                 block_offset = multi->stripes[0].physical;
-		log_mesg(2, 0, 0, fs_opt.debug, "2 bytenr = %llu, size = %llu physical=%llu \n", bytenr, num_bytes, block_offset);
+		log_mesg(2, 0, 0, fs_opt.debug, "%s: 2 bytenr = %llu, size = %llu physical=%llu \n", __FILE__, bytenr, num_bytes, block_offset);
 		set_bitmap(bitmap, block_offset, num_bytes);
             }
 	} else {
 	    /*READ=0, mirror=0*/
-	    ret = btrfs_map_block(&root->fs_info->mapping_tree, 0, bytenr, &length, &multi, 0);
+	    ret = btrfs_map_block(&root->fs_info->mapping_tree, 0, bytenr, &length, &multi, 0, NULL);
 	    block_offset = multi->stripes[0].physical;
-	    log_mesg(2, 0, 0, fs_opt.debug, "3 bytenr = %llu, size = %llu physical=%llu \n", bytenr, num_bytes, block_offset);
+	    log_mesg(2, 0, 0, fs_opt.debug, "%s: 3 bytenr = %llu, size = %llu physical=%llu \n", __FILE__, bytenr, num_bytes, block_offset);
 	    set_bitmap(bitmap, block_offset, num_bytes);
 	}
 	bytenr+=num_bytes;
@@ -175,6 +176,7 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     log_mesg(0, 0, 0, fs_opt.debug, "usedblock = %lli\n", fs_info->usedblocks);
     log_mesg(0, 0, 0, fs_opt.debug, "device_size = %llu\n", fs_info->device_size);
     log_mesg(0, 0, 0, fs_opt.debug, "totalblock = %lli\n", fs_info->totalblock);
+
 
     fs_close();
 }

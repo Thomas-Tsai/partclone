@@ -205,9 +205,11 @@ void usage(void) {
 		"    -L,  --logfile FILE     Log FILE\n"
 #ifndef CHKIMG
 #ifndef RESTORE
+#ifndef DD
 		"    -c,  --clone            Save to the special image format\n"
 		"    -r,  --restore          Restore from the special image format\n"
 		"    -b,  --dev-to-dev       Local device to device copy mode\n"
+#endif
 		"    -D,  --domain           Create ddrescue domain log from source device\n"
 		"         --offset_domain=X  Add offset X (bytes) to domain log values\n"
 		"    -R,  --rescue           Continue clone while disk read errors\n"
@@ -282,6 +284,8 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	static const char *sopt = "-hvd::L:s:f:CFiBz:N";
 #elif RESTORE
 	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:";
+#elif DD
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:";
 #else
 	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBz:E:a:k:K";
 #endif
@@ -302,9 +306,11 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 // not RESTORE and not CHKIMG
 #ifndef CHKIMG
 #ifndef RESTORE
+#ifndef DD
 		{ "clone",		no_argument,		NULL,   'c' },
 		{ "restore",		no_argument,		NULL,   'r' },
 		{ "dev-to-dev",		no_argument,		NULL,   'b' },
+#endif
 		{ "domain",		no_argument,		NULL,   'D' },
 		{ "offset_domain",	required_argument,	NULL,   OPT_OFFSET_DOMAIN },
 		{ "rescue",		no_argument,		NULL,   'R' },
@@ -348,14 +354,23 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	opt->reseed_checksum = 1;
 	opt->blocks_per_checksum = 0;
 
+#ifdef DD
+#ifndef RESTORE
+#ifndef CHKIMG
+    opt->ddd++;
+    mode=1;
+#endif
+#endif
+#endif
+
 #ifdef RESTORE
 	opt->restore++;
-	mode++;
+	mode=1;
 #endif
 #ifdef CHKIMG
 	opt->restore++;
 	opt->chkimg++;
-	mode++;
+	mode=1;
 #endif
 
 	while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != -1) {
@@ -399,21 +414,23 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				break;
 #ifndef CHKIMG
 #ifndef RESTORE
+#ifndef DD
 			case 'c':
 				opt->clone++;
-				mode++;
+				mode=1;
 				break;
 			case 'r':
 				opt->restore++;
-				mode++;
+				mode=1;
 				break;
 			case 'b':
 				opt->dd++;
-				mode++;
+				mode=1;
 				break;
+#endif
 			case 'D':
 				opt->domain++;
-				mode++;
+				mode=1;
 				break;
 			case OPT_OFFSET_DOMAIN:
 				opt->offset_domain = strtoull(optarg, NULL, 0);
@@ -1287,9 +1304,23 @@ int open_source(char* source, cmd_opt* opt) {
 	int debug = opt->debug;
 	char *mp;
 	int flags = O_RDONLY | O_LARGEFILE;
+        struct stat st_dev;
+	int ddd_block_device = -1;
 
 	log_mesg(1, 0, 0, debug, "open source file/device %s\n", source);
-	if ((opt->clone) || (opt->dd) || (opt->domain)) { /// always is device, clone from device=source
+
+	if (opt->ddd) {
+	    if (stat(source, &st_dev) != -1) {
+		if (S_ISBLK(st_dev.st_mode)) 
+		    ddd_block_device = 1;
+		else
+		    ddd_block_device = 0;
+	    }else{
+		ddd_block_device = 0;   
+	    }
+	    log_mesg(1, 0, 0, debug, "ddd source file(0) or device(1) ? %i \n", ddd_block_device);
+	}
+	if ((opt->clone) || (opt->dd) || (opt->domain) || (ddd_block_device == 1)) { /// always is device, clone from device=source
 
 		mp = malloc(PATH_MAX + 1);
 		if (!mp)
@@ -1305,7 +1336,7 @@ int open_source(char* source, cmd_opt* opt) {
 		if ((ret = open(source, flags, S_IRUSR)) == -1)
 			log_mesg(0, 1, 1, debug, "clone: open %s error\n", source);
 
-	} else if (opt->restore) {
+	} else if ((opt->restore) || (ddd_block_device == 0)) {
 
 		if (strcmp(source, "-") == 0) {
 			if ((ret = fileno(stdin)) == -1)
@@ -1325,9 +1356,21 @@ int open_target(char* target, cmd_opt* opt) {
 	char *mp;
 	int flags = O_WRONLY | O_LARGEFILE;
 	struct stat st_dev;
+	int ddd_block_device = -1;
 
-	log_mesg(1, 0, 0, debug, "open target file/device\n");
-	if (opt->clone || opt->domain) {
+	log_mesg(1, 0, 0, debug, "open target file/device %s\n", target);
+	if (opt->ddd) {
+	    if (stat(target, &st_dev) != -1) {
+		if (S_ISBLK(st_dev.st_mode)) 
+		    ddd_block_device = 1;
+		else
+		    ddd_block_device = 0;
+	    }else{
+		ddd_block_device = 0;   
+	    }
+	    log_mesg(1, 0, 0, debug, "ddd target file(0) or device(1) ? %i \n", ddd_block_device);
+	}
+	if (opt->clone || opt->domain || (ddd_block_device == 0)) {
 		if (strcmp(target, "-") == 0) {
 			if ((ret = fileno(stdout)) == -1)
 				log_mesg(0, 1, 1, debug, "clone: open %s(stdout) error\n", target);
@@ -1343,7 +1386,7 @@ int open_target(char* target, cmd_opt* opt) {
 				log_mesg(0, 0, 1, debug, "open target fail %s: %s (%i)\n", target, strerror(errno), errno);
 			}
 		}
-	} else if ((opt->restore) || (opt->dd)) {    /// always is device, restore to device=target
+	} else if ((opt->restore) || (opt->dd) || (ddd_block_device == 1)) {    /// always is device, restore to device=target
 
 		/// check mounted
 		mp = malloc(PATH_MAX + 1);
@@ -1382,6 +1425,7 @@ int io_all(int *fd, char *buf, unsigned long long count, int do_write, cmd_opt* 
 	long long int i;
 	int debug = opt->debug;
 	unsigned long long size = count;
+	extern unsigned long long rescue_write_size;
 
 	// for sync I/O buffer, when use stdin or pipe.
 	while (count > 0) {
@@ -1397,12 +1441,17 @@ int io_all(int *fd, char *buf, unsigned long long count, int do_write, cmd_opt* 
 			}
 		} else if (i == 0) {
 			log_mesg(1, 0, 1, debug, "%s: nothing to read. errno = %i(%s)\n",__func__, errno, strerror(errno));
+			rescue_write_size = size - count;
+			log_mesg(1, 0, 0, debug, "%s: rescue write size = %llu\n",__func__, rescue_write_size);
 			return 0;
 		} else {
 			count -= i;
 			buf = i + (char *) buf;
-			log_mesg(2, 0, 0, debug, "%s: %s %lli, %llu left.\n",
-				__func__, do_write ? "write" : "read", i, count);
+			if (do_write)
+			    log_mesg(2, 0, 0, debug, "%s: write ",__func__);
+			else
+			    log_mesg(2, 0, 0, debug, "%s: read ",__func__);
+			log_mesg(2, 0, 0, debug, "%lli, %llu left.\n", i, count);
 		}
 	}
 	return size;
@@ -1444,6 +1493,8 @@ void print_opt(cmd_opt opt) {
 		log_mesg(1, 0, 0, debug, "MODE: device to device\n");
 	else if (opt.domain)
 		log_mesg(1, 0, 0, debug, "MODE: create domain log for ddrescue\n");
+	else if (opt.ddd)
+		log_mesg(1, 0, 0, debug, "MODE: work like command dd\n");
 
 	log_mesg(1, 0, 0, debug, "DEBUG: %i\n", opt.debug);
 	log_mesg(1, 0, 0, debug, "SOURCE: %s\n", opt.source);
@@ -1482,8 +1533,10 @@ void print_partclone_info(cmd_opt opt) {
 		log_mesg(0, 0, 1, debug, _("Starting to back up device(%s) to device(%s)\n"), opt.source, opt.target);
 	else if (opt.domain)
 		log_mesg(0, 0, 1, debug, _("Starting to map device (%s) to domain log (%s)\n"), opt.source, opt.target);
+	else if (opt.ddd)
+		log_mesg(0, 0, 1, debug, _("Starting to clone/restore (%s) to (%s) with dd mode\n"), opt.source, opt.target);
 	else
-		log_mesg(0, 0, 1, debug, "unknow mode\n");
+		log_mesg(0, 0, 1, debug, "Unknown mode\n");
 }
 
 /// print image head

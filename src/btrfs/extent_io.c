@@ -48,7 +48,7 @@ static struct extent_state *alloc_extent_state(void)
 		return NULL;
 	state->refs = 1;
 	state->state = 0;
-	state->private = 0;
+	state->xprivate = 0;
 	return state;
 }
 
@@ -300,9 +300,11 @@ int set_extent_bits(struct extent_io_tree *tree, u64 start,
 	u64 last_start;
 	u64 last_end;
 again:
-	prealloc = alloc_extent_state();
-	if (!prealloc)
-		return -ENOMEM;
+	if (!prealloc) {
+		prealloc = alloc_extent_state();
+		if (!prealloc)
+			return -ENOMEM;
+	}
 
 	/*
 	 * this search will find the extents that end after
@@ -509,7 +511,7 @@ int set_state_private(struct extent_io_tree *tree, u64 start, u64 private)
 		ret = -ENOENT;
 		goto out;
 	}
-	state->private = private;
+	state->xprivate = private;
 out:
 	return ret;
 }
@@ -530,7 +532,7 @@ int get_state_private(struct extent_io_tree *tree, u64 start, u64 *private)
 		ret = -ENOENT;
 		goto out;
 	}
-	*private = state->private;
+	*private = state->xprivate;
 out:
 	return ret;
 }
@@ -663,13 +665,14 @@ struct extent_buffer *alloc_extent_buffer(struct extent_io_tree *tree,
 	return eb;
 }
 
-int read_extent_from_disk(struct extent_buffer *eb)
+int read_extent_from_disk(struct extent_buffer *eb,
+			  unsigned long offset, unsigned long len)
 {
 	int ret;
-	ret = pread(eb->fd, eb->data, eb->len, eb->dev_bytenr);
+	ret = pread(eb->fd, eb->data + offset, len, eb->dev_bytenr);
 	if (ret < 0)
 		goto out;
-	if (ret != eb->len) {
+	if (ret != len) {
 		ret = -EIO;
 		goto out;
 	}

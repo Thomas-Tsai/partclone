@@ -47,7 +47,7 @@ int btrfs_find_last_root(struct btrfs_root *root, u64 objectid,
 	slot = path->slots[0] - 1;
 	btrfs_item_key_to_cpu(l, &found_key, slot);
 	if (found_key.objectid != objectid) {
-		ret = 1;
+		ret = -ENOENT;
 		goto out;
 	}
 	read_extent_buffer(l, item, btrfs_item_ptr_offset(l, slot),
@@ -181,14 +181,6 @@ int btrfs_del_root(struct btrfs_trans_handle *trans, struct btrfs_root *root,
 	ret = btrfs_search_slot(trans, root, key, path, -1, 1);
 	if (ret < 0)
 		goto out;
-	if (ret) {
-btrfs_print_leaf(root, path->nodes[0]);
-printk("failed to del %llu %u %llu\n",
-	(unsigned long long)key->objectid,
-	key->type,
-	(unsigned long long)key->offset);
-
-	}
 	BUG_ON(ret != 0);
 	leaf = path->nodes[0];
 	ri = btrfs_item_ptr(leaf, path->slots[0], struct btrfs_root_item);
