@@ -59,6 +59,7 @@ void info_options (int argc, char **argv){
 	memset(&opt, 0, sizeof(cmd_opt));
 	opt.debug = 0;
 	opt.quiet = 0;
+	opt.info  = 1;
 	opt.logfile = "/var/log/partclone.log";
 	opt.target  = 0;
 	opt.clone   = 0;

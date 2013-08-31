@@ -1491,6 +1491,8 @@ void print_partclone_info(cmd_opt opt) {
 		log_mesg(0, 0, 1, debug, _("Starting to back up device(%s) to device(%s)\n"), opt.source, opt.target);
 	else if (opt.domain)
 		log_mesg(0, 0, 1, debug, _("Starting to map device (%s) to domain log (%s)\n"), opt.source, opt.target);
+	else if (opt.info)
+		log_mesg(0, 0, 1, debug, _("Showing info of image (%s)\n"), opt.source);
 	else
 		log_mesg(0, 0, 1, debug, "unknow mode\n");
 }
