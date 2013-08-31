@@ -104,6 +104,7 @@ int main(int argc, char **argv){
 
 	int dfr;                  /// file descriptor for source and target
 	unsigned long   *bitmap;  /// the point for bitmap data
+	image_head_v2    img_head;
 	file_system_info fs_info;
 	image_options    img_opt;
 
@@ -129,7 +130,7 @@ int main(int argc, char **argv){
 	printf("Can't open file(%s)\n", opt.source);
 
     /// get image information from image file
-    load_image_desc(&dfr, &opt, &fs_info, &img_opt);
+    load_image_desc(&dfr, &opt, &img_head, &fs_info, &img_opt);
 
     /// alloc a memory to restore bitmap
     bitmap = pc_alloc_bitmap(fs_info.totalblock);
@@ -146,6 +147,8 @@ int main(int argc, char **argv){
     log_mesg(0, 0, 0, opt.debug, "print image information\n");
 
     print_file_system_info(fs_info, opt);
+    log_mesg(0, 0, 1, opt.debug, "\n");
+    print_image_info(img_head, img_opt, opt);
 
     close(dfr);     /// close source
     free(bitmap);   /// free bitmap

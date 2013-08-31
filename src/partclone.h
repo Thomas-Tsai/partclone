@@ -275,10 +275,12 @@ extern void update_used_blocks_count(file_system_info* fs_info, unsigned long* b
 
 extern void init_fs_info(file_system_info* fs_info);
 extern void init_image_options(image_options* img_opt);
-extern void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_options* img_opt);
+extern void load_image_desc(int* ret, cmd_opt* opt, image_head_v2* img_head, file_system_info* fs_info, image_options* img_opt);
 extern void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, image_options img_opt, unsigned long* bitmap);
 extern void write_image_desc(int* ret, file_system_info fs_info, image_options img_opt, cmd_opt* opt);
 extern void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_opt, unsigned long* bitmap, cmd_opt* opt);
+
+extern const char *get_bitmap_mode_str(bitmap_mode_t bitmap_mode);
 
 /**
  * The next two functions are not defined in partclone.c. They must be defined by each
@@ -314,6 +316,8 @@ extern void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_
 extern void print_partclone_info(cmd_opt opt);
 /// print file system info
 extern void print_file_system_info(file_system_info fs_info, cmd_opt opt);
+/// print image info
+extern void print_image_info(image_head_v2 img_head, image_options img_opt, cmd_opt opt);
 /// print option
 extern void print_opt(cmd_opt opt);
 /// print finish mesg

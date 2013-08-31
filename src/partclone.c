@@ -828,8 +828,12 @@ void load_image_desc_v2(file_system_info* fs_info, image_options* img_opt,
 	memcpy(img_opt, &img_opt_v2, sizeof(image_options_v2));
 }
 
-/// load the image description from the image file
-void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_options* img_opt) {
+/**
+ * load the image description from the image file
+ *
+ * note: img_head is meaning full only when img_opt.image_version is >= 2.
+ */
+void load_image_desc(int* ret, cmd_opt* opt, image_head_v2* img_head, file_system_info* fs_info, image_options* img_opt) {
 
 	image_desc_v2 buf_v2;
 	int r_size;
@@ -857,6 +861,7 @@ void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_op
 			log_mesg(0, 1, 1, debug, "read image_hdr error=%d\n (%s)", r_size, strerror(errno));
 
 		load_image_desc_v1(fs_info, img_opt, buf_v1->head, buf_v1->fs_info, opt);
+		memset(img_head, 0, sizeof(image_head_v2));
 		break;
 	}
 
@@ -870,6 +875,7 @@ void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_op
 			log_mesg(0, 1, 1, debug, "Invalid header checksum [0x%08X != 0x%08X]\n", crc, buf_v2.crc);
 
 		load_image_desc_v2(fs_info, img_opt, buf_v2.head, buf_v2.fs_info, buf_v2.options, opt);
+		memcpy(img_head, &(buf_v2.head), sizeof(image_head_v2));
 		break;
 	}
 
@@ -976,6 +982,25 @@ void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_op
 		}
 	}
 }
+
+const char *get_bitmap_mode_str(bitmap_mode_t bitmap_mode)
+{
+	switch (bitmap_mode)
+	{
+	case BM_NONE:
+		return "NONE";
+
+	case BM_BIT:
+		return "BIT";
+
+	case BM_BYTE:
+		return "BYTE";
+
+	default:
+		return "UNKNOWN";
+	}
+}
+
 
 /// get partition size
 unsigned long long get_partition_size(int* ret) {
@@ -1521,6 +1546,57 @@ void print_file_system_info(file_system_info fs_info, cmd_opt opt) {
 	log_mesg(0, 0, 1, debug, _("Free Space:   %s = %llu Blocks\n"), size_str, (total-used));
 
 	log_mesg(0, 0, 1, debug, _("Block size:   %i Byte\n"), block_s);
+}
+
+/// print image info
+void print_image_info(image_head_v2 img_head, image_options img_opt, cmd_opt opt)
+{
+	int debug = opt.debug;
+	char bufstr[64];
+
+	setlocale(LC_ALL, "");
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
+
+	log_mesg(0, 0, 1, debug, _("image format:    %04d\n"), img_opt.image_version);
+
+	if (img_opt.image_version == 0x0001)
+	{
+		log_mesg(0, 0, 1, debug, _("created on a:    %s\n"), "n/a");
+
+		log_mesg(0, 0, 1, debug, _("with partclone:  %s\n"), "n/a");
+	}
+	else
+	{
+		sprintf(bufstr, _("%d bits platform"), img_opt.cpu_bits);
+		log_mesg(0, 0, 1, debug, _("created on a:    %s\n"), bufstr);
+
+		sprintf(bufstr, _("v%s"), img_head.ptc_version);
+		log_mesg(0, 0, 1, debug, _("with partclone:  %s\n"), bufstr);
+	}
+
+	log_mesg(0, 0, 1, debug, _("bitmap mode:     %s\n"), get_bitmap_mode_str(img_opt.bitmap_mode));
+
+	log_mesg(0, 0, 1, debug, _("checksum algo:   %s\n"), get_checksum_str(img_opt.checksum_mode));
+
+	if (img_opt.checksum_mode == CSM_NONE)
+	{
+		log_mesg(0, 0, 1, debug, _("checksum size:   %s\n"), "n/a");
+
+		log_mesg(0, 0, 1, debug, _("blocks/checksum: %s\n"), "n/a");
+
+		log_mesg(0, 0, 1, debug, _("reseed checksum: %s\n"), "n/a");
+	}
+	else
+	{
+		sprintf(bufstr, "%d", img_opt.checksum_size);
+		log_mesg(0, 0, 1, debug, _("checksum size:   %s\n"), bufstr);
+
+		sprintf(bufstr, "%d", img_opt.blocks_per_checksum);
+		log_mesg(0, 0, 1, debug, _("blocks/checksum: %s\n"), bufstr);
+
+		log_mesg(0, 0, 1, debug, _("reseed checksum: %s\n"), img_opt.reseed_checksum?_("yes"):_("no"));
+	}
 }
 
 /// print finish message

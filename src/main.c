@@ -291,11 +291,13 @@ int main(int argc, char **argv) {
 
 	} else if (opt.restore) {
 
+		image_head_v2 img_head;
+
 		log_mesg(1, 0, 0, debug, "restore image hdr - get information from image file\n");
 		log_mesg(1, 0, 1, debug, "Reading Super Block\n");
 
 		/// get image information from image file
-		load_image_desc(&dfr, &opt, &fs_info, &img_opt);
+		load_image_desc(&dfr, &opt, &img_head, &fs_info, &img_opt);
 		cs_size = img_opt.checksum_size;
 		cs_reseed = img_opt.reseed_checksum;
 
