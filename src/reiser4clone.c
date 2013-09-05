@@ -75,7 +75,7 @@ static void fs_open(char* device){
             log_mesg(3, 0, 0, fs_opt.debug, "%s: REISER4 stat : %i\n", __FILE__, state);
 
         if (state != FS_OK)
-            log_mesg(0, 1, 1, fs_opt.debug, "%s: Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n", __FILE__);
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: Filesystem isn't in valid state. Maybe it is not cleanly unmounted.\n\n", __FILE__);
 
         if (extended)
             log_mesg(3, 0, 0, fs_opt.debug, "%s: Extended status: %0xllx\n", extended, __FILE__);

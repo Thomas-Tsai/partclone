@@ -182,7 +182,7 @@ void print_readable_size_str(unsigned long long size_byte, char *new_size_str) {
  * options
  * usage                    - print message "how to use this"
  * print_version
- * parse_options            - get parameters from agrc, argv
+ * parse_options            - get parameters from argc, argv
  */
 void usage(void) {
 	fprintf(stderr, "%s v%s http://partclone.org\nUsage: %s [OPTIONS]\n"
@@ -474,12 +474,12 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	}
 
 	if ((!opt->target) && (!opt->source)) {
-		fprintf(stderr, "There is no image name. Use --help get more info.\n");
+		fprintf(stderr, "There is no image name. Use --help to get more info.\n");
 		exit(0);
 	}
 
 	if (opt->buffer_size < 512) {
-		fprintf(stderr, "Too small or bad buffer size. Use --help get more info.\n");
+		fprintf(stderr, "Too small or bad buffer size. Use --help to get more info.\n");
 		exit(0);
 	}
 
@@ -1483,7 +1483,7 @@ void print_partclone_info(cmd_opt opt) {
 	else if (opt.domain)
 		log_mesg(0, 0, 1, debug, _("Starting to map device (%s) to domain log (%s)\n"), opt.source, opt.target);
 	else
-		log_mesg(0, 0, 1, debug, "unknow mode\n");
+		log_mesg(0, 0, 1, debug, "unknown mode\n");
 }
 
 /// print image head

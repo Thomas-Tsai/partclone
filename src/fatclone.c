@@ -38,7 +38,7 @@ static unsigned long long get_used_block();
 /// get fet type
 static void get_fat_type(){
 
-    /// fix, 1. make sure fat_sb; 2. the method shoud be check again
+    /// fix, 1. make sure fat_sb; 2. the method should be checked again
     if (fat_sb.u.fat16.ext_signature == 0x29){
         if (fat_sb.u.fat16.fat_name[4] == '6'){
             FS = FAT_16;
@@ -49,7 +49,7 @@ static void get_fat_type(){
             fat_type = "FAT12";
             log_mesg(2, 0, 0, fs_opt.debug, "%s: FAT Type : FAT 12\n", __FILE__);
         } else {
-            log_mesg(2, 1, 1, fs_opt.debug, "%s: FAT Type : unknow\n" __FILE__);
+            log_mesg(2, 1, 1, fs_opt.debug, "%s: FAT Type : unknown\n" __FILE__);
         }
     } else if (fat_sb.u.fat32.fat_name[4] == '2'){
         FS = FAT_32;
@@ -388,7 +388,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
         log_mesg(1, 0, 0, fs_opt.debug, "%s: Ignore filesystem check\n", __FILE__);
     }else{
         if (fat_stat == 1)
-            log_mesg(0, 1, 1, fs_opt.debug, "%s: Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n", __FILE__);
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: Filesystem isn't in valid state. Maybe it is not cleanly unmounted.\n\n", __FILE__);
         else if (fat_stat == 2)
             log_mesg(0, 1, 1, fs_opt.debug, "%s: I/O error! %X\n", __FILE__);
     }
@@ -447,7 +447,7 @@ static unsigned long long get_used_block()
     /// The second fat is used to check FAT status
     fat_stat = check_fat_status();
     if (fat_stat == 1)
-        log_mesg(0, 1, 1, fs_opt.debug, "%s: Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n", __FILE__);
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: Filesystem isn't in valid state. Maybe it is not cleanly unmounted.\n\n", __FILE__);
     else if (fat_stat == 2)
         log_mesg(0, 1, 1, fs_opt.debug, "%s: I/O error! %X\n", __FILE__);
 

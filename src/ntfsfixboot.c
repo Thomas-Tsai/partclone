@@ -66,7 +66,7 @@ int flip(void *p, int size) {
 
 int usage(char *progname) {
   fprintf(stderr, 
-    "adjust filesystem geometry for a NTFS partition"
+    "adjust filesystem geometry for an NTFS partition"
     "\nUsage: %s [-h # -t #] [-s start] [-b] [-w] [-f] [-p] device"
     "\nwhere device points to an NTFS partition"
     "\n"
@@ -82,14 +82,18 @@ int usage(char *progname) {
     "\n\t\tlike a valid NTFS partition or values are equal."
     "\n-p:\t\tPrint debug information (values read, values requested etc.)"
     "\n"
-    "\nThis utility displays the current starting sector as defined by the"
-    "\nthe filesystem.  No change will actually be made without the -w"
+    "\nThis utility displays the current starting sector as defined"
+    "\nby the filesystem.  No change will actually be made without the -w"
     "\noption."
+    "\nDesirable data sources for Windows-accepted geometry values"
+    "\nmight be EDD (BIOS), (s)fdisk, kernel or others,"
+    "\ndepending on which provide suitable (correct) values."
+    "\nHaving defaults applied might turn out to NOT be what you would want."
     "\n"
     "\nExit status:"
 	"\n* 0 - success (values are correct, or changed successfully)"
 	"\n* 1 - a change is needed, but -w was not specified"
-	"\n* 2 - an error occured"
+	"\n* 2 - an error occurred"
     "\n", progname
     );
   return 0;
@@ -355,7 +359,7 @@ int main(int argc, char *argv[]) {
     && !memcmp(&set_geom, &bak_geom, geomsize)
     && !optForce
     && !memcmp(br_sector, bak_sector, 512)) {
-      puts("No changes neccessary.");
+      puts("No changes necessary.");
       return 0;
   }
 
