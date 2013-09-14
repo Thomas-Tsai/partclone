@@ -63,7 +63,6 @@
 #define read_all(f, b, s, o) io_all((f), (b), (s), 0, (o))
 #define write_all(f, b, s, o) io_all((f), (b), (s), 1, (o))
 
-
 // progress flag
 #define BITMAP 1
 #define IO 2
@@ -229,6 +228,9 @@ extern void close_log();
 extern int io_all(int *fd, char *buffer, unsigned long long count, int do_write, cmd_opt *opt);
 extern void sync_data(int fd, cmd_opt* opt);
 extern void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt);
+
+extern unsigned long long cnv_blocks_to_bytes(unsigned long long block_offset, unsigned int block_count, unsigned int block_size, const image_options* img_opt);
+extern unsigned long get_checksum_count(unsigned long long block_count, const image_options *img_opt);
 
 extern void init_fs_info(file_system_info* fs_info);
 extern void init_image_options(image_options* img_opt);

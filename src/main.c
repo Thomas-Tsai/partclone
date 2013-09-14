@@ -237,6 +237,16 @@ int main(int argc, char **argv) {
 		/// get Super Block information from partition
 		read_super_blocks(source, &fs_info);
 
+		if (img_opt.checksum_mode != CSM_NONE && img_opt.blocks_per_checksum == 0) {
+
+			const unsigned int buffer_capacity = opt.buffer_size > fs_info.block_size
+				? opt.buffer_size / fs_info.block_size : 1; // in blocks
+
+			img_opt.blocks_per_checksum = buffer_capacity;
+
+		}
+		log_mesg(1, 0, 0, debug, "%u blocks per checksum\n", img_opt.blocks_per_checksum);
+
 		check_mem_size(fs_info, img_opt, opt);
 
 		/// alloc a memory to store bitmap
@@ -249,7 +259,7 @@ int main(int argc, char **argv) {
 		log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
 		/// read and check bitmap from partition
-		log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
+		log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... \n");
 		read_bitmap(source, fs_info, bitmap, pui);
 
 		if (opt.check) {
@@ -257,14 +267,14 @@ int main(int argc, char **argv) {
 			unsigned long long needed_space = 0;
 
 			needed_space += sizeof(image_head_v1) + sizeof(file_system_info_v1) + sizeof(image_options_v1);
-			needed_space += (fs_info.block_size + cs_size) * fs_info.usedblocks;
 			needed_space += fs_info.totalblock; // for bitmap
+			needed_space += cnv_blocks_to_bytes(0, fs_info.usedblocks, fs_info.block_size, &img_opt);
 
 			check_free_space(&dfw, needed_space);
 		}
 
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
-		log_mesg(1, 0, 0, debug, "Writing super block and bitmap... ");
+		log_mesg(1, 0, 0, debug, "Writing super block and bitmap...\n");
 
 		write_image_desc(&dfw, fs_info, &opt);
 		write_image_bitmap(&dfw, fs_info, img_opt, bitmap, &opt);
@@ -292,7 +302,7 @@ int main(int argc, char **argv) {
 		log_mesg(1, 0, 0, debug, "Initial image hdr - read bitmap table\n");
 
 		/// read and check bitmap from image file
-		log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
+		log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait...\n");
 		load_image_bitmap(&dfr, opt, fs_info, img_opt, bitmap);
 
 #ifndef CHKIMG
@@ -373,14 +383,22 @@ int main(int argc, char **argv) {
 	 */
 	if (opt.clone) {
 
+		const unsigned long long blocks_total = fs_info.totalblock;
+		const unsigned int block_size = fs_info.block_size;
+		const unsigned int buffer_capacity = opt.buffer_size > block_size ? opt.buffer_size / block_size : 1; // in blocks
 		unsigned char checksum[cs_size];
-		int block_size = fs_info.block_size;
-		unsigned long long blocks_total = fs_info.totalblock;
-		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
+		unsigned int blocks_in_cs, blocks_per_cs, write_size;
 		char *read_buffer, *write_buffer;
 
-		read_buffer = (char*)malloc(blocks_in_buffer * block_size);
-		write_buffer = (char*)malloc(blocks_in_buffer * (block_size + cs_size));
+		blocks_per_cs = img_opt.blocks_per_checksum;
+
+		log_mesg(1, 0, 0, debug, "#\nBuffer capacity = %u, Blocks per cs = %u\n#\n", buffer_capacity, blocks_per_cs);
+
+		write_size = cnv_blocks_to_bytes(0, buffer_capacity, block_size, &img_opt);
+
+		read_buffer = (char*)malloc(buffer_capacity * block_size);
+		write_buffer = (char*)malloc(write_size + cs_size);
+
 		if (read_buffer == NULL || write_buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
@@ -394,16 +412,17 @@ int main(int argc, char **argv) {
 		/// start clone partition to image file
 		log_mesg(1, 0, 0, debug, "start backup data...\n");
 
-		log_mesg(1, 0, 0, 1, "# checksum size = %u\n", cs_size);
+		blocks_in_cs = 0;
 		init_checksum(img_opt.checksum_mode, checksum, debug);
 
 		block_id = 0;
 		do {
 			/// scan bitmap
 			unsigned long long i, blocks_skip, blocks_read;
+			unsigned int cs_added = 0, write_offset = 0;
 			off_t offset;
 
-			/// skip chunk
+			/// skip unused blocks
 			for (blocks_skip = 0;
 			     block_id + blocks_skip < blocks_total &&
 			     !pc_test_bit(block_id + blocks_skip, bitmap);
@@ -414,11 +433,11 @@ int main(int argc, char **argv) {
 			if (blocks_skip)
 				block_id += blocks_skip;
 
-			/// read chunk
+			/// read blocks
 			for (blocks_read = 0;
-			     block_id + blocks_read < blocks_total && blocks_read < blocks_in_buffer &&
+			     block_id + blocks_read < blocks_total && blocks_read < buffer_capacity &&
 			     pc_test_bit(block_id + blocks_read, bitmap);
-			     blocks_read++);
+			     ++blocks_read);
 			if (!blocks_read)
 				break;
 
@@ -440,17 +459,30 @@ int main(int argc, char **argv) {
 			}
 
 			/// calculate checksum
-			for (i = 0; i < blocks_read; i++) {
-				memcpy(write_buffer + i * (block_size + cs_size),
+			for (i = 0; i < blocks_read; ++i) {
+
+				memcpy(write_buffer + write_offset,
 					read_buffer + i * block_size, block_size);
+
+				write_offset += block_size;
+
 				update_checksum(checksum, read_buffer + i * block_size, block_size);
-				memcpy(write_buffer + i * (block_size + cs_size) + block_size,
-					checksum, cs_size);
+
+				if (blocks_per_cs > 0 && ++blocks_in_cs == blocks_per_cs) {
+
+					memcpy(write_buffer + write_offset, checksum, cs_size);
+
+					++cs_added;
+					write_offset += cs_size;
+
+					blocks_in_cs = 0;
+					init_checksum(img_opt.checksum_mode, checksum, debug);
+				}
 			}
 
 			/// write buffer to target
-			w_size = write_all(&dfw, write_buffer, blocks_read * (block_size + cs_size), &opt);
-			if (w_size != blocks_read * (block_size + cs_size))
+			w_size = write_all(&dfw, write_buffer, write_offset, &opt);
+			if (w_size != write_offset)
 				log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
 
 			/// count copied block
@@ -460,34 +492,56 @@ int main(int argc, char **argv) {
 			block_id += blocks_read;
 
 			/// read or write error
-			if (r_size + blocks_read * cs_size != w_size)
+			if (r_size + cs_added * cs_size != w_size)
 				log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
 
 		} while (1);
+
+		if (blocks_in_cs > 0) {
+
+			// Write the checksum for the latest blocks
+			w_size = write_all(&dfw, (char*)checksum, cs_size, &opt);
+			if (w_size != cs_size)
+				log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
+		}
 
 		free(write_buffer);
 		free(read_buffer);
 
 	} else if (opt.restore) {
 
+		const unsigned long long blocks_total = fs_info.totalblock;
+		const unsigned int block_size = fs_info.block_size;
+		const unsigned int buffer_capacity = opt.buffer_size > block_size ? opt.buffer_size / block_size : 1; // in blocks
+		const unsigned int blocks_per_cs = img_opt.blocks_per_checksum;
+		unsigned long long blocks_used = fs_info.usedblocks;
+		unsigned int blocks_in_cs, buffer_size, read_offset;
 		unsigned char checksum[cs_size];
 		char *read_buffer, *write_buffer;
-		int block_size = fs_info.block_size;
-		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
-		unsigned long long blocks_used  = fs_info.usedblocks;
-		unsigned long long blocks_total = fs_info.totalblock;
+		int bugcheck = 0;
 		unsigned long long blocks_used_fix = 0, test_block = 0;
 
-		// fix some super block record incorrect
-		for (test_block = 0; test_block < blocks_total; test_block++)
-		    if ( pc_test_bit(test_block, bitmap))
-			blocks_used_fix++;
-		
-		if (blocks_used_fix != blocks_used)
-		    blocks_used = blocks_used_fix;
+		log_mesg(1, 0, 0, debug, "#\nBuffer capacity = %u, Blocks per cs = %u\n#\n", buffer_capacity, blocks_per_cs);
 
-		read_buffer = (char*)malloc(blocks_in_buffer * (block_size + 2 * cs_size));
-		write_buffer = (char*)malloc(blocks_in_buffer * (block_size + cs_size));
+		// fix some super block record incorrect
+		for (test_block = 0; test_block < blocks_total; ++test_block)
+			if (pc_test_bit(test_block, bitmap))
+				blocks_used_fix++;
+
+		if (blocks_used_fix != blocks_used) {
+			blocks_used = blocks_used_fix;
+			log_mesg(1, 0, 0, debug, "info: fixed used blocks count\n");
+		}
+
+		buffer_size = cnv_blocks_to_bytes(0, buffer_capacity, block_size, &img_opt);
+
+		if (img_opt.image_version != 0x0001)
+			read_buffer = (char*)malloc(buffer_size);
+		else {
+			// Allocate more memory in case the image is affected by the 64 bits bug
+			read_buffer = (char*)malloc(buffer_size + buffer_capacity * cs_size);
+		}
+		write_buffer = (char*)malloc(buffer_capacity * block_size);
 		if (read_buffer == NULL || write_buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
@@ -501,79 +555,94 @@ int main(int argc, char **argv) {
 		/// start restore image file to partition
 		log_mesg(1, 0, 0, debug, "start restore data...\n");
 
-		log_mesg(1, 0, 0, 1, "# checksum size = %u\n", cs_size);
+		blocks_in_cs = 0;
 		if (!opt.ignore_crc)
 			init_checksum(img_opt.checksum_mode, checksum, debug);
 
 		block_id = 0;
 		do {
-			int i, bugcheck = 0;
+			unsigned int i;
 			unsigned char cs_saved[cs_size];
 			unsigned long long blocks_written, bytes_skip;
+			unsigned int read_size;
 			// max chunk to read using one read(2) syscall
-			int blocks_read = copied + blocks_in_buffer < blocks_used ?
-				blocks_in_buffer : blocks_used - copied;
+			int blocks_read = copied + buffer_capacity < blocks_used ?
+				buffer_capacity : blocks_used - copied;
 			if (!blocks_read)
 				break;
 
+			log_mesg(1, 0, 0, debug, "blocks_read = %d\n", blocks_read);
+			read_size = cnv_blocks_to_bytes(copied, blocks_read, block_size, &img_opt);
+
+			// increase read_size to make room for the oversized checksum
+			if (bugcheck) {
+				read_size += blocks_read * CRC32_SIZE;
+			} else if (blocks_per_cs && blocks_read < buffer_capacity &&
+					(blocks_read % blocks_per_cs)) {
+				/// it is the last read and there is a partial chunk at the end
+				log_mesg(1, 0, 0, debug, "# PARTIAL CHUNK\n");
+				read_size += cs_size;
+			}
+
 			// read chunk from image
-			r_size = read_all(&dfr, read_buffer, blocks_read * (block_size + cs_size), &opt);
-			if (r_size != blocks_read * (block_size + cs_size))
+			log_mesg(1, 0, 0, debug, "read more: ");
+
+			r_size = read_all(&dfr, read_buffer, read_size, &opt);
+			if (r_size != read_size)
 				log_mesg(0, 1, 1, debug, "read ERROR:%s\n", strerror(errno));
 
 			// read buffer is the follows:
-			// <block1><crc1><block2><crc2>...
+			// <blocks_per_cs><cs1><blocks_per_cs><cs2>...
 
-			// write buffer should be the follows:
+			// write buffer should be the following:
 			// <block1><block2>...
 
 			// fill up write buffer, validate checksum
-		recheck:
 			memcpy(cs_saved, checksum, cs_size);
-			for (i = 0; i < blocks_read; i++) {
-				memcpy(write_buffer + i * block_size,
-					read_buffer + i * (block_size + cs_size), block_size);
-				if (opt.ignore_crc)
-					continue;
+		recheck:
+			read_offset = 0;
+			for (i = 0; i < blocks_read; ++i) {
 
-				update_checksum(checksum, read_buffer + i * (block_size + cs_size), block_size);
-				if (memcmp(read_buffer + i * (block_size + cs_size) + block_size, checksum, cs_size)) {
-					if (bugcheck)
-						log_mesg(0, 1, 1, debug, "CRC error, block_id=%llu...\n ", block_id + i);
-					else
-						log_mesg(1, 0, 0, debug, "CRC Check error. 64bit bug before v0.1.0 (Rev:250M), "
-							"trying enlarge crc size and recheck again...\n");
-					// try to read (blocks_read * cs_size) bytes to the end of read_buffer
-					if (read_all(&dfr, read_buffer + blocks_read * (block_size + cs_size),
-						blocks_read * cs_size, &opt) != blocks_read * cs_size) {
-						log_mesg(0, 1, 1, debug, "read CRC error: %s, please check your image file.\n",
-							strerror(errno));
-					}
-					// reshape read_buffer and try to check crc again
-					if (i > 0) {
-						// first block correct
-						// i.e. read buffer is the follows:
-						// <block1><crc1><bug><block2><crc2><bug>...
-						for (i = 0; i < blocks_read; i++) {
-							memcpy(write_buffer + i * (block_size + cs_size),
-								read_buffer + i * (block_size + 2*cs_size),
-								block_size + cs_size);
-						}
-					} else {
-						// first block incorrect
-						// i.e. read buffer is the follows:
-						// <bug><block1><crc1><bug><block2><crc2>...
-						for (i = 0; i < blocks_read; i++) {
-							memcpy(write_buffer + i * (block_size + cs_size),
-								read_buffer + i * (block_size + 2*cs_size) + cs_size,
-								block_size + cs_size);
-						}
-					}
-					memcpy(read_buffer, write_buffer, blocks_read * (block_size + cs_size));
-					memcpy(checksum, cs_saved, cs_size);
-					bugcheck = 1;
-					goto recheck;
+				memcpy(write_buffer + i * block_size,
+					read_buffer + read_offset, block_size);
+
+				if (opt.ignore_crc) {
+					read_offset += block_size;
+					if (++blocks_in_cs == blocks_per_cs)
+						read_offset += cs_size;
+					continue;
 				}
+
+				update_checksum(checksum, read_buffer + read_offset, block_size);
+
+				if (++blocks_in_cs == blocks_per_cs) {
+
+					if (memcmp(read_buffer + read_offset + block_size, checksum, cs_size)) {
+
+						if (bugcheck || img_opt.image_version != 0x0001)
+							log_mesg(0, 1, 1, debug, "CRC error, block_id=%llu...\n ", block_id + i);
+						else {
+							log_mesg(1, 0, 0, debug, "CRC Check error. 64bit bug before v0.1.0 (Rev:250M), "
+								"trying enlarge crc size and recheck again...\n");
+							// the bug has written the crc with 4 extra bytes, so the read buffer is like this:
+							// <block1><crc1><bug><block2><crc2><bug>...
+							read_all(&dfr, read_buffer + read_size, blocks_read * CRC32_SIZE, &opt);
+							blocks_in_cs = 0;
+							bugcheck = 1;
+							memcpy(checksum, cs_saved, cs_size);
+							goto recheck;
+						}
+					}
+
+					read_offset += cs_size;
+					if (bugcheck)
+						read_offset += CRC32_SIZE;
+
+					blocks_in_cs = 0;
+					init_checksum(img_opt.checksum_mode, checksum, debug);
+				}
+
+				read_offset += block_size;
 			}
 
 			blocks_written = 0;
@@ -620,6 +689,13 @@ int main(int argc, char **argv) {
 
 		} while(1);
 
+		if (blocks_in_cs) {
+
+			log_mesg(1, 0, 0, debug, "check latest chunk's checksum covering %u blocks\n", blocks_in_cs);
+			if (memcmp(read_buffer + read_offset, checksum, cs_size))
+				log_mesg(0, 1, 1, debug, "CRC error, block_id=%llu...\n ", block_id);
+		}
+
 		free(write_buffer);
 		free(read_buffer);
 
@@ -636,9 +712,9 @@ int main(int argc, char **argv) {
 		char *buffer;
 		int block_size = fs_info.block_size;
 		unsigned long long blocks_total = fs_info.totalblock;
-		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
+		int buffer_capacity = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 
-		buffer = (char*)malloc(blocks_in_buffer * block_size);
+		buffer = (char*)malloc(buffer_capacity * block_size);
 		if (buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
@@ -657,7 +733,7 @@ int main(int argc, char **argv) {
 			unsigned long long blocks_skip, blocks_read;
 			off_t offset;
 
-			/// skip chunk
+			/// skip unused blocks
 			for (blocks_skip = 0;
 			     block_id + blocks_skip < blocks_total &&
 			     !pc_test_bit(block_id + blocks_skip, bitmap);
@@ -671,9 +747,9 @@ int main(int argc, char **argv) {
 
 			/// read chunk from source
 			for (blocks_read = 0;
-			     block_id + blocks_read < blocks_total && blocks_read < blocks_in_buffer &&
+			     block_id + blocks_read < blocks_total && blocks_read < buffer_capacity &&
 			     pc_test_bit(block_id + blocks_read, bitmap);
-			     blocks_read++);
+			     ++blocks_read);
 
 			if (!blocks_read)
 				break;
