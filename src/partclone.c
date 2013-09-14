@@ -61,6 +61,36 @@ SCREEN *ptclscr;
 int log_y_line = 0;
 #endif
 
+/**
+ * return the cpu architecture for which partclone is compiled
+ *
+ * When partclone is compiled is 32 bits, this function returns 32 even if it is run on a 64 bits OS.
+ */
+int get_cpu_bits()
+{
+#if __x86_32__ || __amd32__ || __i386__
+	return 32;
+#elif __x86_64__ || __amd64__
+	return 64;
+// Use the pointer's size if the compiler did not define one of the above.
+#elif __SIZEOF_POINTER__ == 4
+	return 32;
+#elif __SIZEOF_POINTER__ == 8
+	return 64;
+#else
+#pragma GCC error "Unrecognised CPU architecture. Please update this file."
+#endif
+}
+
+/**
+ * A version 0001 image does not contains an image_options. Its values are always the same.
+ */
+void set_image_options_v1(image_options* img_opt)
+{
+	img_opt->checksum_size = CRC32_SIZE;
+	img_opt->blocks_per_checksum = 1;
+}
+
 void init_image_head_v1(image_head_v1* image_hdr, char* fs)
 {
 	memset(image_hdr, 0, sizeof(image_head_v1));
@@ -73,6 +103,16 @@ void init_image_head_v1(image_head_v1* image_hdr, char* fs)
 void init_fs_info(file_system_info* fs_info)
 {
 	memset(fs_info, 0, sizeof(file_system_info));
+}
+
+void init_image_options(image_options* img_opt)
+{
+	memset(img_opt, 0, sizeof(image_options));
+
+	img_opt->feature_size = sizeof(image_options_v1);
+	img_opt->cpu_bits = get_cpu_bits();
+
+	set_image_options_v1(img_opt);
 }
 
 void print_readable_size_str(unsigned long long size_byte, char *new_size_str) {
@@ -593,7 +633,7 @@ void close_log(void) {
 }
 
 /// load the image description from the image file
-void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info) {
+void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_options* img_opt) {
 
 	image_desc_v1 buf_v1;
 	int r_size;
@@ -628,6 +668,8 @@ void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info) {
 		log_mesg(1, 0, 0, opt->debug, "INFO: adjusted device size reported by the image [%llu -> %llu]\n", fs_info->device_size, dev_size);
 		fs_info->device_size = dev_size;
 	}
+
+	set_image_options_v1(img_opt);
 }
 
 void write_image_desc(int* ret, file_system_info fs_info, cmd_opt* opt) {
@@ -745,26 +787,32 @@ void check_free_space(int* ret, unsigned long long size) {
 		log_mesg(0, 1, 1, debug, "Destination doesn't have enough free space: %llu MB < %llu MB\n", print_size(dest_size, MBYTE), print_size(size, MBYTE));
 }
 
-/// check free memory size
-int check_mem_size(file_system_info fs_info, cmd_opt opt, unsigned long long *mem_size) {
+void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt) {
 
-	unsigned long long bitmap_size = 0;
-	int crc_io_size = 0;
-	void *test_mem;
+	const uint32_t block_size = fs_info.block_size;
+	const unsigned long buffer_capacity  = opt.buffer_size > block_size ? opt.buffer_size / block_size : 1; // in blocks
+	const unsigned long long bitmap_size = BITS_TO_BYTES(fs_info.totalblock);
+	unsigned long long raw_io_size, cs_io_size, needed_size = 0;
+	void *test_bitmap, *test_read, *test_write;
 
-	bitmap_size = PART_BYTES_PER_LONG * BITS_TO_LONGS(fs_info.totalblock);
-	crc_io_size = CRC_SIZE+fs_info.block_size;
-	*mem_size   = bitmap_size + crc_io_size;
-	log_mesg(0, 0, 0, 1, "we need memory: %llu bytes\nbitmap %llu bytes, crc %i bytes\n", *mem_size, bitmap_size, crc_io_size);
+	raw_io_size = buffer_capacity *  block_size;
+	cs_io_size  = buffer_capacity * (block_size + img_opt.checksum_size);
+	needed_size = bitmap_size + raw_io_size + cs_io_size;
 
-	test_mem = malloc(*mem_size);
-	if (test_mem == NULL){
-		free(test_mem);
-		return -1;
-	} else {
-		free(test_mem);
+	log_mesg(0, 0, 0, 1, "memory needed: %llu bytes\nbitmap %llu bytes, blocks 2*%d bytes, checksum %d bytes\n",
+		needed_size, bitmap_size, raw_io_size, cs_io_size - raw_io_size);
+
+	test_bitmap = malloc(bitmap_size);
+	test_read   = malloc(raw_io_size);
+	test_write  = malloc(cs_io_size);
+
+	if (test_bitmap == NULL || test_read == NULL || test_write == NULL)
+		log_mesg(0, 1, 1, opt.debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_size);
+	else {
+		free(test_bitmap);
+		free(test_read);
+		free(test_write);
 	}
-	return 1;
 }
 
 /// get bitmap from image file to restore data
