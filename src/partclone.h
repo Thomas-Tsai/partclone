@@ -117,7 +117,7 @@ typedef struct cmd_opt cmd_opt;
 /* Disable fields alignment for struct stored in the image */
 #pragma pack(push, 1)
 
-#define ENDIAN_MAGIC 0x00C0DE00
+#define ENDIAN_MAGIC 0xC0DE
 
 typedef struct
 {
@@ -138,8 +138,8 @@ typedef struct
     /// Image's version
     char version[IMAGE_VERSION_SIZE];
 
-    /// 0x00C0DE00 = little-endian, 0x00DEC000 = big-endian
-    uint32_t endianess;
+    /// 0xC0DE = little-endian, 0xDEC0 = big-endian
+    uint16_t endianess;
 
 } image_head_v2;
 
@@ -199,7 +199,7 @@ typedef struct
 	/// partclone's compilation architecture: 32 bits or 64 bits
 	uint16_t cpu_bits;
 
-	/// checksum algorithm used (see checksum_mode_enum
+	/// checksum algorithm used (see checksum_mode_enum)
 	uint16_t checksum_mode;
 
 	/// Size of one checksum, in bytes. 0 when NONE, 4 with CRC32, etc.
@@ -207,6 +207,9 @@ typedef struct
 
 	/// How many consecutive blocks are checksumed together.
 	uint32_t blocks_per_checksum;
+
+	/// Reseed the checksum after each write (1 = yes; 0 = no)
+	uint8_t reseed_checksum;
 
 	/// Kind of bitmap stored in the image (see bitmap_mode_enum)
 	uint8_t bitmap_mode;
@@ -267,17 +270,19 @@ extern int io_all(int *fd, char *buffer, unsigned long long count, int do_write,
 extern void sync_data(int fd, cmd_opt* opt);
 extern void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt);
 
-extern unsigned long long cnv_blocks_to_bytes(unsigned int block_count, unsigned int block_size, const image_options* img_opt);
+extern unsigned long long cnv_blocks_to_bytes(unsigned long long block_offset, unsigned int block_count, unsigned int block_size, const image_options* img_opt);
 extern unsigned long long get_bitmap_size_on_disk(const file_system_info* fs_info, const image_options* img_opt, cmd_opt* opt);
 extern unsigned long get_checksum_count(unsigned long long block_count, const image_options *img_opt);
 extern void update_used_blocks_count(file_system_info* fs_info, unsigned long* bitmap);
 
 extern void init_fs_info(file_system_info* fs_info);
 extern void init_image_options(image_options* img_opt);
-extern void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_options* img_opt);
+extern void load_image_desc(int* ret, cmd_opt* opt, image_head_v2* img_head, file_system_info* fs_info, image_options* img_opt);
 extern void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, image_options img_opt, unsigned long* bitmap);
 extern void write_image_desc(int* ret, file_system_info fs_info, image_options img_opt, cmd_opt* opt);
 extern void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_opt, unsigned long* bitmap, cmd_opt* opt);
+
+extern const char *get_bitmap_mode_str(bitmap_mode_t bitmap_mode);
 
 /**
  * The next two functions are not defined in partclone.c. They must be defined by each
@@ -313,6 +318,8 @@ extern void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_
 extern void print_partclone_info(cmd_opt opt);
 /// print file system info
 extern void print_file_system_info(file_system_info fs_info, cmd_opt opt);
+/// print image info
+extern void print_image_info(image_head_v2 img_head, image_options img_opt, cmd_opt opt);
 /// print option
 extern void print_opt(cmd_opt opt);
 /// print finish mesg

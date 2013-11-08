@@ -87,18 +87,24 @@ int get_cpu_bits()
  * A version 0001 image does not contains an image_options. Its values are always the same.
  *
  * @note
- * We must use a special version of crc32(), crc32_0001(), because the old crc32() implementation
- * contains a bug that prevented it from computing the crc32 correctly.
+ * We must use a special version of CRC32 algorithm, crc32_0001(), because the
+ * old crc32() implementation contains a bug that prevented it from computing
+ * the crc32 correctly.
  *
- * Also, an old bug affects some images generated from an old 64 bits version of partclone.
- * In these images, the crc32 is recorded on 8 bytes instead of 4.
+ * Also, an old bug affects some images generated from an old 64 bits version
+ * of partclone. In these images, the crc32 is recorded on 8 bytes instead of 4.
  */
 void set_image_options_v1(image_options* img_opt)
 {
+	// reset options
+	memset(img_opt, 0, sizeof(image_options));
+
+	img_opt->feature_size = sizeof(image_options_v1);
 	img_opt->image_version = 0x0001;
 	img_opt->checksum_mode = CSM_CRC32_0001;
 	img_opt->checksum_size = CRC32_SIZE;
 	img_opt->blocks_per_checksum = 1;
+	img_opt->reseed_checksum = 0;
 	img_opt->bitmap_mode = BM_BYTE;
 }
 
@@ -107,10 +113,12 @@ void set_image_options_v1(image_options* img_opt)
  */
 void set_image_options_v2(image_options* img_opt)
 {
+	img_opt->feature_size = sizeof(image_options_v2);
 	img_opt->image_version = 0x0002;
 	img_opt->checksum_mode = CSM_CRC32;
 	img_opt->checksum_size = CRC32_SIZE;
 	img_opt->blocks_per_checksum = 0;
+	img_opt->reseed_checksum = 1;
 	img_opt->bitmap_mode = BM_BIT;
 }
 
@@ -143,7 +151,6 @@ void init_image_options(image_options* img_opt)
 {
 	memset(img_opt, 0, sizeof(image_options));
 
-	img_opt->feature_size = sizeof(image_options_v1);
 	img_opt->cpu_bits = get_cpu_bits();
 
 	set_image_options_v2(img_opt);
@@ -350,9 +357,10 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	opt->fresh = 2;
 	opt->logfile = "/var/log/partclone.log";
 	opt->buffer_size = DEFAULT_BUFFER_SIZE;
-	opt->checksum_mode = CSM_NONE;
+	opt->checksum_mode = CSM_CRC32;
 	opt->reseed_checksum = 1;
 	opt->blocks_per_checksum = 0;
+
 
 #ifdef DD
 #ifndef RESTORE
@@ -362,7 +370,6 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #endif
 #endif
 #endif
-
 #ifdef RESTORE
 	opt->restore++;
 	mode=1;
@@ -542,10 +549,14 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 }
 
 /**
- * Convert a number of blocks to the required space in bytes to store these blocks with their checksum
+ * Convert a number of blocks to the required space in bytes to store these blocks with their checksum.
+ * It assumes block_count fill the read buffer.
+ *
+ * @param block_offset
+ *        number of blocks already processed
  *
  * @param block_count
- *        number of blocks
+ *        number of blocks to be read
  *
  * @param block_size
  *        size of a block in bytes
@@ -554,11 +565,13 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
  *        image's options
  *
  * @note
- * The caller must handle special cases:
+ * If the caller read a partial chunk, she have to take care of the latest checksum.
  *
- * - When blocks_per_cs is greater than the buffer's capacity, blkcs is equals to 0.
- *   It mains no space is allocated for the checksums and will not always read a
- *   checksum from the image and it will not be at the same offset each time, ie:
+ * This function handles these specials cases:
+ *
+ * - When blocks_per_cs is greater than the buffer's capacity, then the buffer does not
+ *   always contains a checksum. When the buffer have a checksum, it is not always at the
+ *   same offset, ie:
 @verbatim
 	# with blocks_per_cs = 4 and buffer_cap = 3
 	read 1: <block><block><block>
@@ -567,7 +580,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	read 4: <block><block><block><cs>
 @endverbatim
  *
- * - When buffer_cap does not contains full sets of blocks_per_cs, we will not
+ * - When the buffer's capacity does not contains full sets of blocks_per_cs, we will not
  *   always get the same number of checksum per read, ie:
 @verbatim
 	# with blocks_per_cs = 2 and buffer_cap = 3
@@ -576,19 +589,22 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 @endverbatim
  *
  */
-unsigned long long cnv_blocks_to_bytes(unsigned int block_count, unsigned int block_size, const image_options* img_opt) {
+unsigned long long cnv_blocks_to_bytes(unsigned long long block_offset, unsigned int block_count, unsigned int block_size, const image_options* img_opt) {
 
-	unsigned long long bytes = block_count * block_size;
+	unsigned long long bytes_count = block_count * block_size;
 
-	bytes += get_checksum_count(block_count, img_opt) * img_opt->checksum_size;
+	if (img_opt->blocks_per_checksum) {
 
-	if ((img_opt->blocks_per_checksum > 0) && (block_count % img_opt->blocks_per_checksum)) {
+		/// adjust read_size to read the right number of checksum
 
-		// add a checksum for a partial chunk
-		bytes += img_opt->checksum_size;
+		unsigned long total_cs  = get_checksum_count(block_offset + block_count, img_opt);
+		unsigned long copied_cs = get_checksum_count(block_offset, img_opt);
+		unsigned long newer_cs  = total_cs - copied_cs;
+
+		bytes_count += newer_cs * img_opt->checksum_size;
 	}
 
-	return bytes;
+	return bytes_count;
 }
 
 /**
@@ -829,8 +845,12 @@ void load_image_desc_v2(file_system_info* fs_info, image_options* img_opt,
 	memcpy(img_opt, &img_opt_v2, sizeof(image_options_v2));
 }
 
-/// load the image description from the image file
-void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_options* img_opt) {
+/**
+ * load the image description from the image file
+ *
+ * note: img_head is meaning full only when img_opt.image_version is >= 2.
+ */
+void load_image_desc(int* ret, cmd_opt* opt, image_head_v2* img_head, file_system_info* fs_info, image_options* img_opt) {
 
 	image_desc_v2 buf_v2;
 	int r_size;
@@ -853,20 +873,17 @@ void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_op
 		const image_desc_v1* buf_v1 = (image_desc_v1*)&buf_v2;
 		image_options_v1 extra;
 
-		log_mesg(0, 0, 1, debug, "Image format 0001\n");
-
 		// read the extra bytes
 		if (read_all(ret, extra.buff, sizeof(image_desc_v1) - sizeof(image_desc_v2), opt) == -1)
 			log_mesg(0, 1, 1, debug, "read image_hdr error=%d\n (%s)", r_size, strerror(errno));
 
 		load_image_desc_v1(fs_info, img_opt, buf_v1->head, buf_v1->fs_info, opt);
+		memset(img_head, 0, sizeof(image_head_v2));
 		break;
 	}
 
 	case 0x0002: {
 		uint32_t crc;
-
-		log_mesg(0, 0, 1, debug, "Image format 0002\n");
 
 		// Verify checksum
 		init_crc32(&crc);
@@ -875,6 +892,7 @@ void load_image_desc(int* ret, cmd_opt* opt, file_system_info* fs_info, image_op
 			log_mesg(0, 1, 1, debug, "Invalid header checksum [0x%08X != 0x%08X]\n", crc, buf_v2.crc);
 
 		load_image_desc_v2(fs_info, img_opt, buf_v2.head, buf_v2.fs_info, buf_v2.options, opt);
+		memcpy(img_head, &(buf_v2.head), sizeof(image_head_v2));
 		break;
 	}
 
@@ -975,11 +993,31 @@ void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_op
 		}
 
 		default:
-			log_mesg(0, 1, 1, debug, "image_version is not set or write_image_bitmap() must to be updated [%d]\n", img_opt.image_version);
+			log_mesg(0, 1, 1, debug, "image_version is not set or write_image_bitmap() must to be updated [%d]\n",
+				img_opt.image_version);
 			break;
 		}
 	}
 }
+
+const char *get_bitmap_mode_str(bitmap_mode_t bitmap_mode)
+{
+	switch (bitmap_mode)
+	{
+	case BM_NONE:
+		return "NONE";
+
+	case BM_BIT:
+		return "BIT";
+
+	case BM_BYTE:
+		return "BYTE";
+
+	default:
+		return "UNKNOWN";
+	}
+}
+
 
 /// get partition size
 unsigned long long get_partition_size(int* ret) {
@@ -1121,28 +1159,24 @@ void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt
 	const unsigned int buffer_capacity = opt.buffer_size > block_size ? opt.buffer_size / block_size : 1; // in blocks
 
 	const unsigned long long raw_io_size = buffer_capacity * block_size;
-	unsigned long long cs_io_size, needed_size = 0;
+	unsigned long long cs_size = 0, needed_size = 0;
 	void *test_bitmap, *test_read, *test_write;
 
-	if (img_opt.checksum_mode == CSM_NONE)
-
-		cs_io_size = buffer_capacity * block_size;
-
-	else {
+	if (img_opt.checksum_mode != CSM_NONE) {
 
 		unsigned long long cs_in_buffer = buffer_capacity / blkcs;
 
-		cs_io_size = cs_in_buffer * (blkcs * block_size + img_opt.checksum_size) + buffer_capacity % blkcs * block_size;
+		cs_size = cs_in_buffer * img_opt.checksum_size;
 	}
 
-	needed_size = bitmap_size + raw_io_size + cs_io_size;
+	needed_size = bitmap_size + 2 * raw_io_size + cs_size;
 
-	log_mesg(0, 0, 0, 1, "memory needed: %llu bytes\nbitmap %llu bytes, blocks 2*%d bytes, checksum %d bytes\n",
-		needed_size, bitmap_size, raw_io_size, cs_io_size - raw_io_size);
+	log_mesg(0, 0, 0, 1, "memory needed: %llu bytes\nbitmap %llu bytes, blocks 2*%llu bytes, checksum %llu bytes\n",
+		needed_size, bitmap_size, raw_io_size, cs_size);
 
 	test_bitmap = malloc(bitmap_size);
 	test_read   = malloc(raw_io_size);
-	test_write  = malloc(cs_io_size);
+	test_write  = malloc(raw_io_size + cs_size);
 
 	if (test_bitmap == NULL || test_read == NULL || test_write == NULL)
 		log_mesg(0, 1, 1, opt.debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_size);
@@ -1164,13 +1198,13 @@ void load_image_bitmap_bits(int* ret, cmd_opt opt, file_system_info fs_info, uns
 
 	r_size = read_all(ret, (char*)&r_crc, sizeof(r_crc), &opt);
 	if (r_size != sizeof(r_crc))
-		log_mesg(0, 1, 1, opt.debug, "read bitmap's crc error");
+		log_mesg(0, 1, 1, opt.debug, "read bitmap's crc error\n");
 
 	init_crc32(&crc);
 
 	crc = crc32(crc, bitmap, bitmap_size);
 	if (crc != r_crc)
-		log_mesg(0, 1, 1, opt.debug, "read bitmap's crc error");
+		log_mesg(0, 1, 1, opt.debug, "read bitmap's crc error\n");
 }
 
 void load_image_bitmap_bytes(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap) {
@@ -1447,11 +1481,8 @@ int io_all(int *fd, char *buf, unsigned long long count, int do_write, cmd_opt* 
 		} else {
 			count -= i;
 			buf = i + (char *) buf;
-			if (do_write)
-			    log_mesg(2, 0, 0, debug, "%s: write ",__func__);
-			else
-			    log_mesg(2, 0, 0, debug, "%s: read ",__func__);
-			log_mesg(2, 0, 0, debug, "%lli, %llu left.\n", i, count);
+			log_mesg(2, 0, 0, debug, "%s: %s %lli, %llu left.\n",
+				__func__, do_write ? "write" : "read", i, count);
 		}
 	}
 	return size;
@@ -1535,6 +1566,8 @@ void print_partclone_info(cmd_opt opt) {
 		log_mesg(0, 0, 1, debug, _("Starting to map device (%s) to domain log (%s)\n"), opt.source, opt.target);
 	else if (opt.ddd)
 		log_mesg(0, 0, 1, debug, _("Starting to clone/restore (%s) to (%s) with dd mode\n"), opt.source, opt.target);
+	else if (opt.info)
+		log_mesg(0, 0, 1, debug, _("Showing info of image (%s)\n"), opt.source);
 	else
 		log_mesg(0, 0, 1, debug, "Unknown mode\n");
 }
@@ -1563,6 +1596,57 @@ void print_file_system_info(file_system_info fs_info, cmd_opt opt) {
 	log_mesg(0, 0, 1, debug, _("Free Space:   %s = %llu Blocks\n"), size_str, (total-used));
 
 	log_mesg(0, 0, 1, debug, _("Block size:   %i Byte\n"), block_s);
+}
+
+/// print image info
+void print_image_info(image_head_v2 img_head, image_options img_opt, cmd_opt opt)
+{
+	int debug = opt.debug;
+	char bufstr[64];
+
+	setlocale(LC_ALL, "");
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
+
+	log_mesg(0, 0, 1, debug, _("image format:    %04d\n"), img_opt.image_version);
+
+	if (img_opt.image_version == 0x0001)
+	{
+		log_mesg(0, 0, 1, debug, _("created on a:    %s\n"), "n/a");
+
+		log_mesg(0, 0, 1, debug, _("with partclone:  %s\n"), "n/a");
+	}
+	else
+	{
+		sprintf(bufstr, _("%d bits platform"), img_opt.cpu_bits);
+		log_mesg(0, 0, 1, debug, _("created on a:    %s\n"), bufstr);
+
+		sprintf(bufstr, _("v%s"), img_head.ptc_version);
+		log_mesg(0, 0, 1, debug, _("with partclone:  %s\n"), bufstr);
+	}
+
+	log_mesg(0, 0, 1, debug, _("bitmap mode:     %s\n"), get_bitmap_mode_str(img_opt.bitmap_mode));
+
+	log_mesg(0, 0, 1, debug, _("checksum algo:   %s\n"), get_checksum_str(img_opt.checksum_mode));
+
+	if (img_opt.checksum_mode == CSM_NONE)
+	{
+		log_mesg(0, 0, 1, debug, _("checksum size:   %s\n"), "n/a");
+
+		log_mesg(0, 0, 1, debug, _("blocks/checksum: %s\n"), "n/a");
+
+		log_mesg(0, 0, 1, debug, _("reseed checksum: %s\n"), "n/a");
+	}
+	else
+	{
+		sprintf(bufstr, "%d", img_opt.checksum_size);
+		log_mesg(0, 0, 1, debug, _("checksum size:   %s\n"), bufstr);
+
+		sprintf(bufstr, "%d", img_opt.blocks_per_checksum);
+		log_mesg(0, 0, 1, debug, _("blocks/checksum: %s\n"), bufstr);
+
+		log_mesg(0, 0, 1, debug, _("reseed checksum: %s\n"), img_opt.reseed_checksum?_("yes"):_("no"));
+	}
 }
 
 /// print finish message

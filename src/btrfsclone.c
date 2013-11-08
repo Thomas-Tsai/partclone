@@ -177,7 +177,6 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     log_mesg(0, 0, 0, fs_opt.debug, "device_size = %llu\n", fs_info->device_size);
     log_mesg(0, 0, 0, fs_opt.debug, "totalblock = %lli\n", fs_info->totalblock);
 
-
     fs_close();
 }
 

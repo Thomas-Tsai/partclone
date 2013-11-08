@@ -661,24 +661,14 @@ static int find_and_setup_log_root(struct btrfs_root *tree_root,
 				     blocksize,
 				     btrfs_super_generation(disk_super) + 1);
 
-<<<<<<< HEAD
 	if (!extent_buffer_uptodate(log_root->node)) {
 		free_extent_buffer(log_root->node);
-=======
-	fs_info->log_root_tree = log_root;
-
-	if (!extent_buffer_uptodate(log_root->node)) {
->>>>>>> release
 		free(log_root);
 		return -EIO;
 	}
 
-<<<<<<< HEAD
 	fs_info->log_root_tree = log_root;
 
-=======
-	free(log_root);
->>>>>>> release
 	return 0;
 }
 

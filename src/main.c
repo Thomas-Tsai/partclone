@@ -129,6 +129,7 @@ int main(int argc, char **argv) {
 	int			dfr, dfw;		/// file descriptor for source and target
 	int			r_size, w_size;		/// read and write size
 	unsigned		cs_size = 0;		/// checksum_size
+	int			cs_reseed = 1;
 	int			start, stop;		/// start, range, stop number for progress bar
 	unsigned long *bitmap = NULL;		/// the point for bitmap data
 	int			debug = 0;		/// debug level
@@ -236,8 +237,10 @@ int main(int argc, char **argv) {
 		img_opt.checksum_mode = opt.checksum_mode;
 		img_opt.checksum_size = get_checksum_size(opt.checksum_mode, opt.debug);
 		img_opt.blocks_per_checksum = opt.blocks_per_checksum;
+		img_opt.reseed_checksum = opt.reseed_checksum;
 
 		cs_size = img_opt.checksum_size;
+		cs_reseed = img_opt.reseed_checksum;
 
 		log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
 		log_mesg(0, 0, 1, debug, "Reading Super Block\n");
@@ -277,7 +280,7 @@ int main(int argc, char **argv) {
 
 			needed_space += sizeof(image_head) + sizeof(file_system_info) + sizeof(image_options);
 			needed_space += get_bitmap_size_on_disk(&fs_info, &img_opt, &opt);
-			needed_space += cnv_blocks_to_bytes(fs_info.usedblocks, fs_info.block_size, &img_opt);
+			needed_space += cnv_blocks_to_bytes(0, fs_info.usedblocks, fs_info.block_size, &img_opt);
 
 			check_free_space(&dfw, needed_space);
 		}
@@ -292,12 +295,15 @@ int main(int argc, char **argv) {
 
 	} else if (opt.restore) {
 
+		image_head_v2 img_head;
+
 		log_mesg(1, 0, 0, debug, "restore image hdr - get information from image file\n");
 		log_mesg(1, 0, 1, debug, "Reading Super Block\n");
 
 		/// get image information from image file
-		load_image_desc(&dfr, &opt, &fs_info, &img_opt);
+		load_image_desc(&dfr, &opt, &img_head, &fs_info, &img_opt);
 		cs_size = img_opt.checksum_size;
+		cs_reseed = img_opt.reseed_checksum;
 
 		check_mem_size(fs_info, img_opt, opt);
 
@@ -359,10 +365,6 @@ int main(int argc, char **argv) {
 	
 		unsigned long long needed_mem, needed_size;
 
-		log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
-		log_mesg(1, 0, 1, debug, "Reading Super Block\n");
-
-		/// get Super Block information from partition
 		if (dfr != 0)
 		    initial_image_hdr(source, &image_hdr);
 		else
@@ -372,10 +374,10 @@ int main(int argc, char **argv) {
 		if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
 			log_mesg(0, 1, 1, debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_mem);
 
-		strncpy(image_hdr.version, IMAGE_VERSION, VERSION_SIZE);
+		check_mem_size(fs_info, img_opt, opt);
 
 		/// alloc a memory to restore bitmap
-		bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
+		bitmap = pc_alloc_bitmap(fs_info.totalblock);
 		if (bitmap == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
@@ -385,7 +387,7 @@ int main(int argc, char **argv) {
 
 		/// read and check bitmap from partition
 		log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
-		readbitmap(source, image_hdr, bitmap, pui);
+		read_bitmap(source, fs_info, bitmap, pui);
 
 		/// check the dest partition size.
 		if (opt.check) {
@@ -451,7 +453,7 @@ int main(int argc, char **argv) {
 
 		log_mesg(1, 0, 0, debug, "#\nBuffer capacity = %u, Blocks per cs = %u\n#\n", buffer_capacity, blocks_per_cs);
 
-		write_size = cnv_blocks_to_bytes(buffer_capacity, block_size, &img_opt);
+		write_size = cnv_blocks_to_bytes(0, buffer_capacity, block_size, &img_opt);
 
 		read_buffer = (char*)malloc(buffer_capacity * block_size);
 		write_buffer = (char*)malloc(write_size + cs_size);
@@ -533,7 +535,7 @@ int main(int argc, char **argv) {
 					write_offset += cs_size;
 
 					blocks_in_cs = 0;
-					if (opt.reseed_checksum)
+					if (cs_reseed)
 						init_checksum(img_opt.checksum_mode, checksum, debug);
 				}
 			}
@@ -566,6 +568,29 @@ int main(int argc, char **argv) {
 		free(write_buffer);
 		free(read_buffer);
 
+	// check only the size when the image does not contains checksums and does not
+	// comes from a pipe
+	} else if (opt.chkimg && img_opt.checksum_mode == CSM_NONE
+		&& strcmp(opt.source, "-") != 0) {
+
+		unsigned long long total_offset = (fs_info.usedblocks - 1) * fs_info.block_size;
+		char last_block[fs_info.block_size];
+		off_t partial_offset = INT32_MAX;
+
+		while (total_offset) {
+
+			if (partial_offset > total_offset)
+				partial_offset = total_offset;
+
+			if (lseek(dfr, partial_offset, SEEK_CUR) == (off_t)-1)
+				log_mesg(0, 1, 1, debug, "source seek ERROR: %s\n", strerror(errno));
+
+			total_offset -= partial_offset;
+		}
+
+		if (read_all(&dfr, last_block, fs_info.block_size, &opt) != fs_info.block_size)
+			log_mesg(0, 1, 1, debug, "ERROR: source image too short\n");
+
 	} else if (opt.restore) {
 
 		const unsigned long long blocks_total = fs_info.totalblock;
@@ -590,17 +615,15 @@ int main(int argc, char **argv) {
 			blocks_used = blocks_used_fix;
 			log_mesg(1, 0, 0, debug, "info: fixed used blocks count\n");
 		}
-
-		buffer_size = cnv_blocks_to_bytes(buffer_capacity, block_size, &img_opt);
+		buffer_size = cnv_blocks_to_bytes(0, buffer_capacity, block_size, &img_opt);
 
 		if (img_opt.image_version != 0x0001)
-			read_buffer = (char*)malloc(buffer_size + cs_size);
+			read_buffer = (char*)malloc(buffer_size);
 		else {
 			// Allocate more memory in case the image is affected by the 64 bits bug
 			read_buffer = (char*)malloc(buffer_size + buffer_capacity * cs_size);
 		}
 		write_buffer = (char*)malloc(buffer_capacity * block_size);
-
 		if (read_buffer == NULL || write_buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
@@ -615,7 +638,8 @@ int main(int argc, char **argv) {
 		log_mesg(1, 0, 0, debug, "start restore data...\n");
 
 		blocks_in_cs = 0;
-		init_checksum(img_opt.checksum_mode, checksum, debug);
+		if (!opt.ignore_crc)
+			init_checksum(img_opt.checksum_mode, checksum, debug);
 
 		block_id = 0;
 		do {
@@ -629,35 +653,17 @@ int main(int argc, char **argv) {
 			if (!blocks_read)
 				break;
 
-			read_offset = bugcheck ? 4 : 0;
-
 			log_mesg(1, 0, 0, debug, "blocks_read = %d\n", blocks_read);
-			read_size = cnv_blocks_to_bytes(blocks_read, block_size, &img_opt);
+			read_size = cnv_blocks_to_bytes(copied, blocks_read, block_size, &img_opt);
 
-			// increase read_size to make room for the checksum
-			if (blocks_per_cs > 0) {
-
-				if (bugcheck) {
-
-					read_size += blocks_read * cs_size;
-
-				} else if (blocks_read % blocks_per_cs) {
-
-					// adjust read_size to read the right number of checksum
-					unsigned long total_cs  = get_checksum_count(copied + blocks_read, &img_opt);
-					unsigned long copied_cs = get_checksum_count(copied, &img_opt);
-					unsigned long newer_cs  = get_checksum_count(blocks_read, &img_opt);
-					unsigned long extra_cs  = total_cs - copied_cs - newer_cs;
-
-					if ((blocks_read < buffer_capacity) && (blocks_used % blocks_per_cs)) {
-						// it is the last read and there is a partial chunk at the end
-						++extra_cs;
-					}
-
-					read_size += extra_cs * cs_size;
-
-					log_mesg(1, 0, 0, debug, "# extra cs = %u\n", extra_cs);
-				}
+			// increase read_size to make room for the oversized checksum
+			if (bugcheck) {
+				read_size += blocks_read * CRC32_SIZE;
+			} else if (blocks_per_cs && blocks_read < buffer_capacity &&
+					(blocks_read % blocks_per_cs)) {
+				/// it is the last read and there is a partial chunk at the end
+				log_mesg(1, 0, 0, debug, "# PARTIAL CHUNK\n");
+				read_size += cs_size;
 			}
 
 			// read chunk from image
@@ -674,8 +680,9 @@ int main(int argc, char **argv) {
 			// <block1><block2>...
 
 			// fill up write buffer, validate checksum
-		recheck:
 			memcpy(cs_saved, checksum, cs_size);
+		recheck:
+			read_offset = 0;
 			for (i = 0; i < blocks_read; ++i) {
 
 				memcpy(write_buffer + i * block_size,
@@ -701,8 +708,8 @@ int main(int argc, char **argv) {
 								"trying enlarge crc size and recheck again...\n");
 							// the bug has written the crc with 4 extra bytes, so the read buffer is like this:
 							// <block1><crc1><bug><block2><crc2><bug>...
-							read_offset += 4;
-							blocks_in_cs -= 1;
+							read_all(&dfr, read_buffer + read_size, blocks_read * CRC32_SIZE, &opt);
+							blocks_in_cs = 0;
 							bugcheck = 1;
 							memcpy(checksum, cs_saved, cs_size);
 							goto recheck;
@@ -711,10 +718,10 @@ int main(int argc, char **argv) {
 
 					read_offset += cs_size;
 					if (bugcheck)
-						read_offset += cs_size;
+						read_offset += CRC32_SIZE;
 
 					blocks_in_cs = 0;
-					if (opt.reseed_checksum)
+					if (cs_reseed)
 						init_checksum(img_opt.checksum_mode, checksum, debug);
 				}
 
