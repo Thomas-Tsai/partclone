@@ -41,7 +41,7 @@ partclone_chkimg_CFLAGS=-DCHKIMG -DDD
 partclone_dd_SOURCES=$(main_files) ddclone.c ddclone.h
 partclone_dd_CFLAGS=-DDD
 
-partclone_imager_SOURCES=main.c partclone.c progress.c ddclone.c ddclone.h partclone.h progress.h gettext.h
+partclone_imager_SOURCES=$(main_files) ddclone.c ddclone.h
 partclone_imager_CFLAGS=-DIMG
 
 if ENABLE_EXTFS

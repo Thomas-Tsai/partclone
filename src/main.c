@@ -366,13 +366,9 @@ int main(int argc, char **argv) {
 		unsigned long long needed_mem, needed_size;
 
 		if (dfr != 0)
-		    initial_image_hdr(source, &image_hdr);
+		    read_super_blocks(source, &fs_info);
 		else
-		    initial_image_hdr(target, &image_hdr);
-
-		/// check memory size
-		if (check_mem_size(image_hdr, opt, &needed_mem) == -1)
-			log_mesg(0, 1, 1, debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_mem);
+		    read_super_blocks(target, &fs_info);
 
 		check_mem_size(fs_info, img_opt, opt);
 
@@ -391,15 +387,21 @@ int main(int argc, char **argv) {
 
 		/// check the dest partition size.
 		if (opt.check) {
-			
-			struct stat target_stat;
-			if ((stat(opt.target, &target_stat) != -1) && (strcmp(opt.target, "-") != 0)) {
-			    if (S_ISBLK(target_stat.st_mode)) 
-				check_size(&dfw, image_hdr.device_size);
-			    else
-				needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
-				check_free_space(&dfw, needed_size);
+
+		    struct stat target_stat;
+		    if ((stat(opt.target, &target_stat) != -1) && (strcmp(opt.target, "-") != 0)) {
+			if (S_ISBLK(target_stat.st_mode)) 
+			    check_size(&dfw, fs_info.device_size);
+			else {
+			    unsigned long long needed_space = 0;
+
+			    needed_space += sizeof(image_head) + sizeof(file_system_info) + sizeof(image_options);
+			    needed_space += get_bitmap_size_on_disk(&fs_info, &img_opt, &opt);
+			    needed_space += cnv_blocks_to_bytes(0, fs_info.usedblocks, fs_info.block_size, &img_opt);
+
+			    check_free_space(&dfw, needed_space);
 			}
+		    }
 		}
 
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
@@ -923,8 +925,8 @@ int main(int argc, char **argv) {
 	} else if (opt.ddd) {
 
 		char *buffer;
-		int block_size = image_hdr.block_size;
-		unsigned long long blocks_total = image_hdr.totalblock;
+		int block_size = fs_info.block_size;
+		unsigned long long blocks_total = fs_info.totalblock;
 		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 
 		buffer = (char*)malloc(blocks_in_buffer * block_size);
