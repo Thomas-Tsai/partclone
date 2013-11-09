@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\"
+AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\" -D_FILE_OFFSET_BITS=64
 LDADD = $(LIBINTL)
 sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg partclone.imager
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox

@@ -52,17 +52,17 @@ build_triplet = i686-pc-linux-gnu
 host_triplet = i686-pc-linux-gnu
 #am__append_1 = ext2.test \
 #	ext3.test ext4.test
-##am__append_2 = btrfs.test
-##am__append_3 = fat.test
-##am__append_4 = reiserfs.test
+#am__append_2 = btrfs.test
+#am__append_3 = fat.test
+#am__append_4 = reiserfs.test
 
 #if ENABLE_REISER4
 #TESTS += reiser4.test
 #endif
-##am__append_5 = hfsplus.test
-##am__append_6 = xfs.test
-##am__append_7 = exfat.test
-##am__append_8 = ntfs.test
+#am__append_5 = hfsplus.test
+#am__append_6 = xfs.test
+#am__append_7 = exfat.test
+#am__append_8 = ntfs.test
 
 #if ENABLE_UFS
 #TESTS += ufs.test
@@ -71,10 +71,10 @@ host_triplet = i686-pc-linux-gnu
 #if ENABLE_VMFS
 #TESTS += vmfs.test
 #endif
-##am__append_9 = jfs.test
-##am__append_10 = btrfs.test
-##am__append_11 = exfat.test
-##am__append_12 = ncursesw.test
+#am__append_9 = jfs.test
+#am__append_10 = btrfs.test
+#am__append_11 = exfat.test
+#am__append_12 = ncursesw.test
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in TODO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -132,7 +132,7 @@ LDFLAGS =
 LIBICONV = -liconv
 LIBINTL = 
 LIBOBJS = 
-LIBS = -lpthread 
+LIBS = -lncursesw -lpthread 
 LN_S = ln -s
 LTLIBICONV = -liconv
 LTLIBINTL = 
