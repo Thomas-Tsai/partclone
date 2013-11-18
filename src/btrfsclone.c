@@ -168,9 +168,9 @@ void read_super_blocks(char* device, file_system_info* fs_info)
 
     strncpy(fs_info->fs, btrfs_MAGIC, FS_MAGIC_SIZE);
 
-    fs_info->block_size  = btrfs_super_nodesize(&root->fs_info->super_copy);
-    fs_info->usedblocks  = btrfs_super_bytes_used(&root->fs_info->super_copy) / fs_info->block_size;
-    fs_info->device_size = btrfs_super_total_bytes(&root->fs_info->super_copy);
+    fs_info->block_size  = btrfs_super_nodesize(root->fs_info->super_copy);
+    fs_info->usedblocks  = btrfs_super_bytes_used(root->fs_info->super_copy) / fs_info->block_size;
+    fs_info->device_size = btrfs_super_total_bytes(root->fs_info->super_copy);
     fs_info->totalblock  = fs_info->device_size / fs_info->block_size;
     log_mesg(0, 0, 0, fs_opt.debug, "block_size = %i\n", fs_info->block_size);
     log_mesg(0, 0, 0, fs_opt.debug, "usedblock = %lli\n", fs_info->usedblocks);

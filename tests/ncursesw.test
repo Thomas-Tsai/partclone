@@ -2,8 +2,8 @@
 set -e
 
 . _common
-fs="dd"
-ptlfs="../src/partclone.dd"
+fs="ext3"
+ptlfs="../src/partclone.extfs"
 dd_count=$((normal_size/2))
 
 echo "create raw file $raw"
@@ -16,7 +16,7 @@ echo "clone $raw to $img"
 [ -f $img ] && rm $img
 echo "$ptlfs -d -c -s $raw -O $img -F -L $logfile"
 _ptlbreak
-$ptlfs -d -c -N -s $raw -O $img -F -L $logfile
+$ptlfs -d -c -N -s $raw -O $img -F -L $logfile -a 1 -k 17
 _check_return_code
 
 
