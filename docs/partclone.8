@@ -31,7 +31,7 @@
 partclone \- The utility for clone and restore a partition\&.
 .SH "SYNOPSIS"
 .HP \w'\fBpartclone\&.[fstype]\fR\ 'u
-\fBpartclone\&.[fstype]\fR {[\fB\-c\fR\ |\ \fB\-\-clone\fR]\ [\fB\-r\fR\ |\ \fB\-\-restore\fR]\ [\fB\-b\fR\ |\ \fB\-\-dev\-to\-dev\fR]} {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_row_file\fR]] [[\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]] [[\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]] [[\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]] [[\fB\-\-ignore_crc\fR]\ [\fB\-X\fR\ |\ \fB\-\-dialog\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]] [[\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR]
+\fBpartclone\&.[fstype]\fR {[\fB\-c\fR\ |\ \fB\-\-clone\fR]\ [\fB\-r\fR\ |\ \fB\-\-restore\fR]\ [\fB\-b\fR\ |\ \fB\-\-dev\-to\-dev\fR]} {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_raw_file\fR]] [[\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]] [[\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]] [[\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]] [[\fB\-\-ignore_crc\fR]\ [\fB\-X\fR\ |\ \fB\-\-dialog\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]] [[\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR]
 .SH "DESCRIPTION"
 .PP
 \fBpartclone\fR\&.[fstype] is a part of
@@ -73,14 +73,14 @@ The program follows the usual GNU command line syntax, with long options startin
 .PP
 \fB\-s \fR\fB\fIFILE\fR\fR, \fB\-\-source \fR\fB\fIFILE\fR\fR
 .RS 4
-Source FILE\&. The FILE could be a image file(made by partclone) or device depend on your action\&. Normanly, backup source is device, restore source is image file\&.
+Source FILE\&. The FILE could be a image file(made by partclone) or device depend on your action\&. Normally, backup source is device, restore source is image file\&.
 .sp
 Receving data from pipe line is supported ONLY for restoring, just ignore \-s option or use \*(Aq\-\*(Aq means receive data from stdin\&.
 .RE
 .PP
 \fB\-o \fR\fB\fIFILE\fR\fR, \fB\-\-output \fR\fB\fIFILE\fR\fR
 .RS 4
-Output FILE\&. The FILE could be a image file(partclone will generate) or device depend on your action\&. Normanly, backup output to image file and restore output to device\&.
+Output FILE\&. The FILE could be a image file(partclone will generate) or device depend on your action\&. Normally, backup output to image file and restore output to device\&.
 .sp
 Sending data to pipe line is also supported ONLY for back\-up, just ignore \-o option or use \*(Aq\-\*(Aq means send data to stdout\&.
 .RE
@@ -115,7 +115,7 @@ Create GNU Ddrescue domain log file from source device
 Add X (in bytes) to all positions reported in the domain log file
 .RE
 .PP
-\fB\-\-restore_row_file\fR
+\fB\-\-restore_raw_file\fR
 .RS 4
 Creating special raw file for loop device\&.
 .RE
