@@ -1,6 +1,9 @@
-PREFIX=         $(prefix)
-INSTPREFIX=     $(DESTDIR)$(PREFIX)
-INSTLIBDIR=     $(INSTPREFIX)/share/partclone
+PREFIX=         ${prefix}
+INSTPREFIX=     ${DESTDIR}${PREFIX}
+ifeq ($(INSTPREFIX),)
+	INSTPREFIX=/usr/local
+endif
+INSTLIBDIR=     ${INSTPREFIX}/share/partclone
 INSTALL=        install
 
 
@@ -29,6 +32,10 @@ install: fail-mbr.bin
 	-mkdir -p $(INSTLIBDIR)
 	$(INSTALL) fail-mbr.bin $(INSTLIBDIR)
 	
+uninstall:
+	rm -f  $(INSTLIBDIR)/fail-mbr.bin
+	rm -d  $(INSTLIBDIR)
+
 check:
 #check: compare
 
