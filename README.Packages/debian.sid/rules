@@ -21,7 +21,8 @@ override_dh_auto_configure:
 	#cp /usr/share/misc/config.guess .
 	#autoreconf
 	#./configure --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info LDFLAGS="-Wl,-z,defs" --enable-ncursesw --enable-extfs --enable-static
-	dh_auto_configure -- --enable-ncursesw --enable-extfs
+	# dh_auto_configure -- --enable-ncursesw --enable-extfs --enable-static # for normal linux
+	dh_auto_configure -- --enable-ncursesw --enable-all --enable-static # for clonezilla dist
 
 override_dh_auto_install:
 	$(MAKE) DESTDIR=$$(pwd)/debian/partclone prefix=/usr install
