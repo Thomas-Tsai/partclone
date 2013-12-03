@@ -73,7 +73,6 @@ if ENABLE_XFS
 sbin_PROGRAMS += partclone.xfs
 partclone_xfs_SOURCES=main.c partclone.c progress.c xfsclone.c xfsclone.h partclone.h progress.h gettext.h
 partclone_xfs_CFLAGS=-DXFS
-partclone_xfs_LDFLAGS=
 partclone_xfs_LDADD=-lxfs -lrt -lpthread
 endif
 
