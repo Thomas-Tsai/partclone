@@ -393,7 +393,7 @@ am__objects_20 = partclone_xfs-main.$(OBJEXT) \
 partclone_xfs_OBJECTS = $(am_partclone_xfs_OBJECTS)
 partclone_xfs_DEPENDENCIES =
 partclone_xfs_LINK = $(CCLD) $(partclone_xfs_CFLAGS) $(CFLAGS) \
-	$(partclone_xfs_LDFLAGS) $(LDFLAGS) -o $@
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -586,7 +586,6 @@ partclone_imager_CFLAGS = -DIMG
 @ENABLE_HFSP_TRUE@partclone_hfsp_CFLAGS = -DHFSPLUS
 @ENABLE_XFS_TRUE@partclone_xfs_SOURCES = $(main_files) xfsclone.c xfsclone.h
 @ENABLE_XFS_TRUE@partclone_xfs_CFLAGS = -DXFS
-@ENABLE_XFS_TRUE@partclone_xfs_LDFLAGS = 
 @ENABLE_XFS_TRUE@partclone_xfs_LDADD = -lxfs -lrt -lpthread
 @ENABLE_EXFAT_TRUE@partclone_exfat_SOURCES = $(main_files) exfatclone.c exfatclone.h $(EXFATFS_SOURCE)
 @ENABLE_EXFAT_TRUE@partclone_exfat_CFLAGS = -DEXFAT

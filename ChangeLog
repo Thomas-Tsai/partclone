@@ -1,3 +1,106 @@
+2013-12-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix makefile for archlinux
+
+2013-07-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	    * add test btrfs version to configure     * upgrade btfs to 0.20rc1     * update configure for automake 1.13
+
+	update dd mode string
+
+2013-07-03  Thomas Tsai  <thomas@nchc.org.tw>
+
+	0.2.66
+
+	fix read stdin size smaller than buffer size for partclone.dd
+
+2013-07-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	0.2.65
+
+	update open error for ddd
+
+2013-07-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update dd_bs to 1024
+
+	0.2.64
+
+	update ignore
+
+	dix dd issue
+
+2013-06-30  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update version and update manual for partclone.dd and partclone.imager
+
+	add imager and fix dd
+
+2013-06-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add version.h
+
+	update git version
+
+	0.2.62
+
+	fix unused variable
+
+	fix used_block error
+
+2013-06-13  Tran Ngoc Quan  <vnwildman@gmail.com>
+
+	Init Vietnamese translation
+
+2013-06-09  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #35 from pfrouleau/optimize_crc32_computation
+	Optimize crc32 computation
+
+	Merge pull request #34 from pfrouleau/ignore_version_h
+	Add src/version.h to .gitignore since it is a generated file
+
+	Merge pull request #33 from pfrouleau/fix_version_h_generation
+	teach toolbox to use a relative path to generate src/version.h
+
+2013-06-07  Patryck Rouleau  <pfrouleau@gmail.com>
+
+	teach toolbox to use a relative path to generate src/version.h
+	When toolbox is called from the makefile, src/ is the working directory
+	and it fails to create src/version.h.
+	By using a path relative to its own location, it can be called from
+	anywhere in the project.
+
+	Add src/version.h to .gitignore since it is a generated file
+
+	Optimize crc32 computation
+	Move the crc table initialization outside of the loop to avoid to check the
+	init flag for every byte.
+
+	My benchmark show a gain of 26% to clone a partition of 17G with 10G used:
+
+	init crc32 table inside the loop:
+	real   4m23.649s
+	user   2m20.301s
+	sys    1m34.782s
+
+	init crc32 table outside the loop:
+	real   3m13.169s
+	user   1m15.269s
+	sys    1m30.966s
+
+2013-06-06  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update test script
+
+2013-06-04  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add options to partclone.info to assign logfile path
+
+2013-05-26  Thomas Tsai  <thomas@nchc.org.tw>
+
+	typo of partclone manual
+
 2013-05-20  Thomas Tsai  <thomas@nchc.org.tw>
 
 	0.2.61
