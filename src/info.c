@@ -125,9 +125,14 @@ int main(int argc, char **argv){
     /**
      * open Image file
      */
-    dfr = open(opt.source, O_RDONLY);
-    if (dfr == -1)
-	printf("Can't open file(%s)\n", opt.source);
+    if (strcmp(opt.source, "-") == 0) {
+	if ((dfr = fileno(stdin)) == -1)
+	    log_mesg(0, 1, 1, opt.debug, "info: open %s(stdin) error\n", opt.source);
+    } else {
+	dfr = open(opt.source, O_RDONLY);
+	if (dfr == -1)
+	    log_mesg(0, 1, 1, opt.debug, "info: Can't open file(%s)\n", opt.source);
+    }
 
     /// get image information from image file
     load_image_desc(&dfr, &opt, &img_head, &fs_info, &img_opt);
