@@ -2,6 +2,7 @@
 set -e
 
 . _common
+break_debug=1
 ## file system
 normal_fs="ext2"
 featured_fs="$normal_fs"
@@ -40,6 +41,12 @@ for fs in $test_fs; do
     echo "$ptlinfo -s $img -L $logfile"
     _ptlbreak
     $ptlinfo -s $img -L $logfile
+    _check_return_code
+
+    echo "print image header from stdin image"
+    echo "cat $img | $ptlinfo -s - -L $logfile"
+    _ptlbreak
+    cat $img | $ptlinfo -s - -L $logfile
     _check_return_code
 
     echo "check logfile"
