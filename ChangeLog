@@ -1,4 +1,20 @@
+2013-12-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add stdin for partclone.info
+
+2013-12-03  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update rule for clonezilla
+
+	fix xfs static link issue
+
 2013-12-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix error: #error You should define _FILE_OFFSET_BITS=64
+
+	accept patch from daniel Rozenberg. While checking the man file I noticed some typos, fixed here
+
+	update version and log
 
 	fix makefile for archlinux
 
