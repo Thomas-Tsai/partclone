@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: partclone-0.2.61\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2013-03-28 22:56+0800\n"
+"POT-Creation-Date: 2013-12-09 14:30+0800\n"
 "PO-Revision-Date: 2013-06-13 09:03+0700\n"
 "Last-Translator: Trần Ngọc Quân <vnwildman@gmail.com>\n"
 "Language-Team: Vietnamese <translation-team-vi@lists.sourceforge.net>\n"
+"Language: vi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.5.5\n"
-"Language: vi\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 #: src/progress.c:199
@@ -82,82 +82,87 @@ msgstr "Thời gian tổng cộng: %s Còn lại: %s "
 msgid "Ave. Rate: %6.2f%s/min"
 msgstr "Tốc độ tb: %6.2f%s/phút, "
 
-#: src/partclone.c:1041
+#: src/partclone.c:1081
 #, c-format
 msgid "Partclone v%s http://partclone.org\n"
 msgstr "Partclone phiên bản %s <http://partclone.org>\n"
 
-#: src/partclone.c:1043
+#: src/partclone.c:1083
 #, c-format
 msgid "Starting to check image (%s)\n"
 msgstr "Đang kiểm tra ảnh (%s)\n"
 
-#: src/partclone.c:1045
+#: src/partclone.c:1085
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
 msgstr "Bắt đầu nhân bản thiết bị (%s) thành ảnh (%s)\n"
 
-#: src/partclone.c:1047
+#: src/partclone.c:1087
 #, c-format
 msgid "Starting to restore image (%s) to device (%s)\n"
 msgstr "Bắt đầu phục hồi ảnh (%s) vào thiết bị (%s)\n"
 
-#: src/partclone.c:1049
+#: src/partclone.c:1089
 #, c-format
 msgid "Starting to back up device(%s) to device(%s)\n"
 msgstr "Bắt đầu sao lưu dự phòng thiết bị (%s) vào thiết bị(%s)\n"
 
-#: src/partclone.c:1051
+#: src/partclone.c:1091
 #, c-format
 msgid "Starting to map device (%s) to domain log (%s)\n"
 msgstr "Bắt đầu ánh xạ thiết bị (%s) vào nhật ký tên miền (%s)\n"
 
-#: src/partclone.c:1068
+#: src/partclone.c:1093
+#, fuzzy, c-format
+msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
+msgstr "Bắt đầu nhân bản thiết bị (%s) thành ảnh (%s)\n"
+
+#: src/partclone.c:1110
 #, c-format
 msgid "File system:  %s\n"
 msgstr "Hê thống tập tin:     %s\n"
 
-#: src/partclone.c:1071
+#: src/partclone.c:1113
 #, c-format
 msgid "Device size:  %s = %llu Blocks\n"
 msgstr "Kích thước thiết bị:  %s = %llu Khối\n"
 
-#: src/partclone.c:1074
+#: src/partclone.c:1116
 #, c-format
 msgid "Space in use: %s = %llu Blocks\n"
 msgstr "Dung lượng đã dùng:   %s = %llu Khối\n"
 
-#: src/partclone.c:1077
+#: src/partclone.c:1119
 #, c-format
 msgid "Free Space:   %s = %llu Blocks\n"
 msgstr "Dung lượng còn trống: %s = %llu Khối\n"
 
-#: src/partclone.c:1079
+#: src/partclone.c:1121
 #, c-format
 msgid "Block size:   %i Byte\n"
 msgstr "Kích thước khối:      %i Byte\n"
 
-#: src/partclone.c:1092
+#: src/partclone.c:1133
 #, c-format
 msgid "Partclone successfully checked the image (%s)\n"
 msgstr "Partclone đã kiểm tra ảnh (%s) thành công\n"
 
-#: src/partclone.c:1094
+#: src/partclone.c:1135
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr "Partclone đã nhân bản thành công thiết bị (%s) thành ảnh (%s)\n"
 
-#: src/partclone.c:1096
+#: src/partclone.c:1137
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr "Partclone đã phục hồi thành công ảnh (%s) vào thiết bị (%s)\n"
 
-#: src/partclone.c:1098
+#: src/partclone.c:1139
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr "Partclone đã nhân bản thành công thiết bị (%s) vào thiết bị (%s)\n"
 
-#: src/partclone.c:1100
+#: src/partclone.c:1141
 #, c-format
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
 msgstr ""
