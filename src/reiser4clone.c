@@ -70,10 +70,10 @@ static void fs_open(char* device){
     }else{
 
         if (!state)
-            log_mesg(0, 1, 1, fs_opt.debug, "%s: REISER4 can't get status\n", __FILE__);
+            log_mesg(1, 0, 0, fs_opt.debug, "%s: REISER4: FS marked consistent\n", __FILE__);
 
         if (state) 
-            log_mesg(3, 0, 0, fs_opt.debug, "%s: REISER4 stat : %i\n", __FILE__, state);
+            log_mesg(3, 0, 0, fs_opt.debug, "%s: REISER4: stat : %i\n", __FILE__, state);
 
         if (state != FS_OK)
             log_mesg(0, 1, 1, fs_opt.debug, "%s: Filesystem isn't in valid state. May be it is not cleanly unmounted.\n\n", __FILE__);
