@@ -21,6 +21,20 @@ mkfs_option_for_reiserfs='-q'
 mkfs_option_for_reiser4='-f -y'
 mkfs_option_for_ntfs='-f -F'
 mkfs_option_for_jfs='-q'
+mkfs_option_for_xfs='-f'
+mkfs_option_for_btrfs='-f'
+#mkfs_option_for_minix='-3'
+
+## file system
+# mountable for writing file system
+mountable_fs="ext2 ext3 ext4 vfat exfat minix jfs xfs reiserfs ntfs btrfs hfsplus" 
+
+# vmfs file system can't format, can mount read-only
+# ufs mkfs.ufs can't format special file as partition
+extra_fs="vmfs ufs"
+
+# foramtable file system reiser4 can't mount, ufs read-only
+formatable_fs="$mountable_fs reiser4"
 
 _check_root(){
     if [[ $UID -ne 0 ]]; then

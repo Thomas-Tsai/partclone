@@ -2,20 +2,16 @@
 set -e
 
 . _common
-## file system
-normal_fs="ext2 ext3 ext4 vfat exfat minix"
-featured_fs="$normal_fs jfs xfs reiserfs hfsplus"
-extra_fs="$featured_fs ufs vmfs reiser4 ntfs btrfs"
-
 manual_fs=$1
 
-test_fs=$featured_fs
+test_fs=$formatable_fs
 dd_count=$normal_size
 [ -z $manual_fs ] || test_fs=$manual_fs
 
 #main
 for fs in $test_fs; do
     
+    echo "file system $fs test begin"
     ptlfs=$(_ptlname $fs)
     mkfs=$(_findmkfs $fs)
     echo "create raw file $raw"
@@ -58,5 +54,7 @@ for fs in $test_fs; do
     echo "clear tmp files $img $raw $logfile $md5"
     _ptlbreak
     rm -f $img $raw $logfile $md5
+    echo "file system $fs test done"
 
 done
+echo "Finish!"

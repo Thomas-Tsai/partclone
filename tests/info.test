@@ -2,15 +2,7 @@
 set -e
 
 . _common
-break_debug=1
-## file system
-normal_fs="ext2"
-featured_fs="$normal_fs"
-extra_fs="$featured_fs"
-
 manual_fs="ext2"
-
-test_fs=$featured_fs
 dd_count=$normal_size
 [ -z $manual_fs ] || test_fs=$manual_fs
 
@@ -55,7 +47,7 @@ for fs in $test_fs; do
     cat $logfile
     _check_return_code
 
-    echo "$fs test ok"
+    echo "info test ok"
     echo "clear tmp files $img $raw $logfile $md5"
     _ptlbreak
     rm -f $img $raw $logfile $md5
