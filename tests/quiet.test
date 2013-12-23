@@ -5,7 +5,7 @@ set -e
 ## file system
 fs="ext3"
 dd_count=$normal_size
-break_debug=1
+break_debug=0
 
 #main
 
@@ -53,7 +53,7 @@ _ptlbreak
 $ptlrestore -s $img -O $raw -C -F -L $logfile
 _check_return_code
 
-echo "$fs test ok"
+echo "quiet test ok"
 echo "clear tmp files $img $raw $logfile $md5"
 _ptlbreak
 rm -f $img $raw $logfile $md5

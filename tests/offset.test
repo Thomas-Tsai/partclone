@@ -20,16 +20,23 @@ sleep 2
 
 mkfs.ext3 $part_loop_device
 _ptlbreak
-echo "$ptlfs -d3 -b -s $part_loop_device -o $offset_loop_device --offset=$OFFSET"
-$ptlfs -d3 -b -s $part_loop_device -o $offset_loop_device --offset=$OFFSET
+echo "$ptlfs -d -b -s $part_loop_device -o $offset_loop_device --offset=$OFFSET"
+$ptlfs -d -b -s $part_loop_device -o $offset_loop_device --offset=$OFFSET
 _check_return_code
 
+set +e
 echo "mount -o offset=$OFFSET $offset_loop_device /mnt"
 mount -o offset=$OFFSET $offset_loop_device /mnt
 _check_return_code
 mount
-umout /mnt
-mount
+umount /mnt
+mount | grep loop
 
 losetup -d $part_loop_device
 losetup -d $offset_loop_device
+
+set -e
+echo "remove row file"
+rm -f $row_A_file $row_B_file 
+
+echo "offset test done"
