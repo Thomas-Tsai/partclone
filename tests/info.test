@@ -2,7 +2,7 @@
 set -e
 
 . _common
-break_debug=1
+break_debug=0
 ## file system
 normal_fs="ext2"
 featured_fs="$normal_fs"
@@ -54,6 +54,11 @@ for fs in $test_fs; do
     _ptlbreak
     cat $logfile
     _check_return_code
+
+    set +e
+    echo "give no options"
+    $ptlinfo
+    set -e
 
     echo "$fs test ok"
     echo "clear tmp files $img $raw $logfile $md5"

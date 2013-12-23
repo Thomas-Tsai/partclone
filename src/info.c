@@ -34,16 +34,18 @@
 cmd_opt opt;
 
 void info_usage(void) {
-	fprintf(stderr, "partclone v%s http://partclone.org\nUsage: partclone.info [OPTIONS]\n"
-	"\n"
-		"    -s,  --source FILE      Source FILE\n"
+	fprintf(stderr, "partclone v%s http://partclone.org\n"
+	                "Usage: partclone.info [FILE]\n"
+	                "Or: partclone.info [OPTIONS]\n"
+	                "\n"
+		"    -s,  --source FILE      Source FILE, or stdin(-)\n"
 		"    -L,  --logfile FILE     Log FILE\n"
 		"    -dX, --debug=X          Set the debug level to X = [0|1|2]\n"
 		"    -q,  --quiet            Disable progress message\n"
 		"    -v,  --version          Display partclone version\n"
 		"    -h,  --help             Display this help\n"
 		, VERSION);
-	exit(0);
+	exit(1);
 }
 
 
@@ -67,6 +69,8 @@ void info_options (int argc, char **argv){
 	opt.target  = 0;
 	opt.clone   = 0;
 	opt.restore = 0;
+	opt.info = 1;
+	
 
     while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != -1) {
 	switch (c) {
@@ -97,6 +101,9 @@ void info_options (int argc, char **argv){
 		info_usage();
 	}
     }
+
+    if ( opt.source == 0 )
+        info_usage();
 
 }
 

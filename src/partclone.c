@@ -1091,6 +1091,8 @@ void print_partclone_info(cmd_opt opt) {
 		log_mesg(0, 0, 1, debug, _("Starting to map device (%s) to domain log (%s)\n"), opt.source, opt.target);
 	else if (opt.ddd)
 		log_mesg(0, 0, 1, debug, _("Starting to clone/restore (%s) to (%s) with dd mode\n"), opt.source, opt.target);
+	else if (opt.info)
+		log_mesg(0, 0, 1, debug, _("Display image information\n"));
 	else
 		log_mesg(0, 0, 1, debug, "Unknown mode\n");
 }
