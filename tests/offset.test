@@ -10,6 +10,9 @@ ptlfs=$(_ptlname "extfs")
 
 _check_root
 
+echo -e "partclone offset option test"
+echo -e "===========================\n"
+echo -e "\ncreate tw row file and setup as loop device\n"
 dd if=/dev/zero of=$row_A_file count=1 bs=$disk_size
 dd if=/dev/zero of=$row_B_file count=1 bs=$(($disk_size+$OFFSET))
 part_loop_device=$(losetup -f)
@@ -18,14 +21,17 @@ offset_loop_device=$(losetup -f)
 losetup $offset_loop_device $row_B_file
 sleep 2
 
+echo -e "\nformet loop device $part_loop_device\n"
 mkfs.ext3 $part_loop_device
 _ptlbreak
-echo "$ptlfs -d -b -s $part_loop_device -o $offset_loop_device --offset=$OFFSET"
+echo -e "\n clone $part_loop_device to $offset_loop_device with offset option\n"
+echo -e "    $ptlfs -d -b -s $part_loop_device -o $offset_loop_device --offset=$OFFSET\n"
 $ptlfs -d -b -s $part_loop_device -o $offset_loop_device --offset=$OFFSET
 _check_return_code
 
+echo -e "\nmount $offset_loop_device with offset option and check return code\n"
 set +e
-echo "mount -o offset=$OFFSET $offset_loop_device /mnt"
+echo -e "    mount -o offset=$OFFSET $offset_loop_device /mnt\n"
 mount -o offset=$OFFSET $offset_loop_device /mnt
 _check_return_code
 mount
@@ -36,7 +42,7 @@ losetup -d $part_loop_device
 losetup -d $offset_loop_device
 
 set -e
-echo "remove row file"
+echo -e "\nremove row file\n"
 rm -f $row_A_file $row_B_file 
 
-echo "offset test done"
+echo -e "\noffset test done\n"

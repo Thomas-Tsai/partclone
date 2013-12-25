@@ -11,50 +11,51 @@ dd_count=$normal_size
 #main
 for fs in $test_fs; do
     
-    echo "file system $fs test begin"
+    echo -e "Basic $fs test"
+    echo -e "==========================\n"
     ptlfs=$(_ptlname $fs)
     mkfs=$(_findmkfs $fs)
-    echo "create raw file $raw"
+    echo -e "\ncreate raw file $raw\n"
     _ptlbreak
     [ -f $raw ] && rm $raw
-    echo "dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count"
+    echo -e "    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count\n"
     dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
 
-    echo "format $raw as $fs raw partition"
-    echo "mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw"
+    echo -e "\n\nformat $raw as $fs raw partition\n"
+    echo -e "    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw\n"
     _ptlbreak
     $mkfs `eval echo "$"mkfs_option_for_$fs""` $raw
 
-    echo "clone $raw to $img"
+    echo -e "\nclone $raw to $img\n"
     [ -f $img ] && rm $img
-    echo "$ptlfs -d -c -s $raw -O $img -F -L $logfile"
+    echo -e "    $ptlfs -d -c -s $raw -O $img -F -L $logfile\n"
     _ptlbreak
     $ptlfs -d -c -s $raw -O $img -F -L $logfile
     _check_return_code
 
-    echo "do image checking"
-    echo "$ptlchkimg -s $img -L $logfile"
+    echo -e "\n\ndo image checking\n"
+    echo -e "    $ptlchkimg -s $img -L $logfile\n"
     _ptlbreak
     $ptlchkimg -s $img -L $logfile
     _check_return_code
 
-    echo "create raw file $raw for restore"
+    echo -e "\n\ncreate raw file $raw for restore\n"
     _ptlbreak
     [ -f $raw ] && rm $raw
-    echo "dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count"
+    echo -e "    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count\n"
     dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
 
-    echo "restore $img to $raw"
-    echo "$ptlrestore -s $img -O $raw -C -F -L $logfile"
+    echo -e "\n\nrestore $img to $raw\n"
+    echo -e "    $ptlrestore -s $img -O $raw -C -F -L $logfile\n"
     _ptlbreak
     $ptlrestore -s $img -O $raw -C -F -L $logfile
     _check_return_code
 
-    echo "$fs test ok"
-    echo "clear tmp files $img $raw $logfile $md5"
+    echo -e "\n\n$fs test ok\n"
+    echo -e "\nclear tmp files $img $raw $logfile $md5\n"
     _ptlbreak
     rm -f $img $raw $logfile $md5
-    echo "file system $fs test done"
+    echo -e "\nfile system $fs test done\n"
 
 done
-echo "Finish!"
+echo -e "\nFinish!\n"
