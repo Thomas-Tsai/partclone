@@ -34,12 +34,7 @@ _ptlbreak
 $ptlrestore -s $img -O $raw -C -F -L $logfile
 _check_return_code
 
-<<<<<<< HEAD
-echo "$fs test ok"
-echo "clear tmp files $img $raw $logfile $md5"
-=======
 echo -e "\nimager test ok\n"
 echo -e "\nclear tmp files $img $raw $logfile $md5\n"
->>>>>>> a9f7045... finish tests script
 _ptlbreak
 rm -f $img $raw $logfile $md5

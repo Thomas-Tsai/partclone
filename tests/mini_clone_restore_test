@@ -22,17 +22,13 @@ dd_count=$normal_size
 
 #main
 for fs in $test_fs; do
-<<<<<<< HEAD
 
     cs_i=$(( (cs_i + 1) % cs_s))
     a=${cs_a[$cs_i]}
     k=${cs_k[$cs_i]}
 
-=======
-    
     echo -e "Basic $fs test"
     echo -e "==========================\n"
->>>>>>> a9f7045... finish tests script
     ptlfs=$(_ptlname $fs)
     mkfs=$(_findmkfs $fs)
     echo -e "\ncreate raw file $raw\n"
@@ -48,11 +44,7 @@ for fs in $test_fs; do
 
     echo -e "\nclone $raw to $img\n"
     [ -f $img ] && rm $img
-<<<<<<< HEAD
-    echo "$ptlfs -d -c -s $raw -O $img -F -L $logfile -a $a -k $k"
-=======
-    echo -e "    $ptlfs -d -c -s $raw -O $img -F -L $logfile\n"
->>>>>>> a9f7045... finish tests script
+    echo -e "    $ptlfs -d -c -s $raw -O $img -F -L $logfile -a $a -k $k"
     _ptlbreak
     $ptlfs -d -c -s $raw -O $img -F -L $logfile -a $a -k $k
     _check_return_code
@@ -79,12 +71,7 @@ for fs in $test_fs; do
     echo -e "\nclear tmp files $img $raw $logfile $md5\n"
     _ptlbreak
     rm -f $img $raw $logfile $md5
-<<<<<<< HEAD
 
-done
-=======
     echo -e "\nfile system $fs test done\n"
-
 done
 echo -e "\nFinish!\n"
->>>>>>> a9f7045... finish tests script

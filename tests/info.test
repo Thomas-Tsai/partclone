@@ -62,13 +62,8 @@ for fs in $test_fs; do
     $ptlinfo
     set -e
 
-<<<<<<< HEAD
-    echo "$fs test ok"
-    echo "clear tmp files $img $raw $logfile $md5"
-=======
     echo -e "\ninfo test ok\n"
     echo -e "\nclear tmp files $img $raw $logfile $md5\n"
->>>>>>> a9f7045... finish tests script
     _ptlbreak
     rm -f $img $raw $logfile $md5
 

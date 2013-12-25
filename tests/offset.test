@@ -24,13 +24,6 @@ sleep 2
 echo -e "\nformet loop device $part_loop_device\n"
 mkfs.ext3 $part_loop_device
 _ptlbreak
-<<<<<<< HEAD
-echo "$ptlfs -d3 -b -s $part_loop_device -o $offset_loop_device --offset=$OFFSET"
-$ptlfs -d3 -b -s $part_loop_device -o $offset_loop_device --offset=$OFFSET
-_check_return_code
-
-echo "mount -o offset=$OFFSET $offset_loop_device /mnt"
-=======
 echo -e "\n clone $part_loop_device to $offset_loop_device with offset option\n"
 echo -e "    $ptlfs -d -b -s $part_loop_device -o $offset_loop_device --offset=$OFFSET\n"
 $ptlfs -d -b -s $part_loop_device -o $offset_loop_device --offset=$OFFSET
@@ -39,7 +32,6 @@ _check_return_code
 echo -e "\nmount $offset_loop_device with offset option and check return code\n"
 set +e
 echo -e "    mount -o offset=$OFFSET $offset_loop_device /mnt\n"
->>>>>>> a9f7045... finish tests script
 mount -o offset=$OFFSET $offset_loop_device /mnt
 _check_return_code
 mount
@@ -48,12 +40,9 @@ mount
 
 losetup -d $part_loop_device
 losetup -d $offset_loop_device
-<<<<<<< HEAD
-=======
 
 set -e
 echo -e "\nremove row file\n"
 rm -f $row_A_file $row_B_file 
 
 echo -e "\noffset test done\n"
->>>>>>> a9f7045... finish tests script
