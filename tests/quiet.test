@@ -2,25 +2,46 @@
 set -e
 
 . _common
-fs="imager"
-ptlfs="../src/partclone.imager"
-dd_count=$((normal_size/2))
+## file system
+fs="ext3"
+dd_count=$normal_size
+break_debug=0
 
-echo -e "partclone.imager test"
+#main
+
+ptlfs=$(_ptlname $fs)
+mkfs=$(_findmkfs $fs)
+echo -e "quiet option test"
 echo -e "====================\n"
-echo -e "create raw file $raw and save as partclone image file\n"
+echo -e "\ncreate raw file $raw\n"
 _ptlbreak
 [ -f $raw ] && rm $raw
 echo -e "    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count\n"
 dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
 
+echo -e "\nformat $raw as $fs raw partition\n"
+echo -e "    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw\n"
+_ptlbreak
+$mkfs `eval echo "$"mkfs_option_for_$fs""` $raw
+
 echo -e "\nclone $raw to $img\n"
 [ -f $img ] && rm $img
 echo -e "    $ptlfs -d -c -s $raw -O $img -F -L $logfile\n"
 _ptlbreak
-$ptlfs -d -c -s $raw -O $img -F -L $logfile
+time $ptlfs -d -c -s $raw -O $img -F -L $logfile
 _check_return_code
 
+echo -e "\nquiet mode\n"
+echo -e "    $ptlfs -d -q -c -s $raw -O $img -F -L $logfile\n"
+_ptlbreak
+time $ptlfs -d -q -c -s $raw -O $img -F -L $logfile
+_check_return_code
+
+echo -e "\ndo image checking\n"
+echo -e "    $ptlchkimg -s $img -L $logfile\n"
+_ptlbreak
+$ptlchkimg -s $img -L $logfile
+_check_return_code
 
 echo -e "\ncreate raw file $raw for restore\n"
 _ptlbreak
@@ -34,12 +55,8 @@ _ptlbreak
 $ptlrestore -s $img -O $raw -C -F -L $logfile
 _check_return_code
 
-<<<<<<< HEAD
-echo "$fs test ok"
-echo "clear tmp files $img $raw $logfile $md5"
-=======
-echo -e "\nimager test ok\n"
+echo -e "\nquiet test ok\n"
 echo -e "\nclear tmp files $img $raw $logfile $md5\n"
->>>>>>> a9f7045... finish tests script
 _ptlbreak
 rm -f $img $raw $logfile $md5
+

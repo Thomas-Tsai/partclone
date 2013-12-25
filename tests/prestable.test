@@ -1,0 +1,53 @@
+#!/bin/bash
+PARTCLONE_PATH="/home/thomas/partclone"
+REPORT_PATH="/test/report"
+CURRENT_PATH="/test/report/current"
+
+if [[ $EUID -ne 0 ]]; then
+    echo "This script must be run as root" 1>&2
+    exit 1
+fi
+
+mkdir -p $REPORT_PATH
+function_test="dd.test ncursesw.test quiet.test imager.test  info.test offset.test"
+empty_part_test="mini_clone_restore_test"
+data_part_test="data_clone_restore_test"
+pushd $PARTCLONE_PATH
+make clean
+autoreconf
+./configure --enable-all --enable-ncursesw
+make
+popd
+
+pushd $PARTCLONE_PATH/tests
+ver=$(../src/partclone.extfs -v | grep Partclone|awk '{print $4}' | sed s/\(//g)
+ver=$(echo ${ver:0:6})
+REPORT_PATH="/test/report/$ver"
+mkdir -p $REPORT_PATH
+
+echo "start $function_test test"
+for fun in $function_test; do
+    echo "@@@ start $func test"
+    ./$fun 2>&1 | tee $REPORT_PATH/func-`date +%F`-$fun.md
+    echo "@@@ end $func test"
+done
+echo "end $function_test test"
+
+echo "start $empty_part_test test"
+for fs in $empty_part_test; do
+    echo "@@@ start $fs test"
+    ./$fs 2>&1 | tee $REPORT_PATH/mini-`date +%F`-$fs.md
+    echo "@@@ end $fs test"
+done
+echo "end $empty_part_test test"
+
+echo "start $data_part_test test"
+for fs in $data_part_test; do
+    echo "@@@ start $fs test"
+    ./$fs 2>&1 | tee $REPORT_PATH/data-`date +%F`-$fs.md
+    echo "@@@ end $fs test"
+done
+echo "end data $empty_part_test test"
+ln -s $REPORT_PATH $CURRENT_PATH
+
+popd

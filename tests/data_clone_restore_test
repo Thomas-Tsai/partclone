@@ -1,0 +1,79 @@
+#!/bin/bash
+
+. _common
+break_debug=0
+manual_fs=$1
+
+test_fs=$mountable_fs
+dd_count=$normal_size
+[ -z $manual_fs ] || test_fs=$manual_fs
+
+source_partition="/dev/sdb1"
+target_partition="/dev/sdc1"
+source_mountpoint="/test/source"
+target_mountpoint="/test/target"
+data_pool="/test/datapool/"
+chfile="/test/checksum.log"
+cchfile="/test/checksum_test.log"
+
+#main
+for fs in $test_fs; do
+    echo -e "Advanced $fs test"
+    echo -e "==========================\n"
+    mkdir -p $source_mountpoint $target_mountpoint $data_pool
+    umount $target_mountpoint $source_mountpoint
+    set -e
+    ptlfs=$(_ptlname $fs)
+    mkfs=$(_findmkfs $fs)
+    logfile="/test/clone-$fs.log"
+
+    echo -e "\nformat $source_partition as $fs partition\n"
+    echo -e "    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $source_partition\n"
+    _ptlbreak
+    $mkfs `eval echo "$"mkfs_option_for_$fs""` $source_partition
+    _check_return_code
+
+    echo -e "\nprepare data to clone\n"
+    _ptlbreak
+    mount -t $fs $source_partition $source_mountpoint
+    set +e 
+    # rsync error while rsync to vfat
+    # rsync error while rsync to exfat
+    # rsync -arl $data_pool $source_mountpoint 
+    # use cp -r
+    cp -r $data_pool/* $source_mountpoint
+    set -e
+    sync
+    pushd $source_mountpoint
+    find . -type f -exec md5sum '{}' \; > $chfile
+    popd
+    umount $source_mountpoint
+    echo -e "\nmd5sum done\n"
+
+    echo -e "\ndevice to device clone, $source_partition to $target_partition\n"
+    echo -e "    $ptlfs -d -b -s $source_partition -o $target_partition -L $logfile\n"
+    _ptlbreak
+    $ptlfs -q -d -b -s $source_partition -o $target_partition -L $logfile
+    _check_return_code
+
+    echo -e "\ncheck data\n"
+    _ptlbreak
+    mount -t $fs $target_partition $target_mountpoint
+    pushd $target_mountpoint
+    md5sum --quiet -c $chfile 2>&1 > $cchfile
+    popd
+    umount $target_mountpoint
+    echo -e "\ndone\n"
+    _check_return_code
+
+    echo -e "\nclear tmp files\n"
+    _ptlbreak
+    set +e
+    umount $target_mountpoint $source_mountpoint
+    rm -r $target_mountpoint $source_mountpoint $logfile $chfile $cchfile
+    _check_return_code
+
+    echo -e "\n$fs test ok\n"
+
+done
+echo -e "\nFinish!\n\n"

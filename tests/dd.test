@@ -6,30 +6,32 @@ fs="dd"
 ptlfs="../src/partclone.dd"
 dd_count=$((normal_size/2))
 
-echo "create raw file $raw"
+echo -e "partclone.dd test"
+echo -e "====================\n"
 _ptlbreak
 [ -f $raw ] && rm $raw
-echo "dd if=/dev/urandom of=$raw bs=$dd_bs count=$dd_count"
+echo -e "create raw file $raw\n"
+echo -e "    dd if=/dev/urandom of=$raw bs=$dd_bs count=$dd_count\n"
 dd if=/dev/urandom of=$raw bs=$dd_bs count=$dd_count
 smd5=$(md5sum $raw)
 
-echo "clone $raw to $img"
+echo -e "\nclone $raw to $img\n"
 [ -f $img ] && rm $img
-echo "$ptlfs -d -s $raw -O $img -F -L $logfile"
+echo -e "    $ptlfs -d -s $raw -O $img -F -L $logfile\n"
 _ptlbreak
 $ptlfs -d -s $raw -O $img -F -L $logfile
 _check_return_code
 
 
-echo "create raw file $raw for restore"
+echo -e "\ncreate raw file $raw for restore\n"
 _ptlbreak
 [ -f $raw ] && rm $raw
-echo "dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count"
+echo -e "    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count\n"
 dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
 
-echo "restore $img to $raw"
-#echo "$ptlrestore -s $img -O $raw -C -F -L $logfile"
-echo "$ptlfs -d -s $img -O $raw -F -L $logfile"
+echo -e "\nrestore $img to $raw\n"
+#echo "$ptlrestore -s $img -O $raw -C -F -L $logfile\n"
+echo -e "    $ptlfs -d -s $img -O $raw -F -L $logfile\n"
 _ptlbreak
 #$ptlrestore -s $img -O $raw -C -F -L $logfile
 $ptlfs -d -s $img -O $raw -F -L $logfile
@@ -37,11 +39,11 @@ _check_return_code
 nmd5=$(md5sum $raw)
 
 if [ "X$smd5" == "X$nmd5" ]; then
-    echo "$fs test ok"
-    echo "clear tmp files $img $raw $logfile $md5"
+    echo -e "\n$fs test ok\n"
+    echo -e "\nclear tmp files $img $raw $logfile $md5\n"
     _ptlbreak
     rm -f $img $raw $logfile $md5
 else
-    echo "$fs test fail"
-    echo "md5 checksum error ($smd5, $nmd5)"
+    echo -e "\n$fs test fail\n"
+    echo -e "\nmd5 checksum error ($smd5, $nmd5)\n"
 fi
