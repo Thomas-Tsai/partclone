@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: partclone-0.2.61\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2013-12-09 14:30+0800\n"
+"POT-Creation-Date: 2013-12-26 15:11+0800\n"
 "PO-Revision-Date: 2013-06-13 09:03+0700\n"
 "Last-Translator: Trần Ngọc Quân <vnwildman@gmail.com>\n"
 "Language-Team: Vietnamese <translation-team-vi@lists.sourceforge.net>\n"
@@ -117,52 +117,56 @@ msgstr "Bắt đầu ánh xạ thiết bị (%s) vào nhật ký tên miền (%s
 msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
 msgstr "Bắt đầu nhân bản thiết bị (%s) thành ảnh (%s)\n"
 
-#: src/partclone.c:1110
+#: src/partclone.c:1095
+msgid "Display image information\n"
+msgstr ""
+
+#: src/partclone.c:1112
 #, c-format
 msgid "File system:  %s\n"
 msgstr "Hê thống tập tin:     %s\n"
 
-#: src/partclone.c:1113
+#: src/partclone.c:1115
 #, c-format
 msgid "Device size:  %s = %llu Blocks\n"
 msgstr "Kích thước thiết bị:  %s = %llu Khối\n"
 
-#: src/partclone.c:1116
+#: src/partclone.c:1118
 #, c-format
 msgid "Space in use: %s = %llu Blocks\n"
 msgstr "Dung lượng đã dùng:   %s = %llu Khối\n"
 
-#: src/partclone.c:1119
+#: src/partclone.c:1121
 #, c-format
 msgid "Free Space:   %s = %llu Blocks\n"
 msgstr "Dung lượng còn trống: %s = %llu Khối\n"
 
-#: src/partclone.c:1121
+#: src/partclone.c:1123
 #, c-format
 msgid "Block size:   %i Byte\n"
 msgstr "Kích thước khối:      %i Byte\n"
 
-#: src/partclone.c:1133
+#: src/partclone.c:1135
 #, c-format
 msgid "Partclone successfully checked the image (%s)\n"
 msgstr "Partclone đã kiểm tra ảnh (%s) thành công\n"
 
-#: src/partclone.c:1135
+#: src/partclone.c:1137
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr "Partclone đã nhân bản thành công thiết bị (%s) thành ảnh (%s)\n"
 
-#: src/partclone.c:1137
+#: src/partclone.c:1139
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr "Partclone đã phục hồi thành công ảnh (%s) vào thiết bị (%s)\n"
 
-#: src/partclone.c:1139
+#: src/partclone.c:1141
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr "Partclone đã nhân bản thành công thiết bị (%s) vào thiết bị (%s)\n"
 
-#: src/partclone.c:1141
+#: src/partclone.c:1143
 #, c-format
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
 msgstr ""

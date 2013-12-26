@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2013-12-09 14:30+0800\n"
+"POT-Creation-Date: 2013-12-26 15:11+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -114,52 +114,56 @@ msgstr ""
 msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
 msgstr ""
 
-#: src/partclone.c:1110
+#: src/partclone.c:1095
+msgid "Display image information\n"
+msgstr ""
+
+#: src/partclone.c:1112
 #, c-format
 msgid "File system:  %s\n"
 msgstr ""
 
-#: src/partclone.c:1113
+#: src/partclone.c:1115
 #, c-format
 msgid "Device size:  %s = %llu Blocks\n"
 msgstr ""
 
-#: src/partclone.c:1116
+#: src/partclone.c:1118
 #, c-format
 msgid "Space in use: %s = %llu Blocks\n"
 msgstr ""
 
-#: src/partclone.c:1119
+#: src/partclone.c:1121
 #, c-format
 msgid "Free Space:   %s = %llu Blocks\n"
 msgstr ""
 
-#: src/partclone.c:1121
+#: src/partclone.c:1123
 #, c-format
 msgid "Block size:   %i Byte\n"
 msgstr ""
 
-#: src/partclone.c:1133
+#: src/partclone.c:1135
 #, c-format
 msgid "Partclone successfully checked the image (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1135
+#: src/partclone.c:1137
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1137
+#: src/partclone.c:1139
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1139
+#: src/partclone.c:1141
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr ""
 
-#: src/partclone.c:1141
+#: src/partclone.c:1143
 #, c-format
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
 msgstr ""

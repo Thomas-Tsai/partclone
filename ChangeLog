@@ -1,4 +1,36 @@
+2013-12-26  Thomas Tsai  <thomas@nchc.org.tw>
+
+	ready to release 0.2.69
+
+2013-12-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	finish tests script
+
+2013-12-23  Thomas Tsai  <thomas@nchc.org.tw>
+
+	merge tests/info.test
+
+	fix segfault for info.c
+
+2013-12-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add pre stable test
+
+2013-12-12  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add test for reiser4
+
+	fix reiser4 status issue
+
+2013-12-11  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add quiet test
+
+	add translation for Vietnamese from Trần Ngọc Quân  vnwildman@gmail.com
+
 2013-12-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	0.2.68 autoreconf done
 
 	add stdin for partclone.info
 
