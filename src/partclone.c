@@ -884,11 +884,17 @@ int open_target(char* target, cmd_opt* opt) {
 		    ddd_block_device = 1;
 		else
 		    ddd_block_device = 0;
-	    }else{
+	    } else {
 		ddd_block_device = 0;   
 	    }
+
 	    log_mesg(1, 0, 0, debug, "ddd target file(0) or device(1) ? %i \n", ddd_block_device);
 	}
+
+	if (opt->restore_raw_file == 1) {
+	    ddd_block_device = 0;
+	}
+
 	if (opt->clone || opt->domain || (ddd_block_device == 0)) {
 		if (strcmp(target, "-") == 0) {
 			if ((ret = fileno(stdout)) == -1)
