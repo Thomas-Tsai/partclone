@@ -23,6 +23,12 @@ pushd $PARTCLONE_PATH/tests
 ver=$(../src/partclone.extfs -v | grep Partclone|awk '{print $4}' | sed s/\(//g)
 ver=$(echo ${ver:0:6})
 REPORT_PATH="/test/report/$ver"
+if [ -d $REPORT_PATH ];then
+    echo "$REPORT_PATH exist"
+    echo "exit"
+    exit 1
+fi
+
 mkdir -p $REPORT_PATH
 
 echo "start $function_test test"
@@ -48,6 +54,7 @@ for fs in $data_part_test; do
     echo "@@@ end $fs test"
 done
 echo "end data $empty_part_test test"
+rm $CURRENT_PATH
 ln -s $REPORT_PATH $CURRENT_PATH
 
 popd
