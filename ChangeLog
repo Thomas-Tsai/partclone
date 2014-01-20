@@ -1,4 +1,12 @@
+2014-01-20  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update version to 0.2.70
+
+	fix restore-to-raw option
+
 2013-12-26  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update log, po and version
 
 	ready to release 0.2.69
 
