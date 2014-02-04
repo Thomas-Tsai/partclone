@@ -118,15 +118,14 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	</group>
 	</arg>
       <arg choice="req">
-	<group choice="opt">
+	<group choice="req">
 	    <arg choice="plain"><option>-s</option></arg>
 	    <arg choice="plain"><option>--source</option></arg>
 	</group>
 	<replaceable class="option">source</replaceable>
       </arg>
       <arg choice="req">
-	<group choice="opt">
-	<group choice="opt">
+	<group choice="req">
 	    <arg choice="plain"><option>-o</option></arg>
 	    <arg choice="plain"><option>--output</option></arg>
 	</group>
@@ -134,41 +133,56 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-O</option></arg>
 	    <arg choice="plain"><option>--overwrite</option></arg>
 	</group>
-	</group>
 	<replaceable class="option">target</replaceable>
-      </arg> 	
-      <arg choice="opt">
+      </arg> 
+      <arg  choice="plain">
 	<group choice="opt">
 	    <arg choice="plain"><option>-dX</option></arg>
 	    <arg choice="plain"><option>--debug=X</option></arg>
 	</group>
+      </arg>
+      <arg  choice="plain">
 	<group choice="opt">
 	    <arg choice="plain"><option>--restore_row_file</option></arg>
 	</group>
+      </arg>
+      <arg  choice="plain">
 	<group choice="opt">
 	    <arg choice="plain"><option>-z</option></arg>
 	    <arg choice="plain"><option>--buffer_size</option></arg>
 	</group>
+      </arg>
+      <arg  choice="plain">
 	<group choice="opt">
 	    <arg choice="plain"><option>-N</option></arg>
 	    <arg choice="plain"><option>--ncurses</option></arg>
 	</group>
+      </arg>
+      <arg  choice="plain">
 	<group choice="opt">
 	    <arg choice="plain"><option>-q</option></arg>
 	    <arg choice="plain"><option>--quiet</option></arg>
 	</group>
+      </arg>
+      <arg  choice="plain">
 	<group choice="opt">
 	    <arg choice="plain"><option>-f</option></arg>
 	    <arg choice="plain"><option>--UI-fresh</option></arg>
 	</group>
+      </arg>
+      <arg  choice="plain">
 	<group choice="opt">
 	    <arg choice="plain"><option>-F</option></arg>
 	    <arg choice="plain"><option>--force</option></arg>
 	</group>
+      </arg>
+      <arg  choice="plain">
 	<group choice="opt">
 	    <arg choice="plain"><option>-I</option></arg>
 	    <arg choice="plain"><option>--ignore_fschk</option></arg>
 	</group>
+      </arg>
+      <arg  choice="plain">
 	<group choice="opt">
 	<arg choice="plain"><option>--ignore_crc</option></arg>
 	</group>
@@ -176,21 +190,26 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-X</option></arg>
 	    <arg choice="plain"><option>--dialog</option></arg>
 	</group>
+      </arg>
+      <arg  choice="plain">
 	<group choice="opt">
 	    <arg choice="plain"><option>-C</option></arg>
 	    <arg choice="plain"><option>--nocheck</option></arg>
 	</group>
+      </arg>
+      <arg  choice="plain">
 	<group choice="opt">
 	    <arg choice="plain"><option>-R</option></arg>
 	    <arg choice="plain"><option>--rescue</option></arg>
 	</group>
-	<group choice="opt">
+      </arg>
+      <arg  choice="opt">
+	<group choice="req">
 	    <arg choice="plain"><option>-L</option></arg>
 	    <arg choice="plain"><option>--logfile</option></arg>
 	</group>
 	<replaceable class="option">logfile</replaceable>
-
-	</arg>
+      </arg>
      
     </cmdsynopsis>
   </refsynopsisdiv>
