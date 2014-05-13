@@ -373,7 +373,20 @@ struct btrfs_ioctl_received_subvol_args {
  * search of clone sources doesn't find an extent. UPDATE_EXTENT
  * commands will be sent instead of WRITE commands.
  */
-#define	BTRFS_SEND_FLAG_NO_FILE_DATA	0x1
+#define BTRFS_SEND_FLAG_NO_FILE_DATA		0x1
+
+/*
+ * Do not add the leading stream header. Used when multiple snapshots
+ * are sent back to back.
+ */
+#define BTRFS_SEND_FLAG_OMIT_STREAM_HEADER	0x2
+
+/*
+ * Omit the command at the end of the stream that indicated the end
+ * of the stream. This option is used when multiple snapshots are
+ * sent back to back.
+ */
+#define BTRFS_SEND_FLAG_OMIT_END_CMD		0x4
 
 struct btrfs_ioctl_send_args {
 	__s64 send_fd;			/* in */
@@ -382,25 +395,6 @@ struct btrfs_ioctl_send_args {
 	__u64 parent_root;		/* in */
 	__u64 flags;			/* in */
 	__u64 reserved[4];		/* in */
-};
-
-#define BTRFS_QUOTA_CTL_ENABLE	1
-#define BTRFS_QUOTA_CTL_DISABLE	2
-#define BTRFS_QUOTA_CTL_RESCAN	3
-struct btrfs_ioctl_quota_ctl_args {
-	__u64 cmd;
-	__u64 status;
-};
-
-struct btrfs_ioctl_qgroup_assign_args {
-	__u64 assign;
-	__u64 src;
-	__u64 dst;
-};
-
-struct btrfs_ioctl_qgroup_create_args {
-	__u64 create;
-	__u64 qgroupid;
 };
 
 enum btrfs_dev_stat_values {
@@ -437,6 +431,72 @@ struct btrfs_ioctl_get_dev_stats {
 };
 
 /* BTRFS_IOC_SNAP_CREATE is no longer used by the btrfs command */
+#define BTRFS_QUOTA_CTL_ENABLE	1
+#define BTRFS_QUOTA_CTL_DISABLE	2
+/* 3 has formerly been reserved for BTRFS_QUOTA_CTL_RESCAN */
+struct btrfs_ioctl_quota_ctl_args {
+	__u64 cmd;
+	__u64 status;
+};
+
+struct btrfs_ioctl_quota_rescan_args {
+	__u64	flags;
+	__u64   progress;
+	__u64   reserved[6];
+};
+
+struct btrfs_ioctl_qgroup_assign_args {
+	__u64 assign;
+	__u64 src;
+	__u64 dst;
+};
+
+struct btrfs_ioctl_qgroup_create_args {
+	__u64 create;
+	__u64 qgroupid;
+};
+
+/* Error codes as returned by the kernel */
+enum btrfs_err_code {
+	notused,
+	BTRFS_ERROR_DEV_RAID1_MIN_NOT_MET,
+	BTRFS_ERROR_DEV_RAID10_MIN_NOT_MET,
+	BTRFS_ERROR_DEV_RAID5_MIN_NOT_MET,
+	BTRFS_ERROR_DEV_RAID6_MIN_NOT_MET,
+	BTRFS_ERROR_DEV_TGT_REPLACE,
+	BTRFS_ERROR_DEV_MISSING_NOT_FOUND,
+	BTRFS_ERROR_DEV_ONLY_WRITABLE,
+	BTRFS_ERROR_DEV_EXCL_RUN_IN_PROGRESS
+};
+
+/* An error code to error string mapping for the kernel
+*  error codes
+*/
+static inline char *btrfs_err_str(enum btrfs_err_code err_code)
+{
+	switch (err_code) {
+		case BTRFS_ERROR_DEV_RAID1_MIN_NOT_MET:
+			return "unable to go below two devices on raid1";
+		case BTRFS_ERROR_DEV_RAID10_MIN_NOT_MET:
+			return "unable to go below four devices on raid10";
+		case BTRFS_ERROR_DEV_RAID5_MIN_NOT_MET:
+			return "unable to go below two devices on raid5";
+		case BTRFS_ERROR_DEV_RAID6_MIN_NOT_MET:
+			return "unable to go below three devices on raid6";
+		case BTRFS_ERROR_DEV_TGT_REPLACE:
+			return "unable to remove the dev_replace target dev";
+		case BTRFS_ERROR_DEV_MISSING_NOT_FOUND:
+			return "no missing devices found to remove";
+		case BTRFS_ERROR_DEV_ONLY_WRITABLE:
+			return "unable to remove the only writeable device";
+		case BTRFS_ERROR_DEV_EXCL_RUN_IN_PROGRESS:
+			return "add/delete/balance/replace/resize operation "
+				"in progress";
+		default:
+			return NULL;
+	}
+}
+
 #define BTRFS_IOC_SNAP_CREATE _IOW(BTRFS_IOCTL_MAGIC, 1, \
 				   struct btrfs_ioctl_vol_args)
 #define BTRFS_IOC_DEFRAG _IOW(BTRFS_IOCTL_MAGIC, 2, \
@@ -446,6 +506,7 @@ struct btrfs_ioctl_get_dev_stats {
 #define BTRFS_IOC_SCAN_DEV _IOW(BTRFS_IOCTL_MAGIC, 4, \
 				   struct btrfs_ioctl_vol_args)
 
+/* With a @src_length of zero, the range from @src_offset->EOF is cloned! */
 struct btrfs_ioctl_clone_range_args {
 	__s64 src_fd;
 	__u64 src_offset, src_length;
@@ -479,9 +540,11 @@ struct btrfs_ioctl_clone_range_args {
 				   struct btrfs_ioctl_search_args)
 #define BTRFS_IOC_INO_LOOKUP _IOWR(BTRFS_IOCTL_MAGIC, 18, \
 				   struct btrfs_ioctl_ino_lookup_args)
-#define BTRFS_IOC_DEFAULT_SUBVOL _IOW(BTRFS_IOCTL_MAGIC, 19, u64)
+#define BTRFS_IOC_DEFAULT_SUBVOL _IOW(BTRFS_IOCTL_MAGIC, 19, __u64)
 #define BTRFS_IOC_SPACE_INFO _IOWR(BTRFS_IOCTL_MAGIC, 20, \
 				    struct btrfs_ioctl_space_args)
+#define BTRFS_IOC_START_SYNC _IOR(BTRFS_IOCTL_MAGIC, 24, __u64)
+#define BTRFS_IOC_WAIT_SYNC  _IOW(BTRFS_IOCTL_MAGIC, 22, __u64)
 #define BTRFS_IOC_SNAP_CREATE_V2 _IOW(BTRFS_IOCTL_MAGIC, 23, \
 				   struct btrfs_ioctl_vol_args_v2)
 #define BTRFS_IOC_SUBVOL_CREATE_V2 _IOW(BTRFS_IOCTL_MAGIC, 24, \
@@ -520,6 +583,11 @@ struct btrfs_ioctl_clone_range_args {
 					struct btrfs_ioctl_qgroup_create_args)
 #define BTRFS_IOC_QGROUP_LIMIT _IOR(BTRFS_IOCTL_MAGIC, 43, \
 					struct btrfs_ioctl_qgroup_limit_args)
+#define BTRFS_IOC_QUOTA_RESCAN _IOW(BTRFS_IOCTL_MAGIC, 44, \
+			       struct btrfs_ioctl_quota_rescan_args)
+#define BTRFS_IOC_QUOTA_RESCAN_STATUS _IOR(BTRFS_IOCTL_MAGIC, 45, \
+			       struct btrfs_ioctl_quota_rescan_args)
+#define BTRFS_IOC_QUOTA_RESCAN_WAIT _IO(BTRFS_IOCTL_MAGIC, 46)
 #define BTRFS_IOC_GET_FSLABEL _IOR(BTRFS_IOCTL_MAGIC, 49, \
 				   char[BTRFS_LABEL_SIZE])
 #define BTRFS_IOC_SET_FSLABEL _IOW(BTRFS_IOCTL_MAGIC, 50, \
@@ -528,7 +596,12 @@ struct btrfs_ioctl_clone_range_args {
 				      struct btrfs_ioctl_get_dev_stats)
 #define BTRFS_IOC_DEV_REPLACE _IOWR(BTRFS_IOCTL_MAGIC, 53, \
 				    struct btrfs_ioctl_dev_replace_args)
-
+#define BTRFS_IOC_GET_FEATURES _IOR(BTRFS_IOCTL_MAGIC, 57, \
+                                  struct btrfs_ioctl_feature_flags)
+#define BTRFS_IOC_SET_FEATURES _IOW(BTRFS_IOCTL_MAGIC, 57, \
+                                  struct btrfs_ioctl_feature_flags[2])
+#define BTRFS_IOC_GET_SUPPORTED_FEATURES _IOR(BTRFS_IOCTL_MAGIC, 57, \
+                                  struct btrfs_ioctl_feature_flags[3])
 #ifdef __cplusplus
 }
 #endif

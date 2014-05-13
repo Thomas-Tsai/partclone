@@ -39,7 +39,16 @@
 #define EXTENT_DEFRAG_DONE (1 << 7)
 #define EXTENT_BUFFER_FILLED (1 << 8)
 #define EXTENT_CSUM (1 << 9)
+#define EXTENT_BAD_TRANSID (1 << 10)
 #define EXTENT_IOBITS (EXTENT_LOCKED | EXTENT_WRITEBACK)
+
+#define BLOCK_GROUP_DATA     EXTENT_WRITEBACK
+#define BLOCK_GROUP_METADATA EXTENT_UPTODATE
+#define BLOCK_GROUP_SYSTEM   EXTENT_NEW
+
+#define BLOCK_GROUP_DIRTY EXTENT_DIRTY
+
+struct btrfs_fs_info;
 
 struct extent_io_tree {
 	struct cache_tree state;
@@ -64,6 +73,7 @@ struct extent_buffer {
 	u32 len;
 	struct extent_io_tree *tree;
 	struct list_head lru;
+	struct list_head recow;
 	int refs;
 	int flags;
 	int fd;
@@ -114,12 +124,14 @@ void write_extent_buffer(struct extent_buffer *eb, const void *src,
 void copy_extent_buffer(struct extent_buffer *dst, struct extent_buffer *src,
 			unsigned long dst_offset, unsigned long src_offset,
 			unsigned long len);
-void memcpy_extent_buffer(struct extent_buffer *dst, unsigned long dst_offset,
-			  unsigned long src_offset, unsigned long len);
 void memmove_extent_buffer(struct extent_buffer *dst, unsigned long dst_offset,
 			   unsigned long src_offset, unsigned long len);
 void memset_extent_buffer(struct extent_buffer *eb, char c,
 			  unsigned long start, unsigned long len);
 int set_extent_buffer_dirty(struct extent_buffer *eb);
 int clear_extent_buffer_dirty(struct extent_buffer *eb);
+int read_data_from_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
+			u64 bytes, int mirror);
+int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
+		       u64 bytes, int mirror);
 #endif

@@ -26,6 +26,8 @@
 #include <endian.h>
 #include <byteswap.h>
 #include <assert.h>
+#include <stddef.h>
+#include <linux/types.h>
 
 #ifndef READ
 #define READ 0
@@ -48,7 +50,7 @@
 #define ULONG_MAX       (~0UL)
 #endif
 
-#define BUG() abort()
+#define BUG() assert(0)
 #ifdef __CHECKER__
 #define __force    __attribute__((force))
 #define __bitwise__ __attribute__((bitwise))
@@ -234,18 +236,11 @@ static inline long IS_ERR(const void *ptr)
 #define BUG_ON(c) assert(!(c))
 #define WARN_ON(c) assert(!(c))
 
-#undef offsetof
-#ifdef __compiler_offsetof
-#define offsetof(TYPE,MEMBER) __compiler_offsetof(TYPE,MEMBER)
-#else
-#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
-#endif
 
 #define container_of(ptr, type, member) ({                      \
         const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
 	        (type *)( (char *)__mptr - offsetof(type,member) );})
 #ifdef __CHECKER__
-#define __CHECK_ENDIAN__
 #define __bitwise __bitwise__
 #else
 #define __bitwise
@@ -282,9 +277,9 @@ typedef u64 __bitwise __be64;
 #define le16_to_cpu(x) ((__force u16)(__le16)(x))
 #endif
 
-struct __una_u16 { u16 x; } __attribute__((__packed__));
-struct __una_u32 { u32 x; } __attribute__((__packed__));
-struct __una_u64 { u64 x; } __attribute__((__packed__));
+struct __una_u16 { __le16 x; } __attribute__((__packed__));
+struct __una_u32 { __le32 x; } __attribute__((__packed__));
+struct __una_u64 { __le64 x; } __attribute__((__packed__));
 
 #define get_unaligned_le8(p) (*((u8 *)(p)))
 #define put_unaligned_le8(val,p) ((*((u8 *)(p))) = (val))

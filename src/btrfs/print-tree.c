@@ -24,6 +24,43 @@
 #include "ctree.h"
 #include "disk-io.h"
 #include "print-tree.h"
+#include "utils.h"
+
+
+static void print_dir_item_type(struct extent_buffer *eb,
+                                struct btrfs_dir_item *di)
+{
+	u8 type = btrfs_dir_type(eb, di);
+
+	switch (type) {
+	case BTRFS_FT_REG_FILE:
+		printf("FILE");
+		break;
+	case BTRFS_FT_DIR:
+		printf("DIR");
+		break;
+	case BTRFS_FT_CHRDEV:
+		printf("CHRDEV");
+		break;
+	case BTRFS_FT_BLKDEV:
+		printf("BLKDEV");
+		break;
+	case BTRFS_FT_FIFO:
+		printf("FIFO");
+		break;
+	case BTRFS_FT_SOCK:
+		printf("SOCK");
+		break;
+	case BTRFS_FT_SYMLINK:
+		printf("SYMLINK");
+		break;
+	case BTRFS_FT_XATTR:
+		printf("XATTR");
+		break;
+	default:
+		printf("%u", type);
+	}
+}
 
 static int print_dir_item(struct extent_buffer *eb, struct btrfs_item *item,
 			  struct btrfs_dir_item *di)
@@ -41,7 +78,9 @@ static int print_dir_item(struct extent_buffer *eb, struct btrfs_item *item,
 		btrfs_dir_item_key(eb, di, &location);
 		printf("\t\tlocation ");
 		btrfs_print_key(&location);
-		printf(" type %u\n", btrfs_dir_type(eb, di));
+		printf(" type ");
+		print_dir_item_type(eb, di);
+		printf("\n");
 		name_len = btrfs_dir_name_len(eb, di);
 		data_len = btrfs_dir_data_len(eb, di);
 		len = (name_len <= sizeof(namebuf))? name_len: sizeof(namebuf);
@@ -149,27 +188,28 @@ static void print_dev_item(struct extent_buffer *eb,
 
 static void print_uuids(struct extent_buffer *eb)
 {
-	char fs_uuid[37];
-	char chunk_uuid[37];
+	char fs_uuid[BTRFS_UUID_UNPARSED_SIZE];
+	char chunk_uuid[BTRFS_UUID_UNPARSED_SIZE];
 	u8 disk_uuid[BTRFS_UUID_SIZE];
 
-	read_extent_buffer(eb, disk_uuid, (unsigned long)btrfs_header_fsid(eb),
+	read_extent_buffer(eb, disk_uuid, btrfs_header_fsid(),
 			   BTRFS_FSID_SIZE);
 
-	fs_uuid[36] = '\0';
+	fs_uuid[BTRFS_UUID_UNPARSED_SIZE - 1] = '\0';
 	uuid_unparse(disk_uuid, fs_uuid);
 
 	read_extent_buffer(eb, disk_uuid,
-			   (unsigned long)btrfs_header_chunk_tree_uuid(eb),
+			   btrfs_header_chunk_tree_uuid(eb),
 			   BTRFS_UUID_SIZE);
 
-	chunk_uuid[36] = '\0';
+	chunk_uuid[BTRFS_UUID_UNPARSED_SIZE - 1] = '\0';
 	uuid_unparse(disk_uuid, chunk_uuid);
 	printf("fs uuid %s\nchunk uuid %s\n", fs_uuid, chunk_uuid);
 }
 
 static void print_file_extent_item(struct extent_buffer *eb,
 				   struct btrfs_item *item,
+				   int slot,
 				   struct btrfs_file_extent_item *fi)
 {
 	int extent_type = btrfs_file_extent_type(eb, fi);
@@ -178,7 +218,7 @@ static void print_file_extent_item(struct extent_buffer *eb,
 		printf("\t\tinline extent data size %u "
 		       "ram %u compress %d\n",
 		  btrfs_file_extent_inline_item_len(eb, item),
-		  btrfs_file_extent_inline_len(eb, fi),
+		  btrfs_file_extent_inline_len(eb, slot, fi),
 		  btrfs_file_extent_compression(eb, fi));
 		return;
 	}
@@ -202,7 +242,7 @@ static void print_file_extent_item(struct extent_buffer *eb,
 	       btrfs_file_extent_compression(eb, fi));
 }
 
-static void print_extent_item(struct extent_buffer *eb, int slot)
+static void print_extent_item(struct extent_buffer *eb, int slot, int metadata)
 {
 	struct btrfs_extent_item *ei;
 	struct btrfs_extent_inline_ref *iref;
@@ -237,7 +277,7 @@ static void print_extent_item(struct extent_buffer *eb, int slot)
 	       (unsigned long long)btrfs_extent_generation(eb, ei),
 	       (unsigned long long)flags);
 
-	if (flags & BTRFS_EXTENT_FLAG_TREE_BLOCK) {
+	if (flags & BTRFS_EXTENT_FLAG_TREE_BLOCK && !metadata) {
 		struct btrfs_tree_block_info *info;
 		info = (struct btrfs_tree_block_info *)(ei + 1);
 		btrfs_tree_block_key(eb, info, &key);
@@ -245,7 +285,13 @@ static void print_extent_item(struct extent_buffer *eb, int slot)
 		btrfs_print_key(&key);
 		printf(" level %d\n", btrfs_tree_block_level(eb, info));
 		iref = (struct btrfs_extent_inline_ref *)(info + 1);
-	} else {
+	} else if (metadata) {
+		struct btrfs_key tmp;
+
+		btrfs_item_key_to_cpu(eb, &tmp, slot);
+		printf("\t\ttree block skinny level %d\n", (int)tmp.offset);
+		iref = (struct btrfs_extent_inline_ref *)(ei + 1);
+	} else{
 		iref = (struct btrfs_extent_inline_ref *)(ei + 1);
 	}
 
@@ -333,7 +379,7 @@ static void print_root(struct extent_buffer *leaf, int slot)
 	struct btrfs_root_item *ri;
 	struct btrfs_root_item root_item;
 	int len;
-	char uuid_str[128];
+	char uuid_str[BTRFS_UUID_UNPARSED_SIZE];
 
 	ri = btrfs_item_ptr(leaf, slot, struct btrfs_root_item);
 	len = btrfs_item_size_nr(leaf, slot);
@@ -440,6 +486,9 @@ static void print_key_type(u64 objectid, u8 type)
 	case BTRFS_EXTENT_ITEM_KEY:
 		printf("EXTENT_ITEM");
 		break;
+	case BTRFS_METADATA_ITEM_KEY:
+		printf("METADATA_ITEM");
+		break;
 	case BTRFS_TREE_BLOCK_REF_KEY:
 		printf("TREE_BLOCK_REF");
 		break;
@@ -500,6 +549,12 @@ static void print_key_type(u64 objectid, u8 type)
 	case BTRFS_DEV_STATS_KEY:
 		printf("DEV_STATS_ITEM");
 		break;
+	case BTRFS_UUID_KEY_SUBVOL:
+		printf("BTRFS_UUID_KEY_SUBVOL");
+		break;
+	case BTRFS_UUID_KEY_RECEIVED_SUBVOL:
+		printf("BTRFS_UUID_KEY_RECEIVED_SUBVOL");
+		break;
 	default:
 		printf("UNKNOWN.%d", type);
 	};
@@ -507,14 +562,17 @@ static void print_key_type(u64 objectid, u8 type)
 
 static void print_objectid(u64 objectid, u8 type)
 {
-	if (type == BTRFS_DEV_EXTENT_KEY) {
+	switch (type) {
+	case BTRFS_DEV_EXTENT_KEY:
 		printf("%llu", (unsigned long long)objectid); /* device id */
 		return;
-	}
-	switch (type) {
 	case BTRFS_QGROUP_RELATION_KEY:
 		printf("%llu/%llu", objectid >> 48,
 			objectid & ((1ll << 48) - 1));
+		return;
+	case BTRFS_UUID_KEY_SUBVOL:
+	case BTRFS_UUID_KEY_RECEIVED_SUBVOL:
+		printf("0x%016llx", (unsigned long long)objectid);
 		return;
 	}
 
@@ -573,8 +631,14 @@ static void print_objectid(u64 objectid, u8 type)
 	case BTRFS_QUOTA_TREE_OBJECTID:
 		printf("QUOTA_TREE");
 		break;
+	case BTRFS_UUID_TREE_OBJECTID:
+		printf("UUID_TREE");
+		break;
 	case BTRFS_MULTIPLE_OBJECTIDS:
 		printf("MULTIPLE");
+		break;
+	case (u64)-1:
+		printf("-1");
 		break;
 	case BTRFS_FIRST_CHUNK_TREE_OBJECTID:
 		if (type == BTRFS_CHUNK_ITEM_KEY) {
@@ -604,9 +668,35 @@ void btrfs_print_key(struct btrfs_disk_key *disk_key)
 		printf(" %llu/%llu)", (unsigned long long)(offset >> 48),
 			(unsigned long long)(offset & ((1ll << 48) - 1)));
 		break;
-	default:
-		printf(" %llu)", (unsigned long long)offset);
+	case BTRFS_UUID_KEY_SUBVOL:
+	case BTRFS_UUID_KEY_RECEIVED_SUBVOL:
+		printf(" 0x%016llx)", (unsigned long long)offset);
 		break;
+	default:
+		if (offset == (u64)-1)
+			printf(" -1)");
+		else
+			printf(" %llu)", (unsigned long long)offset);
+		break;
+	}
+}
+
+static void print_uuid_item(struct extent_buffer *l, unsigned long offset,
+			    u32 item_size)
+{
+	if (item_size & (sizeof(u64) - 1)) {
+		printf("btrfs: uuid item with illegal size %lu!\n",
+		       (unsigned long)item_size);
+		return;
+	}
+	while (item_size) {
+		__le64 subvol_id;
+
+		read_extent_buffer(l, &subvol_id, offset, sizeof(u64));
+		printf("\t\tsubvol_id %llu\n",
+			(unsigned long long)le64_to_cpu(subvol_id));
+		item_size -= sizeof(u64);
+		offset += sizeof(u64);
 	}
 }
 
@@ -642,7 +732,7 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 	print_uuids(l);
 	fflush(stdout);
 	for (i = 0 ; i < nr ; i++) {
-		item = btrfs_item_nr(l, i);
+		item = btrfs_item_nr(i);
 		btrfs_item_key(l, &disk_key, i);
 		objectid = btrfs_disk_key_objectid(&disk_key);
 		type = btrfs_disk_key_type(&disk_key);
@@ -699,7 +789,10 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 			print_root_ref(l, i, "backref");
 			break;
 		case BTRFS_EXTENT_ITEM_KEY:
-			print_extent_item(l, i);
+			print_extent_item(l, i, 0);
+			break;
+		case BTRFS_METADATA_ITEM_KEY:
+			print_extent_item(l, i, 1);
 			break;
 		case BTRFS_TREE_BLOCK_REF_KEY:
 			printf("\t\ttree block backref\n");
@@ -737,7 +830,7 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 		case BTRFS_EXTENT_DATA_KEY:
 			fi = btrfs_item_ptr(l, i,
 					    struct btrfs_file_extent_item);
-			print_file_extent_item(l, item, fi);
+			print_file_extent_item(l, item, i, fi);
 			break;
 		case BTRFS_BLOCK_GROUP_ITEM_KEY:
 			bi = btrfs_item_ptr(l, i,
@@ -822,6 +915,11 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 			       btrfs_qgroup_limit_rsv_referenced(l, qg_limit),
 			       (long long)
 			       btrfs_qgroup_limit_rsv_exclusive(l, qg_limit));
+			break;
+		case BTRFS_UUID_KEY_SUBVOL:
+		case BTRFS_UUID_KEY_RECEIVED_SUBVOL:
+			print_uuid_item(l, btrfs_item_ptr_offset(l, i),
+					btrfs_item_size_nr(l, i));
 			break;
 		case BTRFS_STRING_ITEM_KEY:
 			/* dirty, but it's simple */

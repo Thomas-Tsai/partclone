@@ -16,8 +16,8 @@
  * Boston, MA 021110-1307, USA.
  */
 
-#ifndef __PENDING_EXTENT__
-#define __PENDING_EXTENT__
+#ifndef __EXTENT_CACHE_H__
+#define __EXTENT_CACHE_H__
 
 #if BTRFS_FLAT_INCLUDES
 #include "kerncompat.h"
@@ -33,33 +33,49 @@ struct cache_tree {
 
 struct cache_extent {
 	struct rb_node rb_node;
+	u64 objectid;
 	u64 start;
 	u64 size;
 };
 
 void cache_tree_init(struct cache_tree *tree);
-void remove_cache_extent(struct cache_tree *tree,
-			  struct cache_extent *pe);
-struct cache_extent *find_first_cache_extent(struct cache_tree *tree,
-						 u64 start);
+
+struct cache_extent *first_cache_extent(struct cache_tree *tree);
 struct cache_extent *prev_cache_extent(struct cache_extent *pe);
 struct cache_extent *next_cache_extent(struct cache_extent *pe);
-struct cache_extent *find_cache_extent(struct cache_tree *tree,
-					   u64 start, u64 size);
-int insert_cache_extent(struct cache_tree *tree, u64 start, u64 size);
-int insert_existing_cache_extent(struct cache_tree *tree,
-				 struct cache_extent *pe);
+
+struct cache_extent *search_cache_extent(struct cache_tree *tree, u64 start);
+struct cache_extent *lookup_cache_extent(struct cache_tree *tree,
+					 u64 start, u64 size);
+
+int add_cache_extent(struct cache_tree *tree, u64 start, u64 size);
+int insert_cache_extent(struct cache_tree *tree, struct cache_extent *pe);
+void remove_cache_extent(struct cache_tree *tree, struct cache_extent *pe);
 
 static inline int cache_tree_empty(struct cache_tree *tree)
 {
 	return RB_EMPTY_ROOT(&tree->root);
 }
 
-static inline void free_cache_extent(struct cache_extent *pe)
-{
-	free(pe);
+typedef void (*free_cache_extent)(struct cache_extent *pe);
+
+void cache_tree_free_extents(struct cache_tree *tree,
+			     free_cache_extent free_func);
+
+#define FREE_EXTENT_CACHE_BASED_TREE(name, free_func)		\
+static void free_##name##_tree(struct cache_tree *tree)		\
+{								\
+	cache_tree_free_extents(tree, free_func);		\
 }
 
-struct cache_extent *alloc_pending_extent(u64 start, u64 size);
+void free_extent_cache_tree(struct cache_tree *tree);
+
+struct cache_extent *search_cache_extent2(struct cache_tree *tree,
+					  u64 objectid, u64 start);
+struct cache_extent *lookup_cache_extent2(struct cache_tree *tree,
+					  u64 objectid, u64 start, u64 size);
+int add_cache_extent2(struct cache_tree *tree,
+		      u64 objectid, u64 start, u64 size);
+int insert_cache_extent2(struct cache_tree *tree, struct cache_extent *pe);
 
 #endif
