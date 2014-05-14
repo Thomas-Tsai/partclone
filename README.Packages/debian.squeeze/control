@@ -2,7 +2,7 @@ Source: partclone
 Section: admin
 Priority: extra
 Maintainer: Yu-Chin Tsai <thomas@nchc.org.tw>, Jazz Yao-Tsung Wang <jazz@nchc.org.tw>
-Build-Depends: debhelper (>= 5), autotools-dev, e2fslibs-dev (>= 1.41.3), xfslibs-dev, libreiserfs0.3-dev, libreiser4-dev, libufs2 (>= 7.2), libbsd-dev, libncursesw5-dev, ntfs-3g-dev|libntfs-dev, libvmfs (>= 0.2.5), libjfs-dev, pkg-config, xsltproc, docbook-xsl
+Build-Depends: debhelper (>= 5), autotools-dev, e2fslibs-dev (>= 1.41.3), xfslibs-dev, libreiserfs0.3-dev, libreiser4-dev, libufs2 (>= 7.2), libbsd-dev, libncursesw5-dev, ntfs-3g-dev|libntfs-dev, libvmfs (>= 0.2.5), libjfs-dev, pkg-config, xsltproc, docbook-xsl, libblkid-dev
 Standards-Version: 3.7.2
 
 Package: partclone
