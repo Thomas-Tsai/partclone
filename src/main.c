@@ -46,61 +46,6 @@ cmd_opt opt;
 
 #include "checksum.h"
 
-/**
- * Include different filesystem header depend on what flag you want.
- * If cflag is _EXTFS, output to extfsclone.
- * My goal is give different clone utils by makefile .
- */
-#ifdef EXTFS
-#include "extfsclone.h"
-#define FS "EXTFS"
-#elif REISERFS
-#include "reiserfsclone.h"
-#define FS "REISERFS"
-#elif REISER4
-#include "reiser4clone.h"
-#define FS "REISER4"
-#elif XFS
-#include "xfsclone.h"
-#define FS "XFS"
-#elif HFSPLUS
-#include "hfsplusclone.h"
-#define FS "HFS Plus"
-#elif FAT
-#include "fatclone.h"
-#define FS "FAT"
-#elif NTFS
-#include "ntfsclone-ng.h"
-#define FS "NTFS"
-#elif NTFS3G
-#include "ntfsclone-ng.h"
-#define FS "NTFS"
-#elif UFS
-#include "ufsclone.h"
-#define FS "UFS"
-#elif VMFS
-#include "vmfsclone.h"
-#define FS "VMFS"
-#elif JFS
-#include "jfsclone.h"
-#define FS "JFS"
-#elif BTRFS
-#include "btrfsclone.h"
-#define FS "BTRFS"
-#elif EXFAT
-#include "exfatclone.h"
-#define FS "EXFAT"
-#elif MINIX
-#include "minixclone.h"
-#define FS "MINIX"
-#elif IMG
-#include "ddclone.h"
-#define FS "raw"
-#elif DD
-#include "ddclone.h"
-#define FS "raw"
-#endif
-
 /// fs option
 #include "fs_common.h"
 /// cmd_opt structure defined in partclone.h
