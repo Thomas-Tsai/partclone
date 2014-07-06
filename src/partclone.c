@@ -249,7 +249,7 @@ void usage(void) {
 #endif
 		"    -v,  --version          Display partclone version\n"
 		"    -h,  --help             Display this help\n"
-		, EXECNAME, VERSION, EXECNAME, DEFAULT_BUFFER_SIZE);
+		, get_exec_name(), VERSION, get_exec_name(), DEFAULT_BUFFER_SIZE);
 	exit(0);
 }
 
@@ -284,6 +284,23 @@ int convert_to_checksum_mode(unsigned long mode) {
 enum {
 	OPT_OFFSET_DOMAIN = 1000
 };
+
+const char *exec_name = "unset_name";
+
+const char* get_exec_name() {
+
+	return exec_name;
+}
+
+static void save_program_name(const char* argv0) {
+
+	const char* last_slash = strrchr(argv0, '/');
+
+	if (last_slash != 0) {
+
+		exec_name = last_slash + 1;
+	}
+}
 
 void parse_options(int argc, char **argv, cmd_opt* opt) {
 
@@ -341,6 +358,8 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #endif
 		{ NULL,			0,			NULL,    0  }
 	};
+
+    save_program_name(argv[0]);
 
 	int c;
 	int mode = 0;
@@ -517,7 +536,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		if ((!strcmp(opt->source, "-")) || (!opt->source)) {
 			fprintf(stderr, "Partclone can't %s from stdin.\nFor help, type: %s -h\n",
 				opt->clone ? "clone" : "make domain log",
-				EXECNAME);
+				get_exec_name());
 			exit(0);
 		}
 	}
@@ -541,7 +560,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #ifndef CHKIMG
 	if (opt->restore) {
 		if ((!strcmp(opt->target, "-")) || (!opt->target)) {
-			fprintf(stderr, "Partclone can't restore to stdout.\nFor help,type: %s -h\n", EXECNAME);
+			fprintf(stderr, "Partclone can't restore to stdout.\nFor help,type: %s -h\n", get_exec_name());
 			exit(0);
 		}
 	}

@@ -897,7 +897,7 @@ int main(int argc, char **argv) {
 		log_mesg(0, 0, 0, debug, "Total block %i\n", fs_info.totalblock);
 		log_mesg(1, 0, 0, debug, "start writing domain log...\n");
 		// write domain log comment and status line
-		dprintf(dfw, "# Domain logfile created by %s v%s\n", EXECNAME, VERSION);
+		dprintf(dfw, "# Domain logfile created by %s v%s\n", get_exec_name(), VERSION);
 		dprintf(dfw, "# Source: %s\n", opt.source);
 		dprintf(dfw, "# Offset: 0x%08llX\n", opt.offset_domain);
 		dprintf(dfw, "# current_pos  current_status\n");
