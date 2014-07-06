@@ -1502,7 +1502,7 @@ void sync_data(int fd, cmd_opt* opt) {
 }
 
 void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt) {
-	const char *badsector_magic = "BADSECTOR\0";
+	const char badsector_magic[] = "BADSECTOR\0";
 
 	if (lseek(*fd, pos, SEEK_SET) == (off_t)-1) {
 		log_mesg(0, 0, 1, opt->debug, "WARNING: lseek error at %llu\n", pos);
