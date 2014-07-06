@@ -96,19 +96,9 @@ cmd_opt opt;
 #elif IMG
 #include "ddclone.h"
 #define FS "raw"
-char *EXECNAME = "partclone.imager";
 #elif DD
 #include "ddclone.h"
 #define FS "raw"
-#ifdef RESTORE
-char *EXECNAME = "partclone.restore";
-#else
-#ifdef CHKIMG
-char *EXECNAME = "partclone.chkimg";
-#else
-char *EXECNAME = "partclone.dd";
-#endif
-#endif
 #endif
 
 /// fs option

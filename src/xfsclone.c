@@ -26,7 +26,6 @@
 #include "progress.h"
 #include "fs_common.h"
 
-char *EXECNAME = "partclone.xfs";
 int  source_fd = -1;
 int  first_residue;
 

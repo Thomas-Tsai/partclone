@@ -25,8 +25,6 @@
 
 #define EXFAT_SECTOR_SIZE(sb) (1 << (sb).sector_bits)
 
-char *EXECNAME = "partclone.exfat";
-
 struct exfat ef;
 
 /// open device

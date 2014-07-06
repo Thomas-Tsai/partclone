@@ -23,8 +23,6 @@
 #include "progress.h"
 #include "fs_common.h"
 
-char *EXECNAME = "partclone.btrfs";
-
 struct btrfs_root *root;
 struct btrfs_path *path;
 int block_size = 0;

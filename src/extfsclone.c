@@ -31,7 +31,6 @@
 #include "fs_common.h"
 
 ext2_filsys  fs;
-char *EXECNAME = "partclone.extfs";
 
 /// open device
 static void fs_open(char* device){
