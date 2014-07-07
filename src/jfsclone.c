@@ -77,8 +77,6 @@ int bsize;
 short l2bsize;
 unsigned jfs_type;
 
-char *EXECNAME = "partclone.jfs";
-
 /// libfs/jfs_endian.h
 #define GET 0
 

@@ -22,7 +22,6 @@
 
 vmfs_fs_t *fs;
 vmfs_dir_t *root_dir;
-char *EXECNAME = "partclone.vmfs";
 
 /// open device
 static void fs_open(char* device){

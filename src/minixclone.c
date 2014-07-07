@@ -34,8 +34,6 @@ char *super_block_buffer;
 int dev;
 int fs_version = 1;
 
-char *EXECNAME = "partclone.minix";
-
 static inline unsigned long get_max_size(void)
 {
     switch (fs_version) {

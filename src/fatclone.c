@@ -31,7 +31,6 @@ struct FatFsInfo fatfs_info;
 int ret;
 int FS;
 char *fat_type = "FATXX";
-char *EXECNAME = "partclone.fat";
 
 static unsigned long long get_used_block();
 

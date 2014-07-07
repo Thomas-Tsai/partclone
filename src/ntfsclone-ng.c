@@ -54,7 +54,6 @@
 #define LIBNTFS_VER_9 1
 #endif
 
-char *EXECNAME	= "partclone.ntfs";
 ntfs_volume *ntfs;
 
 

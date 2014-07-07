@@ -39,8 +39,6 @@ struct uufsd disk;
 #include "progress.h"
 #include "fs_common.h"
 
-char *EXECNAME = "partclone.ufs";
-
 /// get_used_block - get FAT used blocks
 static unsigned long long get_used_block()
 {

@@ -26,7 +26,6 @@
 
 vmfs_fs_t *fs;
 vmfs_dir_t *root_dir;
-char *EXECNAME = "partclone.vmfs";
 unsigned long *blk_bitmap;
 progress_bar   prog;        /// progress_bar structure defined in progress.h
 unsigned long long checked;
