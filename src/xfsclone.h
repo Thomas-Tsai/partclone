@@ -12,6 +12,7 @@
  */
 
 #include <xfs/libxfs.h>
+#undef crc32
 
 /*
  * An on-disk allocation group header is composed of 4 structures,

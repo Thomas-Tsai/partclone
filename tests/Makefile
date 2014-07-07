@@ -79,7 +79,7 @@ build_triplet = i686-pc-linux-gnu
 host_triplet = i686-pc-linux-gnu
 ##am__append_1 = ext2.test \
 ##	ext3.test ext4.test
-#am__append_2 = btrfs.test
+##am__append_2 = btrfs.test
 ##am__append_3 = fat.test
 ##am__append_4 = reiserfs.test
 
@@ -87,7 +87,7 @@ host_triplet = i686-pc-linux-gnu
 #TESTS += reiser4.test
 #endif
 ##am__append_5 = hfsplus.test
-##am__append_6 = xfs.test
+#am__append_6 = xfs.test
 ##am__append_7 = exfat.test
 ##am__append_8 = ntfs.test
 
@@ -99,7 +99,7 @@ host_triplet = i686-pc-linux-gnu
 #TESTS += vmfs.test
 #endif
 ##am__append_9 = jfs.test
-#am__append_10 = btrfs.test
+##am__append_10 = btrfs.test
 ##am__append_11 = exfat.test
 ##am__append_12 = ncursesw.test
 subdir = tests
@@ -346,7 +346,7 @@ AM_DEFAULT_VERBOSITY = 1
 AUTOCONF = autoconf
 AUTOHEADER = autoheader
 AUTOMAKE = automake-1.14
-AWK = gawk
+AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2 -Wall
@@ -403,15 +403,15 @@ SET_MAKE =
 SHELL = /bin/bash
 STRIP = 
 USE_NLS = yes
-UUID_CFLAGS = -I/usr/include/uuid  
-UUID_LIBS = -luuid  
+UUID_CFLAGS = -I/usr/include/uuid 
+UUID_LIBS = -luuid 
 VERSION = 0.2.71
 XGETTEXT = /usr/bin/xgettext
 XGETTEXT_015 = /usr/bin/xgettext
-abs_builddir = /home/thomas/work_house/partclone/tests
-abs_srcdir = /home/thomas/work_house/partclone/tests
-abs_top_builddir = /home/thomas/work_house/partclone
-abs_top_srcdir = /home/thomas/work_house/partclone
+abs_builddir = /home/thomas/partclone/tests
+abs_srcdir = /home/thomas/partclone/tests
+abs_top_builddir = /home/thomas/partclone
+abs_top_srcdir = /home/thomas/partclone
 ac_ct_CC = gcc
 am__include = include
 am__leading_dot = .
@@ -438,7 +438,7 @@ host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/thomas/work_house/partclone/install-sh
+install_sh = ${SHELL} /home/thomas/partclone/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale

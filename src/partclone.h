@@ -66,6 +66,10 @@
 #define IO 2
 #define NO_BLOCK_DETAIL 3
 
+#ifdef crc32
+#undef crc32
+#endif
+
 char *EXECNAME;
 unsigned long long rescue_write_size;
 
@@ -175,7 +179,7 @@ extern void check_free_space(int* ret, unsigned long long size);
 extern int check_mem_size(image_head image_hdr, cmd_opt opt, unsigned long long *mem_size);
 
 /// generate crc32 code
-extern unsigned long crc32(unsigned long crc, char *buf, int size);
+unsigned long crc32(unsigned long crc, char *buf, int size);
 
 /// print partclone info
 extern void print_partclone_info(cmd_opt opt);

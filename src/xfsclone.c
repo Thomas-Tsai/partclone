@@ -26,6 +26,7 @@
 #include "progress.h"
 #include "fs_common.h"
 
+#undef crc32
 char	*EXECNAME = "partclone.xfs";
 extern  fs_cmd_opt fs_opt;
 int	source_fd = -1;
@@ -38,6 +39,36 @@ unsigned int    source_blocksize;       /* source filesystem blocksize */
 unsigned int    source_sectorsize;      /* source disk sectorsize */
 
 #define rounddown(x, y) (((x)/(y))*(y))
+
+void get_sb(xfs_sb_t *sbp, xfs_off_t off, int size, xfs_agnumber_t agno)
+{
+        xfs_dsb_t *buf;
+	int rval = 0;
+
+        buf = memalign(libxfs_device_alignment(), size);
+        if (buf == NULL) {
+                log_mesg(3, 1, 1, fs_opt.debug, "error reading superblock %u -- failed to memalign buffer\n", agno);
+        }
+        memset(buf, 0, size);
+        memset(sbp, 0, sizeof(*sbp));
+
+        /* try and read it first */
+
+        if (lseek64(source_fd, off, SEEK_SET) != off)  {
+                log_mesg(3, 0, 1, fs_opt.debug, "error reading superblock %u -- seek to offset %" PRId64 " failed\n", agno, off);
+                free(buf);
+        }
+
+        if ((rval = read(source_fd, buf, size)) != size)  {
+                log_mesg(3, 1, 1, fs_opt.debug, "superblock read failed, offset %" PRId64 ", size %d, ag %u, rval %d\n", off, size, agno, rval);
+        }
+        libxfs_sb_from_disk(sbp, buf);
+
+        //rval = verify_sb((char *)buf, sbp, agno == 0);
+        free(buf);
+        //return rval;
+}
+
 
 static void set_bitmap(unsigned long* bitmap, uint64_t pos, int length)
 {
@@ -61,7 +92,7 @@ static void fs_open(char* device)
     int		    open_flags;
     struct stat     statbuf;
     int		    source_is_file = 0;
-    xfs_buf_t       *sbp;
+    //xfs_buf_t       *sbp;
     xfs_sb_t        *sb;
     int             tmp_residue;
 
@@ -101,10 +132,14 @@ static void fs_open(char* device)
     }
 
     /* prepare the mount structure */
-    sbp = libxfs_readbuf(xargs.ddev, XFS_SB_DADDR, 1, 0);
     memset(&mbuf, 0, sizeof(xfs_mount_t));
     sb = &mbuf.m_sb;
-    libxfs_sb_from_disk(sb, XFS_BUF_TO_SBP(sbp));
+    get_sb(sb, 0, XFS_MAX_SECTORSIZE, 0);
+    //sbp = libxfs_readbuf(xargs.ddev, XFS_SB_DADDR, 1, 0, ops);
+
+    //memset(&mbuf, 0, sizeof(xfs_mount_t));
+    //sb = &mbuf.m_sb;
+    //libxfs_sb_from_disk(sb, XFS_BUF_TO_SBP(sbp));
 
     mp = libxfs_mount(&mbuf, sb, xargs.ddev, xargs.logdev, xargs.rtdev, 1);
     if (mp == NULL) {
