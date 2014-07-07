@@ -362,8 +362,6 @@ int main(int argc, char **argv) {
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
 		log_mesg(0, 0, 1, debug, "done!\n");
 	} else if (opt.ddd){
-	
-		unsigned long long needed_mem, needed_size;
 
 		if (dfr != 0)
 		    read_super_blocks(source, &fs_info);
