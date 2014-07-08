@@ -595,7 +595,7 @@ int main(int argc, char **argv) {
 			if (bugcheck) {
 				read_size += blocks_read * CRC32_SIZE;
 			} else if (blocks_per_cs && blocks_read < buffer_capacity &&
-					(blocks_read % blocks_per_cs)) {
+					((copied + blocks_read) % blocks_per_cs)) {
 				/// it is the last read and there is a partial chunk at the end
 				log_mesg(1, 0, 0, debug, "# PARTIAL CHUNK\n");
 				read_size += cs_size;
