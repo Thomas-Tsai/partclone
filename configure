@@ -8359,6 +8359,21 @@ fi
 
 
 if test "$enable_btrfs" = yes; then
+
+for ac_header in blkid/blkid.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "blkid/blkid.h" "ac_cv_header_blkid_blkid_h" "$ac_includes_default"
+if test "x$ac_cv_header_blkid_blkid_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_BLKID_BLKID_H 1
+_ACEOF
+
+else
+  as_fn_error $? "*** btrfs depend library (libblkid-dev) header not found" "$LINENO" 5
+fi
+
+done
+
 supported_fs=$supported_fs" btrfs"
 btrfs_version=`gcc  $srcdir/src/deplib_version.c $srcdir/src/btrfs/version.h  -o $srcdir/get_lib_version -DBTRFS`
 btrfs_version=`$srcdir/get_lib_version btrfs`
