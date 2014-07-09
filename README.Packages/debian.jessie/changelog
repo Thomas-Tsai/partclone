@@ -1,0 +1,901 @@
+partclone (0.2.71-1) unstable; urgency=medium
+
+  [ Yu-Chin Tsai ]
+  * Non-maintainer upload.
+  * update release for jessie
+
+ --  Thomas Tsai <thomas@nchc.org.tw>  Wed, 09 Jul 2014 23:12:03 +0800
+
+partclone (0.2.51) unstable; urgency=low
+
+  * update makefile
+  * update supported list
+  * update process for elapsed time over 24hr
+  * update version to 0.2.51
+  * update some docs
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 20 Sep 2012 17:07:41 +0800
+
+partclone (0.2.50) unstable; urgency=low
+
+  * release 0.2.49
+  * update control
+  * update control
+  * add partclone.btrfs.8
+  * add more detail message in image head output
+  * add exfat
+  * update exfat and add exfat man docs
+  * add test for exfat
+  * update test and size information
+  * version 0.2.50
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 10 Jul 2012 16:39:19 +0800
+
+partclone (0.2.49) unstable; urgency=low
+
+  * release 0.2.48
+  * update TODO
+  * minor update readme
+  * update docs
+  * update docs
+  * update manpage
+  * fix quiet mode issue. The issue make partclone can't stop/finish even action is done. bug report from pille
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 10 Jul 2012 16:35:27 +0800
+
+partclone (0.2.48) unstable; urgency=low
+
+  [ Thomas Tsai ]
+  * update debian control for vmfs-tools
+
+  [ thomas ]
+  * ignore unallocated block for vmfs
+
+  [ Thomas Tsai ]
+  * update bitmap progress
+  * A partclone bug found when it backs up  WindowsServer2008R2 (64bit)
+  * update vmfs for some unallocated block
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 01 May 2012 11:32:47 +0800
+
+partclone (0.2.47) unstable; urgency=low
+
+  * try to fix ID: 3509757 from clonezilla track system
+  * change row to raw, noticed from Vincent van Adrighem
+  * update fresh, add sleep in progress thread to reduce cpu usage, contributed and bug information from http://sourceforge.net/tracker/?func=detail&aid=3509757&group_id=115473&atid=671650
+  * update fresh done
+  * 0.2.47
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 18 Apr 2012 13:41:31 +0800
+
+partclone (0.2.46) unstable; urgency=low
+
+  * accept part of patch from Matthew Booth's review
+  * update partclone.vmfs for version 5
+  * update manpages
+  * update document, some example error. 
+  * update vmfsclone to backup vmfs5 well
+  * accept patch from Rommer to update memory usage
+  * and release 0.2.46
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 02 Apr 2012 09:14:23 +0800
+
+partclone (0.2.45) unstable; urgency=low
+
+  * print vmfs version from fstype
+  * add compatibility of vmfs3 and vmfs5
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 18 Jan 2012 10:39:22 +0800
+
+partclone (0.2.44) unstable; urgency=low
+
+  * update pui for mode dev-to-dev
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 17 Jan 2012 15:11:30 +0800
+
+partclone (0.2.43) unstable; urgency=low
+
+  * 0.2.43
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 27 Dec 2011 16:25:57 +0800
+
+partclone (0.2.42) unstable; urgency=low
+
+  * add option B to disable block detail; old progress style.
+  * add finish progress to dd
+  * 0.2.42
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 27 Dec 2011 15:58:55 +0800
+
+partclone (0.2.41) unstable; urgency=low
+
+  * add block status
+  * update progress bar
+  * add thread to display progress, draft
+  * add thread to dd, restore and chkimg
+  * 0.2.41
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 27 Dec 2011 00:53:41 +0800
+
+partclone (0.2.40) unstable; urgency=low
+
+  * update progress seeking at 100%
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Fri, 23 Dec 2011 10:25:43 +0800
+
+partclone (0.2.39) unstable; urgency=low
+
+  * 0.2.39
+  * updaet ntfsfixboot to version 1.0
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 12 Dec 2011 14:49:22 +0800
+
+partclone (0.2.38) unstable; urgency=low
+
+  * update for makefile for ncursesw
+  * update for progress
+  * 0.2.38
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 12 Dec 2011 14:27:23 +0800
+
+partclone (0.2.37) unstable; urgency=low
+
+  * add -I/usr/include/ncursesw/
+  * release 0.2.37
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 23 Nov 2011 16:32:09 +0800
+
+partclone (0.2.36) unstable; urgency=low
+
+  * update ncurses size
+  * 0.2.36
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 23 Nov 2011 16:31:06 +0800
+
+partclone (0.2.35) unstable; urgency=low
+
+  * move debian folder to README.Packages as sample
+  * update control for debian-sid
+  * save last changelog ($version)
+  * update version script
+  * add debian
+  * re remove debian
+  * update TODO
+  * add debian
+  * remove debian
+  * add debian
+  * move partclone.spec to README.Packages/partclone.spec
+  * update
+  * align version and tag
+  * update toolbox
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 02 Nov 2011 01:07:24 +0800
+
+partclone (0.2.34) unstable; urgency=low
+
+  * update autoconf and automake for squeeze 
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 01 Nov 2011 11:32:42 +0800
+
+partclone (0.2.33) unstable; urgency=low
+
+  * update makefile for ncurses static linking 
+  * update memory usage
+  * update ncurses progress bar
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 27 Oct 2011 22:05:17 +0800
+
+partclone (0.2.32) unstable; urgency=low
+
+  * accept patch file from Rommer.
+  * Attached patch for partclone 0.2.31 reduces memory usage by 4-8 times.  by Rommer.
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 12 Oct 2011 21:27:43 +0800
+
+partclone (0.2.31) unstable; urgency=low
+
+  * update for vmfs5 
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 12 Oct 2011 21:27:43 +0800
+
+partclone (0.2.30) unstable; urgency=low
+
+  * patch for new vmfs-tools
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 11 Oct 2011 21:21:24 +0800
+
+partclone (0.2.29) unstable; urgency=low
+
+  * fix bugs
+  * release 0.2.29
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 12 Sep 2011 21:21:24 +0800
+
+partclone (0.2.28) unstable; urgency=low
+
+  * update e2fslibs for squeeze
+  * fix bug for ntfsclone with ncurses on unstable
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 08 Sep 2011 22:58:27 +0800
+
+partclone (0.2.27) unstable; urgency=low
+
+  * accept patch from Georges about configure, fixIntTypes and typos in manpages
+  * try to fix issue for bitmap, suggestion from Paul.
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 30 Aug 2011 11:45:06 +0800
+
+partclone (0.2.26) unstable; urgency=low
+
+  * update test script
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 15 Aug 2011 10:45:06 +0800
+
+partclone (0.2.25) unstable; urgency=low
+
+  * update for e2fslibs 1.42~WIP-2011-07-02
+  * compact ntfs and ntfs-3g
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 15 Aug 2011 10:45:06 +0800
+
+partclone (0.2.24) natty; urgency=low
+
+  * accept patch from Ian Abbott.
+  * '--domain' (-D) and -offset_domain=X to generate domain file for ddrescue.
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 24 May 2011 10:45:06 +0800
+
+partclone (0.2.23) maverick; urgency=low
+
+  * update manpages 
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Fri, 22 Apr 2011 11:02:59 +0800
+
+partclone (0.2.22) maverick; urgency=low
+
+  * typo error for progress
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 28 Mar 2011 15:19:16 +0800
+
+partclone (0.2.21) maverick; urgency=low
+
+  * fix bug for partclone.dd and partclone.restore for stdin dd data.
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 22 Mar 2011 14:21:11 +0800
+
+partclone (0.2.20) maverick; urgency=low
+
+  * fix dd issue. set default size as target size for stdin data.
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 14 Mar 2011 10:12:19 +0800
+
+partclone (0.2.19) unstable; urgency=low
+
+  * update makefile for btrf
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 09 Mar 2011 14:06:05 +0800
+partclone (0.2.18) unstable; urgency=low
+  
+  * add option max_block_cache to get better performance escpcially small block size(fat)
+  * update typo error
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 25 Jan 2011 16:06:05 +0800
+
+partclone (0.2.17) unstable; urgency=low
+  
+  * update for ext4 metadata mismatch issue
+  * update makefile and configure
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 25 Jan 2011 16:06:05 +0800
+
+partclone (0.2.16) unstable; urgency=low
+
+  * add option --quiet to disable progress bar
+  * add option --restore_row_file to create special file for mounting with loop option
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 06 Oct 2010 16:06:05 +0800
+
+partclone (0.2.15) unstable; urgency=low
+
+  * Bug fixed: btrfs clone fail, lost some metadata message
+  * Add po: add fr_FR po file from Cédric, very thanks.
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 01 Sep 2010 10:25:48 +0800
+
+partclone (0.2.14) unstable; urgency=low
+
+  * add btrfs support
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Sun, 22 Aug 2010 15:14:20 +0800
+
+partclone (0.2.13) unstable; urgency=low
+
+  * add link partclone.VMFS_volume_member
+  * fix bug: jfsclone segfault
+  * add debian/control pkg-config
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 28 Jul 2010 17:14:20 +0800
+
+partclone (0.2.12) unstable; urgency=low
+
+  * New Feature: The jfs filesystem is supported.
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 30 Jun 2010 11:58:41 +0800
+
+partclone (0.2.11) unstable; urgency=low
+
+  * Bug fixed: xfsclone type error for amd64
+  * Update control file: add libvmfs
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 19 May 2010 12:22:07 +0800
+
+partclone (0.2.10) unstable; urgency=low
+
+  * Bug fixed: chkimg.c not work
+  * Bug fixed: new xfsclone
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 19 May 2010 12:22:07 +0800
+
+partclone (0.2.9) unstable; urgency=low
+
+  * Bug fixed: error for backup partition larger than 8.7T
+  * Bug fixed: better memory usage for restore
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 29 Apr 2010 15:22:07 +0800
+
+partclone (0.2.8) unstable; urgency=low
+
+  * Bug fixed: update progress bar faster
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 29 Mar 2010 16:22:38 +0800
+
+partclone (0.2.7-1) unstable; urgency=low
+
+  * fix progress bug about: alwayn new line for 640x480 resolution
+  * update version
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 16 Mar 2010 15:13:04 +0800
+
+partclone (0.2.6-1) unstable; urgency=low
+
+  * update version 
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 15 Mar 2010 11:29:18 +0800
+
+partclone (0.2.5-1) unstable; urgency=low
+
+  * A bug about 0 rate for bitmap calculation.
+  * update partclone to show more readable size for partition and rate/min.
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Fri, 12 Mar 2010 09:15:31 +0800
+
+partclone (0.2.4-1) unstable; urgency=low
+
+  * autogen git number
+  * fix progress inf bug
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 10 Mar 2010 16:30:55 +0800
+
+partclone (0.2.3-1) unstable; urgency=low
+
+  * add partclone.fstype to test filesystem type (vmfs only)
+  * update svn versionto git version
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 02 Mar 2010 13:50:26 +0800
+
+partclone (0.2.0-2) unstable; urgency=low
+
+  * VMFS supported in this release.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun, 14 Feb 2010 15:00:00 +0800
+
+partclone (0.2.0-1) unstable; urgency=low
+
+  [ Yu-Chin Tsai ]
+  * A test release.
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 06 Jan 2010 16:07:05 +0800
+
+partclone (0.1.9-5) unstable; urgency=low
+
+  [ Yu-Chin Tsai  ]
+  * A bug about hfsplus error for 2 or more extents was fixed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 25 Nov 2009 16:54:00 +0800
+
+partclone (0.1.9-4) unstable; urgency=low
+
+  * update configure.ac, set ufs as default enabled file system.
+  * update progress bar to show the "100%" in the end.
+
+ -- Yu-Chin Tsai <thomas@nchc.org.tw>  Mon, 16 Nov 2009 14:46:04 +0800
+
+partclone (0.1.9-3) unstable; urgency=low
+
+  [ Yu-Chin Tsai  ]
+  * An option to ignore CRC checking was added.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Tue, 03 Nov 2009 17:16:00 +0800
+
+partclone (0.1.9-2) unstable; urgency=low
+
+  [ Yu-Chin Tsai  ]
+  * Bug fixed: update log message and open fail message for ufsclone. Thanks to dswartz for testing ufs backup and report.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri, 09 Oct 2009 11:14:00 +0800
+
+partclone (0.1.9-1) unstable; urgency=low
+
+  [ Yu-Chin Tsai  ]
+  * Bug fixed: XFS clone failure was fixed. 
+  * UFS was added.
+
+ -- Yu-Chin Tsai  <thomas@nchc.org.tw>  Thu, 17 Sep 2009 14:07:33 +0800
+
+partclone (0.1.1-16) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Bug fixed: FAT clone failure was fixed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun, 09 Aug 2009 08:49:00 +0800
+
+partclone (0.1.1-15) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Bug fixed: Wrong path for exec files.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 24 Jun 2009 16:48:00 +0800
+
+partclone (0.1.1-14) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Bug fixed: version number from SVN was not shown correctly.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 24 Jun 2009 14:36:00 +0800
+
+partclone (0.1.1-13) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Prompt messages were updated.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri, 18 Jun 2009 13:30:00 +0800
+
+partclone (0.1.1-12) unstable; urgency=low
+
+  [Thomas Tsai]
+    * An option was added: --logfile or -L to specify file for log message.
+    * A new program partclone.chkimg was added to help checking img by CRC.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 17 Jun 2009 10:34:00 +0800
+
+partclone (0.1.1-11) unstable; urgency=low
+
+  [Thomas Tsai]
+    * update clear_buf
+    * The patch from Kristian Erik Hermansen. fix progress.c:152- SECURITY: fprintf call should have "%s" as argument 1
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sat, 13 Jun 2009 14:39:00 +0800
+
+partclone (0.1.1-10) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Bug fixed: pointer problem was fixed.
+    * Bug fixed: buffer overflow problem was fixed. Thanks to Kristian Erik Hermansen and Piavlo.
+    * Bug fixed: a bug about hfs+ was fixed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 10 Jun 2009 10:39:00 +0800
+
+partclone (0.1.1-9) unstable; urgency=low
+
+  [Steven Shiau]
+    * Some output messages were polished again.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Tue, 02 Jun 2009 18:09:00 +0800
+
+partclone (0.1.1-8) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Some output messages were polished.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Tue, 02 Jun 2009 16:51:00 +0800
+
+partclone (0.1.1-7) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Bug fixed: Progress update with nogui, "Calculating bitmap..." was added without option -d.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Mon, 01 Jun 2009 22:36:00 +0800
+
+partclone (0.1.1-6) unstable; urgency=low
+
+  [Thomas Tsai]
+    * bug of CRC in 64 bit image problem was fixed. A better method will be imlemented in the nexe version of image format.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sat, 30 May 2009 12:10:00 +0800
+
+partclone (0.1.1-5) unstable; urgency=low
+
+  [Thomas Tsai]
+    * bug of time calculating was fixed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 27 May 2009 22:13:00 +0800
+
+partclone (0.1.1-4) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Update default RES from 10000 to 1000.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 27 May 2009 12:59:00 +0800
+
+partclone (0.1.1-3) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Bug fixed: block device should not have to use "--overwrite".
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 27 May 2009 11:23:00 +0800
+
+partclone (0.1.1-2) unstable; urgency=low
+
+  [Thomas Tsai]
+    * partclone.ntfsreloc is linked to partclone.ntfsfixboot.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri, 22 May 2009 13:52:00 +0800
+
+partclone (0.1.1-1) unstable; urgency=low
+
+  [Thomas Tsai]
+    * Minor updates for output messages.
+    * New Feature: add argument to set fresh of progress bar
+    * New Feature: restore to new file(non-block device)
+    * A bug about crc check in 64bit image
+    * Update partclone.ntfsreloc to ntfsfixboot.c from http://cc.jct.ac.il/~shaneh/ntfsfixboot.c
+
+ -- root <root@partclone.TDRBL>  Fri, 22 May 2009 05:52:00 +0800
+
+partclone (0.1.0-10) unstable; urgency=low
+
+    [ Thomas Tsai ]
+    * Bug fixed: clonezilla-Bugs-2784676. Thanks to njorl _at_ users sourceforge net.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri, 01 May 2009 10:55:00 +0800
+
+partclone (0.1.0-9) unstable; urgency=low
+
+    [ Steven Shiau ]
+    * Minor updates for output messages.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun, 26 Apr 2009 13:54:00 +0800
+
+partclone (0.1.0-8) unstable; urgency=low
+
+    [ Steven Shiau ]
+    * Minor updates for output messages.
+
+    [ Thomas Tsai ]
+    * EXECNAME was added for partclone.restore.
+    
+ -- Steven Shiau <steven@nchc.org.tw>  Fri, 24 Apr 2009 14:07:00 +0800
+
+partclone (0.1.0-7) unstable; urgency=low
+
+    [ Thomas Tsai ]
+    * partclone.ext4dev is linkded now.
+    
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 23 Apr 2009 19:01:00 +0800
+
+partclone (0.1.0-6) unstable; urgency=low
+
+    [ Thomas Tsai ]
+    * A bug about partclone.restore used to restore known file systems was fixed.
+    
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 18 Apr 2009 09:59:00 +0800
+
+partclone (0.1.0-5) unstable; urgency=low
+
+    [ Thomas Tsai ]
+    * A bug about checking partition size was fixed.
+    
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 16 Apr 2009 15:03:00 +0800
+
+partclone (0.1.0-4) unstable; urgency=low
+
+    [ Thomas Tsai ]
+    * Local device to device copy mode option "-b,  --dd-mode" was changed to be "-b,  --dev-to-dev" 
+    * A bug about partclone.dd wrongly get the partition size was fixed.
+    
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 16 Apr 2009 12:16:00 +0800
+
+partclone (0.1.0-3) unstable; urgency=low
+
+    [ Thomas Tsai ]
+    * Bug fixed: partclone.ntfs statistics data was wrong when doing partition to partition clone.
+    
+ -- Steven Shiau <steven@nchc.org.tw>  Tue, 15 Apr 2009 10:52:00 +0800
+
+partclone (0.1.0-2) unstable; urgency=low
+
+    [ Steven Shiau ]
+    * --enable-static is on again.
+    
+ -- Steven Shiau <steven@nchc.org.tw>  Tue, 10 Apr 2009 11:47:00 +0800
+
+partclone (0.1.0-1) unstable; urgency=low
+
+    [ Thomas Tsai ]
+    * partclone.ext4, partclone.dd, partclone.restore were added.
+    
+ -- Steven Shiau <steven@nchc.org.tw>  Tue, 07 Apr 2009 15:01:00 +0800
+
+partclone (0.0.9-4) unstable; urgency=low
+
+    [ Thomas Tsai ]
+    * A bug about FAT12 was fixed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Tue, 30 Dec 2008 13:41:00 +0800
+
+partclone (0.0.9-3) unstable; urgency=low
+
+    [ Steven Shiau ]
+    * New upstream ntfsreloc.c 0.8.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 25 Dec 2008 15:32:00 +0800
+
+partclone (0.0.9-2) unstable; urgency=low
+
+    [ Thomas Tsai ]
+    * Update dirty message for ntfsclone-ng.
+    * Check filesystem before cloning partition. Partclone will make sure that.
+    * Add check hfs_plus filesystem before cloning volume.
+    * Update fatclone.c fatclone.h clearly. update dirty message for extfs.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Mon, 22 Dec 2008 09:46:00 +0800
+
+partclone (0.0.9-1) unstable; urgency=low
+    
+    # New features: partclone.ntfsreloc and partclone.ntfs were added. 
+
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 30 Oct 2008 10:51:00 +0800
+
+partclone (0.0.8-8) unstable; urgency=low
+    
+    # Bug fixed: Failing to restore fat32 image was fixed by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 30 Jul 2008 09:18:00 +0800
+
+partclone (0.0.8-7) unstable; urgency=low
+    
+    # partclone.hfsplus link was added by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 24 Jul 2008 11:53:00 +0800
+
+partclone (0.0.8-6) unstable; urgency=low
+    
+    # Bug fixed: partclone.fat12 link was not done.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri, 11 Jul 2008 16:11:00 +0800
+
+partclone (0.0.8-5) unstable; urgency=low
+    
+    # fat12 was added by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri, 11 Jul 2008 15:03:00 +0800
+
+partclone (0.0.8-4) unstable; urgency=low
+    
+    # Enable static linking.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sat, 28 Jun 2008 10:22:00 +0800
+
+partclone (0.0.8-3) unstable; urgency=low
+    
+    # Some minor updates about messages by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun, 15 Jun 2008 22:48:00 +0800
+
+partclone (0.0.8-2) unstable; urgency=low
+   
+    # configure.ac updated by Thomas Tsai.
+    # partclone website is www.partclone.org now.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Mon, 26 May 2008 14:19:00 +0800
+
+partclone (0.0.8-1) unstable; urgency=low
+   
+    # clone.$FS was renamed as partclone.$FS by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun, 25 May 2008 09:19:00 +0800
+
+partclone (0.0.7-4) unstable; urgency=low
+   
+    # Some bugs about ncursesw were fixed by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri, 16 May 2008 16:18:00 +0800
+
+partclone (0.0.7-3) unstable; urgency=low
+   
+    # Some bugs about ncursesw were fixed by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 06 May 2008 23:00:00 +0800
+
+partclone (0.0.7-2) unstable; urgency=low
+
+    # Use --enable-ncursesw by default.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 01 May 2008 11:13:00 +0800
+
+partclone (0.0.7-1) unstable; urgency=low
+
+    # New functions: TUI mode for output done by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 01 May 2008 11:08:00 +0800
+
+partclone (0.0.6-4) unstable; urgency=low
+
+    # Some new function for #14 "TUI of status reports" from Thomas Tsai.
+    # Smaller FS_MAGIC_SIZE in main.c.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Tue, 22 Apr 2008 14:52:00 +0800
+
+partclone (0.0.6-3) unstable; urgency=low
+
+    # Bug fixed: version was not changed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Thu, 21 Feb 2008 13:40:00 +0800
+
+partclone (0.0.6-2) unstable; urgency=low
+
+    # Bug fixed: clone.fat was not complied.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 20 Feb 2008 22:47:00 +0800
+
+partclone (0.0.6-1) unstable; urgency=low
+
+    # clone.fat was added by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed, 20 Feb 2008 22:41:00 +0800
+
+partclone (0.0.5-16) unstable; urgency=low
+
+    # Typos fixed.
+    # Bug fixed: partition to partition clone size checking failed.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sat,  16 Feb 2008 10:02:00 +0800
+
+partclone (0.0.5-15) unstable; urgency=low
+
+    # partclone.nchc.org.tw was put without http:// in usage.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Mon,  04 Feb 2008 13:47:00 +0800
+
+partclone (0.0.5-14) unstable; urgency=low
+
+    # Some minor bugs fixed by Thomas Tsai.
+    # http://partclone.nchc.org.tw was added in usage.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Mon,  04 Feb 2008 13:45:00 +0800
+
+partclone (0.0.5-13) unstable; urgency=low
+
+  * Bugs fixed and feature added by Thomas Tsai: 
+    # reduce seek time
+    # fix number of Ave.Rate
+    # check every filesystem's image_head data...
+    # add new option to disable device and free space checking 
+
+ -- Steven Shiau <steven@nchc.org.tw>  Tue,  30 Jan 2008 23:07:00 +0800
+
+partclone (0.0.5-12) unstable; urgency=low
+
+  * Bug fixed by Thomas Tsai: Partition size checking failed in some cases.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Tue,  30 Jan 2008 21:08:00 +0800
+
+partclone (0.0.5-11) unstable; urgency=low
+
+  * Bug fixed by Thomas Tsai: Partition size checking failed
+
+ -- Steven Shiau <steven@nchc.org.tw>  Tue,  29 Jan 2008 16:47:00 +0800
+
+partclone (0.0.5-10) unstable; urgency=low
+
+  * Functions to check memory size, check_free_space were added by Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed,  23 Jan 2008 22:57:00 +0800
+
+partclone (0.0.5-9) unstable; urgency=low
+
+  * Thomas Tsai added:
+    New function rescue_sector.
+    UNSTALBE feature, support device to device.
+    Some other minor changes.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun,  20 Jan 2008 14:15:00 +0800
+
+partclone (0.0.5-8) unstable; urgency=low
+
+  * Some minor changes on ticket #18 from Thomas Tsai.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri,  11 Jan 2008 09:24:00 +0800
+
+partclone (0.0.5-7) unstable; urgency=low
+
+  * Some minor changes.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed,  9 Jan 2008 22:45:00 +0800
+
+partclone (0.0.5-6) unstable; urgency=low
+
+  * Thomas Tsai enhanced the status report.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Wed,  9 Jan 2008 09:15:00 +0800
+
+partclone (0.0.5-5) unstable; urgency=low
+
+  * Thomas Tsai closed ticket #18: Add a saving/restoring rate and estimated time to finish job in the status report.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun,  8 Jan 2008 15:12:00 +0800
+
+partclone (0.0.5-4) unstable; urgency=low
+
+  * Thomas Tsai closed these tickets: 
+    #12: Command without any option should show only short help messages.
+    #13: Change "HFSPLUS" as "HFS+" or "HFS Plus".
+    #15 (Sync after image is restored). 
+    #17: Show program name "partclone" and version number and url in the status report.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun,  7 Jan 2008 17:05:00 +0800
+
+partclone (0.0.5-3) unstable; urgency=low
+
+  * Static linking was disabled in debian/rules.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun,  6 Jan 2008 16:34:00 +0800
+
+partclone (0.0.5-2) unstable; urgency=low
+
+  * Description for deb package was updated.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri,  4 Jan 2008 21:40:00 +0800
+
+partclone (0.0.5-1) unstable; urgency=low
+
+  * [bugfix] reopen and close ticket #8 
+    - fix debian packaging linking permission issue.
+
+ -- Jazz Yao-Tsung Wang <jazz@nchc.org.tw>  Fri,  4 Jan 2008 11:54:14 +0800
+
+partclone (0.0.4-5) unstable; urgency=low
+
+  * close ticket #8. Thomas added some alias programs when making install.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Fri,  4 Jan 2008 11:12:00 +0800
+
+partclone (0.0.4-3ubuntu1) feisty; urgency=low
+
+  * add support of static linking to configure.ac and src/Makefile.am
+  * [BUGFIX #1] fixed static linking time error while enabling XFS file system
+    support.
+  * modified debian packaginf control and rules to fix some mistakes.
+
+ -- Jazz Yao-Tsung Wang <jazz@nchc.org.tw>  Wed,  2 Jan 2008 21:23:52 +0800
+
+partclone (0.0.4-3) unstable; urgency=low
+
+  * A Bug about restoring image from stdin was fixed by Jazz Wang.
+  * zh_TW.po was updated.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun, 1 Jan 2008 20:20:00 +0800
+
+partclone (0.0.4-2) unstable; urgency=low
+
+  * Updated config by Jazz Wang so that static linking now it's better. Not finished.
+  * Help messages updated.
+
+ -- Steven Shiau <steven@nchc.org.tw>  Sun, 1 Jan 2008 11:20:00 +0800
+
+partclone (0.0.4-1) unstable; urgency=low
+
+  * Initial release.
+  * modify rules
+
+ -- Yu-Chin Tsai <thomas@thomas-laptop.drbl.sf.net>  Thu, 13 Dec 2007 10:48:03 +0800
