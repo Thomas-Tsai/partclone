@@ -508,7 +508,7 @@ int main(int argc, char **argv) {
 	} else if (opt.chkimg && img_opt.checksum_mode == CSM_NONE
 		&& strcmp(opt.source, "-") != 0) {
 
-		unsigned long long total_offset = (fs_info.usedblocks - 1) * fs_info.block_size;
+		unsigned long long total_offset = (fs_info.used_bitmap - 1) * fs_info.block_size;
 		char last_block[fs_info.block_size];
 		off_t partial_offset = INT32_MAX;
 
