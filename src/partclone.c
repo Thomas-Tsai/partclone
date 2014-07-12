@@ -1603,6 +1603,7 @@ void print_file_system_info(file_system_info fs_info, cmd_opt opt) {
 	unsigned int     block_s = fs_info.block_size;
 	unsigned long long total = fs_info.totalblock;
 	unsigned long long used  = fs_info.usedblocks;
+	unsigned long long mapped = fs_info.used_bitmap;
 	int debug = opt.debug;
 	char size_str[11];
 
@@ -1616,6 +1617,9 @@ void print_file_system_info(file_system_info fs_info, cmd_opt opt) {
 
 	print_readable_size_str(used*block_s, size_str);
 	log_mesg(0, 0, 1, debug, _("Space in use: %s = %llu Blocks\n"), size_str, used);
+
+	print_readable_size_str(mapped*block_s, size_str);
+	log_mesg(1, 0, 1, debug, _("Mapped space: %s = %llu Blocks\n"), size_str, mapped);
 
 	print_readable_size_str((total-used)*block_s, size_str);
 	log_mesg(0, 0, 1, debug, _("Free Space:   %s = %llu Blocks\n"), size_str, (total-used));
