@@ -2,7 +2,7 @@ Source: partclone
 Section: admin
 Priority: extra
 Maintainer: Yu-Chin Tsai <thomas@nchc.org.tw>
-Build-Depends: debhelper (>= 9), dpkg-dev (>= 1.16.1~), dh-autoreconf, autotools-dev, pkg-config, xsltproc, docbook-xsl, docbook-xml, e2fslibs-dev (>= 1.41.3), libbsd-dev, libncursesw5-dev, ntfs-3g-dev|libntfs-dev, libtinfo-dev, libblkid-dev
+Build-Depends: debhelper (>= 9), dpkg-dev (>= 1.16.1~), dh-autoreconf, autotools-dev, pkg-config, xsltproc, docbook-xsl, docbook-xml, libncursesw5-dev, libtinfo-dev, e2fslibs-dev (>= 1.41.3), libbsd-dev, ntfs-3g-dev|libntfs-dev, xfslibs-dev, libreiserfs0.3-dev, libreiser4-dev, libufs2 (>= 7.2), libvmfs (>= 0.2.5), libjfs-dev, libblkid-dev, uuid-dev
 Standards-Version: 3.9.3
 
 Package: partclone
