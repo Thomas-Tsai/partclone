@@ -35,6 +35,10 @@ if ENABLE_EXFAT
 TESTS += exfat.test
 endif
 
+if ENABLE_F2FS
+TESTS += f2fs.test
+endif
+
 if ENABLE_NTFS
 TESTS += ntfs.test
 endif

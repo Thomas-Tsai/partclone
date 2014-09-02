@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.2.72], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.2.73], [thomas@nchc.org.tw])
 AM_INIT_AUTOMAKE([-Wall foreign])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
@@ -34,6 +34,7 @@ enable_vmfs="yes"
 enable_jfs="yes"
 enable_btrfs="yes"
 enable_minix="yes"
+enable_f2fs="yes"
 fi
 
 ORIGINAL_CFLAGS="$CFLAGS"
@@ -281,6 +282,19 @@ exfat_version="build-in"
 fi
 #end of check exfat
 
+##f2fs##
+AC_ARG_ENABLE(f2fs,
+	AS_HELP_STRING(--enable-f2fs,enable f2fs file system), 
+	enable_f2fs=yes,
+	enable_f2fs=no
+)
+AM_CONDITIONAL(ENABLE_F2FS, test "$enable_f2fs" = yes)
+
+if test "$enable_f2fs" = "yes"; then
+supported_fs=$supported_fs" f2fs"
+f2fs_version="build-in"
+fi
+#end of check f2fs
 
 ##NTFS##
 AC_ARG_ENABLE(ntfs,
@@ -526,4 +540,5 @@ echo "vmfs ......... $enable_vmfs, $vmfs_version"
 echo "jfs .......... $enable_jfs, $jfs_version"
 echo "btrfs......... $enable_btrfs, $btrfs_version"
 echo "minix......... $enable_minix, $minix_version"
+echo "f2fs.......... $enable_f2fs, $f2fs_version"
 #echo $supported_fs

@@ -77,19 +77,20 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = i686-pc-linux-gnu
 host_triplet = i686-pc-linux-gnu
-#am__append_1 = ext2.test \
-#	ext3.test ext4.test
-#am__append_2 = btrfs.test
-#am__append_3 = fat.test
-#am__append_4 = reiserfs.test
+##am__append_1 = ext2.test \
+##	ext3.test ext4.test
+##am__append_2 = btrfs.test
+##am__append_3 = fat.test
+##am__append_4 = reiserfs.test
 
 #if ENABLE_REISER4
 #TESTS += reiser4.test
 #endif
-#am__append_5 = hfsplus.test
-#am__append_6 = xfs.test
-#am__append_7 = exfat.test
-#am__append_8 = ntfs.test
+##am__append_5 = hfsplus.test
+##am__append_6 = xfs.test
+##am__append_7 = exfat.test
+#am__append_8 = f2fs.test
+##am__append_9 = ntfs.test
 
 #if ENABLE_UFS
 #TESTS += ufs.test
@@ -98,10 +99,10 @@ host_triplet = i686-pc-linux-gnu
 #if ENABLE_VMFS
 #TESTS += vmfs.test
 #endif
-#am__append_9 = jfs.test
-#am__append_10 = btrfs.test
-#am__append_11 = exfat.test
-#am__append_12 = ncursesw.test
+##am__append_10 = jfs.test
+##am__append_11 = btrfs.test
+##am__append_12 = exfat.test
+##am__append_13 = ncursesw.test
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/test-driver TODO
@@ -350,7 +351,7 @@ AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2 -Wall
-CPP = gcc -E
+CPP = 
 CPPFLAGS = 
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
@@ -358,11 +359,11 @@ DEPDIR = .deps
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
-EGREP = /bin/grep -E
+EGREP = 
 EXEEXT = 
 GMSGFMT = /usr/bin/msgfmt
 GMSGFMT_015 = /usr/bin/msgfmt
-GREP = /bin/grep
+GREP = 
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -374,7 +375,7 @@ LDFLAGS =
 LIBICONV = -liconv
 LIBINTL = 
 LIBOBJS = 
-LIBS = -lncursesw -lpthread 
+LIBS = -lpthread 
 LN_S = ln -s
 LTLIBICONV = -liconv
 LTLIBINTL = 
@@ -389,10 +390,10 @@ ORIGINAL_CFLAGS = -g -O2
 PACKAGE = partclone
 PACKAGE_BUGREPORT = thomas@nchc.org.tw
 PACKAGE_NAME = Partclone
-PACKAGE_STRING = Partclone 0.2.72
+PACKAGE_STRING = Partclone 0.2.73
 PACKAGE_TARNAME = partclone
 PACKAGE_URL = 
-PACKAGE_VERSION = 0.2.72
+PACKAGE_VERSION = 0.2.73
 PATH_SEPARATOR = :
 PKG_CONFIG = /usr/bin/pkg-config
 PKG_CONFIG_LIBDIR = 
@@ -405,7 +406,7 @@ STRIP =
 USE_NLS = yes
 UUID_CFLAGS = -I/usr/include/uuid 
 UUID_LIBS = -luuid 
-VERSION = 0.2.72
+VERSION = 0.2.73
 XGETTEXT = /usr/bin/xgettext
 XGETTEXT_015 = /usr/bin/xgettext
 abs_builddir = /home/thomas/partclone/tests
@@ -461,7 +462,8 @@ top_srcdir = ..
 TESTS = dd.test $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
 	$(am__append_7) $(am__append_8) $(am__append_9) \
-	$(am__append_10) $(am__append_11) $(am__append_12)
+	$(am__append_10) $(am__append_11) $(am__append_12) \
+	$(am__append_13)
 CLEANFILES = floppy*
 all: all-am
 

@@ -42,6 +42,7 @@
 #define jfs_MAGIC "JFS"
 #define btrfs_MAGIC "BTRFS"
 #define minix_MAGIC "MINIX"
+#define f2fs_MAGIC "F2FS"
 #define raw_MAGIC "raw"
 
 #define IMAGE_VERSION "0001"
