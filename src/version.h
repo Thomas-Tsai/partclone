@@ -3,13 +3,5 @@
  * WHETHER THEY ARE BUILT BY OTHERS OR DURING DEVELOPMENT OR FOR THE
  * OFFICIAL PARTCLONE RELEASES.
  */
-<<<<<<< HEAD
-<<<<<<< HEAD
-#define git_version  "a86b5efad3f9ea674be368241c7689f76f030d33"
-=======
-#define git_version  "a2937ec8a672f8d3328768c6135da341fd20b5e1"
->>>>>>> a1e2318... fix configure.ac and add libblkid-dev check
-=======
-#define git_version  "3f4ab3d6b9c02aa451fc689b03576f833a1cbe50"
->>>>>>> bb99bfd... initial f2fs support
+#define git_version  "bd72e777a450fc329467d8c2702c07c45c67fa12"
 

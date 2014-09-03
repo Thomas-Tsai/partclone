@@ -75,36 +75,22 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-build_triplet = i686-pc-linux-gnu
-host_triplet = i686-pc-linux-gnu
-##am__append_1 = ext2.test \
-##	ext3.test ext4.test
-##am__append_2 = btrfs.test
-##am__append_3 = fat.test
-##am__append_4 = reiserfs.test
+build_triplet = x86_64-unknown-linux-gnu
+host_triplet = x86_64-unknown-linux-gnu
+#am__append_1 = ext2.test \
+#	ext3.test ext4.test
+#am__append_2 = btrfs.test
+#am__append_3 = fat.test
+#am__append_4 = reiserfs.test
 
 #if ENABLE_REISER4
 #TESTS += reiser4.test
 #endif
-<<<<<<< HEAD
-<<<<<<< HEAD
-##am__append_5 = hfsplus.test
-##am__append_6 = xfs.test
-##am__append_7 = exfat.test
-##am__append_8 = ntfs.test
-=======
 #am__append_5 = hfsplus.test
 #am__append_6 = xfs.test
 #am__append_7 = exfat.test
-#am__append_8 = ntfs.test
->>>>>>> a1e2318... fix configure.ac and add libblkid-dev check
-=======
-##am__append_5 = hfsplus.test
-##am__append_6 = xfs.test
-##am__append_7 = exfat.test
 #am__append_8 = f2fs.test
-##am__append_9 = ntfs.test
->>>>>>> bb99bfd... initial f2fs support
+#am__append_9 = ntfs.test
 
 #if ENABLE_UFS
 #TESTS += ufs.test
@@ -113,15 +99,19 @@ host_triplet = i686-pc-linux-gnu
 #if ENABLE_VMFS
 #TESTS += vmfs.test
 #endif
-##am__append_10 = jfs.test
-##am__append_11 = btrfs.test
-##am__append_12 = exfat.test
+#am__append_10 = jfs.test
+#am__append_11 = btrfs.test
+#am__append_12 = exfat.test
 ##am__append_13 = ncursesw.test
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/test-driver TODO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
+	$(top_srcdir)/m4/iconv.m4 $(top_srcdir)/m4/lib-ld.m4 \
+	$(top_srcdir)/m4/lib-link.m4 $(top_srcdir)/m4/lib-prefix.m4 \
+	$(top_srcdir)/m4/nls.m4 $(top_srcdir)/m4/po.m4 \
+	$(top_srcdir)/m4/progtest.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -357,11 +347,11 @@ AM_DEFAULT_VERBOSITY = 1
 AUTOCONF = ${SHELL} /home/thomas/work_house/partclone/missing autoconf
 AUTOHEADER = ${SHELL} /home/thomas/work_house/partclone/missing autoheader
 AUTOMAKE = ${SHELL} /home/thomas/work_house/partclone/missing automake-1.14
-AWK = gawk
+AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2 -Wall
-CPP = 
+CPP = gcc -E
 CPPFLAGS = 
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
@@ -369,12 +359,11 @@ DEPDIR = .deps
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
-EGREP = 
+EGREP = /bin/grep -E
 EXEEXT = 
-GETTEXT_MACRO_VERSION = 0.18
 GMSGFMT = /usr/bin/msgfmt
 GMSGFMT_015 = /usr/bin/msgfmt
-GREP = 
+GREP = /bin/grep
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -401,40 +390,25 @@ ORIGINAL_CFLAGS = -g -O2
 PACKAGE = partclone
 PACKAGE_BUGREPORT = thomas@nchc.org.tw
 PACKAGE_NAME = Partclone
-<<<<<<< HEAD
-PACKAGE_STRING = Partclone 0.2.71
+PACKAGE_STRING = Partclone 0.3.0
 PACKAGE_TARNAME = partclone
 PACKAGE_URL = 
-PACKAGE_VERSION = 0.2.71
-=======
-PACKAGE_STRING = Partclone 0.2.73
-PACKAGE_TARNAME = partclone
-PACKAGE_URL = 
-PACKAGE_VERSION = 0.2.73
->>>>>>> bb99bfd... initial f2fs support
+PACKAGE_VERSION = 0.3.0
 PATH_SEPARATOR = :
 PKG_CONFIG = /usr/bin/pkg-config
 PKG_CONFIG_LIBDIR = 
 PKG_CONFIG_PATH = 
 POSUB = po
 RM = /bin/rm
-SED = /bin/sed
 SET_MAKE = 
 SHELL = /bin/bash
 STRIP = 
 USE_NLS = yes
-<<<<<<< HEAD
-UUID_CFLAGS = -I/usr/include/uuid  
-UUID_LIBS = -luuid  
-VERSION = 0.2.71
-=======
 UUID_CFLAGS = -I/usr/include/uuid 
 UUID_LIBS = -luuid 
-VERSION = 0.2.73
->>>>>>> bb99bfd... initial f2fs support
+VERSION = 0.3.0
 XGETTEXT = /usr/bin/xgettext
 XGETTEXT_015 = /usr/bin/xgettext
-XGETTEXT_EXTRA_OPTIONS = 
 abs_builddir = /home/thomas/work_house/partclone/tests
 abs_srcdir = /home/thomas/work_house/partclone/tests
 abs_top_builddir = /home/thomas/work_house/partclone
@@ -446,22 +420,22 @@ am__quote =
 am__tar = $${TAR-tar} chof - "$$tardir"
 am__untar = $${TAR-tar} xf -
 bindir = ${exec_prefix}/bin
-build = i686-pc-linux-gnu
+build = x86_64-unknown-linux-gnu
 build_alias = 
-build_cpu = i686
+build_cpu = x86_64
 build_os = linux-gnu
-build_vendor = pc
+build_vendor = unknown
 builddir = .
 datadir = ${datarootdir}
 datarootdir = ${prefix}/share
 docdir = ${datarootdir}/doc/${PACKAGE_TARNAME}
 dvidir = ${docdir}
 exec_prefix = ${prefix}
-host = i686-pc-linux-gnu
+host = x86_64-unknown-linux-gnu
 host_alias = 
-host_cpu = i686
+host_cpu = x86_64
 host_os = linux-gnu
-host_vendor = pc
+host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info

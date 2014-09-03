@@ -20,9 +20,6 @@
 #include "progress.h"
 #include "fs_common.h"
 
-char *EXECNAME = "partclone.f2fs";
-extern fs_cmd_opt fs_opt;
-
 struct f2fs_fsck gfsck = {
     .sbi.fsck = &gfsck,
 };
