@@ -385,6 +385,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #ifndef RESTORE
 #ifndef CHKIMG
     opt->ddd++;
+    opt->checksum_mode = CSM_NONE;
     mode=1;
 #endif
 #endif

@@ -303,6 +303,9 @@ int main(int argc, char **argv) {
 		else
 		    read_super_blocks(target, &fs_info);
 
+		img_opt.checksum_mode = opt.checksum_mode;
+		img_opt.checksum_size = get_checksum_size(opt.checksum_mode, opt.debug);
+		img_opt.blocks_per_checksum = opt.blocks_per_checksum;
 		check_mem_size(fs_info, img_opt, opt);
 
 		/// alloc a memory to restore bitmap
