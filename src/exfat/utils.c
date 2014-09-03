@@ -2,11 +2,12 @@
 	utils.c (04.09.09)
 	exFAT file system implementation library.
 
-	Copyright (C) 2009, 2010  Andrew Nayenko
+	Free exFAT implementation.
+	Copyright (C) 2010-2014  Andrew Nayenko
 
-	This program is free software: you can redistribute it and/or modify
+	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
+	the Free Software Foundation, either version 2 of the License, or
 	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
@@ -14,8 +15,9 @@
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License along
+	with this program; if not, write to the Free Software Foundation, Inc.,
+	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
 #include "exfat.h"
@@ -83,7 +85,8 @@ le16_t exfat_calc_checksum(const struct exfat_entry_meta1* meta1,
 	{
 		struct exfat_entry_name name_entry = {EXFAT_ENTRY_FILE_NAME, 0};
 		memcpy(name_entry.name, name + i * EXFAT_ENAME_MAX,
-				EXFAT_ENAME_MAX * sizeof(le16_t));
+				MIN(EXFAT_ENAME_MAX, EXFAT_NAME_MAX - i * EXFAT_ENAME_MAX) *
+				sizeof(le16_t));
 		checksum = exfat_add_checksum(&name_entry, checksum);
 	}
 	return cpu_to_le16(checksum);
@@ -133,11 +136,13 @@ le16_t exfat_calc_name_hash(const struct exfat* ef, const le16_t* name)
 void exfat_humanize_bytes(uint64_t value, struct exfat_human_bytes* hb)
 {
 	size_t i;
-	const char* units[] = {"bytes", "KB", "MB", "GB", "TB", "PB"};
+	/* 16 EB (minus 1 byte) is the largest size that can be represented by
+	   uint64_t */
+	const char* units[] = {"bytes", "KB", "MB", "GB", "TB", "PB", "EB"};
 	uint64_t divisor = 1;
 	uint64_t temp = 0;
 
-	for (i = 0; i < sizeof(units) / sizeof(units[0]) - 1; i++, divisor *= 1024)
+	for (i = 0; ; i++, divisor *= 1024)
 	{
 		temp = (value + divisor / 2) / divisor;
 

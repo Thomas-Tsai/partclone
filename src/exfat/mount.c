@@ -2,11 +2,12 @@
 	mount.c (22.10.09)
 	exFAT file system implementation library.
 
-	Copyright (C) 2009, 2010  Andrew Nayenko
+	Free exFAT implementation.
+	Copyright (C) 2010-2014  Andrew Nayenko
 
-	This program is free software: you can redistribute it and/or modify
+	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
+	the Free Software Foundation, either version 2 of the License, or
 	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
@@ -14,14 +15,16 @@
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License along
+	with this program; if not, write to the Free Software Foundation, Inc.,
+	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
 #include "exfat.h"
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <unistd.h>
 #include <sys/types.h>
 
@@ -36,6 +39,12 @@ static uint64_t rootdir_size(const struct exfat* ef)
 		/* root directory cannot be contiguous because there is no flag
 		   to indicate this */
 		rootdir_cluster = exfat_next_cluster(ef, ef->root, rootdir_cluster);
+	}
+	if (rootdir_cluster != EXFAT_CLUSTER_END)
+	{
+		exfat_error("bad cluster %#x while reading root directory",
+				rootdir_cluster);
+		return 0;
 	}
 	return clusters * CLUSTER_SIZE(*ef->sb);
 }
@@ -61,7 +70,7 @@ static int get_int_option(const char* options, const char* option_name,
 	return strtol(p, NULL, base);
 }
 
-static int match_option(const char* options, const char* option_name)
+static bool match_option(const char* options, const char* option_name)
 {
 	const char* p;
 	size_t length = strlen(option_name);
@@ -69,8 +78,8 @@ static int match_option(const char* options, const char* option_name)
 	for (p = strstr(options, option_name); p; p = strstr(p + 1, option_name))
 		if ((p == options || p[-1] == ',') &&
 				(p[length] == ',' || p[length] == '\0'))
-			return 1;
-	return 0;
+			return true;
+	return false;
 }
 
 static void parse_options(struct exfat* ef, const char* options)
@@ -86,38 +95,53 @@ static void parse_options(struct exfat* ef, const char* options)
 	ef->uid = get_int_option(options, "uid", 10, geteuid());
 	ef->gid = get_int_option(options, "gid", 10, getegid());
 
-	ef->ro = match_option(options, "ro");
 	ef->noatime = match_option(options, "noatime");
 }
 
-static int verify_vbr_checksum(struct exfat_dev* dev, void* sector,
+static bool verify_vbr_checksum(struct exfat_dev* dev, void* sector,
 		off_t sector_size)
 {
 	uint32_t vbr_checksum;
 	int i;
 
-	exfat_pread(dev, sector, sector_size, 0);
+	if (exfat_pread(dev, sector, sector_size, 0) < 0)
+	{
+		exfat_error("failed to read boot sector");
+		return false;
+	}
 	vbr_checksum = exfat_vbr_start_checksum(sector, sector_size);
 	for (i = 1; i < 11; i++)
 	{
-		exfat_pread(dev, sector, sector_size, i * sector_size);
+		if (exfat_pread(dev, sector, sector_size, i * sector_size) < 0)
+		{
+			exfat_error("failed to read VBR sector");
+			return false;
+		}
 		vbr_checksum = exfat_vbr_add_checksum(sector, sector_size,
 				vbr_checksum);
 	}
-	exfat_pread(dev, sector, sector_size, i * sector_size);
+	if (exfat_pread(dev, sector, sector_size, i * sector_size) < 0)
+	{
+		exfat_error("failed to read VBR checksum sector");
+		return false;
+	}
 	for (i = 0; i < sector_size / sizeof(vbr_checksum); i++)
 		if (le32_to_cpu(((const le32_t*) sector)[i]) != vbr_checksum)
 		{
 			exfat_error("invalid VBR checksum 0x%x (expected 0x%x)",
 					le32_to_cpu(((const le32_t*) sector)[i]), vbr_checksum);
-			return 1;
+			return false;
 		}
-	return 0;
+	return true;
 }
 
 static int commit_super_block(const struct exfat* ef)
 {
-	exfat_pwrite(ef->dev, ef->sb, sizeof(struct exfat_super_block), 0);
+	if (exfat_pwrite(ef->dev, ef->sb, sizeof(struct exfat_super_block), 0) < 0)
+	{
+		exfat_error("failed to write super block");
+		return 1;
+	}
 	return exfat_fsync(ef->dev);
 }
 
@@ -137,22 +161,28 @@ static int prepare_super_block(const struct exfat* ef)
 int exfat_mount(struct exfat* ef, const char* spec, const char* options)
 {
 	int rc;
+	enum exfat_mode mode;
 
 	exfat_tzset();
 	memset(ef, 0, sizeof(struct exfat));
 
 	parse_options(ef, options);
 
-	ef->dev = exfat_open(spec, ef->ro);
+	if (match_option(options, "ro"))
+		mode = EXFAT_MODE_RO;
+	else if (match_option(options, "ro_fallback"))
+		mode = EXFAT_MODE_ANY;
+	else
+		mode = EXFAT_MODE_RW;
+	ef->dev = exfat_open(spec, mode);
 	if (ef->dev == NULL)
+		return -EIO;
+	if (exfat_get_mode(ef->dev) == EXFAT_MODE_RO)
 	{
-		if (ef->ro || !match_option(options, "ro_fallback"))
-			return -EIO;
-		ef->dev = exfat_open(spec, 1);
-		if (ef->dev == NULL)
-			return -EIO;
-		exfat_warn("device is write-protected, mounting read-only");
-		ef->ro_fallback = ef->ro = 1;
+		if (mode == EXFAT_MODE_ANY)
+			ef->ro = -1;
+		else
+			ef->ro = 1;
 	}
 
 	ef->sb = malloc(sizeof(struct exfat_super_block));
@@ -164,7 +194,13 @@ int exfat_mount(struct exfat* ef, const char* spec, const char* options)
 	}
 	memset(ef->sb, 0, sizeof(struct exfat_super_block));
 
-	exfat_pread(ef->dev, ef->sb, sizeof(struct exfat_super_block), 0);
+	if (exfat_pread(ef->dev, ef->sb, sizeof(struct exfat_super_block), 0) < 0)
+	{
+		exfat_close(ef->dev);
+		free(ef->sb);
+		exfat_error("failed to read boot sector");
+		return -EIO;
+	}
 	if (memcmp(ef->sb->oem_name, "EXFAT   ", 8) != 0)
 	{
 		exfat_close(ef->dev);
@@ -172,31 +208,6 @@ int exfat_mount(struct exfat* ef, const char* spec, const char* options)
 		exfat_error("exFAT file system is not found");
 		return -EIO;
 	}
-	if (ef->sb->version.major != 1 || ef->sb->version.minor != 0)
-	{
-		exfat_close(ef->dev);
-		exfat_error("unsupported exFAT version: %hhu.%hhu",
-				ef->sb->version.major, ef->sb->version.minor);
-		free(ef->sb);
-		return -EIO;
-	}
-	if (ef->sb->fat_count != 1)
-	{
-		exfat_close(ef->dev);
-		free(ef->sb);
-		exfat_error("unsupported FAT count: %hhu", ef->sb->fat_count);
-		return -EIO;
-	}
-	/* officially exFAT supports cluster size up to 32 MB */
-	if ((int) ef->sb->sector_bits + (int) ef->sb->spc_bits > 25)
-	{
-		exfat_close(ef->dev);
-		free(ef->sb);
-		exfat_error("too big cluster size: 2^%d",
-				(int) ef->sb->sector_bits + (int) ef->sb->spc_bits);
-		return -EIO;
-	}
-
 	ef->zero_cluster = malloc(CLUSTER_SIZE(*ef->sb));
 	if (ef->zero_cluster == NULL)
 	{
@@ -206,8 +217,7 @@ int exfat_mount(struct exfat* ef, const char* spec, const char* options)
 		return -ENOMEM;
 	}
 	/* use zero_cluster as a temporary buffer for VBR checksum verification */
-	if (verify_vbr_checksum(ef->dev, ef->zero_cluster,
-			SECTOR_SIZE(*ef->sb)) != 0)
+	if (!verify_vbr_checksum(ef->dev, ef->zero_cluster, SECTOR_SIZE(*ef->sb)))
 	{
 		free(ef->zero_cluster);
 		exfat_close(ef->dev);
@@ -215,6 +225,45 @@ int exfat_mount(struct exfat* ef, const char* spec, const char* options)
 		return -EIO;
 	}
 	memset(ef->zero_cluster, 0, CLUSTER_SIZE(*ef->sb));
+	if (ef->sb->version.major != 1 || ef->sb->version.minor != 0)
+	{
+		free(ef->zero_cluster);
+		exfat_close(ef->dev);
+		exfat_error("unsupported exFAT version: %hhu.%hhu",
+				ef->sb->version.major, ef->sb->version.minor);
+		free(ef->sb);
+		return -EIO;
+	}
+	if (ef->sb->fat_count != 1)
+	{
+		free(ef->zero_cluster);
+		exfat_close(ef->dev);
+		exfat_error("unsupported FAT count: %hhu", ef->sb->fat_count);
+		free(ef->sb);
+		return -EIO;
+	}
+	/* officially exFAT supports cluster size up to 32 MB */
+	if ((int) ef->sb->sector_bits + (int) ef->sb->spc_bits > 25)
+	{
+		free(ef->zero_cluster);
+		exfat_close(ef->dev);
+		exfat_error("too big cluster size: 2^%d",
+				(int) ef->sb->sector_bits + (int) ef->sb->spc_bits);
+		free(ef->sb);
+		return -EIO;
+	}
+	if (le64_to_cpu(ef->sb->sector_count) * SECTOR_SIZE(*ef->sb) >
+			exfat_get_size(ef->dev))
+	{
+		free(ef->zero_cluster);
+		exfat_error("file system is larger than underlying device: "
+				"%"PRIu64" > %"PRIu64,
+				le64_to_cpu(ef->sb->sector_count) * SECTOR_SIZE(*ef->sb),
+				exfat_get_size(ef->dev));
+		exfat_close(ef->dev);
+		free(ef->sb);
+		return -EIO;
+	}
 
 	ef->root = malloc(sizeof(struct exfat_node));
 	if (ef->root == NULL)
@@ -231,6 +280,14 @@ int exfat_mount(struct exfat* ef, const char* spec, const char* options)
 	ef->root->fptr_cluster = ef->root->start_cluster;
 	ef->root->name[0] = cpu_to_le16('\0');
 	ef->root->size = rootdir_size(ef);
+	if (ef->root->size == 0)
+	{
+		free(ef->root);
+		free(ef->zero_cluster);
+		exfat_close(ef->dev);
+		free(ef->sb);
+		return -EIO;
+	}
 	/* exFAT does not have time attributes for the root directory */
 	ef->root->mtime = 0;
 	ef->root->atime = 0;
@@ -285,11 +342,12 @@ static void finalize_super_block(struct exfat* ef)
 		ef->sb->allocated_percent = ((total - free) * 100 + total / 2) / total;
 	}
 
-	commit_super_block(ef);
+	commit_super_block(ef);	/* ignore return code */
 }
 
 void exfat_unmount(struct exfat* ef)
 {
+	exfat_flush(ef);	/* ignore return code */
 	exfat_put_node(ef, ef->root);
 	exfat_reset_cache(ef);
 	free(ef->root);

@@ -2,11 +2,12 @@
 	io.c (02.09.09)
 	exFAT file system implementation library.
 
-	Copyright (C) 2009, 2010  Andrew Nayenko
+	Free exFAT implementation.
+	Copyright (C) 2010-2014  Andrew Nayenko
 
-	This program is free software: you can redistribute it and/or modify
+	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
+	the Free Software Foundation, either version 2 of the License, or
 	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
@@ -14,38 +15,70 @@
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License along
+	with this program; if not, write to the Free Software Foundation, Inc.,
+	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#define _XOPEN_SOURCE 500 /* for pread() and pwrite() in Linux */
 #include "exfat.h"
 #include <inttypes.h>
 #include <sys/types.h>
-#include <sys/uio.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
+#if defined(__APPLE__)
+#include <sys/disk.h>
+#elif defined(__OpenBSD__)
+#include <sys/param.h>
+#include <sys/disklabel.h>
+#include <sys/dkio.h>
+#include <sys/ioctl.h>
+#endif
+#include <sys/mount.h>
 #ifdef USE_UBLIO
 #include <sys/uio.h>
 #include <ublio.h>
 #endif
 
-#if _FILE_OFFSET_BITS != 64
-	#error You should define _FILE_OFFSET_BITS=64
-#endif
-
 struct exfat_dev
 {
 	int fd;
+	enum exfat_mode mode;
+	off_t size; /* in bytes */
 #ifdef USE_UBLIO
 	off_t pos;
 	ublio_filehandle_t ufh;
 #endif
 };
 
-struct exfat_dev* exfat_open(const char* spec, int ro)
+static int open_ro(const char* spec)
+{
+	return open(spec, O_RDONLY);
+}
+
+static int open_rw(const char* spec)
+{
+	int fd = open(spec, O_RDWR);
+#ifdef __linux__
+	int ro = 0;
+
+	/*
+	   This ioctl is needed because after "blockdev --setro" kernel still
+	   allows to open the device in read-write mode but fails writes.
+	*/
+	if (fd != -1 && ioctl(fd, BLKROGET, &ro) == 0 && ro)
+	{
+		close(fd);
+		errno = EROFS;
+		return -1;
+	}
+#endif
+	return fd;
+}
+
+struct exfat_dev* exfat_open(const char* spec, enum exfat_mode mode)
 {
 	struct exfat_dev* dev;
 	struct stat stbuf;
@@ -60,19 +93,54 @@ struct exfat_dev* exfat_open(const char* spec, int ro)
 		return NULL;
 	}
 
-	dev->fd = open(spec, ro ? O_RDONLY : O_RDWR);
-	if (dev->fd < 0)
+	switch (mode)
 	{
+	case EXFAT_MODE_RO:
+		dev->fd = open_ro(spec);
+		if (dev->fd == -1)
+		{
+			free(dev);
+			exfat_error("failed to open '%s' in read-only mode: %s", spec,
+					strerror(errno));
+			return NULL;
+		}
+		dev->mode = EXFAT_MODE_RO;
+		break;
+	case EXFAT_MODE_RW:
+		dev->fd = open_rw(spec);
+		if (dev->fd == -1)
+		{
+			free(dev);
+			exfat_error("failed to open '%s' in read-write mode: %s", spec,
+					strerror(errno));
+			return NULL;
+		}
+		dev->mode = EXFAT_MODE_RW;
+		break;
+	case EXFAT_MODE_ANY:
+		dev->fd = open_rw(spec);
+		if (dev->fd != -1)
+		{
+			dev->mode = EXFAT_MODE_RW;
+			break;
+		}
+		dev->fd = open_ro(spec);
+		if (dev->fd != -1)
+		{
+			dev->mode = EXFAT_MODE_RO;
+			exfat_warn("'%s' is write-protected, mounting read-only", spec);
+			break;
+		}
 		free(dev);
-		exfat_error("failed to open `%s' in read-%s mode", spec,
-				ro ? "only" : "write");
+		exfat_error("failed to open '%s': %s", spec, strerror(errno));
 		return NULL;
 	}
+
 	if (fstat(dev->fd, &stbuf) != 0)
 	{
 		close(dev->fd);
 		free(dev);
-		exfat_error("failed to fstat `%s'", spec);
+		exfat_error("failed to fstat '%s'", spec);
 		return NULL;
 	}
 	if (!S_ISBLK(stbuf.st_mode) &&
@@ -81,8 +149,77 @@ struct exfat_dev* exfat_open(const char* spec, int ro)
 	{
 		close(dev->fd);
 		free(dev);
-		exfat_error("`%s' is neither a device, nor a regular file", spec);
+		exfat_error("'%s' is neither a device, nor a regular file", spec);
 		return NULL;
+	}
+
+#if defined(__APPLE__)
+	if (!S_ISREG(stbuf.st_mode))
+	{
+		uint32_t block_size = 0;
+		uint64_t blocks = 0;
+
+		if (ioctl(dev->fd, DKIOCGETBLOCKSIZE, &block_size) != 0)
+		{
+			close(dev->fd);
+			free(dev);
+			exfat_error("failed to get block size");
+			return NULL;
+		}
+		if (ioctl(dev->fd, DKIOCGETBLOCKCOUNT, &blocks) != 0)
+		{
+			close(dev->fd);
+			free(dev);
+			exfat_error("failed to get blocks count");
+			return NULL;
+		}
+		dev->size = blocks * block_size;
+	}
+	else
+#elif defined(__OpenBSD__)
+	if (!S_ISREG(stbuf.st_mode))
+	{
+		struct disklabel lab;
+		struct partition* pp;
+		char* partition;
+
+		if (ioctl(dev->fd, DIOCGDINFO, &lab) == -1)
+		{
+			close(dev->fd);
+			free(dev);
+			exfat_error("failed to get disklabel");
+			return NULL;
+		}
+
+		/* Don't need to check that partition letter is valid as we won't get
+		   this far otherwise. */
+		partition = strchr(spec, '\0') - 1;
+		pp = &(lab.d_partitions[*partition - 'a']);
+		dev->size = DL_GETPSIZE(pp) * lab.d_secsize;
+
+		if (pp->p_fstype != FS_NTFS)
+			exfat_warn("partition type is not 0x07 (NTFS/exFAT); "
+					"you can fix this with fdisk(8)");
+	}
+	else
+#endif
+	{
+		/* works for Linux, FreeBSD, Solaris */
+		dev->size = exfat_seek(dev, 0, SEEK_END);
+		if (dev->size <= 0)
+		{
+			close(dev->fd);
+			free(dev);
+			exfat_error("failed to get size of '%s'", spec);
+			return NULL;
+		}
+		if (exfat_seek(dev, 0, SEEK_SET) == -1)
+		{
+			close(dev->fd);
+			free(dev);
+			exfat_error("failed to seek to the beginning of '%s'", spec);
+			return NULL;
+		}
 	}
 
 #ifdef USE_UBLIO
@@ -108,32 +245,51 @@ struct exfat_dev* exfat_open(const char* spec, int ro)
 
 int exfat_close(struct exfat_dev* dev)
 {
+	int rc = 0;
+
 #ifdef USE_UBLIO
 	if (ublio_close(dev->ufh) != 0)
+	{
 		exfat_error("failed to close ublio");
+		rc = -EIO;
+	}
 #endif
 	if (close(dev->fd) != 0)
 	{
-		free(dev);
-		exfat_error("failed to close device");
-		return 1;
+		exfat_error("failed to close device: %s", strerror(errno));
+		rc = -EIO;
 	}
 	free(dev);
-	return 0;
+	return rc;
 }
 
 int exfat_fsync(struct exfat_dev* dev)
 {
+	int rc = 0;
+
 #ifdef USE_UBLIO
 	if (ublio_fsync(dev->ufh) != 0)
-#else
-	if (fsync(dev->fd) != 0)
-#endif
 	{
-		exfat_error("fsync failed");
-		return 1;
+		exfat_error("ublio fsync failed");
+		rc = -EIO;
 	}
-	return 0;
+#endif
+	if (fsync(dev->fd) != 0)
+	{
+		exfat_error("fsync failed: %s", strerror(errno));
+		rc = -EIO;
+	}
+	return rc;
+}
+
+enum exfat_mode exfat_get_mode(const struct exfat_dev* dev)
+{
+	return dev->mode;
+}
+
+off_t exfat_get_size(const struct exfat_dev* dev)
+{
+	return dev->size;
 }
 
 off_t exfat_seek(struct exfat_dev* dev, off_t offset, int whence)
@@ -170,28 +326,24 @@ ssize_t exfat_write(struct exfat_dev* dev, const void* buffer, size_t size)
 #endif
 }
 
-void exfat_pread(struct exfat_dev* dev, void* buffer, size_t size,
+ssize_t exfat_pread(struct exfat_dev* dev, void* buffer, size_t size,
 		off_t offset)
 {
 #ifdef USE_UBLIO
-	if (ublio_pread(dev->ufh, buffer, size, offset) != size)
+	return ublio_pread(dev->ufh, buffer, size, offset);
 #else
-	if (pread(dev->fd, buffer, size, offset) != size)
+	return pread(dev->fd, buffer, size, offset);
 #endif
-		exfat_bug("failed to read %zu bytes from file at %"PRIu64, size,
-				(uint64_t) offset);
 }
 
-void exfat_pwrite(struct exfat_dev* dev, const void* buffer, size_t size,
+ssize_t exfat_pwrite(struct exfat_dev* dev, const void* buffer, size_t size,
 		off_t offset)
 {
 #ifdef USE_UBLIO
-	if (ublio_pwrite(dev->ufh, buffer, size, offset) != size)
+	return ublio_pwrite(dev->ufh, buffer, size, offset);
 #else
-	if (pwrite(dev->fd, buffer, size, offset) != size)
+	return pwrite(dev->fd, buffer, size, offset);
 #endif
-		exfat_bug("failed to write %zu bytes to file at %"PRIu64, size,
-				(uint64_t) offset);
 }
 
 ssize_t exfat_generic_pread(const struct exfat* ef, struct exfat_node* node,
@@ -209,7 +361,7 @@ ssize_t exfat_generic_pread(const struct exfat* ef, struct exfat_node* node,
 	cluster = exfat_advance_cluster(ef, node, offset / CLUSTER_SIZE(*ef->sb));
 	if (CLUSTER_INVALID(cluster))
 	{
-		exfat_error("got invalid cluster");
+		exfat_error("invalid cluster 0x%x while reading", cluster);
 		return -1;
 	}
 
@@ -219,11 +371,16 @@ ssize_t exfat_generic_pread(const struct exfat* ef, struct exfat_node* node,
 	{
 		if (CLUSTER_INVALID(cluster))
 		{
-			exfat_error("got invalid cluster");
+			exfat_error("invalid cluster 0x%x while reading", cluster);
 			return -1;
 		}
 		lsize = MIN(CLUSTER_SIZE(*ef->sb) - loffset, remainder);
-		exfat_pread(ef->dev, bufp, lsize, exfat_c2o(ef, cluster) + loffset);
+		if (exfat_pread(ef->dev, bufp, lsize,
+					exfat_c2o(ef, cluster) + loffset) < 0)
+		{
+			exfat_error("failed to read cluster %#x", cluster);
+			return -1;
+		}
 		bufp += lsize;
 		loffset = 0;
 		remainder -= lsize;
@@ -231,7 +388,7 @@ ssize_t exfat_generic_pread(const struct exfat* ef, struct exfat_node* node,
 	}
 	if (!ef->ro && !ef->noatime)
 		exfat_update_atime(node);
-	return size - remainder;
+	return MIN(size, node->size - offset) - remainder;
 }
 
 ssize_t exfat_generic_pwrite(struct exfat* ef, struct exfat_node* node,
@@ -241,19 +398,19 @@ ssize_t exfat_generic_pwrite(struct exfat* ef, struct exfat_node* node,
 	const char* bufp = buffer;
 	off_t lsize, loffset, remainder;
 
-	if (offset + size > node->size)
-	{
-		int rc = exfat_truncate(ef, node, offset + size);
-		if (rc != 0)
-			return rc;
-	}
+ 	if (offset > node->size)
+ 		if (exfat_truncate(ef, node, offset, true) != 0)
+ 			return -1;
+  	if (offset + size > node->size)
+ 		if (exfat_truncate(ef, node, offset + size, false) != 0)
+ 			return -1;
 	if (size == 0)
 		return 0;
 
 	cluster = exfat_advance_cluster(ef, node, offset / CLUSTER_SIZE(*ef->sb));
 	if (CLUSTER_INVALID(cluster))
 	{
-		exfat_error("got invalid cluster");
+		exfat_error("invalid cluster 0x%x while writing", cluster);
 		return -1;
 	}
 
@@ -263,11 +420,16 @@ ssize_t exfat_generic_pwrite(struct exfat* ef, struct exfat_node* node,
 	{
 		if (CLUSTER_INVALID(cluster))
 		{
-			exfat_error("got invalid cluster");
+			exfat_error("invalid cluster 0x%x while writing", cluster);
 			return -1;
 		}
 		lsize = MIN(CLUSTER_SIZE(*ef->sb) - loffset, remainder);
-		exfat_pwrite(ef->dev, bufp, lsize, exfat_c2o(ef, cluster) + loffset);
+		if (exfat_pwrite(ef->dev, bufp, lsize,
+				exfat_c2o(ef, cluster) + loffset) < 0)
+		{
+			exfat_error("failed to write cluster %#x", cluster);
+			return -1;
+		}
 		bufp += lsize;
 		loffset = 0;
 		remainder -= lsize;

@@ -88,8 +88,8 @@ host_triplet = i686-pc-linux-gnu
 #endif
 ##am__append_5 = hfsplus.test
 ##am__append_6 = xfs.test
-##am__append_7 = exfat.test
-#am__append_8 = f2fs.test
+#am__append_7 = exfat.test
+##am__append_8 = f2fs.test
 ##am__append_9 = ntfs.test
 
 #if ENABLE_UFS
@@ -101,7 +101,7 @@ host_triplet = i686-pc-linux-gnu
 #endif
 ##am__append_10 = jfs.test
 ##am__append_11 = btrfs.test
-##am__append_12 = exfat.test
+#am__append_12 = exfat.test
 ##am__append_13 = ncursesw.test
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \

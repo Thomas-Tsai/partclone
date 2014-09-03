@@ -200,16 +200,13 @@ partclone_dd_LINK = $(CCLD) $(partclone_dd_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__partclone_exfat_SOURCES_DIST = main.c partclone.c progress.c \
 	exfatclone.c exfatclone.h partclone.h progress.h gettext.h \
-	exfat/byteorder.h exfat/cluster.c exfat/exfatfs.h \
-	exfat/exfat.h exfat/io.c exfat/libexfat.a exfat/log.c \
-	exfat/lookup.c exfat/mount.c exfat/node.c exfat/time.c \
-	exfat/utf.c exfat/utils.c exfat/version.h
+	exfat/cluster.c exfat/utf.c exfat/utils.c exfat/lookup.c \
+	exfat/io.c exfat/log.c exfat/node.c exfat/mount.c exfat/time.c
 am__objects_2 = partclone_exfat-cluster.$(OBJEXT) \
-	partclone_exfat-io.$(OBJEXT) partclone_exfat-log.$(OBJEXT) \
-	partclone_exfat-lookup.$(OBJEXT) \
-	partclone_exfat-mount.$(OBJEXT) partclone_exfat-node.$(OBJEXT) \
-	partclone_exfat-time.$(OBJEXT) partclone_exfat-utf.$(OBJEXT) \
-	partclone_exfat-utils.$(OBJEXT)
+	partclone_exfat-utf.$(OBJEXT) partclone_exfat-utils.$(OBJEXT) \
+	partclone_exfat-lookup.$(OBJEXT) partclone_exfat-io.$(OBJEXT) \
+	partclone_exfat-log.$(OBJEXT) partclone_exfat-node.$(OBJEXT) \
+	partclone_exfat-mount.$(OBJEXT) partclone_exfat-time.$(OBJEXT)
 @ENABLE_EXFAT_TRUE@am_partclone_exfat_OBJECTS =  \
 @ENABLE_EXFAT_TRUE@	partclone_exfat-main.$(OBJEXT) \
 @ENABLE_EXFAT_TRUE@	partclone_exfat-partclone.$(OBJEXT) \
@@ -616,7 +613,7 @@ LDADD = $(LIBINTL)
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 BTRFS_SOURCE = btrfs/crc32c.c btrfs/disk-io.c btrfs/extent-tree.c btrfs/inode-map.c btrfs/rbtree.c btrfs/volumes.c btrfs/ctree.c btrfs/extent-cache.c btrfs/file-item.c btrfs/print-tree.c btrfs/root-tree.c btrfs/dir-item.c btrfs/extent_io.c btrfs/inode-item.c btrfs/radix-tree.c btrfs/utils.c btrfs/crc32c.h btrfs/extent-cache.h btrfs/ioctl.h btrfs/print-tree.h btrfs/transaction.h btrfs/volumes.h btrfs/ctree.h btrfs/extent_io.h btrfs/kerncompat.h btrfs/radix-tree.h btrfs/utils.h btrfs/disk-io.h btrfs/hash.h btrfs/list.h btrfs/rbtree.h btrfs/version.h btrfs/repair.h btrfs/repair.c btrfs/raid6.c btrfs/free-space-cache.c btrfs/free-space-cache.h btrfs/bitops.h btrfs/math.h
 #BTRFS_SOURCE= btrfs/*
-EXFATFS_SOURCE = exfat/byteorder.h exfat/cluster.c exfat/exfatfs.h exfat/exfat.h exfat/io.c exfat/libexfat.a exfat/log.c exfat/lookup.c exfat/mount.c exfat/node.c exfat/time.c exfat/utf.c exfat/utils.c exfat/version.h
+EXFATFS_SOURCE = exfat/cluster.c exfat/utf.c exfat/utils.c exfat/lookup.c exfat/io.c exfat/log.c exfat/node.c exfat/mount.c exfat/time.c
 F2FS_SOURCE = f2fs/fsck.c f2fs/libf2fs.c f2fs/fsck.h f2fs/mount.c f2fs/f2fs_fs.h f2fs/list.h f2fs/f2fs.h
 @ENABLE_STATIC_TRUE@AM_LDFLAGS = -static
 AM_CFLAGS = -D_FILE_OFFSET_BITS=64 $(am__append_2) $(am__append_3)
@@ -644,7 +641,7 @@ partclone_imager_CFLAGS = -DIMG
 @ENABLE_XFS_TRUE@partclone_xfs_CFLAGS = -DXFS $(UUID_CFLAGS)
 @ENABLE_XFS_TRUE@partclone_xfs_LDADD = -lxfs -lrt -lpthread -luuid
 @ENABLE_EXFAT_TRUE@partclone_exfat_SOURCES = main.c partclone.c progress.c exfatclone.c exfatclone.h partclone.h progress.h gettext.h $(EXFATFS_SOURCE)
-@ENABLE_EXFAT_TRUE@partclone_exfat_CFLAGS = -DEXFAT
+@ENABLE_EXFAT_TRUE@partclone_exfat_CFLAGS = -DEXFAT -D_GNU_SOURCE -std=c99
 @ENABLE_F2FS_TRUE@partclone_f2fs_SOURCES = main.c partclone.c progress.c f2fsclone.c f2fsclone.h partclone.h progress.h gettext.h $(F2FS_SOURCE)
 @ENABLE_F2FS_TRUE@partclone_f2fs_CFLAGS = -DF2FS
 @ENABLE_F2FS_TRUE@partclone_f2fs_LDADD = -luuid
@@ -1478,6 +1475,48 @@ partclone_exfat-cluster.obj: exfat/cluster.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-cluster.obj `if test -f 'exfat/cluster.c'; then $(CYGPATH_W) 'exfat/cluster.c'; else $(CYGPATH_W) '$(srcdir)/exfat/cluster.c'; fi`
 
+partclone_exfat-utf.o: exfat/utf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-utf.o -MD -MP -MF $(DEPDIR)/partclone_exfat-utf.Tpo -c -o partclone_exfat-utf.o `test -f 'exfat/utf.c' || echo '$(srcdir)/'`exfat/utf.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-utf.Tpo $(DEPDIR)/partclone_exfat-utf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/utf.c' object='partclone_exfat-utf.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-utf.o `test -f 'exfat/utf.c' || echo '$(srcdir)/'`exfat/utf.c
+
+partclone_exfat-utf.obj: exfat/utf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-utf.obj -MD -MP -MF $(DEPDIR)/partclone_exfat-utf.Tpo -c -o partclone_exfat-utf.obj `if test -f 'exfat/utf.c'; then $(CYGPATH_W) 'exfat/utf.c'; else $(CYGPATH_W) '$(srcdir)/exfat/utf.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-utf.Tpo $(DEPDIR)/partclone_exfat-utf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/utf.c' object='partclone_exfat-utf.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-utf.obj `if test -f 'exfat/utf.c'; then $(CYGPATH_W) 'exfat/utf.c'; else $(CYGPATH_W) '$(srcdir)/exfat/utf.c'; fi`
+
+partclone_exfat-utils.o: exfat/utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-utils.o -MD -MP -MF $(DEPDIR)/partclone_exfat-utils.Tpo -c -o partclone_exfat-utils.o `test -f 'exfat/utils.c' || echo '$(srcdir)/'`exfat/utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-utils.Tpo $(DEPDIR)/partclone_exfat-utils.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/utils.c' object='partclone_exfat-utils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-utils.o `test -f 'exfat/utils.c' || echo '$(srcdir)/'`exfat/utils.c
+
+partclone_exfat-utils.obj: exfat/utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-utils.obj -MD -MP -MF $(DEPDIR)/partclone_exfat-utils.Tpo -c -o partclone_exfat-utils.obj `if test -f 'exfat/utils.c'; then $(CYGPATH_W) 'exfat/utils.c'; else $(CYGPATH_W) '$(srcdir)/exfat/utils.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-utils.Tpo $(DEPDIR)/partclone_exfat-utils.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/utils.c' object='partclone_exfat-utils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-utils.obj `if test -f 'exfat/utils.c'; then $(CYGPATH_W) 'exfat/utils.c'; else $(CYGPATH_W) '$(srcdir)/exfat/utils.c'; fi`
+
+partclone_exfat-lookup.o: exfat/lookup.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-lookup.o -MD -MP -MF $(DEPDIR)/partclone_exfat-lookup.Tpo -c -o partclone_exfat-lookup.o `test -f 'exfat/lookup.c' || echo '$(srcdir)/'`exfat/lookup.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-lookup.Tpo $(DEPDIR)/partclone_exfat-lookup.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/lookup.c' object='partclone_exfat-lookup.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-lookup.o `test -f 'exfat/lookup.c' || echo '$(srcdir)/'`exfat/lookup.c
+
+partclone_exfat-lookup.obj: exfat/lookup.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-lookup.obj -MD -MP -MF $(DEPDIR)/partclone_exfat-lookup.Tpo -c -o partclone_exfat-lookup.obj `if test -f 'exfat/lookup.c'; then $(CYGPATH_W) 'exfat/lookup.c'; else $(CYGPATH_W) '$(srcdir)/exfat/lookup.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-lookup.Tpo $(DEPDIR)/partclone_exfat-lookup.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/lookup.c' object='partclone_exfat-lookup.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-lookup.obj `if test -f 'exfat/lookup.c'; then $(CYGPATH_W) 'exfat/lookup.c'; else $(CYGPATH_W) '$(srcdir)/exfat/lookup.c'; fi`
+
 partclone_exfat-io.o: exfat/io.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-io.o -MD -MP -MF $(DEPDIR)/partclone_exfat-io.Tpo -c -o partclone_exfat-io.o `test -f 'exfat/io.c' || echo '$(srcdir)/'`exfat/io.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-io.Tpo $(DEPDIR)/partclone_exfat-io.Po
@@ -1506,19 +1545,19 @@ partclone_exfat-log.obj: exfat/log.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-log.obj `if test -f 'exfat/log.c'; then $(CYGPATH_W) 'exfat/log.c'; else $(CYGPATH_W) '$(srcdir)/exfat/log.c'; fi`
 
-partclone_exfat-lookup.o: exfat/lookup.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-lookup.o -MD -MP -MF $(DEPDIR)/partclone_exfat-lookup.Tpo -c -o partclone_exfat-lookup.o `test -f 'exfat/lookup.c' || echo '$(srcdir)/'`exfat/lookup.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-lookup.Tpo $(DEPDIR)/partclone_exfat-lookup.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/lookup.c' object='partclone_exfat-lookup.o' libtool=no @AMDEPBACKSLASH@
+partclone_exfat-node.o: exfat/node.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-node.o -MD -MP -MF $(DEPDIR)/partclone_exfat-node.Tpo -c -o partclone_exfat-node.o `test -f 'exfat/node.c' || echo '$(srcdir)/'`exfat/node.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-node.Tpo $(DEPDIR)/partclone_exfat-node.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/node.c' object='partclone_exfat-node.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-lookup.o `test -f 'exfat/lookup.c' || echo '$(srcdir)/'`exfat/lookup.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-node.o `test -f 'exfat/node.c' || echo '$(srcdir)/'`exfat/node.c
 
-partclone_exfat-lookup.obj: exfat/lookup.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-lookup.obj -MD -MP -MF $(DEPDIR)/partclone_exfat-lookup.Tpo -c -o partclone_exfat-lookup.obj `if test -f 'exfat/lookup.c'; then $(CYGPATH_W) 'exfat/lookup.c'; else $(CYGPATH_W) '$(srcdir)/exfat/lookup.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-lookup.Tpo $(DEPDIR)/partclone_exfat-lookup.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/lookup.c' object='partclone_exfat-lookup.obj' libtool=no @AMDEPBACKSLASH@
+partclone_exfat-node.obj: exfat/node.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-node.obj -MD -MP -MF $(DEPDIR)/partclone_exfat-node.Tpo -c -o partclone_exfat-node.obj `if test -f 'exfat/node.c'; then $(CYGPATH_W) 'exfat/node.c'; else $(CYGPATH_W) '$(srcdir)/exfat/node.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-node.Tpo $(DEPDIR)/partclone_exfat-node.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/node.c' object='partclone_exfat-node.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-lookup.obj `if test -f 'exfat/lookup.c'; then $(CYGPATH_W) 'exfat/lookup.c'; else $(CYGPATH_W) '$(srcdir)/exfat/lookup.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-node.obj `if test -f 'exfat/node.c'; then $(CYGPATH_W) 'exfat/node.c'; else $(CYGPATH_W) '$(srcdir)/exfat/node.c'; fi`
 
 partclone_exfat-mount.o: exfat/mount.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-mount.o -MD -MP -MF $(DEPDIR)/partclone_exfat-mount.Tpo -c -o partclone_exfat-mount.o `test -f 'exfat/mount.c' || echo '$(srcdir)/'`exfat/mount.c
@@ -1534,20 +1573,6 @@ partclone_exfat-mount.obj: exfat/mount.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-mount.obj `if test -f 'exfat/mount.c'; then $(CYGPATH_W) 'exfat/mount.c'; else $(CYGPATH_W) '$(srcdir)/exfat/mount.c'; fi`
 
-partclone_exfat-node.o: exfat/node.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-node.o -MD -MP -MF $(DEPDIR)/partclone_exfat-node.Tpo -c -o partclone_exfat-node.o `test -f 'exfat/node.c' || echo '$(srcdir)/'`exfat/node.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-node.Tpo $(DEPDIR)/partclone_exfat-node.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/node.c' object='partclone_exfat-node.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-node.o `test -f 'exfat/node.c' || echo '$(srcdir)/'`exfat/node.c
-
-partclone_exfat-node.obj: exfat/node.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-node.obj -MD -MP -MF $(DEPDIR)/partclone_exfat-node.Tpo -c -o partclone_exfat-node.obj `if test -f 'exfat/node.c'; then $(CYGPATH_W) 'exfat/node.c'; else $(CYGPATH_W) '$(srcdir)/exfat/node.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-node.Tpo $(DEPDIR)/partclone_exfat-node.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/node.c' object='partclone_exfat-node.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-node.obj `if test -f 'exfat/node.c'; then $(CYGPATH_W) 'exfat/node.c'; else $(CYGPATH_W) '$(srcdir)/exfat/node.c'; fi`
-
 partclone_exfat-time.o: exfat/time.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-time.o -MD -MP -MF $(DEPDIR)/partclone_exfat-time.Tpo -c -o partclone_exfat-time.o `test -f 'exfat/time.c' || echo '$(srcdir)/'`exfat/time.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-time.Tpo $(DEPDIR)/partclone_exfat-time.Po
@@ -1561,34 +1586,6 @@ partclone_exfat-time.obj: exfat/time.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/time.c' object='partclone_exfat-time.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-time.obj `if test -f 'exfat/time.c'; then $(CYGPATH_W) 'exfat/time.c'; else $(CYGPATH_W) '$(srcdir)/exfat/time.c'; fi`
-
-partclone_exfat-utf.o: exfat/utf.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-utf.o -MD -MP -MF $(DEPDIR)/partclone_exfat-utf.Tpo -c -o partclone_exfat-utf.o `test -f 'exfat/utf.c' || echo '$(srcdir)/'`exfat/utf.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-utf.Tpo $(DEPDIR)/partclone_exfat-utf.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/utf.c' object='partclone_exfat-utf.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-utf.o `test -f 'exfat/utf.c' || echo '$(srcdir)/'`exfat/utf.c
-
-partclone_exfat-utf.obj: exfat/utf.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-utf.obj -MD -MP -MF $(DEPDIR)/partclone_exfat-utf.Tpo -c -o partclone_exfat-utf.obj `if test -f 'exfat/utf.c'; then $(CYGPATH_W) 'exfat/utf.c'; else $(CYGPATH_W) '$(srcdir)/exfat/utf.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-utf.Tpo $(DEPDIR)/partclone_exfat-utf.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/utf.c' object='partclone_exfat-utf.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-utf.obj `if test -f 'exfat/utf.c'; then $(CYGPATH_W) 'exfat/utf.c'; else $(CYGPATH_W) '$(srcdir)/exfat/utf.c'; fi`
-
-partclone_exfat-utils.o: exfat/utils.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-utils.o -MD -MP -MF $(DEPDIR)/partclone_exfat-utils.Tpo -c -o partclone_exfat-utils.o `test -f 'exfat/utils.c' || echo '$(srcdir)/'`exfat/utils.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-utils.Tpo $(DEPDIR)/partclone_exfat-utils.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/utils.c' object='partclone_exfat-utils.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-utils.o `test -f 'exfat/utils.c' || echo '$(srcdir)/'`exfat/utils.c
-
-partclone_exfat-utils.obj: exfat/utils.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -MT partclone_exfat-utils.obj -MD -MP -MF $(DEPDIR)/partclone_exfat-utils.Tpo -c -o partclone_exfat-utils.obj `if test -f 'exfat/utils.c'; then $(CYGPATH_W) 'exfat/utils.c'; else $(CYGPATH_W) '$(srcdir)/exfat/utils.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_exfat-utils.Tpo $(DEPDIR)/partclone_exfat-utils.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='exfat/utils.c' object='partclone_exfat-utils.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_exfat_CFLAGS) $(CFLAGS) -c -o partclone_exfat-utils.obj `if test -f 'exfat/utils.c'; then $(CYGPATH_W) 'exfat/utils.c'; else $(CYGPATH_W) '$(srcdir)/exfat/utils.c'; fi`
 
 partclone_extfs-main.o: main.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_extfs_CFLAGS) $(CFLAGS) -MT partclone_extfs-main.o -MD -MP -MF $(DEPDIR)/partclone_extfs-main.Tpo -c -o partclone_extfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c

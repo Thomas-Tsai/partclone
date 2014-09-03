@@ -2,11 +2,12 @@
 	utf.c (13.09.09)
 	exFAT file system implementation library.
 
-	Copyright (C) 2009, 2010  Andrew Nayenko
+	Free exFAT implementation.
+	Copyright (C) 2010-2014  Andrew Nayenko
 
-	This program is free software: you can redistribute it and/or modify
+	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
+	the Free Software Foundation, either version 2 of the License, or
 	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
@@ -14,8 +15,9 @@
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License along
+	with this program; if not, write to the Free Software Foundation, Inc.,
+	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
 #include "exfat.h"
@@ -89,6 +91,7 @@ static const le16_t* utf16_to_wchar(const le16_t* input, wchar_t* wc,
 			return NULL;
 		*wc = ((wchar_t) (le16_to_cpu(input[0]) & 0x3ff) << 10);
 		*wc |= (le16_to_cpu(input[1]) & 0x3ff);
+		*wc += 0x10000;
 		return input + 2;
 	}
 	else
@@ -186,6 +189,7 @@ static le16_t* wchar_to_utf16(le16_t* output, wchar_t wc, size_t outsize)
 	}
 	if (outsize < 2)
 		return NULL;
+	wc -= 0x10000;
 	output[0] = cpu_to_le16(0xd800 | ((wc >> 10) & 0x3ff));
 	output[1] = cpu_to_le16(0xdc00 | (wc & 0x3ff));
 	return output + 2;
