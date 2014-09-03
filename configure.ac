@@ -432,6 +432,9 @@ AC_ARG_ENABLE(btrfs,
 AM_CONDITIONAL(ENABLE_BTRFS, test "$enable_btrfs" = yes)
 
 if test "$enable_btrfs" = yes; then
+
+AC_CHECK_HEADERS([blkid/blkid.h],,
+AC_MSG_ERROR([*** btrfs depend library (libblkid-dev) header not found]))
 supported_fs=$supported_fs" btrfs"
 btrfs_version=`gcc  $srcdir/src/deplib_version.c $srcdir/src/btrfs/version.h  -o $srcdir/get_lib_version -DBTRFS`
 btrfs_version=`$srcdir/get_lib_version btrfs`
