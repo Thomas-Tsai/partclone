@@ -246,18 +246,19 @@ partclone_extfs_DEPENDENCIES =
 partclone_extfs_LINK = $(CCLD) $(partclone_extfs_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__partclone_f2fs_SOURCES_DIST = main.c partclone.c progress.c \
-	f2fsclone.c f2fsclone.h partclone.h progress.h gettext.h \
-	f2fs/fsck.c f2fs/libf2fs.c f2fs/fsck.h f2fs/mount.c \
-	f2fs/f2fs_fs.h f2fs/list.h f2fs/f2fs.h
-am__objects_8 = f2fs/partclone_f2fs-fsck.$(OBJEXT) \
+	checksum.c partclone.h progress.h gettext.h checksum.h \
+	f2fsclone.c f2fsclone.h f2fs/fsck.c f2fs/libf2fs.c f2fs/fsck.h \
+	f2fs/mount.c f2fs/f2fs_fs.h f2fs/list.h f2fs/f2fs.h
+am__objects_8 = partclone_f2fs-main.$(OBJEXT) \
+	partclone_f2fs-partclone.$(OBJEXT) \
+	partclone_f2fs-progress.$(OBJEXT) \
+	partclone_f2fs-checksum.$(OBJEXT)
+am__objects_9 = f2fs/partclone_f2fs-fsck.$(OBJEXT) \
 	f2fs/partclone_f2fs-libf2fs.$(OBJEXT) \
 	f2fs/partclone_f2fs-mount.$(OBJEXT)
-@ENABLE_F2FS_TRUE@am_partclone_f2fs_OBJECTS =  \
-@ENABLE_F2FS_TRUE@	partclone_f2fs-main.$(OBJEXT) \
-@ENABLE_F2FS_TRUE@	partclone_f2fs-partclone.$(OBJEXT) \
-@ENABLE_F2FS_TRUE@	partclone_f2fs-progress.$(OBJEXT) \
+@ENABLE_F2FS_TRUE@am_partclone_f2fs_OBJECTS = $(am__objects_8) \
 @ENABLE_F2FS_TRUE@	partclone_f2fs-f2fsclone.$(OBJEXT) \
-@ENABLE_F2FS_TRUE@	$(am__objects_8)
+@ENABLE_F2FS_TRUE@	$(am__objects_9)
 partclone_f2fs_OBJECTS = $(am_partclone_f2fs_OBJECTS)
 partclone_f2fs_DEPENDENCIES =
 partclone_f2fs_LINK = $(CCLD) $(partclone_f2fs_CFLAGS) $(CFLAGS) \
@@ -265,11 +266,11 @@ partclone_f2fs_LINK = $(CCLD) $(partclone_f2fs_CFLAGS) $(CFLAGS) \
 am__partclone_fat_SOURCES_DIST = main.c partclone.c progress.c \
 	checksum.c partclone.h progress.h gettext.h checksum.h \
 	fatclone.c fatclone.h
-am__objects_9 = partclone_fat-main.$(OBJEXT) \
+am__objects_10 = partclone_fat-main.$(OBJEXT) \
 	partclone_fat-partclone.$(OBJEXT) \
 	partclone_fat-progress.$(OBJEXT) \
 	partclone_fat-checksum.$(OBJEXT)
-@ENABLE_FAT_TRUE@am_partclone_fat_OBJECTS = $(am__objects_9) \
+@ENABLE_FAT_TRUE@am_partclone_fat_OBJECTS = $(am__objects_10) \
 @ENABLE_FAT_TRUE@	partclone_fat-fatclone.$(OBJEXT)
 partclone_fat_OBJECTS = $(am_partclone_fat_OBJECTS)
 partclone_fat_LDADD = $(LDADD)
@@ -286,22 +287,22 @@ partclone_fstype_LINK = $(CCLD) $(partclone_fstype_CFLAGS) $(CFLAGS) \
 am__partclone_hfsp_SOURCES_DIST = main.c partclone.c progress.c \
 	checksum.c partclone.h progress.h gettext.h checksum.h \
 	hfsplusclone.c hfsplusclone.h
-am__objects_10 = partclone_hfsp-main.$(OBJEXT) \
+am__objects_11 = partclone_hfsp-main.$(OBJEXT) \
 	partclone_hfsp-partclone.$(OBJEXT) \
 	partclone_hfsp-progress.$(OBJEXT) \
 	partclone_hfsp-checksum.$(OBJEXT)
-@ENABLE_HFSP_TRUE@am_partclone_hfsp_OBJECTS = $(am__objects_10) \
+@ENABLE_HFSP_TRUE@am_partclone_hfsp_OBJECTS = $(am__objects_11) \
 @ENABLE_HFSP_TRUE@	partclone_hfsp-hfsplusclone.$(OBJEXT)
 partclone_hfsp_OBJECTS = $(am_partclone_hfsp_OBJECTS)
 partclone_hfsp_LDADD = $(LDADD)
 partclone_hfsp_DEPENDENCIES = $(am__DEPENDENCIES_1)
 partclone_hfsp_LINK = $(CCLD) $(partclone_hfsp_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_11 = partclone_imager-main.$(OBJEXT) \
+am__objects_12 = partclone_imager-main.$(OBJEXT) \
 	partclone_imager-partclone.$(OBJEXT) \
 	partclone_imager-progress.$(OBJEXT) \
 	partclone_imager-checksum.$(OBJEXT)
-am_partclone_imager_OBJECTS = $(am__objects_11) \
+am_partclone_imager_OBJECTS = $(am__objects_12) \
 	partclone_imager-ddclone.$(OBJEXT)
 partclone_imager_OBJECTS = $(am_partclone_imager_OBJECTS)
 partclone_imager_LDADD = $(LDADD)
@@ -316,11 +317,11 @@ partclone_info_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__partclone_jfs_SOURCES_DIST = main.c partclone.c progress.c \
 	checksum.c partclone.h progress.h gettext.h checksum.h \
 	jfsclone.c jfsclone.h
-am__objects_12 = partclone_jfs-main.$(OBJEXT) \
+am__objects_13 = partclone_jfs-main.$(OBJEXT) \
 	partclone_jfs-partclone.$(OBJEXT) \
 	partclone_jfs-progress.$(OBJEXT) \
 	partclone_jfs-checksum.$(OBJEXT)
-@ENABLE_JFS_TRUE@am_partclone_jfs_OBJECTS = $(am__objects_12) \
+@ENABLE_JFS_TRUE@am_partclone_jfs_OBJECTS = $(am__objects_13) \
 @ENABLE_JFS_TRUE@	partclone_jfs-jfsclone.$(OBJEXT)
 partclone_jfs_OBJECTS = $(am_partclone_jfs_OBJECTS)
 partclone_jfs_DEPENDENCIES =
@@ -329,11 +330,11 @@ partclone_jfs_LINK = $(CCLD) $(partclone_jfs_CFLAGS) $(CFLAGS) \
 am__partclone_minix_SOURCES_DIST = main.c partclone.c progress.c \
 	checksum.c partclone.h progress.h gettext.h checksum.h \
 	minixclone.c minixclone.h
-am__objects_13 = partclone_minix-main.$(OBJEXT) \
+am__objects_14 = partclone_minix-main.$(OBJEXT) \
 	partclone_minix-partclone.$(OBJEXT) \
 	partclone_minix-progress.$(OBJEXT) \
 	partclone_minix-checksum.$(OBJEXT)
-@ENABLE_MINIX_TRUE@am_partclone_minix_OBJECTS = $(am__objects_13) \
+@ENABLE_MINIX_TRUE@am_partclone_minix_OBJECTS = $(am__objects_14) \
 @ENABLE_MINIX_TRUE@	partclone_minix-minixclone.$(OBJEXT)
 partclone_minix_OBJECTS = $(am_partclone_minix_OBJECTS)
 partclone_minix_LDADD = $(LDADD)
@@ -343,11 +344,11 @@ partclone_minix_LINK = $(CCLD) $(partclone_minix_CFLAGS) $(CFLAGS) \
 am__partclone_ntfs_SOURCES_DIST = main.c partclone.c progress.c \
 	checksum.c partclone.h progress.h gettext.h checksum.h \
 	ntfsclone-ng.c ntfsclone-ng.h
-am__objects_14 = partclone_ntfs-main.$(OBJEXT) \
+am__objects_15 = partclone_ntfs-main.$(OBJEXT) \
 	partclone_ntfs-partclone.$(OBJEXT) \
 	partclone_ntfs-progress.$(OBJEXT) \
 	partclone_ntfs-checksum.$(OBJEXT)
-@ENABLE_NTFS_TRUE@am_partclone_ntfs_OBJECTS = $(am__objects_14) \
+@ENABLE_NTFS_TRUE@am_partclone_ntfs_OBJECTS = $(am__objects_15) \
 @ENABLE_NTFS_TRUE@	partclone_ntfs-ntfsclone-ng.$(OBJEXT)
 partclone_ntfs_OBJECTS = $(am_partclone_ntfs_OBJECTS)
 partclone_ntfs_DEPENDENCIES =
@@ -360,11 +361,11 @@ partclone_ntfsfixboot_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__partclone_reiser4_SOURCES_DIST = main.c partclone.c progress.c \
 	checksum.c partclone.h progress.h gettext.h checksum.h \
 	reiser4clone.c reiser4clone.h
-am__objects_15 = partclone_reiser4-main.$(OBJEXT) \
+am__objects_16 = partclone_reiser4-main.$(OBJEXT) \
 	partclone_reiser4-partclone.$(OBJEXT) \
 	partclone_reiser4-progress.$(OBJEXT) \
 	partclone_reiser4-checksum.$(OBJEXT)
-@ENABLE_REISER4_TRUE@am_partclone_reiser4_OBJECTS = $(am__objects_15) \
+@ENABLE_REISER4_TRUE@am_partclone_reiser4_OBJECTS = $(am__objects_16) \
 @ENABLE_REISER4_TRUE@	partclone_reiser4-reiser4clone.$(OBJEXT)
 partclone_reiser4_OBJECTS = $(am_partclone_reiser4_OBJECTS)
 partclone_reiser4_DEPENDENCIES =
@@ -373,22 +374,22 @@ partclone_reiser4_LINK = $(CCLD) $(partclone_reiser4_CFLAGS) $(CFLAGS) \
 am__partclone_reiserfs_SOURCES_DIST = main.c partclone.c progress.c \
 	checksum.c partclone.h progress.h gettext.h checksum.h \
 	reiserfsclone.c reiserfsclone.h
-am__objects_16 = partclone_reiserfs-main.$(OBJEXT) \
+am__objects_17 = partclone_reiserfs-main.$(OBJEXT) \
 	partclone_reiserfs-partclone.$(OBJEXT) \
 	partclone_reiserfs-progress.$(OBJEXT) \
 	partclone_reiserfs-checksum.$(OBJEXT)
 @ENABLE_REISERFS_TRUE@am_partclone_reiserfs_OBJECTS =  \
-@ENABLE_REISERFS_TRUE@	$(am__objects_16) \
+@ENABLE_REISERFS_TRUE@	$(am__objects_17) \
 @ENABLE_REISERFS_TRUE@	partclone_reiserfs-reiserfsclone.$(OBJEXT)
 partclone_reiserfs_OBJECTS = $(am_partclone_reiserfs_OBJECTS)
 partclone_reiserfs_DEPENDENCIES =
 partclone_reiserfs_LINK = $(CCLD) $(partclone_reiserfs_CFLAGS) \
 	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_17 = partclone_restore-main.$(OBJEXT) \
+am__objects_18 = partclone_restore-main.$(OBJEXT) \
 	partclone_restore-partclone.$(OBJEXT) \
 	partclone_restore-progress.$(OBJEXT) \
 	partclone_restore-checksum.$(OBJEXT)
-am_partclone_restore_OBJECTS = $(am__objects_17) \
+am_partclone_restore_OBJECTS = $(am__objects_18) \
 	partclone_restore-ddclone.$(OBJEXT)
 partclone_restore_OBJECTS = $(am_partclone_restore_OBJECTS)
 partclone_restore_LDADD = $(LDADD)
@@ -398,11 +399,11 @@ partclone_restore_LINK = $(CCLD) $(partclone_restore_CFLAGS) $(CFLAGS) \
 am__partclone_ufs_SOURCES_DIST = main.c partclone.c progress.c \
 	checksum.c partclone.h progress.h gettext.h checksum.h \
 	ufsclone.c ufsclone.h
-am__objects_18 = partclone_ufs-main.$(OBJEXT) \
+am__objects_19 = partclone_ufs-main.$(OBJEXT) \
 	partclone_ufs-partclone.$(OBJEXT) \
 	partclone_ufs-progress.$(OBJEXT) \
 	partclone_ufs-checksum.$(OBJEXT)
-@ENABLE_UFS_TRUE@am_partclone_ufs_OBJECTS = $(am__objects_18) \
+@ENABLE_UFS_TRUE@am_partclone_ufs_OBJECTS = $(am__objects_19) \
 @ENABLE_UFS_TRUE@	partclone_ufs-ufsclone.$(OBJEXT)
 partclone_ufs_OBJECTS = $(am_partclone_ufs_OBJECTS)
 partclone_ufs_DEPENDENCIES =
@@ -411,11 +412,11 @@ partclone_ufs_LINK = $(CCLD) $(partclone_ufs_CFLAGS) $(CFLAGS) \
 am__partclone_vmfs_SOURCES_DIST = main.c partclone.c progress.c \
 	checksum.c partclone.h progress.h gettext.h checksum.h \
 	vmfsclone.c vmfsclone.h
-am__objects_19 = partclone_vmfs-main.$(OBJEXT) \
+am__objects_20 = partclone_vmfs-main.$(OBJEXT) \
 	partclone_vmfs-partclone.$(OBJEXT) \
 	partclone_vmfs-progress.$(OBJEXT) \
 	partclone_vmfs-checksum.$(OBJEXT)
-@ENABLE_VMFS_TRUE@am_partclone_vmfs_OBJECTS = $(am__objects_19) \
+@ENABLE_VMFS_TRUE@am_partclone_vmfs_OBJECTS = $(am__objects_20) \
 @ENABLE_VMFS_TRUE@	partclone_vmfs-vmfsclone.$(OBJEXT)
 partclone_vmfs_OBJECTS = $(am_partclone_vmfs_OBJECTS)
 partclone_vmfs_DEPENDENCIES =
@@ -424,11 +425,11 @@ partclone_vmfs_LINK = $(CCLD) $(partclone_vmfs_CFLAGS) $(CFLAGS) \
 am__partclone_vmfs5_SOURCES_DIST = main.c partclone.c progress.c \
 	checksum.c partclone.h progress.h gettext.h checksum.h \
 	vmfs5clone.c vmfsclone.h
-am__objects_20 = partclone_vmfs5-main.$(OBJEXT) \
+am__objects_21 = partclone_vmfs5-main.$(OBJEXT) \
 	partclone_vmfs5-partclone.$(OBJEXT) \
 	partclone_vmfs5-progress.$(OBJEXT) \
 	partclone_vmfs5-checksum.$(OBJEXT)
-@ENABLE_VMFS_TRUE@am_partclone_vmfs5_OBJECTS = $(am__objects_20) \
+@ENABLE_VMFS_TRUE@am_partclone_vmfs5_OBJECTS = $(am__objects_21) \
 @ENABLE_VMFS_TRUE@	partclone_vmfs5-vmfs5clone.$(OBJEXT)
 partclone_vmfs5_OBJECTS = $(am_partclone_vmfs5_OBJECTS)
 partclone_vmfs5_DEPENDENCIES =
@@ -437,11 +438,11 @@ partclone_vmfs5_LINK = $(CCLD) $(partclone_vmfs5_CFLAGS) $(CFLAGS) \
 am__partclone_xfs_SOURCES_DIST = main.c partclone.c progress.c \
 	checksum.c partclone.h progress.h gettext.h checksum.h \
 	xfsclone.c xfsclone.h
-am__objects_21 = partclone_xfs-main.$(OBJEXT) \
+am__objects_22 = partclone_xfs-main.$(OBJEXT) \
 	partclone_xfs-partclone.$(OBJEXT) \
 	partclone_xfs-progress.$(OBJEXT) \
 	partclone_xfs-checksum.$(OBJEXT)
-@ENABLE_XFS_TRUE@am_partclone_xfs_OBJECTS = $(am__objects_21) \
+@ENABLE_XFS_TRUE@am_partclone_xfs_OBJECTS = $(am__objects_22) \
 @ENABLE_XFS_TRUE@	partclone_xfs-xfsclone.$(OBJEXT)
 partclone_xfs_OBJECTS = $(am_partclone_xfs_OBJECTS)
 partclone_xfs_DEPENDENCIES =
@@ -683,11 +684,11 @@ partclone_imager_CFLAGS = -DIMG
 @ENABLE_HFSP_TRUE@partclone_hfsp_SOURCES = $(main_files) hfsplusclone.c hfsplusclone.h
 @ENABLE_HFSP_TRUE@partclone_hfsp_CFLAGS = -DHFSPLUS
 @ENABLE_XFS_TRUE@partclone_xfs_SOURCES = $(main_files) xfsclone.c xfsclone.h
-@ENABLE_XFS_TRUE@partclone_xfs_CFLAGS = -DXFS
-@ENABLE_XFS_TRUE@partclone_xfs_LDADD = -lxfs -lrt -lpthread
+@ENABLE_XFS_TRUE@partclone_xfs_CFLAGS = -DXFS $(UUID_CFLAGS)
+@ENABLE_XFS_TRUE@partclone_xfs_LDADD = -lxfs -lrt -lpthread -luuid
 @ENABLE_EXFAT_TRUE@partclone_exfat_SOURCES = $(main_files) exfatclone.c exfatclone.h $(EXFATFS_SOURCE)
 @ENABLE_EXFAT_TRUE@partclone_exfat_CFLAGS = -DEXFAT -D_GNU_SOURCE -std=c99
-@ENABLE_F2FS_TRUE@partclone_f2fs_SOURCES = main.c partclone.c progress.c f2fsclone.c f2fsclone.h partclone.h progress.h gettext.h $(F2FS_SOURCE)
+@ENABLE_F2FS_TRUE@partclone_f2fs_SOURCES = $(main_files) f2fsclone.c f2fsclone.h $(F2FS_SOURCE)
 @ENABLE_F2FS_TRUE@partclone_f2fs_CFLAGS = -DF2FS
 @ENABLE_F2FS_TRUE@partclone_f2fs_LDADD = -luuid
 @ENABLE_FAT_TRUE@partclone_fat_SOURCES = $(main_files) fatclone.c fatclone.h
@@ -1002,6 +1003,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_extfs-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_f2fs-checksum.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_f2fs-f2fsclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_f2fs-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_f2fs-partclone.Po@am__quote@
@@ -1903,6 +1905,20 @@ partclone_f2fs-progress.obj: progress.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='progress.c' object='partclone_f2fs-progress.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_f2fs_CFLAGS) $(CFLAGS) -c -o partclone_f2fs-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+
+partclone_f2fs-checksum.o: checksum.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_f2fs_CFLAGS) $(CFLAGS) -MT partclone_f2fs-checksum.o -MD -MP -MF $(DEPDIR)/partclone_f2fs-checksum.Tpo -c -o partclone_f2fs-checksum.o `test -f 'checksum.c' || echo '$(srcdir)/'`checksum.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_f2fs-checksum.Tpo $(DEPDIR)/partclone_f2fs-checksum.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='checksum.c' object='partclone_f2fs-checksum.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_f2fs_CFLAGS) $(CFLAGS) -c -o partclone_f2fs-checksum.o `test -f 'checksum.c' || echo '$(srcdir)/'`checksum.c
+
+partclone_f2fs-checksum.obj: checksum.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_f2fs_CFLAGS) $(CFLAGS) -MT partclone_f2fs-checksum.obj -MD -MP -MF $(DEPDIR)/partclone_f2fs-checksum.Tpo -c -o partclone_f2fs-checksum.obj `if test -f 'checksum.c'; then $(CYGPATH_W) 'checksum.c'; else $(CYGPATH_W) '$(srcdir)/checksum.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_f2fs-checksum.Tpo $(DEPDIR)/partclone_f2fs-checksum.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='checksum.c' object='partclone_f2fs-checksum.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_f2fs_CFLAGS) $(CFLAGS) -c -o partclone_f2fs-checksum.obj `if test -f 'checksum.c'; then $(CYGPATH_W) 'checksum.c'; else $(CYGPATH_W) '$(srcdir)/checksum.c'; fi`
 
 partclone_f2fs-f2fsclone.o: f2fsclone.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_f2fs_CFLAGS) $(CFLAGS) -MT partclone_f2fs-f2fsclone.o -MD -MP -MF $(DEPDIR)/partclone_f2fs-f2fsclone.Tpo -c -o partclone_f2fs-f2fsclone.o `test -f 'f2fsclone.c' || echo '$(srcdir)/'`f2fsclone.c

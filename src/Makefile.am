@@ -80,8 +80,8 @@ endif
 if ENABLE_XFS
 sbin_PROGRAMS += partclone.xfs
 partclone_xfs_SOURCES=$(main_files) xfsclone.c xfsclone.h
-partclone_xfs_CFLAGS=-DXFS
-partclone_xfs_LDADD=-lxfs -lrt -lpthread
+partclone_xfs_CFLAGS=-DXFS $(UUID_CFLAGS)
+partclone_xfs_LDADD=-lxfs -lrt -lpthread -luuid
 endif
 
 if ENABLE_EXFAT
@@ -92,7 +92,7 @@ endif
 
 if ENABLE_F2FS
 sbin_PROGRAMS += partclone.f2fs
-partclone_f2fs_SOURCES=main.c partclone.c progress.c f2fsclone.c f2fsclone.h partclone.h progress.h gettext.h $(F2FS_SOURCE)
+partclone_f2fs_SOURCES=$(main_files) f2fsclone.c f2fsclone.h $(F2FS_SOURCE)
 partclone_f2fs_CFLAGS=-DF2FS
 partclone_f2fs_LDADD=-luuid
 endif

@@ -73,6 +73,11 @@
 
 const char* get_exec_name();
 
+#ifdef crc32
+#undef crc32
+#endif
+
+char *EXECNAME;
 unsigned long long rescue_write_size;
 
 /**

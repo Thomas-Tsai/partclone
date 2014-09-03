@@ -58,7 +58,7 @@ static void fs_close(){
 }
 
 ///  readbitmap - read bitmap
-extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
+extern void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui)
 {
     off_t block = 0;;
     int start = 0;
@@ -70,7 +70,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
-    progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
+    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
 
     /// bitmap test
     log_mesg(1, 0, 0, fs_opt.debug, "%s: start f2fs bitmap dump\n", __FILE__);
@@ -109,7 +109,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 }
 
 /// read super block and write to image head
-extern void initial_image_hdr(char* device, image_head* image_hdr)
+extern void read_super_blocks(char* device, file_system_info* fs_info)
 {
 
     fs_open(device);
@@ -117,13 +117,12 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     struct f2fs_super_block *sb = F2FS_RAW_SUPER(sbi);
     struct f2fs_checkpoint *cp = F2FS_CKPT(sbi);
 
-    strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-    strncpy(image_hdr->fs, f2fs_MAGIC, FS_MAGIC_SIZE);
+    strncpy(fs_info->fs, f2fs_MAGIC, FS_MAGIC_SIZE);
 
-    image_hdr->block_size  = F2FS_BLKSIZE;
-    image_hdr->totalblock  = sb->block_count;
-    image_hdr->usedblocks  = (sb->segment_count-cp->free_segment_count)*DEFAULT_BLOCKS_PER_SEGMENT;
-    image_hdr->device_size = config.total_sectors*config.sector_size;
+    fs_info->block_size  = F2FS_BLKSIZE;
+    fs_info->totalblock  = sb->block_count;
+    fs_info->usedblocks  = (sb->segment_count-cp->free_segment_count)*DEFAULT_BLOCKS_PER_SEGMENT;
+    fs_info->device_size = config.total_sectors*config.sector_size;
     fs_close();
 }
 
