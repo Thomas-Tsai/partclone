@@ -27,7 +27,7 @@ mkfs_option_for_btrfs='-f'
 
 ## file system
 # mountable for writing file system
-mountable_fs="ext2 ext3 ext4 vfat exfat minix jfs xfs reiserfs ntfs btrfs hfsplus" 
+mountable_fs="ext2 ext3 ext4 vfat exfat minix jfs xfs reiserfs ntfs btrfs hfsplus f2fs" 
 
 # vmfs file system can't format, can mount read-only
 # ufs mkfs.ufs can't format special file as partition
