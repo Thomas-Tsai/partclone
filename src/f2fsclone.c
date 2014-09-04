@@ -78,21 +78,21 @@ extern void read_bitmap(char* device, file_system_info fs_info, unsigned long* b
     log_mesg(1, 0, 0, fs_opt.debug, "%s: start fsck sit\n", __FILE__);
     for ( block = 0; block <= sb->main_blkaddr ; block++ ){
     
-	    log_mesg(1, 0, 0, fs_opt.debug, "%s: test SIT bitmap is 0x1. blk_addr[0x%x] %i\n", __FILE__, block, block);
+	    log_mesg(2, 0, 0, fs_opt.debug, "%s: test SIT bitmap is 0x1. blk_addr[0x%x] %i\n", __FILE__, block, block);
 	    bused++;
 	    pc_set_bit(block, bitmap);
 	    log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %llu", __FILE__, block);
     }
 
     for ( block = sb->main_blkaddr ; block <= sb->block_count ; block++ ){
-	log_mesg(1, 0, 0, fs_opt.debug, "%s: block = %i\n", __FILE__, block);
+	log_mesg(3, 0, 0, fs_opt.debug, "%s: block = %i\n", __FILE__, block);
 	if (f2fs_test_bit(BLKOFF_FROM_MAIN(sbi, block), fsck->sit_area_bitmap) == 0x0) {
-	    log_mesg(1, 0, 0, fs_opt.debug, "%s: test SIT bitmap is 0x0. blk_addr[0x%x] %i\n", __FILE__, block, block);
+	    log_mesg(2, 0, 0, fs_opt.debug, "%s: test SIT bitmap is 0x0. blk_addr[0x%x] %i\n", __FILE__, block, block);
 	    pc_clear_bit(block, bitmap);
 	    bfree++;
 	    log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is free %llu", __FILE__, block);
 	}else{
-	    log_mesg(1, 0, 0, fs_opt.debug, "%s: test SIT bitmap is 0x1. blk_addr[0x%x] %i\n", __FILE__, block, block);
+	    log_mesg(2, 0, 0, fs_opt.debug, "%s: test SIT bitmap is 0x1. blk_addr[0x%x] %i\n", __FILE__, block, block);
 	    bused++;
 	    pc_set_bit(block, bitmap);
 	    log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %llu", __FILE__, block);
