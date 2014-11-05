@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.3.0], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.3.1], [thomas@nchc.org.tw])
 AM_INIT_AUTOMAKE([-Wall foreign])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
@@ -72,38 +72,7 @@ AC_CHECK_LIB([ext2fs], [ext2fs_initialize], true,
     AC_MSG_ERROR([*** EXT2/3 library (libext2fs) not found]))
 
 AC_MSG_CHECKING(version of libextfs)
-extfs_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lext2fs -DEXTFS`
-extfs_version=`$srcdir/get_lib_version extfs`
-extfs_version=`$srcdir/get_lib_version extfs | cut -d'.' -f1`
-extfs_version_major=`$srcdir/get_lib_version extfs | cut -d'.' -f2`
-extfs_version_minor=`$srcdir/get_lib_version extfs | cut -d'.' -f3`
-AC_DEFINE_UNQUOTED([EXTFS_VERSION], "${extfs_version}.${extfs_version_major}", ["define e2fs version"])
-if test -z "$extfs_version"; then
-    extfs_version="?"
-    extfs_version_major="?"
-    extfs_version_minor="?"
-    extfs_version="$extfs_version.$extfs_version_major.$extfs_version_minor; bad"
-    AC_MSG_RESULT($extfs_version)
-    AC_MSG_ERROR(Please check your libextfs!)
-fi
-
-if test $extfs_version -lt 1 ; then
-    extfs_version="$extfs_version.$extfs_version_major.$extfs_version_minor; bad"
-    AC_MSG_RESULT($extfs_version)
-    AC_MSG_ERROR(Please upgrade your libextfs to 1.41 or newer version!)
-elif test $extfs_version -ge 1 -a $extfs_version_major -lt 41  ; then
-    extfs_version="$extfs_version.$extfs_version_major.$extfs_version_minor; bad"
-    AC_MSG_RESULT($extfs_version)
-    AC_MSG_ERROR(Please upgrade your libextfs to 1.42 or newer version!)
-elif test $extfs_version -ge 1 -a $extfs_version_major -lt 42  ; then    
-    extfs_version="$extfs_version.$extfs_version_major.$extfs_version_minor; suggest you upgrade the library!"
-    AC_MSG_RESULT($extfs_version)
-    AC_MSG_WARN(Suggest upgrade your libextfs to 1.42 or newer version!)
-    AC_DEFINE_UNQUOTED([EXTFS_1_41], "1", ["define e2fs version"])
-else
-    extfs_version="$extfs_version.$extfs_version_major.$extfs_version_minor; ok!"
-    AC_MSG_RESULT($extfs_version)
-fi
+PKG_CHECK_MODULES([EXT2FS], [ext2fs >= 1.42], [extfs_version=`pkg-config --modversion ext2fs`])
 supported_fs=$supported_fs" extfs"
 
 fi
@@ -519,6 +488,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
+	fail-mbr/Makefile
 	po/Makefile.in
 	docs/Makefile
 	tests/Makefile

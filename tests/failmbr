@@ -1,0 +1,5 @@
+#!/bin/bash
+fail_mbr_dir="../fail-mbr"
+hd $fail_mbr_dir/fail-mbr.bin > fail-mbr.hex
+hd $fail_mbr_dir/fail-mbr.bin.orig > fail-mbr.hex.orig
+diff fail-mbr.hex.orig fail-mbr.hex || true

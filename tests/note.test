@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e
+
+. _common
+fs="dd"
+ptlfs="../src/partclone.dd"
+dd_count=$((normal_size/2))
+
+echo -e "partclone.dd test"
+echo -e "====================\n"
+_ptlbreak
+[ -f $raw ] && rm $raw
+echo -e "create raw file $raw\n"
+echo -e "    dd if=/dev/urandom of=$raw bs=$dd_bs count=$dd_count\n"
+dd if=/dev/urandom of=$raw bs=$dd_bs count=$dd_count
+smd5=$(md5sum $raw)
+
+echo -e "\nclone $raw to $img\n"
+[ -f $img ] && rm $img
+echo -e "    $ptlfs -d -s $raw -O $img -F -L $logfile -n note test\n"
+_ptlbreak
+$ptlfs -d -s $raw -O $img -F -L $logfile -n "note test"
+_check_return_code
+$ptlfs -d -N -s $raw -O $img -F -L $logfile -n "note test"
+_check_return_code
+echo "done"

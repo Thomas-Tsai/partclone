@@ -247,6 +247,7 @@ void usage(void) {
 		"    -q,  --quiet            Disable progress message\n"
 		"    -E,  --offset=X         Add offset X (bytes) to OUTPUT\n"
 #endif
+		"    -n,  --note NOTE        Display Message Note (128 words)\n"
 		"    -v,  --version          Display partclone version\n"
 		"    -h,  --help             Display this help\n"
 		, get_exec_name(), VERSION, get_exec_name(), DEFAULT_BUFFER_SIZE);
@@ -305,19 +306,20 @@ static void save_program_name(const char* argv0) {
 void parse_options(int argc, char **argv, cmd_opt* opt) {
 
 #if CHKIMG
-	static const char *sopt = "-hvd::L:s:f:CFiBz:N";
+	static const char *sopt = "-hvd::L:s:f:CFiBz:Nn:";
 #elif RESTORE
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:";
 #elif DD
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:";
 #else
-	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBz:E:a:k:K";
+	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBz:E:a:k:Kn:";
 #endif
 
 	static const struct option lopt[] = {
 // common options
 		{ "help",		no_argument,		NULL,   'h' },
 		{ "print_version",	no_argument,		NULL,   'v' },
+		{ "note",		required_argument,	NULL,   'n' },
 		{ "source",		required_argument,	NULL,   's' },
 		{ "debug",		optional_argument,	NULL,   'd' },
 		{ "logfile",		required_argument,	NULL,   'L' },
@@ -408,6 +410,9 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				break;
 			case 'v':
 				print_version();
+				break;
+			case 'n':
+				strncpy(opt->note, optarg, NOTE_SIZE);
 				break;
 			case 's':
 				opt->source = optarg;
@@ -1569,6 +1574,8 @@ void print_opt(cmd_opt opt) {
 	log_mesg(1, 0, 0, debug, "CHECKSUM: %s\n", get_checksum_str(opt.checksum_mode));
 	log_mesg(1, 0, 0, debug, "CS SIZE: %u\n", get_checksum_size(opt.checksum_mode, debug));
 	log_mesg(1, 0, 0, debug, "BLOCKS/CS: %lu\n", opt.blocks_per_checksum);
+	opt.note[NOTE_SIZE] = '\0';
+	log_mesg(1, 0, 0, debug, "NOTE: %s\n", opt.note);
 }
 
 /// print partclone info
@@ -1596,6 +1603,8 @@ void print_partclone_info(cmd_opt opt) {
 		log_mesg(0, 0, 1, debug, _("Showing info of image (%s)\n"), opt.source);
 	else
 		log_mesg(0, 0, 1, debug, "Unknown mode\n");
+	opt.note[NOTE_SIZE] = '\0';
+	log_mesg(0, 0, 1, debug, "note: %s\n", opt.note);
 }
 
 /// print image head

@@ -4,12 +4,6 @@
    language is requested. */
 #undef ENABLE_NLS
 
-/* "define e2fs version" */
-#undef EXTFS_1_41
-
-/* "define e2fs version" */
-#undef EXTFS_VERSION
-
 /* Define to 1 if you have the <blkid/blkid.h> header file. */
 #undef HAVE_BLKID_BLKID_H
 
