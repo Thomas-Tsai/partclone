@@ -1108,8 +1108,10 @@ void print_partclone_info(cmd_opt opt) {
 		log_mesg(0, 0, 1, debug, _("Display image information\n"));
 	else
 		log_mesg(0, 0, 1, debug, "Unknown mode\n");
-	opt.note[NOTE_SIZE] = '\0';
-	log_mesg(0, 0, 1, debug, "note: %s\n", opt.note);
+	if ( strlen(opt.note) > 0 ){
+	    opt.note[NOTE_SIZE] = '\0';
+	    log_mesg(0, 0, 1, debug, "note: %s\n", opt.note);
+	}
 }
 
 /// print image head
