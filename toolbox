@@ -96,7 +96,7 @@ then
   scriptdir=`dirname "$0"`
   file="$scriptdir/src/version.h"
   GIT_REPOSITORY=`git remote -v | grep partclone`
-  GIT_REVISION=`git log -1 | grep commit | sed 's/commit //'`
+  GIT_REVISION=`git log -1 | grep ^commit | sed 's/commit //'`
   #GIT_REVISION_UPSTREAM=`git log master -1 | grep commit | sed 's/commit //'`
   git_ver="none"
 
