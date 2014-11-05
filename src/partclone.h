@@ -50,6 +50,7 @@
 #define DEFAULT_BUFFER_SIZE 1048576
 #define PART_SECTOR_SIZE 512
 #define CRC_SIZE 4
+#define NOTE_SIZE 128
 
 // Reference: ntfsclone.c
 #define KBYTE (1000)
@@ -93,6 +94,7 @@ struct cmd_opt
     char* source;
     char* target;
     char* logfile;
+    char note[NOTE_SIZE];
     int overwrite;
     int rescue;
     int check;

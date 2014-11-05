@@ -13,6 +13,7 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
 am__make_running_with_option = \
@@ -77,31 +78,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@ENABLE_EXTFS_TRUE@am__append_1 = partclone.extfs.8 partclone.ext2.8 \
-@ENABLE_EXTFS_TRUE@	partclone.ext3.8 partclone.ext4.8 \
-@ENABLE_EXTFS_TRUE@	partclone.ext4dev.8
-@ENABLE_REISERFS_TRUE@am__append_2 = partclone.reiserfs.8
-@ENABLE_REISER4_TRUE@am__append_3 = partclone.reiser4.8
-@ENABLE_HFSP_TRUE@am__append_4 = partclone.hfsplus.8 partclone.hfs+.8 \
-@ENABLE_HFSP_TRUE@	partclone.hfsp.8
-@ENABLE_XFS_TRUE@am__append_5 = partclone.xfs.8
-@ENABLE_F2FS_TRUE@am__append_6 = partclone.f2fs.8
-@ENABLE_EXFAT_TRUE@am__append_7 = partclone.exfat.8
-@ENABLE_FAT_TRUE@am__append_8 = partclone.fat.8 partclone.vfat.8 \
-@ENABLE_FAT_TRUE@	partclone.fat12.8 partclone.fat16.8 \
-@ENABLE_FAT_TRUE@	partclone.fat32.8
-@ENABLE_UFS_TRUE@am__append_9 = partclone.ufs.8
-@ENABLE_VMFS_TRUE@am__append_10 = partclone.vmfs.8 partclone.vmfs3.8 \
-@ENABLE_VMFS_TRUE@	partclone.vmfs5.8 \
-@ENABLE_VMFS_TRUE@	partclone.VMFS_volume_member.8 \
-@ENABLE_VMFS_TRUE@	partclone.fstype.8
-@ENABLE_JFS_TRUE@am__append_11 = partclone.jfs.8
-@ENABLE_BTRFS_TRUE@am__append_12 = partclone.btrfs.8
-@ENABLE_NTFS_TRUE@am__append_13 = partclone.ntfs.8 \
-@ENABLE_NTFS_TRUE@	partclone.ntfsfixboot.8 \
-@ENABLE_NTFS_TRUE@	partclone.ntfsreloc.8
-@ENABLE_MINIX_TRUE@am__append_14 = partclone.minix.8
-subdir = docs
+subdir = fail-mbr
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
@@ -161,10 +138,8 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-man8dir = $(mandir)/man8
-am__installdirs = "$(DESTDIR)$(man8dir)"
-NROFF = nroff
-MANS = $(man_MANS)
+am__installdirs = "$(DESTDIR)$(failmbrdir)"
+DATA = $(failmbr_DATA)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
@@ -287,15 +262,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-XSLTPROC = xsltproc
-MAN_STYLESHEET = /usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
-man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 \
-	partclone.restore.8 partclone.8 partclone.imager.8 \
-	$(am__append_1) $(am__append_2) $(am__append_3) \
-	$(am__append_4) $(am__append_5) $(am__append_6) \
-	$(am__append_7) $(am__append_8) $(am__append_9) \
-	$(am__append_10) $(am__append_11) $(am__append_12) \
-	$(am__append_13) $(am__append_14)
+failmbrdir = $(datadir)/@PACKAGE@/
+failmbr_DATA = fail-mbr.bin
 all: all-am
 
 .SUFFIXES:
@@ -308,9 +276,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign docs/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign fail-mbr/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign docs/Makefile
+	  $(AUTOMAKE) --foreign fail-mbr/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -329,49 +297,27 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-install-man8: $(man_MANS)
+install-failmbrDATA: $(failmbr_DATA)
 	@$(NORMAL_INSTALL)
-	@list1=''; \
-	list2='$(man_MANS)'; \
-	test -n "$(man8dir)" \
-	  && test -n "`echo $$list1$$list2`" \
-	  || exit 0; \
-	echo " $(MKDIR_P) '$(DESTDIR)$(man8dir)'"; \
-	$(MKDIR_P) "$(DESTDIR)$(man8dir)" || exit 1; \
-	{ for i in $$list1; do echo "$$i"; done;  \
-	if test -n "$$list2"; then \
-	  for i in $$list2; do echo "$$i"; done \
-	    | sed -n '/\.8[a-z]*$$/p'; \
+	@list='$(failmbr_DATA)'; test -n "$(failmbrdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(failmbrdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(failmbrdir)" || exit 1; \
 	fi; \
-	} | while read p; do \
-	  if test -f $$p; then d=; else d="$(srcdir)/"; fi; \
-	  echo "$$d$$p"; echo "$$p"; \
-	done | \
-	sed -e 'n;s,.*/,,;p;h;s,.*\.,,;s,^[^8][0-9a-z]*$$,8,;x' \
-	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,' | \
-	sed 'N;N;s,\n, ,g' | { \
-	list=; while read file base inst; do \
-	  if test "$$base" = "$$inst"; then list="$$list $$file"; else \
-	    echo " $(INSTALL_DATA) '$$file' '$(DESTDIR)$(man8dir)/$$inst'"; \
-	    $(INSTALL_DATA) "$$file" "$(DESTDIR)$(man8dir)/$$inst" || exit $$?; \
-	  fi; \
-	done; \
-	for i in $$list; do echo "$$i"; done | $(am__base_list) | \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
 	while read files; do \
-	  test -z "$$files" || { \
-	    echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(man8dir)'"; \
-	    $(INSTALL_DATA) $$files "$(DESTDIR)$(man8dir)" || exit $$?; }; \
-	done; }
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(failmbrdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(failmbrdir)" || exit $$?; \
+	done
 
-uninstall-man8:
+uninstall-failmbrDATA:
 	@$(NORMAL_UNINSTALL)
-	@list=''; test -n "$(man8dir)" || exit 0; \
-	files=`{ for i in $$list; do echo "$$i"; done; \
-	l2='$(man_MANS)'; for i in $$l2; do echo "$$i"; done | \
-	  sed -n '/\.8[a-z]*$$/p'; \
-	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^8][0-9a-z]*$$,8,;x' \
-	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
-	dir='$(DESTDIR)$(man8dir)'; $(am__uninstall_files_from_dir)
+	@list='$(failmbr_DATA)'; test -n "$(failmbrdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(failmbrdir)'; $(am__uninstall_files_from_dir)
 tags TAGS:
 
 ctags CTAGS:
@@ -411,9 +357,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(MANS)
+all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(man8dir)"; do \
+	for dir in "$(DESTDIR)$(failmbrdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -446,12 +392,8 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-clean: clean-am
-
 clean-am: clean-generic mostlyclean-am
 
-distclean: distclean-am
-	-rm -f Makefile
 distclean-am: clean-am distclean-generic
 
 dvi: dvi-am
@@ -466,7 +408,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-man
+install-data-am: install-failmbrDATA
 
 install-dvi: install-dvi-am
 
@@ -482,7 +424,7 @@ install-info: install-info-am
 
 install-info-am:
 
-install-man: install-man8
+install-man:
 
 install-pdf: install-pdf-am
 
@@ -510,9 +452,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-man
-
-uninstall-man: uninstall-man8
+uninstall-am: uninstall-failmbrDATA
 
 .MAKE: install-am install-strip
 
@@ -520,31 +460,28 @@ uninstall-man: uninstall-man8
 	ctags-am distclean distclean-generic distdir dvi dvi-am html \
 	html-am info info-am install install-am install-data \
 	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-man8 install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic pdf \
-	pdf-am ps ps-am tags-am uninstall uninstall-am uninstall-man \
-	uninstall-man8
+	install-exec-am install-failmbrDATA install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-generic pdf pdf-am ps ps-am tags-am uninstall \
+	uninstall-am uninstall-failmbrDATA
 
 
-partclone.imager.8: partclone.imager.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.imager.xml)
-partclone.dd.8: partclone.dd.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.dd.xml)
-partclone.chkimg.8: partclone.chkimg.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.chkimg.xml)
-partclone.info.8: partclone.info.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.info.xml)
-partclone.restore.8: partclone.restore.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.restore.xml)
-partclone.8: partclone.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.xml)
-partclone.ntfsfixboot.8: partclone.ntfsfixboot.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.ntfsfixboot.xml)
-partclone.fstype.8: partclone.fstype.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.fstype.xml)
+clean:
+	rm -f *~ *.o *.image *.bin
+
+distclean: clean
+
+%.o: %.S
+	$(CC) -Wall -Werror -m32 -nostdlib -o $@ $<
+
+fail-mbr.image: fail-mbr.o
+	$(CC) -Os -Wall -W -Wshadow -Wpointer-arith -Wmissing-prototypes -Wundef -Wstrict-prototypes -g -falign-jumps=1 -falign-loops=1 -falign-functions=1 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow -fno-dwarf2-cfi-asm -fno-asynchronous-unwind-tables -m32 -fno-stack-protector -mno-stack-arg-probe -Werror -Wno-trampolines -DUSE_ASCII_FAILBACK=1 -DHAVE_UNIFONT_WIDTHSPEC=1  -mrtd -mregparm=3       -fno-builtin   -m32 -Wl,--build-id=none   -nostdlib -Wl,-N,-S -Wl,-N -Wl,-Ttext,0x7C00   -o $@ $<
+
+fail-mbr.bin: fail-mbr.image
+	objcopy  -O binary  --strip-unneeded -R .note -R .comment -R .note.gnu.build-id -R .reginfo -R .rel.dyn $< $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
