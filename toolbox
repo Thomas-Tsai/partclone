@@ -21,6 +21,7 @@ help()
 recognized flags are:
   --update-po             update translation files
   --update-log            update Changelog files from git
+  --update-btrfs          update source of btrfs
   --update-version        generate src/version.h
 EOF
   exit 1
@@ -38,6 +39,9 @@ fi
 case "$1" in
   --update-po)
     action=po
+    ;;
+  --update-btrfs)
+    action=btrfs
     ;;
   --update-log)
     action=changelog
@@ -67,6 +71,16 @@ then
   exit $?
 fi
 
+##
+##  Update the source of btrfs
+##
+if test "${action}" = "btrfs"
+then
+   BTRFS_SOURCE="bitops.h ctree.h extent_io.c inode-item.c math.h radix-tree.c root-tree.c ulist.c volumes.c btrfsck.h dir-item.c extent_io.h inode-map.c print-tree.c radix-tree.h send.h ulist.h volumes.h btrfs-list.c disk-io.c extent-tree.c ioctl.h print-tree.h raid6.c send-stream.c utils.c btrfs-list.h disk-io.h file-item.c kerncompat.h qgroup.c rbtree.c send-stream.h utils.h crc32c.c free-space-cache.c list.h qgroup.h rbtree.h send-utils.c utils-lib.c rbtree-utils.c crc32c.h extent-cache.c free-space-cache.h list_sort.c qgroup-verify.c repair.c send-utils.h uuid-tree.c ctree.c extent-cache.h hash.h list_sort.h qgroup-verify.h repair.h transaction.h version.h rbtree-utils.h"
+
+    echo "cp $BTRFS_SOURCE partclone/src/btrfs/"
+
+fi
 ##
 ## update Changelog from SVN
 ##
