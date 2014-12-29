@@ -232,6 +232,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
        fat12, fat16, fat32     partclone.[fat12|fat16|fat32]
        exfat                   partclone.exfat
        minix                   partclone.minix
+       f2fs                    partclone.f2fs
     </screen>
   </refsect1>
   <refsect1 id="options">

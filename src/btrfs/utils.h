@@ -24,11 +24,10 @@
 #include <dirent.h>
 
 #define BTRFS_MKFS_SYSTEM_GROUP_SIZE (4 * 1024 * 1024)
+#define BTRFS_MKFS_SMALL_VOLUME_SIZE (1024 * 1024 * 1024)
 
-#define BTRFS_SCAN_PROC		(1ULL << 0)
-#define BTRFS_SCAN_DEV		(1ULL << 1)
-#define BTRFS_SCAN_MOUNTED	(1ULL << 2)
-#define BTRFS_SCAN_LBLKID	(1ULL << 3)
+#define BTRFS_SCAN_MOUNTED	(1ULL << 0)
+#define BTRFS_SCAN_LBLKID	(1ULL << 1)
 
 #define BTRFS_UPDATE_KERNEL	1
 
@@ -39,8 +38,39 @@
 
 #define BTRFS_UUID_UNPARSED_SIZE	37
 
+#define ARGV0_BUF_SIZE	PATH_MAX
+
+int check_argc_exact(int nargs, int expected);
+int check_argc_min(int nargs, int expected);
+int check_argc_max(int nargs, int expected);
+
+void fixup_argv0(char **argv, const char *token);
+void set_argv0(char **argv);
+
+/*
+ * Output modes of size
+ */
+#define UNITS_RESERVED			(0)
+#define UNITS_BYTES			(1)
+#define UNITS_KBYTES			(2)
+#define UNITS_MBYTES			(3)
+#define UNITS_GBYTES			(4)
+#define UNITS_TBYTES			(5)
+#define UNITS_RAW			(1U << UNITS_MODE_SHIFT)
+#define UNITS_BINARY			(2U << UNITS_MODE_SHIFT)
+#define UNITS_DECIMAL			(3U << UNITS_MODE_SHIFT)
+#define UNITS_MODE_MASK			((1U << UNITS_MODE_SHIFT) - 1)
+#define UNITS_MODE_SHIFT		(8)
+#define UNITS_HUMAN_BINARY		(UNITS_BINARY)
+#define UNITS_HUMAN_DECIMAL		(UNITS_DECIMAL)
+#define UNITS_HUMAN			(UNITS_HUMAN_BINARY)
+#define UNITS_DEFAULT			(UNITS_HUMAN)
+
+void units_set_mode(unsigned *units, unsigned mode);
+void units_set_base(unsigned *units, unsigned base);
+
 int make_btrfs(int fd, const char *device, const char *label,
-	       u64 blocks[6], u64 num_bytes, u32 nodesize,
+	       char *fs_uuid, u64 blocks[6], u64 num_bytes, u32 nodesize,
 	       u32 leafsize, u32 sectorsize, u32 stripesize, u64 features);
 int btrfs_make_root_dir(struct btrfs_trans_handle *trans,
 			struct btrfs_root *root, u64 objectid);
@@ -51,20 +81,23 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 		      u64 block_count, u32 io_width, u32 io_align,
 		      u32 sectorsize);
 int btrfs_scan_for_fsid(int run_ioctls);
-void btrfs_register_one_device(char *fname);
-int btrfs_scan_one_dir(char *dirname, int run_ioctl);
+int btrfs_register_one_device(const char *fname);
+int btrfs_register_all_devices(void);
+char *canonicalize_dm_name(const char *ptname);
+char *canonicalize_path(const char *path);
 int check_mounted(const char *devicename);
 int check_mounted_where(int fd, const char *file, char *where, int size,
 			struct btrfs_fs_devices **fs_devices_mnt);
 int btrfs_device_already_in_root(struct btrfs_root *root, int fd,
 				 int super_offset);
 
-int pretty_size_snprintf(u64 size, char *str, size_t str_bytes);
-#define pretty_size(size) 						\
-	({								\
-		static __thread char _str[24];				\
-		(void)pretty_size_snprintf((size), _str, sizeof(_str));	\
-		_str;							\
+int pretty_size_snprintf(u64 size, char *str, size_t str_bytes, unsigned unit_mode);
+#define pretty_size(size) 	pretty_size_mode(size, UNITS_DEFAULT)
+#define pretty_size_mode(size, mode) 					      \
+	({								      \
+		static __thread char _str[32];				      \
+		(void)pretty_size_snprintf((size), _str, sizeof(_str), (mode)); \
+		_str;							      \
 	})
 
 int get_mountpt(char *dev, char *mntpt, size_t size);
@@ -72,6 +105,7 @@ int btrfs_scan_block_devices(int run_ioctl);
 u64 parse_size(char *s);
 u64 arg_strtou64(const char *str);
 int open_file_or_dir(const char *fname, DIR **dirstream);
+int open_file_or_dir3(const char *fname, DIR **dirstream, int open_flags);
 void close_file_or_dir(int fd, DIR *dirstream);
 int get_fs_info(char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 		struct btrfs_ioctl_dev_info_args **di_ret);
@@ -86,7 +120,6 @@ u64 btrfs_device_size(int fd, struct stat *st);
 /* Helper to always get proper size of the destination string */
 #define strncpy_null(dest, src) __strncpy__null(dest, src, sizeof(dest))
 int test_dev_for_mkfs(char *file, int force_overwrite, char *estr);
-int scan_for_btrfs(int where, int update_kernel);
 int get_label_mounted(const char *mount_path, char *labelp);
 int test_num_disk_vs_raid(u64 metadata_profile, u64 data_profile,
 	u64 dev_cnt, int mixed, char *estr);
@@ -95,10 +128,37 @@ int csum_tree_block(struct btrfs_root *root, struct extent_buffer *buf,
 			   int verify);
 int ask_user(char *question);
 int lookup_ino_rootid(int fd, u64 *rootid);
-int btrfs_scan_lblkid(int update_kernel);
+int btrfs_scan_lblkid(void);
 int get_btrfs_mount(const char *dev, char *mp, size_t mp_size);
 int find_mount_root(const char *path, char **mount_root);
 int get_device_info(int fd, u64 devid,
 		struct btrfs_ioctl_dev_info_args *di_args);
+int test_uuid_unique(char *fs_uuid);
+
+int test_minimum_size(const char *file, u32 leafsize);
+int test_issubvolname(const char *name);
+int test_isdir(const char *path);
+
+/*
+ * Btrfs minimum size calculation is complicated, it should include at least:
+ * 1. system group size
+ * 2. minimum global block reserve
+ * 3. metadata used at mkfs
+ * 4. space reservation to create uuid for first mount.
+ * Also, raid factor should also be taken into consideration.
+ * To avoid the overkill calculation, (system group + global block rsv) * 2
+ * for *EACH* device should be good enough.
+ */
+static inline u64 btrfs_min_global_blk_rsv_size(u32 leafsize)
+{
+	return leafsize << 10;
+}
+static inline u64 btrfs_min_dev_size(u32 leafsize)
+{
+	return 2 * (BTRFS_MKFS_SYSTEM_GROUP_SIZE +
+		    btrfs_min_global_blk_rsv_size(leafsize));
+}
+
+int find_next_key(struct btrfs_path *path, struct btrfs_key *key);
 
 #endif

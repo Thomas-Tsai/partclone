@@ -19,8 +19,6 @@
 #ifndef __BTRFS__
 #define __BTRFS__
 
-#include <stdint.h>
-
 #if BTRFS_FLAT_INCLUDES
 #include "list.h"
 #include "kerncompat.h"
@@ -41,6 +39,8 @@ struct btrfs_root;
 struct btrfs_trans_handle;
 struct btrfs_free_space_ctl;
 #define BTRFS_MAGIC 0x4D5F53665248425FULL /* ascii _BHRfS_M, no null */
+
+#define BTRFS_MAX_MIRRORS 3
 
 #define BTRFS_MAX_LEVEL 8
 
@@ -548,9 +548,6 @@ struct btrfs_path {
 	 * and to force calls to keep space in the nodes
 	 */
 	unsigned int search_for_split:1;
-	unsigned int keep_locks:1;
-	unsigned int skip_locking:1;
-	unsigned int leave_spinning:1;
 	unsigned int skip_check_block:1;
 };
 
@@ -863,6 +860,12 @@ struct btrfs_csum_item {
 /* used in struct btrfs_balance_args fields */
 #define BTRFS_AVAIL_ALLOC_BIT_SINGLE	(1ULL << 48)
 
+/*
+ * GLOBAL_RSV does not exist as a on-disk block group type and is used
+ * internally for exporting info about global block reserve from space infos
+ */
+#define BTRFS_SPACE_INFO_GLOBAL_RSV    (1ULL << 49)
+
 #define BTRFS_QGROUP_STATUS_OFF			0
 #define BTRFS_QGROUP_STATUS_ON			1
 #define BTRFS_QGROUP_STATUS_SCANNING		2
@@ -945,6 +948,7 @@ struct btrfs_fs_info {
 	struct btrfs_root *chunk_root;
 	struct btrfs_root *dev_root;
 	struct btrfs_root *csum_root;
+	struct btrfs_root *quota_root;
 
 	struct rb_root fs_root_tree;
 
@@ -990,6 +994,7 @@ struct btrfs_fs_info {
 	unsigned int readonly:1;
 	unsigned int on_restoring:1;
 	unsigned int is_chunk_recover:1;
+	unsigned int quota_enabled:1;
 
 	int (*free_extent_hook)(struct btrfs_trans_handle *trans,
 				struct btrfs_root *root,
@@ -1189,17 +1194,13 @@ struct btrfs_root {
 static inline u##bits btrfs_##name(const struct extent_buffer *eb)	\
 {									\
 	const struct btrfs_header *h = (struct btrfs_header *)eb->data;	\
-	uint##bits##_t t;						\
-	memcpy(&t, &h->member, sizeof(h->member));			\
-	return le##bits##_to_cpu(t);					\
+	return le##bits##_to_cpu(h->member);				\
 }									\
 static inline void btrfs_set_##name(struct extent_buffer *eb,		\
 				    u##bits val)			\
 {									\
 	struct btrfs_header *h = (struct btrfs_header *)eb->data;	\
-	uint##bits##_t t;						\
-	t = cpu_to_le##bits(val);					\
-	memcpy(&h->member, &t, sizeof(h->member));			\
+	h->member = cpu_to_le##bits(val);				\
 }
 
 #define BTRFS_SETGET_FUNCS(name, type, member, bits)			\
@@ -1221,15 +1222,11 @@ static inline void btrfs_set_##name(struct extent_buffer *eb,		\
 #define BTRFS_SETGET_STACK_FUNCS(name, type, member, bits)		\
 static inline u##bits btrfs_##name(const type *s)			\
 {									\
-	uint##bits##_t t;						\
-	memcpy(&t, &s->member, sizeof(s->member));			\
-	return le##bits##_to_cpu(t);					\
+	return le##bits##_to_cpu(s->member);				\
 }									\
 static inline void btrfs_set_##name(type *s, u##bits val)		\
 {									\
-	uint##bits##_t t;						\
-	t = cpu_to_le##bits(val);					\
-	memcpy(&s->member, &t, sizeof(s->member));			\
+	s->member = cpu_to_le##bits(val);				\
 }
 
 BTRFS_SETGET_FUNCS(device_type, struct btrfs_dev_item, type, 64);
@@ -2256,6 +2253,8 @@ struct extent_buffer *read_node_slot(struct btrfs_root *root,
 int btrfs_previous_item(struct btrfs_root *root,
 			struct btrfs_path *path, u64 min_objectid,
 			int type);
+int btrfs_previous_extent_item(struct btrfs_root *root,
+			struct btrfs_path *path, u64 min_objectid);
 int btrfs_cow_block(struct btrfs_trans_handle *trans,
 		    struct btrfs_root *root, struct extent_buffer *buf,
 		    struct extent_buffer *parent, int parent_slot,
@@ -2284,6 +2283,9 @@ int btrfs_split_item(struct btrfs_trans_handle *trans,
 int btrfs_search_slot(struct btrfs_trans_handle *trans, struct btrfs_root
 		      *root, struct btrfs_key *key, struct btrfs_path *p, int
 		      ins_len, int cow);
+int btrfs_find_item(struct btrfs_root *fs_root, struct btrfs_path *found_path,
+		u64 iobjectid, u64 ioff, u8 key_type,
+		struct btrfs_key *found_key);
 void btrfs_release_path(struct btrfs_path *p);
 void add_root_to_dirty_list(struct btrfs_root *root);
 struct btrfs_path *btrfs_alloc_path(void);
@@ -2316,6 +2318,15 @@ static inline int btrfs_insert_empty_item(struct btrfs_trans_handle *trans,
 }
 
 int btrfs_next_leaf(struct btrfs_root *root, struct btrfs_path *path);
+static inline int btrfs_next_item(struct btrfs_root *root,
+				  struct btrfs_path *p)
+{
+	++p->slots[0];
+	if (p->slots[0] >= btrfs_header_nritems(p->nodes[0]))
+		return btrfs_next_leaf(root, p);
+	return 0;
+}
+
 int btrfs_prev_leaf(struct btrfs_root *root, struct btrfs_path *path);
 int btrfs_leaf_free_space(struct btrfs_root *root, struct extent_buffer *leaf);
 void btrfs_fixup_low_keys(struct btrfs_root *root, struct btrfs_path *path,
@@ -2349,6 +2360,15 @@ struct btrfs_dir_item *btrfs_lookup_dir_item(struct btrfs_trans_handle *trans,
 					     struct btrfs_path *path, u64 dir,
 					     const char *name, int name_len,
 					     int mod);
+struct btrfs_dir_item *btrfs_lookup_dir_index(struct btrfs_trans_handle *trans,
+					      struct btrfs_root *root,
+					      struct btrfs_path *path, u64 dir,
+					      const char *name, int name_len,
+					      u64 index, int mod);
+int btrfs_delete_one_dir_name(struct btrfs_trans_handle *trans,
+			      struct btrfs_root *root,
+			      struct btrfs_path *path,
+			      struct btrfs_dir_item *di);
 int btrfs_insert_xattr_item(struct btrfs_trans_handle *trans,
 			    struct btrfs_root *root, const char *name,
 			    u16 name_len, const void *data, u16 data_len,
@@ -2392,4 +2412,12 @@ int btrfs_csum_truncate(struct btrfs_trans_handle *trans,
 int btrfs_lookup_uuid_subvol_item(int fd, const u8 *uuid, u64 *subvol_id);
 int btrfs_lookup_uuid_received_subvol_item(int fd, const u8 *uuid,
 					   u64 *subvol_id);
+
+static inline int is_fstree(u64 rootid)
+{
+	if (rootid == BTRFS_FS_TREE_OBJECTID ||
+	    (signed long long)rootid >= (signed long long)BTRFS_FIRST_FREE_OBJECTID)
+		return 1;
+	return 0;
+}
 #endif

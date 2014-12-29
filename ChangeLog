@@ -1,4 +1,50 @@
+2014-09-04  Thomas Tsai  <thomas@nchc.org.tw>
+
+	test about exfat and f2fs
+
+2014-09-03  Thomas Tsai  <thomas@nchc.org.tw>
+
+	upgrade exfat to 1.1.0
+
+2014-09-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	initial f2fs support
+
+2014-08-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update control
+
+2014-07-15  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update version to 0.2.72
+
+2014-07-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add package for debian jessie
+
+	add package for debian wheezy
+
+2014-07-08  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix configure.ac and add libblkid-dev check
+
+2014-07-07  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix xfs
+
+2014-05-14  Thomas Tsai  <thomas@nchc.org.tw>
+
+	0.2.71 ready to release
+
+	merger btrfs to 3.14 and update makefile
+
+2014-05-13  Thomas Tsai  <thomas@nchc.org.tw>
+
+	try to merge btrfs 3.14.1
+
 2014-01-20  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.70
 
 	update version to 0.2.70
 
