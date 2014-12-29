@@ -59,8 +59,8 @@ static void set_bitmap(unsigned long* bitmap, uint64_t pos, uint64_t length){
     log_mesg(3, 0, 0, fs_opt.debug, "%s: block offset: %llu block count: %llu\n",__FILE__,  pos_block, block_end);
 
     for(block = pos_block; block < block_end; block++){
-	pc_set_bit(block, bitmap);
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: block %i is used\n",__FILE__,  block);
+	pc_set_bit(block, bitmap);
     }
 }
 
@@ -130,30 +130,29 @@ int csum_bitmap(unsigned long* bitmap, struct btrfs_root *root){
     unsigned long leaf_offset;
 
 
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: csum_bitmap\n", __FILE__);
     root = root->fs_info->csum_root;
 
     key.objectid = BTRFS_EXTENT_CSUM_OBJECTID;
     key.type = BTRFS_EXTENT_CSUM_KEY;
     key.offset = 0;
 
-    path = btrfs_alloc_path();
-    if (!path)
-	return -ENOMEM;
+    btrfs_init_path(&path);
 
-    ret = btrfs_search_slot(NULL, root, &key, path, 0, 0);
+    ret = btrfs_search_slot(NULL, root, &key, &path, 0, 0);
     if (ret < 0) {
-	btrfs_free_path(path);
 	log_mesg(0, 0, 1, fs_opt.debug, "%s: Error searching csum tree %d\n", __FILE__, ret);
+	btrfs_free_path(&path);
 	return ret;
     }
 
-    if (ret > 0 && path->slots[0])
-	path->slots[0]--;
+    if (ret > 0 && path.slots[0])
+	path.slots[0]--;
     ret = 0;
 
     while (1) {
-	if (path->slots[0] >= btrfs_header_nritems(path->nodes[0])) {
-	    ret = btrfs_next_leaf(root, path);
+	if (path.slots[0] >= btrfs_header_nritems(path.nodes[0])) {
+	    ret = btrfs_next_leaf(root, &path);
 	    if (ret < 0) {
 		log_mesg(0, 0, 1, fs_opt.debug, "%s: Error going to next leaf %d\n", __FILE__, ret);
 		break;
@@ -161,17 +160,17 @@ int csum_bitmap(unsigned long* bitmap, struct btrfs_root *root){
 	    if (ret)
 		break;
 	}
-	leaf = path->nodes[0];
+	leaf = path.nodes[0];
 
-	btrfs_item_key_to_cpu(leaf, &key, path->slots[0]);
+	btrfs_item_key_to_cpu(leaf, &key, path.slots[0]);
 	if (key.type != BTRFS_EXTENT_CSUM_KEY) {
-	    path->slots[0]++;
+	    path.slots[0]++;
 	    continue;
 	}
 
-	data_len = (btrfs_item_size_nr(leaf, path->slots[0]) /
+	data_len = (btrfs_item_size_nr(leaf, path.slots[0]) /
 		csum_size) * root->sectorsize;
-	leaf_offset = btrfs_item_ptr_offset(leaf, path->slots[0]);
+	leaf_offset = btrfs_item_ptr_offset(leaf, path.slots[0]);
 	//printf("read key.offset, %llu data_len, %llu\n", key.offset, data_len);
 	ret = check_extent_bitmap(bitmap, key.offset, &data_len);
 	if (ret)
@@ -192,10 +191,11 @@ int csum_bitmap(unsigned long* bitmap, struct btrfs_root *root){
 	    num_bytes = 0;
 	}
 	num_bytes += data_len;
-	path->slots[0]++;
+	path.slots[0]++;
     }
 
-    btrfs_free_path(path);
+    btrfs_release_path(&path);
+
 
 }
 
@@ -382,7 +382,7 @@ next:
 	path.slots[0]++;
     }
 no_node:
-    csum_bitmap(bitmap, root);
+    ret = csum_bitmap(bitmap, root);
     btrfs_release_path(&path);
 }
 
