@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.2.74], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.2.75], [thomas@nchc.org.tw])
 AM_INIT_AUTOMAKE([-Wall foreign])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
@@ -488,6 +488,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
+	fail-mbr/Makefile
 	po/Makefile.in
 	docs/Makefile
 	tests/Makefile

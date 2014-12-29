@@ -145,6 +145,7 @@ void usage(void) {
 		"    -q,  --quiet            Disable progress message\n"
 		"    -E,  --offset=X         Add offset X (bytes) to OUTPUT\n"
 #endif
+		"    -n,  --note NOTE        Display Message Note (128 words)\n"
 		"    -v,  --version          Display partclone version\n"
 		"    -h,  --help             Display this help\n"
 		, EXECNAME, VERSION, EXECNAME, DEFAULT_BUFFER_SIZE);
@@ -162,20 +163,21 @@ enum {
 
 void parse_options(int argc, char **argv, cmd_opt* opt) {
 #ifdef CHKIMG
-	static const char *sopt = "-hvd::L:s:f:CFiBz:N";
+	static const char *sopt = "-hvd::L:s:f:CFiBz:Nn:";
 #else
 #ifdef RESTORE
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:";
 #elif DD
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:";
 #else
-	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBz:E:";
+	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBz:E:n:";
 #endif
 #endif
 	static const struct option lopt[] = {
 // common options
 		{ "help",		no_argument,		NULL,   'h' },
 		{ "print_version",	no_argument,		NULL,   'v' },
+		{ "note",		required_argument,	NULL,   'n' },
 		{ "source",		required_argument,	NULL,   's' },
 		{ "debug",		optional_argument,	NULL,   'd' },
 		{ "logfile",		required_argument,	NULL,   'L' },
@@ -255,6 +257,9 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				break;
 			case 'v':
 				print_version();
+				break;
+			case 'n':
+				strncpy(opt->note, optarg, NOTE_SIZE);
 				break;
 			case 's':
 				opt->source = optarg;
@@ -1074,6 +1079,8 @@ void print_opt(cmd_opt opt) {
 	log_mesg(1, 0, 0, debug, "NCURSES: %i\n", opt.ncurses);
 #endif
 	log_mesg(1, 0, 0, debug, "OFFSET DOMAIN: 0x%llX\n", opt.offset_domain);
+	opt.note[NOTE_SIZE] = '\0';
+	log_mesg(1, 0, 0, debug, "NOTE: %s\n", opt.note);
 }
 
 /// print partclone info
@@ -1101,6 +1108,10 @@ void print_partclone_info(cmd_opt opt) {
 		log_mesg(0, 0, 1, debug, _("Display image information\n"));
 	else
 		log_mesg(0, 0, 1, debug, "Unknown mode\n");
+	if ( strlen(opt.note) > 0 ){
+	    opt.note[NOTE_SIZE] = '\0';
+	    log_mesg(0, 0, 1, debug, "note: %s\n", opt.note);
+	}
 }
 
 /// print image head
