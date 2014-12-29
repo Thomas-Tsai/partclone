@@ -1310,7 +1310,6 @@ int __btrfs_map_block(struct btrfs_mapping_tree *map_tree, int rw,
 	int stripe_index;
 	int i;
 	struct btrfs_multi_bio *multi = NULL;
-	printf("map_block: logical = %llu block=%llu\n", logical, logical/16384);
 
 	if (multi_ret && rw == READ) {
 		stripes_allocated = 1;
@@ -1385,10 +1384,8 @@ again:
 		/* we limit the length of each bio to what fits in a stripe */
 		*length = min_t(u64, ce->size - offset,
 			      map->stripe_len - stripe_offset);
-		printf("map_block: length = %llu (%i blocks)\n",*length, *length/16384);
 	} else {
 		*length = ce->size - offset;
-		printf("map_block: length = %llu (%i blocks)\n",*length, *length/16384);
 	}
 
 	if (!multi_ret)

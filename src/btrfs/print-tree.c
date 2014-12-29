@@ -1028,7 +1028,6 @@ void btrfs_print_tree(struct btrfs_root *root, struct extent_buffer *eb, int fol
 		return;
 	nr = btrfs_header_nritems(eb);
 	if (btrfs_is_leaf(eb)) {
-	        printf("LEAF:");
 		btrfs_print_leaf(root, eb);
 		return;
 	}
