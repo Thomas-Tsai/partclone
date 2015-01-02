@@ -995,19 +995,19 @@ void sync_data(int fd, cmd_opt* opt) {
 }
 
 void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt) {
-	const char *badsector_magic = "BADSECTOR\0";
+	const char badsector_magic[10] = {'B', 'A', 'D', 'S', 'E', 'C', 'T', 'O', 'R', '\0'};
 
 	if (lseek(*fd, pos, SEEK_SET) == (off_t)-1) {
 		log_mesg(0, 0, 1, opt->debug, "WARNING: lseek error at %llu\n", pos);
 		memset(buff, '?', PART_SECTOR_SIZE);
-		memmove(buff, badsector_magic, sizeof(badsector_magic));
+		memcpy(buff, badsector_magic, strlen(badsector_magic)+1);
 		return;
 	}
 
 	if (io_all(fd, buff, PART_SECTOR_SIZE, 0, opt) == -1) { /// read_all
 		log_mesg(0, 0, 1, opt->debug, "WARNING: Can't read sector at %llu, lost data.\n", pos);
 		memset(buff, '?', PART_SECTOR_SIZE);
-		memmove(buff, badsector_magic, sizeof(badsector_magic));
+		memcpy(buff, badsector_magic, strlen(badsector_magic)+1);
 	}
 }
 
