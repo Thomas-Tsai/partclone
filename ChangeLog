@@ -1,3 +1,11 @@
+2015-01-16  Thomas Tsai  <thomas@nchc.org.tw>
+
+	 * fix xfs clone issue while set size to backup but bigger then device size and not stop
+
+2014-12-30  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.75
+
 2014-12-29  Thomas Tsai  <thomas@nchc.org.tw>
 
 	merge 0.2.74
