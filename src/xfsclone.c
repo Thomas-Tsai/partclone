@@ -403,6 +403,10 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 			sk = lseek(source_fd, w_length, SEEK_CUR);
 
 			w_position += w_length;
+			if(w_position > image_hdr.device_size){
+			    w_position = image_hdr.device_size;
+			    size = 0;
+			}
 		    }
 		}
 
