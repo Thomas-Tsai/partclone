@@ -36,7 +36,7 @@ reiserfs_fs_t	 *fs;
 /// open device
 static void fs_open(char* device){
 
-    if (!(dal = (dal_t*)file_dal_open(device, DEFAULT_BLOCK_SIZE, O_RDONLY))) {
+    if (!(dal = (dal_t*)file_open(device, DEFAULT_BLOCK_SIZE, O_RDONLY))) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't create device abstraction for %s.\n", __FILE__, device);
     }
 
@@ -57,7 +57,7 @@ static void fs_open(char* device){
 static void fs_close(){
 
     reiserfs_fs_close(fs);
-    file_dal_close(dal);
+    file_close(dal);
 
 }
 

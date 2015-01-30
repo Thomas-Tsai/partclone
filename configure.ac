@@ -120,7 +120,7 @@ AC_CHECK_HEADERS([reiserfs/reiserfs.h], ,
 )
 AC_CHECK_LIB([reiserfs], [reiserfs_fs_open], true,
     AC_MSG_ERROR([*** Reiserfs library (libreiserfs) not found]))
-AC_CHECK_LIB([dal], [file_dal_open], true,
+AC_CHECK_LIB([dal], [file_open], true,
     AC_MSG_ERROR([*** Reiserfs depend library (libdal) not found]))
 AC_MSG_CHECKING(version of libreiserfs)
 reiserfs_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiserfs -DREISERFS`
