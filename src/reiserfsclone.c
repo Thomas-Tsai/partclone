@@ -24,7 +24,7 @@
 #include <sys/types.h>
 #include <linux/types.h>
 #include <reiserfs/reiserfs.h>
-#include <dal/file_dal.h>
+#include <dal/file.h>
 #include "partclone.h"
 #include "reiserfsclone.h"
 #include "progress.h"
@@ -83,7 +83,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: block sb_block_count %llu\n", __FILE__, fs->super->s_v1.sb_block_count);
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: block bitmap check %llu\n", __FILE__, blk);
-	if(reiserfs_tools_test_bit(blk, fs_bitmap->bm_map)){
+	if(reiserfs_tools_test_bit(blk, fs_bitmap->map)){
 	    bused++;
 	    pc_set_bit(blk, bitmap);
 	}else{
