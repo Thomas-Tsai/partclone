@@ -82,7 +82,7 @@ int check_extent_bitmap(unsigned long* bitmap, u64 bytenr, u64 *num_bytes)
     ret = btrfs_map_block(&info->mapping_tree, READ, bytenr, num_bytes,
 	    &multi, mirror, NULL);
     if (ret) {
-	log_mesg(0, 0, 1, fs_opt.debug, "%s: Couldn't map the block %llu\n", __FILE__, bytenr);
+	log_mesg(1, 0, 0, fs_opt.debug, "%s: Couldn't map the block %llu\n", __FILE__, bytenr);
     }
 
     log_mesg(3, 0, 0, fs_opt.debug, "%s: read data from %llu and size %llu\n", __FILE__, multi->stripes[0].physical, *num_bytes);
@@ -323,14 +323,15 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     block_size  = btrfs_super_nodesize(info->super_copy);
     
     set_bitmap(bitmap, BTRFS_SUPER_INFO_OFFSET, block_size);
-    check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->extent_root->root_item), &block_size);
-    check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->csum_root->root_item), &block_size);
-    check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->quota_root->root_item), &block_size);
-    check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->dev_root->root_item), &block_size);
-    check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->tree_root->root_item), &block_size);
-    check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->chunk_root->root_item), &block_size);
-    check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->fs_root->root_item), &block_size);
+    //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->extent_root->root_item), &block_size);
+    //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->csum_root->root_item), &block_size);
+    //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->quota_root->root_item), &block_size);
+    //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->dev_root->root_item), &block_size);
+    //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->tree_root->root_item), &block_size);
+    //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->chunk_root->root_item), &block_size);
+    //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->fs_root->root_item), &block_size);
 
+    //log_mesg(3, 0, 0, fs_opt.debug, "%s: super tree done.\n", __FILE__);
 
     if (info->tree_root->node) {
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: root tree:\n", __FILE__);
