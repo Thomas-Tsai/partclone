@@ -1,4 +1,20 @@
+2015-03-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.77
+
+	remove some check that is duplicate and made error.
+
+2015-01-21  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix char related issue for bad sectors by Chris Clayton
+	Conflicts:
+		docs/partclone.imager.8
+		src/partclone.c
+		src/version.h
+
 2015-01-16  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix xfs and release(0.2.76) to test
 
 	 * fix xfs clone issue while set size to backup but bigger then device size and not stop
 
