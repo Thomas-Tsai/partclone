@@ -41,7 +41,7 @@ static void fs_open(char* device){
     int use_blocksize = 0;
     int flags;
 
-    flags = EXT2_FLAG_JOURNAL_DEV_OK | EXT2_FLAG_SOFTSUPP_FEATURES;
+    flags = EXT2_FLAG_JOURNAL_DEV_OK | EXT2_FLAG_SOFTSUPP_FEATURES | EXT2_FLAG_64BITS;
     if (use_superblock && !use_blocksize) {
 	for (use_blocksize = EXT2_MIN_BLOCK_SIZE; use_blocksize <= EXT2_MAX_BLOCK_SIZE; use_blocksize *= 2) {
 	    retval = ext2fs_open (device, flags, use_superblock, use_blocksize, unix_io_manager, &fs);
@@ -82,12 +82,12 @@ static int block_size(){
 
 /// get total block from super block
 static unsigned long long block_count(){
-    return (unsigned long long)fs->super->s_blocks_count;
+    return (unsigned long long)ext2fs_blocks_count(fs->super);
 }
 
 /// get used blocks ( total - free ) from super block
 static unsigned long long get_used_blocks(){
-    return (unsigned long long)(fs->super->s_blocks_count - fs->super->s_free_blocks_count);
+    return (unsigned long long)(ext2fs_blocks_count(fs->super) - ext2fs_free_blocks_count(fs->super));
 }
 
 /// readbitmap - cread and heck bitmap, reference dumpe2fs
@@ -134,7 +134,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	B_UN_INIT = 0;
 
 	if (block_bitmap) {
-	    ext2fs_get_block_bitmap_range(fs->block_map, blk_itr, block_nbytes << 3, block_bitmap);
+	    ext2fs_get_block_bitmap_range2(fs->block_map, blk_itr, block_nbytes << 3, block_bitmap);
 
 	    if (fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM){
 #ifdef EXTFS_1_41		
@@ -226,6 +226,12 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     image_hdr->totalblock = (unsigned long long)block_count();
     image_hdr->usedblocks = (unsigned long long)get_used_blocks();
     image_hdr->device_size = (unsigned long long)(image_hdr->block_size * image_hdr->totalblock);
+
+    log_mesg(1, 0, 0, fs_opt.debug, "%s: extfs block_size %i\n", __FILE__, image_hdr->block_size);
+    log_mesg(1, 0, 0, fs_opt.debug, "%s: extfs total block %lli\n", __FILE__, image_hdr->totalblock);
+    log_mesg(1, 0, 0, fs_opt.debug, "%s: extfs used blocks %lli\n", __FILE__, image_hdr->usedblocks);
+    log_mesg(1, 0, 0, fs_opt.debug, "%s: extfs device size %lli\n", __FILE__, image_hdr->device_size);
+
     fs_close();
 }
 
