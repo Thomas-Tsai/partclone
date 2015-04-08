@@ -815,7 +815,7 @@ int main(int argc, char **argv) {
 
 		int cmp, nx_current = 0;
 		unsigned long long next_block_id = 0;
-		log_mesg(0, 0, 0, debug, "Total block %i\n", image_hdr.totalblock);
+		log_mesg(0, 0, 0, debug, "Total block %llu\n", image_hdr.totalblock);
 		log_mesg(1, 0, 0, debug, "start writing domain log...\n");
 		// write domain log comment and status line
 		dprintf(dfw, "# Domain logfile created by %s v%s\n", EXECNAME, VERSION);

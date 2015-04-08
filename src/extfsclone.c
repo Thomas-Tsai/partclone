@@ -153,21 +153,22 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	    for (block = 0; ((block < fs->super->s_blocks_per_group) && (current_block < (image_hdr.totalblock-1))); block++) {
 		current_block = block + blk_itr;
 
-		/// check block is used or not
-		if ((!in_use (block_bitmap, block)) || (B_UN_INIT)) {
+		if (in_use (block_bitmap, block)){
+			pc_set_bit(current_block, bitmap);
+			log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %llu at group %lu\n", __FILE__, current_block, group);
+		} else {
 		    free++;
 		    gfree++;
 		    pc_clear_bit(current_block, bitmap);
 		    log_mesg(3, 0, 0, fs_opt.debug, "%s: free block %llu at group %lu init %i\n", __FILE__, current_block, group, (int)B_UN_INIT);
-		} else {
-		    pc_set_bit(current_block, bitmap);
-		    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %llu at group %lu\n", __FILE__, current_block, group);
 		}
+		
 		/// update progress
 		update_pui(&prog, current_block, current_block, 0);//keep update
 	    }
 	    blk_itr += fs->super->s_blocks_per_group;
 	}
+	log_mesg(2, 0, 0, fs_opt.debug, "%s: free bitmap (gfree = %lli, bg_blocks_count = %lli)at %lu group.\n", __FILE__, gfree, ext2fs_bg_free_blocks_count(fs, group), group);
 	/// check free blocks in group
 #ifdef EXTFS_1_41		
 	if (gfree != fs->group_desc[group].bg_free_blocks_count){	
@@ -181,11 +182,11 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	}
     }
     /// check all free blocks in partition
-    if (free != fs->super->s_free_blocks_count) {
+    if (free != ext2fs_free_blocks_count(fs->super)) {
 	if ((fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM) && (ext4_gfree_mismatch))
 	    log_mesg(1, 0, 0, fs_opt.debug, "%s: EXT4 bitmap metadata mismatch\n", __FILE__);
 	else
-	    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, free:%llu\n", __FILE__, free);
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, partclone get free:%llu but extfs get %llu\n", __FILE__, free, ext2fs_free_blocks_count(fs->super));
     }
 
     fs_close();
