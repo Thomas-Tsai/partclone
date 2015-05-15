@@ -1,4 +1,14 @@
+2015-04-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix 16T partition issue
+
+2015-04-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix hiuge filesystem issue
+
 2015-03-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update ChangeLog and version.h
 
 	release 0.2.77
 
