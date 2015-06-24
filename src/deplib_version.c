@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h> // for strcmp()
 
 #ifdef EXTFS
     #include <ext2fs/ext2fs.h>
