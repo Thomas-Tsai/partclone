@@ -354,6 +354,9 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     vmfs_inode_t inode;
     vmfs_bitmap_header_t *fdc_bmp;
     uint32_t entry,item;
+    uint64_t vmfs_fsinfo_base = VMFS_FSINFO_BASE;
+    uint64_t vmfs_hb_base = VMFS_HB_BASE;
+    uint64_t vmfs_volinfo_base = VMFS_VOLINFO_BASE;
     int i;
     int bres;
     pthread_t prog_bitmap_thread;
@@ -372,6 +375,12 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     if(bres){
 	    log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, thread create error\n", __func__, __LINE__);
     }
+
+    /// add base
+
+    pc_set_bit(vmfs_hb_base/vmfs_fs_get_blocksize(fs), bitmap);
+    pc_set_bit(vmfs_fsinfo_base/vmfs_fs_get_blocksize(fs), bitmap);
+    pc_set_bit(vmfs_volinfo_base/vmfs_fs_get_blocksize(fs), bitmap);
 
     fdc_bmp = &fs->fdc->bmh;
     log_mesg(3, 0, 0, fs_opt.debug, "Scanning %u FDC entries...\n",fdc_bmp->total_items);
