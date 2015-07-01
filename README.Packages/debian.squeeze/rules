@@ -55,7 +55,8 @@ clean:
 	# Add here commands to clean up after the build process.
 	-$(MAKE) dist clean
 
-	dh_clean 
+override_dh_clean:
+	dh_clean -X fail-mbr/fail-mbr.bin.orig
 
 install: build
 	dh_testdir
