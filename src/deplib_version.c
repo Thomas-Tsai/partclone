@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #ifdef EXTFS
     #include <ext2fs/ext2fs.h>
