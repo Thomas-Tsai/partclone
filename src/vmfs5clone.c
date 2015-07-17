@@ -442,10 +442,10 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     total_block = total;
     image_hdr->usedblocks  = alloc;
     image_hdr->device_size = (vmfs_fs_get_blocksize(fs)*total);
-    log_mesg(3, 0, 0, fs_opt.debug, " block_size %u\n", image_hdr->block_size);
-    log_mesg(3, 0, 0, fs_opt.debug, " totalblock %llu\n", image_hdr->totalblock);
-    log_mesg(3, 0, 0, fs_opt.debug, " device_size %llu\n",image_hdr->device_size);
-    log_mesg(3, 0, 0, fs_opt.debug, " usedblocks %llu\n", image_hdr->usedblocks);
+    log_mesg(3, 0, 0, fs_opt.debug, "block_size %u\n", image_hdr->block_size);
+    log_mesg(3, 0, 0, fs_opt.debug, "totalblock %llu\n", image_hdr->totalblock);
+    log_mesg(3, 0, 0, fs_opt.debug, "device_size %llu\n",image_hdr->device_size);
+    log_mesg(3, 0, 0, fs_opt.debug, "usedblocks %llu\n", image_hdr->usedblocks);
 
     fs_close();
 }
