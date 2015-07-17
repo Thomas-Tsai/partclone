@@ -33,7 +33,7 @@ progress_bar   prog;        /// progress_bar structure defined in progress.h
 unsigned long long checked;
 void *thread_update_bitmap_pui(void *arg);
 int bitmap_done = 0;
-unsigned long long tot = 0;
+unsigned long long total_block = 0;
 
 /* Forward declarations */
 typedef struct vmfs_dir_map vmfs_dir_map_t;
@@ -188,8 +188,8 @@ void print_pos_by_id (const vmfs_fs_t *fs, uint32_t blk_id)
     }
     checked++;
     current = pos/vmfs_fs_get_blocksize(fs);
-    if ( current > tot )
-	log_mesg(3, 0, 0, fs_opt.debug, "TOT Error Blockid = 0x%8.8x, Type = 0x%2.2x, Pos: %llu, bitmapid: %llu, c: %llu\n", blk_id, blk_type, pos, current, checked);
+    if ( current > total_block )
+	log_mesg(3, 0, 0, fs_opt.debug, "total_block Error Blockid = 0x%8.8x, Type = 0x%2.2x, Pos: %llu, bitmapid: %llu, c: %llu\n", blk_id, blk_type, pos, current, checked);
     log_mesg(3, 0, 0, fs_opt.debug, "Blockid = 0x%8.8x, Type = 0x%2.2x, Pos: %llu, bitmapid: %llu, c: %llu\n", blk_id, blk_type, pos, current, checked);
     pc_set_bit(current, blk_bitmap);
 }
@@ -439,7 +439,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 
     image_hdr->block_size  = vmfs_fs_get_blocksize(fs);
     image_hdr->totalblock  = total;
-    tot = total;
+    total_block = total;
     image_hdr->usedblocks  = alloc;
     image_hdr->device_size = (vmfs_fs_get_blocksize(fs)*total);
     log_mesg(3, 0, 0, fs_opt.debug, " block_size %u\n", image_hdr->block_size);
@@ -453,8 +453,8 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 void *thread_update_bitmap_pui(void *arg){
 
     while (bitmap_done == 0) {
-	if ( checked > tot )
-	    checked = tot;
+	if ( checked > total_block )
+	    checked = total_block;
 	update_pui(&prog, checked, checked, 0);
 	sleep(4);
     }
