@@ -11,9 +11,12 @@
  * (at your option) any later version.
  */
 
+#define _LARGEFILE64_SOURCE
 #include <sys/param.h>
+#include <sys/types.h>
 #include <xfs/libxfs.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -25,6 +28,7 @@
 #include "xfsclone.h"
 #include "progress.h"
 #include "fs_common.h"
+
 
 #undef crc32
 char	*EXECNAME = "partclone.xfs";

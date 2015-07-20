@@ -59,10 +59,10 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     progress_bar   prog;	/// progress_bar structure defined in progress.h
     progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
     while (exfat_find_used_sectors(&ef, &a, &b) == 0){
-	printf("block %lli %lli \n", a, b);
+	printf("block %" PRId64 " %" PRId64 " \n", a, b);
 	for (block = a; block <= b; block++){
 	    pc_set_bit((uint64_t)block, bitmap);
-	    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %lli \n", __FILE__, block);
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %" PRId64 " \n", __FILE__, block);
 	    /// update progress
 	    update_pui(&prog, block, block, 0);
 	}

@@ -146,8 +146,8 @@ static unsigned long count_used_block(){
     unsigned long zones = get_nzones();
     unsigned long imaps = get_nimaps();
     unsigned long zmaps = get_nzmaps();
-    char * inode_map;
-    char * zone_map;
+    char *inode_map;
+    char *zone_map;
     ssize_t rc;
     unsigned long test_block = 0, test_zone = 0;
     unsigned long used_block = 0;
@@ -158,14 +158,12 @@ static unsigned long count_used_block(){
 	    log_mesg(0, 1, 1, fs_opt.debug, "%s: seek failed", __FILE__);
     }
 
-    inode_map = malloc(imaps * block_size);
+    inode_map = calloc(0, imaps * block_size);
     if (!inode_map)
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to allocate buffer for inode map", __FILE__);
-    zone_map = malloc(zmaps * block_size);
+    zone_map = calloc(0, zmaps * block_size);
     if (!inode_map)
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to allocate buffer for zone map", __FILE__);
-    memset(inode_map,0,sizeof(inode_map));
-    memset(zone_map,0,sizeof(zone_map));
 
     rc = read(dev, inode_map, imaps * block_size);
     if (rc < 0 || imaps * block_size != (size_t) rc)
@@ -237,14 +235,12 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	    log_mesg(0, 1, 1, fs_opt.debug, "%s: seek failed", __FILE__);
     }
 
-    inode_map = malloc(imaps * block_size);
+    inode_map = calloc(0, imaps * block_size);
     if (!inode_map)
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to allocate buffer for inode map", __FILE__);
-    zone_map = malloc(zmaps * block_size);
+    zone_map = calloc(0, zmaps * block_size);
     if (!inode_map)
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to allocate buffer for zone map", __FILE__);
-    memset(inode_map,0,sizeof(inode_map));
-    memset(zone_map,0,sizeof(zone_map));
 
     rc = read(dev, inode_map, imaps * block_size);
     if (rc < 0 || imaps * block_size != (size_t) rc)

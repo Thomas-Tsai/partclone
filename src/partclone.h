@@ -113,6 +113,7 @@ struct cmd_opt
 };
 typedef struct cmd_opt cmd_opt;
 extern void usage(void);
+extern void print_version(void);
 extern void parse_options(int argc, char **argv, cmd_opt* opt);
 
 /** 

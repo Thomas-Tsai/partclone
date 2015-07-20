@@ -93,6 +93,9 @@ cmd_opt opt;
 #elif EXFAT
 #include "exfatclone.h"
 #define FS "EXFAT"
+#elif F2FS
+#include "f2fsclone.h"
+#define FS "F2FS"
 #elif MINIX
 #include "minixclone.h"
 #define FS "MINIX"
@@ -235,7 +238,8 @@ int main(int argc, char **argv) {
 
 		char bbuffer[16384];
 		unsigned long long i;
-		unsigned long long needed_size, needed_mem;
+		unsigned long long needed_mem = 0;
+		unsigned long long needed_size = 0;
 
 		log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
 		log_mesg(0, 0, 1, debug, "Reading Super Block\n");
@@ -370,7 +374,8 @@ int main(int argc, char **argv) {
 		log_mesg(0, 0, 1, debug, "done!\n");
 	} else if (opt.ddd){
 	
-		unsigned long long needed_mem, needed_size;
+		unsigned long long needed_mem = 0;
+		unsigned long long needed_size = 0;
 
 		log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
 		log_mesg(1, 0, 1, debug, "Reading Super Block\n");

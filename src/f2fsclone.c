@@ -49,6 +49,9 @@ static void fs_open(char* device){
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: f2fs_do_mount fail\n", __FILE__);
 
     ret = fsck_init(sbi);
+    if (ret < 0)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: fsck_init init fail\n", __FILE__);
+
     fsck_chk_orphan_node(sbi);
 
 }

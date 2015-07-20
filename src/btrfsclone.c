@@ -67,10 +67,9 @@ static void set_bitmap(unsigned long* bitmap, uint64_t pos, uint64_t length){
 
 int check_extent_bitmap(unsigned long* bitmap, u64 bytenr, u64 *num_bytes)
 {
-    u64 offset = 0;
     struct btrfs_multi_bio *multi = NULL;
     int ret = 0;
-    int mirror;
+    int mirror = 0;
     //struct btrfs_fs_info *info = root->fs_info;
     u64 maxlen = *num_bytes;
 
@@ -124,7 +123,6 @@ int csum_bitmap(unsigned long* bitmap, struct btrfs_root *root){
     struct btrfs_key key;
     u64 offset = 0, num_bytes = 0;
     u16 csum_size = btrfs_super_csum_size(root->fs_info->super_copy);
-    int errors = 0;
     int ret = 0;
     u64 data_len;
     unsigned long leaf_offset;
@@ -171,22 +169,14 @@ int csum_bitmap(unsigned long* bitmap, struct btrfs_root *root){
 	data_len = (btrfs_item_size_nr(leaf, path.slots[0]) /
 		csum_size) * root->sectorsize;
 	leaf_offset = btrfs_item_ptr_offset(leaf, path.slots[0]);
-	//printf("read key.offset, %llu data_len, %llu\n", key.offset, data_len);
+	log_mesg(2, 0, 0, fs_opt.debug, "%s: leaf_offset %lu\n", __FILE__, leaf_offset);
 	ret = check_extent_bitmap(bitmap, key.offset, &data_len);
 	if (ret)
 	    break;
 	if (!num_bytes) {
 	    offset = key.offset;
 	} else if (key.offset != offset + num_bytes) {
-	    /*
-	       ret = check_extent_exists(root, offset, num_bytes);
-	       if (ret) {
-	       fprintf(stderr, "Csum exists for %Lu-%Lu but "
-	       "there is no extent record\n",
-	       offset, offset+num_bytes);
-	       errors++;
-	       }
-	     */
+
 	    offset = key.offset;
 	    num_bytes = 0;
 	}
@@ -196,13 +186,13 @@ int csum_bitmap(unsigned long* bitmap, struct btrfs_root *root){
 
     btrfs_release_path(&path);
 
+    return ret;
 
 }
 
 
 void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct extent_buffer *eb){
 
-    int ret;
     u64 bytenr;
     u64 size;
     u64 objectid;
@@ -273,7 +263,6 @@ static void fs_open(char* device){
     //struct btrfs_fs_info *info;
     u64 bytenr = 0;
     enum btrfs_open_ctree_flags ctree_flags = OPEN_CTREE_PARTIAL;
-    int ret = 0;
 
 
     log_mesg(0, 0, 0, fs_opt.debug, "\n%s: btrfs library version = %s\n", __FILE__, BTRFS_BUILD_VERSION);
@@ -309,7 +298,6 @@ static void fs_close(){
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
     int ret;
-    struct cache_tree root_cache;
     struct btrfs_root *tree_root_scan;
     struct btrfs_key key;
     struct btrfs_disk_key disk_key;
@@ -317,7 +305,6 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     struct extent_buffer *leaf;
     struct btrfs_root_item ri;
     int slot;
-    u64 bytenr = 0;
 
     fs_open(device);
     block_size  = btrfs_super_nodesize(info->super_copy);
@@ -383,7 +370,7 @@ next:
 	path.slots[0]++;
     }
 no_node:
-    ret = csum_bitmap(bitmap, root);
+    csum_bitmap(bitmap, root);
     btrfs_release_path(&path);
 }
 

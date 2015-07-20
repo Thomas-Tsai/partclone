@@ -1079,7 +1079,7 @@ void print_opt(cmd_opt opt) {
 	log_mesg(1, 0, 0, debug, "NCURSES: %i\n", opt.ncurses);
 #endif
 	log_mesg(1, 0, 0, debug, "OFFSET DOMAIN: 0x%llX\n", opt.offset_domain);
-	opt.note[NOTE_SIZE] = '\0';
+	opt.note[NOTE_SIZE-1] = '\0';
 	log_mesg(1, 0, 0, debug, "NOTE: %s\n", opt.note);
 }
 
@@ -1109,7 +1109,7 @@ void print_partclone_info(cmd_opt opt) {
 	else
 		log_mesg(0, 0, 1, debug, "Unknown mode\n");
 	if ( strlen(opt.note) > 0 ){
-	    opt.note[NOTE_SIZE] = '\0';
+	    opt.note[NOTE_SIZE-1] = '\0';
 	    log_mesg(0, 0, 1, debug, "note: %s\n", opt.note);
 	}
 }
