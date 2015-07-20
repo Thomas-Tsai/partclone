@@ -186,7 +186,8 @@ void print_pos_by_id (const vmfs_fs_t *fs, uint32_t blk_id)
 	    log_mesg(0, 0, 0, fs_opt.debug, "Unsupported block type 0x%2.2x\n", blk_type);
 	    //fprintf(stderr,"Unsupported block type 0x%2.2x\n",blk_type);
     }
-    checked++;
+    if (checked < total_block)
+	checked++;
     current = pos/vmfs_fs_get_blocksize(fs);
     if ( current > total_block )
 	log_mesg(3, 0, 0, fs_opt.debug, "total_block Error Blockid = 0x%8.8x, Type = 0x%2.2x, Pos: %llu, bitmapid: %llu, c: %llu\n", blk_id, blk_type, pos, current, checked);
@@ -392,20 +393,19 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
         vmfs_inode_foreach_block(&inode,vmfs_dump_store_block,dump_info.blk_map);
     }
 
-    log_mesg(3, 0, 0, fs_opt.debug, "fdc checked block %llu\n", checked);
 
     fbb_bmp = fs->fbb;
     sbc_bmp = fs->sbc;
     pbc_bmp = fs->pbc;
     log_mesg(3, 0, 0, fs_opt.debug, "Scanning SBC\n");
     vmfs_bitmap_foreach(sbc_bmp,dump_bitmaps_sb,fs);
-    log_mesg(3, 0, 0, fs_opt.debug, "sbc checked block %llu\n", checked);
+    checked+=25;
     log_mesg(3, 0, 0, fs_opt.debug, "Scanning PBC\n");
     vmfs_bitmap_foreach(pbc_bmp,dump_bitmaps_pb,fs);
-    log_mesg(3, 0, 0, fs_opt.debug, "pbc checked block %llu\n", checked);
+    checked+=25;
     log_mesg(3, 0, 0, fs_opt.debug, "Scanning FBB\n");
     vmfs_bitmap_foreach(fbb_bmp,dump_bitmaps_fb,fs);
-    log_mesg(3, 0, 0, fs_opt.debug, "fbb checked block %llu\n", checked);
+    checked+=25;
 
     fs_close();
     bitmap_done = 1;
@@ -439,7 +439,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 
     image_hdr->block_size  = vmfs_fs_get_blocksize(fs);
     image_hdr->totalblock  = total;
-    total_block = total;
+    total_block = total+100;
     image_hdr->usedblocks  = alloc;
     image_hdr->device_size = (vmfs_fs_get_blocksize(fs)*total);
     log_mesg(3, 0, 0, fs_opt.debug, "block_size %u\n", image_hdr->block_size);
@@ -453,8 +453,6 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 void *thread_update_bitmap_pui(void *arg){
 
     while (bitmap_done == 0) {
-	if ( checked > total_block )
-	    checked = total_block;
 	update_pui(&prog, checked, checked, 0);
 	sleep(4);
     }
