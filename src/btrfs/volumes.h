@@ -39,6 +39,8 @@ struct btrfs_device {
 	u64 total_devs;
 	u64 super_bytes_used;
 
+	u64 generation;
+
 	/* the internal btrfs device id */
 	u64 devid;
 
@@ -67,7 +69,7 @@ struct btrfs_device {
 struct btrfs_fs_devices {
 	u8 fsid[BTRFS_FSID_SIZE]; /* FS specific uuid */
 
-	/* the device with this id has the most recent coyp of the super */
+	/* the device with this id has the most recent copy of the super */
 	u64 latest_devid;
 	u64 latest_trans;
 	u64 lowest_devid;
@@ -130,6 +132,7 @@ struct map_lookup {
 #define BTRFS_BALANCE_ARGS_DEVID	(1ULL << 2)
 #define BTRFS_BALANCE_ARGS_DRANGE	(1ULL << 3)
 #define BTRFS_BALANCE_ARGS_VRANGE	(1ULL << 4)
+#define BTRFS_BALANCE_ARGS_LIMIT	(1ULL << 5)
 
 /*
  * Profile changing flags.  When SOFT is set we won't relocate chunk if
@@ -178,7 +181,7 @@ int btrfs_update_device(struct btrfs_trans_handle *trans,
 			struct btrfs_device *device);
 int btrfs_scan_one_device(int fd, const char *path,
 			  struct btrfs_fs_devices **fs_devices_ret,
-			  u64 *total_devs, u64 super_offset);
+			  u64 *total_devs, u64 super_offset, int super_recover);
 int btrfs_num_copies(struct btrfs_mapping_tree *map_tree, u64 logical, u64 len);
 struct list_head *btrfs_scanned_uuids(void);
 int btrfs_add_system_chunk(struct btrfs_trans_handle *trans,

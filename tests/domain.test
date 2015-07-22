@@ -1,0 +1,55 @@
+#!/bin/bash
+set -e
+
+. _common
+## file system
+fs="ext3"
+dd_count=$normal_size
+break_debug=0
+
+#main
+ddraw="raw2"
+
+ptlfs=$(_ptlname $fs)
+mkfs=$(_findmkfs $fs)
+echo -e "domain logfile option test"
+echo -e "====================\n"
+echo -e "\ncreate raw file $raw\n"
+_ptlbreak
+[ -f $raw ] && rm $raw
+echo -e "    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count\n"
+dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
+
+echo -e "\nformat $raw as $fs raw partition\n"
+echo -e "    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw\n"
+_ptlbreak
+$mkfs `eval echo "$"mkfs_option_for_$fs""` $raw
+
+echo -e "\nclone $raw and output domain file\n"
+[ -f $img ] && rm $img
+echo -e "    $ptlfs -d -D -s $raw -O $img -F -L $logfile\n"
+_ptlbreak
+time $ptlfs -d -D -s $raw -O $img -F -L $logfile
+_check_return_code
+
+echo -e "\ncreate raw file $ddraw for restore\n"
+_ptlbreak
+[ -f $ddraw ] && rm $ddraw
+echo -e "    dd if=/dev/zero of=$ddraw bs=$dd_bs count=$dd_count\n"
+dd if=/dev/zero of=$ddraw bs=$dd_bs count=$dd_count
+
+echo -e "\nddrescue from $raw to $ddraw with option --domain-logfile=$img \n"
+echo -e "   ddrescue --domain-logfile=$img $raw $ddraw \n"
+_ptlbreak
+ddrescue --domain-logfile=$img $raw $ddraw
+_check_return_code
+
+_ptlbreak
+md5sum $raw | sed s/$raw/$ddraw/ | md5sum -c
+_check_return_code
+
+echo -e "\nddrescue domain logfile test ok\n"
+echo -e "\nclear tmp files $img $raw $logfile $md5 $ddraw\n"
+_ptlbreak
+#rm -f $img $raw $logfile $md5 $ddraw
+

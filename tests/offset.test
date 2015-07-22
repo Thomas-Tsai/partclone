@@ -35,8 +35,8 @@ echo -e "    mount -o offset=$OFFSET $offset_loop_device /mnt\n"
 mount -o offset=$OFFSET $offset_loop_device /mnt
 _check_return_code
 mount
-umout /mnt
-mount
+umount /mnt
+mount | grep loop
 
 losetup -d $part_loop_device
 losetup -d $offset_loop_device

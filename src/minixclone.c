@@ -143,8 +143,8 @@ static unsigned long count_used_block(){
     unsigned long zones = get_nzones();
     unsigned long imaps = get_nimaps();
     unsigned long zmaps = get_nzmaps();
-    char * inode_map;
-    char * zone_map;
+    char *inode_map;
+    char *zone_map;
     ssize_t rc;
     unsigned long test_block = 0, test_zone = 0;
     unsigned long used_block = 0;
@@ -155,14 +155,12 @@ static unsigned long count_used_block(){
 	    log_mesg(0, 1, 1, fs_opt.debug, "%s: seek failed", __FILE__);
     }
 
-    inode_map = malloc(imaps * block_size);
+    inode_map = (char *)calloc(sizeof(char), imaps * block_size);
     if (!inode_map)
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to allocate buffer for inode map", __FILE__);
-    zone_map = malloc(zmaps * block_size);
+    zone_map = (char *)calloc(sizeof(char), zmaps * block_size);
     if (!inode_map)
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to allocate buffer for zone map", __FILE__);
-    memset(inode_map,0,sizeof(inode_map));
-    memset(zone_map,0,sizeof(zone_map));
 
     rc = read(dev, inode_map, imaps * block_size);
     if (rc < 0 || imaps * block_size != (size_t) rc)
@@ -183,6 +181,8 @@ static unsigned long count_used_block(){
 	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu not use\n", __FILE__, test_block);    
 	}
     }
+    free(zone_map);
+    free(inode_map);
     return used_block;
 }
 
@@ -233,15 +233,12 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	    log_mesg(0, 1, 1, fs_opt.debug, "%s: seek failed", __FILE__);
     }
 
-    inode_map = malloc(imaps * block_size);
+    inode_map = (char *)calloc(sizeof(char), imaps * block_size);
     if (!inode_map)
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to allocate buffer for inode map", __FILE__);
-    zone_map = malloc(zmaps * block_size);
+    zone_map = (char *)calloc(sizeof(char), zmaps * block_size);
     if (!inode_map)
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to allocate buffer for zone map", __FILE__);
-    memset(inode_map,0,sizeof(inode_map));
-    memset(zone_map,0,sizeof(zone_map));
-    pc_init_bitmap(bitmap, 0x00, fs_info.totalblock);
 
     rc = read(dev, inode_map, imaps * block_size);
     if (rc < 0 || imaps * block_size != (size_t) rc)
@@ -268,6 +265,8 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu not use\n", __FILE__, test_block);    
 	}
     }
+    free(zone_map);
+    free(inode_map);
     fs_close();
 }
 

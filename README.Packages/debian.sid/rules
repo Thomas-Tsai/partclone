@@ -32,7 +32,9 @@ override_dh_auto_clean:
 	rm -f get_lib_version
 	rm -f config.sub configure Makefile.in aclocal.m4 config.guess
 	rm -f src/Makefile.in docs/Makefile.in
-	dh_clean
+
+override_dh_clean:
+	dh_clean -X fail-mbr/fail-mbr.bin.orig
 
 override_dh_strip:
 	dh_strip --dbg-package=partclone-dbg

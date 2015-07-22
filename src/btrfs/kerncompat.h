@@ -28,6 +28,13 @@
 #include <assert.h>
 #include <stddef.h>
 #include <linux/types.h>
+#include <stdint.h>
+#ifndef BTRFS_DISABLE_BACKTRACE
+#include <execinfo.h>
+#endif
+
+#define ptr_to_u64(x)	((u64)(uintptr_t)x)
+#define u64_to_ptr(x)	((void *)(uintptr_t)x)
 
 #ifndef READ
 #define READ 0
@@ -50,7 +57,37 @@
 #define ULONG_MAX       (~0UL)
 #endif
 
+#ifndef BTRFS_DISABLE_BACKTRACE
+#define MAX_BACKTRACE	16
+static inline void print_trace(void)
+{
+	void *array[MAX_BACKTRACE];
+	size_t size;
+
+	size = backtrace(array, MAX_BACKTRACE);
+	backtrace_symbols_fd(array, size, 2);
+}
+
+static inline void assert_trace(const char *assertion, const char *filename,
+			      const char *func, unsigned line, int val)
+{
+	if (val)
+		return;
+	if (assertion)
+		fprintf(stderr, "%s:%d: %s: Assertion `%s` failed.\n",
+			filename, line, func, assertion);
+	else
+		fprintf(stderr, "%s:%d: %s: Assertion failed.\n", filename,
+			line, func);
+	print_trace();
+	exit(1);
+}
+
+#define BUG() assert_trace(NULL, __FILE__, __func__, __LINE__, 0)
+#else
 #define BUG() assert(0)
+#endif
+
 #ifdef __CHECKER__
 #define __force    __attribute__((force))
 #define __bitwise__ __attribute__((bitwise))
@@ -71,6 +108,9 @@ typedef __u32 u32;
 typedef __u64 u64;
 typedef __u16 u16;
 typedef __u8 u8;
+typedef __s64 s64;
+typedef __s32 s32;
+
 /*
  * Continuing to define __KERNEL__ breaks others parts of the code, so
  * we can just undefine it now that we have the correct headers...
@@ -82,6 +122,8 @@ typedef unsigned int __u32;
 typedef unsigned long long u64;
 typedef unsigned char u8;
 typedef unsigned short u16;
+typedef long long s64;
+typedef int s32
 #endif
 
 
@@ -232,10 +274,22 @@ static inline long IS_ERR(const void *ptr)
 #define kzalloc(x, y) calloc(1, x)
 #define kstrdup(x, y) strdup(x)
 #define kfree(x) free(x)
+#define vmalloc(x) malloc(x)
+#define vfree(x) free(x)
 
+#ifndef BTRFS_DISABLE_BACKTRACE
+#define BUG_ON(c) assert_trace(#c, __FILE__, __func__, __LINE__, !(c))
+#else
 #define BUG_ON(c) assert(!(c))
-#define WARN_ON(c) assert(!(c))
+#endif
 
+#define WARN_ON(c) BUG_ON(c)
+
+#ifndef BTRFS_DISABLE_BACKTRACE
+#define	ASSERT(c) assert_trace(#c, __FILE__, __func__, __LINE__, (c))
+#else
+#define ASSERT(c) assert(c)
+#endif
 
 #define container_of(ptr, type, member) ({                      \
         const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
@@ -289,6 +343,11 @@ struct __una_u64 { __le64 x; } __attribute__((__packed__));
 #define put_unaligned_le32(val,p) (((struct __una_u32 *)(p))->x = cpu_to_le32(val))
 #define get_unaligned_le64(p) le64_to_cpu(((const struct __una_u64 *)(p))->x)
 #define put_unaligned_le64(val,p) (((struct __una_u64 *)(p))->x = cpu_to_le64(val))
+#endif
+
+#ifndef true
+#define true 1
+#define false 0
 #endif
 
 #ifndef noinline

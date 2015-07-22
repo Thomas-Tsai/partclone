@@ -15,6 +15,7 @@ xfs (patched library, not in debian)
 #check patched library here: http://free.nchc.org.tw/drbl-core/pool/drbl/dev/
 
 # Installation
+autoreconf # optional
 ./configure --enabel-ncursesw --enable-all
 make
 sudo make install

@@ -9,7 +9,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 mkdir -p $REPORT_PATH
-function_test="dd.test ncursesw.test quiet.test imager.test  info.test offset.test restore_to_raw.test"
+function_test="dd.test ncursesw.test quiet.test imager.test  info.test offset.test restore_to_raw.test domain.test note.test"
 empty_part_test="mini_clone_restore_test"
 data_part_test="data_clone_restore_test"
 pushd $PARTCLONE_PATH

@@ -9,8 +9,6 @@ featured_fs="$normal_fs"
 extra_fs="$featured_fs"
 
 manual_fs="ext2"
-
-test_fs=$featured_fs
 dd_count=$normal_size
 [ -z $manual_fs ] || test_fs=$manual_fs
 

@@ -16,7 +16,7 @@ extra_fs="$featured_fs ufs vmfs reiser4 ntfs btrfs"
 
 manual_fs=$1
 
-test_fs=$featured_fs
+test_fs=$formatable_fs
 dd_count=$normal_size
 [ -z $manual_fs ] || test_fs=$manual_fs
 
@@ -71,6 +71,7 @@ for fs in $test_fs; do
     echo -e "\nclear tmp files $img $raw $logfile $md5\n"
     _ptlbreak
     rm -f $img $raw $logfile $md5
+    echo -e "\nfile system $fs test done\n"
 
     echo -e "\nfile system $fs test done\n"
 done

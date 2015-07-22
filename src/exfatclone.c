@@ -59,10 +59,10 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     pc_init_bitmap(bitmap, 0x00, fs_info.totalblock);
 
     while (exfat_find_used_sectors(&ef, &a, &b) == 0){
-	printf("block %li %li \n", a, b);
+	printf("block %" PRId64 " %" PRId64 " \n", a, b);
 	for (block = a; block <= b; block++){
 	    pc_set_bit((uint64_t)block, bitmap);
-	    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %li \n", __FILE__, block);
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %" PRId64 " \n", __FILE__, block);
 	    /// update progress
 	    update_pui(&prog, block, block, 0);
 	}
