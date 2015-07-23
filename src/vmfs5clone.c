@@ -397,13 +397,10 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     pbc_bmp = fs->pbc;
     log_mesg(3, 0, 0, fs_opt.debug, "Scanning SBC\n");
     vmfs_bitmap_foreach(sbc_bmp,dump_bitmaps_sb,fs);
-    checked+=25;
     log_mesg(3, 0, 0, fs_opt.debug, "Scanning PBC\n");
     vmfs_bitmap_foreach(pbc_bmp,dump_bitmaps_pb,fs);
-    checked+=25;
     log_mesg(3, 0, 0, fs_opt.debug, "Scanning FBB\n");
     vmfs_bitmap_foreach(fbb_bmp,dump_bitmaps_fb,fs);
-    checked+=25;
 
     fs_close();
     bitmap_done = 1;
