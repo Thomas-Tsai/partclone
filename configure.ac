@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.2.80], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.2.81], [thomas@nchc.org.tw])
 AM_INIT_AUTOMAKE([-Wall foreign])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
