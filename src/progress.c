@@ -29,6 +29,7 @@ extern WINDOW *p_win;
 extern WINDOW *bar_win;
 extern WINDOW *tbar_win;
 int color_support = 1;
+int BUFSIZE = 50;
 #endif
 
 int PUI;
@@ -225,7 +226,9 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 {
 #ifdef HAVE_LIBNCURSESW
 
-    char *p_block, *t_block;
+    char *block = "                                                                    ";
+    int x = 0;
+    char blockbuf[BUFSIZE];
     prog_stat_t prog_stat;
 
     memset(&prog_stat, 0, sizeof(prog_stat_t));
@@ -246,21 +249,16 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 	    mvwprintw(p_win, 0, 40, _("Rate: %6.2f%s/min"), prog_stat.speed, prog_stat.speed_unit);
 	if (prog->flag == IO)
 	    mvwprintw(p_win, 1, 0, _("Current Block: %llu  Total Block: %llu ") , current, prog->total);
-        p_block = calloc(sizeof(char), 50);
-        if (p_block == NULL)
-            log_mesg(0, 1, 1, 0, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-        t_block = calloc(sizeof(char), 50);
-        if (t_block == NULL)
-            log_mesg(0, 1, 1, 0, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-        memset(p_block, ' ', (size_t)(prog_stat.percent*0.5));
-        memset(t_block, ' ', (size_t)(prog_stat.total_percent*0.5));
-        
+
 	if (prog->flag == IO)
 	    mvwprintw(p_win, 3, 0, "Data Block Process:");
 	else if (prog->flag == BITMAP)
 	    mvwprintw(p_win, 3, 0, "Calculating Bitmap Process:");
 	wattrset(bar_win, COLOR_PAIR(4));
-        mvwprintw(bar_win, 0, 0, "%s", p_block);
+	x = snprintf(blockbuf, BUFSIZE, "%.*s",  (unsigned int)(prog_stat.percent*0.5), block);
+	if ( x < 0 )
+	    fprintf(stderr, "ncurses update error\n");
+        mvwprintw(bar_win, 0, 0, "%s", blockbuf);
         wattroff(bar_win, COLOR_PAIR(4));
         mvwprintw(p_win, 4, 52, "%6.2f%%", prog_stat.percent);
         
@@ -268,14 +266,15 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 	    werase(tbar_win);
 	    mvwprintw(p_win, 6, 0, "Total Block Process:");
 	    wattrset(tbar_win, COLOR_PAIR(4));
-	    mvwprintw(tbar_win, 0, 0, "%s", t_block);
+	    x = snprintf(blockbuf, BUFSIZE, "%.*s",  (unsigned int)(prog_stat.total_percent*0.5), block);
+	    if ( x < 0 )
+		fprintf(stderr, "ncurses update error\n");
+	    mvwprintw(tbar_win, 0, 0, "%s", blockbuf);
 	    wattroff(tbar_win, COLOR_PAIR(4));
 	    mvwprintw(p_win, 7, 52, "%6.2f%%", prog_stat.total_percent);
 	}
 
-	free(p_block);
-	free(t_block);
-        
+
 	wrefresh(p_win);
         wrefresh(bar_win);
         wrefresh(tbar_win);
