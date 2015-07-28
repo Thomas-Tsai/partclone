@@ -36,6 +36,7 @@
 #include "progress.h"
 #include "fs_common.h"
 
+struct btrfs_fs_info *info;
 struct btrfs_root *root;
 struct btrfs_path path;
 int block_size = 0;

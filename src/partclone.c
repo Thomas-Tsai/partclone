@@ -1574,7 +1574,7 @@ void print_opt(cmd_opt opt) {
 	log_mesg(1, 0, 0, debug, "CHECKSUM: %s\n", get_checksum_str(opt.checksum_mode));
 	log_mesg(1, 0, 0, debug, "CS SIZE: %u\n", get_checksum_size(opt.checksum_mode, debug));
 	log_mesg(1, 0, 0, debug, "BLOCKS/CS: %lu\n", opt.blocks_per_checksum);
-	opt.note[NOTE_SIZE] = '\0';
+	opt.note[NOTE_SIZE-1] = '\0';
 	log_mesg(1, 0, 0, debug, "NOTE: %s\n", opt.note);
 }
 
@@ -1604,7 +1604,7 @@ void print_partclone_info(cmd_opt opt) {
 	else
 		log_mesg(0, 0, 1, debug, "Unknown mode\n");
 	if ( strlen(opt.note) > 0 ){
-	    opt.note[NOTE_SIZE] = '\0';
+	    opt.note[NOTE_SIZE-1] = '\0';
 	    log_mesg(0, 0, 1, debug, "note: %s\n", opt.note);
 	}
 }

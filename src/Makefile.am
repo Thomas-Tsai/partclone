@@ -101,7 +101,6 @@ endif
 if ENABLE_F2FS
 sbin_PROGRAMS += partclone.f2fs
 partclone_f2fs_SOURCES=$(main_files) f2fsclone.c f2fsclone.h $(F2FS_SOURCE)
->>>>>>> release
 partclone_f2fs_CFLAGS=-DF2FS
 partclone_f2fs_LDADD=-luuid
 endif
