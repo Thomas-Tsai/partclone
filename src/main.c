@@ -456,6 +456,7 @@ int main(int argc, char **argv) {
 			}
 
 			/// calculate checksum
+			log_mesg(2, 0, 0, debug, "blocks_read = %i\n", blocks_read);
 			for (i = 0; i < blocks_read; ++i) {
 
 				memcpy(write_buffer + write_offset,
@@ -466,6 +467,7 @@ int main(int argc, char **argv) {
 				update_checksum(checksum, read_buffer + i * block_size, block_size);
 
 				if (blocks_per_cs > 0 && ++blocks_in_cs == blocks_per_cs) {
+				    log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
 
 					memcpy(write_buffer + write_offset, checksum, cs_size);
 
@@ -485,6 +487,7 @@ int main(int argc, char **argv) {
 
 			/// count copied block
 			copied += blocks_read;
+			log_mesg(2, 0, 0, debug, "copied = %lld\n", copied);
 
 			/// next block
 			block_id += blocks_read;
@@ -498,6 +501,8 @@ int main(int argc, char **argv) {
 		if (blocks_in_cs > 0) {
 
 			// Write the checksum for the latest blocks
+			log_mesg(1, 0, 0, debug, "Write the checksum for the latest blocks. size = %i\n", cs_size);
+			log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
 			w_size = write_all(&dfw, (char*)checksum, cs_size, &opt);
 			if (w_size != cs_size)
 				log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
@@ -539,7 +544,6 @@ int main(int argc, char **argv) {
 		unsigned int blocks_in_cs, buffer_size, read_offset;
 		unsigned char checksum[cs_size];
 		char *read_buffer, *write_buffer;
-		int bugcheck = 0;
 		unsigned long long blocks_used_fix = 0, test_block = 0;
 
 		log_mesg(1, 0, 0, debug, "#\nBuffer capacity = %u, Blocks per cs = %u\n#\n", buffer_capacity, blocks_per_cs);
@@ -582,7 +586,6 @@ int main(int argc, char **argv) {
 		block_id = 0;
 		do {
 			unsigned int i;
-			unsigned char cs_saved[cs_size];
 			unsigned long long blocks_written, bytes_skip;
 			unsigned int read_size;
 			// max chunk to read using one read(2) syscall
@@ -591,14 +594,12 @@ int main(int argc, char **argv) {
 			if (!blocks_read)
 				break;
 
-			log_mesg(1, 0, 0, debug, "blocks_read = %d\n", blocks_read);
+			log_mesg(1, 0, 0, debug, "blocks_read = %d and copied = %lld\n", blocks_read, copied);
 			read_size = cnv_blocks_to_bytes(copied, blocks_read, block_size, &img_opt);
 
 			// increase read_size to make room for the oversized checksum
-			if (bugcheck) {
-				read_size += blocks_read * CRC32_SIZE;
-			} else if (blocks_per_cs && blocks_read < buffer_capacity &&
-					(blocks_read % blocks_per_cs)) {
+			if (blocks_per_cs && blocks_read < buffer_capacity &&
+					(blocks_read % blocks_per_cs) && (blocks_used % blocks_per_cs)) {
 				/// it is the last read and there is a partial chunk at the end
 				log_mesg(1, 0, 0, debug, "# PARTIAL CHUNK\n");
 				read_size += cs_size;
@@ -617,9 +618,6 @@ int main(int argc, char **argv) {
 			// write buffer should be the following:
 			// <block1><block2>...
 
-			// fill up write buffer, validate checksum
-			memcpy(cs_saved, checksum, cs_size);
-		recheck:
 			read_offset = 0;
 			for (i = 0; i < blocks_read; ++i) {
 
@@ -637,26 +635,15 @@ int main(int argc, char **argv) {
 
 				if (++blocks_in_cs == blocks_per_cs) {
 
+				    unsigned char checksum_orig[cs_size];
+				    memcpy(checksum_orig, read_buffer + read_offset + block_size, cs_size);
+				    log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
+				    log_mesg(3, 0, 0, debug, "CRC.orig = %x%x%x%x \n", checksum_orig[0], checksum_orig[1], checksum_orig[2], checksum_orig[3]);
 					if (memcmp(read_buffer + read_offset + block_size, checksum, cs_size)) {
-
-						if (bugcheck || img_opt.image_version != 0x0001)
-							log_mesg(0, 1, 1, debug, "CRC error, block_id=%llu...\n ", block_id + i);
-						else {
-							log_mesg(1, 0, 0, debug, "CRC Check error. 64bit bug before v0.1.0 (Rev:250M), "
-								"trying enlarge crc size and recheck again...\n");
-							// the bug has written the crc with 4 extra bytes, so the read buffer is like this:
-							// <block1><crc1><bug><block2><crc2><bug>...
-							read_all(&dfr, read_buffer + read_size, blocks_read * CRC32_SIZE, &opt);
-							blocks_in_cs = 0;
-							bugcheck = 1;
-							memcpy(checksum, cs_saved, cs_size);
-							goto recheck;
-						}
+					    log_mesg(0, 1, 1, debug, "CRC error, block_id=%llu...\n ", block_id + i);
 					}
 
 					read_offset += cs_size;
-					if (bugcheck)
-						read_offset += CRC32_SIZE;
 
 					blocks_in_cs = 0;
 					if (cs_reseed)
@@ -665,6 +652,20 @@ int main(int argc, char **argv) {
 
 				read_offset += block_size;
 			}
+			if (blocks_in_cs && blocks_per_cs && blocks_read < buffer_capacity &&
+					(blocks_read % blocks_per_cs)) {
+
+			    log_mesg(1, 0, 0, debug, "check latest chunk's checksum covering %u blocks\n", blocks_in_cs);
+			    if (memcmp(read_buffer + read_offset, checksum, cs_size)){
+				unsigned char checksum_orig[cs_size];
+				memcpy(checksum_orig, read_buffer + read_offset, cs_size);
+				log_mesg(1, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
+				log_mesg(1, 0, 0, debug, "CRC.orig = %x%x%x%x \n", checksum_orig[0], checksum_orig[1], checksum_orig[2], checksum_orig[3]);
+				log_mesg(0, 1, 1, debug, "CRC error, block_id=%llu...\n ", block_id + i);
+			    }
+
+			}
+
 
 			blocks_written = 0;
 			do {
@@ -709,14 +710,6 @@ int main(int argc, char **argv) {
 			} while (blocks_written < blocks_read);
 
 		} while(1);
-
-		if (blocks_in_cs) {
-
-			log_mesg(1, 0, 0, debug, "check latest chunk's checksum covering %u blocks\n", blocks_in_cs);
-			if (memcmp(read_buffer + read_offset, checksum, cs_size))
-				log_mesg(0, 1, 1, debug, "CRC error, block_id=%llu...\n ", block_id);
-		}
-
 		free(write_buffer);
 		free(read_buffer);
 
