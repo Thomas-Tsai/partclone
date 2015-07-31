@@ -1,0 +1,83 @@
+#!/bin/bash
+. _common
+
+fs="ext3"
+raw_r="restore.raw"
+dd_count="819204"
+TIME="/usr/bin/time"
+
+echo -e "Basic $fs test"
+echo -e "==========================\n"
+ptlfs=$(_ptlname $fs)
+mkfs=$(_findmkfs $fs)
+echo -e "\ncreate raw file $raw\n"
+_ptlbreak
+[ -f $raw ] && rm $raw
+echo -e "    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count\n"
+dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
+
+echo -e "\n\nformat $raw as $fs raw partition\n"
+echo -e "    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw\n"
+_ptlbreak
+$mkfs `eval echo "$"mkfs_option_for_$fs""` $raw
+
+echo -e "\n\ncreate raw file $raw_r for restore\n"
+_ptlbreak
+[ -f $raw_r ] && rm $raw_r
+echo -e "    dd if=/dev/zero of=$raw_r bs=$dd_bs count=$dd_count\n"
+dd if=/dev/zero of=$raw_r bs=$dd_bs count=$dd_count
+
+
+## blocks/checksum to test various patterns
+cs_a=(0   1     1   1   1      1)
+cs_k=(0   0    17   1  64   3097)
+cs_s=${#cs_k[*]}               # array size
+cs_i=0
+
+while true ;do
+
+    if [ $cs_i -ge $cs_s ]; then
+        break
+    fi
+
+    a=${cs_a[$cs_i]}
+    k=${cs_k[$cs_i]}
+    cs_i=$(($cs_i+1))
+
+
+    echo -e "\nclone $raw to $img\n"
+    [ -f $img ] && rm $img
+    echo -e "    $ptlfs -d -c -s $raw -O $img -F -L $logfile -a $a -k $k"
+    _ptlbreak
+    $TIME -o clone.$a.$k.log  $ptlfs -d -c -s $raw -O $img -F -L $logfile -a $a -k $k
+    _check_return_code
+
+    echo -e "\n\ndo image checking\n"
+    echo -e "    $ptlchkimg -s $img -L $logfile\n"
+    _ptlbreak
+    $ptlchkimg -s $img -L $logfile
+    _check_return_code
+
+    echo -e "\n\nrestore $img to $raw_r\n"
+    echo -e "    $ptlrestore -s $img -O $raw_r -C -F -L $logfile\n"
+    _ptlbreak
+    $TIME -o restore.$a.$k.log $ptlrestore -s $img -O $raw_r -C -F -L $logfile
+    _check_return_code
+
+    echo -e "\n\nchecksum option -a $a -k $k test ok\n"
+    _ptlbreak
+    echo -e "\nfile system $fs test done\n"
+
+done
+
+for log in $(ls clone*.log restore*.log); do
+    echo $log
+    cat $log
+    echo ""
+    rm $log
+done
+
+echo -e "\nclear tmp files $img $raw $logfile $md5 $raw_r\n"
+#rm -f $img $raw $logfile $md5 $raw_r
+echo -e "\nchecksum test done\n"
+
