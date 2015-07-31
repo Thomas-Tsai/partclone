@@ -1,0 +1,37 @@
+#!/bin/bash
+set -e
+
+. _common
+fs="ext3"
+ptlfs="../src/partclone.extfs"
+dd_count=$((normal_size/2))
+logfile2='test2.log'
+echo -e "Pipe test"
+echo -e "====================\n"
+echo -e "\ncreate raw file $raw $raw_restore\n"
+_ptlbreak
+[ -f $raw ] && rm $raw
+echo -e "    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count\n"
+dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
+
+[ -f $raw_restore ] && rm $raw_restore
+echo -e "    dd if=/dev/zero of=$raw_restore bs=$dd_bs count=$dd_count\n"
+dd if=/dev/zero of=$raw_restore bs=$dd_bs count=$dd_count
+
+
+mkfs=$(_findmkfs $fs)
+$mkfs `eval echo "$"mkfs_option_for_$fs""` $raw
+
+echo -e "\nclone $raw and restore to $raw_restore from pipe\n"
+[ -f $img ] && rm $img
+echo -e "    $ptlfs -d -c -s $raw -F -L $logfile -a 1 -k 17 | $ptlfs -d -r -O $raw_restore -F -L $logfile2\n"
+_ptlbreak
+$ptlfs -d -c -s $raw -F -L $logfile -a 1 -k 17 | $ptlfs -d -r -O $raw_restore -F -L $logfile2
+_check_return_code
+
+echo -e "\npipe test ok\n"
+echo -e "\nclear tmp files $img $raw $logfile $md5 $raw_restore $logfile2\n"
+_ptlbreak
+rm -f $img $raw $logfile $md5 $raw_restore $logfile2
+
+

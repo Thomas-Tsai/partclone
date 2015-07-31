@@ -522,6 +522,14 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		opt->debug = 0;
 	}
 
+	// fix conflict option for dev-to-dev
+	if (opt->dd != 0 || opt->domain != 0) {
+	    opt->checksum_mode = CSM_NONE;
+	    opt->reseed_checksum = 1;
+	    opt->blocks_per_checksum = 0;
+	}
+
+
 	if ((!opt->target) && (!opt->source)) {
 		fprintf(stderr, "There is no image name. Use --help get more info.\n");
 		exit(0);

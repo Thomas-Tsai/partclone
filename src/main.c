@@ -268,6 +268,11 @@ int main(int argc, char **argv) {
 
 	} else if (opt.dd || opt.domain) {
 
+		log_mesg(1, 0, 0, debug, "Initiate image options - version %s\n", IMAGE_VERSION_CURRENT);
+		img_opt.checksum_mode = opt.checksum_mode;
+		img_opt.checksum_size = get_checksum_size(opt.checksum_mode, opt.debug);
+		img_opt.blocks_per_checksum = opt.blocks_per_checksum;
+		img_opt.reseed_checksum = opt.reseed_checksum;
 		log_mesg(1, 0, 0, debug, "Initial image hdr - get Super Block from partition\n");
 		log_mesg(1, 0, 1, debug, "Reading Super Block\n");
 

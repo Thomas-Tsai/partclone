@@ -10,6 +10,7 @@ dd_count=$normal_size
 
 source_partition="/dev/sdb1"
 target_partition="/dev/sdc1"
+target_image="/test/partclone-test.img"
 source_mountpoint="/test/source"
 target_mountpoint="/test/target"
 data_pool="/test/datapool/"
@@ -66,11 +67,34 @@ for fs in $test_fs; do
     echo -e "\ndone\n"
     _check_return_code
 
+    echo -e "\ndevice to image clone, $source_partition to $target_image\n"
+    echo -e "    $ptlfs -d -c -s $source_partition -O $target_image -L $logfile -a 1 -k 64\n"
+    _ptlbreak
+    $ptlfs -q -d -c -s $source_partition -O $target_image -L $logfile -a 1 -k 64
+    _check_return_code
+
+    echo -e "\nrestore image to device, $target_image to $target_partition\n"
+    echo -e "    $ptlfs -d -r -s $target_image -o $target_partition -L $logfile\n"
+    _ptlbreak
+    dd if=/dev/zero of=$target_partition bs=512 count=32
+    $ptlfs -q -d -r -s $target_image -o $target_partition -L $logfile
+    _check_return_code
+
+    echo -e "\ncheck data\n"
+    _ptlbreak
+    mount -t $fs $target_partition $target_mountpoint
+    pushd $target_mountpoint
+    md5sum --quiet -c $chfile 2>&1 > $cchfile
+    popd
+    umount $target_mountpoint
+    echo -e "\ndone\n"
+    _check_return_code
+
     echo -e "\nclear tmp files\n"
     _ptlbreak
     set +e
     umount $target_mountpoint $source_mountpoint
-    rm -r $target_mountpoint $source_mountpoint $logfile $chfile $cchfile
+    rm -r $target_mountpoint $source_mountpoint $logfile $chfile $cchfile $target_image
     _check_return_code
 
     echo -e "\n$fs test ok\n"

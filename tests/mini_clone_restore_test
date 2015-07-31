@@ -67,10 +67,20 @@ for fs in $test_fs; do
     $ptlrestore -s $img -O $raw -C -F -L $logfile
     _check_return_code
 
-    echo -e "\n\n$fs test ok\n"
-    echo -e "\nclear tmp files $img $raw $logfile $md5\n"
+    [ -f $raw_restore ] && rm $raw_restore
+    echo -e "    dd if=/dev/zero of=$raw_restore bs=$dd_bs count=$dd_count\n"
+    dd if=/dev/zero of=$raw_restore bs=$dd_bs count=$dd_count
+    echo -e "\n\ndirect clone $raw to $raw_restore\n"
+    echo -e "    $ptlfs -d -b -s $raw -O $raw_restore -L $logfile\n"
     _ptlbreak
-    rm -f $img $raw $logfile $md5
+    $ptlfs -d -b -s $raw -O $raw_restore  -L $logfile
+    _check_return_code
+
+
+    echo -e "\n\n$fs test ok\n"
+    echo -e "\nclear tmp files $img $raw $logfile $md5 $raw_restore\n"
+    _ptlbreak
+    rm -f $img $raw $logfile $md5 $raw_restore
     echo -e "\nfile system $fs test done\n"
 
     echo -e "\nfile system $fs test done\n"
