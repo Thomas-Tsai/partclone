@@ -4,6 +4,7 @@ set -e
 . _common
 fs="ext3"
 ptlfs="../src/partclone.extfs"
+mkfs=$(_findmkfs $fs)
 dd_count=$((normal_size/2))
 echo -e "Ncurses test"
 echo -e "====================\n"
@@ -12,6 +13,11 @@ _ptlbreak
 [ -f $raw ] && rm $raw
 echo -e "    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count\n"
 dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
+
+echo -e "\n\nformat $raw as $fs raw partition\n"
+echo -e "    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw\n"
+_ptlbreak
+$mkfs `eval echo "$"mkfs_option_for_$fs""` $raw
 
 echo -e "\nclone $raw to $img\n"
 [ -f $img ] && rm $img

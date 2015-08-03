@@ -28,66 +28,71 @@ for fs in $test_fs; do
     mkfs=$(_findmkfs $fs)
     logfile="/test/clone-$fs.log"
 
-    echo -e "\nformat $source_partition as $fs partition\n"
+    echo -e "\n__format__ $source_partition as $fs partition\n"
     echo -e "    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $source_partition\n"
     _ptlbreak
     $mkfs `eval echo "$"mkfs_option_for_$fs""` $source_partition
     _check_return_code
 
-    echo -e "\nprepare data to clone\n"
+    echo -e "\n__prepare__ data to clone\n"
     _ptlbreak
+    echo -e "\n    mount -t $fs $source_partition $source_mountpoint\n"
     mount -t $fs $source_partition $source_mountpoint
     set +e 
     # rsync error while rsync to vfat
     # rsync error while rsync to exfat
     # rsync -arl $data_pool $source_mountpoint 
     # use cp -r
+    echo -e "\n    cp -r $data_pool/* $source_mountpoint\n"
     cp -r $data_pool/* $source_mountpoint
     set -e
     sync
+    echo -e "\n    find . -type f -exec md5sum '{}' \; > $chfile\n"
     pushd $source_mountpoint
     find . -type f -exec md5sum '{}' \; > $chfile
     popd
     umount $source_mountpoint
     echo -e "\nmd5sum done\n"
 
-    echo -e "\ndevice to device clone, $source_partition to $target_partition\n"
+    echo -e "\n__device to device clone__, $source_partition to $target_partition\n"
     echo -e "    $ptlfs -d -b -s $source_partition -o $target_partition -L $logfile\n"
     _ptlbreak
     $ptlfs -q -d -b -s $source_partition -o $target_partition -L $logfile
     _check_return_code
 
-    echo -e "\ncheck data\n"
+    echo -e "\n__check data__\n"
     _ptlbreak
     mount -t $fs $target_partition $target_mountpoint
     pushd $target_mountpoint
+    echo -e "\n    md5sum --quiet -c $chfile 2>&1 > $cchfile\n"
     md5sum --quiet -c $chfile 2>&1 > $cchfile
     popd
     umount $target_mountpoint
-    echo -e "\ndone\n"
+    echo -e "\n__done__\n"
     _check_return_code
 
-    echo -e "\ndevice to image clone, $source_partition to $target_image\n"
+    echo -e "\n__device to image clone__, $source_partition to $target_image\n"
     echo -e "    $ptlfs -d -c -s $source_partition -O $target_image -L $logfile -a 1 -k 64\n"
     _ptlbreak
     $ptlfs -q -d -c -s $source_partition -O $target_image -L $logfile -a 1 -k 64
     _check_return_code
 
-    echo -e "\nrestore image to device, $target_image to $target_partition\n"
+    echo -e "\n__restore image to device__, $target_image to $target_partition\n"
     echo -e "    $ptlfs -d -r -s $target_image -o $target_partition -L $logfile\n"
     _ptlbreak
     dd if=/dev/zero of=$target_partition bs=512 count=32
     $ptlfs -q -d -r -s $target_image -o $target_partition -L $logfile
     _check_return_code
 
-    echo -e "\ncheck data\n"
+    echo -e "\n__check data__\n"
     _ptlbreak
     mount -t $fs $target_partition $target_mountpoint
     pushd $target_mountpoint
+    echo -e "\n    md5sum --quiet -c $chfile 2>&1 > $cchfile\n"
     md5sum --quiet -c $chfile 2>&1 > $cchfile
     popd
     umount $target_mountpoint
-    echo -e "\ndone\n"
+    echo -e "\n__done__\n"
     _check_return_code
 
     echo -e "\nclear tmp files\n"
