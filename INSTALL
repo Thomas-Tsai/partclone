@@ -16,7 +16,7 @@ xfs (patched library, not in debian)
 
 # Installation
 autoreconf # optional
-./configure --enabel-ncursesw --enable-all
+./configure --enable-ncursesw --enable-all
 make
 sudo make install
 
