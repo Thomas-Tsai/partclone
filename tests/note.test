@@ -23,4 +23,4 @@ $ptlfs -d -s $raw -O $img -F -L $logfile -n "note test"
 _check_return_code
 $ptlfs -d -N -s $raw -O $img -F -L $logfile -n "note test"
 _check_return_code
-echo "done"
+echo "note test ok"
