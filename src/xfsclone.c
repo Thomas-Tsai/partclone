@@ -42,6 +42,8 @@ libxfs_init_t   xargs;
 unsigned int    source_blocksize;       /* source filesystem blocksize */
 unsigned int    source_sectorsize;      /* source disk sectorsize */
 
+unsigned long* xfs_bitmap;
+
 #define rounddown(x, y) (((x)/(y))*(y))
 
 void get_sb(xfs_sb_t *sbp, xfs_off_t off, int size, xfs_agnumber_t agno)
@@ -74,21 +76,180 @@ void get_sb(xfs_sb_t *sbp, xfs_off_t off, int size, xfs_agnumber_t agno)
 }
 
 
-static void set_bitmap(unsigned long* bitmap, uint64_t pos, int length)
+static void set_bitmap(unsigned long* bitmap, uint64_t start, int count)
 {
-    uint64_t pos_block;
-    uint64_t block_count;
     uint64_t block;
 
-    pos_block   = pos/source_blocksize;
-    block_count = length/source_blocksize;
 
-    for (block = pos_block; block < pos_block+block_count; block++){
-	pc_set_bit(block, bitmap);
-	log_mesg(3, 0, 0, fs_opt.debug, "block %i is used\n", block);
+    for (block = start; block < start+count; block++){
+	pc_clear_bit(block, bitmap);
+	log_mesg(3, 0, 0, fs_opt.debug, "block %i is free\n", block);
     }
 
 }
+// copy from xfs_db freesp ....
+
+
+typedef enum typnm
+{
+    TYP_AGF, TYP_AGFL, TYP_AGI, TYP_ATTR, TYP_BMAPBTA,
+    TYP_BMAPBTD, TYP_BNOBT, TYP_CNTBT, TYP_DATA,
+    TYP_DIR2, TYP_DQBLK, TYP_INOBT, TYP_INODATA, TYP_INODE,
+    TYP_LOG, TYP_RTBITMAP, TYP_RTSUMMARY, TYP_SB, TYP_SYMLINK,
+    TYP_TEXT, TYP_NONE
+} typnm_t;
+
+
+static void
+addtohist(
+	xfs_agnumber_t	agno,
+	xfs_agblock_t	agbno,
+	xfs_extlen_t	len)
+{
+	int dumpflag=1;
+	unsigned long long start_block;
+
+
+	if (dumpflag)
+		printf("%8d %8d %8d\n", agno, agbno, len);
+	
+	start_block = (agno*mp->m_sb.sb_agblocks) + agbno;
+	set_bitmap(xfs_bitmap, start_block, len);
+
+}
+
+
+static void
+scan_sbtree(
+	xfs_agf_t	*agf,
+	xfs_agblock_t	root,
+	typnm_t		typ,
+	int		nlevels,
+	void		(*func)(struct xfs_btree_block	*block,
+				typnm_t			typ,
+				int			level,
+				xfs_agf_t		*agf))
+{
+	xfs_agnumber_t	seqno = be32_to_cpu(agf->agf_seqno);
+	struct xfs_buf	*bp;
+	int blkbb = 1 << mp->m_blkbb_log;
+	void *data;
+
+	//push_cur();
+	//set_cur(&typtab[typ], XFS_AGB_TO_DADDR(mp, seqno, root),
+	//	blkbb, DB_RING_IGN, NULL);
+	bp = libxfs_readbuf(mp->m_ddev_targp, XFS_AGB_TO_DADDR(mp, seqno, root), blkbb, 0, NULL);
+        data = bp->b_addr;
+	if (data == NULL) {
+		printf(_("can't read btree block %u/%u\n"), seqno, root);
+		return;
+	}
+	(*func)(data, typ, nlevels - 1, agf);
+	//pop_cur();
+}
+
+
+static void
+scanfunc_bno(
+	struct xfs_btree_block	*block,
+	typnm_t			typ,
+	int			level,
+	xfs_agf_t		*agf)
+{
+	int			i;
+	xfs_alloc_ptr_t		*pp;
+	xfs_alloc_rec_t		*rp;
+
+	if (!(be32_to_cpu(block->bb_magic) == XFS_ABTB_MAGIC ||
+	      be32_to_cpu(block->bb_magic) == XFS_ABTB_CRC_MAGIC)){
+		printf("bb_magic error\n");
+		return;
+	}
+
+	if (level == 0) {
+		rp = XFS_ALLOC_REC_ADDR(mp, block, 1);
+		for (i = 0; i < be16_to_cpu(block->bb_numrecs); i++)
+			addtohist(be32_to_cpu(agf->agf_seqno),
+					be32_to_cpu(rp[i].ar_startblock),
+					be32_to_cpu(rp[i].ar_blockcount));
+		return;
+	}
+	pp = XFS_ALLOC_PTR_ADDR(mp, block, 1, mp->m_alloc_mxr[1]);
+	for (i = 0; i < be16_to_cpu(block->bb_numrecs); i++)
+		scan_sbtree(agf, be32_to_cpu(pp[i]), typ, level, scanfunc_bno);
+}
+
+static void
+scan_freelist(
+	xfs_agf_t	*agf)
+{
+	xfs_agnumber_t	seqno = be32_to_cpu(agf->agf_seqno);
+	xfs_agfl_t	*agfl;
+	xfs_agblock_t	bno;
+	int		i;
+	__be32		*agfl_bno;
+	struct xfs_buf	*bp;
+	const struct xfs_buf_ops *ops = NULL;
+
+	if (be32_to_cpu(agf->agf_flcount) == 0)
+		return;
+	//push_cur();
+	//set_cur(&typtab[TYP_AGFL], XFS_AG_DADDR(mp, seqno, XFS_AGFL_DADDR(mp)),
+	//			XFS_FSS_TO_BB(mp, 1), DB_RING_IGN, NULL);
+	//agfl = iocur_top->data;
+	bp = libxfs_readbuf(mp->m_ddev_targp, XFS_AG_DADDR(mp, seqno, XFS_AGFL_DADDR(mp)), XFS_FSS_TO_BB(mp, 1), 0, ops);
+	agfl = bp->b_addr;
+	i = be32_to_cpu(agf->agf_flfirst);
+
+	/* open coded XFS_BUF_TO_AGFL_BNO */
+	agfl_bno = xfs_sb_version_hascrc(&mp->m_sb) ? &agfl->agfl_bno[0]
+						   : (__be32 *)agfl;
+
+	/* verify agf values before proceeding */
+	if (be32_to_cpu(agf->agf_flfirst) >= XFS_AGFL_SIZE(mp) ||
+	    be32_to_cpu(agf->agf_fllast) >= XFS_AGFL_SIZE(mp)) {
+		printf(_("agf %d freelist blocks bad, skipping "
+			  "freelist scan\n"), i);
+		//pop_cur();
+		printf("error\n");
+		return;
+	}
+
+	for (;;) {
+		bno = be32_to_cpu(agfl_bno[i]);
+		addtohist(seqno, bno, 1);
+		if (i == be32_to_cpu(agf->agf_fllast))
+			break;
+		if (++i == XFS_AGFL_SIZE(mp))
+			i = 0;
+	}
+	//pop_cur();
+}
+
+
+
+static void
+scan_ag(
+	xfs_agnumber_t	agno)
+{
+	xfs_agf_t	*agf;
+	struct xfs_buf	*bp;
+	const struct xfs_buf_ops *ops = NULL;
+
+	//push_cur();
+	//set_cur(&typtab[TYP_AGF], XFS_AG_DADDR(mp, agno, XFS_AGF_DADDR(mp)),
+	//			XFS_FSS_TO_BB(mp, 1), DB_RING_IGN, NULL);
+	//agf = iocur_top->data;
+	bp = libxfs_readbuf(mp->m_ddev_targp, XFS_AG_DADDR(mp, agno, XFS_AGF_DADDR(mp)), XFS_FSS_TO_BB(mp, 1), 0, ops);
+	agf = bp->b_addr;
+	scan_freelist(agf);
+	scan_sbtree(agf, be32_to_cpu(agf->agf_roots[XFS_BTNUM_BNO]),
+			TYP_BNOBT, be32_to_cpu(agf->agf_levels[XFS_BTNUM_BNO]),
+			scanfunc_bno);
+	//pop_cur();
+}
+
+
 
 static void fs_open(char* device)
 {
@@ -209,39 +370,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 {
 
     xfs_agnumber_t  agno = 0;
-    xfs_agblock_t   first_agbno;
     xfs_agnumber_t  num_ags;
-    ag_header_t     ag_hdr;
-    xfs_daddr_t     read_ag_off;
-    int             read_ag_length;
-    void            *read_ag_buf = NULL;
-    xfs_off_t	    read_ag_position;            /* xfs_types.h: typedef __s64 */
-    uint64_t	    sk, res;
-    void            *btree_buf_data = NULL;
-    int		    btree_buf_length;
-    xfs_off_t	    btree_buf_position;
-    xfs_agblock_t   bno;
-    uint	    current_level;
-    xfs_daddr_t     begin, next_begin, ag_begin, new_begin, ag_end;
-						/* xfs_types.h: typedef __s64*/
-    xfs_off_t       pos;
-    xfs_alloc_ptr_t *ptr;
-    xfs_alloc_rec_t *rec_ptr;
-    int		    length;
-    int		    i;
-    uint64_t        size, sizeb;
-    xfs_off_t	    w_position;
-    int		    w_length;
-    int		    wblocks;
-    int		    w_size = 1 * 1024 * 1024;
-    uint64_t        numblocks = 0;
-
-    xfs_off_t	    logstart, logend;
-    xfs_off_t	    logstart_pos, logend_pos;
-    int		    log_length;
-
-    struct xfs_btree_block *block;
-    uint64_t current_block, block_count, prog_cur_block = 0;
 
     int start = 0;
     int bit_size = 1;
@@ -249,274 +378,25 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     uint64_t bused = 0;
     uint64_t bfree = 0;
+    unsigned long long current_block = 0;
 
+    xfs_bitmap = bitmap;
+
+    for(current_block = 0; current_block <= image_hdr.totalblock; current_block++){
+	pc_set_bit(current_block, bitmap);
+    }
     /// init progress
     progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
 
     fs_open(device);
-
-    first_agbno = (((XFS_AGFL_DADDR(mp) + 1) * source_sectorsize) + first_residue) / source_blocksize;
 
     num_ags = mp->m_sb.sb_agcount;
 
     log_mesg(1, 0, 0, fs_opt.debug, "ags = %i\n", num_ags);
     for (agno = 0; agno < num_ags ; agno++)  {
 	/* read in first blocks of the ag */
-
-	/* initial settings */
-	log_mesg(2, 0, 0, fs_opt.debug, "read ag %i header\n", agno);
-
-	read_ag_off = XFS_AG_DADDR(mp, agno, XFS_SB_DADDR);
-	read_ag_length = first_agbno * source_blocksize;
-	read_ag_position = (xfs_off_t) read_ag_off * (xfs_off_t) BBSIZE;
-	read_ag_buf = malloc(read_ag_length);
-	if(read_ag_buf == NULL){
-	    log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-	}
-	memset(read_ag_buf, 0, read_ag_length);
-
-	log_mesg(2, 0, 0, fs_opt.debug, "seek to read_ag_position %lli\n", read_ag_position);
-	sk = lseek(source_fd, read_ag_position, SEEK_SET);
-	current_block = (sk/source_blocksize);
-	block_count = (read_ag_length/source_blocksize);
-	set_bitmap(bitmap, sk, read_ag_length);
-	log_mesg(2, 0, 0, fs_opt.debug, "read ag header fd = %llu(%i), length = %i(%i)\n", sk, current_block, read_ag_length, block_count);
-	if ((res = read(source_fd, read_ag_buf, read_ag_length)) < 0)  {
-	    log_mesg(1, 0, 1, fs_opt.debug, "read failure at offset %lld\n", read_ag_position);
-	}
-
-	ag_hdr.xfs_sb = (xfs_dsb_t *) (read_ag_buf);
-	ASSERT(be32_to_cpu(ag_hdr.xfs_sb->sb_magicnum) == XFS_SB_MAGIC);
-	ag_hdr.xfs_agf = (xfs_agf_t *) (read_ag_buf + source_sectorsize);
-	ASSERT(be32_to_cpu(ag_hdr.xfs_agf->agf_magicnum) == XFS_AGF_MAGIC);
-	ag_hdr.xfs_agi = (xfs_agi_t *) (read_ag_buf + 2 * source_sectorsize);
-	ASSERT(be32_to_cpu(ag_hdr.xfs_agi->agi_magicnum) == XFS_AGI_MAGIC);
-	ag_hdr.xfs_agfl = (xfs_agfl_t *) (read_ag_buf + 3 * source_sectorsize);
-	log_mesg(2, 0, 0, fs_opt.debug, "ag header read ok\n");
-
-
-	/* save what we need (agf) in the btree buffer */
-
-	btree_buf_data = malloc(source_blocksize);
-	if(btree_buf_data == NULL){
-	    log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-	}
-	memset(btree_buf_data, 0, source_blocksize);
-	memmove(btree_buf_data, ag_hdr.xfs_agf, source_sectorsize);
-	ag_hdr.xfs_agf = (xfs_agf_t *) btree_buf_data;
-	btree_buf_length = source_blocksize;
-
-	///* traverse btree until we get to the leftmost leaf node */
-
-	bno = be32_to_cpu(ag_hdr.xfs_agf->agf_roots[XFS_BTNUM_BNOi]);
-	current_level = 0;
-
-	ag_end = XFS_AGB_TO_DADDR(mp, agno, be32_to_cpu(ag_hdr.xfs_agf->agf_length) - 1) + source_blocksize / BBSIZE;
-
-	for (;;) {
-	    /* none of this touches the w_buf buffer */
-
-	    current_level++;
-
-	    btree_buf_position = pos = (xfs_off_t)XFS_AGB_TO_DADDR(mp,agno,bno) << BBSHIFT;
-	    btree_buf_length = source_blocksize;
-
-	    sk = lseek(source_fd, btree_buf_position, SEEK_SET);
-	    current_block = (sk/source_blocksize);
-	    block_count = (btree_buf_length/source_blocksize);
-	    set_bitmap(bitmap, sk, btree_buf_length);
-	    log_mesg(2, 0, 0, fs_opt.debug, "read btree sf = %llu(%i), length = %i(%i)\n", sk, current_block, btree_buf_length, block_count);
-	    read(source_fd, btree_buf_data, btree_buf_length);
-	    block = (struct xfs_btree_block *)((char *)btree_buf_data + pos - btree_buf_position);
-
-	    if (be16_to_cpu(block->bb_level) == 0)
-		break;
-
-	    ptr = XFS_ALLOC_PTR_ADDR(mp, block, 1, mp->m_alloc_mxr[1]);
-	    bno = be32_to_cpu(ptr[0]);
-	}
-	log_mesg(2, 0, 0, fs_opt.debug, "btree read done\n");
-
-	/* align first data copy but don't overwrite ag header */
-
-	pos = read_ag_position >> BBSHIFT;
-	length = read_ag_length >> BBSHIFT;
-	next_begin = pos + length;
-	ag_begin = next_begin;
-
-
-	///* handle the rest of the ag */
-
-	for (;;) {
-	    if (be16_to_cpu(block->bb_level) != 0)  {
-		log_mesg(0, 1, 1, fs_opt.debug, "WARNING:  source filesystem inconsistent.\nA leaf btree rec isn't a leaf. Aborting now.\n");
-	    }
-
-	    rec_ptr = XFS_ALLOC_REC_ADDR(mp, block, 1);
-	    for (i = 0; i < be16_to_cpu(block->bb_numrecs); i++, rec_ptr++)  {
-		/* calculate in daddr's */
-
-		begin = next_begin;
-
-		/*
-		 * protect against pathological case of a
-		 * hole right after the ag header in a
-		 * mis-aligned case
-		 */
-
-		if (begin < ag_begin)
-		    begin = ag_begin;
-
-		/*
-		 * round size up to ensure we copy a
-		 * range bigger than required
-		 */
-
-		log_mesg(3, 0, 0, fs_opt.debug, "XFS_AGB_TO_DADDR = %llu, agno = %i, be32_to_cpu=%llu\n", XFS_AGB_TO_DADDR(mp, agno, be32_to_cpu(rec_ptr->ar_startblock)), agno, be32_to_cpu(rec_ptr->ar_startblock));
-		sizeb = XFS_AGB_TO_DADDR(mp, agno, be32_to_cpu(rec_ptr->ar_startblock)) - begin;
-		size = roundup(sizeb <<BBSHIFT, source_sectorsize);
-		log_mesg(3, 0, 0, fs_opt.debug, "BB = %i size %i and sizeb %llu brgin = %llu\n", BBSHIFT, size, sizeb, begin);
-
-		if (size > 0)  {
-		    /* copy extent */
-
-		    log_mesg(2, 0, 0, fs_opt.debug, "copy extent\n");
-		    w_position = (xfs_off_t)begin << BBSHIFT;
-
-		    while (size > 0)  {
-			/*
-			 * let lower layer do alignment
-			 */
-			if (size > w_size)  {
-			    w_length = w_size;
-			    size -= w_size;
-			    sizeb -= wblocks;
-			    numblocks += wblocks;
-			} else  {
-			    w_length = size;
-			    numblocks += sizeb;
-			    size = 0;
-			}
-
-			//read_wbuf(source_fd, &w_buf, mp);
-			sk = lseek(source_fd, w_position, SEEK_SET);
-			current_block = (sk/source_blocksize);
-			block_count = (w_length/source_blocksize);
-			set_bitmap(bitmap, sk, w_length);
-			log_mesg(2, 0, 0, fs_opt.debug, "read ext sourcefd to w_buf source_fd=%llu(%i), length=%i(%i)\n", sk, current_block, w_length, block_count);
-			sk = lseek(source_fd, w_length, SEEK_CUR);
-
-			w_position += w_length;
-			if(w_position > image_hdr.device_size){
-			    w_position = image_hdr.device_size;
-			    size = 0;
-			}
-		    }
-		}
-
-		/* round next starting point down */
-
-		new_begin = XFS_AGB_TO_DADDR(mp, agno, be32_to_cpu(rec_ptr->ar_startblock) + be32_to_cpu(rec_ptr->ar_blockcount));
-		next_begin = rounddown(new_begin, source_sectorsize >> BBSHIFT);
-	    }
-
-	    if (be32_to_cpu(block->bb_u.s.bb_rightsib) == NULLAGBLOCK){
-		log_mesg(2, 0, 0, fs_opt.debug, "NULLAGBLOCK\n");
-		break;
-	    }
-
-	    /* read in next btree record block */
-
-	    btree_buf_position = pos = (xfs_off_t)XFS_AGB_TO_DADDR(mp, agno, be32_to_cpu(block->bb_u.s.bb_rightsib)) << BBSHIFT;
-	    btree_buf_length = source_blocksize;
-
-	    /* let read_wbuf handle alignment */
-
-	    //read_wbuf(source_fd, &btree_buf, mp);
-	    sk = lseek(source_fd, btree_buf_position, SEEK_SET);
-	    current_block = (sk/source_blocksize);
-	    block_count = (btree_buf_length/source_blocksize);
-	    set_bitmap(bitmap, sk, btree_buf_length);
-	    log_mesg(2, 0, 0, fs_opt.debug, "read btreebuf fd = %llu(%i), length = %i(%i) \n", sk, current_block, btree_buf_length, block_count);
-	    read(source_fd, btree_buf_data, btree_buf_length);
-
-	    block = (struct xfs_btree_block *)((char *) btree_buf_data + pos - btree_buf_position);
-	    ASSERT(be32_to_cpu(block->bb_magic) == XFS_ABTB_MAGIC);
-
-	}
-	/*
-	 * write out range of used blocks after last range
-	 * of free blocks in AG
-	 */
-	if (next_begin < ag_end)  {
-	    begin = next_begin;
-
-	    sizeb = ag_end - begin;
-	    size = roundup(sizeb << BBSHIFT, source_sectorsize);
-
-	    if (size > 0)  {
-		/* copy extent */
-
-		w_position = (xfs_off_t) begin << BBSHIFT;
-
-		while (size > 0)  {
-		    /*
-		     * let lower layer do alignment
-		     */
-		    if (size > w_size)  {
-			w_length = w_size;
-			size -= w_size;
-			sizeb -= wblocks;
-			numblocks += wblocks;
-		    } else  {
-			w_length = size;
-			numblocks += sizeb;
-			size = 0;
-		    }
-
-		    sk = lseek(source_fd, w_position, SEEK_SET);
-		    current_block = (sk/source_blocksize);
-		    block_count = (w_length/source_blocksize);
-		    set_bitmap(bitmap, sk, w_length);
-		    log_mesg(2, 0, 0, fs_opt.debug, "read ext fd = %llu(%i), length = %i(%i)\n", sk, current_block, w_length, block_count);
-		    //read_wbuf(source_fd, &w_buf, mp);
-		    lseek(source_fd, w_length, SEEK_CUR);
-		    w_position += w_length;
-		}
-	    }
-	}
-
-	log_mesg(2, 0, 0, fs_opt.debug, "write a clean log\n");
-	log_length = 1 * 1024 * 1024;
-	logstart = XFS_FSB_TO_DADDR(mp, mp->m_sb.sb_logstart) << BBSHIFT;
-	logstart_pos = rounddown(logstart, (xfs_off_t)log_length);
-	if (logstart % log_length)  {  /* unaligned */
-	    sk = lseek(source_fd, logstart_pos, SEEK_SET);
-	    current_block = (sk/source_blocksize);
-	    block_count = (log_length/source_blocksize);
-	    set_bitmap(bitmap, sk, log_length);
-	    log_mesg(2, 0, 0, fs_opt.debug, "read log start from %llu(%i) %i(%i)\n", sk, current_block, log_length, block_count);
-	    sk = lseek(source_fd, log_length, SEEK_CUR);
-	}
-
-	logend = XFS_FSB_TO_DADDR(mp, mp->m_sb.sb_logstart) << BBSHIFT;
-	logend += XFS_FSB_TO_B(mp, mp->m_sb.sb_logblocks);
-	logend_pos = rounddown(logend, (xfs_off_t)log_length);
-	if (logend % log_length)  {    /* unaligned */
-	    sk = lseek(source_fd, logend_pos, SEEK_SET);
-	    current_block = (sk/source_blocksize);
-	    block_count = (log_length/source_blocksize);
-	    set_bitmap(bitmap, sk, log_length);
-	    log_mesg(2, 0, 0, fs_opt.debug, "read log end  from %llu(%i) %i(%i)\n", sk, current_block, log_length, block_count);
-	    sk = lseek(source_fd, log_length, SEEK_CUR);
-	}
-
-	log_mesg(2, 0, 0, fs_opt.debug, "write a clean log done\n");
-
-	prog_cur_block = image_hdr.totalblock/num_ags*(agno+1)-1;
-	update_pui(&prog, prog_cur_block, prog_cur_block, 0);
+	scan_ag(agno);
     }
-
     for(current_block = 0; current_block <= image_hdr.totalblock; current_block++){
 	if(pc_test_bit(current_block, bitmap))
 	    bused++;
