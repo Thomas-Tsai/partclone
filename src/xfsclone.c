@@ -12,18 +12,8 @@
  */
 
 #define _LARGEFILE64_SOURCE
-#include <sys/param.h>
-#include <sys/types.h>
 #include <xfs/libxfs.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <malloc.h>
-#include <stdarg.h>
-#include <getopt.h>
 #include "partclone.h"
 #include "xfsclone.h"
 #include "progress.h"
@@ -41,6 +31,7 @@ xfs_mount_t     mbuf;
 libxfs_init_t   xargs;
 unsigned int    source_blocksize;       /* source filesystem blocksize */
 unsigned int    source_sectorsize;      /* source disk sectorsize */
+progress_bar        prog;
 
 unsigned long* xfs_bitmap;
 
@@ -84,6 +75,7 @@ static void set_bitmap(unsigned long* bitmap, uint64_t start, int count)
     for (block = start; block < start+count; block++){
 	pc_clear_bit(block, bitmap);
 	log_mesg(3, 0, 0, fs_opt.debug, "block %i is free\n", block);
+	update_pui(&prog, start, start, 0);
     }
 
 }
@@ -106,12 +98,10 @@ addtohist(
 	xfs_agblock_t	agbno,
 	xfs_extlen_t	len)
 {
-	int dumpflag=1;
 	unsigned long long start_block;
 
 
-	if (dumpflag)
-		printf("%8d %8d %8d\n", agno, agbno, len);
+	log_mesg(1, 0, 0, fs_opt.debug, "add %8d %8d %8d\n", agno, agbno, len);
 	
 	start_block = (agno*mp->m_sb.sb_agblocks) + agbno;
 	set_bitmap(xfs_bitmap, start_block, len);
@@ -141,7 +131,7 @@ scan_sbtree(
 	bp = libxfs_readbuf(mp->m_ddev_targp, XFS_AGB_TO_DADDR(mp, seqno, root), blkbb, 0, NULL);
         data = bp->b_addr;
 	if (data == NULL) {
-		printf(_("can't read btree block %u/%u\n"), seqno, root);
+		log_mesg(0, 0, 0, fs_opt.debug, "can't read btree block %u/%u\n", seqno, root);
 		return;
 	}
 	(*func)(data, typ, nlevels - 1, agf);
@@ -162,7 +152,7 @@ scanfunc_bno(
 
 	if (!(be32_to_cpu(block->bb_magic) == XFS_ABTB_MAGIC ||
 	      be32_to_cpu(block->bb_magic) == XFS_ABTB_CRC_MAGIC)){
-		printf("bb_magic error\n");
+		log_mesg(0, 0, 0, fs_opt.debug, "bb_magic error\n");
 		return;
 	}
 
@@ -208,10 +198,9 @@ scan_freelist(
 	/* verify agf values before proceeding */
 	if (be32_to_cpu(agf->agf_flfirst) >= XFS_AGFL_SIZE(mp) ||
 	    be32_to_cpu(agf->agf_fllast) >= XFS_AGFL_SIZE(mp)) {
-		printf(_("agf %d freelist blocks bad, skipping "
-			  "freelist scan\n"), i);
+		log_mesg(0, 0, 0, fs_opt.debug, "agf %d freelist blocks bad, skipping "
+			  "freelist scan\n", i);
 		//pop_cur();
-		printf("error\n");
 		return;
 	}
 
@@ -374,7 +363,6 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     int start = 0;
     int bit_size = 1;
-    progress_bar        prog;
 
     uint64_t bused = 0;
     uint64_t bfree = 0;
