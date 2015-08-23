@@ -44,7 +44,7 @@ void get_sb(xfs_sb_t *sbp, xfs_off_t off, int size, xfs_agnumber_t agno)
 
         buf = memalign(libxfs_device_alignment(), size);
         if (buf == NULL) {
-                log_mesg(3, 1, 1, fs_opt.debug, "error reading superblock %u -- failed to memalign buffer\n", agno);
+                log_mesg(0, 1, 1, fs_opt.debug, "%s: error reading superblock %u -- failed to memalign buffer\n", __FILE__, agno);
         }
         memset(buf, 0, size);
         memset(sbp, 0, sizeof(*sbp));
@@ -52,12 +52,12 @@ void get_sb(xfs_sb_t *sbp, xfs_off_t off, int size, xfs_agnumber_t agno)
         /* try and read it first */
 
         if (lseek64(source_fd, off, SEEK_SET) != off)  {
-                log_mesg(3, 0, 1, fs_opt.debug, "error reading superblock %u -- seek to offset %" PRId64 " failed\n", agno, off);
                 free(buf);
+                log_mesg(0, 1, 1, fs_opt.debug, "%s: error reading superblock %u -- seek to offset %" PRId64 " failed\n", __FILE__, agno, off);
         }
 
         if ((rval = read(source_fd, buf, size)) != size)  {
-                log_mesg(3, 1, 1, fs_opt.debug, "superblock read failed, offset %" PRId64 ", size %d, ag %u, rval %d\n", off, size, agno, rval);
+                log_mesg(0, 1, 1, fs_opt.debug, "%s: superblock read failed, offset %" PRId64 ", size %d, ag %u, rval %d\n", __FILE__, off, size, agno, rval);
         }
         libxfs_sb_from_disk(sbp, buf);
 
@@ -74,7 +74,7 @@ static void set_bitmap(unsigned long* bitmap, uint64_t start, int count)
 
     for (block = start; block < start+count; block++){
 	pc_clear_bit(block, bitmap);
-	log_mesg(3, 0, 0, fs_opt.debug, "block %i is free\n", block);
+	log_mesg(3, 0, 0, fs_opt.debug, "%s: block %i is free\n", __FILE__, block);
 	update_pui(&prog, start, start, 0);
     }
 
@@ -101,7 +101,7 @@ addtohist(
 	unsigned long long start_block;
 
 
-	log_mesg(1, 0, 0, fs_opt.debug, "add %8d %8d %8d\n", agno, agbno, len);
+	log_mesg(1, 0, 0, fs_opt.debug, "%s: add %8d %8d %8d\n", __FILE__, agno, agbno, len);
 	
 	start_block = (agno*mp->m_sb.sb_agblocks) + agbno;
 	set_bitmap(xfs_bitmap, start_block, len);
@@ -131,7 +131,7 @@ scan_sbtree(
 	bp = libxfs_readbuf(mp->m_ddev_targp, XFS_AGB_TO_DADDR(mp, seqno, root), blkbb, 0, NULL);
         data = bp->b_addr;
 	if (data == NULL) {
-		log_mesg(0, 0, 0, fs_opt.debug, "can't read btree block %u/%u\n", seqno, root);
+		log_mesg(0, 0, 0, fs_opt.debug, "%s: can't read btree block %u/%u\n", __FILE__, seqno, root);
 		return;
 	}
 	(*func)(data, typ, nlevels - 1, agf);
@@ -152,7 +152,7 @@ scanfunc_bno(
 
 	if (!(be32_to_cpu(block->bb_magic) == XFS_ABTB_MAGIC ||
 	      be32_to_cpu(block->bb_magic) == XFS_ABTB_CRC_MAGIC)){
-		log_mesg(0, 0, 0, fs_opt.debug, "bb_magic error\n");
+		log_mesg(0, 0, 0, fs_opt.debug, "%s: bb_magic error\n", __FILE__);
 		return;
 	}
 
@@ -198,8 +198,7 @@ scan_freelist(
 	/* verify agf values before proceeding */
 	if (be32_to_cpu(agf->agf_flfirst) >= XFS_AGFL_SIZE(mp) ||
 	    be32_to_cpu(agf->agf_fllast) >= XFS_AGFL_SIZE(mp)) {
-		log_mesg(0, 0, 0, fs_opt.debug, "agf %d freelist blocks bad, skipping "
-			  "freelist scan\n", i);
+		log_mesg(0, 0, 0, fs_opt.debug, "%s: agf %d freelist blocks bad, skipping freelist scan\n", __FILE__, i);
 		//pop_cur();
 		return;
 	}
@@ -254,17 +253,17 @@ static void fs_open(char* device)
     open_flags = O_RDONLY;
 
     if ((source_fd = open(device, open_flags)) < 0)  {
-	log_mesg(0, 1, 1, fs_opt.debug, "Couldn't open source partition %s\n", device);
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't open source partition %s\n", __FILE__, device);
     }else{
-	log_mesg(0, 0, 0, fs_opt.debug, "Open %s successfully", device);
+	log_mesg(0, 0, 0, fs_opt.debug, "%s: Open %s successfully", __FILE__, device);
 	}
 
     if (fstat(source_fd, &statbuf) < 0)  {
-	log_mesg(0, 1, 1, fs_opt.debug, "Couldn't stat source partition\n");
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't stat source partition\n", __FILE__);
     }
 
     if (S_ISREG(statbuf.st_mode)){
-	log_mesg(1, 0, 0, fs_opt.debug, "source is file\n");
+	log_mesg(1, 0, 0, fs_opt.debug, "%s: source is file\n", __FILE__);
 	source_is_file = 1;
     }
 
@@ -282,7 +281,7 @@ static void fs_open(char* device)
 
     if (libxfs_init(&xargs) == 0)
     {
-	log_mesg(0, 1, 1, fs_opt.debug, "libxfs_init error. Please repaire %s partition.\n", device);
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: libxfs_init error. Please repaire %s partition.\n", __FILE__, device);
     }
 
     /* prepare the mount structure */
@@ -297,29 +296,29 @@ static void fs_open(char* device)
 
     mp = libxfs_mount(&mbuf, sb, xargs.ddev, xargs.logdev, xargs.rtdev, 1);
     if (mp == NULL) {
-	log_mesg(0, 1, 1, fs_opt.debug, "%s filesystem failed to initialize\nAborting.\n", device);
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: %s filesystem failed to initialize\nAborting.\n", __FILE__, device);
     } else if (mp->m_sb.sb_inprogress)  {
-	log_mesg(0, 1, 1, fs_opt.debug, "%s filesystem failed to initialize\nAborting(inprogress).\n", device);
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: %s filesystem failed to initialize\nAborting(inprogress).\n", __FILE__, device);
     } else if (mp->m_sb.sb_logstart == 0)  {
-	log_mesg(0, 1, 1, fs_opt.debug, "%s has an external log.\nAborting.\n", device);
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: %s has an external log.\nAborting.\n", __FILE__, device);
     } else if (mp->m_sb.sb_rextents != 0)  {
-	log_mesg(0, 1, 1, fs_opt.debug, "%s has a real-time section.\nAborting.\n", device);
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: %s has a real-time section.\nAborting.\n", __FILE__, device);
     }
 
     source_blocksize = mp->m_sb.sb_blocksize;
     source_sectorsize = mp->m_sb.sb_sectsize;
-    log_mesg(2, 0, 0, fs_opt.debug, "source_blocksize %i source_sectorsize = %i\n", source_blocksize, source_sectorsize);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: source_blocksize %i source_sectorsize = %i\n", __FILE__, source_blocksize, source_sectorsize);
 
     if (source_blocksize > source_sectorsize)  {
 	/* get number of leftover sectors in last block of ag header */
 
 	tmp_residue = ((XFS_AGFL_DADDR(mp) + 1) * source_sectorsize) % source_blocksize;
 	first_residue = (tmp_residue == 0) ? 0 :  source_blocksize - tmp_residue;
-	log_mesg(2, 0, 0, fs_opt.debug, "first_residue %i tmp_residue %i\n", first_residue, tmp_residue);
+	log_mesg(2, 0, 0, fs_opt.debug, "%s: first_residue %i tmp_residue %i\n", __FILE__, first_residue, tmp_residue);
     } else if (source_blocksize == source_sectorsize)  {
 	first_residue = 0;
     } else  {
-	log_mesg(0, 1, 1, fs_opt.debug, "Error:  filesystem block size is smaller than the disk sectorsize.\nAborting XFS copy now.\n");
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Error:  filesystem block size is smaller than the disk sectorsize.\nAborting XFS copy now.\n", __FILE__);
     }
 
     /* end of xfs open */
@@ -334,7 +333,7 @@ static void fs_open(char* device)
 static void fs_close()
 {
     libxfs_device_close(xargs.ddev);
-    log_mesg(0, 0, 0, fs_opt.debug, "fs_close\n");
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: fs_close\n", __FILE__);
 }
 
 extern void initial_image_hdr(char* device, image_head* image_hdr)
@@ -391,7 +390,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	else
 	    bfree++;
     }
-    log_mesg(0, 0, 0, fs_opt.debug, "bused = %lli, bfree = %lli\n", bused, bfree);
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: bused = %lli, bfree = %lli\n", __FILE__, bused, bfree);
 
     fs_close();
     update_pui(&prog, 1, 1, 1);
