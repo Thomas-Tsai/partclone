@@ -14,6 +14,8 @@
 #define _LARGEFILE64_SOURCE
 #include <xfs/libxfs.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <pthread.h>
 #include "partclone.h"
 #include "xfsclone.h"
 #include "progress.h"
@@ -25,16 +27,19 @@ char	*EXECNAME = "partclone.xfs";
 extern  fs_cmd_opt fs_opt;
 int	source_fd = -1;
 int     first_residue;
+progress_bar        prog;
+unsigned long long checked;
+int bitmap_done = 0;
+unsigned long* xfs_bitmap;
 
 xfs_mount_t     *mp;
 xfs_mount_t     mbuf;
 libxfs_init_t   xargs;
 unsigned int    source_blocksize;       /* source filesystem blocksize */
 unsigned int    source_sectorsize;      /* source disk sectorsize */
-progress_bar        prog;
 
-unsigned long* xfs_bitmap;
 
+void *thread_update_bitmap_pui(void *arg);
 #define rounddown(x, y) (((x)/(y))*(y))
 
 void get_sb(xfs_sb_t *sbp, xfs_off_t off, int size, xfs_agnumber_t agno)
@@ -75,7 +80,7 @@ static void set_bitmap(unsigned long* bitmap, uint64_t start, int count)
     for (block = start; block < start+count; block++){
 	pc_clear_bit(block, bitmap);
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: block %i is free\n", __FILE__, block);
-	update_pui(&prog, start, start, 0);
+	checked++;
     }
 
 }
@@ -362,6 +367,8 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     int start = 0;
     int bit_size = 1;
+    int bres;
+    pthread_t prog_bitmap_thread;
 
     uint64_t bused = 0;
     uint64_t bfree = 0;
@@ -374,6 +381,15 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     }
     /// init progress
     progress_init(&prog, start, image_hdr.totalblock, image_hdr.totalblock, BITMAP, bit_size);
+    checked = 0;
+    /**
+     * thread to print progress
+     */
+    bres = pthread_create(&prog_bitmap_thread, NULL, thread_update_bitmap_pui, NULL);
+    if(bres){
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, thread create error\n", __func__, __LINE__);
+    }
+
 
     fs_open(device);
 
@@ -393,7 +409,16 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     log_mesg(0, 0, 0, fs_opt.debug, "%s: bused = %lli, bfree = %lli\n", __FILE__, bused, bfree);
 
     fs_close();
+    bitmap_done = 1;
     update_pui(&prog, 1, 1, 1);
 
+}
+void *thread_update_bitmap_pui(void *arg){
+
+    while (bitmap_done == 0) {
+	update_pui(&prog, checked, checked, 0);
+	sleep(2);
+    }
+    pthread_exit("exit");
 }
 
