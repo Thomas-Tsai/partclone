@@ -180,7 +180,7 @@ dpkg_package() {
 	    cp $presrc/partclone_$VERSION.orig.tar.gz $packbase/ && tar -zxvf partclone_$VERSION.orig.tar.gz
 	else
 	    echo "copy partclone_$VERSION.orig.tar.gz to $presrc/partclone_$VERSION.orig.tar.gz first"
-	    echo "i.e: wget http://partclone.nchc.org.tw/download/src/partclone_$VERSION.orig.tar.gz"
+	    echo "i.e: wget http://partclone.nchc.org.tw/download/source/partclone_$VERSION.orig.tar.gz -P $presrc/"
 	    exit
 	fi
 	pushd partclone-$VERSION
