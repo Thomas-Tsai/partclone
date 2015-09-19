@@ -148,7 +148,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--debug=X</option></arg>
 	</group>
 	<group choice="opt">
-	    <arg choice="plain"><option>--restore_row_file</option></arg>
+	    <arg choice="plain"><option>--restore_raw_file</option></arg>
 	</group>
       </arg> 	
       <arg choice="opt">
@@ -302,7 +302,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
       </listitem>
       </varlistentry>
        <varlistentry>
-        <term><option>--restore_row_file</option></term>
+        <term><option>--restore_raw_file</option></term>
         <listitem>
           <para>Creating special raw file for loop device.</para>
         </listitem>
