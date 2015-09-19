@@ -2,12 +2,12 @@
 .\"     Title: PARTCLONE.IMAGER
 .\"    Author: Yu-Chin Tsai <thomas@nchc.org.tw>
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 11/26/2014
+.\"      Date: 09/19/2015
 .\"    Manual: Partclone User Manual
 .\"    Source: partclone.imager
 .\"  Language: English
 .\"
-.TH "PARTCLONE\&.IMAGER" "8" "11/26/2014" "partclone.imager" "Partclone User Manual"
+.TH "PARTCLONE\&.IMAGER" "8" "09/19/2015" "partclone.imager" "Partclone User Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,7 +31,7 @@
 partclone.imager \- unsupported file system backup utility\&.(like `dd` )
 .SH "SYNOPSIS"
 .HP \w'\fBpartclone\&.imager\fR\ 'u
-\fBpartclone\&.imager\fR {[\fB\-c\fR\ |\ \fB\-\-clone\fR]\ [\fB\-r\fR\ |\ \fB\-\-restore\fR]\ [\fB\-b\fR\ |\ \fB\-\-dev\-to\-dev\fR]} {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_row_file\fR]\ [\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]\ [\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]\ [\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]\ [\fB\-\-ignore_crc\fR]\ [\fB\-X\fR\ |\ \fB\-\-dialog\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR]
+\fBpartclone\&.imager\fR {[\fB\-c\fR\ |\ \fB\-\-clone\fR]\ [\fB\-r\fR\ |\ \fB\-\-restore\fR]\ [\fB\-b\fR\ |\ \fB\-\-dev\-to\-dev\fR]} {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_raw_file\fR]\ [\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]\ [\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]\ [\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]\ [\fB\-\-ignore_crc\fR]\ [\fB\-X\fR\ |\ \fB\-\-dialog\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR]
 .SH "DESCRIPTION"
 .PP
 \fBpartclone\&.imager\fR
@@ -79,7 +79,7 @@ Restore partition from the special image format\&.
 Local device to device copy on\-the\-fly, source and output both are device\&.
 .RE
 .PP
-\fB\-\-restore_row_file\fR
+\fB\-\-restore_raw_file\fR
 .RS 4
 Creating special raw file for loop device\&.
 .RE
@@ -210,7 +210,6 @@ Report bugs to thomas@nchc\&.org\&.tw or
 You can get support at http://partclone\&.org
 .SH "SEE ALSO"
 .PP
-
 \fBpartclone\fR(8),
 \fBpartclone.chkimg\fR(8),
 \fBpartclone.restore\fR(8),
