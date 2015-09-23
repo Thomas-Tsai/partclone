@@ -51,6 +51,10 @@ static void set_bitmap(unsigned long* bitmap, uint64_t pos, uint64_t length){
     uint64_t block_end;
 
     log_mesg(3, 0, 0, fs_opt.debug, "%s: offset: %llu size: %llu block_size: %i\n", __FILE__,  pos, length, block_size);
+    if (pos > dev_size) {
+	log_mesg(1, 0, 0, fs_opt.debug, "%s: offset(%llu) larger than device size(%llu), skip it.\n", __FILE__,  pos, dev_size);
+	return;
+    }
     pos_block = pos/block_size;
     block_end = (pos+length)/block_size;
     if ((pos+length)%block_size > 0)
@@ -307,8 +311,9 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     int slot;
 
     fs_open(device);
+    uint64_t dev_size = image_hdr.device_size;
     block_size  = btrfs_super_nodesize(info->super_copy);
-    
+
     set_bitmap(bitmap, BTRFS_SUPER_INFO_OFFSET, block_size);
     //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->extent_root->root_item), &block_size);
     //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->csum_root->root_item), &block_size);
@@ -390,6 +395,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     log_mesg(0, 0, 0, fs_opt.debug, "%s: device_size = %llu\n", __FILE__, image_hdr->device_size);
     image_hdr->totalblock  = (uint64_t)(image_hdr->device_size/image_hdr->block_size);
     log_mesg(0, 0, 0, fs_opt.debug, "%s: totalblock = %lli\n", __FILE__, image_hdr->totalblock);
+
 
     fs_close();
     log_mesg(0, 0, 0, fs_opt.debug, "%s: fs_close\n", __FILE__);

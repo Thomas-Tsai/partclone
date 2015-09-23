@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2007~ Thomas Tsai <thomas at nchc org tw>
  *
- * read ext2/3 super block and bitmap
+ * read exfat super block and bitmap
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
