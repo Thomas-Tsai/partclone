@@ -43,6 +43,7 @@ struct btrfs_fs_info *info;
 struct btrfs_root *root;
 struct btrfs_path path;
 int block_size = 0;
+uint64_t dev_size = 0;
 
 ///set useb block
 static void set_bitmap(unsigned long* bitmap, uint64_t pos, uint64_t length){
@@ -311,7 +312,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     int slot;
 
     fs_open(device);
-    uint64_t dev_size = image_hdr.device_size;
+    dev_size = image_hdr.device_size;
     block_size  = btrfs_super_nodesize(info->super_copy);
 
     set_bitmap(bitmap, BTRFS_SUPER_INFO_OFFSET, block_size);
