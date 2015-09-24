@@ -168,7 +168,7 @@ tarball (){
 	    git add -u
 	    git commit -m "release $VERSION"
 	    git archive --format=tar --prefix=partclone-$VERSION/  $gVERSION | gzip > $presrc/partclone-$VERSION.tar.gz
-	    git archive --format=tar --prefix=partclone-$VERSION/  $gVERSION | gzip > $presrc/partclone_$VERSION.orig.tar.gz
+	    git archive --format=tar --prefix=partclone-$VERSION/  $gVERSION | gzip > $presrc/partclone-$VERSION.orig.tar.gz
 
 	    [ is_releae == 1 ] && git push
 	popd
@@ -203,11 +203,11 @@ sync_log(){
     # get source code from Jim Meyering at 
     # http://git.mymadcat.com/index.php/p/tracker/source/tree/master/gitlog-to-changelog
     perl gitlog-to-changelog --since 1999-01-01 > ChangeLog
-    popd
     cp -r README.Packages/debian debian
-	    dch $_dch_options
-	    dch -r
+    dch $_dch_options
+    dch -r
     cp -r debian README.Packages/
+    popd
 }
 
 update_po(){
