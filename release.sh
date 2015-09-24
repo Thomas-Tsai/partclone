@@ -133,7 +133,7 @@ check_version(){
     git fetch --tags
 
     if [ "$gVERSION" != "HEAD" ]; then
-	git checkout $gVERSION
+	git checkout $gVERSION -b $gVERSION
 	ptlversion=$(grep ^PACKAGE_VERSION= configure | sed s/PACKAGE_VERSION//g | sed s/[\'=]//g)
 	if [ "$gVERSION" == "$ptlversion" ]; then
 	    VERSION=$ptlversion
