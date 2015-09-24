@@ -87,20 +87,9 @@ AC_ARG_ENABLE(xfs,
 AM_CONDITIONAL(ENABLE_XFS, test "$enable_xfs" = yes)
 
 if test "$enable_xfs" = "yes"; then
-#check library of some filesystems
-dnl Check runtime library which depended by XFS
-AC_CHECK_LIB([rt], [aio_init], true, 
-    AC_MSG_ERROR([*** runtime library (libc6) not found])
-)
-
-dnl Check for XFS 
-AC_CHECKING([ for XFS Library and Header files ... ])
-AC_CHECK_HEADERS([xfs/libxfs.h], ,
-   AC_MSG_ERROR([*** XFS header (libxfs.h) not found])
-)
 supported_fs=$supported_fs" xfs"
+xfs_version="build-in"
 fi
-xfs_version="version unknown, suggest 3.1.1"
 #end of check xfs
 
 ##reiserfs##
