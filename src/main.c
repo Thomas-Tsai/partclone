@@ -99,6 +99,9 @@ cmd_opt opt;
 #elif MINIX
 #include "minixclone.h"
 #define FS "MINIX"
+#elif NILFS
+#include "nilfsclone.h"
+#define FS "NILFS"
 #elif IMG
 #include "ddclone.h"
 #define FS "raw"

@@ -35,6 +35,7 @@ enable_jfs="yes"
 enable_btrfs="yes"
 enable_minix="yes"
 enable_f2fs="yes"
+enable_nilfs="yes"
 fi
 
 ORIGINAL_CFLAGS="$CFLAGS"
@@ -253,6 +254,30 @@ supported_fs=$supported_fs" f2fs"
 f2fs_version="build-in"
 fi
 #end of check f2fs
+
+##nilfs##
+AC_ARG_ENABLE(nilfs,
+	AS_HELP_STRING(--enable-nilfs,enable nilfs file system), 
+	enable_nilfs=yes,
+	enable_nilfs=no
+)
+AM_CONDITIONAL(ENABLE_NILFS, test "$enable_nilfs" = yes)
+
+if test "$enable_nilfs" = "yes"; then
+dnl Check headers which depended by NILFS
+AC_CHECKING([ for NILFS header files ... ])
+AC_CHECK_HEADERS([ctype.h fcntl.h grp.h libintl.h limits.h linux/magic.h \
+		  linux/types.h locale.h mntent.h mqueue.h paths.h pwd.h \
+		  semaphore.h stdlib.h string.h strings.h sys/ioctl.h \
+		  sys/mount.h sys/time.h syslog.h sys/stat.h time.h unistd.h])
+
+
+
+supported_fs=$supported_fs" nilfs"
+nilfs_version="build-in"
+fi
+#end of check nilfs
+
 
 ##NTFS##
 AC_ARG_ENABLE(ntfs,
@@ -500,4 +525,5 @@ echo "jfs .......... $enable_jfs, $jfs_version"
 echo "btrfs......... $enable_btrfs, $btrfs_version"
 echo "minix......... $enable_minix, $minix_version"
 echo "f2fs.......... $enable_f2fs, $f2fs_version"
+echo "nilfs..........$enable_nilfs, $nilfs_version"
 #echo $supported_fs

@@ -89,7 +89,7 @@ build_triplet = i686-pc-linux-gnu
 host_triplet = i686-pc-linux-gnu
 ##am__append_1 = ext2.test \
 ##	ext3.test ext4.test
-#am__append_2 = btrfs.test
+##am__append_2 = btrfs.test
 ##am__append_3 = fat.test
 ##am__append_4 = reiserfs.test
 
@@ -110,7 +110,7 @@ host_triplet = i686-pc-linux-gnu
 #TESTS += vmfs.test
 #endif
 ##am__append_10 = jfs.test
-#am__append_11 = btrfs.test
+##am__append_11 = btrfs.test
 ##am__append_12 = exfat.test
 ##am__append_13 = ncursesw.test
 subdir = tests
