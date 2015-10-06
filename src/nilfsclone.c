@@ -70,8 +70,8 @@ static ssize_t lssu_print_suinfo(struct nilfs *nilfs, __u64 segnum,
 		if (!all && nilfs_suinfo_clean(&suinfos[i]))
 			continue;
 
-			printf("seg %llu, %c %c %c , %i\n",
-			       (unsigned long long)segnum,
+			log_mesg(3, 0, 0, fs_opt.debug, "%s: seg %llu, %c %c %c , %i\n",
+			       __FILE__, (unsigned long long)segnum,
 			       nilfs_suinfo_active(&suinfos[i]) ? 'a' : '-',
 			       nilfs_suinfo_dirty(&suinfos[i]) ? 'd' : '-',
 			       nilfs_suinfo_error(&suinfos[i]) ? 'e' : '-',
@@ -118,8 +118,8 @@ static void fs_open(char* device)
     open_flags = NILFS_OPEN_RDONLY | NILFS_OPEN_RAW;
     nilfs = nilfs_open(device, NULL, open_flags);
     if (nilfs == NULL) {
-	fprintf(stderr, "cannot open NILFS on %s: %m\n", device ? : "device");
-	exit(EXIT_FAILURE);
+	umount(mnt_path);	
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: cannot open NILFS on %s: %m\n", __FILE__, device ? : "device");
     }
     log_mesg(2, 0, 0, fs_opt.debug, "%s: nilfs_mount done\n", __FILE__);
 }
@@ -151,7 +151,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     status = lssu_list_suinfo(nilfs, bitmap);
 
     if (status == 1 ){
-	log_mesg(2, 0, 0, fs_opt.debug, "%s: nilfs list suinfo goy fail\n", __FILE__);
+	log_mesg(2, 0, 0, fs_opt.debug, "%s: nilfs list suinfo got fail\n", __FILE__);
     }
 
     fs_close();
