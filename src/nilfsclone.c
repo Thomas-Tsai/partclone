@@ -49,7 +49,7 @@ static void set_bitmap(unsigned long* bitmap, uint64_t segm, uint64_t count){
 	return;
     }
     pos_block = segm*blocks_per_segment;
-    block_end = pos_block+count;
+    block_end = (segm+1)*blocks_per_segment;
 
     log_mesg(3, 0, 0, fs_opt.debug, "%s: block offset: %llu block count: %llu\n",__FILE__,  pos_block, block_end);
 

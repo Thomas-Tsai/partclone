@@ -105,10 +105,10 @@ partclone_f2fs_LDADD=-luuid
 endif
 
 if ENABLE_NILFS
-sbin_PROGRAMS += partclone.nilfs
-partclone_nilfs_SOURCES=main.c partclone.c progress.c nilfsclone.c nilfsclone.h partclone.h progress.h gettext.h $(NILFS_SOURCE)
-partclone_nilfs_CFLAGS=-DNILFS
-partclone_nilfs_LDADD=-lpthread
+sbin_PROGRAMS += partclone.nilfs2
+partclone_nilfs2_SOURCES=main.c partclone.c progress.c nilfsclone.c nilfsclone.h partclone.h progress.h gettext.h $(NILFS_SOURCE)
+partclone_nilfs2_CFLAGS=-DNILFS
+partclone_nilfs2_LDADD=-lpthread
 endif
 
 if ENABLE_FAT
@@ -204,6 +204,10 @@ if ENABLE_VMFS
 	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs3
 #	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs5
 endif
+if ENABLE_NILFS
+	$(LN_S) -f partclone.nilfs2 $(DESTDIR)$(sbindir)/partclone.nilfs
+endif
+
 
 uninstall-local:
 if ENABLE_EXTFS
@@ -230,4 +234,7 @@ if ENABLE_VMFS
 	$(RM) -f $(sbindir)/partclone.VMFS_volume_member
 endif
 
+if ENABLE_NILFS
+	$(RM) -f $(sbindir)/partclone.nilfs
+endif
 FORCE:
