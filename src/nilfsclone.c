@@ -14,9 +14,11 @@
 
 #include <sys/mount.h>
 #include <stdio.h>
+#include <string.h>
 
-#include "nilfs/nilfs.h"
-#include "nilfs/util.h"
+//#include "nilfs/nilfs.h"
+//#include "nilfs/util.h"
+#include <nilfs.h>
 #define LSSU_NSEGS      512
 
 #include "partclone.h"
@@ -63,7 +65,7 @@ static ssize_t lssu_print_suinfo(struct nilfs *nilfs, __u64 segnum,
 				 ssize_t nsi, __u64 protseq,
 				 unsigned long* bitmap)
 {
-	ssize_t i, n = 0, ret;
+	ssize_t i, n = 0;
 	int all = 1;
 
 	for (i = 0; i < nsi; i++, segnum++) {
@@ -136,7 +138,6 @@ static void fs_close()
 ///  readbitmap - read bitmap
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui)
 {
-    off_t block = 0;
     int start = 0;
     int bit_size = 1;
     int status = 0;

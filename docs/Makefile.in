@@ -96,7 +96,7 @@ host_triplet = @host@
 @ENABLE_HFSP_TRUE@	partclone.hfsp.8
 @ENABLE_XFS_TRUE@am__append_5 = partclone.xfs.8
 @ENABLE_F2FS_TRUE@am__append_6 = partclone.f2fs.8
-@ENABLE_NILFS_TRUE@am__append_7 = partclone.nilfs.8
+@ENABLE_NILFS2_TRUE@am__append_7 = partclone.nilfs2.8
 @ENABLE_EXFAT_TRUE@am__append_8 = partclone.exfat.8
 @ENABLE_FAT_TRUE@am__append_9 = partclone.fat.8 partclone.vfat.8 \
 @ENABLE_FAT_TRUE@	partclone.fat12.8 partclone.fat16.8 \
@@ -225,6 +225,8 @@ MKDIR_P = @MKDIR_P@
 MSGFMT = @MSGFMT@
 MSGFMT_015 = @MSGFMT_015@
 MSGMERGE = @MSGMERGE@
+NTFS_CFLAGS = @NTFS_CFLAGS@
+NTFS_LIBS = @NTFS_LIBS@
 OBJEXT = @OBJEXT@
 ORIGINAL_CFLAGS = @ORIGINAL_CFLAGS@
 PACKAGE = @PACKAGE@

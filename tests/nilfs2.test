@@ -2,7 +2,7 @@
 set -e
 
 . _common
-manual_fs="nilfs"
+manual_fs="nilfs2"
 _check_root
 
 test_fs=$formatable_fs

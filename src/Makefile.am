@@ -21,7 +21,6 @@ EXFATFS_SOURCE=exfat/cluster.c exfat/utf.c exfat/utils.c exfat/lookup.c exfat/io
 
 F2FS_SOURCE=f2fs/fsck.c f2fs/libf2fs.c f2fs/fsck.h f2fs/mount.c f2fs/f2fs_fs.h f2fs/list.h f2fs/f2fs.h
 
-NILFS_SOURCE=nilfs/crc32.c nilfs/nilfs.c nilfs/nilfs.h nilfs/pathnames.h nilfs/realpath.c nilfs/realpath.h nilfs/sb.c nilfs/util.h
 if ENABLE_STATIC
 AM_LDFLAGS=-static
 endif
@@ -104,11 +103,11 @@ partclone_f2fs_CFLAGS=-DF2FS
 partclone_f2fs_LDADD=-luuid
 endif
 
-if ENABLE_NILFS
+if ENABLE_NILFS2
 sbin_PROGRAMS += partclone.nilfs2
-partclone_nilfs2_SOURCES=main.c partclone.c progress.c nilfsclone.c nilfsclone.h partclone.h progress.h gettext.h $(NILFS_SOURCE)
+partclone_nilfs2_SOURCES=main.c partclone.c progress.c nilfsclone.c nilfsclone.h partclone.h progress.h gettext.h
 partclone_nilfs2_CFLAGS=-DNILFS
-partclone_nilfs2_LDADD=-lpthread
+partclone_nilfs2_LDADD=-lnilfs
 endif
 
 if ENABLE_FAT
@@ -204,10 +203,6 @@ if ENABLE_VMFS
 	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs3
 #	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs5
 endif
-if ENABLE_NILFS
-	$(LN_S) -f partclone.nilfs2 $(DESTDIR)$(sbindir)/partclone.nilfs
-endif
-
 
 uninstall-local:
 if ENABLE_EXTFS
@@ -234,7 +229,4 @@ if ENABLE_VMFS
 	$(RM) -f $(sbindir)/partclone.VMFS_volume_member
 endif
 
-if ENABLE_NILFS
-	$(RM) -f $(sbindir)/partclone.nilfs
-endif
 FORCE:

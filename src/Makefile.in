@@ -106,7 +106,7 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 @ENABLE_XFS_TRUE@am__append_8 = partclone.xfs
 @ENABLE_EXFAT_TRUE@am__append_9 = partclone.exfat
 @ENABLE_F2FS_TRUE@am__append_10 = partclone.f2fs
-@ENABLE_NILFS_TRUE@am__append_11 = partclone.nilfs2
+@ENABLE_NILFS2_TRUE@am__append_11 = partclone.nilfs2
 @ENABLE_FAT_TRUE@am__append_12 = partclone.fat
 @ENABLE_NTFS_TRUE@am__append_13 = partclone.ntfs
 @ENABLE_UFS_TRUE@am__append_14 = partclone.ufs
@@ -136,7 +136,7 @@ CONFIG_CLEAN_VPATH_FILES =
 @ENABLE_XFS_TRUE@am__EXEEXT_5 = partclone.xfs$(EXEEXT)
 @ENABLE_EXFAT_TRUE@am__EXEEXT_6 = partclone.exfat$(EXEEXT)
 @ENABLE_F2FS_TRUE@am__EXEEXT_7 = partclone.f2fs$(EXEEXT)
-@ENABLE_NILFS_TRUE@am__EXEEXT_8 = partclone.nilfs2$(EXEEXT)
+@ENABLE_NILFS2_TRUE@am__EXEEXT_8 = partclone.nilfs2$(EXEEXT)
 @ENABLE_FAT_TRUE@am__EXEEXT_9 = partclone.fat$(EXEEXT)
 @ENABLE_NTFS_TRUE@am__EXEEXT_10 = partclone.ntfs$(EXEEXT)
 @ENABLE_UFS_TRUE@am__EXEEXT_11 = partclone.ufs$(EXEEXT)
@@ -348,19 +348,12 @@ partclone_minix_DEPENDENCIES = $(am__DEPENDENCIES_1)
 partclone_minix_LINK = $(CCLD) $(partclone_minix_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__partclone_nilfs2_SOURCES_DIST = main.c partclone.c progress.c \
-	nilfsclone.c nilfsclone.h partclone.h progress.h gettext.h \
-	nilfs/crc32.c nilfs/nilfs.c nilfs/nilfs.h nilfs/pathnames.h \
-	nilfs/realpath.c nilfs/realpath.h nilfs/sb.c nilfs/util.h
-am__objects_4 = nilfs/partclone_nilfs2-crc32.$(OBJEXT) \
-	nilfs/partclone_nilfs2-nilfs.$(OBJEXT) \
-	nilfs/partclone_nilfs2-realpath.$(OBJEXT) \
-	nilfs/partclone_nilfs2-sb.$(OBJEXT)
-@ENABLE_NILFS_TRUE@am_partclone_nilfs2_OBJECTS =  \
-@ENABLE_NILFS_TRUE@	partclone_nilfs2-main.$(OBJEXT) \
-@ENABLE_NILFS_TRUE@	partclone_nilfs2-partclone.$(OBJEXT) \
-@ENABLE_NILFS_TRUE@	partclone_nilfs2-progress.$(OBJEXT) \
-@ENABLE_NILFS_TRUE@	partclone_nilfs2-nilfsclone.$(OBJEXT) \
-@ENABLE_NILFS_TRUE@	$(am__objects_4)
+	nilfsclone.c nilfsclone.h partclone.h progress.h gettext.h
+@ENABLE_NILFS2_TRUE@am_partclone_nilfs2_OBJECTS =  \
+@ENABLE_NILFS2_TRUE@	partclone_nilfs2-main.$(OBJEXT) \
+@ENABLE_NILFS2_TRUE@	partclone_nilfs2-partclone.$(OBJEXT) \
+@ENABLE_NILFS2_TRUE@	partclone_nilfs2-progress.$(OBJEXT) \
+@ENABLE_NILFS2_TRUE@	partclone_nilfs2-nilfsclone.$(OBJEXT)
 partclone_nilfs2_OBJECTS = $(am_partclone_nilfs2_OBJECTS)
 partclone_nilfs2_DEPENDENCIES =
 partclone_nilfs2_LINK = $(CCLD) $(partclone_nilfs2_CFLAGS) $(CFLAGS) \
@@ -477,7 +470,7 @@ am__partclone_xfs_SOURCES_DIST = main.c partclone.c progress.c \
 	xfs/xfs_da_btree.h xfs/xfs_inode_buf.h xfs/xfs_types.h \
 	xfs/libxfs_io.h xfs/xfs_alloc.h xfs/xfs_da_format.c \
 	xfs/xfs_inode_fork.c xfs/xqm.h xfs/crc32table.h
-am__objects_5 = xfs/partclone_xfs-xfs_attr.$(OBJEXT) \
+am__objects_4 = xfs/partclone_xfs-xfs_attr.$(OBJEXT) \
 	xfs/partclone_xfs-xfs_dir2_block.$(OBJEXT) \
 	xfs/partclone_xfs-cache.$(OBJEXT) \
 	xfs/partclone_xfs-linux.$(OBJEXT) \
@@ -519,7 +512,7 @@ am__objects_5 = xfs/partclone_xfs-xfs_attr.$(OBJEXT) \
 @ENABLE_XFS_TRUE@	partclone_xfs-partclone.$(OBJEXT) \
 @ENABLE_XFS_TRUE@	partclone_xfs-progress.$(OBJEXT) \
 @ENABLE_XFS_TRUE@	partclone_xfs-xfsclone.$(OBJEXT) \
-@ENABLE_XFS_TRUE@	$(am__objects_5)
+@ENABLE_XFS_TRUE@	$(am__objects_4)
 partclone_xfs_OBJECTS = $(am_partclone_xfs_OBJECTS)
 partclone_xfs_DEPENDENCIES =
 partclone_xfs_LINK = $(CCLD) $(partclone_xfs_CFLAGS) $(CFLAGS) \
@@ -659,6 +652,8 @@ MKDIR_P = @MKDIR_P@
 MSGFMT = @MSGFMT@
 MSGFMT_015 = @MSGFMT_015@
 MSGMERGE = @MSGMERGE@
+NTFS_CFLAGS = @NTFS_CFLAGS@
+NTFS_LIBS = @NTFS_LIBS@
 OBJEXT = @OBJEXT@
 ORIGINAL_CFLAGS = @ORIGINAL_CFLAGS@
 PACKAGE = @PACKAGE@
@@ -753,7 +748,6 @@ xfs/atomic.h xfs/libxfs_priv.h xfs/xfs_arch.h xfs/xfs_da_format.h xfs/xfs_inode_
 
 EXFATFS_SOURCE = exfat/cluster.c exfat/utf.c exfat/utils.c exfat/lookup.c exfat/io.c exfat/log.c exfat/node.c exfat/mount.c exfat/time.c
 F2FS_SOURCE = f2fs/fsck.c f2fs/libf2fs.c f2fs/fsck.h f2fs/mount.c f2fs/f2fs_fs.h f2fs/list.h f2fs/f2fs.h
-NILFS_SOURCE = nilfs/crc32.c nilfs/nilfs.c nilfs/nilfs.h nilfs/pathnames.h nilfs/realpath.c nilfs/realpath.h nilfs/sb.c nilfs/util.h
 @ENABLE_STATIC_TRUE@AM_LDFLAGS = -static
 AM_CFLAGS = -D_FILE_OFFSET_BITS=64 $(am__append_2) $(am__append_3)
 partclone_info_SOURCES = info.c partclone.c partclone.h fs_common.h
@@ -784,9 +778,9 @@ partclone_imager_CFLAGS = -DIMG
 @ENABLE_F2FS_TRUE@partclone_f2fs_SOURCES = main.c partclone.c progress.c f2fsclone.c f2fsclone.h partclone.h progress.h gettext.h $(F2FS_SOURCE)
 @ENABLE_F2FS_TRUE@partclone_f2fs_CFLAGS = -DF2FS
 @ENABLE_F2FS_TRUE@partclone_f2fs_LDADD = -luuid
-@ENABLE_NILFS_TRUE@partclone_nilfs2_SOURCES = main.c partclone.c progress.c nilfsclone.c nilfsclone.h partclone.h progress.h gettext.h $(NILFS_SOURCE)
-@ENABLE_NILFS_TRUE@partclone_nilfs2_CFLAGS = -DNILFS
-@ENABLE_NILFS_TRUE@partclone_nilfs2_LDADD = -lpthread
+@ENABLE_NILFS2_TRUE@partclone_nilfs2_SOURCES = main.c partclone.c progress.c nilfsclone.c nilfsclone.h partclone.h progress.h gettext.h
+@ENABLE_NILFS2_TRUE@partclone_nilfs2_CFLAGS = -DNILFS
+@ENABLE_NILFS2_TRUE@partclone_nilfs2_LDADD = -lnilfs
 @ENABLE_FAT_TRUE@partclone_fat_SOURCES = main.c partclone.c progress.c fatclone.c fatclone.h partclone.h progress.h gettext.h
 @ENABLE_FAT_TRUE@partclone_fat_CFLAGS = -DFAT
 partclone_ntfsfixboot_SOURCES = ntfsfixboot.c
@@ -1043,20 +1037,6 @@ partclone.jfs$(EXEEXT): $(partclone_jfs_OBJECTS) $(partclone_jfs_DEPENDENCIES) $
 partclone.minix$(EXEEXT): $(partclone_minix_OBJECTS) $(partclone_minix_DEPENDENCIES) $(EXTRA_partclone_minix_DEPENDENCIES) 
 	@rm -f partclone.minix$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_minix_LINK) $(partclone_minix_OBJECTS) $(partclone_minix_LDADD) $(LIBS)
-nilfs/$(am__dirstamp):
-	@$(MKDIR_P) nilfs
-	@: > nilfs/$(am__dirstamp)
-nilfs/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) nilfs/$(DEPDIR)
-	@: > nilfs/$(DEPDIR)/$(am__dirstamp)
-nilfs/partclone_nilfs2-crc32.$(OBJEXT): nilfs/$(am__dirstamp) \
-	nilfs/$(DEPDIR)/$(am__dirstamp)
-nilfs/partclone_nilfs2-nilfs.$(OBJEXT): nilfs/$(am__dirstamp) \
-	nilfs/$(DEPDIR)/$(am__dirstamp)
-nilfs/partclone_nilfs2-realpath.$(OBJEXT): nilfs/$(am__dirstamp) \
-	nilfs/$(DEPDIR)/$(am__dirstamp)
-nilfs/partclone_nilfs2-sb.$(OBJEXT): nilfs/$(am__dirstamp) \
-	nilfs/$(DEPDIR)/$(am__dirstamp)
 
 partclone.nilfs2$(EXEEXT): $(partclone_nilfs2_OBJECTS) $(partclone_nilfs2_DEPENDENCIES) $(EXTRA_partclone_nilfs2_DEPENDENCIES) 
 	@rm -f partclone.nilfs2$(EXEEXT)
@@ -1183,7 +1163,6 @@ mostlyclean-compile:
 	-rm -f btrfs/*.$(OBJEXT)
 	-rm -f exfat/*.$(OBJEXT)
 	-rm -f f2fs/*.$(OBJEXT)
-	-rm -f nilfs/*.$(OBJEXT)
 	-rm -f xfs/*.$(OBJEXT)
 
 distclean-compile:
@@ -1314,10 +1293,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@f2fs/$(DEPDIR)/partclone_f2fs-fsck.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@f2fs/$(DEPDIR)/partclone_f2fs-libf2fs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@f2fs/$(DEPDIR)/partclone_f2fs-mount.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@nilfs/$(DEPDIR)/partclone_nilfs2-crc32.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@nilfs/$(DEPDIR)/partclone_nilfs2-nilfs.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@nilfs/$(DEPDIR)/partclone_nilfs2-realpath.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@nilfs/$(DEPDIR)/partclone_nilfs2-sb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-cache.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-crc32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-init.Po@am__quote@
@@ -2632,62 +2607,6 @@ partclone_nilfs2-nilfsclone.obj: nilfsclone.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o partclone_nilfs2-nilfsclone.obj `if test -f 'nilfsclone.c'; then $(CYGPATH_W) 'nilfsclone.c'; else $(CYGPATH_W) '$(srcdir)/nilfsclone.c'; fi`
 
-nilfs/partclone_nilfs2-crc32.o: nilfs/crc32.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-crc32.o -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-crc32.Tpo -c -o nilfs/partclone_nilfs2-crc32.o `test -f 'nilfs/crc32.c' || echo '$(srcdir)/'`nilfs/crc32.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-crc32.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-crc32.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/crc32.c' object='nilfs/partclone_nilfs2-crc32.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-crc32.o `test -f 'nilfs/crc32.c' || echo '$(srcdir)/'`nilfs/crc32.c
-
-nilfs/partclone_nilfs2-crc32.obj: nilfs/crc32.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-crc32.obj -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-crc32.Tpo -c -o nilfs/partclone_nilfs2-crc32.obj `if test -f 'nilfs/crc32.c'; then $(CYGPATH_W) 'nilfs/crc32.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/crc32.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-crc32.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-crc32.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/crc32.c' object='nilfs/partclone_nilfs2-crc32.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-crc32.obj `if test -f 'nilfs/crc32.c'; then $(CYGPATH_W) 'nilfs/crc32.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/crc32.c'; fi`
-
-nilfs/partclone_nilfs2-nilfs.o: nilfs/nilfs.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-nilfs.o -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-nilfs.Tpo -c -o nilfs/partclone_nilfs2-nilfs.o `test -f 'nilfs/nilfs.c' || echo '$(srcdir)/'`nilfs/nilfs.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-nilfs.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-nilfs.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/nilfs.c' object='nilfs/partclone_nilfs2-nilfs.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-nilfs.o `test -f 'nilfs/nilfs.c' || echo '$(srcdir)/'`nilfs/nilfs.c
-
-nilfs/partclone_nilfs2-nilfs.obj: nilfs/nilfs.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-nilfs.obj -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-nilfs.Tpo -c -o nilfs/partclone_nilfs2-nilfs.obj `if test -f 'nilfs/nilfs.c'; then $(CYGPATH_W) 'nilfs/nilfs.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/nilfs.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-nilfs.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-nilfs.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/nilfs.c' object='nilfs/partclone_nilfs2-nilfs.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-nilfs.obj `if test -f 'nilfs/nilfs.c'; then $(CYGPATH_W) 'nilfs/nilfs.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/nilfs.c'; fi`
-
-nilfs/partclone_nilfs2-realpath.o: nilfs/realpath.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-realpath.o -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-realpath.Tpo -c -o nilfs/partclone_nilfs2-realpath.o `test -f 'nilfs/realpath.c' || echo '$(srcdir)/'`nilfs/realpath.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-realpath.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-realpath.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/realpath.c' object='nilfs/partclone_nilfs2-realpath.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-realpath.o `test -f 'nilfs/realpath.c' || echo '$(srcdir)/'`nilfs/realpath.c
-
-nilfs/partclone_nilfs2-realpath.obj: nilfs/realpath.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-realpath.obj -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-realpath.Tpo -c -o nilfs/partclone_nilfs2-realpath.obj `if test -f 'nilfs/realpath.c'; then $(CYGPATH_W) 'nilfs/realpath.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/realpath.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-realpath.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-realpath.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/realpath.c' object='nilfs/partclone_nilfs2-realpath.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-realpath.obj `if test -f 'nilfs/realpath.c'; then $(CYGPATH_W) 'nilfs/realpath.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/realpath.c'; fi`
-
-nilfs/partclone_nilfs2-sb.o: nilfs/sb.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-sb.o -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-sb.Tpo -c -o nilfs/partclone_nilfs2-sb.o `test -f 'nilfs/sb.c' || echo '$(srcdir)/'`nilfs/sb.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-sb.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-sb.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/sb.c' object='nilfs/partclone_nilfs2-sb.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-sb.o `test -f 'nilfs/sb.c' || echo '$(srcdir)/'`nilfs/sb.c
-
-nilfs/partclone_nilfs2-sb.obj: nilfs/sb.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-sb.obj -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-sb.Tpo -c -o nilfs/partclone_nilfs2-sb.obj `if test -f 'nilfs/sb.c'; then $(CYGPATH_W) 'nilfs/sb.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/sb.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-sb.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-sb.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/sb.c' object='nilfs/partclone_nilfs2-sb.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-sb.obj `if test -f 'nilfs/sb.c'; then $(CYGPATH_W) 'nilfs/sb.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/sb.c'; fi`
-
 partclone_ntfs-main.o: main.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -MT partclone_ntfs-main.o -MD -MP -MF $(DEPDIR)/partclone_ntfs-main.Tpo -c -o partclone_ntfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_ntfs-main.Tpo $(DEPDIR)/partclone_ntfs-main.Po
@@ -3775,8 +3694,6 @@ distclean-generic:
 	-rm -f exfat/$(am__dirstamp)
 	-rm -f f2fs/$(DEPDIR)/$(am__dirstamp)
 	-rm -f f2fs/$(am__dirstamp)
-	-rm -f nilfs/$(DEPDIR)/$(am__dirstamp)
-	-rm -f nilfs/$(am__dirstamp)
 	-rm -f xfs/$(DEPDIR)/$(am__dirstamp)
 	-rm -f xfs/$(am__dirstamp)
 
@@ -3788,7 +3705,7 @@ clean: clean-am
 clean-am: clean-generic clean-sbinPROGRAMS mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) btrfs/$(DEPDIR) exfat/$(DEPDIR) f2fs/$(DEPDIR) nilfs/$(DEPDIR) xfs/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) btrfs/$(DEPDIR) exfat/$(DEPDIR) f2fs/$(DEPDIR) xfs/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -3835,7 +3752,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) btrfs/$(DEPDIR) exfat/$(DEPDIR) f2fs/$(DEPDIR) nilfs/$(DEPDIR) xfs/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) btrfs/$(DEPDIR) exfat/$(DEPDIR) f2fs/$(DEPDIR) xfs/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -3891,7 +3808,6 @@ install-exec-hook:
 @ENABLE_VMFS_TRUE@	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.VMFS_volume_member
 @ENABLE_VMFS_TRUE@	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs3
 #	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs5
-@ENABLE_NILFS_TRUE@	$(LN_S) -f partclone.nilfs2 $(DESTDIR)$(sbindir)/partclone.nilfs
 
 uninstall-local:
 @ENABLE_EXTFS_TRUE@	$(RM) -f $(sbindir)/partclone.ext4dev
@@ -3908,7 +3824,6 @@ uninstall-local:
 
 @ENABLE_VMFS_TRUE@	$(RM) -f $(sbindir)/partclone.VMFS_volume_member
 
-@ENABLE_NILFS_TRUE@	$(RM) -f $(sbindir)/partclone.nilfs
 FORCE:
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

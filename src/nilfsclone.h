@@ -10,7 +10,13 @@
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  */
+#include <linux/types.h>
+#include <endian.h>
+#include <byteswap.h>
 
+typedef __u64	__be64;
+#define min_t(type, x, y) \
+	({ type __x = (x); type __y = (y); __x < __y ? __x : __y; })
 /// readbitmap - cread and heck bitmap, reference dumpe2fs
 extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap, int pui);
 

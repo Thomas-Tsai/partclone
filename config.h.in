@@ -73,6 +73,9 @@
 /* Define to 1 if you have the <ncurses.h> header file. */
 #undef HAVE_NCURSES_H
 
+/* Define to 1 if you have the <nilfs.h> header file. */
+#undef HAVE_NILFS_H
+
 /* Define to 1 if you have the <ntfs-3g/misc.h> header file. */
 #undef HAVE_NTFS_3G_MISC_H
 
@@ -130,9 +133,6 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* "define ntfs version" */
-#undef NTFS_VERSION
-
 /* Name of package */
 #undef PACKAGE
 
@@ -153,12 +153,6 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
-
-/* "define reiser4 version" */
-#undef REISER4_VERSION
-
-/* "define reiserfs version" */
-#undef REISERFS_VERSION
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
