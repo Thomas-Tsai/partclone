@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2014-12-30 10:16+0800\n"
+"POT-Creation-Date: 2015-09-24 10:11+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,64 +17,64 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/progress.c:199
+#: src/progress.c:200
 #, c-format
 msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: %6.2f%%"
 msgstr ""
 
-#: src/progress.c:202
+#: src/progress.c:203
 #, c-format
 msgid ", %6.2f%s/min,"
 msgstr ""
 
-#: src/progress.c:210
+#: src/progress.c:211
 #, c-format
 msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: 100.00%%"
 msgstr ""
 
-#: src/progress.c:212
+#: src/progress.c:213
 #, c-format
 msgid ", Rate: %6.2f%s/min,"
 msgstr ""
 
-#: src/progress.c:216
+#: src/progress.c:217
 #, c-format
 msgid ""
 "\n"
 "Total Time: %s, "
 msgstr ""
 
-#: src/progress.c:218
+#: src/progress.c:219
 #, c-format
 msgid "Ave. Rate: %6.1f%s/min, "
 msgstr ""
 
-#: src/progress.c:219
+#: src/progress.c:220
 #, c-format
 msgid "%s"
 msgstr ""
 
-#: src/progress.c:244
+#: src/progress.c:247
 #, c-format
 msgid "Elapsed: %s Remaining: %s "
 msgstr ""
 
-#: src/progress.c:246
+#: src/progress.c:249
 #, c-format
 msgid "Rate: %6.2f%s/min"
 msgstr ""
 
-#: src/progress.c:248
+#: src/progress.c:251
 #, c-format
 msgid "Current Block: %llu  Total Block: %llu "
 msgstr ""
 
-#: src/progress.c:283
+#: src/progress.c:282
 #, c-format
 msgid "Total Time: %s Remaining: %s "
 msgstr ""
 
-#: src/progress.c:285
+#: src/progress.c:284
 #, c-format
 msgid "Ave. Rate: %6.2f%s/min"
 msgstr ""

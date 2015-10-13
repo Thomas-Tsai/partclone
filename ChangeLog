@@ -1,4 +1,94 @@
+2015-09-24  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix release
+
+	fix btrfs
+
+2015-09-23  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix btrfs: disk bytenr larger than device size
+
+2015-09-19  Thomas Tsai  <thomas@nchc.org.tw>
+
+	replace _row_ to _raw_ in all xml files
+
+2015-08-31  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update debian folder
+
+2015-08-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update release flow
+
+2015-08-24  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.83
+
+	xfs: update bitmap calculating time
+
+	fix 4k and dirty bitmap issue for xfs
+
+2015-08-23  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update log_mesg
+
+2015-08-20  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update log message
+
+	fix 4k and dirty partiiton issue
+
+2015-07-23  Thomas Tsai  <thomas@nchc.org.tw>
+
+	0.2.81
+
+2015-07-23  ThomasTsai  <thomas@nchc.org.tw>
+
+	changs ncurses update
+
+2015-07-21  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix calloc error
+
+2015-07-20  Thomas Tsai  <thomas@nchc.org.tw>
+
+	test vmfs5 and ncursesw
+
+	set version to 0.2.80 and fix some warnnings
+
+2015-07-17  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update vmfs5 and test double free issue
+
+	Merge branch 'release' of https://github.com/Thomas-Tsai/partclone into release
+
+	try to fix double free issus
+
+2015-07-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix rules
+
+	ready to release 0.2.79
+
+	patch from DimStar77 and fix  missing includes
+
+	fix vmfs
+
+2015-06-30  Thomas Tsai  <thomas@nchc.org.tw>
+
+	try to fix vmfs5
+
+2015-05-15  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'release' of github.com:Thomas-Tsai/partclone into release
+
+	accept patch from Georges to fix a bug report from Debian, about missed builds for
+
 2015-04-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	ready to release 0.2.78
+
+	set version to 0.2.78
 
 	fix 16T partition issue
 

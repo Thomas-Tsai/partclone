@@ -53,7 +53,7 @@ check_option(){
 		gVERSION=$1
 		shift
 		pushd $ptlpath
-		git pull
+		#git pull
 		vgit=$(git log -1 $gVERSION)
 		if [ -z "$vgit" ]; then
 		    echo "can't find git version $VERSION"> 2& 
@@ -129,11 +129,11 @@ is_git(){
 check_version(){
     pushd $ptlpath
     is_git
-    git pull
+    #git pull
     git fetch --tags
 
     if [ "$gVERSION" != "HEAD" ]; then
-	git checkout $gVERSION
+	git checkout $gVERSION -b 'g_$gVERSION'
 	ptlversion=$(grep ^PACKAGE_VERSION= configure | sed s/PACKAGE_VERSION//g | sed s/[\'=]//g)
 	if [ "$gVERSION" == "$ptlversion" ]; then
 	    VERSION=$ptlversion
@@ -168,7 +168,7 @@ tarball (){
 	    git add -u
 	    git commit -m "release $VERSION"
 	    git archive --format=tar --prefix=partclone-$VERSION/  $gVERSION | gzip > $presrc/partclone-$VERSION.tar.gz
-	    git archive --format=tar --prefix=partclone-$VERSION/  $gVERSION | gzip > $presrc/partclone-$VERSION.orig.tar.gz
+	    git archive --format=tar --prefix=partclone-$VERSION/  $gVERSION | gzip > $presrc/partclone_$VERSION.orig.tar.gz
 
 	    [ is_releae == 1 ] && git push
 	popd
@@ -185,7 +185,7 @@ dpkg_package() {
 	fi
 	pushd partclone-$VERSION
 	    cp -r README.Packages/debian debian
-	    debuild $GPGID
+	    debuild -k$GPGID
 	popd
     popd
 }
@@ -203,11 +203,11 @@ sync_log(){
     # get source code from Jim Meyering at 
     # http://git.mymadcat.com/index.php/p/tracker/source/tree/master/gitlog-to-changelog
     perl gitlog-to-changelog --since 1999-01-01 > ChangeLog
-    cp -r README.Packages/debian debian
-    dch $_dch_options
-    dch -r
-    cp -r debian README.Packages/
     popd
+    cp -r README.Packages/debian debian
+	    dch $_dch_options
+	    dch -r
+    cp -r debian README.Packages/
 }
 
 update_po(){
