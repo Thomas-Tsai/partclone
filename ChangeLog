@@ -1,4 +1,38 @@
+2015-10-13  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update control files
+
+	update version
+
+	remove all version test in configure.ac
+
+	update version.h
+
+	update release script
+
+2015-10-12  Thomas Tsai  <thomas@nchc.org.tw>
+
+	set version to 0.2.84 and add nilfs2 test
+
+2015-10-06  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add test for nilfs
+
+2015-10-05  Thomas Tsai  <thomas@nchc.org.tw>
+
+	remove .deps
+
+	add nilfs support
+
 2015-09-24  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'release' of https://github.com/Thomas-Tsai/partclone into release
+
+	add xfs 4.2.0 part of source to partclone
+
+	update release
+
+	release 0.2.83
 
 	fix release
 
