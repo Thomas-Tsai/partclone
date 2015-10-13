@@ -14,13 +14,14 @@ btrfs/crc32c.h btrfs/extent-cache.c btrfs/free-space-cache.h btrfs/list_sort.c b
 btrfs/uuid-tree.c btrfs/ctree.c btrfs/extent-cache.h btrfs/hash.h btrfs/list_sort.h btrfs/qgroup-verify.h btrfs/repair.h btrfs/transaction.h\
 btrfs/version.h btrfs/rbtree-utils.h btrfs/rbtree_augmented.h
 
+XFS_SOURCE=\
+xfs/atomic.h xfs/libxfs_priv.h xfs/xfs_arch.h xfs/xfs_da_format.h xfs/xfs_inode_fork.h xfs/bitops.h xfs/libxlog.h xfs/xfs_attr.c xfs/xfs_dir2_block.c xfs/xfs_inode.h xfs/cache.c xfs/linux.c xfs/xfs_attr_leaf.c xfs/xfs_dir2.c xfs/xfs_log_format.h xfs/cache.h xfs/linux.h xfs/xfs_attr_leaf.h xfs/xfs_dir2_data.c xfs/xfs_log_recover.h xfs/command.h xfs/list.h xfs/xfs_attr_remote.c xfs/xfs_dir2.h xfs/xfs_log_rlimit.c xfs/crc32.c xfs/logitem.c xfs/xfs_attr_remote.h xfs/xfs_dir2_leaf.c xfs/xfs_metadump.h xfs/crc32defs.h xfs/parent.h xfs/xfs_attr_sf.h xfs/xfs_dir2_node.c xfs/xfs_mount.h xfs/path.h xfs/xfs_bit.c xfs/xfs_dir2_priv.h xfs/xfs_quota_defs.h  xfs/platform_defs.h xfs/xfs_bit.h xfs/xfs_dir2_sf.c xfs/xfs_rtbitmap.c xfs/handle.h xfs/platform_defs.h.in xfs/xfs_bmap_btree.c xfs/xfs_dquot_buf.c xfs/xfs_sb.c xfs/hlist.h xfs/project.h xfs/xfs_bmap_btree.h xfs/xfs_format.h xfs/xfs_sb.h xfs/init.c xfs/radix-tree.c xfs/xfs_bmap.c xfs/xfs_fs.h xfs/xfs_shared.h xfs/init.h xfs/radix-tree.h xfs/xfs_bmap.h xfs/xfs.h xfs/xfs_symlink_remote.c xfs/input.h xfs/rdwr.c xfs/xfs_btree.c xfs/xfs_ialloc_btree.c xfs/xfs_trace.h xfs/jdm.h xfs/trans.c xfs/xfs_btree.h xfs/xfs_ialloc_btree.h xfs/xfs_trans.h xfs/kmem.c xfs/util.c xfs/xfs_btree_trace.h xfs/xfs_ialloc.c xfs/xfs_trans_resv.c xfs/kmem.h xfs/xfs_alloc_btree.c xfs/xfs_cksum.h xfs/xfs_ialloc.h xfs/xfs_trans_resv.h xfs/libxfs_api_defs.h xfs/xfs_alloc_btree.h xfs/xfs_da_btree.c xfs/xfs_inode_buf.c xfs/xfs_trans_space.h xfs/libxfs.h xfs/xfs_alloc.c xfs/xfs_da_btree.h xfs/xfs_inode_buf.h xfs/xfs_types.h xfs/libxfs_io.h xfs/xfs_alloc.h xfs/xfs_da_format.c xfs/xfs_inode_fork.c xfs/xqm.h xfs/crc32table.h
 
 EXFATFS_SOURCE=exfat/cluster.c exfat/utf.c exfat/utils.c exfat/lookup.c exfat/io.c exfat/log.c exfat/node.c exfat/mount.c exfat/time.c
 
-
 F2FS_SOURCE=f2fs/fsck.c f2fs/libf2fs.c f2fs/fsck.h f2fs/mount.c f2fs/f2fs_fs.h f2fs/list.h f2fs/f2fs.h
 
-
+NILFS_SOURCE=nilfs/crc32.c nilfs/nilfs.c nilfs/nilfs.h nilfs/pathnames.h nilfs/realpath.c nilfs/realpath.h nilfs/sb.c nilfs/util.h
 if ENABLE_STATIC
 AM_LDFLAGS=-static
 endif
@@ -85,9 +86,9 @@ endif
 
 if ENABLE_XFS
 sbin_PROGRAMS += partclone.xfs
-partclone_xfs_SOURCES=main.c partclone.c progress.c xfsclone.c xfsclone.h partclone.h progress.h gettext.h
-partclone_xfs_CFLAGS=-DXFS $(UUID_CFLAGS)
-partclone_xfs_LDADD=-lxfs -lrt -lpthread -luuid
+partclone_xfs_SOURCES=main.c partclone.c progress.c xfsclone.c xfsclone.h partclone.h progress.h gettext.h $(XFS_SOURCE)
+partclone_xfs_CFLAGS=-DXFS -D_GNU_SOURCE -DNDEBUG $(UUID_CFLAGS) 
+partclone_xfs_LDADD=-lrt -lpthread -luuid
 endif
 
 if ENABLE_EXFAT
@@ -101,6 +102,13 @@ sbin_PROGRAMS += partclone.f2fs
 partclone_f2fs_SOURCES=main.c partclone.c progress.c f2fsclone.c f2fsclone.h partclone.h progress.h gettext.h $(F2FS_SOURCE)
 partclone_f2fs_CFLAGS=-DF2FS
 partclone_f2fs_LDADD=-luuid
+endif
+
+if ENABLE_NILFS
+sbin_PROGRAMS += partclone.nilfs2
+partclone_nilfs2_SOURCES=main.c partclone.c progress.c nilfsclone.c nilfsclone.h partclone.h progress.h gettext.h $(NILFS_SOURCE)
+partclone_nilfs2_CFLAGS=-DNILFS
+partclone_nilfs2_LDADD=-lpthread
 endif
 
 if ENABLE_FAT
@@ -196,6 +204,10 @@ if ENABLE_VMFS
 	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs3
 #	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs5
 endif
+if ENABLE_NILFS
+	$(LN_S) -f partclone.nilfs2 $(DESTDIR)$(sbindir)/partclone.nilfs
+endif
+
 
 uninstall-local:
 if ENABLE_EXTFS
@@ -222,4 +234,7 @@ if ENABLE_VMFS
 	$(RM) -f $(sbindir)/partclone.VMFS_volume_member
 endif
 
+if ENABLE_NILFS
+	$(RM) -f $(sbindir)/partclone.nilfs
+endif
 FORCE:

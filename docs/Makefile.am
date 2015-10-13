@@ -33,6 +33,10 @@ if ENABLE_F2FS
 man_MANS += partclone.f2fs.8
 endif
 
+if ENABLE_NILFS
+man_MANS += partclone.nilfs.8
+endif
+
 if ENABLE_EXFAT
 man_MANS += partclone.exfat.8
 endif

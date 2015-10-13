@@ -112,7 +112,8 @@ host_triplet = @host@
 @ENABLE_FS_TEST_TRUE@@ENABLE_JFS_TRUE@am__append_10 = jfs.test
 @ENABLE_BTRFS_TRUE@@ENABLE_FS_TEST_TRUE@am__append_11 = btrfs.test
 @ENABLE_EXFAT_TRUE@@ENABLE_FS_TEST_TRUE@am__append_12 = exfat.test
-@ENABLE_FS_TEST_TRUE@@ENABLE_NCURSESW_TRUE@am__append_13 = ncursesw.test
+@ENABLE_FS_TEST_TRUE@@ENABLE_NILFS_TRUE@am__append_13 = nilfs.test
+@ENABLE_FS_TEST_TRUE@@ENABLE_NCURSESW_TRUE@am__append_14 = ncursesw.test
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
@@ -476,7 +477,7 @@ TESTS = dd.test $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
 	$(am__append_7) $(am__append_8) $(am__append_9) \
 	$(am__append_10) $(am__append_11) $(am__append_12) \
-	$(am__append_13)
+	$(am__append_13) $(am__append_14)
 CLEANFILES = floppy*
 all: all-am
 

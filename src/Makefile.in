@@ -93,9 +93,9 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 	partclone.imager$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
 	$(am__EXEEXT_3) $(am__EXEEXT_4) $(am__EXEEXT_5) \
 	$(am__EXEEXT_6) $(am__EXEEXT_7) $(am__EXEEXT_8) \
-	partclone.ntfsfixboot$(EXEEXT) $(am__EXEEXT_9) \
+	$(am__EXEEXT_9) partclone.ntfsfixboot$(EXEEXT) \
 	$(am__EXEEXT_10) $(am__EXEEXT_11) $(am__EXEEXT_12) \
-	$(am__EXEEXT_13) $(am__EXEEXT_14)
+	$(am__EXEEXT_13) $(am__EXEEXT_14) $(am__EXEEXT_15)
 @ENABLE_TINFO_TRUE@am__append_1 = -ltinfo
 @ENABLE_MEMTRACE_TRUE@am__append_2 = -DMEMTRACE -DMEMWATCH -DMW_STDIO
 @ENABLE_NCURSESW_TRUE@am__append_3 = -I/usr/include/ncursesw
@@ -106,14 +106,15 @@ sbin_PROGRAMS = partclone.info$(EXEEXT) partclone.dd$(EXEEXT) \
 @ENABLE_XFS_TRUE@am__append_8 = partclone.xfs
 @ENABLE_EXFAT_TRUE@am__append_9 = partclone.exfat
 @ENABLE_F2FS_TRUE@am__append_10 = partclone.f2fs
-@ENABLE_FAT_TRUE@am__append_11 = partclone.fat
-@ENABLE_NTFS_TRUE@am__append_12 = partclone.ntfs
-@ENABLE_UFS_TRUE@am__append_13 = partclone.ufs
-@ENABLE_VMFS_TRUE@am__append_14 = partclone.vmfs partclone.vmfs5 \
+@ENABLE_NILFS_TRUE@am__append_11 = partclone.nilfs2
+@ENABLE_FAT_TRUE@am__append_12 = partclone.fat
+@ENABLE_NTFS_TRUE@am__append_13 = partclone.ntfs
+@ENABLE_UFS_TRUE@am__append_14 = partclone.ufs
+@ENABLE_VMFS_TRUE@am__append_15 = partclone.vmfs partclone.vmfs5 \
 @ENABLE_VMFS_TRUE@	partclone.fstype
-@ENABLE_JFS_TRUE@am__append_15 = partclone.jfs
-@ENABLE_BTRFS_TRUE@am__append_16 = partclone.btrfs
-@ENABLE_MINIX_TRUE@am__append_17 = partclone.minix
+@ENABLE_JFS_TRUE@am__append_16 = partclone.jfs
+@ENABLE_BTRFS_TRUE@am__append_17 = partclone.btrfs
+@ENABLE_MINIX_TRUE@am__append_18 = partclone.minix
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
@@ -135,15 +136,16 @@ CONFIG_CLEAN_VPATH_FILES =
 @ENABLE_XFS_TRUE@am__EXEEXT_5 = partclone.xfs$(EXEEXT)
 @ENABLE_EXFAT_TRUE@am__EXEEXT_6 = partclone.exfat$(EXEEXT)
 @ENABLE_F2FS_TRUE@am__EXEEXT_7 = partclone.f2fs$(EXEEXT)
-@ENABLE_FAT_TRUE@am__EXEEXT_8 = partclone.fat$(EXEEXT)
-@ENABLE_NTFS_TRUE@am__EXEEXT_9 = partclone.ntfs$(EXEEXT)
-@ENABLE_UFS_TRUE@am__EXEEXT_10 = partclone.ufs$(EXEEXT)
-@ENABLE_VMFS_TRUE@am__EXEEXT_11 = partclone.vmfs$(EXEEXT) \
+@ENABLE_NILFS_TRUE@am__EXEEXT_8 = partclone.nilfs2$(EXEEXT)
+@ENABLE_FAT_TRUE@am__EXEEXT_9 = partclone.fat$(EXEEXT)
+@ENABLE_NTFS_TRUE@am__EXEEXT_10 = partclone.ntfs$(EXEEXT)
+@ENABLE_UFS_TRUE@am__EXEEXT_11 = partclone.ufs$(EXEEXT)
+@ENABLE_VMFS_TRUE@am__EXEEXT_12 = partclone.vmfs$(EXEEXT) \
 @ENABLE_VMFS_TRUE@	partclone.vmfs5$(EXEEXT) \
 @ENABLE_VMFS_TRUE@	partclone.fstype$(EXEEXT)
-@ENABLE_JFS_TRUE@am__EXEEXT_12 = partclone.jfs$(EXEEXT)
-@ENABLE_BTRFS_TRUE@am__EXEEXT_13 = partclone.btrfs$(EXEEXT)
-@ENABLE_MINIX_TRUE@am__EXEEXT_14 = partclone.minix$(EXEEXT)
+@ENABLE_JFS_TRUE@am__EXEEXT_13 = partclone.jfs$(EXEEXT)
+@ENABLE_BTRFS_TRUE@am__EXEEXT_14 = partclone.btrfs$(EXEEXT)
+@ENABLE_MINIX_TRUE@am__EXEEXT_15 = partclone.minix$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
 am__partclone_btrfs_SOURCES_DIST = main.c partclone.c progress.c \
@@ -345,6 +347,24 @@ partclone_minix_LDADD = $(LDADD)
 partclone_minix_DEPENDENCIES = $(am__DEPENDENCIES_1)
 partclone_minix_LINK = $(CCLD) $(partclone_minix_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__partclone_nilfs2_SOURCES_DIST = main.c partclone.c progress.c \
+	nilfsclone.c nilfsclone.h partclone.h progress.h gettext.h \
+	nilfs/crc32.c nilfs/nilfs.c nilfs/nilfs.h nilfs/pathnames.h \
+	nilfs/realpath.c nilfs/realpath.h nilfs/sb.c nilfs/util.h
+am__objects_4 = nilfs/partclone_nilfs2-crc32.$(OBJEXT) \
+	nilfs/partclone_nilfs2-nilfs.$(OBJEXT) \
+	nilfs/partclone_nilfs2-realpath.$(OBJEXT) \
+	nilfs/partclone_nilfs2-sb.$(OBJEXT)
+@ENABLE_NILFS_TRUE@am_partclone_nilfs2_OBJECTS =  \
+@ENABLE_NILFS_TRUE@	partclone_nilfs2-main.$(OBJEXT) \
+@ENABLE_NILFS_TRUE@	partclone_nilfs2-partclone.$(OBJEXT) \
+@ENABLE_NILFS_TRUE@	partclone_nilfs2-progress.$(OBJEXT) \
+@ENABLE_NILFS_TRUE@	partclone_nilfs2-nilfsclone.$(OBJEXT) \
+@ENABLE_NILFS_TRUE@	$(am__objects_4)
+partclone_nilfs2_OBJECTS = $(am_partclone_nilfs2_OBJECTS)
+partclone_nilfs2_DEPENDENCIES =
+partclone_nilfs2_LINK = $(CCLD) $(partclone_nilfs2_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__partclone_ntfs_SOURCES_DIST = main.c partclone.c progress.c \
 	ntfsclone-ng.c ntfsclone-ng.h partclone.h progress.h gettext.h
 @ENABLE_NTFS_TRUE@am_partclone_ntfs_OBJECTS =  \
@@ -426,12 +446,80 @@ partclone_vmfs5_DEPENDENCIES =
 partclone_vmfs5_LINK = $(CCLD) $(partclone_vmfs5_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__partclone_xfs_SOURCES_DIST = main.c partclone.c progress.c \
-	xfsclone.c xfsclone.h partclone.h progress.h gettext.h
+	xfsclone.c xfsclone.h partclone.h progress.h gettext.h \
+	xfs/atomic.h xfs/libxfs_priv.h xfs/xfs_arch.h \
+	xfs/xfs_da_format.h xfs/xfs_inode_fork.h xfs/bitops.h \
+	xfs/libxlog.h xfs/xfs_attr.c xfs/xfs_dir2_block.c \
+	xfs/xfs_inode.h xfs/cache.c xfs/linux.c xfs/xfs_attr_leaf.c \
+	xfs/xfs_dir2.c xfs/xfs_log_format.h xfs/cache.h xfs/linux.h \
+	xfs/xfs_attr_leaf.h xfs/xfs_dir2_data.c xfs/xfs_log_recover.h \
+	xfs/command.h xfs/list.h xfs/xfs_attr_remote.c xfs/xfs_dir2.h \
+	xfs/xfs_log_rlimit.c xfs/crc32.c xfs/logitem.c \
+	xfs/xfs_attr_remote.h xfs/xfs_dir2_leaf.c xfs/xfs_metadump.h \
+	xfs/crc32defs.h xfs/parent.h xfs/xfs_attr_sf.h \
+	xfs/xfs_dir2_node.c xfs/xfs_mount.h xfs/path.h xfs/xfs_bit.c \
+	xfs/xfs_dir2_priv.h xfs/xfs_quota_defs.h xfs/platform_defs.h \
+	xfs/xfs_bit.h xfs/xfs_dir2_sf.c xfs/xfs_rtbitmap.c \
+	xfs/handle.h xfs/platform_defs.h.in xfs/xfs_bmap_btree.c \
+	xfs/xfs_dquot_buf.c xfs/xfs_sb.c xfs/hlist.h xfs/project.h \
+	xfs/xfs_bmap_btree.h xfs/xfs_format.h xfs/xfs_sb.h xfs/init.c \
+	xfs/radix-tree.c xfs/xfs_bmap.c xfs/xfs_fs.h xfs/xfs_shared.h \
+	xfs/init.h xfs/radix-tree.h xfs/xfs_bmap.h xfs/xfs.h \
+	xfs/xfs_symlink_remote.c xfs/input.h xfs/rdwr.c \
+	xfs/xfs_btree.c xfs/xfs_ialloc_btree.c xfs/xfs_trace.h \
+	xfs/jdm.h xfs/trans.c xfs/xfs_btree.h xfs/xfs_ialloc_btree.h \
+	xfs/xfs_trans.h xfs/kmem.c xfs/util.c xfs/xfs_btree_trace.h \
+	xfs/xfs_ialloc.c xfs/xfs_trans_resv.c xfs/kmem.h \
+	xfs/xfs_alloc_btree.c xfs/xfs_cksum.h xfs/xfs_ialloc.h \
+	xfs/xfs_trans_resv.h xfs/libxfs_api_defs.h \
+	xfs/xfs_alloc_btree.h xfs/xfs_da_btree.c xfs/xfs_inode_buf.c \
+	xfs/xfs_trans_space.h xfs/libxfs.h xfs/xfs_alloc.c \
+	xfs/xfs_da_btree.h xfs/xfs_inode_buf.h xfs/xfs_types.h \
+	xfs/libxfs_io.h xfs/xfs_alloc.h xfs/xfs_da_format.c \
+	xfs/xfs_inode_fork.c xfs/xqm.h xfs/crc32table.h
+am__objects_5 = xfs/partclone_xfs-xfs_attr.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_dir2_block.$(OBJEXT) \
+	xfs/partclone_xfs-cache.$(OBJEXT) \
+	xfs/partclone_xfs-linux.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_attr_leaf.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_dir2.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_dir2_data.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_attr_remote.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_log_rlimit.$(OBJEXT) \
+	xfs/partclone_xfs-crc32.$(OBJEXT) \
+	xfs/partclone_xfs-logitem.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_dir2_leaf.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_dir2_node.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_bit.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_dir2_sf.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_rtbitmap.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_bmap_btree.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_dquot_buf.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_sb.$(OBJEXT) \
+	xfs/partclone_xfs-init.$(OBJEXT) \
+	xfs/partclone_xfs-radix-tree.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_bmap.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_symlink_remote.$(OBJEXT) \
+	xfs/partclone_xfs-rdwr.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_btree.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_ialloc_btree.$(OBJEXT) \
+	xfs/partclone_xfs-trans.$(OBJEXT) \
+	xfs/partclone_xfs-kmem.$(OBJEXT) \
+	xfs/partclone_xfs-util.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_ialloc.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_trans_resv.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_alloc_btree.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_da_btree.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_inode_buf.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_alloc.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_da_format.$(OBJEXT) \
+	xfs/partclone_xfs-xfs_inode_fork.$(OBJEXT)
 @ENABLE_XFS_TRUE@am_partclone_xfs_OBJECTS =  \
 @ENABLE_XFS_TRUE@	partclone_xfs-main.$(OBJEXT) \
 @ENABLE_XFS_TRUE@	partclone_xfs-partclone.$(OBJEXT) \
 @ENABLE_XFS_TRUE@	partclone_xfs-progress.$(OBJEXT) \
-@ENABLE_XFS_TRUE@	partclone_xfs-xfsclone.$(OBJEXT)
+@ENABLE_XFS_TRUE@	partclone_xfs-xfsclone.$(OBJEXT) \
+@ENABLE_XFS_TRUE@	$(am__objects_5)
 partclone_xfs_OBJECTS = $(am_partclone_xfs_OBJECTS)
 partclone_xfs_DEPENDENCIES =
 partclone_xfs_LINK = $(CCLD) $(partclone_xfs_CFLAGS) $(CFLAGS) \
@@ -474,11 +562,12 @@ SOURCES = $(partclone_btrfs_SOURCES) $(partclone_chkimg_SOURCES) \
 	$(partclone_fat_SOURCES) $(partclone_fstype_SOURCES) \
 	$(partclone_hfsp_SOURCES) $(partclone_imager_SOURCES) \
 	$(partclone_info_SOURCES) $(partclone_jfs_SOURCES) \
-	$(partclone_minix_SOURCES) $(partclone_ntfs_SOURCES) \
-	$(partclone_ntfsfixboot_SOURCES) $(partclone_reiser4_SOURCES) \
-	$(partclone_reiserfs_SOURCES) $(partclone_restore_SOURCES) \
-	$(partclone_ufs_SOURCES) $(partclone_vmfs_SOURCES) \
-	$(partclone_vmfs5_SOURCES) $(partclone_xfs_SOURCES)
+	$(partclone_minix_SOURCES) $(partclone_nilfs2_SOURCES) \
+	$(partclone_ntfs_SOURCES) $(partclone_ntfsfixboot_SOURCES) \
+	$(partclone_reiser4_SOURCES) $(partclone_reiserfs_SOURCES) \
+	$(partclone_restore_SOURCES) $(partclone_ufs_SOURCES) \
+	$(partclone_vmfs_SOURCES) $(partclone_vmfs5_SOURCES) \
+	$(partclone_xfs_SOURCES)
 DIST_SOURCES = $(am__partclone_btrfs_SOURCES_DIST) \
 	$(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
 	$(am__partclone_exfat_SOURCES_DIST) \
@@ -489,6 +578,7 @@ DIST_SOURCES = $(am__partclone_btrfs_SOURCES_DIST) \
 	$(am__partclone_hfsp_SOURCES_DIST) $(partclone_imager_SOURCES) \
 	$(partclone_info_SOURCES) $(am__partclone_jfs_SOURCES_DIST) \
 	$(am__partclone_minix_SOURCES_DIST) \
+	$(am__partclone_nilfs2_SOURCES_DIST) \
 	$(am__partclone_ntfs_SOURCES_DIST) \
 	$(partclone_ntfsfixboot_SOURCES) \
 	$(am__partclone_reiser4_SOURCES_DIST) \
@@ -658,8 +748,12 @@ btrfs/crc32c.h btrfs/extent-cache.c btrfs/free-space-cache.h btrfs/list_sort.c b
 btrfs/uuid-tree.c btrfs/ctree.c btrfs/extent-cache.h btrfs/hash.h btrfs/list_sort.h btrfs/qgroup-verify.h btrfs/repair.h btrfs/transaction.h\
 btrfs/version.h btrfs/rbtree-utils.h btrfs/rbtree_augmented.h
 
+XFS_SOURCE = \
+xfs/atomic.h xfs/libxfs_priv.h xfs/xfs_arch.h xfs/xfs_da_format.h xfs/xfs_inode_fork.h xfs/bitops.h xfs/libxlog.h xfs/xfs_attr.c xfs/xfs_dir2_block.c xfs/xfs_inode.h xfs/cache.c xfs/linux.c xfs/xfs_attr_leaf.c xfs/xfs_dir2.c xfs/xfs_log_format.h xfs/cache.h xfs/linux.h xfs/xfs_attr_leaf.h xfs/xfs_dir2_data.c xfs/xfs_log_recover.h xfs/command.h xfs/list.h xfs/xfs_attr_remote.c xfs/xfs_dir2.h xfs/xfs_log_rlimit.c xfs/crc32.c xfs/logitem.c xfs/xfs_attr_remote.h xfs/xfs_dir2_leaf.c xfs/xfs_metadump.h xfs/crc32defs.h xfs/parent.h xfs/xfs_attr_sf.h xfs/xfs_dir2_node.c xfs/xfs_mount.h xfs/path.h xfs/xfs_bit.c xfs/xfs_dir2_priv.h xfs/xfs_quota_defs.h  xfs/platform_defs.h xfs/xfs_bit.h xfs/xfs_dir2_sf.c xfs/xfs_rtbitmap.c xfs/handle.h xfs/platform_defs.h.in xfs/xfs_bmap_btree.c xfs/xfs_dquot_buf.c xfs/xfs_sb.c xfs/hlist.h xfs/project.h xfs/xfs_bmap_btree.h xfs/xfs_format.h xfs/xfs_sb.h xfs/init.c xfs/radix-tree.c xfs/xfs_bmap.c xfs/xfs_fs.h xfs/xfs_shared.h xfs/init.h xfs/radix-tree.h xfs/xfs_bmap.h xfs/xfs.h xfs/xfs_symlink_remote.c xfs/input.h xfs/rdwr.c xfs/xfs_btree.c xfs/xfs_ialloc_btree.c xfs/xfs_trace.h xfs/jdm.h xfs/trans.c xfs/xfs_btree.h xfs/xfs_ialloc_btree.h xfs/xfs_trans.h xfs/kmem.c xfs/util.c xfs/xfs_btree_trace.h xfs/xfs_ialloc.c xfs/xfs_trans_resv.c xfs/kmem.h xfs/xfs_alloc_btree.c xfs/xfs_cksum.h xfs/xfs_ialloc.h xfs/xfs_trans_resv.h xfs/libxfs_api_defs.h xfs/xfs_alloc_btree.h xfs/xfs_da_btree.c xfs/xfs_inode_buf.c xfs/xfs_trans_space.h xfs/libxfs.h xfs/xfs_alloc.c xfs/xfs_da_btree.h xfs/xfs_inode_buf.h xfs/xfs_types.h xfs/libxfs_io.h xfs/xfs_alloc.h xfs/xfs_da_format.c xfs/xfs_inode_fork.c xfs/xqm.h xfs/crc32table.h
+
 EXFATFS_SOURCE = exfat/cluster.c exfat/utf.c exfat/utils.c exfat/lookup.c exfat/io.c exfat/log.c exfat/node.c exfat/mount.c exfat/time.c
 F2FS_SOURCE = f2fs/fsck.c f2fs/libf2fs.c f2fs/fsck.h f2fs/mount.c f2fs/f2fs_fs.h f2fs/list.h f2fs/f2fs.h
+NILFS_SOURCE = nilfs/crc32.c nilfs/nilfs.c nilfs/nilfs.h nilfs/pathnames.h nilfs/realpath.c nilfs/realpath.h nilfs/sb.c nilfs/util.h
 @ENABLE_STATIC_TRUE@AM_LDFLAGS = -static
 AM_CFLAGS = -D_FILE_OFFSET_BITS=64 $(am__append_2) $(am__append_3)
 partclone_info_SOURCES = info.c partclone.c partclone.h fs_common.h
@@ -682,14 +776,17 @@ partclone_imager_CFLAGS = -DIMG
 @ENABLE_REISER4_TRUE@partclone_reiser4_LDADD = -lreiser4 -laal
 @ENABLE_HFSP_TRUE@partclone_hfsp_SOURCES = main.c partclone.c progress.c hfsplusclone.c hfsplusclone.h partclone.h progress.h gettext.h
 @ENABLE_HFSP_TRUE@partclone_hfsp_CFLAGS = -DHFSPLUS
-@ENABLE_XFS_TRUE@partclone_xfs_SOURCES = main.c partclone.c progress.c xfsclone.c xfsclone.h partclone.h progress.h gettext.h
-@ENABLE_XFS_TRUE@partclone_xfs_CFLAGS = -DXFS $(UUID_CFLAGS)
-@ENABLE_XFS_TRUE@partclone_xfs_LDADD = -lxfs -lrt -lpthread -luuid
+@ENABLE_XFS_TRUE@partclone_xfs_SOURCES = main.c partclone.c progress.c xfsclone.c xfsclone.h partclone.h progress.h gettext.h $(XFS_SOURCE)
+@ENABLE_XFS_TRUE@partclone_xfs_CFLAGS = -DXFS -D_GNU_SOURCE -DNDEBUG $(UUID_CFLAGS) 
+@ENABLE_XFS_TRUE@partclone_xfs_LDADD = -lrt -lpthread -luuid
 @ENABLE_EXFAT_TRUE@partclone_exfat_SOURCES = main.c partclone.c progress.c exfatclone.c exfatclone.h partclone.h progress.h gettext.h $(EXFATFS_SOURCE)
 @ENABLE_EXFAT_TRUE@partclone_exfat_CFLAGS = -DEXFAT -D_GNU_SOURCE -std=c99
 @ENABLE_F2FS_TRUE@partclone_f2fs_SOURCES = main.c partclone.c progress.c f2fsclone.c f2fsclone.h partclone.h progress.h gettext.h $(F2FS_SOURCE)
 @ENABLE_F2FS_TRUE@partclone_f2fs_CFLAGS = -DF2FS
 @ENABLE_F2FS_TRUE@partclone_f2fs_LDADD = -luuid
+@ENABLE_NILFS_TRUE@partclone_nilfs2_SOURCES = main.c partclone.c progress.c nilfsclone.c nilfsclone.h partclone.h progress.h gettext.h $(NILFS_SOURCE)
+@ENABLE_NILFS_TRUE@partclone_nilfs2_CFLAGS = -DNILFS
+@ENABLE_NILFS_TRUE@partclone_nilfs2_LDADD = -lpthread
 @ENABLE_FAT_TRUE@partclone_fat_SOURCES = main.c partclone.c progress.c fatclone.c fatclone.h partclone.h progress.h gettext.h
 @ENABLE_FAT_TRUE@partclone_fat_CFLAGS = -DFAT
 partclone_ntfsfixboot_SOURCES = ntfsfixboot.c
@@ -946,6 +1043,24 @@ partclone.jfs$(EXEEXT): $(partclone_jfs_OBJECTS) $(partclone_jfs_DEPENDENCIES) $
 partclone.minix$(EXEEXT): $(partclone_minix_OBJECTS) $(partclone_minix_DEPENDENCIES) $(EXTRA_partclone_minix_DEPENDENCIES) 
 	@rm -f partclone.minix$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_minix_LINK) $(partclone_minix_OBJECTS) $(partclone_minix_LDADD) $(LIBS)
+nilfs/$(am__dirstamp):
+	@$(MKDIR_P) nilfs
+	@: > nilfs/$(am__dirstamp)
+nilfs/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) nilfs/$(DEPDIR)
+	@: > nilfs/$(DEPDIR)/$(am__dirstamp)
+nilfs/partclone_nilfs2-crc32.$(OBJEXT): nilfs/$(am__dirstamp) \
+	nilfs/$(DEPDIR)/$(am__dirstamp)
+nilfs/partclone_nilfs2-nilfs.$(OBJEXT): nilfs/$(am__dirstamp) \
+	nilfs/$(DEPDIR)/$(am__dirstamp)
+nilfs/partclone_nilfs2-realpath.$(OBJEXT): nilfs/$(am__dirstamp) \
+	nilfs/$(DEPDIR)/$(am__dirstamp)
+nilfs/partclone_nilfs2-sb.$(OBJEXT): nilfs/$(am__dirstamp) \
+	nilfs/$(DEPDIR)/$(am__dirstamp)
+
+partclone.nilfs2$(EXEEXT): $(partclone_nilfs2_OBJECTS) $(partclone_nilfs2_DEPENDENCIES) $(EXTRA_partclone_nilfs2_DEPENDENCIES) 
+	@rm -f partclone.nilfs2$(EXEEXT)
+	$(AM_V_CCLD)$(partclone_nilfs2_LINK) $(partclone_nilfs2_OBJECTS) $(partclone_nilfs2_LDADD) $(LIBS)
 
 partclone.ntfs$(EXEEXT): $(partclone_ntfs_OBJECTS) $(partclone_ntfs_DEPENDENCIES) $(EXTRA_partclone_ntfs_DEPENDENCIES) 
 	@rm -f partclone.ntfs$(EXEEXT)
@@ -978,6 +1093,86 @@ partclone.vmfs$(EXEEXT): $(partclone_vmfs_OBJECTS) $(partclone_vmfs_DEPENDENCIES
 partclone.vmfs5$(EXEEXT): $(partclone_vmfs5_OBJECTS) $(partclone_vmfs5_DEPENDENCIES) $(EXTRA_partclone_vmfs5_DEPENDENCIES) 
 	@rm -f partclone.vmfs5$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_vmfs5_LINK) $(partclone_vmfs5_OBJECTS) $(partclone_vmfs5_LDADD) $(LIBS)
+xfs/$(am__dirstamp):
+	@$(MKDIR_P) xfs
+	@: > xfs/$(am__dirstamp)
+xfs/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) xfs/$(DEPDIR)
+	@: > xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_attr.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_dir2_block.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-cache.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-linux.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_attr_leaf.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_dir2.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_dir2_data.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_attr_remote.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_log_rlimit.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-crc32.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-logitem.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_dir2_leaf.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_dir2_node.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_bit.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_dir2_sf.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_rtbitmap.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_bmap_btree.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_dquot_buf.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_sb.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-init.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-radix-tree.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_bmap.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_symlink_remote.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-rdwr.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_btree.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_ialloc_btree.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-trans.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-kmem.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-util.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_ialloc.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_trans_resv.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_alloc_btree.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_da_btree.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_inode_buf.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_alloc.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_da_format.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
+xfs/partclone_xfs-xfs_inode_fork.$(OBJEXT): xfs/$(am__dirstamp) \
+	xfs/$(DEPDIR)/$(am__dirstamp)
 
 partclone.xfs$(EXEEXT): $(partclone_xfs_OBJECTS) $(partclone_xfs_DEPENDENCIES) $(EXTRA_partclone_xfs_DEPENDENCIES) 
 	@rm -f partclone.xfs$(EXEEXT)
@@ -988,6 +1183,8 @@ mostlyclean-compile:
 	-rm -f btrfs/*.$(OBJEXT)
 	-rm -f exfat/*.$(OBJEXT)
 	-rm -f f2fs/*.$(OBJEXT)
+	-rm -f nilfs/*.$(OBJEXT)
+	-rm -f xfs/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
@@ -1040,6 +1237,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_minix-minixclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_minix-partclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_minix-progress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_nilfs2-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_nilfs2-nilfsclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_nilfs2-partclone.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_nilfs2-progress.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ntfs-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ntfs-ntfsclone-ng.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/partclone_ntfs-partclone.Po@am__quote@
@@ -1113,6 +1314,47 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@f2fs/$(DEPDIR)/partclone_f2fs-fsck.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@f2fs/$(DEPDIR)/partclone_f2fs-libf2fs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@f2fs/$(DEPDIR)/partclone_f2fs-mount.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@nilfs/$(DEPDIR)/partclone_nilfs2-crc32.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@nilfs/$(DEPDIR)/partclone_nilfs2-nilfs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@nilfs/$(DEPDIR)/partclone_nilfs2-realpath.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@nilfs/$(DEPDIR)/partclone_nilfs2-sb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-cache.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-crc32.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-init.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-kmem.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-linux.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-logitem.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-radix-tree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-rdwr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-trans.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-util.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_alloc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_alloc_btree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_attr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_attr_leaf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_attr_remote.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_bit.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_bmap.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_bmap_btree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_btree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_da_btree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_da_format.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_dir2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_block.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_data.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_leaf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_node.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_sf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_dquot_buf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_ialloc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_ialloc_btree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_inode_buf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_inode_fork.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_log_rlimit.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_rtbitmap.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_sb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_symlink_remote.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@xfs/$(DEPDIR)/partclone_xfs-xfs_trans_resv.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -2334,6 +2576,118 @@ partclone_minix-minixclone.obj: minixclone.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_minix_CFLAGS) $(CFLAGS) -c -o partclone_minix-minixclone.obj `if test -f 'minixclone.c'; then $(CYGPATH_W) 'minixclone.c'; else $(CYGPATH_W) '$(srcdir)/minixclone.c'; fi`
 
+partclone_nilfs2-main.o: main.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT partclone_nilfs2-main.o -MD -MP -MF $(DEPDIR)/partclone_nilfs2-main.Tpo -c -o partclone_nilfs2-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_nilfs2-main.Tpo $(DEPDIR)/partclone_nilfs2-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='main.c' object='partclone_nilfs2-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o partclone_nilfs2-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
+
+partclone_nilfs2-main.obj: main.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT partclone_nilfs2-main.obj -MD -MP -MF $(DEPDIR)/partclone_nilfs2-main.Tpo -c -o partclone_nilfs2-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_nilfs2-main.Tpo $(DEPDIR)/partclone_nilfs2-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='main.c' object='partclone_nilfs2-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o partclone_nilfs2-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+
+partclone_nilfs2-partclone.o: partclone.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT partclone_nilfs2-partclone.o -MD -MP -MF $(DEPDIR)/partclone_nilfs2-partclone.Tpo -c -o partclone_nilfs2-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_nilfs2-partclone.Tpo $(DEPDIR)/partclone_nilfs2-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='partclone.c' object='partclone_nilfs2-partclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o partclone_nilfs2-partclone.o `test -f 'partclone.c' || echo '$(srcdir)/'`partclone.c
+
+partclone_nilfs2-partclone.obj: partclone.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT partclone_nilfs2-partclone.obj -MD -MP -MF $(DEPDIR)/partclone_nilfs2-partclone.Tpo -c -o partclone_nilfs2-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_nilfs2-partclone.Tpo $(DEPDIR)/partclone_nilfs2-partclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='partclone.c' object='partclone_nilfs2-partclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o partclone_nilfs2-partclone.obj `if test -f 'partclone.c'; then $(CYGPATH_W) 'partclone.c'; else $(CYGPATH_W) '$(srcdir)/partclone.c'; fi`
+
+partclone_nilfs2-progress.o: progress.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT partclone_nilfs2-progress.o -MD -MP -MF $(DEPDIR)/partclone_nilfs2-progress.Tpo -c -o partclone_nilfs2-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_nilfs2-progress.Tpo $(DEPDIR)/partclone_nilfs2-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='progress.c' object='partclone_nilfs2-progress.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o partclone_nilfs2-progress.o `test -f 'progress.c' || echo '$(srcdir)/'`progress.c
+
+partclone_nilfs2-progress.obj: progress.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT partclone_nilfs2-progress.obj -MD -MP -MF $(DEPDIR)/partclone_nilfs2-progress.Tpo -c -o partclone_nilfs2-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_nilfs2-progress.Tpo $(DEPDIR)/partclone_nilfs2-progress.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='progress.c' object='partclone_nilfs2-progress.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o partclone_nilfs2-progress.obj `if test -f 'progress.c'; then $(CYGPATH_W) 'progress.c'; else $(CYGPATH_W) '$(srcdir)/progress.c'; fi`
+
+partclone_nilfs2-nilfsclone.o: nilfsclone.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT partclone_nilfs2-nilfsclone.o -MD -MP -MF $(DEPDIR)/partclone_nilfs2-nilfsclone.Tpo -c -o partclone_nilfs2-nilfsclone.o `test -f 'nilfsclone.c' || echo '$(srcdir)/'`nilfsclone.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_nilfs2-nilfsclone.Tpo $(DEPDIR)/partclone_nilfs2-nilfsclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfsclone.c' object='partclone_nilfs2-nilfsclone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o partclone_nilfs2-nilfsclone.o `test -f 'nilfsclone.c' || echo '$(srcdir)/'`nilfsclone.c
+
+partclone_nilfs2-nilfsclone.obj: nilfsclone.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT partclone_nilfs2-nilfsclone.obj -MD -MP -MF $(DEPDIR)/partclone_nilfs2-nilfsclone.Tpo -c -o partclone_nilfs2-nilfsclone.obj `if test -f 'nilfsclone.c'; then $(CYGPATH_W) 'nilfsclone.c'; else $(CYGPATH_W) '$(srcdir)/nilfsclone.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_nilfs2-nilfsclone.Tpo $(DEPDIR)/partclone_nilfs2-nilfsclone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfsclone.c' object='partclone_nilfs2-nilfsclone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o partclone_nilfs2-nilfsclone.obj `if test -f 'nilfsclone.c'; then $(CYGPATH_W) 'nilfsclone.c'; else $(CYGPATH_W) '$(srcdir)/nilfsclone.c'; fi`
+
+nilfs/partclone_nilfs2-crc32.o: nilfs/crc32.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-crc32.o -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-crc32.Tpo -c -o nilfs/partclone_nilfs2-crc32.o `test -f 'nilfs/crc32.c' || echo '$(srcdir)/'`nilfs/crc32.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-crc32.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-crc32.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/crc32.c' object='nilfs/partclone_nilfs2-crc32.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-crc32.o `test -f 'nilfs/crc32.c' || echo '$(srcdir)/'`nilfs/crc32.c
+
+nilfs/partclone_nilfs2-crc32.obj: nilfs/crc32.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-crc32.obj -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-crc32.Tpo -c -o nilfs/partclone_nilfs2-crc32.obj `if test -f 'nilfs/crc32.c'; then $(CYGPATH_W) 'nilfs/crc32.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/crc32.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-crc32.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-crc32.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/crc32.c' object='nilfs/partclone_nilfs2-crc32.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-crc32.obj `if test -f 'nilfs/crc32.c'; then $(CYGPATH_W) 'nilfs/crc32.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/crc32.c'; fi`
+
+nilfs/partclone_nilfs2-nilfs.o: nilfs/nilfs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-nilfs.o -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-nilfs.Tpo -c -o nilfs/partclone_nilfs2-nilfs.o `test -f 'nilfs/nilfs.c' || echo '$(srcdir)/'`nilfs/nilfs.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-nilfs.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-nilfs.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/nilfs.c' object='nilfs/partclone_nilfs2-nilfs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-nilfs.o `test -f 'nilfs/nilfs.c' || echo '$(srcdir)/'`nilfs/nilfs.c
+
+nilfs/partclone_nilfs2-nilfs.obj: nilfs/nilfs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-nilfs.obj -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-nilfs.Tpo -c -o nilfs/partclone_nilfs2-nilfs.obj `if test -f 'nilfs/nilfs.c'; then $(CYGPATH_W) 'nilfs/nilfs.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/nilfs.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-nilfs.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-nilfs.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/nilfs.c' object='nilfs/partclone_nilfs2-nilfs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-nilfs.obj `if test -f 'nilfs/nilfs.c'; then $(CYGPATH_W) 'nilfs/nilfs.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/nilfs.c'; fi`
+
+nilfs/partclone_nilfs2-realpath.o: nilfs/realpath.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-realpath.o -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-realpath.Tpo -c -o nilfs/partclone_nilfs2-realpath.o `test -f 'nilfs/realpath.c' || echo '$(srcdir)/'`nilfs/realpath.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-realpath.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-realpath.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/realpath.c' object='nilfs/partclone_nilfs2-realpath.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-realpath.o `test -f 'nilfs/realpath.c' || echo '$(srcdir)/'`nilfs/realpath.c
+
+nilfs/partclone_nilfs2-realpath.obj: nilfs/realpath.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-realpath.obj -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-realpath.Tpo -c -o nilfs/partclone_nilfs2-realpath.obj `if test -f 'nilfs/realpath.c'; then $(CYGPATH_W) 'nilfs/realpath.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/realpath.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-realpath.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-realpath.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/realpath.c' object='nilfs/partclone_nilfs2-realpath.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-realpath.obj `if test -f 'nilfs/realpath.c'; then $(CYGPATH_W) 'nilfs/realpath.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/realpath.c'; fi`
+
+nilfs/partclone_nilfs2-sb.o: nilfs/sb.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-sb.o -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-sb.Tpo -c -o nilfs/partclone_nilfs2-sb.o `test -f 'nilfs/sb.c' || echo '$(srcdir)/'`nilfs/sb.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-sb.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-sb.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/sb.c' object='nilfs/partclone_nilfs2-sb.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-sb.o `test -f 'nilfs/sb.c' || echo '$(srcdir)/'`nilfs/sb.c
+
+nilfs/partclone_nilfs2-sb.obj: nilfs/sb.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -MT nilfs/partclone_nilfs2-sb.obj -MD -MP -MF nilfs/$(DEPDIR)/partclone_nilfs2-sb.Tpo -c -o nilfs/partclone_nilfs2-sb.obj `if test -f 'nilfs/sb.c'; then $(CYGPATH_W) 'nilfs/sb.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/sb.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) nilfs/$(DEPDIR)/partclone_nilfs2-sb.Tpo nilfs/$(DEPDIR)/partclone_nilfs2-sb.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='nilfs/sb.c' object='nilfs/partclone_nilfs2-sb.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_nilfs2_CFLAGS) $(CFLAGS) -c -o nilfs/partclone_nilfs2-sb.obj `if test -f 'nilfs/sb.c'; then $(CYGPATH_W) 'nilfs/sb.c'; else $(CYGPATH_W) '$(srcdir)/nilfs/sb.c'; fi`
+
 partclone_ntfs-main.o: main.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_ntfs_CFLAGS) $(CFLAGS) -MT partclone_ntfs-main.o -MD -MP -MF $(DEPDIR)/partclone_ntfs-main.Tpo -c -o partclone_ntfs-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/partclone_ntfs-main.Tpo $(DEPDIR)/partclone_ntfs-main.Po
@@ -2782,6 +3136,524 @@ partclone_xfs-xfsclone.obj: xfsclone.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o partclone_xfs-xfsclone.obj `if test -f 'xfsclone.c'; then $(CYGPATH_W) 'xfsclone.c'; else $(CYGPATH_W) '$(srcdir)/xfsclone.c'; fi`
 
+xfs/partclone_xfs-xfs_attr.o: xfs/xfs_attr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_attr.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_attr.Tpo -c -o xfs/partclone_xfs-xfs_attr.o `test -f 'xfs/xfs_attr.c' || echo '$(srcdir)/'`xfs/xfs_attr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_attr.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_attr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_attr.c' object='xfs/partclone_xfs-xfs_attr.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_attr.o `test -f 'xfs/xfs_attr.c' || echo '$(srcdir)/'`xfs/xfs_attr.c
+
+xfs/partclone_xfs-xfs_attr.obj: xfs/xfs_attr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_attr.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_attr.Tpo -c -o xfs/partclone_xfs-xfs_attr.obj `if test -f 'xfs/xfs_attr.c'; then $(CYGPATH_W) 'xfs/xfs_attr.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_attr.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_attr.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_attr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_attr.c' object='xfs/partclone_xfs-xfs_attr.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_attr.obj `if test -f 'xfs/xfs_attr.c'; then $(CYGPATH_W) 'xfs/xfs_attr.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_attr.c'; fi`
+
+xfs/partclone_xfs-xfs_dir2_block.o: xfs/xfs_dir2_block.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_dir2_block.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_block.Tpo -c -o xfs/partclone_xfs-xfs_dir2_block.o `test -f 'xfs/xfs_dir2_block.c' || echo '$(srcdir)/'`xfs/xfs_dir2_block.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_block.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_block.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_dir2_block.c' object='xfs/partclone_xfs-xfs_dir2_block.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_dir2_block.o `test -f 'xfs/xfs_dir2_block.c' || echo '$(srcdir)/'`xfs/xfs_dir2_block.c
+
+xfs/partclone_xfs-xfs_dir2_block.obj: xfs/xfs_dir2_block.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_dir2_block.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_block.Tpo -c -o xfs/partclone_xfs-xfs_dir2_block.obj `if test -f 'xfs/xfs_dir2_block.c'; then $(CYGPATH_W) 'xfs/xfs_dir2_block.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_dir2_block.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_block.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_block.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_dir2_block.c' object='xfs/partclone_xfs-xfs_dir2_block.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_dir2_block.obj `if test -f 'xfs/xfs_dir2_block.c'; then $(CYGPATH_W) 'xfs/xfs_dir2_block.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_dir2_block.c'; fi`
+
+xfs/partclone_xfs-cache.o: xfs/cache.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-cache.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-cache.Tpo -c -o xfs/partclone_xfs-cache.o `test -f 'xfs/cache.c' || echo '$(srcdir)/'`xfs/cache.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-cache.Tpo xfs/$(DEPDIR)/partclone_xfs-cache.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/cache.c' object='xfs/partclone_xfs-cache.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-cache.o `test -f 'xfs/cache.c' || echo '$(srcdir)/'`xfs/cache.c
+
+xfs/partclone_xfs-cache.obj: xfs/cache.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-cache.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-cache.Tpo -c -o xfs/partclone_xfs-cache.obj `if test -f 'xfs/cache.c'; then $(CYGPATH_W) 'xfs/cache.c'; else $(CYGPATH_W) '$(srcdir)/xfs/cache.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-cache.Tpo xfs/$(DEPDIR)/partclone_xfs-cache.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/cache.c' object='xfs/partclone_xfs-cache.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-cache.obj `if test -f 'xfs/cache.c'; then $(CYGPATH_W) 'xfs/cache.c'; else $(CYGPATH_W) '$(srcdir)/xfs/cache.c'; fi`
+
+xfs/partclone_xfs-linux.o: xfs/linux.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-linux.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-linux.Tpo -c -o xfs/partclone_xfs-linux.o `test -f 'xfs/linux.c' || echo '$(srcdir)/'`xfs/linux.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-linux.Tpo xfs/$(DEPDIR)/partclone_xfs-linux.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/linux.c' object='xfs/partclone_xfs-linux.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-linux.o `test -f 'xfs/linux.c' || echo '$(srcdir)/'`xfs/linux.c
+
+xfs/partclone_xfs-linux.obj: xfs/linux.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-linux.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-linux.Tpo -c -o xfs/partclone_xfs-linux.obj `if test -f 'xfs/linux.c'; then $(CYGPATH_W) 'xfs/linux.c'; else $(CYGPATH_W) '$(srcdir)/xfs/linux.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-linux.Tpo xfs/$(DEPDIR)/partclone_xfs-linux.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/linux.c' object='xfs/partclone_xfs-linux.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-linux.obj `if test -f 'xfs/linux.c'; then $(CYGPATH_W) 'xfs/linux.c'; else $(CYGPATH_W) '$(srcdir)/xfs/linux.c'; fi`
+
+xfs/partclone_xfs-xfs_attr_leaf.o: xfs/xfs_attr_leaf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_attr_leaf.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_attr_leaf.Tpo -c -o xfs/partclone_xfs-xfs_attr_leaf.o `test -f 'xfs/xfs_attr_leaf.c' || echo '$(srcdir)/'`xfs/xfs_attr_leaf.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_attr_leaf.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_attr_leaf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_attr_leaf.c' object='xfs/partclone_xfs-xfs_attr_leaf.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_attr_leaf.o `test -f 'xfs/xfs_attr_leaf.c' || echo '$(srcdir)/'`xfs/xfs_attr_leaf.c
+
+xfs/partclone_xfs-xfs_attr_leaf.obj: xfs/xfs_attr_leaf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_attr_leaf.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_attr_leaf.Tpo -c -o xfs/partclone_xfs-xfs_attr_leaf.obj `if test -f 'xfs/xfs_attr_leaf.c'; then $(CYGPATH_W) 'xfs/xfs_attr_leaf.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_attr_leaf.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_attr_leaf.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_attr_leaf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_attr_leaf.c' object='xfs/partclone_xfs-xfs_attr_leaf.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_attr_leaf.obj `if test -f 'xfs/xfs_attr_leaf.c'; then $(CYGPATH_W) 'xfs/xfs_attr_leaf.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_attr_leaf.c'; fi`
+
+xfs/partclone_xfs-xfs_dir2.o: xfs/xfs_dir2.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_dir2.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_dir2.Tpo -c -o xfs/partclone_xfs-xfs_dir2.o `test -f 'xfs/xfs_dir2.c' || echo '$(srcdir)/'`xfs/xfs_dir2.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_dir2.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_dir2.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_dir2.c' object='xfs/partclone_xfs-xfs_dir2.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_dir2.o `test -f 'xfs/xfs_dir2.c' || echo '$(srcdir)/'`xfs/xfs_dir2.c
+
+xfs/partclone_xfs-xfs_dir2.obj: xfs/xfs_dir2.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_dir2.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_dir2.Tpo -c -o xfs/partclone_xfs-xfs_dir2.obj `if test -f 'xfs/xfs_dir2.c'; then $(CYGPATH_W) 'xfs/xfs_dir2.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_dir2.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_dir2.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_dir2.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_dir2.c' object='xfs/partclone_xfs-xfs_dir2.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_dir2.obj `if test -f 'xfs/xfs_dir2.c'; then $(CYGPATH_W) 'xfs/xfs_dir2.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_dir2.c'; fi`
+
+xfs/partclone_xfs-xfs_dir2_data.o: xfs/xfs_dir2_data.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_dir2_data.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_data.Tpo -c -o xfs/partclone_xfs-xfs_dir2_data.o `test -f 'xfs/xfs_dir2_data.c' || echo '$(srcdir)/'`xfs/xfs_dir2_data.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_data.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_data.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_dir2_data.c' object='xfs/partclone_xfs-xfs_dir2_data.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_dir2_data.o `test -f 'xfs/xfs_dir2_data.c' || echo '$(srcdir)/'`xfs/xfs_dir2_data.c
+
+xfs/partclone_xfs-xfs_dir2_data.obj: xfs/xfs_dir2_data.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_dir2_data.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_data.Tpo -c -o xfs/partclone_xfs-xfs_dir2_data.obj `if test -f 'xfs/xfs_dir2_data.c'; then $(CYGPATH_W) 'xfs/xfs_dir2_data.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_dir2_data.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_data.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_data.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_dir2_data.c' object='xfs/partclone_xfs-xfs_dir2_data.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_dir2_data.obj `if test -f 'xfs/xfs_dir2_data.c'; then $(CYGPATH_W) 'xfs/xfs_dir2_data.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_dir2_data.c'; fi`
+
+xfs/partclone_xfs-xfs_attr_remote.o: xfs/xfs_attr_remote.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_attr_remote.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_attr_remote.Tpo -c -o xfs/partclone_xfs-xfs_attr_remote.o `test -f 'xfs/xfs_attr_remote.c' || echo '$(srcdir)/'`xfs/xfs_attr_remote.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_attr_remote.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_attr_remote.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_attr_remote.c' object='xfs/partclone_xfs-xfs_attr_remote.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_attr_remote.o `test -f 'xfs/xfs_attr_remote.c' || echo '$(srcdir)/'`xfs/xfs_attr_remote.c
+
+xfs/partclone_xfs-xfs_attr_remote.obj: xfs/xfs_attr_remote.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_attr_remote.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_attr_remote.Tpo -c -o xfs/partclone_xfs-xfs_attr_remote.obj `if test -f 'xfs/xfs_attr_remote.c'; then $(CYGPATH_W) 'xfs/xfs_attr_remote.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_attr_remote.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_attr_remote.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_attr_remote.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_attr_remote.c' object='xfs/partclone_xfs-xfs_attr_remote.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_attr_remote.obj `if test -f 'xfs/xfs_attr_remote.c'; then $(CYGPATH_W) 'xfs/xfs_attr_remote.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_attr_remote.c'; fi`
+
+xfs/partclone_xfs-xfs_log_rlimit.o: xfs/xfs_log_rlimit.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_log_rlimit.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_log_rlimit.Tpo -c -o xfs/partclone_xfs-xfs_log_rlimit.o `test -f 'xfs/xfs_log_rlimit.c' || echo '$(srcdir)/'`xfs/xfs_log_rlimit.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_log_rlimit.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_log_rlimit.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_log_rlimit.c' object='xfs/partclone_xfs-xfs_log_rlimit.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_log_rlimit.o `test -f 'xfs/xfs_log_rlimit.c' || echo '$(srcdir)/'`xfs/xfs_log_rlimit.c
+
+xfs/partclone_xfs-xfs_log_rlimit.obj: xfs/xfs_log_rlimit.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_log_rlimit.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_log_rlimit.Tpo -c -o xfs/partclone_xfs-xfs_log_rlimit.obj `if test -f 'xfs/xfs_log_rlimit.c'; then $(CYGPATH_W) 'xfs/xfs_log_rlimit.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_log_rlimit.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_log_rlimit.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_log_rlimit.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_log_rlimit.c' object='xfs/partclone_xfs-xfs_log_rlimit.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_log_rlimit.obj `if test -f 'xfs/xfs_log_rlimit.c'; then $(CYGPATH_W) 'xfs/xfs_log_rlimit.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_log_rlimit.c'; fi`
+
+xfs/partclone_xfs-crc32.o: xfs/crc32.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-crc32.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-crc32.Tpo -c -o xfs/partclone_xfs-crc32.o `test -f 'xfs/crc32.c' || echo '$(srcdir)/'`xfs/crc32.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-crc32.Tpo xfs/$(DEPDIR)/partclone_xfs-crc32.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/crc32.c' object='xfs/partclone_xfs-crc32.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-crc32.o `test -f 'xfs/crc32.c' || echo '$(srcdir)/'`xfs/crc32.c
+
+xfs/partclone_xfs-crc32.obj: xfs/crc32.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-crc32.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-crc32.Tpo -c -o xfs/partclone_xfs-crc32.obj `if test -f 'xfs/crc32.c'; then $(CYGPATH_W) 'xfs/crc32.c'; else $(CYGPATH_W) '$(srcdir)/xfs/crc32.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-crc32.Tpo xfs/$(DEPDIR)/partclone_xfs-crc32.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/crc32.c' object='xfs/partclone_xfs-crc32.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-crc32.obj `if test -f 'xfs/crc32.c'; then $(CYGPATH_W) 'xfs/crc32.c'; else $(CYGPATH_W) '$(srcdir)/xfs/crc32.c'; fi`
+
+xfs/partclone_xfs-logitem.o: xfs/logitem.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-logitem.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-logitem.Tpo -c -o xfs/partclone_xfs-logitem.o `test -f 'xfs/logitem.c' || echo '$(srcdir)/'`xfs/logitem.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-logitem.Tpo xfs/$(DEPDIR)/partclone_xfs-logitem.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/logitem.c' object='xfs/partclone_xfs-logitem.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-logitem.o `test -f 'xfs/logitem.c' || echo '$(srcdir)/'`xfs/logitem.c
+
+xfs/partclone_xfs-logitem.obj: xfs/logitem.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-logitem.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-logitem.Tpo -c -o xfs/partclone_xfs-logitem.obj `if test -f 'xfs/logitem.c'; then $(CYGPATH_W) 'xfs/logitem.c'; else $(CYGPATH_W) '$(srcdir)/xfs/logitem.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-logitem.Tpo xfs/$(DEPDIR)/partclone_xfs-logitem.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/logitem.c' object='xfs/partclone_xfs-logitem.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-logitem.obj `if test -f 'xfs/logitem.c'; then $(CYGPATH_W) 'xfs/logitem.c'; else $(CYGPATH_W) '$(srcdir)/xfs/logitem.c'; fi`
+
+xfs/partclone_xfs-xfs_dir2_leaf.o: xfs/xfs_dir2_leaf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_dir2_leaf.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_leaf.Tpo -c -o xfs/partclone_xfs-xfs_dir2_leaf.o `test -f 'xfs/xfs_dir2_leaf.c' || echo '$(srcdir)/'`xfs/xfs_dir2_leaf.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_leaf.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_leaf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_dir2_leaf.c' object='xfs/partclone_xfs-xfs_dir2_leaf.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_dir2_leaf.o `test -f 'xfs/xfs_dir2_leaf.c' || echo '$(srcdir)/'`xfs/xfs_dir2_leaf.c
+
+xfs/partclone_xfs-xfs_dir2_leaf.obj: xfs/xfs_dir2_leaf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_dir2_leaf.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_leaf.Tpo -c -o xfs/partclone_xfs-xfs_dir2_leaf.obj `if test -f 'xfs/xfs_dir2_leaf.c'; then $(CYGPATH_W) 'xfs/xfs_dir2_leaf.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_dir2_leaf.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_leaf.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_leaf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_dir2_leaf.c' object='xfs/partclone_xfs-xfs_dir2_leaf.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_dir2_leaf.obj `if test -f 'xfs/xfs_dir2_leaf.c'; then $(CYGPATH_W) 'xfs/xfs_dir2_leaf.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_dir2_leaf.c'; fi`
+
+xfs/partclone_xfs-xfs_dir2_node.o: xfs/xfs_dir2_node.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_dir2_node.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_node.Tpo -c -o xfs/partclone_xfs-xfs_dir2_node.o `test -f 'xfs/xfs_dir2_node.c' || echo '$(srcdir)/'`xfs/xfs_dir2_node.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_node.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_node.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_dir2_node.c' object='xfs/partclone_xfs-xfs_dir2_node.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_dir2_node.o `test -f 'xfs/xfs_dir2_node.c' || echo '$(srcdir)/'`xfs/xfs_dir2_node.c
+
+xfs/partclone_xfs-xfs_dir2_node.obj: xfs/xfs_dir2_node.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_dir2_node.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_node.Tpo -c -o xfs/partclone_xfs-xfs_dir2_node.obj `if test -f 'xfs/xfs_dir2_node.c'; then $(CYGPATH_W) 'xfs/xfs_dir2_node.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_dir2_node.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_node.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_node.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_dir2_node.c' object='xfs/partclone_xfs-xfs_dir2_node.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_dir2_node.obj `if test -f 'xfs/xfs_dir2_node.c'; then $(CYGPATH_W) 'xfs/xfs_dir2_node.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_dir2_node.c'; fi`
+
+xfs/partclone_xfs-xfs_bit.o: xfs/xfs_bit.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_bit.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_bit.Tpo -c -o xfs/partclone_xfs-xfs_bit.o `test -f 'xfs/xfs_bit.c' || echo '$(srcdir)/'`xfs/xfs_bit.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_bit.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_bit.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_bit.c' object='xfs/partclone_xfs-xfs_bit.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_bit.o `test -f 'xfs/xfs_bit.c' || echo '$(srcdir)/'`xfs/xfs_bit.c
+
+xfs/partclone_xfs-xfs_bit.obj: xfs/xfs_bit.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_bit.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_bit.Tpo -c -o xfs/partclone_xfs-xfs_bit.obj `if test -f 'xfs/xfs_bit.c'; then $(CYGPATH_W) 'xfs/xfs_bit.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_bit.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_bit.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_bit.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_bit.c' object='xfs/partclone_xfs-xfs_bit.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_bit.obj `if test -f 'xfs/xfs_bit.c'; then $(CYGPATH_W) 'xfs/xfs_bit.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_bit.c'; fi`
+
+xfs/partclone_xfs-xfs_dir2_sf.o: xfs/xfs_dir2_sf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_dir2_sf.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_sf.Tpo -c -o xfs/partclone_xfs-xfs_dir2_sf.o `test -f 'xfs/xfs_dir2_sf.c' || echo '$(srcdir)/'`xfs/xfs_dir2_sf.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_sf.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_sf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_dir2_sf.c' object='xfs/partclone_xfs-xfs_dir2_sf.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_dir2_sf.o `test -f 'xfs/xfs_dir2_sf.c' || echo '$(srcdir)/'`xfs/xfs_dir2_sf.c
+
+xfs/partclone_xfs-xfs_dir2_sf.obj: xfs/xfs_dir2_sf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_dir2_sf.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_sf.Tpo -c -o xfs/partclone_xfs-xfs_dir2_sf.obj `if test -f 'xfs/xfs_dir2_sf.c'; then $(CYGPATH_W) 'xfs/xfs_dir2_sf.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_dir2_sf.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_sf.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_dir2_sf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_dir2_sf.c' object='xfs/partclone_xfs-xfs_dir2_sf.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_dir2_sf.obj `if test -f 'xfs/xfs_dir2_sf.c'; then $(CYGPATH_W) 'xfs/xfs_dir2_sf.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_dir2_sf.c'; fi`
+
+xfs/partclone_xfs-xfs_rtbitmap.o: xfs/xfs_rtbitmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_rtbitmap.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_rtbitmap.Tpo -c -o xfs/partclone_xfs-xfs_rtbitmap.o `test -f 'xfs/xfs_rtbitmap.c' || echo '$(srcdir)/'`xfs/xfs_rtbitmap.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_rtbitmap.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_rtbitmap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_rtbitmap.c' object='xfs/partclone_xfs-xfs_rtbitmap.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_rtbitmap.o `test -f 'xfs/xfs_rtbitmap.c' || echo '$(srcdir)/'`xfs/xfs_rtbitmap.c
+
+xfs/partclone_xfs-xfs_rtbitmap.obj: xfs/xfs_rtbitmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_rtbitmap.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_rtbitmap.Tpo -c -o xfs/partclone_xfs-xfs_rtbitmap.obj `if test -f 'xfs/xfs_rtbitmap.c'; then $(CYGPATH_W) 'xfs/xfs_rtbitmap.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_rtbitmap.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_rtbitmap.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_rtbitmap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_rtbitmap.c' object='xfs/partclone_xfs-xfs_rtbitmap.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_rtbitmap.obj `if test -f 'xfs/xfs_rtbitmap.c'; then $(CYGPATH_W) 'xfs/xfs_rtbitmap.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_rtbitmap.c'; fi`
+
+xfs/partclone_xfs-xfs_bmap_btree.o: xfs/xfs_bmap_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_bmap_btree.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_bmap_btree.Tpo -c -o xfs/partclone_xfs-xfs_bmap_btree.o `test -f 'xfs/xfs_bmap_btree.c' || echo '$(srcdir)/'`xfs/xfs_bmap_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_bmap_btree.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_bmap_btree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_bmap_btree.c' object='xfs/partclone_xfs-xfs_bmap_btree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_bmap_btree.o `test -f 'xfs/xfs_bmap_btree.c' || echo '$(srcdir)/'`xfs/xfs_bmap_btree.c
+
+xfs/partclone_xfs-xfs_bmap_btree.obj: xfs/xfs_bmap_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_bmap_btree.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_bmap_btree.Tpo -c -o xfs/partclone_xfs-xfs_bmap_btree.obj `if test -f 'xfs/xfs_bmap_btree.c'; then $(CYGPATH_W) 'xfs/xfs_bmap_btree.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_bmap_btree.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_bmap_btree.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_bmap_btree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_bmap_btree.c' object='xfs/partclone_xfs-xfs_bmap_btree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_bmap_btree.obj `if test -f 'xfs/xfs_bmap_btree.c'; then $(CYGPATH_W) 'xfs/xfs_bmap_btree.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_bmap_btree.c'; fi`
+
+xfs/partclone_xfs-xfs_dquot_buf.o: xfs/xfs_dquot_buf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_dquot_buf.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_dquot_buf.Tpo -c -o xfs/partclone_xfs-xfs_dquot_buf.o `test -f 'xfs/xfs_dquot_buf.c' || echo '$(srcdir)/'`xfs/xfs_dquot_buf.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_dquot_buf.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_dquot_buf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_dquot_buf.c' object='xfs/partclone_xfs-xfs_dquot_buf.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_dquot_buf.o `test -f 'xfs/xfs_dquot_buf.c' || echo '$(srcdir)/'`xfs/xfs_dquot_buf.c
+
+xfs/partclone_xfs-xfs_dquot_buf.obj: xfs/xfs_dquot_buf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_dquot_buf.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_dquot_buf.Tpo -c -o xfs/partclone_xfs-xfs_dquot_buf.obj `if test -f 'xfs/xfs_dquot_buf.c'; then $(CYGPATH_W) 'xfs/xfs_dquot_buf.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_dquot_buf.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_dquot_buf.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_dquot_buf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_dquot_buf.c' object='xfs/partclone_xfs-xfs_dquot_buf.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_dquot_buf.obj `if test -f 'xfs/xfs_dquot_buf.c'; then $(CYGPATH_W) 'xfs/xfs_dquot_buf.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_dquot_buf.c'; fi`
+
+xfs/partclone_xfs-xfs_sb.o: xfs/xfs_sb.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_sb.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_sb.Tpo -c -o xfs/partclone_xfs-xfs_sb.o `test -f 'xfs/xfs_sb.c' || echo '$(srcdir)/'`xfs/xfs_sb.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_sb.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_sb.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_sb.c' object='xfs/partclone_xfs-xfs_sb.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_sb.o `test -f 'xfs/xfs_sb.c' || echo '$(srcdir)/'`xfs/xfs_sb.c
+
+xfs/partclone_xfs-xfs_sb.obj: xfs/xfs_sb.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_sb.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_sb.Tpo -c -o xfs/partclone_xfs-xfs_sb.obj `if test -f 'xfs/xfs_sb.c'; then $(CYGPATH_W) 'xfs/xfs_sb.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_sb.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_sb.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_sb.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_sb.c' object='xfs/partclone_xfs-xfs_sb.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_sb.obj `if test -f 'xfs/xfs_sb.c'; then $(CYGPATH_W) 'xfs/xfs_sb.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_sb.c'; fi`
+
+xfs/partclone_xfs-init.o: xfs/init.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-init.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-init.Tpo -c -o xfs/partclone_xfs-init.o `test -f 'xfs/init.c' || echo '$(srcdir)/'`xfs/init.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-init.Tpo xfs/$(DEPDIR)/partclone_xfs-init.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/init.c' object='xfs/partclone_xfs-init.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-init.o `test -f 'xfs/init.c' || echo '$(srcdir)/'`xfs/init.c
+
+xfs/partclone_xfs-init.obj: xfs/init.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-init.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-init.Tpo -c -o xfs/partclone_xfs-init.obj `if test -f 'xfs/init.c'; then $(CYGPATH_W) 'xfs/init.c'; else $(CYGPATH_W) '$(srcdir)/xfs/init.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-init.Tpo xfs/$(DEPDIR)/partclone_xfs-init.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/init.c' object='xfs/partclone_xfs-init.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-init.obj `if test -f 'xfs/init.c'; then $(CYGPATH_W) 'xfs/init.c'; else $(CYGPATH_W) '$(srcdir)/xfs/init.c'; fi`
+
+xfs/partclone_xfs-radix-tree.o: xfs/radix-tree.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-radix-tree.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-radix-tree.Tpo -c -o xfs/partclone_xfs-radix-tree.o `test -f 'xfs/radix-tree.c' || echo '$(srcdir)/'`xfs/radix-tree.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-radix-tree.Tpo xfs/$(DEPDIR)/partclone_xfs-radix-tree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/radix-tree.c' object='xfs/partclone_xfs-radix-tree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-radix-tree.o `test -f 'xfs/radix-tree.c' || echo '$(srcdir)/'`xfs/radix-tree.c
+
+xfs/partclone_xfs-radix-tree.obj: xfs/radix-tree.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-radix-tree.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-radix-tree.Tpo -c -o xfs/partclone_xfs-radix-tree.obj `if test -f 'xfs/radix-tree.c'; then $(CYGPATH_W) 'xfs/radix-tree.c'; else $(CYGPATH_W) '$(srcdir)/xfs/radix-tree.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-radix-tree.Tpo xfs/$(DEPDIR)/partclone_xfs-radix-tree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/radix-tree.c' object='xfs/partclone_xfs-radix-tree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-radix-tree.obj `if test -f 'xfs/radix-tree.c'; then $(CYGPATH_W) 'xfs/radix-tree.c'; else $(CYGPATH_W) '$(srcdir)/xfs/radix-tree.c'; fi`
+
+xfs/partclone_xfs-xfs_bmap.o: xfs/xfs_bmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_bmap.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_bmap.Tpo -c -o xfs/partclone_xfs-xfs_bmap.o `test -f 'xfs/xfs_bmap.c' || echo '$(srcdir)/'`xfs/xfs_bmap.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_bmap.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_bmap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_bmap.c' object='xfs/partclone_xfs-xfs_bmap.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_bmap.o `test -f 'xfs/xfs_bmap.c' || echo '$(srcdir)/'`xfs/xfs_bmap.c
+
+xfs/partclone_xfs-xfs_bmap.obj: xfs/xfs_bmap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_bmap.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_bmap.Tpo -c -o xfs/partclone_xfs-xfs_bmap.obj `if test -f 'xfs/xfs_bmap.c'; then $(CYGPATH_W) 'xfs/xfs_bmap.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_bmap.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_bmap.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_bmap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_bmap.c' object='xfs/partclone_xfs-xfs_bmap.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_bmap.obj `if test -f 'xfs/xfs_bmap.c'; then $(CYGPATH_W) 'xfs/xfs_bmap.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_bmap.c'; fi`
+
+xfs/partclone_xfs-xfs_symlink_remote.o: xfs/xfs_symlink_remote.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_symlink_remote.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_symlink_remote.Tpo -c -o xfs/partclone_xfs-xfs_symlink_remote.o `test -f 'xfs/xfs_symlink_remote.c' || echo '$(srcdir)/'`xfs/xfs_symlink_remote.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_symlink_remote.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_symlink_remote.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_symlink_remote.c' object='xfs/partclone_xfs-xfs_symlink_remote.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_symlink_remote.o `test -f 'xfs/xfs_symlink_remote.c' || echo '$(srcdir)/'`xfs/xfs_symlink_remote.c
+
+xfs/partclone_xfs-xfs_symlink_remote.obj: xfs/xfs_symlink_remote.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_symlink_remote.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_symlink_remote.Tpo -c -o xfs/partclone_xfs-xfs_symlink_remote.obj `if test -f 'xfs/xfs_symlink_remote.c'; then $(CYGPATH_W) 'xfs/xfs_symlink_remote.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_symlink_remote.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_symlink_remote.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_symlink_remote.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_symlink_remote.c' object='xfs/partclone_xfs-xfs_symlink_remote.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_symlink_remote.obj `if test -f 'xfs/xfs_symlink_remote.c'; then $(CYGPATH_W) 'xfs/xfs_symlink_remote.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_symlink_remote.c'; fi`
+
+xfs/partclone_xfs-rdwr.o: xfs/rdwr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-rdwr.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-rdwr.Tpo -c -o xfs/partclone_xfs-rdwr.o `test -f 'xfs/rdwr.c' || echo '$(srcdir)/'`xfs/rdwr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-rdwr.Tpo xfs/$(DEPDIR)/partclone_xfs-rdwr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/rdwr.c' object='xfs/partclone_xfs-rdwr.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-rdwr.o `test -f 'xfs/rdwr.c' || echo '$(srcdir)/'`xfs/rdwr.c
+
+xfs/partclone_xfs-rdwr.obj: xfs/rdwr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-rdwr.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-rdwr.Tpo -c -o xfs/partclone_xfs-rdwr.obj `if test -f 'xfs/rdwr.c'; then $(CYGPATH_W) 'xfs/rdwr.c'; else $(CYGPATH_W) '$(srcdir)/xfs/rdwr.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-rdwr.Tpo xfs/$(DEPDIR)/partclone_xfs-rdwr.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/rdwr.c' object='xfs/partclone_xfs-rdwr.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-rdwr.obj `if test -f 'xfs/rdwr.c'; then $(CYGPATH_W) 'xfs/rdwr.c'; else $(CYGPATH_W) '$(srcdir)/xfs/rdwr.c'; fi`
+
+xfs/partclone_xfs-xfs_btree.o: xfs/xfs_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_btree.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_btree.Tpo -c -o xfs/partclone_xfs-xfs_btree.o `test -f 'xfs/xfs_btree.c' || echo '$(srcdir)/'`xfs/xfs_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_btree.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_btree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_btree.c' object='xfs/partclone_xfs-xfs_btree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_btree.o `test -f 'xfs/xfs_btree.c' || echo '$(srcdir)/'`xfs/xfs_btree.c
+
+xfs/partclone_xfs-xfs_btree.obj: xfs/xfs_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_btree.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_btree.Tpo -c -o xfs/partclone_xfs-xfs_btree.obj `if test -f 'xfs/xfs_btree.c'; then $(CYGPATH_W) 'xfs/xfs_btree.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_btree.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_btree.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_btree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_btree.c' object='xfs/partclone_xfs-xfs_btree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_btree.obj `if test -f 'xfs/xfs_btree.c'; then $(CYGPATH_W) 'xfs/xfs_btree.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_btree.c'; fi`
+
+xfs/partclone_xfs-xfs_ialloc_btree.o: xfs/xfs_ialloc_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_ialloc_btree.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_ialloc_btree.Tpo -c -o xfs/partclone_xfs-xfs_ialloc_btree.o `test -f 'xfs/xfs_ialloc_btree.c' || echo '$(srcdir)/'`xfs/xfs_ialloc_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_ialloc_btree.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_ialloc_btree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_ialloc_btree.c' object='xfs/partclone_xfs-xfs_ialloc_btree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_ialloc_btree.o `test -f 'xfs/xfs_ialloc_btree.c' || echo '$(srcdir)/'`xfs/xfs_ialloc_btree.c
+
+xfs/partclone_xfs-xfs_ialloc_btree.obj: xfs/xfs_ialloc_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_ialloc_btree.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_ialloc_btree.Tpo -c -o xfs/partclone_xfs-xfs_ialloc_btree.obj `if test -f 'xfs/xfs_ialloc_btree.c'; then $(CYGPATH_W) 'xfs/xfs_ialloc_btree.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_ialloc_btree.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_ialloc_btree.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_ialloc_btree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_ialloc_btree.c' object='xfs/partclone_xfs-xfs_ialloc_btree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_ialloc_btree.obj `if test -f 'xfs/xfs_ialloc_btree.c'; then $(CYGPATH_W) 'xfs/xfs_ialloc_btree.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_ialloc_btree.c'; fi`
+
+xfs/partclone_xfs-trans.o: xfs/trans.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-trans.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-trans.Tpo -c -o xfs/partclone_xfs-trans.o `test -f 'xfs/trans.c' || echo '$(srcdir)/'`xfs/trans.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-trans.Tpo xfs/$(DEPDIR)/partclone_xfs-trans.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/trans.c' object='xfs/partclone_xfs-trans.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-trans.o `test -f 'xfs/trans.c' || echo '$(srcdir)/'`xfs/trans.c
+
+xfs/partclone_xfs-trans.obj: xfs/trans.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-trans.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-trans.Tpo -c -o xfs/partclone_xfs-trans.obj `if test -f 'xfs/trans.c'; then $(CYGPATH_W) 'xfs/trans.c'; else $(CYGPATH_W) '$(srcdir)/xfs/trans.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-trans.Tpo xfs/$(DEPDIR)/partclone_xfs-trans.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/trans.c' object='xfs/partclone_xfs-trans.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-trans.obj `if test -f 'xfs/trans.c'; then $(CYGPATH_W) 'xfs/trans.c'; else $(CYGPATH_W) '$(srcdir)/xfs/trans.c'; fi`
+
+xfs/partclone_xfs-kmem.o: xfs/kmem.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-kmem.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-kmem.Tpo -c -o xfs/partclone_xfs-kmem.o `test -f 'xfs/kmem.c' || echo '$(srcdir)/'`xfs/kmem.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-kmem.Tpo xfs/$(DEPDIR)/partclone_xfs-kmem.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/kmem.c' object='xfs/partclone_xfs-kmem.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-kmem.o `test -f 'xfs/kmem.c' || echo '$(srcdir)/'`xfs/kmem.c
+
+xfs/partclone_xfs-kmem.obj: xfs/kmem.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-kmem.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-kmem.Tpo -c -o xfs/partclone_xfs-kmem.obj `if test -f 'xfs/kmem.c'; then $(CYGPATH_W) 'xfs/kmem.c'; else $(CYGPATH_W) '$(srcdir)/xfs/kmem.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-kmem.Tpo xfs/$(DEPDIR)/partclone_xfs-kmem.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/kmem.c' object='xfs/partclone_xfs-kmem.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-kmem.obj `if test -f 'xfs/kmem.c'; then $(CYGPATH_W) 'xfs/kmem.c'; else $(CYGPATH_W) '$(srcdir)/xfs/kmem.c'; fi`
+
+xfs/partclone_xfs-util.o: xfs/util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-util.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-util.Tpo -c -o xfs/partclone_xfs-util.o `test -f 'xfs/util.c' || echo '$(srcdir)/'`xfs/util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-util.Tpo xfs/$(DEPDIR)/partclone_xfs-util.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/util.c' object='xfs/partclone_xfs-util.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-util.o `test -f 'xfs/util.c' || echo '$(srcdir)/'`xfs/util.c
+
+xfs/partclone_xfs-util.obj: xfs/util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-util.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-util.Tpo -c -o xfs/partclone_xfs-util.obj `if test -f 'xfs/util.c'; then $(CYGPATH_W) 'xfs/util.c'; else $(CYGPATH_W) '$(srcdir)/xfs/util.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-util.Tpo xfs/$(DEPDIR)/partclone_xfs-util.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/util.c' object='xfs/partclone_xfs-util.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-util.obj `if test -f 'xfs/util.c'; then $(CYGPATH_W) 'xfs/util.c'; else $(CYGPATH_W) '$(srcdir)/xfs/util.c'; fi`
+
+xfs/partclone_xfs-xfs_ialloc.o: xfs/xfs_ialloc.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_ialloc.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_ialloc.Tpo -c -o xfs/partclone_xfs-xfs_ialloc.o `test -f 'xfs/xfs_ialloc.c' || echo '$(srcdir)/'`xfs/xfs_ialloc.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_ialloc.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_ialloc.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_ialloc.c' object='xfs/partclone_xfs-xfs_ialloc.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_ialloc.o `test -f 'xfs/xfs_ialloc.c' || echo '$(srcdir)/'`xfs/xfs_ialloc.c
+
+xfs/partclone_xfs-xfs_ialloc.obj: xfs/xfs_ialloc.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_ialloc.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_ialloc.Tpo -c -o xfs/partclone_xfs-xfs_ialloc.obj `if test -f 'xfs/xfs_ialloc.c'; then $(CYGPATH_W) 'xfs/xfs_ialloc.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_ialloc.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_ialloc.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_ialloc.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_ialloc.c' object='xfs/partclone_xfs-xfs_ialloc.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_ialloc.obj `if test -f 'xfs/xfs_ialloc.c'; then $(CYGPATH_W) 'xfs/xfs_ialloc.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_ialloc.c'; fi`
+
+xfs/partclone_xfs-xfs_trans_resv.o: xfs/xfs_trans_resv.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_trans_resv.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_trans_resv.Tpo -c -o xfs/partclone_xfs-xfs_trans_resv.o `test -f 'xfs/xfs_trans_resv.c' || echo '$(srcdir)/'`xfs/xfs_trans_resv.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_trans_resv.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_trans_resv.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_trans_resv.c' object='xfs/partclone_xfs-xfs_trans_resv.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_trans_resv.o `test -f 'xfs/xfs_trans_resv.c' || echo '$(srcdir)/'`xfs/xfs_trans_resv.c
+
+xfs/partclone_xfs-xfs_trans_resv.obj: xfs/xfs_trans_resv.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_trans_resv.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_trans_resv.Tpo -c -o xfs/partclone_xfs-xfs_trans_resv.obj `if test -f 'xfs/xfs_trans_resv.c'; then $(CYGPATH_W) 'xfs/xfs_trans_resv.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_trans_resv.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_trans_resv.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_trans_resv.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_trans_resv.c' object='xfs/partclone_xfs-xfs_trans_resv.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_trans_resv.obj `if test -f 'xfs/xfs_trans_resv.c'; then $(CYGPATH_W) 'xfs/xfs_trans_resv.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_trans_resv.c'; fi`
+
+xfs/partclone_xfs-xfs_alloc_btree.o: xfs/xfs_alloc_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_alloc_btree.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_alloc_btree.Tpo -c -o xfs/partclone_xfs-xfs_alloc_btree.o `test -f 'xfs/xfs_alloc_btree.c' || echo '$(srcdir)/'`xfs/xfs_alloc_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_alloc_btree.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_alloc_btree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_alloc_btree.c' object='xfs/partclone_xfs-xfs_alloc_btree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_alloc_btree.o `test -f 'xfs/xfs_alloc_btree.c' || echo '$(srcdir)/'`xfs/xfs_alloc_btree.c
+
+xfs/partclone_xfs-xfs_alloc_btree.obj: xfs/xfs_alloc_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_alloc_btree.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_alloc_btree.Tpo -c -o xfs/partclone_xfs-xfs_alloc_btree.obj `if test -f 'xfs/xfs_alloc_btree.c'; then $(CYGPATH_W) 'xfs/xfs_alloc_btree.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_alloc_btree.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_alloc_btree.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_alloc_btree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_alloc_btree.c' object='xfs/partclone_xfs-xfs_alloc_btree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_alloc_btree.obj `if test -f 'xfs/xfs_alloc_btree.c'; then $(CYGPATH_W) 'xfs/xfs_alloc_btree.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_alloc_btree.c'; fi`
+
+xfs/partclone_xfs-xfs_da_btree.o: xfs/xfs_da_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_da_btree.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_da_btree.Tpo -c -o xfs/partclone_xfs-xfs_da_btree.o `test -f 'xfs/xfs_da_btree.c' || echo '$(srcdir)/'`xfs/xfs_da_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_da_btree.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_da_btree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_da_btree.c' object='xfs/partclone_xfs-xfs_da_btree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_da_btree.o `test -f 'xfs/xfs_da_btree.c' || echo '$(srcdir)/'`xfs/xfs_da_btree.c
+
+xfs/partclone_xfs-xfs_da_btree.obj: xfs/xfs_da_btree.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_da_btree.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_da_btree.Tpo -c -o xfs/partclone_xfs-xfs_da_btree.obj `if test -f 'xfs/xfs_da_btree.c'; then $(CYGPATH_W) 'xfs/xfs_da_btree.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_da_btree.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_da_btree.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_da_btree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_da_btree.c' object='xfs/partclone_xfs-xfs_da_btree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_da_btree.obj `if test -f 'xfs/xfs_da_btree.c'; then $(CYGPATH_W) 'xfs/xfs_da_btree.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_da_btree.c'; fi`
+
+xfs/partclone_xfs-xfs_inode_buf.o: xfs/xfs_inode_buf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_inode_buf.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_inode_buf.Tpo -c -o xfs/partclone_xfs-xfs_inode_buf.o `test -f 'xfs/xfs_inode_buf.c' || echo '$(srcdir)/'`xfs/xfs_inode_buf.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_inode_buf.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_inode_buf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_inode_buf.c' object='xfs/partclone_xfs-xfs_inode_buf.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_inode_buf.o `test -f 'xfs/xfs_inode_buf.c' || echo '$(srcdir)/'`xfs/xfs_inode_buf.c
+
+xfs/partclone_xfs-xfs_inode_buf.obj: xfs/xfs_inode_buf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_inode_buf.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_inode_buf.Tpo -c -o xfs/partclone_xfs-xfs_inode_buf.obj `if test -f 'xfs/xfs_inode_buf.c'; then $(CYGPATH_W) 'xfs/xfs_inode_buf.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_inode_buf.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_inode_buf.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_inode_buf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_inode_buf.c' object='xfs/partclone_xfs-xfs_inode_buf.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_inode_buf.obj `if test -f 'xfs/xfs_inode_buf.c'; then $(CYGPATH_W) 'xfs/xfs_inode_buf.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_inode_buf.c'; fi`
+
+xfs/partclone_xfs-xfs_alloc.o: xfs/xfs_alloc.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_alloc.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_alloc.Tpo -c -o xfs/partclone_xfs-xfs_alloc.o `test -f 'xfs/xfs_alloc.c' || echo '$(srcdir)/'`xfs/xfs_alloc.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_alloc.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_alloc.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_alloc.c' object='xfs/partclone_xfs-xfs_alloc.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_alloc.o `test -f 'xfs/xfs_alloc.c' || echo '$(srcdir)/'`xfs/xfs_alloc.c
+
+xfs/partclone_xfs-xfs_alloc.obj: xfs/xfs_alloc.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_alloc.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_alloc.Tpo -c -o xfs/partclone_xfs-xfs_alloc.obj `if test -f 'xfs/xfs_alloc.c'; then $(CYGPATH_W) 'xfs/xfs_alloc.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_alloc.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_alloc.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_alloc.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_alloc.c' object='xfs/partclone_xfs-xfs_alloc.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_alloc.obj `if test -f 'xfs/xfs_alloc.c'; then $(CYGPATH_W) 'xfs/xfs_alloc.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_alloc.c'; fi`
+
+xfs/partclone_xfs-xfs_da_format.o: xfs/xfs_da_format.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_da_format.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_da_format.Tpo -c -o xfs/partclone_xfs-xfs_da_format.o `test -f 'xfs/xfs_da_format.c' || echo '$(srcdir)/'`xfs/xfs_da_format.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_da_format.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_da_format.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_da_format.c' object='xfs/partclone_xfs-xfs_da_format.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_da_format.o `test -f 'xfs/xfs_da_format.c' || echo '$(srcdir)/'`xfs/xfs_da_format.c
+
+xfs/partclone_xfs-xfs_da_format.obj: xfs/xfs_da_format.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_da_format.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_da_format.Tpo -c -o xfs/partclone_xfs-xfs_da_format.obj `if test -f 'xfs/xfs_da_format.c'; then $(CYGPATH_W) 'xfs/xfs_da_format.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_da_format.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_da_format.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_da_format.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_da_format.c' object='xfs/partclone_xfs-xfs_da_format.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_da_format.obj `if test -f 'xfs/xfs_da_format.c'; then $(CYGPATH_W) 'xfs/xfs_da_format.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_da_format.c'; fi`
+
+xfs/partclone_xfs-xfs_inode_fork.o: xfs/xfs_inode_fork.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_inode_fork.o -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_inode_fork.Tpo -c -o xfs/partclone_xfs-xfs_inode_fork.o `test -f 'xfs/xfs_inode_fork.c' || echo '$(srcdir)/'`xfs/xfs_inode_fork.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_inode_fork.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_inode_fork.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_inode_fork.c' object='xfs/partclone_xfs-xfs_inode_fork.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_inode_fork.o `test -f 'xfs/xfs_inode_fork.c' || echo '$(srcdir)/'`xfs/xfs_inode_fork.c
+
+xfs/partclone_xfs-xfs_inode_fork.obj: xfs/xfs_inode_fork.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -MT xfs/partclone_xfs-xfs_inode_fork.obj -MD -MP -MF xfs/$(DEPDIR)/partclone_xfs-xfs_inode_fork.Tpo -c -o xfs/partclone_xfs-xfs_inode_fork.obj `if test -f 'xfs/xfs_inode_fork.c'; then $(CYGPATH_W) 'xfs/xfs_inode_fork.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_inode_fork.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) xfs/$(DEPDIR)/partclone_xfs-xfs_inode_fork.Tpo xfs/$(DEPDIR)/partclone_xfs-xfs_inode_fork.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='xfs/xfs_inode_fork.c' object='xfs/partclone_xfs-xfs_inode_fork.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(partclone_xfs_CFLAGS) $(CFLAGS) -c -o xfs/partclone_xfs-xfs_inode_fork.obj `if test -f 'xfs/xfs_inode_fork.c'; then $(CYGPATH_W) 'xfs/xfs_inode_fork.c'; else $(CYGPATH_W) '$(srcdir)/xfs/xfs_inode_fork.c'; fi`
+
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
 tags: tags-am
@@ -2903,6 +3775,10 @@ distclean-generic:
 	-rm -f exfat/$(am__dirstamp)
 	-rm -f f2fs/$(DEPDIR)/$(am__dirstamp)
 	-rm -f f2fs/$(am__dirstamp)
+	-rm -f nilfs/$(DEPDIR)/$(am__dirstamp)
+	-rm -f nilfs/$(am__dirstamp)
+	-rm -f xfs/$(DEPDIR)/$(am__dirstamp)
+	-rm -f xfs/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -2912,7 +3788,7 @@ clean: clean-am
 clean-am: clean-generic clean-sbinPROGRAMS mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) btrfs/$(DEPDIR) exfat/$(DEPDIR) f2fs/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) btrfs/$(DEPDIR) exfat/$(DEPDIR) f2fs/$(DEPDIR) nilfs/$(DEPDIR) xfs/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -2959,7 +3835,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) btrfs/$(DEPDIR) exfat/$(DEPDIR) f2fs/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) btrfs/$(DEPDIR) exfat/$(DEPDIR) f2fs/$(DEPDIR) nilfs/$(DEPDIR) xfs/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -3015,6 +3891,7 @@ install-exec-hook:
 @ENABLE_VMFS_TRUE@	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.VMFS_volume_member
 @ENABLE_VMFS_TRUE@	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs3
 #	$(LN_S) -f partclone.vmfs $(DESTDIR)$(sbindir)/partclone.vmfs5
+@ENABLE_NILFS_TRUE@	$(LN_S) -f partclone.nilfs2 $(DESTDIR)$(sbindir)/partclone.nilfs
 
 uninstall-local:
 @ENABLE_EXTFS_TRUE@	$(RM) -f $(sbindir)/partclone.ext4dev
@@ -3031,6 +3908,7 @@ uninstall-local:
 
 @ENABLE_VMFS_TRUE@	$(RM) -f $(sbindir)/partclone.VMFS_volume_member
 
+@ENABLE_NILFS_TRUE@	$(RM) -f $(sbindir)/partclone.nilfs
 FORCE:
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
