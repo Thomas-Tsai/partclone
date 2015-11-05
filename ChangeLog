@@ -1,4 +1,14 @@
+2015-11-05  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update version to 0.2.85
+
+	Merge branch 'release' of github.com:Thomas-Tsai/partclone into release
+
+	fix fat16 clone issue and add test for fat12, fat16 and fat32
+
 2015-10-13  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.84
 
 	update control files
 
