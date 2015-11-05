@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.2.84], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.2.85], [thomas@nchc.org.tw])
 AM_INIT_AUTOMAKE([-Wall foreign])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
@@ -261,7 +261,7 @@ define_ntfs_version="ntfs-3g"
 if test "$ntfs_3g_h" = 1 -a "$ntfs_3g_l" = 1; then
     supported_fs=$supported_fs" ntfs"
     ntfs_version="ntfs-3g"
-    PKG_CHECK_MODULES([NTFS], [libntfs-3g >= 2013], [ntfs_version=`pkg-config --modversion libntfs-3g`])
+    PKG_CHECK_MODULES([NTFS], [libntfs-3g >= 2010], [ntfs_version=`pkg-config --modversion libntfs-3g`])
 elif test "$ntfsprogs_h" = 1 -a "$ntfsprogs_l" = 1; then
     ntfs_version="unknown ntfsprogs, suggest 0:9:0"
 fi
