@@ -5,7 +5,6 @@ set -e
 manual_fs=$1
 
 test_fs=$formatable_fs
-dd_count=$normal_size
 [ -z $manual_fs ] || test_fs=$manual_fs
 
 #main
@@ -15,6 +14,7 @@ for fs in $test_fs; do
     echo -e "==========================\n"
     ptlfs=$(_ptlname $fs)
     mkfs=$(_findmkfs $fs)
+    dd_count=$(_test_size $fs)
     echo -e "\ncreate raw file $raw\n"
     _ptlbreak
     [ -f $raw ] && rm $raw
@@ -22,7 +22,7 @@ for fs in $test_fs; do
     dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
 
     echo -e "\n\nformat $raw as $fs raw partition\n"
-    echo -e "    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw\n"
+    echo -e "    $mkfs `eval echo "$"mkfs_option_for_$fs""` $raw\n"
     _ptlbreak
     $mkfs `eval echo "$"mkfs_option_for_$fs""` $raw
 
