@@ -33,26 +33,36 @@ int FS;
 char *fat_type = "FATXX";
 char *EXECNAME = "partclone.fat";
 extern fs_cmd_opt fs_opt;
+#define FAT12_THRESHOLD  4085
 
 static unsigned long long get_used_block();
 
 /// get fet type
 static void get_fat_type(){
 
-    /// fix, 1. make sure fat_sb; 2. the method shoud be check again
-    if (fat_sb.u.fat16.ext_signature == 0x29){
-        if (fat_sb.u.fat16.fat_name[4] == '6'){
+    off_t total_sectors;
+    off_t logical_sector_size;
+    off_t data_start;
+    off_t data_size;
+    off_t clusters;
+
+    /// fix, 1. make sure fasectoe. the method shoud be check again
+    if ((fat_sb.u.fat16.ext_signature == 0x29) || (fat_sb.fat_length && !fat_sb.u.fat32.fat_length)){
+	total_sectors = get_total_sector();
+	logical_sector_size = fat_sb.sector_size;
+	data_start = (fat_sb.reserved + fat_sb.fats * fat_sb.fat_length) * logical_sector_size;
+	data_size = (off_t) total_sectors * logical_sector_size - data_start;
+	clusters = data_size / fat_sb.cluster_size;
+        if ((fat_sb.u.fat16.fat_name[4] == '6')){// || (clusters >= FAT12_THRESHOLD)){
             FS = FAT_16;
             fat_type = "FAT16";
             log_mesg(2, 0, 0, fs_opt.debug, "%s: FAT Type : FAT 16\n", __FILE__);
-        } else if (fat_sb.u.fat16.fat_name[4] == '2'){
+        } else {
             FS = FAT_12;
             fat_type = "FAT12";
             log_mesg(2, 0, 0, fs_opt.debug, "%s: FAT Type : FAT 12\n", __FILE__);
-        } else {
-            log_mesg(2, 1, 1, fs_opt.debug, "%s: FAT Type : unknow\n" __FILE__);
         }
-    } else if (fat_sb.u.fat32.fat_name[4] == '2'){
+    } else if ((fat_sb.u.fat32.fat_name[4] == '2')||(!fat_sb.fat_length && fat_sb.u.fat32.fat_length)){
         FS = FAT_32;
         fat_type = "FAT32";
         log_mesg(2, 0, 0, fs_opt.debug, "%s: FAT Type : FAT 32\n", __FILE__);

@@ -23,6 +23,9 @@ mkfs_option_for_ntfs='-f -F'
 mkfs_option_for_jfs='-q'
 mkfs_option_for_xfs='-f'
 mkfs_option_for_btrfs='-f'
+mkfs_option_for_fat12='-F 12'
+mkfs_option_for_fat16='-F 16'
+mkfs_option_for_fat32='-F 32'
 #mkfs_option_for_minix='-3'
 
 ## file system
@@ -61,9 +64,32 @@ _ptlbreak(){
     fi
 
 }
+_test_size(){
+    fs=$1
+    case "$fs" in
+	fat12)
+	    normal_size=$((1024*8))
+	;;
+	fat16)
+	    normal_size=$((1024*32))
+	;;
+	fat32|fat|vfat)
+	    normal_size=$((1024*128))
+	;;
+    esac
+
+    echo $normal_size
+}
+
 
 _findmkfs(){
     fs=$1
+    case "$fs" in
+	fat12|fat16|fat32|fat|vfat)
+	    fs="vfat"
+	;;
+    esac
+
     mkfs_path=$(locate mkfs.$fs|grep sbin|head -n 1)
     if [ -z $mkfs_path ]; then
 	echo  >&2 "can't find mkfs.$fs"
