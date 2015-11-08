@@ -40,6 +40,7 @@ struct btrfs_fs_info *info;
 struct btrfs_root *root;
 struct btrfs_path path;
 int block_size = 0;
+uint64_t dev_size = 0;
 
 ///set useb block
 static void set_bitmap(unsigned long* bitmap, uint64_t pos, uint64_t length){
@@ -48,6 +49,10 @@ static void set_bitmap(unsigned long* bitmap, uint64_t pos, uint64_t length){
     uint64_t block_end;
 
     log_mesg(3, 0, 0, fs_opt.debug, "%s: offset: %llu size: %llu block_size: %i\n", __FILE__,  pos, length, block_size);
+    if (pos > dev_size) {
+	log_mesg(1, 0, 0, fs_opt.debug, "%s: offset(%llu) larger than device size(%llu), skip it.\n", __FILE__,  pos, dev_size);
+	return;
+    }
     pos_block = pos/block_size;
     block_end = (pos+length)/block_size;
     if ((pos+length)%block_size > 0)
@@ -304,8 +309,9 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     int slot;
 
     fs_open(device);
+    dev_size = image_hdr.device_size;
     block_size  = btrfs_super_nodesize(info->super_copy);
-    
+
     set_bitmap(bitmap, BTRFS_SUPER_INFO_OFFSET, block_size);
     //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->extent_root->root_item), &block_size);
     //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->csum_root->root_item), &block_size);
@@ -385,6 +391,7 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     log_mesg(0, 0, 0, fs_opt.debug, "usedblock = %lli\n", fs_info->usedblocks);
     log_mesg(0, 0, 0, fs_opt.debug, "device_size = %llu\n", fs_info->device_size);
     log_mesg(0, 0, 0, fs_opt.debug, "totalblock = %lli\n", fs_info->totalblock);
+
 
     fs_close();
     log_mesg(0, 0, 0, fs_opt.debug, "%s: fs_close\n", __FILE__);

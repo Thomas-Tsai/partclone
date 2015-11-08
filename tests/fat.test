@@ -1,2 +1,4 @@
 #!/bin/bash
-./mini_clone_restore_test vfat
+./mini_clone_restore_test fat12
+./mini_clone_restore_test fat16
+./mini_clone_restore_test fat32

@@ -53,7 +53,7 @@ check_option(){
 		gVERSION=$1
 		shift
 		pushd $ptlpath
-		git pull
+		#git pull
 		vgit=$(git log -1 $gVERSION)
 		if [ -z "$vgit" ]; then
 		    echo "can't find git version $VERSION"> 2& 
@@ -129,11 +129,11 @@ is_git(){
 check_version(){
     pushd $ptlpath
     is_git
-    git pull
+    #git pull
     git fetch --tags
 
     if [ "$gVERSION" != "HEAD" ]; then
-	git checkout $gVERSION
+	git checkout $gVERSION -b 'g_$gVERSION'
 	ptlversion=$(grep ^PACKAGE_VERSION= configure | sed s/PACKAGE_VERSION//g | sed s/[\'=]//g)
 	if [ "$gVERSION" == "$ptlversion" ]; then
 	    VERSION=$ptlversion
@@ -185,7 +185,7 @@ dpkg_package() {
 	fi
 	pushd partclone-$VERSION
 	    cp -r README.Packages/debian debian
-	    debuild $GPGID
+	    debuild -k$GPGID
 	popd
     popd
 }

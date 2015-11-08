@@ -1,0 +1,74 @@
+#!/bin/bash
+set -e
+
+. _common
+manual_fs="nilfs2"
+_check_root
+
+test_fs=$formatable_fs
+dd_count=$normal_size
+[ -z $manual_fs ] || test_fs=$manual_fs
+
+#main
+for fs in $test_fs; do
+    
+    echo -e "Basic $fs test"
+    echo -e "==========================\n"
+    ptlfs=$(_ptlname $fs)
+    mkfs=$(_findmkfs $fs)
+    echo -e "\ncreate raw file $raw\n"
+    _ptlbreak
+    [ -f $raw ] && rm $raw
+    echo -e "    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count\n"
+    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
+
+    echo -e "\n\nformat $raw as $fs raw partition\n"
+    echo -e "    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw\n"
+    _ptlbreak
+    $mkfs `eval echo "$"mkfs_option_for_$fs""` $raw
+
+    loop_device=$(losetup -f)
+    echo -e "losetup $loop_device $raw"
+    losetup $loop_device $raw
+
+    echo -e "\nclone $loop_device to $img\n"
+    [ -f $img ] && rm $img
+    echo -e "    $ptlfs -d -c -s $loop_device -O $img -F -L $logfile\n"
+    _ptlbreak
+    $ptlfs -d -c -s $loop_device -O $img -F -L $logfile
+    echo -e "detach $loop_device"
+    losetup -d $loop_device
+    _check_return_code
+
+    echo -e "\n\ndo image checking\n"
+    echo -e "    $ptlchkimg -s $img -L $logfile\n"
+    _ptlbreak
+    $ptlchkimg -s $img -L $logfile
+    _check_return_code
+
+    echo -e "\n\ncreate raw file $raw for restore\n"
+    _ptlbreak
+    [ -f $raw ] && rm $raw
+    echo -e "    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count\n"
+    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
+
+    loop_device=$(losetup -f)
+    echo -e "losetup $loop_device $raw"
+    losetup $loop_device $raw
+
+    echo -e "\n\nrestore $img to $loop_device\n"
+    echo -e "    $ptlrestore -s $img -O $loop_device -C -F -L $logfile\n"
+    _ptlbreak
+    $ptlrestore -s $img -O $loop_device -C -F -L $logfile
+    echo -e "detach $loop_device"
+    losetup -d $loop_device
+    _check_return_code
+
+    echo -e "\n\n$fs test ok\n"
+    echo -e "\nclear tmp files $img $raw $logfile $md5\n"
+    _ptlbreak
+    rm -f $img $raw $logfile $md5
+    echo -e "\nfile system $fs test done\n"
+
+done
+echo -e "\nFinish!\n"

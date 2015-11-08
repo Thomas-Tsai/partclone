@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.3.2], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.3.3], [thomas@nchc.org.tw])
 AM_INIT_AUTOMAKE([-Wall foreign])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
@@ -35,6 +35,7 @@ enable_jfs="yes"
 enable_btrfs="yes"
 enable_minix="yes"
 enable_f2fs="yes"
+enable_nilfs2="yes"
 fi
 
 ORIGINAL_CFLAGS="$CFLAGS"
@@ -87,20 +88,9 @@ AC_ARG_ENABLE(xfs,
 AM_CONDITIONAL(ENABLE_XFS, test "$enable_xfs" = yes)
 
 if test "$enable_xfs" = "yes"; then
-#check library of some filesystems
-dnl Check runtime library which depended by XFS
-AC_CHECK_LIB([rt], [aio_init], true, 
-    AC_MSG_ERROR([*** runtime library (libc6) not found])
-)
-
-dnl Check for XFS 
-AC_CHECKING([ for XFS Library and Header files ... ])
-AC_CHECK_HEADERS([xfs/libxfs.h], ,
-   AC_MSG_ERROR([*** XFS header (libxfs.h) not found])
-)
 supported_fs=$supported_fs" xfs"
+xfs_version="build-in"
 fi
-xfs_version="version unknown, suggest 3.1.1"
 #end of check xfs
 
 ##reiserfs##
@@ -123,36 +113,8 @@ AC_CHECK_LIB([reiserfs], [reiserfs_fs_open], true,
 AC_CHECK_LIB([dal], [file_dal_open], true,
     AC_MSG_ERROR([*** Reiserfs depend library (libdal) not found]))
 AC_MSG_CHECKING(version of libreiserfs)
-reiserfs_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiserfs -DREISERFS`
-reiserfs_version=`$srcdir/get_lib_version reiserfs`
-AC_DEFINE_UNQUOTED([REISERFS_VERSION], "${reiserfs_version}", ["define reiserfs version"])
-reiserfs_version=`$srcdir/get_lib_version reiserfs | cut -d'.' -f1`
-reiserfs_version_major=`$srcdir/get_lib_version reiserfs | cut -d'.' -f2`
-reiserfs_version_minor=`$srcdir/get_lib_version reiserfs | cut -d'.' -f3`
-reiserfs_version_minor_2=`$srcdir/get_lib_version reiserfs | cut -d'.' -f4`
-if test -z "$reiserfs_version"; then
-    reiserfs_version="?"
-    reiserfs_version_major="?"
-    reiserfs_version_minor="?"
-    reiserfs_version_minor_2="?"
-    reiserfs_version="$reiserfs_version.$reiserfs_version_major.$reiserfs_version_minor.$reiserfs_version_minor_2; bad"
-    AC_MSG_RESULT($reiserfs_version)
-    AC_MSG_ERROR(Please check your libreiserfs!)
-fi
-
-if test $reiserfs_version_major -lt 3 ; then
-    reiserfs_version="$reiserfs_version.$reiserfs_version_major.$reiserfs_version_minor.$reiserfs_version_minor_2; bad"
-    AC_MSG_RESULT($reiserfs_version)
-    AC_MSG_ERROR(Please upgrade your libreiserfs to 0.3.0.5 or newer version!)
-elif test $reiserfs_version_major -ge 3 -a $reiserfs_version_minor_2 -lt 5  ; then
-    reiserfs_version="$reiserfs_version.$reiserfs_version_major.$reiserfs_version_minor.$reiserfs_version_minor_2; suggest you upgrade the library!"
-    AC_MSG_RESULT($reiserfs_version)
-    AC_MSG_ERROR(Please upgrade your libreiserfs to 0.3.0.5 or newer version!)
-else
-    reiserfs_version="$reiserfs_version.$reiserfs_version_major.$reiserfs_version_minor.$reiserfs_version_minor_2; ok!"
-    AC_MSG_RESULT($reiserfs_version)
-fi 
 supported_fs=$supported_fs" reiserfs"
+reiserfs_version="unknown, suggest 0.3.0.5"
 
 fi
 #end of check reiserfs
@@ -173,39 +135,10 @@ AC_CHECKING([ for Reiser4 Library and Header files ... ])
 AC_CHECK_HEADERS([reiser4/libreiser4.h], ,
   AC_MSG_ERROR([*** reiser4 header files (reiser4/libreiser4.h) not found])
 )
-#AC_CHECK_LIB([reiser4 -laal], [reiser4_init], ,
-#    AC_MSG_ERROR([*** Reiser4 library (libreiser4) not found]))
 AC_CHECK_LIB([aal], [aal_device_open], true,
     AC_MSG_ERROR([*** Reiser4 depend library (libaal) not found]))
-AC_MSG_CHECKING(version of libreiser4)
-reiser4_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lreiser4 -laal -DREISER4`
-reiser4_version=`$srcdir/get_lib_version reiser4`
-AC_DEFINE_UNQUOTED([REISER4_VERSION], "${reiser4_version}", ["define reiser4 version"])
-reiser4_version=`$srcdir/get_lib_version reiser4 | cut -d'.' -f1`
-reiser4_version_major=`$srcdir/get_lib_version reiser4 | cut -d'.' -f2`
-reiser4_version_minor=`$srcdir/get_lib_version reiser4 | cut -d'.' -f3`
-if test -z "$reiser4_version"; then
-    reiser4_version="?"
-    reiser4_version_major="?"
-    reiser4_version_minor="?"
-    reiser4_version="$reiser4_version.$reiser4_version_major.$reiser4_version_minor; bad"
-    AC_MSG_RESULT($reiser4_version)
-    AC_MSG_ERROR(Please check your libreiser4!)
-fi
-
-if test $reiser4_version -lt 1 ; then
-    reiser4_version="$reiser4_version.$reiser4_version_major.$reiser4_version_minor; bad"
-    AC_MSG_RESULT($reiser4_version)
-    AC_MSG_ERROR(Please upgrade your libreiser4 to 1.0.6 or newer version!)
-elif test $reiser4_version -ge 1 -a $reiser4_version_minor -lt 6  ; then
-    reiser4_version="$reiser4_version.$reiser4_version_major.$reiser4_version_minor; suggest you upgrade the library!"
-    AC_MSG_RESULT($reiser4_version)
-    AC_MSG_ERROR(Please upgrade your libreiser4 to 1.0.6 or newer version!)
-else
-    reiser4_version="$reiser4_version.$reiser4_version_major.$reiser4_version_minor; ok!"
-    AC_MSG_RESULT($reiser4_version)
-fi   
 supported_fs=$supported_fs" reiser4"
+reiser4_version="unknown, suggest 1.0.6"
 fi
 #end of check reiser4
 
@@ -265,6 +198,34 @@ f2fs_version="build-in"
 fi
 #end of check f2fs
 
+##nilfs2##
+AC_ARG_ENABLE(nilfs2,
+	AS_HELP_STRING(--enable-nilfs2,enable nilfs2 file system), 
+	enable_nilfs2=yes,
+	enable_nilfs2=no
+)
+AM_CONDITIONAL(ENABLE_NILFS2, test "$enable_nilfs2" = yes)
+
+if test "$enable_nilfs2" = "yes"; then
+dnl Check headers which depended by NILFS2
+AC_CHECKING([ for NILFS2 header files ... ])
+AC_CHECK_HEADERS([ctype.h fcntl.h grp.h libintl.h limits.h linux/magic.h \
+		  linux/types.h locale.h mntent.h mqueue.h paths.h pwd.h \
+		  semaphore.h stdlib.h string.h strings.h sys/ioctl.h \
+		  sys/mount.h sys/time.h syslog.h sys/stat.h time.h unistd.h])
+AC_CHECK_HEADERS([nilfs.h], ,
+  AC_MSG_ERROR([*** nilfs2 header files (nilfs.h) not found])
+)
+
+AC_CHECK_LIB([nilfs], [nilfs_open], true,
+    AC_MSG_ERROR([*** nilfs2 depend library (libnilfs) not found]))
+
+supported_fs=$supported_fs" nilfs2"
+nilfs2_version="unknown, suggest 2.3.2"
+fi
+#end of check nilfs2
+
+
 ##NTFS##
 AC_ARG_ENABLE(ntfs,
 	AS_HELP_STRING(--enable-ntfs,enable NTFS file system), 
@@ -300,41 +261,9 @@ define_ntfs_version="ntfs-3g"
 if test "$ntfs_3g_h" = 1 -a "$ntfs_3g_l" = 1; then
     supported_fs=$supported_fs" ntfs"
     ntfs_version="ntfs-3g"
-    AC_DEFINE_UNQUOTED([NTFS_VERSION], "${ntfs_version}", ["define ntfs version"])
+    PKG_CHECK_MODULES([NTFS], [libntfs-3g >= 2010], [ntfs_version=`pkg-config --modversion libntfs-3g`])
 elif test "$ntfsprogs_h" = 1 -a "$ntfsprogs_l" = 1; then
-    AC_MSG_CHECKING(version of libntfs)
-    ntfs_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lntfs -DNTFS`
-    ntfs_version=`$srcdir/get_lib_version ntfs`
-    AC_DEFINE_UNQUOTED([NTFS_VERSION], "${ntfs_version}", ["define ntfs version"])
-    ntfs_version=`$srcdir/get_lib_version ntfs | cut -d':' -f1`
-    ntfs_version_major=`$srcdir/get_lib_version ntfs | cut -d':' -f2`
-    ntfs_version_minor=`$srcdir/get_lib_version ntfs | cut -d':' -f3`
-    if test -z "$ntfs_version"; then
-        ntfs_version="?"
-        ntfs_version_major="?"
-        ntfs_version_minor="?"
-        ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; bad"
-        AC_MSG_RESULT($ntfs_version)
-        AC_MSG_ERROR(Please check your libntfs!)
-    fi
-
-    if test "$ntfs_version" -lt 9 ; then
-        ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; bad"
-        AC_MSG_RESULT($ntfs_version)
-        AC_MSG_ERROR(Please upgrade your libntfs to 9:0:0 or newer version!)
-    elif test "$ntfs_version" -eq 9 ; then
-        ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; suggest you upgrade the library!"
-        AC_MSG_RESULT($ntfs_version)
-    else
-        ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor; ok!"
-        AC_MSG_RESULT($ntfs_version)
-        supported_fs=$supported_fs" ntfs"
-    fi
-    define_ntfs_version="$ntfs_version:$ntfs_version_major:$ntfs_version_minor"
-else
-    if test "$enable_ntfs" = "yes"; then
-	AC_MSG_ERROR(Can't find ntfs library!)
-    fi
+    ntfs_version="unknown ntfsprogs, suggest 0:9:0"
 fi
 #end of check ntfs
 
@@ -378,8 +307,7 @@ AC_CHECKING([for VMFS Library files ... ])
 AC_CHECK_LIB([vmfs -luuid], [vmfs_host_init], true,
         AC_MSG_ERROR([*** vmfs depend library (libvmfs) not found]))
 supported_fs=$supported_fs" vmfs"
-vmfs_version=`gcc  $srcdir/src/deplib_version.c -o $srcdir/get_lib_version -lvmfs -DVMFS $uuidcfg`
-vmfs_version=`$srcdir/get_lib_version vmfs`
+vmfs_version="unknown"
 fi
 #end of check vmfs
 
@@ -402,7 +330,7 @@ AC_CHECKING([for JFS Library files ... ])
 AC_CHECK_LIB([jfs -luuid], [ujfs_get_superblk], true,
         AC_MSG_ERROR([*** jfs depend library (libjfs) not found]))
 supported_fs=$supported_fs" jfs"
-jfs_version="version unknown, suggest 1.1.12"
+jfs_version="unknown, suggest 1.1.12"
 fi
 #end of check jfs
 
@@ -419,8 +347,7 @@ if test "$enable_btrfs" = yes; then
 AC_CHECK_HEADERS([blkid/blkid.h],,
 AC_MSG_ERROR([*** btrfs depend library (libblkid-dev) header not found]))
 supported_fs=$supported_fs" btrfs"
-btrfs_version=`gcc  $srcdir/src/deplib_version.c $srcdir/src/btrfs/version.h  -o $srcdir/get_lib_version -DBTRFS`
-btrfs_version=`$srcdir/get_lib_version btrfs`
+btrfs_version="unknown"
 fi
 #end of check btrfs
 
@@ -511,4 +438,5 @@ echo "jfs .......... $enable_jfs, $jfs_version"
 echo "btrfs......... $enable_btrfs, $btrfs_version"
 echo "minix......... $enable_minix, $minix_version"
 echo "f2fs.......... $enable_f2fs, $f2fs_version"
+echo "nilfs2.........$enable_nilfs2, $nilfs2_version"
 #echo $supported_fs

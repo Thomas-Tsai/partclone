@@ -12,10 +12,10 @@
  */
 
 #define _LARGEFILE64_SOURCE
-#include <xfs/libxfs.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
+#include "xfs/libxfs.h"
 #include "partclone.h"
 #include "xfsclone.h"
 #include "progress.h"

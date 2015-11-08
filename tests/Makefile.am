@@ -63,6 +63,9 @@ if ENABLE_EXFAT
 TESTS += exfat.test
 endif
 
+if ENABLE_NILFS2
+TESTS += nilfs2.test
+endif
 
 if ENABLE_NCURSESW
 TESTS += ncursesw.test
