@@ -32,23 +32,23 @@ master branch is NOT STABLE, Please check 'release' branch
 
 Basic Usage:
 
-clone partition to image
+ - clone partition to image
 
     partclone.ext4 -d -c -s /dev/sda1 -o sda1.img
 
-restore image to partition
+ - restore image to partition
 
     partclone.ext4 -d -r -s sda1.img -o /dev/sda1
 
-partiiton to partition clone
+ - partiiton to partition clone
 
     partclone.ext4 -d -b -s /dev/sda1 -o /dev/sdb1
 
-display image information
+ - display image information
 
     partclone.info -s sda1.img
 
-check image
+ - check image
 
     partclone.chkimg -s sda1.img
 
