@@ -30,22 +30,22 @@ Basic Usage:
 
  - clone partition to image
 
-    `partclone.ext4 -d -c -s /dev/sda1 -o sda1.img`
+    partclone.ext4 -d -c -s /dev/sda1 -o sda1.img
 
  - restore image to partition
 
-    `partclone.ext4 -d -r -s sda1.img -o /dev/sda1`
+    partclone.ext4 -d -r -s sda1.img -o /dev/sda1
 
  - partiiton to partition clone
 
-    `partclone.ext4 -d -b -s /dev/sda1 -o /dev/sdb1`
+    partclone.ext4 -d -b -s /dev/sda1 -o /dev/sdb1
 
  - display image information
 
-    `partclone.info -s sda1.img`
+    partclone.info -s sda1.img
 
  - check image
 
-    `partclone.chkimg -s sda1.img`
+    partclone.chkimg -s sda1.img
 
 For more info about partclone, check our website http://partclone.org or github-wiki.
