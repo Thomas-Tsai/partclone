@@ -1,3 +1,11 @@
+partclone (0.2.84-1) unstable; urgency=medium
+
+  * add nilfs2 support
+  * add xfs as build-in api
+  * minor update for tests, configure...
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 13 Oct 2015 14:27:51 +0800
+
 partclone (0.2.83-1) unstable; urgency=medium
 
   * update xfs bitmap calculating time 
