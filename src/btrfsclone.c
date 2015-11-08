@@ -309,7 +309,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     int slot;
 
     fs_open(device);
-    dev_size = image_hdr.device_size;
+    dev_size = fs_info.device_size;
     block_size  = btrfs_super_nodesize(info->super_copy);
 
     set_bitmap(bitmap, BTRFS_SUPER_INFO_OFFSET, block_size);

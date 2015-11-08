@@ -87,7 +87,7 @@ endif
 
 if ENABLE_XFS
 sbin_PROGRAMS += partclone.xfs
-partclone_xfs_SOURCES=main.c partclone.c progress.c xfsclone.c xfsclone.h partclone.h progress.h gettext.h $(XFS_SOURCE)
+partclone_xfs_SOURCES=$(main_files) xfsclone.c xfsclone.h $(XFS_SOURCE)
 partclone_xfs_CFLAGS=-DXFS -D_GNU_SOURCE -DNDEBUG $(UUID_CFLAGS) 
 partclone_xfs_LDADD=-lrt -lpthread -luuid
 endif
@@ -107,7 +107,7 @@ endif
 
 if ENABLE_NILFS2
 sbin_PROGRAMS += partclone.nilfs2
-partclone_nilfs2_SOURCES=main.c partclone.c progress.c nilfsclone.c nilfsclone.h partclone.h progress.h gettext.h
+partclone_nilfs2_SOURCES=$(main_files) nilfsclone.c nilfsclone.h
 partclone_nilfs2_CFLAGS=-DNILFS
 partclone_nilfs2_LDADD=-lnilfs
 endif

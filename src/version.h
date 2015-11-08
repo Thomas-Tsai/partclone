@@ -3,9 +3,5 @@
  * WHETHER THEY ARE BUILT BY OTHERS OR DURING DEVELOPMENT OR FOR THE
  * OFFICIAL PARTCLONE RELEASES.
  */
-<<<<<<< HEAD
-#define git_version  "e96a0c82b6acb69964c661a6ba9202d98f2824a7"
-=======
-#define git_version  "44cc936e49acf8c944ec9ce994c2800b9ae44ac4"
->>>>>>> release
+#define git_version  "ca7d0576ac1f3de4648147e1bf8b0c180dca0198"
 
