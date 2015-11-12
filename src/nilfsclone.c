@@ -29,7 +29,7 @@
 #include "fs_common.h"
 
 int mnt_x=0;
-char *mnt_path = "/tmp/partclone_mnt/"; //fixme
+char *mnt_path = "/tmp/partclone_nilfs2_mnt/"; //fixme
 struct nilfs_super_block *sbp;
 struct nilfs *nilfs;
 
