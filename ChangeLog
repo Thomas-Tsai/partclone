@@ -1,5 +1,7 @@
 2015-11-12  Thomas Tsai  <thomas@nchc.org.tw>
 
+	release 0.2.86
+
 	add language zh_CN, and ready to release 0.2.86
 
 	Merge branch 'release' of github.com:Thomas-Tsai/partclone into release
