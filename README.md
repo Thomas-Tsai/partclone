@@ -10,15 +10,42 @@ We made some utilies:
 * partclone.reiser4
 * partclone.xfs
 * partclone.exfat
-* partclone.fat
+* partclone.fat (fat 12, fat 16, fat 32)
 * partclone.ntfs
 * partclone.hfsp
-* partclone.vmfs
+* partclone.vmfs(v3 and v5)
 * partclone.ufs
 * partclone.jfs
+* partclone.btrfs
+* partclone.minix
+* partclone.f2fs
+* partclone.nilfs
 * partclone.info 
 * partclone.restore
 * partclone.chkimg
+* partclone.dd
 ...
 
-For more info about partclone, check our website http://partclone.org.
+Basic Usage:
+
+ - clone partition to image
+
+    `partclone.ext4 -d -c -s /dev/sda1 -o sda1.img`
+
+ - restore image to partition
+
+    `partclone.ext4 -d -r -s sda1.img -o /dev/sda1`
+
+ - partiiton to partition clone
+
+    `partclone.ext4 -d -b -s /dev/sda1 -o /dev/sdb1`
+
+ - display image information
+
+    `partclone.info -s sda1.img`
+
+ - check image
+
+    `partclone.chkimg -s sda1.img`
+
+For more info about partclone, check our website http://partclone.org or github-wiki.

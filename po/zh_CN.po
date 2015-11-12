@@ -1,0 +1,168 @@
+# Simplified Chinese translations for Partclone package.
+# This file is distributed under the same license as the Partclone package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Partclone 0.2.51\n"
+"Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
+"POT-Creation-Date: 2015-09-24 10:11+0800\n"
+"PO-Revision-Date: 2007-11-01 11:35+0800\n"
+"Last-Translator: Peter Dave Hello\n"
+"Language-Team: Peter Dave Hello\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/progress.c:200
+#, c-format
+msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: %6.2f%%"
+msgstr "\r%80c\r经过：%s, 剩余： %s, 完成：%6.2f%%"
+
+#: src/progress.c:203
+#, c-format
+msgid ", %6.2f%s/min,"
+msgstr ", %6.2f%s/min,"
+
+#: src/progress.c:211
+#, c-format
+msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: 100.00%%"
+msgstr "\r%80c\r经过：%s, 剩余： %s, 完成：100.00%%"
+
+#: src/progress.c:213
+#, c-format
+msgid ", Rate: %6.2f%s/min,"
+msgstr ", 速率：%6.2f%s/min"
+
+#: src/progress.c:217
+#, c-format
+msgid ""
+"\n"
+"Total Time: %s, "
+msgstr ""
+"\n"
+"全部时间：%s, "
+
+#: src/progress.c:219
+#, c-format
+msgid "Ave. Rate: %6.1f%s/min, "
+msgstr "平均速率：%6.1f%s/min, "
+
+#: src/progress.c:220
+#, c-format
+msgid "%s"
+msgstr "%s"
+
+#: src/progress.c:247
+#, c-format
+msgid "Elapsed: %s Remaining: %s "
+msgstr "经过：%s  剩余： %s "
+
+#: src/progress.c:249
+#, c-format
+msgid "Rate: %6.2f%s/min"
+msgstr "速率：%6.2f%s/min"
+
+#: src/progress.c:251
+#, fuzzy, c-format
+msgid "Current Block: %llu  Total Block: %llu "
+msgstr "目前块: %lld 全部块 %lld "
+
+#: src/progress.c:282
+#, c-format
+msgid "Total Time: %s Remaining: %s "
+msgstr "全部时间：%s 剩余时间: %s "
+
+#: src/progress.c:284
+#, c-format
+msgid "Ave. Rate: %6.2f%s/min"
+msgstr "平均速率：%6.2f%s/min"
+
+#: src/partclone.c:1094
+#, c-format
+msgid "Partclone v%s http://partclone.org\n"
+msgstr ""
+
+#: src/partclone.c:1096
+#, c-format
+msgid "Starting to check image (%s)\n"
+msgstr "开始检查镜像 (%s)\n"
+
+#: src/partclone.c:1098
+#, c-format
+msgid "Starting to clone device (%s) to image (%s)\n"
+msgstr "开始备份 装置 (%s) 到 镜像 (%s)\n"
+
+#: src/partclone.c:1100
+#, c-format
+msgid "Starting to restore image (%s) to device (%s)\n"
+msgstr "开始恢复 镜像 (%s) 到 装置 (%s)\n"
+
+#: src/partclone.c:1102
+#, c-format
+msgid "Starting to back up device(%s) to device(%s)\n"
+msgstr "开始备份 装置 (%s) 到 装置 (%s)\n"
+
+#: src/partclone.c:1104
+#, c-format
+msgid "Starting to map device (%s) to domain log (%s)\n"
+msgstr "开始输出 装置 (%s)块 到 资料文件 (%s)\n"
+
+#: src/partclone.c:1106
+#, fuzzy, c-format
+msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
+msgstr "开始备份 装置 (%s) 到 镜像 (%s)\n"
+
+#: src/partclone.c:1108
+msgid "Display image information\n"
+msgstr ""
+
+#: src/partclone.c:1129
+#, c-format
+msgid "File system:  %s\n"
+msgstr "文件系统: %s\n"
+
+#: src/partclone.c:1132
+#, fuzzy, c-format
+msgid "Device size:  %s = %llu Blocks\n"
+msgstr "装置大小: %s = %lld Blocks\n"
+
+#: src/partclone.c:1135
+#, fuzzy, c-format
+msgid "Space in use: %s = %llu Blocks\n"
+msgstr "装置使用到空间: %s = %lld Blocks\n"
+
+#: src/partclone.c:1138
+#, fuzzy, c-format
+msgid "Free Space:   %s = %llu Blocks\n"
+msgstr "剩余空间: %s = %lld Blocks\n"
+
+#: src/partclone.c:1140
+#, c-format
+msgid "Block size:   %i Byte\n"
+msgstr "装置块大小: %i Byte\n"
+
+#: src/partclone.c:1152
+#, c-format
+msgid "Partclone successfully checked the image (%s)\n"
+msgstr "检查镜像 (%s) 完成\n"
+
+#: src/partclone.c:1154
+#, c-format
+msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
+msgstr "备份 装置 (%s) 到 镜像 (%s) 完成\n"
+
+#: src/partclone.c:1156
+#, c-format
+msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
+msgstr "恢复 镜像 (%s) 到 装置 (%s) 完成\n"
+
+#: src/partclone.c:1158
+#, c-format
+msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
+msgstr "备份 装置 (%s) 到 装置 (%s) 完成\n"
+
+#: src/partclone.c:1160
+#, c-format
+msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
+msgstr "输出装置 (%s) 块信息 到 数据文件 (%s) 完成\n"
