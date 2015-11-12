@@ -4,7 +4,7 @@ partclone (0.2.86-1) unstable; urgency=medium
   * fix fat cluster count issue
   * fix nilfs mount issue
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 12 Nov 2015 11:58:52 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 12 Nov 2015 12:10:03 +0800
 
 partclone (0.2.85-1) unstable; urgency=medium
 
