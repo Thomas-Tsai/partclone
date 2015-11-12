@@ -1,4 +1,37 @@
+2015-11-12  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'release' of github.com:Thomas-Tsai/partclone into release
+
+	fix fat cluster count
+
+2015-11-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add `
+
+	rename README.markdown README.md
+
+	remove ``
+
+2015-11-09  Peter Dave Hello  <PeterDaveHello@users.noreply.github.com>
+
+	Create zh_CN.po
+
+	Update README.markdown
+
+	Update and rename README to README.markdown
+	Use markdown to be rich text!
+
+2015-11-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update nilfs mount and mkdir
+
+	Merge branch 'release' of github.com:Thomas-Tsai/partclone into release
+
+	update README
+
 2015-11-05  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.85
 
 	update version to 0.2.85
 

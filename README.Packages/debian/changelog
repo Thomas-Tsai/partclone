@@ -4,7 +4,7 @@ partclone (0.2.85-1) unstable; urgency=medium
   * fix fat 16 clone issue
   * add fat 12, fat 16 and fat 32 test script
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 05 Nov 2015 10:56:27 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 12 Nov 2015 11:43:14 +0800
 
 partclone (0.2.84-1) unstable; urgency=medium
 
