@@ -32,6 +32,13 @@ int ret;
 int FS;
 char *fat_type = "FATXX";
 #define FAT12_THRESHOLD  4085
+#define FAT16_THRESHOLD 65525
+/* Unaligned fields must first be accessed byte-wise */ 
+#define GET_UNALIGNED_W(f) ( (uint16_t)f[0] | ((uint16_t)f[1]<<8) )
+/* don't divide by zero */ 
+#define ROUND_TO_MULTIPLE(n,m) ((n) && (m) ? (n)+(m)-1-((n)-1)%(m) : 0)
+#define MSDOS_DIR_BITS 5        /* log2(sizeof(struct msdos_dir_entry)) */
+
 
 static unsigned long long get_used_block();
 
@@ -43,22 +50,29 @@ static void get_fat_type(){
     off_t data_start;
     off_t data_size;
     off_t clusters;
+    off_t root_start;
+    unsigned int root_entries;
 
     /// fix, 1. make sure fasectoe. the method shoud be check again
     if ((fat_sb.u.fat16.ext_signature == 0x29) || (fat_sb.fat_length && !fat_sb.u.fat32.fat_length)){
 	total_sectors = get_total_sector();
 	logical_sector_size = fat_sb.sector_size;
-	data_start = (fat_sb.reserved + fat_sb.fats * fat_sb.fat_length) * logical_sector_size;
+	root_start = (fat_sb.reserved + fat_sb.fats * fat_sb.fat_length) * logical_sector_size;
+	root_entries = fat_sb.dir_entries;
+	data_start = root_start + ROUND_TO_MULTIPLE(root_entries <<MSDOS_DIR_BITS,logical_sector_size);
 	data_size = (off_t) total_sectors * logical_sector_size - data_start;
-	clusters = data_size / fat_sb.cluster_size;
-        if ((fat_sb.u.fat16.fat_name[4] == '6')){// || (clusters >= FAT12_THRESHOLD)){
+	clusters = data_size / (fat_sb.cluster_size * logical_sector_size);
+        if (clusters >= FAT12_THRESHOLD){
             FS = FAT_16;
             fat_type = "FAT16";
-            log_mesg(2, 0, 0, fs_opt.debug, "%s: FAT Type : FAT 16\n", __FILE__);
+            log_mesg(2, 0, 0, fs_opt.debug, "%s: FAT Type : FAT 16(clusters %lu)\n", __FILE__, clusters);
+	    if (clusters >= FAT16_THRESHOLD) 
+		log_mesg(2, 0, 0, fs_opt.debug, "Too many clusters (%lu) for FAT16 filesystem.", clusters);
+
         } else {
             FS = FAT_12;
             fat_type = "FAT12";
-            log_mesg(2, 0, 0, fs_opt.debug, "%s: FAT Type : FAT 12\n", __FILE__);
+            log_mesg(2, 0, 0, fs_opt.debug, "%s: FAT Type : FAT 12(clusters %lu)\n", __FILE__, clusters);
         }
     } else if ((fat_sb.u.fat32.fat_name[4] == '2')||(!fat_sb.fat_length && fat_sb.u.fat32.fat_length)){
         FS = FAT_32;
