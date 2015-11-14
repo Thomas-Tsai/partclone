@@ -113,7 +113,6 @@ msgid "Starting to map device (%s) to domain log (%s)\n"
 msgstr "Bắt đầu ánh xạ thiết bị (%s) vào nhật ký tên miền (%s)\n"
 
 #: src/partclone.c:1106
-#, fuzzy, c-format
 msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
 msgstr "Bắt đầu nhân bản thiết bị (%s) thành ảnh (%s)\n"
 
@@ -171,7 +170,3 @@ msgstr "Partclone đã nhân bản thành công thiết bị (%s) vào thiết b
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
 msgstr ""
 "Partclone đã ánh xạ thành công thiết bị (%s) vào nhật ký tên miền (%s)\n"
-
-#, fuzzy
-#~ msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
-#~ msgstr "Bắt đầu nhân bản thiết bị (%s) thành ảnh (%s)\n"
