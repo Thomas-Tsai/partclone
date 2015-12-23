@@ -320,5 +320,6 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
 
     log_mesg(3, 0, 0, fs_opt.debug, "%s: hdr - usedblocks:\t: %llu\n", __FILE__, image_hdr->usedblocks);
     log_mesg(3, 0, 0, fs_opt.debug, "%s: hdr - totalblocks:\t: %llu\n", __FILE__, image_hdr->totalblock);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: hdr - device_size:\t: %llu\n", __FILE__, image_hdr->device_size);
 }
 

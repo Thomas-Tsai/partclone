@@ -716,8 +716,10 @@ int main(int argc, char **argv) {
 #ifndef CHKIMG
 		/// restore_raw_file option
 		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap)) {
-			if (ftruncate(dfw, (off_t)(blocks_total * block_size)) == -1)
-				log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
+		    if (ftruncate(dfw, (off_t)image_hdr.device_size) == -1){
+			log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
+		    }
+		    log_mesg(1, 0, 0, debug, "ftruncate:%llu\n", (off_t)image_hdr.device_size);
 		}
 #endif
 

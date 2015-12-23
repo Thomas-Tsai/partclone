@@ -620,6 +620,9 @@ void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr) {
 	free(buffer);
 
 	dev_size = (unsigned long long)(image_hdr->totalblock * image_hdr->block_size);
+	if (opt->restore_raw_file == 1) {
+	    return;
+	}
 	if (image_hdr->device_size != dev_size)
 		image_hdr->device_size = dev_size;
 }
