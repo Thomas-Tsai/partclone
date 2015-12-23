@@ -212,7 +212,7 @@ sync_log(){
 
 update_po(){
     pushd $ptlpath
-    cd po && make update-po
+    make -C po/ update-po
     popd
 }
 

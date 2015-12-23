@@ -233,6 +233,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
        exfat                   partclone.exfat
        minix                   partclone.minix
        f2fs                    partclone.f2fs
+       nilfs2                  partclone.nilfs2
     </screen>
   </refsect1>
   <refsect1 id="options">

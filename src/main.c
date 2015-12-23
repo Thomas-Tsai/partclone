@@ -330,9 +330,11 @@ int main(int argc, char **argv) {
 
 #ifndef CHKIMG
 		/// check the dest partition size.
-		if (opt.restore_raw_file)
-			check_free_space(&dfw, image_hdr.device_size);
-		else if (opt.check)
+		if (opt.restore_raw_file){
+		    unsigned long long needed_size = 0;
+		    needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
+			check_free_space(&dfw, needed_size);
+		    } else if (opt.check)
 			check_size(&dfw, image_hdr.device_size);
 #endif
 
@@ -370,7 +372,12 @@ int main(int argc, char **argv) {
 
 		/// check the dest partition size.
 		if (opt.dd && opt.check) {
+		    if (!opt.restore_raw_file)
 			check_size(&dfw, image_hdr.device_size);
+		    else{
+			unsigned long long needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
+			check_free_space(&dfw, needed_size);
+		    }
 		}
 
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
@@ -413,7 +420,7 @@ int main(int argc, char **argv) {
 			
 			struct stat target_stat;
 			if ((stat(opt.target, &target_stat) != -1) && (strcmp(opt.target, "-") != 0)) {
-			    if (S_ISBLK(target_stat.st_mode)) 
+			    if (S_ISBLK(target_stat.st_mode))
 				check_size(&dfw, image_hdr.device_size);
 			    else
 				needed_size = (unsigned long long)(((image_hdr.block_size+sizeof(unsigned long))*image_hdr.usedblocks)+sizeof(image_hdr)+sizeof(char)*image_hdr.totalblock);
@@ -817,8 +824,10 @@ int main(int argc, char **argv) {
 
 		/// restore_raw_file option
 		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap)) {
-			if (ftruncate(dfw, (off_t)(blocks_total * block_size)) == -1)
-				log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
+		    if (ftruncate(dfw, (off_t)image_hdr.device_size) == -1){
+			log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
+		    }
+		    log_mesg(1, 0, 0, debug, "ftruncate:%llu\n", (off_t)image_hdr.device_size);
 		}
 
 	} else if (opt.domain) {
@@ -930,8 +939,10 @@ int main(int argc, char **argv) {
 
 		/// restore_raw_file option
 		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap)) {
-			if (ftruncate(dfw, (off_t)(blocks_total * block_size)) == -1)
-				log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
+		    if (ftruncate(dfw, (off_t)image_hdr.device_size) == -1){
+			log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
+		    }
+		    log_mesg(1, 0, 0, debug, "ftruncate:%llu\n", (off_t)image_hdr.device_size);
 		}
 
 

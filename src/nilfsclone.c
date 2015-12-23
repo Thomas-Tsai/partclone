@@ -13,6 +13,8 @@
 
 
 #include <sys/mount.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -27,7 +29,7 @@
 #include "fs_common.h"
 
 int mnt_x=0;
-char *mnt_path = "/tmp/partclone_mnt/"; //fixme
+char *mnt_path = "/tmp/partclone_nilfs2_mnt/"; //fixme
 struct nilfs_super_block *sbp;
 struct nilfs *nilfs;
 
@@ -114,7 +116,17 @@ static int lssu_list_suinfo(struct nilfs *nilfs, unsigned long* bitmap)
 static void fs_open(char* device)
 {
     int open_flags;
+    int mkstatus = 0;
+    struct stat st;
     log_mesg(2, 0, 0, fs_opt.debug, "%s: nilfs_mount\n", __FILE__); 
+
+    if (stat(mnt_path, &st) != 0) {
+	if (mkdir(mnt_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0 && errno != EEXIST) {
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s: cannot create directory on %s\n", __FILE__, mnt_path);
+	}
+    } else if (!S_ISDIR(st.st_mode)) {
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: error ENOTDIR cannot create directory on %s\n", __FILE__, strerror(mkstatus), mnt_path);
+    }
 
     mnt_x = mount(device, mnt_path, "nilfs2", MS_MGC_VAL | MS_RDONLY | MS_NOSUID, "");
     open_flags = NILFS_OPEN_RDONLY | NILFS_OPEN_RAW;

@@ -1,3 +1,19 @@
+partclone (0.2.86-1) unstable; urgency=medium
+
+  * add zh_CN language support
+  * fix fat cluster count issue
+  * fix nilfs mount issue
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 12 Nov 2015 14:04:16 +0800
+
+partclone (0.2.85-1) unstable; urgency=medium
+
+  * update configure.ac for ntfs check
+  * fix fat 16 clone issue
+  * add fat 12, fat 16 and fat 32 test script
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 12 Nov 2015 11:43:14 +0800
+
 partclone (0.2.84-1) unstable; urgency=medium
 
   * add nilfs2 support
