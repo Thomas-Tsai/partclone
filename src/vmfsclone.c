@@ -72,7 +72,7 @@ static void fs_close(){
 /// calculate offset of logical volume
 static uint32_t logical_volume_offset(vmfs_fs_t *fs)
 {
-    /* reference vmfs-tools/libvmfs/vmfs_volume.c 
+    /* reference vmfs-tools/libvmfs/vmfs_volume.c
        pos += vol->vmfs_base + 0x1000000;
      */
     return (VMFS_VOLINFO_BASE + 0x1000000) / vmfs_fs_get_blocksize(fs);

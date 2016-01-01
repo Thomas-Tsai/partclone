@@ -144,7 +144,7 @@ static void fs_open(char* device){
         err = errno;
         log_mesg(0, 1, 1, fs_opt.debug, "%s: NOT NTFS partition, ntfs mount error %i\n", __FILE__, err);
     } else {
-        
+
         if(fs_opt.ignore_fschk){
             log_mesg(1, 0, 0, fs_opt.debug, "%s: Ignore filesystem check\n", __FILE__);
         }else{
@@ -175,7 +175,7 @@ static void fs_open(char* device){
 
         if ( ntfs->free_clusters < 0 || ntfs->free_clusters >= ntfs->nr_clusters) {
             log_mesg(0, 1, 1, fs_opt.debug, "%s: Bad number of free (%"PRId64") or total (%"PRId64") clusters!\n", __FILE__,
-                ntfs->free_clusters, ntfs->nr_clusters); 
+                ntfs->free_clusters, ntfs->nr_clusters);
         }
 
 #else
@@ -183,7 +183,7 @@ static void fs_open(char* device){
 
         if ( ntfs->nr_free_clusters < 0 || ntfs->nr_free_clusters >= ntfs->nr_clusters) {
             log_mesg(0, 1, 1, fs_opt.debug, "%s: Bad number of free (%ld) or total (%"PRId64") clusters!\n", __FILE__,
-                ntfs->nr_free_clusters, ntfs->nr_clusters); 
+                ntfs->nr_free_clusters, ntfs->nr_clusters);
         }
 
 #endif
@@ -191,7 +191,7 @@ static void fs_open(char* device){
         volume_size = ntfs->nr_clusters * ntfs->cluster_size;
 
         log_mesg(3, 0, 0, fs_opt.debug, "%s: Cluster size\t: %"PRIu32"\n", __FILE__, ntfs->cluster_size);
-        log_mesg(3, 0, 0, fs_opt.debug, "%s: Volume size\t: %"PRIu32" * %"PRId64" + 512 = %llu + 512 = %llu\n", __FILE__, 
+        log_mesg(3, 0, 0, fs_opt.debug, "%s: Volume size\t: %"PRIu32" * %"PRId64" + 512 = %llu + 512 = %llu\n", __FILE__,
                 ntfs->cluster_size,
                 ntfs->nr_clusters,
                 volume_size,
@@ -232,7 +232,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     if (bitmap_size > ntfs->lcnbmp_na->data_size) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: calculated bitmap size (%lu) > lcnbmp_na->data_size (%"PRId64")\n", __FILE__, bitmap_size, ntfs->lcnbmp_na->data_size);
     }
- 
+
     ntfs_bitmap = (unsigned char*)malloc(bitmap_size);
     //ntfs_bitmap = (unsigned char*)calloc(sizeof(unsigned char), bitmap_size);
 
@@ -262,7 +262,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
         char bit;
         bit = ntfs_bit_get(ntfs_bitmap, current_block);
         if (bit == -1){                                     // Return -1 on error
-	    log_mesg(0, 1, 1, fs_opt.debug, "%s: check bitmap error\n", __FILE__); 
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s: check bitmap error\n", __FILE__);
 	}else if(bit == 1){				    // The value of the bit (0 or 1)
             pc_set_bit(current_block, bitmap);
             used_block++;

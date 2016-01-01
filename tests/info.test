@@ -16,7 +16,7 @@ echo -e "partclone.info test"
 echo -e "===================\n"
 #main
 for fs in $test_fs; do
-    
+
     ptlfs=$(_ptlname $fs)
     mkfs=$(_findmkfs $fs)
     echo -e "create raw file $raw\n"

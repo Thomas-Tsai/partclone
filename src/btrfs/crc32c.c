@@ -1,9 +1,9 @@
-/* 
+/*
  * Copied from the kernel source code, lib/libcrc32c.c.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option) 
+ * Software Foundation; either version 2 of the License, or (at your option)
  * any later version.
  *
  */
@@ -59,7 +59,7 @@ static uint32_t crc32c_intel_le_hw_byte(uint32_t crc, unsigned char const *data,
 }
 
 /*
- * Steps through buffer one byte at at time, calculates reflected 
+ * Steps through buffer one byte at at time, calculates reflected
  * crc using table.
  */
 static uint32_t crc32c_intel(u32 crc, unsigned char const *data, unsigned long length)
@@ -204,7 +204,7 @@ static const u32 crc32c_table[256] = {
 };
 
 /*
- * Steps through buffer one byte at at time, calculates reflected 
+ * Steps through buffer one byte at at time, calculates reflected
  * crc using table.
  */
 

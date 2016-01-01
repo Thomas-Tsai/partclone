@@ -141,7 +141,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	</group>
 	</group>
 	<replaceable class="option">target</replaceable>
-      </arg> 	
+      </arg>
       <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-dX</option></arg>
@@ -150,7 +150,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	<group choice="opt">
 	    <arg choice="plain"><option>--restore_raw_file</option></arg>
 	</group>
-      </arg> 	
+      </arg>
       <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-z</option></arg>
@@ -160,7 +160,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-N</option></arg>
 	    <arg choice="plain"><option>--ncurses</option></arg>
 	</group>
-      </arg> 	
+      </arg>
       <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-q</option></arg>
@@ -170,7 +170,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-f</option></arg>
 	    <arg choice="plain"><option>--UI-fresh</option></arg>
 	</group>
-      </arg> 	
+      </arg>
       <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-F</option></arg>
@@ -180,7 +180,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-I</option></arg>
 	    <arg choice="plain"><option>--ignore_fschk</option></arg>
 	</group>
-      </arg> 	
+      </arg>
       <arg choice="opt">
 	<group choice="opt">
 	<arg choice="plain"><option>--ignore_crc</option></arg>
@@ -193,7 +193,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-C</option></arg>
 	    <arg choice="plain"><option>--nocheck</option></arg>
 	</group>
-      </arg> 	
+      </arg>
       <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-R</option></arg>
@@ -206,7 +206,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	<replaceable class="option">logfile</replaceable>
 
 	</arg>
-     
+
     </cmdsynopsis>
   </refsynopsisdiv>
   <refsect1 id="description">
@@ -281,7 +281,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <listitem>
           <para>Restore partition from the special image format.</para>
         </listitem>
-      </varlistentry>      
+      </varlistentry>
       <varlistentry>
         <term><option>-b</option></term>
         <term><option>--dev-to-dev</option></term>
@@ -290,7 +290,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         </listitem>
       </varlistentry>
       <varlistentry>
-      <term><option>-D</option></term> 
+      <term><option>-D</option></term>
       <term><option>--domain</option></term>
       <listitem>
       <para>Create GNU Ddrescue domain log file from source device</para>

@@ -775,7 +775,7 @@ void close_ncurses() {
  * debug message
  * open_log	- to open file default is /var/log/partclone.log
  * log_mesg	- write log to the file
- *		- write log and exit 
+ *		- write log and exit
  *		- write to stderr...
  * close_log	- to close file /var/log/partclone.log
  */
@@ -1152,7 +1152,7 @@ unsigned long long get_bitmap_size_on_disk(const file_system_info* fs_info, cons
 	return size;
 }
 
-/// check free space 
+/// check free space
 void check_free_space(int* ret, unsigned long long size) {
 
 	unsigned long long dest_size;
@@ -1317,7 +1317,7 @@ void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, image_op
  * open_source	- open device or image or stdin
  * open_target	- open device or image or stdout
  *
- *	the data string 
+ *	the data string
  *	clone:	    read from device to image/stdout
  *	restore:    read from image/stdin to device
  *	dd:	    read from device to device !! not complete
@@ -1378,12 +1378,12 @@ int open_source(char* source, cmd_opt* opt) {
 
 	if (opt->ddd) {
 	    if (stat(source, &st_dev) != -1) {
-		if (S_ISBLK(st_dev.st_mode)) 
+		if (S_ISBLK(st_dev.st_mode))
 		    ddd_block_device = 1;
 		else
 		    ddd_block_device = 0;
 	    }else{
-		ddd_block_device = 0;   
+		ddd_block_device = 0;
 	    }
 	    log_mesg(1, 0, 0, debug, "ddd source file(0) or device(1) ? %i \n", ddd_block_device);
 	}
@@ -1428,12 +1428,12 @@ int open_target(char* target, cmd_opt* opt) {
 	log_mesg(1, 0, 0, debug, "open target file/device %s\n", target);
 	if (opt->ddd) {
 	    if (stat(target, &st_dev) != -1) {
-		if (S_ISBLK(st_dev.st_mode)) 
+		if (S_ISBLK(st_dev.st_mode))
 		    ddd_block_device = 1;
 		else
 		    ddd_block_device = 0;
 	    } else {
-		ddd_block_device = 0;   
+		ddd_block_device = 0;
 	    }
 
 	    log_mesg(1, 0, 0, debug, "ddd target file(0) or device(1) ? %i \n", ddd_block_device);
@@ -1596,9 +1596,9 @@ void print_partclone_info(cmd_opt opt) {
 	textdomain(PACKAGE);
 	log_mesg(0, 0, 1, debug, _("Partclone v%s http://partclone.org\n"), VERSION);
 	if (opt.chkimg)
-		log_mesg(0, 0, 1, debug, _("Starting to check image (%s)\n"), opt.source);	
+		log_mesg(0, 0, 1, debug, _("Starting to check image (%s)\n"), opt.source);
 	else if (opt.clone)
-		log_mesg(0, 0, 1, debug, _("Starting to clone device (%s) to image (%s)\n"), opt.source, opt.target);	
+		log_mesg(0, 0, 1, debug, _("Starting to clone device (%s) to image (%s)\n"), opt.source, opt.target);
 	else if(opt.restore)
 		log_mesg(0, 0, 1, debug, _("Starting to restore image (%s) to device (%s)\n"), opt.source, opt.target);
 	else if(opt.dd)

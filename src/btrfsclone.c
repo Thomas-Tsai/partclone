@@ -106,17 +106,17 @@ static void dump_file_extent_item(unsigned long* bitmap, struct extent_buffer *e
 	}
 
 	if (extent_type == BTRFS_FILE_EXTENT_PREALLOC) {
-		log_mesg(3, 0, 0, fs_opt.debug, "%s: DUMP: prealloc data disk byte %llu nr %llu\n", __FILE__, 
+		log_mesg(3, 0, 0, fs_opt.debug, "%s: DUMP: prealloc data disk byte %llu nr %llu\n", __FILE__,
 		  (unsigned long long)btrfs_file_extent_disk_bytenr(eb, fi),
 		  (unsigned long long)btrfs_file_extent_disk_num_bytes(eb, fi));
-		set_bitmap(bitmap, (unsigned long long)btrfs_file_extent_disk_bytenr(eb, fi), 
+		set_bitmap(bitmap, (unsigned long long)btrfs_file_extent_disk_bytenr(eb, fi),
 		                   (unsigned long long)btrfs_file_extent_disk_num_bytes(eb, fi) );
 		return;
 	}
 	log_mesg(3, 0, 0, fs_opt.debug, "DUMP: extent data disk byte %llu nr %llu\n",
 		(unsigned long long)btrfs_file_extent_disk_bytenr(eb, fi),
 		(unsigned long long)btrfs_file_extent_disk_num_bytes(eb, fi));
-		set_bitmap(bitmap, (unsigned long long)btrfs_file_extent_disk_bytenr(eb, fi), 
+		set_bitmap(bitmap, (unsigned long long)btrfs_file_extent_disk_bytenr(eb, fi),
 		                   (unsigned long long)btrfs_file_extent_disk_num_bytes(eb, fi) );
 }
 
@@ -286,7 +286,7 @@ static void fs_open(char* device){
 
 
     if(!root){
-	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to open %s\n", __FILE__, device);	
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to open %s\n", __FILE__, device);
     }
 
 }
@@ -378,7 +378,7 @@ no_node:
 }
 
 void read_super_blocks(char* device, file_system_info* fs_info)
-{    
+{
     fs_open(device);
 
     strncpy(fs_info->fs, btrfs_MAGIC, FS_MAGIC_SIZE);

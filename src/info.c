@@ -1,9 +1,9 @@
 /**
- * The part of partclone 
+ * The part of partclone
  *
  * Copyright (c) 2007~ Thomas Tsai <thomas at nchc org tw>
  *
- * The utility to print out the Image information. 
+ * The utility to print out the Image information.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ void info_options (int argc, char **argv){
 	opt.clone   = 0;
 	opt.restore = 0;
 	opt.info = 1;
-	
+
 
     while ((c = getopt_long(argc, argv, sopt, lopt, NULL)) != -1) {
 	switch (c) {
@@ -107,7 +107,7 @@ void info_options (int argc, char **argv){
 /**
  * main functiom - print Image file metadata.
  */
-int main(int argc, char **argv){ 
+int main(int argc, char **argv){
 
 	int dfr;                  /// file descriptor for source and target
 	unsigned long   *bitmap;  /// the point for bitmap data

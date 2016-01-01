@@ -1404,7 +1404,7 @@ static int noinline insert_new_root(struct btrfs_trans_handle *trans,
 		btrfs_node_key(lower, &lower_key, 0);
 
 	c = btrfs_alloc_free_block(trans, root, root->nodesize,
-				   root->root_key.objectid, &lower_key, 
+				   root->root_key.objectid, &lower_key,
 				   level, root->node->start, 0);
 
 	if (IS_ERR(c))
@@ -2075,7 +2075,7 @@ again:
 			}
 		}
 	}
-	
+
 	if (split == 0)
 		btrfs_cpu_key_to_disk(&disk_key, ins_key);
 	else

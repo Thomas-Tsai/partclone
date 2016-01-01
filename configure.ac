@@ -48,7 +48,7 @@ if test "x$GCC" = "xyes"; then
   esac
 fi
 
-dnl Check for uuid 
+dnl Check for uuid
 PKG_CHECK_MODULES(UUID, uuid,,exit)
 uuidcfg=`pkg-config --cflags --libs uuid`
 
@@ -56,7 +56,7 @@ AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([*** pthread library 
 
 ##ext2/3##
 AC_ARG_ENABLE(extfs,
-	AS_HELP_STRING(--enable-extfs,enable ext2/3/4 file system), 
+	AS_HELP_STRING(--enable-extfs,enable ext2/3/4 file system),
 	enable_extfs=yes,
 	enable_extfs=no
 )
@@ -81,7 +81,7 @@ fi
 
 ##XFS##
 AC_ARG_ENABLE(xfs,
-	AS_HELP_STRING(--enable-xfs,enable XFS file system), 
+	AS_HELP_STRING(--enable-xfs,enable XFS file system),
 	enable_xfs=yes,
 	enable_xfs=no
 )
@@ -95,7 +95,7 @@ fi
 
 ##reiserfs##
 AC_ARG_ENABLE(reiserfs,
-	AS_HELP_STRING(--enable-reiserfs,enable REISERFS 3.6/3.6 file system), 
+	AS_HELP_STRING(--enable-reiserfs,enable REISERFS 3.6/3.6 file system),
 	enable_reiserfs=yes,
 	enable_reiserfs=no
 )
@@ -121,7 +121,7 @@ fi
 
 ##reiser4##
 AC_ARG_ENABLE(reiser4,
-	AS_HELP_STRING(--enable-reiser4,enable Reiser4 file system), 
+	AS_HELP_STRING(--enable-reiser4,enable Reiser4 file system),
 	enable_reiser4=yes,
 	enable_reiser4=no
 )
@@ -144,7 +144,7 @@ fi
 
 ##hfs plus##
 AC_ARG_ENABLE(hfsp,
-	AS_HELP_STRING(--enable-hfsp,enable HFS plus file system), 
+	AS_HELP_STRING(--enable-hfsp,enable HFS plus file system),
 	enable_hfsp=yes,
 	enable_hfsp=no
 )
@@ -158,7 +158,7 @@ fi
 
 ##fat##
 AC_ARG_ENABLE(fat,
-	AS_HELP_STRING(--enable-fat,enable FAT file system), 
+	AS_HELP_STRING(--enable-fat,enable FAT file system),
 	enable_fat=yes,
 	enable_fat=no
 )
@@ -172,7 +172,7 @@ fi
 
 ##exfat##
 AC_ARG_ENABLE(exfat,
-	AS_HELP_STRING(--enable-exfat,enable EXFAT file system), 
+	AS_HELP_STRING(--enable-exfat,enable EXFAT file system),
 	enable_exfat=yes,
 	enable_exfat=no
 )
@@ -186,7 +186,7 @@ fi
 
 ##f2fs##
 AC_ARG_ENABLE(f2fs,
-	AS_HELP_STRING(--enable-f2fs,enable f2fs file system), 
+	AS_HELP_STRING(--enable-f2fs,enable f2fs file system),
 	enable_f2fs=yes,
 	enable_f2fs=no
 )
@@ -200,7 +200,7 @@ fi
 
 ##nilfs2##
 AC_ARG_ENABLE(nilfs2,
-	AS_HELP_STRING(--enable-nilfs2,enable nilfs2 file system), 
+	AS_HELP_STRING(--enable-nilfs2,enable nilfs2 file system),
 	enable_nilfs2=yes,
 	enable_nilfs2=no
 )
@@ -228,7 +228,7 @@ fi
 
 ##NTFS##
 AC_ARG_ENABLE(ntfs,
-	AS_HELP_STRING(--enable-ntfs,enable NTFS file system), 
+	AS_HELP_STRING(--enable-ntfs,enable NTFS file system),
 	enable_ntfs=yes,
 	enable_ntfs=no
 )
@@ -270,7 +270,7 @@ fi
 
 ##UFS##
 AC_ARG_ENABLE(ufs,
-	AS_HELP_STRING(--enable-ufs,enable UFS(1/2) file system), 
+	AS_HELP_STRING(--enable-ufs,enable UFS(1/2) file system),
 	enable_ufs=yes,
 	enable_ufs=no
 )
@@ -279,7 +279,7 @@ AM_CONDITIONAL(ENABLE_UFS, test "$enable_ufs" = yes)
 if test "$enable_ufs" = "yes"; then
 #check library of some filesystems
 
-dnl Check for UFS 
+dnl Check for UFS
 AC_CHECKING([ for UFS Library ... ])
 AC_CHECK_LIB([ufs], [ufs_disk_fillout], true,
         AC_MSG_ERROR([*** ufs depend library (libufs2) not found]))
@@ -290,7 +290,7 @@ fi
 
 ##VMFS##
 AC_ARG_ENABLE(vmfs,
-	AS_HELP_STRING(--enable-vmfs,enable vmfs file system), 
+	AS_HELP_STRING(--enable-vmfs,enable vmfs file system),
 	enable_vmfs=yes,
 	enable_vmfs=no
 )
@@ -299,7 +299,7 @@ AM_CONDITIONAL(ENABLE_VMFS, test "$enable_vmfs" = yes)
 if test "$enable_vmfs" = "yes"; then
 #check library of some filesystems
 
-dnl Check for VMFS 
+dnl Check for VMFS
 ##AC_CHECKING([ for VMFS Library and Header files ... ])
 ##AC_CHECK_HEADERS([uuid/uuid.h vmfs/vmfs.h], ,
 ##   AC_MSG_ERROR([*** VMFS(vmfs-tools) header not found]))
@@ -313,7 +313,7 @@ fi
 
 ##JFS##
 AC_ARG_ENABLE(jfs,
-	AS_HELP_STRING(--enable-jfs,enable jfs file system), 
+	AS_HELP_STRING(--enable-jfs,enable jfs file system),
 	enable_jfs=yes,
 	enable_jfs=no
 )
@@ -322,7 +322,7 @@ AM_CONDITIONAL(ENABLE_JFS, test "$enable_jfs" = yes)
 if test "$enable_jfs" = "yes"; then
 #check library of some filesystems
 
-dnl Check for JFS 
+dnl Check for JFS
 ##AC_CHECKING([ for JFS Library and Header files ... ])
 ##AC_CHECK_HEADERS([uuid/uuid.h jfs/jfs_superblock.h], ,
 ##   AC_MSG_ERROR([*** JFS(libjfs) header not found]))
@@ -336,7 +336,7 @@ fi
 
 ##btrfs##
 AC_ARG_ENABLE(btrfs,
-	AS_HELP_STRING(--enable-btrfs,enable btrfs file system), 
+	AS_HELP_STRING(--enable-btrfs,enable btrfs file system),
 	enable_btrfs=yes,
 	enable_btrfs=no
 )
@@ -353,7 +353,7 @@ fi
 
 ##minix##
 AC_ARG_ENABLE(minix,
-	AS_HELP_STRING(--enable-minix,enable minix file system), 
+	AS_HELP_STRING(--enable-minix,enable minix file system),
 	enable_minix=yes,
 	enable_minix=no
 )
@@ -368,7 +368,7 @@ fi
 
 ##libncursesw##
 AC_ARG_ENABLE(ncursesw,
-	AS_HELP_STRING(--enable-ncursesw,enable TEXT User Interface), 
+	AS_HELP_STRING(--enable-ncursesw,enable TEXT User Interface),
 	enable_ncursesw=yes,
 )
 AM_CONDITIONAL(ENABLE_NCURSESW, test "$enable_ncursesw" = yes)
@@ -387,7 +387,7 @@ fi
 
 ##static linking##
 AC_ARG_ENABLE(static,
-	AS_HELP_STRING(--enable-static, enable static linking), 
+	AS_HELP_STRING(--enable-static, enable static linking),
 	enable_static=yes,
 )
 AM_CONDITIONAL(ENABLE_STATIC, test "$enable_static" = yes)
@@ -398,7 +398,7 @@ AM_CONDITIONAL(ENABLE_TINFO, test "$tinfo" = 1)
 
 ##memory tracing##
 AC_ARG_ENABLE(mtrace,
-	AS_HELP_STRING(--enable-mtrace, enable memory tracing), 
+	AS_HELP_STRING(--enable-mtrace, enable memory tracing),
 	enable_memtrace=yes,
 )
 AM_CONDITIONAL(ENABLE_MEMTRACE, test "$enable_memtrace" = yes)

@@ -122,7 +122,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	</group>
 	</group>
 	<replaceable class="option">target</replaceable>
-      </arg> 	
+      </arg>
       <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-dX</option></arg>
@@ -177,7 +177,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	<replaceable class="option">logfile</replaceable>
 
 	</arg>
-     
+
     </cmdsynopsis>
   </refsynopsisdiv>
   <refsect1 id="description">

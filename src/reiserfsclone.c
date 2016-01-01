@@ -70,17 +70,17 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     int start = 0;
     int bit_size = 1;
     int done = 0;
-    
+
     fs_open(device);
     tree = reiserfs_fs_tree(fs);
     fs_bitmap = tree->fs->bitmap;
-    
+
     /// init progress
     progress_bar   bprog;	/// progress_bar structure defined in progress.h
     progress_init(&bprog, start, fs->super->s_v1.sb_block_count, fs->super->s_v1.sb_block_count, BITMAP, bit_size);
 
     for( blk = 0; blk < (unsigned long long)fs->super->s_v1.sb_block_count; blk++ ){
-	
+
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: block sb_block_count %llu\n", __FILE__, fs->super->s_v1.sb_block_count);
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: block bitmap check %llu\n", __FILE__, blk);
 	if(reiserfs_tools_test_bit(blk, fs_bitmap->bm_map)){

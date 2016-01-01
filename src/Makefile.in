@@ -554,11 +554,11 @@ am__v_P_1 = :
 AM_V_GEN = $(am__v_GEN_@AM_V@)
 am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
 am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 = 
+am__v_GEN_1 =
 AM_V_at = $(am__v_at_@AM_V@)
 am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
-am__v_at_1 = 
+am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -566,19 +566,19 @@ am__mv = mv -f
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
-am__v_lt_1 = 
+am__v_lt_1 =
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 AM_V_CC = $(am__v_CC_@AM_V@)
 am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
 am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 = 
+am__v_CC_1 =
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 = 
+am__v_CCLD_1 =
 SOURCES = $(partclone_btrfs_SOURCES) $(partclone_chkimg_SOURCES) \
 	$(partclone_dd_SOURCES) $(partclone_exfat_SOURCES) \
 	$(partclone_extfs_SOURCES) $(partclone_f2fs_SOURCES) \
@@ -800,7 +800,7 @@ partclone_imager_CFLAGS = -DIMG
 @ENABLE_HFSP_TRUE@partclone_hfsp_SOURCES = $(main_files) hfsplusclone.c hfsplusclone.h
 @ENABLE_HFSP_TRUE@partclone_hfsp_CFLAGS = -DHFSPLUS
 @ENABLE_XFS_TRUE@partclone_xfs_SOURCES = $(main_files) xfsclone.c xfsclone.h $(XFS_SOURCE)
-@ENABLE_XFS_TRUE@partclone_xfs_CFLAGS = -DXFS -D_GNU_SOURCE -DNDEBUG $(UUID_CFLAGS) 
+@ENABLE_XFS_TRUE@partclone_xfs_CFLAGS = -DXFS -D_GNU_SOURCE -DNDEBUG $(UUID_CFLAGS)
 @ENABLE_XFS_TRUE@partclone_xfs_LDADD = -lrt -lpthread -luuid
 @ENABLE_EXFAT_TRUE@partclone_exfat_SOURCES = $(main_files) exfatclone.c exfatclone.h $(EXFATFS_SOURCE)
 @ENABLE_EXFAT_TRUE@partclone_exfat_CFLAGS = -DEXFAT -D_GNU_SOURCE -std=c99
@@ -836,7 +836,7 @@ partclone_ntfsfixboot_SOURCES = ntfsfixboot.c
 @ENABLE_JFS_TRUE@partclone_jfs_LDADD = -luuid -ljfs
 @ENABLE_BTRFS_TRUE@partclone_btrfs_SOURCES = $(main_files) btrfsclone.c btrfsclone.h $(BTRFS_SOURCE)
 @ENABLE_BTRFS_TRUE@partclone_btrfs_CFLAGS = -DBTRFS -DBTRFS_FLAT_INCLUDES
-@ENABLE_BTRFS_TRUE@partclone_btrfs_LDADD = -luuid -lblkid 
+@ENABLE_BTRFS_TRUE@partclone_btrfs_LDADD = -luuid -lblkid
 @ENABLE_MINIX_TRUE@partclone_minix_SOURCES = $(main_files) minixclone.c minixclone.h
 @ENABLE_MINIX_TRUE@partclone_minix_CFLAGS = -DMINIX
 all: all-am
@@ -980,15 +980,15 @@ btrfs/partclone_btrfs-uuid-tree.$(OBJEXT): btrfs/$(am__dirstamp) \
 btrfs/partclone_btrfs-ctree.$(OBJEXT): btrfs/$(am__dirstamp) \
 	btrfs/$(DEPDIR)/$(am__dirstamp)
 
-partclone.btrfs$(EXEEXT): $(partclone_btrfs_OBJECTS) $(partclone_btrfs_DEPENDENCIES) $(EXTRA_partclone_btrfs_DEPENDENCIES) 
+partclone.btrfs$(EXEEXT): $(partclone_btrfs_OBJECTS) $(partclone_btrfs_DEPENDENCIES) $(EXTRA_partclone_btrfs_DEPENDENCIES)
 	@rm -f partclone.btrfs$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_btrfs_LINK) $(partclone_btrfs_OBJECTS) $(partclone_btrfs_LDADD) $(LIBS)
 
-partclone.chkimg$(EXEEXT): $(partclone_chkimg_OBJECTS) $(partclone_chkimg_DEPENDENCIES) $(EXTRA_partclone_chkimg_DEPENDENCIES) 
+partclone.chkimg$(EXEEXT): $(partclone_chkimg_OBJECTS) $(partclone_chkimg_DEPENDENCIES) $(EXTRA_partclone_chkimg_DEPENDENCIES)
 	@rm -f partclone.chkimg$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_chkimg_LINK) $(partclone_chkimg_OBJECTS) $(partclone_chkimg_LDADD) $(LIBS)
 
-partclone.dd$(EXEEXT): $(partclone_dd_OBJECTS) $(partclone_dd_DEPENDENCIES) $(EXTRA_partclone_dd_DEPENDENCIES) 
+partclone.dd$(EXEEXT): $(partclone_dd_OBJECTS) $(partclone_dd_DEPENDENCIES) $(EXTRA_partclone_dd_DEPENDENCIES)
 	@rm -f partclone.dd$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_dd_LINK) $(partclone_dd_OBJECTS) $(partclone_dd_LDADD) $(LIBS)
 exfat/$(am__dirstamp):
@@ -1016,11 +1016,11 @@ exfat/partclone_exfat-mount.$(OBJEXT): exfat/$(am__dirstamp) \
 exfat/partclone_exfat-time.$(OBJEXT): exfat/$(am__dirstamp) \
 	exfat/$(DEPDIR)/$(am__dirstamp)
 
-partclone.exfat$(EXEEXT): $(partclone_exfat_OBJECTS) $(partclone_exfat_DEPENDENCIES) $(EXTRA_partclone_exfat_DEPENDENCIES) 
+partclone.exfat$(EXEEXT): $(partclone_exfat_OBJECTS) $(partclone_exfat_DEPENDENCIES) $(EXTRA_partclone_exfat_DEPENDENCIES)
 	@rm -f partclone.exfat$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_exfat_LINK) $(partclone_exfat_OBJECTS) $(partclone_exfat_LDADD) $(LIBS)
 
-partclone.extfs$(EXEEXT): $(partclone_extfs_OBJECTS) $(partclone_extfs_DEPENDENCIES) $(EXTRA_partclone_extfs_DEPENDENCIES) 
+partclone.extfs$(EXEEXT): $(partclone_extfs_OBJECTS) $(partclone_extfs_DEPENDENCIES) $(EXTRA_partclone_extfs_DEPENDENCIES)
 	@rm -f partclone.extfs$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_extfs_LINK) $(partclone_extfs_OBJECTS) $(partclone_extfs_LDADD) $(LIBS)
 f2fs/$(am__dirstamp):
@@ -1036,71 +1036,71 @@ f2fs/partclone_f2fs-libf2fs.$(OBJEXT): f2fs/$(am__dirstamp) \
 f2fs/partclone_f2fs-mount.$(OBJEXT): f2fs/$(am__dirstamp) \
 	f2fs/$(DEPDIR)/$(am__dirstamp)
 
-partclone.f2fs$(EXEEXT): $(partclone_f2fs_OBJECTS) $(partclone_f2fs_DEPENDENCIES) $(EXTRA_partclone_f2fs_DEPENDENCIES) 
+partclone.f2fs$(EXEEXT): $(partclone_f2fs_OBJECTS) $(partclone_f2fs_DEPENDENCIES) $(EXTRA_partclone_f2fs_DEPENDENCIES)
 	@rm -f partclone.f2fs$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_f2fs_LINK) $(partclone_f2fs_OBJECTS) $(partclone_f2fs_LDADD) $(LIBS)
 
-partclone.fat$(EXEEXT): $(partclone_fat_OBJECTS) $(partclone_fat_DEPENDENCIES) $(EXTRA_partclone_fat_DEPENDENCIES) 
+partclone.fat$(EXEEXT): $(partclone_fat_OBJECTS) $(partclone_fat_DEPENDENCIES) $(EXTRA_partclone_fat_DEPENDENCIES)
 	@rm -f partclone.fat$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_fat_LINK) $(partclone_fat_OBJECTS) $(partclone_fat_LDADD) $(LIBS)
 
-partclone.fstype$(EXEEXT): $(partclone_fstype_OBJECTS) $(partclone_fstype_DEPENDENCIES) $(EXTRA_partclone_fstype_DEPENDENCIES) 
+partclone.fstype$(EXEEXT): $(partclone_fstype_OBJECTS) $(partclone_fstype_DEPENDENCIES) $(EXTRA_partclone_fstype_DEPENDENCIES)
 	@rm -f partclone.fstype$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_fstype_LINK) $(partclone_fstype_OBJECTS) $(partclone_fstype_LDADD) $(LIBS)
 
-partclone.hfsp$(EXEEXT): $(partclone_hfsp_OBJECTS) $(partclone_hfsp_DEPENDENCIES) $(EXTRA_partclone_hfsp_DEPENDENCIES) 
+partclone.hfsp$(EXEEXT): $(partclone_hfsp_OBJECTS) $(partclone_hfsp_DEPENDENCIES) $(EXTRA_partclone_hfsp_DEPENDENCIES)
 	@rm -f partclone.hfsp$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_hfsp_LINK) $(partclone_hfsp_OBJECTS) $(partclone_hfsp_LDADD) $(LIBS)
 
-partclone.imager$(EXEEXT): $(partclone_imager_OBJECTS) $(partclone_imager_DEPENDENCIES) $(EXTRA_partclone_imager_DEPENDENCIES) 
+partclone.imager$(EXEEXT): $(partclone_imager_OBJECTS) $(partclone_imager_DEPENDENCIES) $(EXTRA_partclone_imager_DEPENDENCIES)
 	@rm -f partclone.imager$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_imager_LINK) $(partclone_imager_OBJECTS) $(partclone_imager_LDADD) $(LIBS)
 
-partclone.info$(EXEEXT): $(partclone_info_OBJECTS) $(partclone_info_DEPENDENCIES) $(EXTRA_partclone_info_DEPENDENCIES) 
+partclone.info$(EXEEXT): $(partclone_info_OBJECTS) $(partclone_info_DEPENDENCIES) $(EXTRA_partclone_info_DEPENDENCIES)
 	@rm -f partclone.info$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(partclone_info_OBJECTS) $(partclone_info_LDADD) $(LIBS)
 
-partclone.jfs$(EXEEXT): $(partclone_jfs_OBJECTS) $(partclone_jfs_DEPENDENCIES) $(EXTRA_partclone_jfs_DEPENDENCIES) 
+partclone.jfs$(EXEEXT): $(partclone_jfs_OBJECTS) $(partclone_jfs_DEPENDENCIES) $(EXTRA_partclone_jfs_DEPENDENCIES)
 	@rm -f partclone.jfs$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_jfs_LINK) $(partclone_jfs_OBJECTS) $(partclone_jfs_LDADD) $(LIBS)
 
-partclone.minix$(EXEEXT): $(partclone_minix_OBJECTS) $(partclone_minix_DEPENDENCIES) $(EXTRA_partclone_minix_DEPENDENCIES) 
+partclone.minix$(EXEEXT): $(partclone_minix_OBJECTS) $(partclone_minix_DEPENDENCIES) $(EXTRA_partclone_minix_DEPENDENCIES)
 	@rm -f partclone.minix$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_minix_LINK) $(partclone_minix_OBJECTS) $(partclone_minix_LDADD) $(LIBS)
 
-partclone.nilfs2$(EXEEXT): $(partclone_nilfs2_OBJECTS) $(partclone_nilfs2_DEPENDENCIES) $(EXTRA_partclone_nilfs2_DEPENDENCIES) 
+partclone.nilfs2$(EXEEXT): $(partclone_nilfs2_OBJECTS) $(partclone_nilfs2_DEPENDENCIES) $(EXTRA_partclone_nilfs2_DEPENDENCIES)
 	@rm -f partclone.nilfs2$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_nilfs2_LINK) $(partclone_nilfs2_OBJECTS) $(partclone_nilfs2_LDADD) $(LIBS)
 
-partclone.ntfs$(EXEEXT): $(partclone_ntfs_OBJECTS) $(partclone_ntfs_DEPENDENCIES) $(EXTRA_partclone_ntfs_DEPENDENCIES) 
+partclone.ntfs$(EXEEXT): $(partclone_ntfs_OBJECTS) $(partclone_ntfs_DEPENDENCIES) $(EXTRA_partclone_ntfs_DEPENDENCIES)
 	@rm -f partclone.ntfs$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_ntfs_LINK) $(partclone_ntfs_OBJECTS) $(partclone_ntfs_LDADD) $(LIBS)
 
-partclone.ntfsfixboot$(EXEEXT): $(partclone_ntfsfixboot_OBJECTS) $(partclone_ntfsfixboot_DEPENDENCIES) $(EXTRA_partclone_ntfsfixboot_DEPENDENCIES) 
+partclone.ntfsfixboot$(EXEEXT): $(partclone_ntfsfixboot_OBJECTS) $(partclone_ntfsfixboot_DEPENDENCIES) $(EXTRA_partclone_ntfsfixboot_DEPENDENCIES)
 	@rm -f partclone.ntfsfixboot$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(partclone_ntfsfixboot_OBJECTS) $(partclone_ntfsfixboot_LDADD) $(LIBS)
 
-partclone.reiser4$(EXEEXT): $(partclone_reiser4_OBJECTS) $(partclone_reiser4_DEPENDENCIES) $(EXTRA_partclone_reiser4_DEPENDENCIES) 
+partclone.reiser4$(EXEEXT): $(partclone_reiser4_OBJECTS) $(partclone_reiser4_DEPENDENCIES) $(EXTRA_partclone_reiser4_DEPENDENCIES)
 	@rm -f partclone.reiser4$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_reiser4_LINK) $(partclone_reiser4_OBJECTS) $(partclone_reiser4_LDADD) $(LIBS)
 
-partclone.reiserfs$(EXEEXT): $(partclone_reiserfs_OBJECTS) $(partclone_reiserfs_DEPENDENCIES) $(EXTRA_partclone_reiserfs_DEPENDENCIES) 
+partclone.reiserfs$(EXEEXT): $(partclone_reiserfs_OBJECTS) $(partclone_reiserfs_DEPENDENCIES) $(EXTRA_partclone_reiserfs_DEPENDENCIES)
 	@rm -f partclone.reiserfs$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_reiserfs_LINK) $(partclone_reiserfs_OBJECTS) $(partclone_reiserfs_LDADD) $(LIBS)
 
-partclone.restore$(EXEEXT): $(partclone_restore_OBJECTS) $(partclone_restore_DEPENDENCIES) $(EXTRA_partclone_restore_DEPENDENCIES) 
+partclone.restore$(EXEEXT): $(partclone_restore_OBJECTS) $(partclone_restore_DEPENDENCIES) $(EXTRA_partclone_restore_DEPENDENCIES)
 	@rm -f partclone.restore$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_restore_LINK) $(partclone_restore_OBJECTS) $(partclone_restore_LDADD) $(LIBS)
 
-partclone.ufs$(EXEEXT): $(partclone_ufs_OBJECTS) $(partclone_ufs_DEPENDENCIES) $(EXTRA_partclone_ufs_DEPENDENCIES) 
+partclone.ufs$(EXEEXT): $(partclone_ufs_OBJECTS) $(partclone_ufs_DEPENDENCIES) $(EXTRA_partclone_ufs_DEPENDENCIES)
 	@rm -f partclone.ufs$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_ufs_LINK) $(partclone_ufs_OBJECTS) $(partclone_ufs_LDADD) $(LIBS)
 
-partclone.vmfs$(EXEEXT): $(partclone_vmfs_OBJECTS) $(partclone_vmfs_DEPENDENCIES) $(EXTRA_partclone_vmfs_DEPENDENCIES) 
+partclone.vmfs$(EXEEXT): $(partclone_vmfs_OBJECTS) $(partclone_vmfs_DEPENDENCIES) $(EXTRA_partclone_vmfs_DEPENDENCIES)
 	@rm -f partclone.vmfs$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_vmfs_LINK) $(partclone_vmfs_OBJECTS) $(partclone_vmfs_LDADD) $(LIBS)
 
-partclone.vmfs5$(EXEEXT): $(partclone_vmfs5_OBJECTS) $(partclone_vmfs5_DEPENDENCIES) $(EXTRA_partclone_vmfs5_DEPENDENCIES) 
+partclone.vmfs5$(EXEEXT): $(partclone_vmfs5_OBJECTS) $(partclone_vmfs5_DEPENDENCIES) $(EXTRA_partclone_vmfs5_DEPENDENCIES)
 	@rm -f partclone.vmfs5$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_vmfs5_LINK) $(partclone_vmfs5_OBJECTS) $(partclone_vmfs5_LDADD) $(LIBS)
 xfs/$(am__dirstamp):
@@ -1184,7 +1184,7 @@ xfs/partclone_xfs-xfs_da_format.$(OBJEXT): xfs/$(am__dirstamp) \
 xfs/partclone_xfs-xfs_inode_fork.$(OBJEXT): xfs/$(am__dirstamp) \
 	xfs/$(DEPDIR)/$(am__dirstamp)
 
-partclone.xfs$(EXEEXT): $(partclone_xfs_OBJECTS) $(partclone_xfs_DEPENDENCIES) $(EXTRA_partclone_xfs_DEPENDENCIES) 
+partclone.xfs$(EXEEXT): $(partclone_xfs_OBJECTS) $(partclone_xfs_DEPENDENCIES) $(EXTRA_partclone_xfs_DEPENDENCIES)
 	@rm -f partclone.xfs$(EXEEXT)
 	$(AM_V_CCLD)$(partclone_xfs_LINK) $(partclone_xfs_OBJECTS) $(partclone_xfs_LDADD) $(LIBS)
 

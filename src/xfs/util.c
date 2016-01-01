@@ -359,7 +359,7 @@ libxfs_iprint(
 		(unsigned long)ip->i_df.if_u1.if_extents);
 	if (ip->i_df.if_flags & XFS_IFEXTENTS) {
 		nextents = ip->i_df.if_bytes / (uint)sizeof(*ep);
-		for (ep = ip->i_df.if_u1.if_extents, i = 0; i < nextents; 
+		for (ep = ip->i_df.if_u1.if_extents, i = 0; i < nextents;
 								i++, ep++) {
 			xfs_bmbt_irec_t rec;
 
@@ -453,7 +453,7 @@ libxfs_iflush_int(xfs_inode_t *ip, xfs_buf_t *bp)
 	xfs_dinode_to_disk(dip, &ip->i_d);
 
 	xfs_iflush_fork(ip, dip, iip, XFS_DATA_FORK);
-	if (XFS_IFORK_Q(ip)) 
+	if (XFS_IFORK_Q(ip))
 		xfs_iflush_fork(ip, dip, iip, XFS_ATTR_FORK);
 
 	/* update the lsn in the on disk inode if required */

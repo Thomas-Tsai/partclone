@@ -24,7 +24,7 @@ Authors:
 
 %build
 [ -d $RPM_BUILD_ROOT ] && rm -rf $RPM_BUILD_ROOT
-./configure --prefix=/usr --enable-all --enable-static --enable-ncursesw LIBS=-ltinfo 
+./configure --prefix=/usr --enable-all --enable-static --enable-ncursesw LIBS=-ltinfo
 make -j4
 
 %install

@@ -35,7 +35,7 @@ void dump_sit(struct f2fs_sb_info *sbi)
 	    DBG(0, "test main bitmap is 0x1. blk_addr[0x%x] %i\n", blk, blk);
 
 	}
-    }	
+    }
 
 
 }

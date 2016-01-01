@@ -22,9 +22,9 @@ TEST=0
 _dch_options="-b"
 is_release=1
 USAGE(){
-    
+
     cat << EOF
-	$0 is script to auto release partclone. This cript will create partclone 
+	$0 is script to auto release partclone. This cript will create partclone
 	tar ball file and auto build  debian package with my key.
 	It's only for developer used.
 
@@ -56,7 +56,7 @@ check_option(){
 		#git pull
 		vgit=$(git log -1 $gVERSION)
 		if [ -z "$vgit" ]; then
-		    echo "can't find git version $VERSION"> 2& 
+		    echo "can't find git version $VERSION"> 2&
 		    exit 1
 		fi
 		popd
@@ -116,7 +116,7 @@ check_option(){
 
 # exit if not git
 is_git(){
-    
+
   GIT_REPOSITORY=`git remote -v | grep partclone`
   if [ "${GIT_REPOSITORY}" = "" ];
   then
@@ -143,7 +143,7 @@ check_version(){
 	_dch_options="-v $VERSION-1 -b"
 	fi
     fi
-    
+
     if [ "$VERSION" == "auto" ];then
 	VERSION=$(grep ^PACKAGE_VERSION= configure | sed s/PACKAGE_VERSION//g | sed s/[\'=]//g)
 	gVERSION="HEAD"
@@ -200,7 +200,7 @@ push_tags(){
 sync_log(){
     pushd $ptlpath
     is_git
-    # get source code from Jim Meyering at 
+    # get source code from Jim Meyering at
     # http://git.mymadcat.com/index.php/p/tracker/source/tree/master/gitlog-to-changelog
     perl gitlog-to-changelog --since 1999-01-01 > ChangeLog
     popd

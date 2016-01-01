@@ -82,11 +82,11 @@ extern void close_pui(int pui){
 }
 
 extern void update_pui(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done){
-    
+
     if (done != 1) {
 	if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && copied != 0)
 	    return;
-	
+
     }
     if (prog->pui == NCURSES)
         Ncurses_progress_update(prog, copied, current, done);
@@ -261,7 +261,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
         mvwprintw(bar_win, 0, 0, "%s", blockbuf);
         wattroff(bar_win, COLOR_PAIR(4));
         mvwprintw(p_win, 4, 52, "%6.2f%%", prog_stat.percent);
-        
+
 	if (prog->flag == IO) {
 	    werase(tbar_win);
 	    mvwprintw(p_win, 6, 0, "Total Block Process:");

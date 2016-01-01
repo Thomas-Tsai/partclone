@@ -42,7 +42,7 @@ static inline unsigned long get_max_size(void)
 	default:
 	    return (unsigned long)Super.s_max_size;
     }
-}    
+}
 
 static inline unsigned long get_ninodes(void)
 {
@@ -55,11 +55,11 @@ static inline unsigned long get_ninodes(void)
 }
 
 static inline unsigned long get_nzones(void)
-{       
+{
     switch (fs_version) {
-	case 3: 
+	case 3:
 	    return (unsigned long)Super3.s_zones;
-	case 2: 
+	case 2:
 	    return (unsigned long)Super.s_zones;
 	default:
 	    return (unsigned long)Super.s_nzones;
@@ -68,30 +68,30 @@ static inline unsigned long get_nzones(void)
 
 
 static inline unsigned long get_nimaps(void)
-{               
+{
     switch (fs_version) {
-	case 3: 
+	case 3:
 	    return (unsigned long)Super3.s_imap_blocks;
 	default:
 	    return (unsigned long)Super.s_imap_blocks;
     }
-}               
+}
 
 static inline unsigned long get_nzmaps(void)
-{               
+{
     switch (fs_version) {
-	case 3: 
+	case 3:
 	    return (unsigned long)Super3.s_zmap_blocks;
 	default:
 	    return (unsigned long)Super.s_zmap_blocks;
     }
-}       
+}
 
 
 static inline unsigned long get_zone_size(void)
-{               
+{
     switch (fs_version) {
-	case 3: 
+	case 3:
 	    return (unsigned long)Super3.s_log_zone_size;
 	default:
 	    return (unsigned long)Super.s_log_zone_size;
@@ -100,30 +100,30 @@ static inline unsigned long get_zone_size(void)
 
 
 static inline unsigned long get_block_size(void)
-{               
+{
     switch (fs_version) {
-	case 3: 
+	case 3:
 	    return (unsigned long)Super3.s_blocksize;
 	default:
 	    return MINIX_BLOCK_SIZE;
-    }       
-}       
+    }
+}
 
 
 static inline unsigned long get_first_zone(void)
-{               
+{
     switch (fs_version) {
-	case 3: 
+	case 3:
 	    return (unsigned long)Super3.s_firstdatazone;
 	default:
 	    return (unsigned long)Super.s_firstdatazone;
-    }       
-}       
+    }
+}
 
 
 static void fs_open(char *device) {
     dev = open(device,O_RDONLY);
-    log_mesg(0, 0, 0, fs_opt.debug, "%s: open minix fs\n", __FILE__); 
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: open minix fs\n", __FILE__);
     if (MINIX_BLOCK_SIZE != lseek(dev, MINIX_BLOCK_SIZE, SEEK_SET))
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: seek failed\n", __FILE__);
 
@@ -136,7 +136,7 @@ static void fs_open(char *device) {
 }
 
 static void fs_close(){
-    close(dev);   
+    close(dev);
 }
 
 static unsigned long count_used_block(){
@@ -175,10 +175,10 @@ static unsigned long count_used_block(){
 	if ((test_zone < 0) || (test_zone > zones+get_first_zone()))
 	    test_zone = 0;
 	if(isset(zone_map,test_zone)){
-	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu in use\n", __FILE__, test_block);    
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu in use\n", __FILE__, test_block);
 	    used_block++;
 	}else{
-	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu not use\n", __FILE__, test_block);    
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu not use\n", __FILE__, test_block);
 	}
     }
     free(zone_map);
@@ -259,10 +259,10 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	if ((test_zone < 0) || (test_zone > zones+get_first_zone()))
 	    test_zone = 0;
 	if(isset(zone_map,test_zone)){
-	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu in use\n", __FILE__, test_block);    
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu in use\n", __FILE__, test_block);
 	    pc_set_bit(test_block, bitmap);
 	}else{
-	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu not use\n", __FILE__, test_block);    
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu not use\n", __FILE__, test_block);
 	}
     }
     free(zone_map);

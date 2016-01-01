@@ -45,7 +45,7 @@ struct vmfs_dir_map {
     vmfs_blk_map_t *blk_map;
 };
 
-/* 
+/*
  * Block mapping, which allows to keep track of inodes given a block number.
  * Used for troubleshooting/debugging/future dump.
  */
@@ -112,7 +112,7 @@ static inline u_int vmfs_block_map_hash(uint32_t blk_id)
 
 /* Find a block mapping */
 vmfs_blk_map_t *vmfs_block_map_find(vmfs_blk_map_t **ht,uint32_t blk_id)
-{   
+{
     vmfs_blk_map_t *map;
     u_int bucket;
 
@@ -159,7 +159,7 @@ void print_pos_by_id (const vmfs_fs_t *fs, uint32_t blk_id)
 	/* File Block */
 	case VMFS_BLK_TYPE_FB:
 	    pos = (unsigned long long)VMFS_BLK_FB_ITEM(blk_id) * vmfs_fs_get_blocksize(fs);
-	    /* reference vmfs-tools/libvmfs/vmfs_volume.c 
+	    /* reference vmfs-tools/libvmfs/vmfs_volume.c
 	       pos += vol->vmfs_base + 0x1000000;
 	     */
 	    pos += 1048576 + 16777216;
@@ -239,17 +239,17 @@ static int vmfs_dump_store_inode(const vmfs_fs_t *fs,vmfs_blk_map_t **ht,
 
 /* dump bitmap fb */
 void dump_bitmaps_fb (vmfs_bitmap_t *b,uint32_t addr, void *opt)
-{  
+{
     vmfs_fs_t *fs = opt;
     uint32_t blk_id;
 
-    blk_id = VMFS_BLK_FB_BUILD(addr, 0); 
+    blk_id = VMFS_BLK_FB_BUILD(addr, 0);
     print_pos_by_id(fs, blk_id);
 }
 
 /* dump bitmap sb */
 void dump_bitmaps_sb (vmfs_bitmap_t *b,uint32_t addr, void *opt)
-{  
+{
     vmfs_fs_t *fs = opt;
     uint32_t entry,item;
     uint32_t blk_id;
@@ -263,7 +263,7 @@ void dump_bitmaps_sb (vmfs_bitmap_t *b,uint32_t addr, void *opt)
 
 /* dump bitmap pb */
 void dump_bitmaps_pb (vmfs_bitmap_t *b,uint32_t addr, void *opt)
-{  
+{
     vmfs_fs_t *fs = opt;
     uint32_t entry,item;
     uint32_t blk_id;
@@ -318,7 +318,7 @@ static void fs_open(char* device){
     if (vmfs_fs_open(fs) == -1) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to open volume.\n", __FILE__);
     }
-#endif	
+#endif
 
     if (!(root_dir = vmfs_dir_open_from_blkid(fs,VMFS_BLK_FD_BUILD(0,0,0)))) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Unable to open root directory\n", __FILE__);

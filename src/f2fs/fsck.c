@@ -202,7 +202,7 @@ int fsck_chk_node_blk(struct f2fs_sb_info *sbi,
 		fsck->chk.valid_node_cnt++;
 	}else{
 		DBG(0, "SIT and main bitmap is NOT 0x0. blk_addr[0x%x] %i\n", ni.blk_addr, ni.blk_addr);
-	    
+
 	}
 
 	node_blk = (struct f2fs_node *)calloc(BLOCK_SZ, 1);

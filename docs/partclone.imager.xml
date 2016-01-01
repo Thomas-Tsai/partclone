@@ -134,7 +134,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--overwrite</option></arg>
 	</group>
 	<replaceable class="option">target</replaceable>
-      </arg> 
+      </arg>
       <arg  choice="plain">
 	<group choice="opt">
 	    <arg choice="plain"><option>-dX</option></arg>
@@ -210,7 +210,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	</group>
 	<replaceable class="option">logfile</replaceable>
       </arg>
-     
+
     </cmdsynopsis>
   </refsynopsisdiv>
   <refsect1 id="description">
@@ -265,7 +265,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <listitem>
           <para>Restore partition from the special image format.</para>
         </listitem>
-      </varlistentry>      
+      </varlistentry>
       <varlistentry>
         <term><option>-b</option></term>
         <term><option>--dev-to-dev</option></term>

@@ -422,7 +422,7 @@ static void free_tree_blocks(void)
 	ULIST_ITER_INIT(&uiter);
 	while ((unode = ulist_next(tree_blocks, &uiter)))
 		free(unode_tree_block(unode));
-	ulist_free(tree_blocks);	
+	ulist_free(tree_blocks);
 	tree_blocks = NULL;
 }
 

@@ -141,7 +141,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     int bit_size = 1;
 
     fs_open(device);
-    /// Read Blocal Allocation Map  Inode 
+    /// Read Blocal Allocation Map  Inode
     ret = find_inode(BMAP_I, AGGREGATE_I, &address);
     if (ret){
 	log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):find_node error.\n", __FILE__, __LINE__);
@@ -152,7 +152,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):xRead error.\n", __FILE__, __LINE__);
     }
 
-    /// Read overall control page for the map 
+    /// Read overall control page for the map
     ret = ujfs_rwdaddr(fp, &cntl_addr, &bmap_inode, (int64_t) 0, GET, bsize);
     if (ret){
 	log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):ujfs_rwdaddr error.\n", __FILE__, __LINE__);
@@ -165,7 +165,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     dn_mapsize = cntl_page.dn_mapsize;
     dmap_l2bpp = cntl_page.dn_l2nbperpage;
 
-    /// display leaf 
+    /// display leaf
 
     lblock = 0; //control page
     decode_pagenum(lblock, &l1, &l0, &dmap_i);
@@ -219,7 +219,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
 	/// bitmap information not cover all partition
 
-	/// display bitmap  
+	/// display bitmap
 
 	block_used = 0;
 	for (pb = 0; (pb < d_map.nblocks) && (tb < dn_mapsize); pb++){
@@ -301,7 +301,7 @@ void get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks) {
     int logsize = 0;
 
 
-    /// Read Blocal Allocation Map  Inode 
+    /// Read Blocal Allocation Map  Inode
     ret = find_inode(BMAP_I, AGGREGATE_I, &address);
     if (ret){
 	log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):find_node error.\n", __FILE__, __LINE__);
@@ -312,7 +312,7 @@ void get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):xRead error.\n", __FILE__, __LINE__);
     }
 
-    /// Read overall control page for the map 
+    /// Read overall control page for the map
     ret = ujfs_rwdaddr(fp, &cntl_addr, &bmap_inode, (int64_t) 0, GET, bsize);
     if (ret){
 	log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):ujfs_rwdaddr error.\n", __FILE__, __LINE__);
@@ -513,7 +513,7 @@ int jfs_bit_inuse(unsigned *bitmap, uint64_t block){
 
     byte = block/32;
     bit  = 31 - (block%32);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap = %08x\n", __FILE__, bitmap[byte]);	
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap = %08x\n", __FILE__, bitmap[byte]);
 
     if(bitmap[byte] & (1<<bit))
 	return 1;

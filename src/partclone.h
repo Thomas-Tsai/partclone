@@ -258,7 +258,7 @@ extern void usage(void);
 extern void print_version(void);
 extern void parse_options(int argc, char **argv, cmd_opt* opt);
 
-/** 
+/**
  * Ncurses Text User Interface
  * open_ncurses		- open text window
  * close_ncurses	- close text window
@@ -270,7 +270,7 @@ extern void close_ncurses();
  * debug message
  * open_log	- to open file /var/log/partclone.log
  * log_mesg	- write log to the file
- *		- write log and exit 
+ *		- write log and exit
  *		- write to stderr...
  */
 extern void open_log(char* source);
@@ -306,7 +306,7 @@ extern void read_bitmap(char* device, file_system_info fs_info, unsigned long* b
  * open_source	- open device or image or stdin
  * open_target	- open device or image or stdout
  *
- *	the data string 
+ *	the data string
  *	clone:	    read from device to image/stdout
  *	restore:    read from image/stdin to device
  *	dd:	    read from device to device !! not complete

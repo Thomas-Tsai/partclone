@@ -80,7 +80,7 @@ extern void read_bitmap(char* device, file_system_info fs_info, unsigned long* b
     struct f2fs_fsck *fsck = F2FS_FSCK(sbi);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: start fsck sit\n", __FILE__);
     for ( block = 0; block <= sb->main_blkaddr ; block++ ){
-    
+
 	    log_mesg(2, 0, 0, fs_opt.debug, "%s: test SIT bitmap is 0x1. blk_addr[0x%x] %i\n", __FILE__, block, block);
 	    bused++;
 	    pc_set_bit(block, bitmap);

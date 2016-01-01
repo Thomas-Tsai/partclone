@@ -88,7 +88,7 @@ endif
 if ENABLE_XFS
 sbin_PROGRAMS += partclone.xfs
 partclone_xfs_SOURCES=$(main_files) xfsclone.c xfsclone.h $(XFS_SOURCE)
-partclone_xfs_CFLAGS=-DXFS -D_GNU_SOURCE -DNDEBUG $(UUID_CFLAGS) 
+partclone_xfs_CFLAGS=-DXFS -D_GNU_SOURCE -DNDEBUG $(UUID_CFLAGS)
 partclone_xfs_LDADD=-lrt -lpthread -luuid
 endif
 
@@ -169,7 +169,7 @@ if ENABLE_BTRFS
 sbin_PROGRAMS += partclone.btrfs
 partclone_btrfs_SOURCES=$(main_files) btrfsclone.c btrfsclone.h $(BTRFS_SOURCE)
 partclone_btrfs_CFLAGS=-DBTRFS -DBTRFS_FLAT_INCLUDES
-partclone_btrfs_LDADD=-luuid -lblkid 
+partclone_btrfs_LDADD=-luuid -lblkid
 endif
 
 if ENABLE_MINIX
