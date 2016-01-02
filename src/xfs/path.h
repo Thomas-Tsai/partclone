@@ -31,7 +31,7 @@
 #define FS_PROJECT_PATH	(1<<1)
 
 typedef struct fs_path {
-	char		*fs_name;	/* Data device for filesystem 	*/
+	char		*fs_name;	/* Data device for filesystem	*/
 	dev_t		fs_datadev;
 	char		*fs_log;	/* External log device, if any	*/
 	dev_t		fs_logdev;

@@ -91,8 +91,8 @@ int btrfs_device_already_in_root(struct btrfs_root *root, int fd,
 				 int super_offset);
 
 int pretty_size_snprintf(u64 size, char *str, size_t str_bytes, unsigned unit_mode);
-#define pretty_size(size) 	pretty_size_mode(size, UNITS_DEFAULT)
-#define pretty_size_mode(size, mode) 					      \
+#define pretty_size(size)	pretty_size_mode(size, UNITS_DEFAULT)
+#define pretty_size_mode(size, mode)					      \
 	({								      \
 		static __thread char _str[32];				      \
 		(void)pretty_size_snprintf((size), _str, sizeof(_str), (mode)); \

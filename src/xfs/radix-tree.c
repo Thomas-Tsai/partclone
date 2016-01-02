@@ -57,9 +57,9 @@ static unsigned long height_to_maxindex[RADIX_TREE_MAX_PATH];
  * Radix tree node cache.
  */
 
-#define radix_tree_node_alloc(r) 	((struct radix_tree_node *) \
+#define radix_tree_node_alloc(r)	((struct radix_tree_node *) \
 		calloc(1, sizeof(struct radix_tree_node)))
-#define radix_tree_node_free(n) 	free(n)
+#define radix_tree_node_free(n)	free(n)
 
 #ifdef RADIX_TREE_TAGS
 
@@ -72,8 +72,8 @@ static inline void tag_set(struct radix_tree_node *node, unsigned int tag,
 static inline void tag_clear(struct radix_tree_node *node, unsigned int tag,
 		int offset)
 {
-	__uint32_t 	*p = (__uint32_t*)node->tags[tag] + (offset >> 5);
-	__uint32_t 	m = 1 << (offset & 31);
+	__uint32_t	*p = (__uint32_t*)node->tags[tag] + (offset >> 5);
+	__uint32_t	m = 1 << (offset & 31);
 	*p &= ~m;
 }
 
@@ -327,7 +327,7 @@ void *radix_tree_lookup_first(struct radix_tree_root *root, unsigned long *index
  *	radix_tree_tag_set - set a tag on a radix tree node
  *	@root:		radix tree root
  *	@index:		index key
- *	@tag: 		tag index
+ *	@tag:		tag index
  *
  *	Set the search tag (which must be < RADIX_TREE_MAX_TAGS)
  *	corresponding to @index in the radix tree.  From
@@ -368,7 +368,7 @@ void *radix_tree_tag_set(struct radix_tree_root *root,
  *	radix_tree_tag_clear - clear a tag on a radix tree node
  *	@root:		radix tree root
  *	@index:		index key
- *	@tag: 		tag index
+ *	@tag:		tag index
  *
  *	Clear the search tag (which must be < RADIX_TREE_MAX_TAGS)
  *	corresponding to @index in the radix tree.  If
@@ -774,10 +774,10 @@ out:
  */
 int radix_tree_tagged(struct radix_tree_root *root, unsigned int tag)
 {
-  	struct radix_tree_node *rnode;
-  	rnode = root->rnode;
-  	if (!rnode)
-  		return 0;
+	struct radix_tree_node *rnode;
+	rnode = root->rnode;
+	if (!rnode)
+		return 0;
 	return any_tag_set(rnode, tag);
 }
 #endif

@@ -1589,7 +1589,7 @@
 
 		* update version to 0.2.6
 
-	    * try to fix progress rate     * also change to partclone.c to fix print_readable_size 	modified:   src/partclone.c 	modified:   src/progress.c
+	    * try to fix progress rate     * also change to partclone.c to fix print_readable_size	modified:   src/partclone.c	modified:   src/progress.c
 
 2010-03-12  Thomas Tsai  <thomas@nchc.org.tw>
 
@@ -1617,7 +1617,7 @@
 
 2010-03-10  thomas  <thomas@T17.(none)>
 
-	        add git revision by attribute 	update process inf error 	new file:   .gitattributes 	modified:   src/progress.c 	modified:   src/version.h
+	        add git revision by attribute	update process inf error	new file:   .gitattributes	modified:   src/progress.c	modified:   src/version.h
 
 2010-03-02  Thomas Tsai  <thomas@nchc.org.tw>
 
@@ -1627,7 +1627,7 @@
 
 2010-03-01  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	        try to build package via git build package 	modified:   ChangeLog 	modified:   debian/changelog 	modified:   po/partclone.pot 	modified:   po/zh_TW.gmo 	modified:   po/zh_TW.po 	modified:   toolbox
+	        try to build package via git build package	modified:   ChangeLog	modified:   debian/changelog	modified:   po/partclone.pot	modified:   po/zh_TW.gmo	modified:   po/zh_TW.po	modified:   toolbox
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@363 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	~ update message of fstype ~ replace to git repository ~ update version display ~ add gitlog-to-changelog to convert git log to ChangeLog
@@ -1645,7 +1645,7 @@
 
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@362 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	update version number 	modified:   Makefile.am 	modified:   Makefile.in 	modified:   configure 	modified:   configure.ac 	modified:   src/Makefile.am 	modified:   src/Makefile.in 	modified:   src/version.h
+	update version number	modified:   Makefile.am	modified:   Makefile.in	modified:   configure	modified:   configure.ac	modified:   src/Makefile.am	modified:   src/Makefile.in	modified:   src/version.h
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@361 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2010-02-24  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
@@ -1668,7 +1668,7 @@
 
 2010-01-27  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	* add vmfs check to autoconf * update vmfsclone 	modified:   Makefile.in 	modified:   aclocal.m4 	modified:   config.h.in 	modified:   configure 	modified:   configure.ac 	modified:   docs/Makefile.in 	modified:   po/zh_TW.gmo 	modified:   po/zh_TW.po 	modified:   src/Makefile.am 	modified:   src/Makefile.in 	modified:   src/version.h 	modified:   src/vmfsclone.c
+	* add vmfs check to autoconf * update vmfsclone	modified:   Makefile.in	modified:   aclocal.m4	modified:   config.h.in	modified:   configure	modified:   configure.ac	modified:   docs/Makefile.in	modified:   po/zh_TW.gmo	modified:   po/zh_TW.po	modified:   src/Makefile.am	modified:   src/Makefile.in	modified:   src/version.h	modified:   src/vmfsclone.c
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@358 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2010-01-22  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
@@ -1683,13 +1683,13 @@
 
 2010-01-18  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	translate and smal update progress bar. 	modified:   po/partclone.pot 	modified:   po/zh_TW.gmo 	modified:   po/zh_TW.po 	modified:   src/progress.c
+	translate and smal update progress bar.	modified:   po/partclone.pot	modified:   po/zh_TW.gmo	modified:   po/zh_TW.po	modified:   src/progress.c
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@355 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	update progress bar stop value. 	modified:   src/ddclone.c 	modified:   src/main.c 	modified:   src/restore.c
+	update progress bar stop value.	modified:   src/ddclone.c	modified:   src/main.c	modified:   src/restore.c
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@354 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	update progress bar. the new progress update by time. 	modified:   src/ddclone.c 	modified:   src/main.c 	modified:   src/progress.c 	modified:   src/progress.h 	modified:   src/restore.c
+	update progress bar. the new progress update by time.	modified:   src/ddclone.c	modified:   src/main.c	modified:   src/progress.c	modified:   src/progress.h	modified:   src/restore.c
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@353 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update ntfsclone-ng.c, accept and test the ntfs readbitmap patch, it's contributed  by javor. Thank you.
@@ -1760,7 +1760,7 @@
 	add control for ufs add changelog
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@341 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	* update progress bar lang translation. * update ufs as default enabled file system. 	modified:   configure 	modified:   configure.ac 	modified:   po/partclone.pot 	modified:   po/zh_TW.gmo 	modified:   po/zh_TW.po
+	* update progress bar lang translation. * update ufs as default enabled file system.	modified:   configure	modified:   configure.ac	modified:   po/partclone.pot	modified:   po/zh_TW.gmo	modified:   po/zh_TW.po
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@340 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	test progress 1
@@ -1789,7 +1789,7 @@
 
 2009-10-06  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
 
-	update log message and open fail message for ufsclone. Thank dswartz for testing ufs backup and report. 	modified:   src/ufsclone.c
+	update log message and open fail message for ufsclone. Thank dswartz for testing ufs backup and report.	modified:   src/ufsclone.c
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@335 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-10-02  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
@@ -1800,7 +1800,7 @@
 	update option value
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@333 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	add ignore fschk for xfs. 	modified:   xfsclone.c
+	add ignore fschk for xfs.	modified:   xfsclone.c
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@332 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-09-27  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
@@ -1826,10 +1826,10 @@
 
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@330 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	update ufsclone merge error.  On branch master  Changes to be committed: 	modified:   src/ufsclone.c
+	update ufsclone merge error.  On branch master  Changes to be committed:	modified:   src/ufsclone.c
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@329 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	fix hfsplus message 	modified:   src/hfsplusclone.c
+	fix hfsplus message	modified:   src/hfsplusclone.c
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@328 93b75dfe-da2d-4241-a08d-2141769abc04
 
 	update fs log message. add ignore option to all supported file system.
@@ -1847,10 +1847,10 @@
 
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@327 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	ignore fschk fro extfs 	modified:   extfsclone.c
+	ignore fschk fro extfs	modified:   extfsclone.c
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@326 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	New feature: ignore file system check for reiserfs, -I or --ignore_fschk.  On branch log  Changes to be committed: 	new file:   fs_common.h 	modified:   main.c 	modified:   partclone.c 	modified:   partclone.h 	modified:   reiserfsclone.c
+	New feature: ignore file system check for reiserfs, -I or --ignore_fschk.  On branch log  Changes to be committed:	new file:   fs_common.h	modified:   main.c	modified:   partclone.c	modified:   partclone.h	modified:   reiserfsclone.c
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@325 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-09-18  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
@@ -2002,7 +2002,7 @@
 
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@297 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	The partclone.chkimg could help you check img by CRC. 	modified:   src/Makefile.am 	modified:   src/Makefile.in 	new file:   src/chkimg.c
+	The partclone.chkimg could help you check img by CRC.	modified:   src/Makefile.am	modified:   src/Makefile.in	new file:   src/chkimg.c
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@296 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-13  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
@@ -2038,7 +2038,7 @@
 
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@290 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	try to fix hfsplus problem-1 	modified:   src/hfsplusclone.c
+	try to fix hfsplus problem-1	modified:   src/hfsplusclone.c
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@289 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-08  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
@@ -2071,7 +2071,7 @@
 	update: add "done" after "please wait"
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@281 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	update: add new line after Please wait... 	modified:   main.c
+	update: add new line after Please wait...	modified:   main.c
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@280 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2009-06-01  steven  <steven@93b75dfe-da2d-4241-a08d-2141769abc04>
@@ -2730,7 +2730,7 @@
 	    add restore description at gauge
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@126 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    fix Text User Intereface and add dialog format string.     -N --ncurses, Ncurses Interface, but can't save partition data to stdout     -X --dialog, output dialog gauge format string, if you want to use dialog 	mkfifo pipe; (./clone.extfs -d -c -X -s /dev/loop0 2>pipe | cat - > test3_stderr.img) | ./gauge < pipe
+	    fix Text User Intereface and add dialog format string.     -N --ncurses, Ncurses Interface, but can't save partition data to stdout     -X --dialog, output dialog gauge format string, if you want to use dialog	mkfifo pipe; (./clone.extfs -d -c -X -s /dev/loop0 2>pipe | cat - > test3_stderr.img) | ./gauge < pipe
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@125 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-04-28  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>
@@ -2772,7 +2772,7 @@
 	    update Changelog
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@117 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    try to add new function for #14 "TUI of status reports"     add --enable-ncurses to enable TUI and check libncurses     add add new option to use TUI, ex: -X or --tui     add function 	open_tui to open text window 	close_tui to close window 	TUI_progress_update to show status     The option(TUI) is unstable.
+	    try to add new function for #14 "TUI of status reports"     add --enable-ncurses to enable TUI and check libncurses     add add new option to use TUI, ex: -X or --tui     add function	open_tui to open text window	close_tui to close window	TUI_progress_update to show status     The option(TUI) is unstable.
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@116 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-04-21  jazz  <jazz@93b75dfe-da2d-4241-a08d-2141769abc04>
@@ -2904,7 +2904,7 @@
 	    add function "check_free_space" to make sure the free space is enough to save image file.
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@86 93b75dfe-da2d-4241-a08d-2141769abc04
 
-	    Changeset 84 and 85     * set debug level, set -dX or --debug=X. X = 0 is no debug 					     X = 1 is normal debug 					     X = 2 is large log messgae     * update log_mesg for different debug level.     * add new function "print_option" to print options and argument at debug=1.     * configure --enable-all to enable alll supported file systems.
+	    Changeset 84 and 85     * set debug level, set -dX or --debug=X. X = 0 is no debug					     X = 1 is normal debug					     X = 2 is large log messgae     * update log_mesg for different debug level.     * add new function "print_option" to print options and argument at debug=1.     * configure --enable-all to enable alll supported file systems.
 	git-svn-id: svn+ssh://140.110.240.196/partclone_svn@85 93b75dfe-da2d-4241-a08d-2141769abc04
 
 2008-01-21  thomas  <thomas@93b75dfe-da2d-4241-a08d-2141769abc04>

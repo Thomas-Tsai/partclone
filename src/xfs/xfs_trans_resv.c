@@ -110,9 +110,9 @@ xfs_calc_inode_res(
  * inode. A record can be removed from the tree for an inode allocation
  * or free and thus the finobt reservation is unconditional across:
  *
- * 	- inode allocation
- * 	- inode free
- * 	- inode chunk allocation
+ *	- inode allocation
+ *	- inode free
+ *	- inode chunk allocation
  *
  * The 'modify' param indicates to include the record modification scenario. The
  * 'alloc' param indicates to include the reservation for free space btree
@@ -125,7 +125,7 @@ xfs_calc_inode_res(
  */
 STATIC uint
 xfs_calc_finobt_res(
-	struct xfs_mount 	*mp,
+	struct xfs_mount	*mp,
 	int			alloc,
 	int			modify)
 {
@@ -660,7 +660,7 @@ xfs_calc_attrsetm_reservation(
 
 /*
  * Setting an attribute at runtime, transaction space unit per block.
- * 	the superblock for allocations: sector size
+ *	the superblock for allocations: sector size
  *	the inode bmap btree could join or split: max depth * block size
  * Since the runtime attribute transaction space is dependent on the total
  * blocks needed for the 1st bmap, here we calculate out the space unit for

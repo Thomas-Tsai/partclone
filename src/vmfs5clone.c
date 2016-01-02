@@ -383,7 +383,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
         /* Skip undefined/deleted inodes */
         if ((vmfs_inode_get(fs,VMFS_BLK_FD_BUILD(entry,item,0),&inode) == -1) ||
-        	!inode.nlink)
+	!inode.nlink)
             continue;
 
         inode.fs = fs;

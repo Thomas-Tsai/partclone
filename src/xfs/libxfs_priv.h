@@ -400,8 +400,8 @@ roundup_64(__uint64_t x, __uint32_t y)
 /* space allocation */
 #define xfs_extent_busy_reuse(mp,ag,bno,len,user)	((void) 0)
 /* avoid unused variable warning */
-#define xfs_extent_busy_insert(tp,ag,bno,len,flags)({ 	\
-	xfs_agnumber_t __foo = ag; 			\
+#define xfs_extent_busy_insert(tp,ag,bno,len,flags)({	\
+	xfs_agnumber_t __foo = ag;			\
 	__foo = __foo; /* no set-but-unused warning */	\
 })
 #define xfs_extent_busy_trim(args,fbno,flen,bno,len) \

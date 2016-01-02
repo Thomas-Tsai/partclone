@@ -895,8 +895,8 @@ out:
 
 /*
  * Given a pathname, return a filehandle to:
- * 	the original pathname or,
- * 	if the pathname is a mounted btrfs device, to its mountpoint.
+ *	the original pathname or,
+ *	if the pathname is a mounted btrfs device, to its mountpoint.
  *
  * On error, return -1, errno should be set.
  */

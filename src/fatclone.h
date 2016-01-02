@@ -42,29 +42,29 @@ struct __attribute__ ((packed)) FatBootSector {
     union __attribute__ ((packed)) {
         /* FAT16 fields */
         struct __attribute__ ((packed)) {
-    	uint8_t         drive_num;      /* 24: */
-    	uint8_t         empty_1;        /* 25: */
-    	uint8_t         ext_signature;  /* 26: always 0x29 */
-    	uint32_t        serial_number;  /* 27: */
-    	uint8_t         volume_name [11];       /* 2b: */
-    	uint8_t         fat_name [8];   /* 36: */
-    	uint8_t         boot_code[448]; /* 3f: Boot code (or message) */
+	uint8_t         drive_num;      /* 24: */
+	uint8_t         empty_1;        /* 25: */
+	uint8_t         ext_signature;  /* 26: always 0x29 */
+	uint32_t        serial_number;  /* 27: */
+	uint8_t         volume_name [11];       /* 2b: */
+	uint8_t         fat_name [8];   /* 36: */
+	uint8_t         boot_code[448]; /* 3f: Boot code (or message) */
         } fat16;
         /* FAT32 fields */
         struct __attribute__ ((packed)) {
-    	uint32_t        fat_length;     /* 24: size of FAT in sectors */
-    	uint16_t        flags;          /* 28: bit8: fat mirroring, low4: active fat */
-    	uint16_t        version;        /* 2a: minor * 256 + major */
-    	uint32_t        root_dir_cluster;       /* 2c: */
-    	uint16_t        info_sector;    /* 30: */
-    	uint16_t        backup_sector;  /* 32: */
-    	uint8_t         empty_1 [12];   /* 34: */
-    	uint16_t        drive_num;      /* 40: */
-    	uint8_t         ext_signature;  /* 42: always 0x29 */
-    	uint32_t        serial_number;  /* 43: */
-    	uint8_t         volume_name [11];       /* 47: */
-    	uint8_t         fat_name [8];   /* 52: */
-    	uint8_t         boot_code[420]; /* 5a: Boot code (or message) */
+	uint32_t        fat_length;     /* 24: size of FAT in sectors */
+	uint16_t        flags;          /* 28: bit8: fat mirroring, low4: active fat */
+	uint16_t        version;        /* 2a: minor * 256 + major */
+	uint32_t        root_dir_cluster;       /* 2c: */
+	uint16_t        info_sector;    /* 30: */
+	uint16_t        backup_sector;  /* 32: */
+	uint8_t         empty_1 [12];   /* 34: */
+	uint16_t        drive_num;      /* 40: */
+	uint8_t         ext_signature;  /* 42: always 0x29 */
+	uint32_t        serial_number;  /* 43: */
+	uint8_t         volume_name [11];       /* 47: */
+	uint8_t         fat_name [8];   /* 52: */
+	uint8_t         boot_code[420]; /* 5a: Boot code (or message) */
         } fat32;
     } u;
 

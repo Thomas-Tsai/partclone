@@ -188,9 +188,9 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__recheck_rx = ^[ 	]*:recheck:[ 	]*
-am__global_test_result_rx = ^[ 	]*:global-test-result:[ 	]*
-am__copy_in_global_log_rx = ^[ 	]*:copy-in-global-log:[ 	]*
+am__recheck_rx = ^[	]*:recheck:[	]*
+am__global_test_result_rx = ^[	]*:global-test-result:[	]*
+am__copy_in_global_log_rx = ^[	]*:copy-in-global-log:[	]*
 # A command that, given a newline-separated list of test names on the
 # standard input, print the name of the tests that are to be re-run
 # upon "make recheck".
@@ -245,7 +245,7 @@ function rst_section(header) \
       if (line ~ /$(am__global_test_result_rx)/) \
         { \
           sub("$(am__global_test_result_rx)", "", line); \
-          sub("[ 	]*$$", "", line); \
+          sub("[	]*$$", "", line); \
           global_test_result = line; \
         } \
       else if (line ~ /$(am__copy_in_global_log_rx)[nN][oO]/) \
@@ -290,25 +290,25 @@ $(am__tty_colors);					\
 srcdir=$(srcdir); export srcdir;			\
 case "$@" in						\
   */*) am__odir=`echo "./$@" | sed 's|/[^/]*$$||'`;;	\
-    *) am__odir=.;; 					\
+    *) am__odir=.;;					\
 esac;							\
-test "x$$am__odir" = x"." || test -d "$$am__odir" 	\
+test "x$$am__odir" = x"." || test -d "$$am__odir"	\
   || $(MKDIR_P) "$$am__odir" || exit $$?;		\
 if test -f "./$$f"; then dir=./;			\
 elif test -f "$$f"; then dir=;				\
 else dir="$(srcdir)/"; fi;				\
-tst=$$dir$$f; log='$@'; 				\
+tst=$$dir$$f; log='$@';				\
 if test -n '$(DISABLE_HARD_ERRORS)'; then		\
-  am__enable_hard_errors=no; 				\
+  am__enable_hard_errors=no;				\
 else							\
-  am__enable_hard_errors=yes; 				\
-fi; 							\
+  am__enable_hard_errors=yes;				\
+fi;							\
 case " $(XFAIL_TESTS) " in				\
   *[\ \	]$$f[\ \	]* | *[\ \	]$$dir$$f[\ \	]*) \
     am__expect_failure=yes;;				\
   *)							\
     am__expect_failure=no;;				\
-esac; 							\
+esac;							\
 $(AM_TESTS_ENVIRONMENT) $(TESTS_ENVIRONMENT)
 # A shell command to get the names of the tests scripts with any registered
 # extension removed (i.e., equivalently, the names of the test logs, with
@@ -556,7 +556,7 @@ $(TEST_SUITE_LOG): $(TEST_LOGS)
 	  test $$st -eq 0 || exit 1; \
 	fi
 	@$(am__sh_e_setup); $(am__tty_colors); $(am__set_TESTS_bases); \
-	ws='[ 	]'; \
+	ws='[	]'; \
 	results=`for b in $$bases; do echo $$b.trs; done`; \
 	test -n "$$results" || results=/dev/null; \
 	all=`  grep "^$$ws*:test-result:"           $$results | wc -l`; \
@@ -617,9 +617,9 @@ $(TEST_SUITE_LOG): $(TEST_LOGS)
 	  col="$$red";							\
 	  test x"$$VERBOSE" = x || cat $(TEST_SUITE_LOG);		\
 	fi;								\
-	echo "$${col}$$br$${std}"; 					\
+	echo "$${col}$$br$${std}";					\
 	echo "$${col}Testsuite summary for $(PACKAGE_STRING)$${std}";	\
-	echo "$${col}$$br$${std}"; 					\
+	echo "$${col}$$br$${std}";					\
 	create_testsuite_report --maybe-color;				\
 	echo "$$col$$br$$std";						\
 	if $$success; then :; else					\

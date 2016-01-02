@@ -161,7 +161,7 @@ extern int	libxfs_alloc_file_space (struct xfs_inode *, xfs_off_t,
 				xfs_off_t, int, int);
 extern int	libxfs_bmap_finish(xfs_trans_t **, xfs_bmap_free_t *, int *);
 
-extern void 	libxfs_fs_repair_cmn_err(int, struct xfs_mount *, char *, ...);
+extern void	libxfs_fs_repair_cmn_err(int, struct xfs_mount *, char *, ...);
 extern void	libxfs_fs_cmn_err(int, struct xfs_mount *, char *, ...);
 
 /* XXX: this is messy and needs fixing */

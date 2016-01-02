@@ -79,7 +79,7 @@
 /*
  * Max number of fragments per block. This value is NOT tweakable.
  */
-#define MAXFRAG 	8
+#define MAXFRAG	8
 
 /*
  * Addresses stored in inodes are capable of addressing fragments
@@ -212,7 +212,7 @@
 #define	FFS_ADJ_NDIR		 7	/* adjust number of directories */
 #define	FFS_ADJ_NBFREE		 8	/* adjust number of free blocks */
 #define	FFS_ADJ_NIFREE		 9	/* adjust number of free inodes */
-#define	FFS_ADJ_NFFREE		10 	/* adjust number of free frags */
+#define	FFS_ADJ_NFFREE		10	/* adjust number of free frags */
 #define	FFS_ADJ_NUMCLUSTERS	11	/* adjust number of free clusters */
 #define	FFS_MAXID		12	/* number of valid ffs ids */
 
@@ -311,7 +311,7 @@ struct fs {
 /* these fields are cleared at mount time */
 	int8_t   fs_fmod;		/* super block modified flag */
 	int8_t   fs_clean;		/* filesystem is clean flag */
-	int8_t 	 fs_ronly;		/* mounted read-only flag */
+	int8_t	 fs_ronly;		/* mounted read-only flag */
 	int8_t   fs_old_flags;		/* old FS_ flags */
 	u_char	 fs_fsmnt[MAXMNTLEN];	/* name mounted on */
 	u_char	 fs_volname[MAXVOLLEN];	/* volume name */
@@ -319,7 +319,7 @@ struct fs {
 	int32_t  fs_pad;		/* due to alignment of fs_swuid */
 /* these fields retain the current block allocation info */
 	int32_t	 fs_cgrotor;		/* last cg searched */
-	void 	*fs_ocsp[NOCSPTRS];	/* padding; was list of fs_cs buffers */
+	void	*fs_ocsp[NOCSPTRS];	/* padding; was list of fs_cs buffers */
 	u_int8_t *fs_contigdirs;	/* (u) # of contig. allocated dirs */
 	struct	csum *fs_csp;		/* (u) cg summary info buffer */
 	int32_t	*fs_maxcluster;		/* (u) max cluster in each cyl group */

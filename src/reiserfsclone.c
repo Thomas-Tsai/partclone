@@ -66,7 +66,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     reiserfs_bitmap_t    *fs_bitmap;
     reiserfs_tree_t	 *tree;
     unsigned long long	 blk = 0;
-    unsigned long long 	 bused = 0, bfree = 0;
+    unsigned long long	 bused = 0, bfree = 0;
     int start = 0;
     int bit_size = 1;
     int done = 0;

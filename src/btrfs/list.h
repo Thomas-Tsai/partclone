@@ -329,7 +329,7 @@ static inline void list_splice_tail_init(struct list_head *list,
  */
 #define list_for_each(pos, head) \
 	for (pos = (head)->next; pos != (head); \
-        	pos = pos->next)
+	pos = pos->next)
 
 /**
  * __list_for_each	-	iterate over a list
@@ -351,7 +351,7 @@ static inline void list_splice_tail_init(struct list_head *list,
  */
 #define list_for_each_prev(pos, head) \
 	for (pos = (head)->prev; pos != (head); \
-        	pos = pos->prev)
+	pos = pos->prev)
 
 /**
  * list_for_each_safe - iterate over a list safe against removal of list entry
@@ -371,7 +371,7 @@ static inline void list_splice_tail_init(struct list_head *list,
  */
 #define list_for_each_entry(pos, head, member)				\
 	for (pos = list_entry((head)->next, typeof(*pos), member);	\
-	     &pos->member != (head); 	\
+	     &pos->member != (head);	\
 	     pos = list_entry(pos->member.next, typeof(*pos), member))
 
 /**
@@ -382,7 +382,7 @@ static inline void list_splice_tail_init(struct list_head *list,
  */
 #define list_for_each_entry_reverse(pos, head, member)			\
 	for (pos = list_entry((head)->prev, typeof(*pos), member);	\
-	     &pos->member != (head); 	\
+	     &pos->member != (head);	\
 	     pos = list_entry(pos->member.prev, typeof(*pos), member))
 
 /**
@@ -405,7 +405,7 @@ static inline void list_splice_tail_init(struct list_head *list,
  * Continue to iterate over list of given type, continuing after
  * the current position.
  */
-#define list_for_each_entry_continue(pos, head, member) 		\
+#define list_for_each_entry_continue(pos, head, member)		\
 	for (pos = list_entry(pos->member.next, typeof(*pos), member);	\
 	     &pos->member != (head);	\
 	     pos = list_entry(pos->member.next, typeof(*pos), member))
@@ -418,7 +418,7 @@ static inline void list_splice_tail_init(struct list_head *list,
  *
  * Iterate over list of given type, continuing from current position.
  */
-#define list_for_each_entry_from(pos, head, member) 			\
+#define list_for_each_entry_from(pos, head, member)			\
 	for (; &pos->member != (head);	\
 	     pos = list_entry(pos->member.next, typeof(*pos), member))
 
@@ -432,7 +432,7 @@ static inline void list_splice_tail_init(struct list_head *list,
 #define list_for_each_entry_safe(pos, n, head, member)			\
 	for (pos = list_entry((head)->next, typeof(*pos), member),	\
 		n = list_entry(pos->member.next, typeof(*pos), member);	\
-	     &pos->member != (head); 					\
+	     &pos->member != (head);					\
 	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
 
 /**
@@ -445,8 +445,8 @@ static inline void list_splice_tail_init(struct list_head *list,
  * Iterate over list of given type, continuing after current point,
  * safe against removal of list entry.
  */
-#define list_for_each_entry_safe_continue(pos, n, head, member) 		\
-	for (pos = list_entry(pos->member.next, typeof(*pos), member), 		\
+#define list_for_each_entry_safe_continue(pos, n, head, member)		\
+	for (pos = list_entry(pos->member.next, typeof(*pos), member),		\
 		n = list_entry(pos->member.next, typeof(*pos), member);		\
 	     &pos->member != (head);						\
 	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
@@ -461,7 +461,7 @@ static inline void list_splice_tail_init(struct list_head *list,
  * Iterate over list of given type from current point, safe against
  * removal of list entry.
  */
-#define list_for_each_entry_safe_from(pos, n, head, member) 			\
+#define list_for_each_entry_safe_from(pos, n, head, member)			\
 	for (n = list_entry(pos->member.next, typeof(*pos), member);		\
 	     &pos->member != (head);						\
 	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
@@ -479,7 +479,7 @@ static inline void list_splice_tail_init(struct list_head *list,
 #define list_for_each_entry_safe_reverse(pos, n, head, member)		\
 	for (pos = list_entry((head)->prev, typeof(*pos), member),	\
 		n = list_entry(pos->member.prev, typeof(*pos), member);	\
-	     &pos->member != (head); 					\
+	     &pos->member != (head);					\
 	     pos = n, n = list_entry(n->member.prev, typeof(*n), member))
 
 #endif
