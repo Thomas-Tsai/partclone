@@ -267,10 +267,10 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
         if (bit == -1){                                     // Return -1 on error
 	    log_mesg(0, 1, 1, fs_opt.debug, "%s: check bitmap error\n", __FILE__); 
 	}else if(bit == 1){				    // The value of the bit (0 or 1)
-            pc_set_bit(current_block, bitmap);
+            pc_set_bit(current_block, bitmap, image_hdr.totalblock);
             used_block++;
         } else {
-            pc_clear_bit(current_block, bitmap);
+            pc_clear_bit(current_block, bitmap, image_hdr.totalblock);
             free_block++;
         }
         /// update progress

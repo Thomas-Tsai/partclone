@@ -154,12 +154,12 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 		current_block = block + blk_itr;
 
 		if (in_use (block_bitmap, block)){
-			pc_set_bit(current_block, bitmap);
+			pc_set_bit(current_block, bitmap, image_hdr.totalblock);
 			log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %llu at group %lu\n", __FILE__, current_block, group);
 		} else {
 		    free++;
 		    gfree++;
-		    pc_clear_bit(current_block, bitmap);
+		    pc_clear_bit(current_block, bitmap, image_hdr.totalblock);
 		    log_mesg(3, 0, 0, fs_opt.debug, "%s: free block %llu at group %lu init %i\n", __FILE__, current_block, group, (int)B_UN_INIT);
 		}
 		

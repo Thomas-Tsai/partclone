@@ -44,6 +44,7 @@ struct btrfs_root *root;
 struct btrfs_path path;
 int block_size = 0;
 uint64_t dev_size = 0;
+unsigned long long total_block = 0;
 
 ///set useb block
 static void set_bitmap(unsigned long* bitmap, uint64_t pos, uint64_t length){
@@ -65,7 +66,7 @@ static void set_bitmap(unsigned long* bitmap, uint64_t pos, uint64_t length){
 
     for(block = pos_block; block < block_end; block++){
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: block %i is used\n",__FILE__,  block);
-	pc_set_bit(block, bitmap);
+	pc_set_bit(block, bitmap, total_block);
     }
 }
 
@@ -396,6 +397,7 @@ extern void initial_image_hdr(char* device, image_head* image_hdr)
     log_mesg(0, 0, 0, fs_opt.debug, "%s: device_size = %llu\n", __FILE__, image_hdr->device_size);
     image_hdr->totalblock  = (uint64_t)(image_hdr->device_size/image_hdr->block_size);
     log_mesg(0, 0, 0, fs_opt.debug, "%s: totalblock = %lli\n", __FILE__, image_hdr->totalblock);
+    total_block = image_hdr->totalblock;
 
 
     fs_close();

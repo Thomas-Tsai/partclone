@@ -748,10 +748,10 @@ void get_image_bitmap(int* ret, cmd_opt opt, image_head image_hdr, unsigned long
 			log_mesg(0, 1, 1, debug, "Unable to read bitmap.\n");
 		for (i = 0; i < r_need; i++) {
 			if (buffer[i] == 1) {
-				pc_set_bit(offset + i, bitmap);
+				pc_set_bit(offset + i, bitmap, image_hdr.totalblock);
 				bused++;
 			} else {
-				pc_clear_bit(offset + i, bitmap);
+				pc_clear_bit(offset + i, bitmap, image_hdr.totalblock);
 				bfree++;
 			}
 		}
