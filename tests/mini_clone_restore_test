@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+usage(){
+    echo "Usage: $0 [-b BLOCK_SIZE] [-f FILE_SIZE] [TARGET_FILESYSTEM]"
+    exit 0
+}
+
 . _common
 
 ## blocks/checksum to test various patterns
