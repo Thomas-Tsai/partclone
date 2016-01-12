@@ -7,7 +7,7 @@ pc_test_bit(unsigned long int nr, unsigned long *bitmap,
 {
 	if (!bitmap)
 		return -1;
-	if (nr > total){
+	if (nr >= total){
 	    printf("test block %lu out of boundary(%llu)\n", nr, total);
 		exit(1);
 	}
@@ -22,7 +22,7 @@ pc_set_bit(unsigned long int nr, unsigned long *bitmap,
 {
 	if (!bitmap)
 		return;
-	if (nr > total){
+	if (nr >= total){
 	    printf("set block %lu out of boundary(%llu)\n", nr, total);
 		exit(1);
 	}
@@ -37,7 +37,7 @@ pc_clear_bit(unsigned long int nr, unsigned long *bitmap,
 {
 	if (!bitmap)
 		return;
-	if (nr > total){
+	if (nr >= total){
 	    printf("clear block %lu out of boundary(%llu)\n", nr, total);
 		exit(1);
 	}

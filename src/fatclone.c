@@ -63,7 +63,13 @@ static void get_fat_type(){
 	root_entries = fat_sb.dir_entries;
 	data_start = root_start + ROUND_TO_MULTIPLE(root_entries <<MSDOS_DIR_BITS,logical_sector_size);
 	data_size = (off_t) total_sectors * logical_sector_size - data_start;
+	if (data_size <= 0)
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR: data_size count error\n", __func__, __LINE__);
+
 	clusters = data_size / (fat_sb.cluster_size * logical_sector_size);
+	if (clusters <= 0)
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR: clusters count error\n", __func__, __LINE__);
+
         if (clusters >= FAT12_THRESHOLD){
             FS = FAT_16;
             fat_type = "FAT16";
@@ -95,9 +101,10 @@ unsigned long long get_total_sector()
     /// get fat sectors
     if (fat_sb.sectors != 0)
         total_sector = (unsigned long long)fat_sb.sectors;
-    else
+    else if (fat_sb.sector_count != 0)
         total_sector = (unsigned long long)fat_sb.sector_count;
-
+    else
+	log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR: total_sector error\n", __func__, __LINE__);
     return total_sector;
 
 }
@@ -110,7 +117,11 @@ unsigned long long get_sec_per_fat()
     if(fat_sb.fat_length != 0)
         sec_per_fat = fat_sb.fat_length;
     else
-        sec_per_fat = fat_sb.u.fat32.fat_length;
+        if (fat_sb.u.fat32.fat_length != 0)
+	    sec_per_fat = fat_sb.u.fat32.fat_length;
+
+    if (sec_per_fat == 0)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s, ERROR: sec_per_fat is zero\n", __FILE__);
     return sec_per_fat;
 
 }
@@ -131,6 +142,12 @@ unsigned long long get_cluster_count()
     unsigned long long total_sector = get_total_sector();
     unsigned long long root_sec = get_root_sec();
     unsigned long long sec_per_fat = get_sec_per_fat();
+    unsigned long long reserved = fat_sb.reserved +
+             (fat_sb.fats * sec_per_fat) + root_sec;
+
+    if (reserved > total_sector) {
+        return 0;
+    }
 
     data_sec = total_sector - ( fat_sb.reserved + (fat_sb.fats * sec_per_fat) + root_sec);
     cluster_count = data_sec / fat_sb.cluster_size;
@@ -211,6 +228,7 @@ static unsigned long long mark_reserved_sectors(unsigned long* fat_bitmap, unsig
     unsigned long long sec_per_fat = 0;
     unsigned long long root_sec = 0;
     sec_per_fat = get_sec_per_fat();
+
     root_sec = get_root_sec();
 
     /// A) the reserved sectors are used
@@ -330,7 +348,7 @@ unsigned long long check_fat12_entry(unsigned long* fat_bitmap, unsigned long lo
     if (rd == -1)
         log_mesg(2, 0, 0, fs_opt.debug, "%s: read Fat12_Entry error\n", __FILE__);
     Fat12_Entry = Fat16_Entry>>4;
-    if (Fat12_Entry  == 0xFFF7) { /// bad FAT12 cluster
+    if (Fat12_Entry  == 0xFF7) { /// bad FAT12 cluster
         DamagedClusters++;
         log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %llu\n", __FILE__, block);
         for (i=0; i < fat_sb.cluster_size; i++,block++)
@@ -410,7 +428,8 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     FatReservedBytes = fat_sb.sector_size * fat_sb.reserved;
 
     /// The first cluster will be seek
-    lseek(ret, FatReservedBytes, SEEK_SET);
+    if (lseek(ret, FatReservedBytes, SEEK_SET) == -1)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR: seek FatReservedBytes, error\n", __func__, __LINE__);
 
     /// The second used to check FAT status
     fat_stat = check_fat_status();
@@ -424,6 +443,8 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     }
 
     for (i=0; i < cluster_count; i++){
+	if (block >= total_sector)
+            log_mesg(1, 0, 0, fs_opt.debug, "%s: error block too large\n", __FILE__);
         /// If FAT16
         if(FS == FAT_16){
             block = check_fat16_entry(bitmap, block, &bfree, &bused, &DamagedClusters);
@@ -462,7 +483,7 @@ static unsigned long long get_used_block()
 
     fat_bitmap = (unsigned long *)calloc(sizeof(unsigned long), LONGS(total_sector));
     if (fat_bitmap == NULL)
-        log_mesg(2, 1, 1, fs_opt.debug, "%s: bitmapalloc error\n", __FILE__);
+        log_mesg(2, 1, 1, fs_opt.debug, "%s: bitmap alloc error\n", __FILE__);
     memset(fat_bitmap, 0xFF, sizeof(unsigned long)*LONGS(total_sector));
 
     /// A) B) C)
@@ -472,7 +493,8 @@ static unsigned long long get_used_block()
     FatReservedBytes = fat_sb.sector_size * fat_sb.reserved;
 
     /// The first fat will be seek
-    lseek(ret, FatReservedBytes, SEEK_SET);
+    if (lseek(ret, FatReservedBytes, SEEK_SET) == -1)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR: seek FatReservedBytes, error\n", __func__, __LINE__);
 
     /// The second fat is used to check FAT status
     fat_stat = check_fat_status();
@@ -482,6 +504,8 @@ static unsigned long long get_used_block()
         log_mesg(0, 1, 1, fs_opt.debug, "%s: I/O error! %X\n", __FILE__);
 
     for (i=0; i < cluster_count; i++){
+	if (block >= total_sector)
+            log_mesg(1, 0, 0, fs_opt.debug, "%s: error block too large\n", __FILE__);
         /// If FAT16
         if(FS == FAT_16){
             block = check_fat16_entry(fat_bitmap, block, &bfree, &bused, &DamagedClusters);
