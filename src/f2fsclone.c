@@ -90,7 +90,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	    log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %llu", __FILE__, block);
     }
 
-    for ( block = sb->main_blkaddr ; block <= sb->block_count ; block++ ){
+    for ( block = sb->main_blkaddr ; block < sb->block_count ; block++ ){
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: block = %i\n", __FILE__, block);
 	if (f2fs_test_bit(BLKOFF_FROM_MAIN(sbi, block), fsck->sit_area_bitmap) == 0x0) {
 	    log_mesg(2, 0, 0, fs_opt.debug, "%s: test SIT bitmap is 0x0. blk_addr[0x%x] %i\n", __FILE__, block, block);
