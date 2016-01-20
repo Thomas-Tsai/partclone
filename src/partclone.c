@@ -1342,8 +1342,10 @@ int check_mount(const char* device, char* mount_p){
 		return -1;
 	}
 
-	if (!realpath(device, real_file))
+	if (!realpath(device, real_file)) {
+		free(real_fsname);
 		return -1;
+	}
 
 	if ((f = setmntent(MOUNTED, "r")) == 0) {
 		free(real_file);
