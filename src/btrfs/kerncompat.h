@@ -74,10 +74,10 @@ static inline void assert_trace(const char *assertion, const char *filename,
 	if (val)
 		return;
 	if (assertion)
-		fprintf(stderr, "%s:%d: %s: Assertion `%s` failed.\n",
+		fprintf(stderr, "%s:%u: %s: Assertion `%s` failed.\n",
 			filename, line, func, assertion);
 	else
-		fprintf(stderr, "%s:%d: %s: Assertion failed.\n", filename,
+		fprintf(stderr, "%s:%u: %s: Assertion failed.\n", filename,
 			line, func);
 	print_trace();
 	exit(1);
