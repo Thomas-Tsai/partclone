@@ -950,7 +950,7 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 			qg_status = btrfs_item_ptr(l, i,
 					struct btrfs_qgroup_status_item);
 			printf("\t\tversion %llu generation %llu flags %#llx "
-				"scan %lld\n",
+				"scan %Lu\n",
 				(unsigned long long)
 				btrfs_qgroup_status_version(l, qg_status),
 				(unsigned long long)
