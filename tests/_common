@@ -122,3 +122,40 @@ _ptlname(){
     fi
     echo "$ptl"
 }
+
+_convert_to_bytes(){
+    str=$1
+    case $str in
+	*KB)
+	    bytes=$((${str%KB}*1000))
+	;;
+	*K)
+	    bytes=$((${str%K}*1024))
+	;;
+	*MB)
+	    bytes=$((${str%MB}*1000*1000))
+	;;
+	*M)
+	    bytes=$((${str%M}*1024*1024))
+	;;
+	*GB)
+	    bytes=$((${str%GB}*1000*1000*1000))
+	;;
+	*G)
+	    bytes=$((${str%G}*1024*1024*1024))
+	;;
+	*TB)
+	    bytes=$((${str%TB}*1000*1000*1000*1000))
+	;;
+	*T)
+	    bytes=$((${str%T}*1024*1024*1024*1024))
+	;;
+	*B)
+	    bytes=$((${str%B}))
+	;;
+	*)
+	    bytes=$((str))
+	;;
+    esac
+    echo $bytes
+}

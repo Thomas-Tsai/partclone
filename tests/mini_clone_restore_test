@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+usage(){
+    echo "Usage: $0 [-b BLOCK_SIZE] [-f FILE_SIZE] [TARGET_FILESYSTEM]"
+    exit 0
+}
+
 . _common
 
 ## blocks/checksum to test various patterns
@@ -14,10 +19,43 @@ normal_fs="ext2 ext3 ext4 vfat exfat minix"
 featured_fs="$normal_fs jfs xfs reiserfs hfsplus"
 extra_fs="$featured_fs ufs vmfs reiser4 ntfs btrfs"
 
-manual_fs=$1
-
 test_fs=$formatable_fs
-[ -z $manual_fs ] || test_fs=$manual_fs
+
+# additional options
+OPT=$(getopt -o b:f:h --long block-size:,file-size:,help -- "$@")
+if [ $? != 0 ] ; then
+    exit 1
+fi
+eval set -- "$OPT"
+
+file_size=0
+block_size=0
+while true
+do
+    case "$1" in
+	-b|--block-size)
+	    block_size=$(_convert_to_bytes $2)
+	    shift 2
+	;;
+	-f|--file-size)
+	    file_size=$(_convert_to_bytes $2)
+	    shift 2
+	;;
+	-h|--help)
+	    usage
+	;;
+	--)
+	    shift
+	    break
+	;;
+	*)
+	    exit 1
+	;;
+    esac
+done
+
+manual_fs=$@
+[ -z "$manual_fs" ] || test_fs=$manual_fs
 
 #main
 for fs in $test_fs; do
@@ -30,7 +68,16 @@ for fs in $test_fs; do
     echo -e "==========================\n"
     ptlfs=$(_ptlname $fs)
     mkfs=$(_findmkfs $fs)
-    dd_count=$(_test_size $fs)
+    if [ $file_size -ne 0 -a $block_size -ne 0 ]; then
+	dd_count=$(($file_size / $block_size))
+	dd_bs=$block_size
+    elif [ $block_size -ne 0 ]; then
+	dd_bs=$block_size
+    elif [ $file_size -ne 0 ]; then
+	dd_count=$(($file_size / $dd_bs))
+    else
+	dd_count=$(_test_size $fs)
+    fi
     echo -e "\ncreate raw file $raw\n"
     _ptlbreak
     [ -f $raw ] && rm $raw
