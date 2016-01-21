@@ -202,7 +202,7 @@ extern void progress_update(struct progress_bar *prog, unsigned long long copied
 	if((prog->flag == IO) || (prog->flag == NO_BLOCK_DETAIL))
 	    fprintf(stderr, _(", %6.2f%s/min,"), prog_stat.speed, prog_stat.speed_unit);
 	if(prog->flag == IO)
-	    fprintf(stderr, "\n\r%80c\rcurrent block: %10lld, total block: %10lld, Complete: %6.2f%%%s\r", clear_buf, current, prog->total, prog_stat.total_percent, "\x1b[A");
+	    fprintf(stderr, "\n\r%80c\rcurrent block: %10Lu, total block: %10Lu, Complete: %6.2f%%%s\r", clear_buf, current, prog->total, prog_stat.total_percent, "\x1b[A");
     } else {
 	setlocale(LC_ALL, "");
 	bindtextdomain(PACKAGE, LOCALEDIR);
@@ -212,7 +212,7 @@ extern void progress_update(struct progress_bar *prog, unsigned long long copied
 	if((prog->flag == IO) || (prog->flag == NO_BLOCK_DETAIL))
 	    fprintf(stderr, _(", Rate: %6.2f%s/min,"), prog_stat.speed, prog_stat.speed_unit);
 	if(prog->flag == IO)
-	    fprintf(stderr, "\n\r%80c\rcurrent block: %10lld, total block: %10lld, Complete: 100.00%%\r", clear_buf, current, prog->total);
+	    fprintf(stderr, "\n\r%80c\rcurrent block: %10Lu, total block: %10Lu, Complete: 100.00%%\r", clear_buf, current, prog->total);
 
         fprintf(stderr, _("\nTotal Time: %s, "), prog_stat.Eformated);
 	if(prog->flag == IO)

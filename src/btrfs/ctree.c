@@ -2479,7 +2479,7 @@ int btrfs_insert_empty_items(struct btrfs_trans_handle *trans,
 
 		if (old_data < data_end) {
 			btrfs_print_leaf(root, leaf);
-			printk("slot %d old_data %d data_end %d\n",
+			printk("slot %d old_data %u data_end %u\n",
 			       slot, old_data, data_end);
 			BUG_ON(1);
 		}

@@ -493,7 +493,7 @@ static void print_root(struct extent_buffer *leaf, int slot)
 				      &root_item.drop_progress);
 		printf("\t\tdrop ");
 		btrfs_print_key(&root_item.drop_progress);
-		printf(" level %d\n", root_item.drop_level);
+		printf(" level %u\n", root_item.drop_level);
 	}
 }
 
@@ -799,7 +799,7 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 	u32 type;
 	char bg_flags_str[32];
 
-	printf("leaf %llu items %d free space %d generation %llu owner %llu\n",
+	printf("leaf %llu items %u free space %d generation %llu owner %llu\n",
 		(unsigned long long)btrfs_header_bytenr(l), nr,
 		btrfs_leaf_free_space(root, l),
 		(unsigned long long)btrfs_header_generation(l),
@@ -950,7 +950,7 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 			qg_status = btrfs_item_ptr(l, i,
 					struct btrfs_qgroup_status_item);
 			printf("\t\tversion %llu generation %llu flags %#llx "
-				"scan %lld\n",
+				"scan %Lu\n",
 				(unsigned long long)
 				btrfs_qgroup_status_version(l, qg_status),
 				(unsigned long long)
@@ -1031,7 +1031,7 @@ void btrfs_print_tree(struct btrfs_root *root, struct extent_buffer *eb, int fol
 		btrfs_print_leaf(root, eb);
 		return;
 	}
-	printf("node %llu level %d items %d free %u generation %llu owner %llu\n",
+	printf("node %llu level %d items %u free %u generation %llu owner %llu\n",
 	       (unsigned long long)eb->start,
 	        btrfs_header_level(eb), nr,
 		(u32)BTRFS_NODEPTRS_PER_BLOCK(root) - nr,
