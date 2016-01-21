@@ -491,6 +491,7 @@ static void print_dentry(__u32 depth, __u8 *name,
 	int name_len;
 	int i;
 	int bit_offset;
+	char *new_mark;
 
 	if (config.dbg_lv != -1)
 		return;
@@ -505,7 +506,9 @@ static void print_dentry(__u32 depth, __u8 *name,
 
 	if (tree_mark_size <= depth) {
 		tree_mark_size *= 2;
-		tree_mark = realloc(tree_mark, tree_mark_size);
+		new_mark = realloc(tree_mark, tree_mark_size);
+		ASSERT(new_mark != NULL);
+		tree_mark = new_mark;
 	}
 
 	if (last_de)
