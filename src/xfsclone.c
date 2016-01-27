@@ -178,7 +178,7 @@ scan_freelist(
 	xfs_agnumber_t	seqno = be32_to_cpu(agf->agf_seqno);
 	xfs_agfl_t	*agfl;
 	xfs_agblock_t	bno;
-	int		i;
+	unsigned int	i;
 	__be32		*agfl_bno;
 	struct xfs_buf	*bp;
 	const struct xfs_buf_ops *ops = NULL;
