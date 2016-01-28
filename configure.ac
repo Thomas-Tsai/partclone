@@ -57,7 +57,7 @@ AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([*** pthread library 
 ##ext2/3##
 AC_ARG_ENABLE(extfs,
 	AS_HELP_STRING(--enable-extfs,enable ext2/3/4 file system), 
-	enable_extfs=yes,
+	[],
 	enable_extfs=no
 )
 AM_CONDITIONAL(ENABLE_EXTFS, test "$enable_extfs" = yes)
@@ -82,7 +82,7 @@ fi
 ##XFS##
 AC_ARG_ENABLE(xfs,
 	AS_HELP_STRING(--enable-xfs,enable XFS file system), 
-	enable_xfs=yes,
+	[],
 	enable_xfs=no
 )
 AM_CONDITIONAL(ENABLE_XFS, test "$enable_xfs" = yes)
@@ -96,7 +96,7 @@ fi
 ##reiserfs##
 AC_ARG_ENABLE(reiserfs,
 	AS_HELP_STRING(--enable-reiserfs,enable REISERFS 3.6/3.6 file system), 
-	enable_reiserfs=yes,
+	[],
 	enable_reiserfs=no
 )
 AM_CONDITIONAL(ENABLE_REISERFS, test "$enable_reiserfs" = yes)
@@ -110,7 +110,7 @@ AC_CHECK_HEADERS([reiserfs/reiserfs.h], ,
 )
 AC_CHECK_LIB([reiserfs], [reiserfs_fs_open], true,
     AC_MSG_ERROR([*** Reiserfs library (libreiserfs) not found]))
-AC_CHECK_LIB([dal], [file_dal_open], true,
+AC_CHECK_LIB([dal], [file_open], true,
     AC_MSG_ERROR([*** Reiserfs depend library (libdal) not found]))
 AC_MSG_CHECKING(version of libreiserfs)
 supported_fs=$supported_fs" reiserfs"
@@ -122,7 +122,7 @@ fi
 ##reiser4##
 AC_ARG_ENABLE(reiser4,
 	AS_HELP_STRING(--enable-reiser4,enable Reiser4 file system), 
-	enable_reiser4=yes,
+	[],
 	enable_reiser4=no
 )
 AM_CONDITIONAL(ENABLE_REISER4, test "$enable_reiser4" = yes)
@@ -145,7 +145,7 @@ fi
 ##hfs plus##
 AC_ARG_ENABLE(hfsp,
 	AS_HELP_STRING(--enable-hfsp,enable HFS plus file system), 
-	enable_hfsp=yes,
+	[],
 	enable_hfsp=no
 )
 AM_CONDITIONAL(ENABLE_HFSP, test "$enable_hfsp" = yes)
@@ -173,7 +173,7 @@ fi
 ##exfat##
 AC_ARG_ENABLE(exfat,
 	AS_HELP_STRING(--enable-exfat,enable EXFAT file system), 
-	enable_exfat=yes,
+	[],
 	enable_exfat=no
 )
 AM_CONDITIONAL(ENABLE_EXFAT, test "$enable_exfat" = yes)
@@ -229,7 +229,7 @@ fi
 ##NTFS##
 AC_ARG_ENABLE(ntfs,
 	AS_HELP_STRING(--enable-ntfs,enable NTFS file system), 
-	enable_ntfs=yes,
+	[],
 	enable_ntfs=no
 )
 
@@ -271,7 +271,7 @@ fi
 ##UFS##
 AC_ARG_ENABLE(ufs,
 	AS_HELP_STRING(--enable-ufs,enable UFS(1/2) file system), 
-	enable_ufs=yes,
+	[],
 	enable_ufs=no
 )
 AM_CONDITIONAL(ENABLE_UFS, test "$enable_ufs" = yes)
@@ -291,7 +291,7 @@ fi
 ##VMFS##
 AC_ARG_ENABLE(vmfs,
 	AS_HELP_STRING(--enable-vmfs,enable vmfs file system), 
-	enable_vmfs=yes,
+	[],
 	enable_vmfs=no
 )
 AM_CONDITIONAL(ENABLE_VMFS, test "$enable_vmfs" = yes)
@@ -314,7 +314,7 @@ fi
 ##JFS##
 AC_ARG_ENABLE(jfs,
 	AS_HELP_STRING(--enable-jfs,enable jfs file system), 
-	enable_jfs=yes,
+	[],
 	enable_jfs=no
 )
 AM_CONDITIONAL(ENABLE_JFS, test "$enable_jfs" = yes)
@@ -337,7 +337,7 @@ fi
 ##btrfs##
 AC_ARG_ENABLE(btrfs,
 	AS_HELP_STRING(--enable-btrfs,enable btrfs file system), 
-	enable_btrfs=yes,
+	[],
 	enable_btrfs=no
 )
 AM_CONDITIONAL(ENABLE_BTRFS, test "$enable_btrfs" = yes)
@@ -354,7 +354,7 @@ fi
 ##minix##
 AC_ARG_ENABLE(minix,
 	AS_HELP_STRING(--enable-minix,enable minix file system), 
-	enable_minix=yes,
+	[],
 	enable_minix=no
 )
 AM_CONDITIONAL(ENABLE_MINIX, test "$enable_minix" = yes)
@@ -368,8 +368,7 @@ fi
 
 ##libncursesw##
 AC_ARG_ENABLE(ncursesw,
-	AS_HELP_STRING(--enable-ncursesw,enable TEXT User Interface), 
-	enable_ncursesw=yes,
+	AS_HELP_STRING(--enable-ncursesw,enable TEXT User Interface)
 )
 AM_CONDITIONAL(ENABLE_NCURSESW, test "$enable_ncursesw" = yes)
 
@@ -387,8 +386,7 @@ fi
 
 ##static linking##
 AC_ARG_ENABLE(static,
-	AS_HELP_STRING(--enable-static, enable static linking), 
-	enable_static=yes,
+	AS_HELP_STRING(--enable-static, enable static linking)
 )
 AM_CONDITIONAL(ENABLE_STATIC, test "$enable_static" = yes)
 
@@ -398,16 +396,14 @@ AM_CONDITIONAL(ENABLE_TINFO, test "$tinfo" = 1)
 
 ##memory tracing##
 AC_ARG_ENABLE(mtrace,
-	AS_HELP_STRING(--enable-mtrace, enable memory tracing), 
-	enable_memtrace=yes,
+	AS_HELP_STRING(--enable-mtrace, enable memory tracing)
 )
 AM_CONDITIONAL(ENABLE_MEMTRACE, test "$enable_memtrace" = yes)
 
 
 ##extra test
 AC_ARG_ENABLE(fs-test,
-        AS_HELP_STRING(--enable-fs-test, enable file system clone/restore test),
-        enable_fs_test=yes,
+        AS_HELP_STRING(--enable-fs-test, enable file system clone/restore test)
 )
 AM_CONDITIONAL(ENABLE_FS_TEST, test "$enable_fs_test" = yes)
 
