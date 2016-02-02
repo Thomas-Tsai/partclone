@@ -470,9 +470,9 @@ int main(int argc, char **argv) {
 	if (opt.clone) {
 
 		unsigned long crc = 0xffffffffL;
-		int block_size = image_hdr.block_size;
+		unsigned int block_size = image_hdr.block_size;
 		unsigned long long blocks_total = image_hdr.totalblock;
-		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
+		unsigned int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 		char *read_buffer, *write_buffer;
 
 		read_buffer = (char*)malloc(blocks_in_buffer * block_size);
@@ -566,11 +566,11 @@ int main(int argc, char **argv) {
 
 		unsigned long crc = 0xffffffffL;
 		char *read_buffer, *write_buffer;
-		int block_size = image_hdr.block_size;
+		unsigned int block_size = image_hdr.block_size;
 		unsigned long long blocks_used_fix = 0, test_block = 0;
 		unsigned long long blocks_used = image_hdr.usedblocks;
 		unsigned long long blocks_total = image_hdr.totalblock;
-		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
+		unsigned int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 
 
 		// fix some super block record incorrect
@@ -608,10 +608,12 @@ int main(int argc, char **argv) {
 			unsigned long crc_saved;
 			unsigned long long blocks_written, bytes_skip;
 			// max chunk to read using one read(2) syscall
-			int blocks_read = copied + blocks_in_buffer < blocks_used ?
+			unsigned int blocks_read = copied + blocks_in_buffer < blocks_used ?
 				blocks_in_buffer : blocks_used - copied;
 			if (!blocks_read)
-				break;
+			    break;
+			if (blocks_read < 0)
+			    log_mesg(0, 1, 1, debug, "blocks_read ERROR: impossible size of blocks_read\n");
 
 			// read chunk from image
 			r_size = read_all(&dfr, read_buffer, blocks_read * (block_size + CRC_SIZE), &opt);
@@ -675,7 +677,7 @@ int main(int argc, char **argv) {
 
 			blocks_written = 0;
 			do {
-				int blocks_write;
+				unsigned int blocks_write = 0;
 
 				/// count bytes to skip
 				for (bytes_skip = 0;
@@ -733,9 +735,9 @@ int main(int argc, char **argv) {
 	} else if (opt.dd) {
 
 		char *buffer;
-		int block_size = image_hdr.block_size;
+		unsigned int block_size = image_hdr.block_size;
 		unsigned long long blocks_total = image_hdr.totalblock;
-		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
+		unsigned int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 
 		buffer = (char*)malloc(blocks_in_buffer * block_size);
 		if (buffer == NULL) {
@@ -865,9 +867,9 @@ int main(int argc, char **argv) {
 	} else if (opt.ddd) {
 
 		char *buffer;
-		int block_size = image_hdr.block_size;
+		unsigned int block_size = image_hdr.block_size;
 		unsigned long long blocks_total = image_hdr.totalblock;
-		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
+		unsigned int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 
 		buffer = (char*)malloc(blocks_in_buffer * block_size);
 		if (buffer == NULL) {

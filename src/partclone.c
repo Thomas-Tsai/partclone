@@ -312,7 +312,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				mode=1;
 				break;
 			case OPT_OFFSET_DOMAIN:
-				opt->offset_domain = strtoull(optarg, NULL, 0);
+				opt->offset_domain = (off_t)strtoull(optarg, NULL, 0);
 				break;
 			case 'R':
 				opt->rescue++;
@@ -338,7 +338,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				opt->quiet = 1;
 				break;
 			case 'E':
-				opt->offset = atol(optarg);
+				opt->offset = (off_t)atol(optarg);
 				break;
 #endif
 #ifdef HAVE_LIBNCURSESW
@@ -367,6 +367,16 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 
 	if (opt->buffer_size < 512) {
 		fprintf(stderr, "Too small or bad buffer size. Use --help get more info.\n");
+		exit(0);
+	}
+
+	if (opt->offset < 0) {
+		fprintf(stderr, "Too small or bad offset. Use --help get more info.\n");
+		exit(0);
+	}
+
+	if (opt->offset_domain < 0) {
+		fprintf(stderr, "Too small or bad offset of domain file. Use --help get more info.\n");
 		exit(0);
 	}
 
@@ -614,11 +624,23 @@ void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr) {
 	memset(buffer, 0, sizeof(image_head));
 	r_size = read_all(ret, buffer, sizeof(image_head), opt);
 	if (r_size == -1)
-		log_mesg(0, 1, 1, debug, "read image_hdr error\n");
+	    log_mesg(0, 1, 1, debug, "read image_hdr error\n");
 
 	memcpy(image_hdr, buffer, sizeof(image_head));
 	free(buffer);
 
+	if (image_hdr->block_size <= 0)
+	    log_mesg(0, 1, 1, debug, "read image_hdr block_size error\n");
+
+	if (image_hdr->device_size <= 0)
+	    log_mesg(0, 1, 1, debug, "read image_hdr device_size error\n");
+
+	if (image_hdr->totalblock <= 0)
+	    log_mesg(0, 1, 1, debug, "read image_hdr totalblock error\n");
+	
+	if (image_hdr->usedblocks <= 0)
+	    log_mesg(0, 1, 1, debug, "read image_hdr usedblocks error\n");
+	
 	dev_size = (unsigned long long)(image_hdr->totalblock * image_hdr->block_size);
 	if (opt->restore_raw_file == 1) {
 	    return;
