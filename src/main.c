@@ -281,7 +281,7 @@ int main(int argc, char **argv) {
 
 		/// write bitmap information to image file
 		for (i = 0; i < image_hdr.totalblock; i++) {
-			if (pc_test_bit(i, bitmap)) {
+			if (pc_test_bit(i, bitmap, image_hdr.totalblock)) {
 				bbuffer[i % sizeof(bbuffer)] = 1;
 			} else {
 				bbuffer[i % sizeof(bbuffer)] = 0;
@@ -470,9 +470,9 @@ int main(int argc, char **argv) {
 	if (opt.clone) {
 
 		unsigned long crc = 0xffffffffL;
-		int block_size = image_hdr.block_size;
+		unsigned int block_size = image_hdr.block_size;
 		unsigned long long blocks_total = image_hdr.totalblock;
-		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
+		unsigned int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 		char *read_buffer, *write_buffer;
 
 		read_buffer = (char*)malloc(blocks_in_buffer * block_size);
@@ -500,7 +500,7 @@ int main(int argc, char **argv) {
 			/// skip chunk
 			for (blocks_skip = 0;
 			     block_id + blocks_skip < blocks_total &&
-			     !pc_test_bit(block_id + blocks_skip, bitmap);
+			     !pc_test_bit(block_id + blocks_skip, bitmap, image_hdr.totalblock);
 			     blocks_skip++);
 			if (block_id + blocks_skip == blocks_total)
 				break;
@@ -511,7 +511,7 @@ int main(int argc, char **argv) {
 			/// read chunk
 			for (blocks_read = 0;
 			     block_id + blocks_read < blocks_total && blocks_read < blocks_in_buffer &&
-			     pc_test_bit(block_id + blocks_read, bitmap);
+			     pc_test_bit(block_id + blocks_read, bitmap, image_hdr.totalblock);
 			     blocks_read++);
 			if (!blocks_read)
 				break;
@@ -566,16 +566,16 @@ int main(int argc, char **argv) {
 
 		unsigned long crc = 0xffffffffL;
 		char *read_buffer, *write_buffer;
-		int block_size = image_hdr.block_size;
+		unsigned int block_size = image_hdr.block_size;
 		unsigned long long blocks_used_fix = 0, test_block = 0;
 		unsigned long long blocks_used = image_hdr.usedblocks;
 		unsigned long long blocks_total = image_hdr.totalblock;
-		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
+		unsigned int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 
 
 		// fix some super block record incorrect
 		for (test_block = 0; test_block < blocks_total; test_block++)
-		    if ( pc_test_bit(test_block, bitmap))
+		    if ( pc_test_bit(test_block, bitmap, image_hdr.totalblock))
 			blocks_used_fix++;
 		
 		if (blocks_used_fix != blocks_used)
@@ -608,10 +608,12 @@ int main(int argc, char **argv) {
 			unsigned long crc_saved;
 			unsigned long long blocks_written, bytes_skip;
 			// max chunk to read using one read(2) syscall
-			int blocks_read = copied + blocks_in_buffer < blocks_used ?
+			unsigned int blocks_read = copied + blocks_in_buffer < blocks_used ?
 				blocks_in_buffer : blocks_used - copied;
 			if (!blocks_read)
-				break;
+			    break;
+			if (blocks_read < 0)
+			    log_mesg(0, 1, 1, debug, "blocks_read ERROR: impossible size of blocks_read\n");
 
 			// read chunk from image
 			r_size = read_all(&dfr, read_buffer, blocks_read * (block_size + CRC_SIZE), &opt);
@@ -675,12 +677,12 @@ int main(int argc, char **argv) {
 
 			blocks_written = 0;
 			do {
-				int blocks_write;
+				unsigned int blocks_write = 0;
 
 				/// count bytes to skip
 				for (bytes_skip = 0;
 				     block_id < blocks_total &&
-				     !pc_test_bit(block_id, bitmap);
+				     !pc_test_bit(block_id, bitmap, image_hdr.totalblock);
 				     block_id++, bytes_skip += block_size);
 
 #ifndef CHKIMG
@@ -693,7 +695,7 @@ int main(int argc, char **argv) {
 				for (blocks_write = 0;
 				     block_id + blocks_write < blocks_total &&
 				     blocks_written + blocks_write < blocks_read &&
-				     pc_test_bit(block_id + blocks_write, bitmap);
+				     pc_test_bit(block_id + blocks_write, bitmap, image_hdr.totalblock);
 				     blocks_write++);
 
 #ifndef CHKIMG
@@ -722,7 +724,7 @@ int main(int argc, char **argv) {
 
 #ifndef CHKIMG
 		/// restore_raw_file option
-		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap)) {
+		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap, image_hdr.totalblock)) {
 		    if (ftruncate(dfw, (off_t)image_hdr.device_size) == -1){
 			log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
 		    }
@@ -733,9 +735,9 @@ int main(int argc, char **argv) {
 	} else if (opt.dd) {
 
 		char *buffer;
-		int block_size = image_hdr.block_size;
+		unsigned int block_size = image_hdr.block_size;
 		unsigned long long blocks_total = image_hdr.totalblock;
-		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
+		unsigned int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 
 		buffer = (char*)malloc(blocks_in_buffer * block_size);
 		if (buffer == NULL) {
@@ -759,7 +761,7 @@ int main(int argc, char **argv) {
 			/// skip chunk
 			for (blocks_skip = 0;
 			     block_id + blocks_skip < blocks_total &&
-			     !pc_test_bit(block_id + blocks_skip, bitmap);
+			     !pc_test_bit(block_id + blocks_skip, bitmap, image_hdr.totalblock);
 			     blocks_skip++);
 
 			if (block_id + blocks_skip == blocks_total)
@@ -771,7 +773,7 @@ int main(int argc, char **argv) {
 			/// read chunk from source
 			for (blocks_read = 0;
 			     block_id + blocks_read < blocks_total && blocks_read < blocks_in_buffer &&
-			     pc_test_bit(block_id + blocks_read, bitmap);
+			     pc_test_bit(block_id + blocks_read, bitmap, image_hdr.totalblock);
 			     blocks_read++);
 
 			if (!blocks_read)
@@ -823,7 +825,7 @@ int main(int argc, char **argv) {
 		free(buffer);
 
 		/// restore_raw_file option
-		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap)) {
+		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap, image_hdr.totalblock)) {
 		    if (ftruncate(dfw, (off_t)image_hdr.device_size) == -1){
 			log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
 		    }
@@ -844,10 +846,10 @@ int main(int argc, char **argv) {
 		dprintf(dfw, "0x%08llX     ?\n", opt.offset_domain + (image_hdr.totalblock * image_hdr.block_size));
 		dprintf(dfw, "#      pos        size  status\n");
 		// start logging the used/unused areas
-		cmp = pc_test_bit(0, bitmap);
+		cmp = pc_test_bit(0, bitmap, image_hdr.totalblock);
 		for (block_id = 0; block_id <= image_hdr.totalblock; block_id++) {
 			if (block_id < image_hdr.totalblock) {
-				nx_current = pc_test_bit(block_id, bitmap);
+				nx_current = pc_test_bit(block_id, bitmap, image_hdr.totalblock);
 				if (nx_current)
 					copied++;
 			} else
@@ -865,9 +867,9 @@ int main(int argc, char **argv) {
 	} else if (opt.ddd) {
 
 		char *buffer;
-		int block_size = image_hdr.block_size;
+		unsigned int block_size = image_hdr.block_size;
 		unsigned long long blocks_total = image_hdr.totalblock;
-		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
+		unsigned int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 
 		buffer = (char*)malloc(blocks_in_buffer * block_size);
 		if (buffer == NULL) {
@@ -888,7 +890,7 @@ int main(int argc, char **argv) {
 			/// read chunk from source
 			for (blocks_read = 0;
 			     block_id + blocks_read < blocks_total && blocks_read < blocks_in_buffer &&
-			     pc_test_bit(block_id + blocks_read, bitmap);
+			     pc_test_bit(block_id + blocks_read, bitmap, image_hdr.totalblock);
 			     blocks_read++);
 
 			if (!blocks_read)
@@ -938,7 +940,7 @@ int main(int argc, char **argv) {
 		free(buffer);
 
 		/// restore_raw_file option
-		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap)) {
+		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap, image_hdr.totalblock)) {
 		    if (ftruncate(dfw, (off_t)image_hdr.device_size) == -1){
 			log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
 		    }

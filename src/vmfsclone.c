@@ -99,7 +99,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 
     // containing the volume information and the LVM information
     for(current = 0; current < offset; current++){
-        pc_set_bit(current, bitmap);
+        pc_set_bit(current, bitmap, image_hdr.totalblock);
         used_block++;
         update_pui(&prog, current, current, 0);
     }
@@ -109,13 +109,13 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	status = vmfs_block_get_status(fs, VMFS_BLK_FB_BUILD(current-offset,0));
 	if (status == -1) {
 	    err_block++;
-	    pc_clear_bit(current, bitmap);
+	    pc_clear_bit(current, bitmap, image_hdr.totalblock);
 	} else if (status == 1){
 	    used_block++;
-	    pc_set_bit(current, bitmap);
+	    pc_set_bit(current, bitmap, image_hdr.totalblock);
 	} else if (status == 0){
 	    free_block++;
-	    pc_clear_bit(current, bitmap);
+	    pc_clear_bit(current, bitmap, image_hdr.totalblock);
 	}
 
 	log_mesg(2, 0, 0, fs_opt.debug, "%s: Block 0x%8.8x status: %i\n", __FILE__, current, status);

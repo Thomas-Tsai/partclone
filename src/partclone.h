@@ -107,10 +107,10 @@ struct cmd_opt
     int no_block_detail;
     int restore_raw_file;
     int skip_write_error;
-    int buffer_size;
-    unsigned long offset;
+    unsigned int buffer_size;
+    off_t offset;
     unsigned long fresh;
-    unsigned long long offset_domain;
+    off_t offset_domain;
 };
 typedef struct cmd_opt cmd_opt;
 extern void usage(void);
@@ -148,7 +148,7 @@ struct image_head
     char magic[IMAGE_MAGIC_SIZE];
     char fs[FS_MAGIC_SIZE];
     char version[VERSION_SIZE];
-    int block_size;
+    unsigned int block_size;
     unsigned long long device_size;
     unsigned long long totalblock;
     unsigned long long usedblocks;

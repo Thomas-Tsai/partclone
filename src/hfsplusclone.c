@@ -168,11 +168,11 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
             IsUsed = IsAllocationBlockUsed(extent_block, extent_bitmap);
             if (IsUsed){
                 bused++;
-                pc_set_bit(block, bitmap);
+                pc_set_bit(block, bitmap, image_hdr.totalblock);
                 log_mesg(3, 0, 0, fs_opt.debug, "%s: used block= %i\n", __FILE__, block);
             } else {
                 bfree++;
-                pc_clear_bit(block, bitmap);
+                pc_clear_bit(block, bitmap, image_hdr.totalblock);
                 log_mesg(3, 0, 0, fs_opt.debug, "%s: free block= %i\n", __FILE__, block);
             }
             block++;
