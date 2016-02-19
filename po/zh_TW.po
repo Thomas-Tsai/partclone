@@ -88,17 +88,17 @@ msgstr ""
 #: src/partclone.c:1096
 #, c-format
 msgid "Starting to check image (%s)\n"
-msgstr "開始檢查映像檔 (%s)\n"
+msgstr "開始檢查印象檔 (%s)\n"
 
 #: src/partclone.c:1098
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
-msgstr "開始備份 裝置 (%s) 到 映像檔 (%s)\n"
+msgstr "開始備份 裝置 (%s) 到 印象檔 (%s)\n"
 
 #: src/partclone.c:1100
 #, c-format
 msgid "Starting to restore image (%s) to device (%s)\n"
-msgstr "開始還原 映像檔 (%s) 到 裝置 (%s)\n"
+msgstr "開始還原 印象檔 (%s) 到 裝置 (%s)\n"
 
 #: src/partclone.c:1102
 #, c-format
@@ -113,7 +113,7 @@ msgstr "開始輸出 裝置 (%s)區塊 到 資料檔 (%s)\n"
 #: src/partclone.c:1106
 #, fuzzy, c-format
 msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
-msgstr "開始備份 裝置 (%s) 到 映像檔 (%s)\n"
+msgstr "開始備份 裝置 (%s) 到 印象檔 (%s)\n"
 
 #: src/partclone.c:1108
 msgid "Display image information\n"
@@ -147,17 +147,17 @@ msgstr "裝置區塊大小: %i Byte\n"
 #: src/partclone.c:1152
 #, c-format
 msgid "Partclone successfully checked the image (%s)\n"
-msgstr "檢查映像檔 (%s) 完成\n"
+msgstr "檢查印象檔 (%s) 完成\n"
 
 #: src/partclone.c:1154
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
-msgstr "備份 裝置 (%s) 到 映像檔 (%s) 完成\n"
+msgstr "備份 裝置 (%s) 到 印象檔 (%s) 完成\n"
 
 #: src/partclone.c:1156
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
-msgstr "還原 映像檔 (%s) 到 裝置 (%s) 完成\n"
+msgstr "還原 印象檔 (%s) 到 裝置 (%s) 完成\n"
 
 #: src/partclone.c:1158
 #, c-format

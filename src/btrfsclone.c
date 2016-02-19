@@ -316,6 +316,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
     dev_size = image_hdr.device_size;
     block_size  = btrfs_super_nodesize(info->super_copy);
 
+    set_bitmap(bitmap, 0, BTRFS_SUPER_INFO_OFFSET); // some data like mbr maybe in
     set_bitmap(bitmap, BTRFS_SUPER_INFO_OFFSET, block_size);
     //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->extent_root->root_item), &block_size);
     //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->csum_root->root_item), &block_size);
