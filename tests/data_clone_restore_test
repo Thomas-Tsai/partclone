@@ -38,10 +38,10 @@ for fs in $test_fs; do
     _ptlbreak
     echo -e "\n    mount -t $fs $source_partition $source_mountpoint\n"
     mount -t $fs $source_partition $source_mountpoint
-    set +e 
+    set +e
     # rsync error while rsync to vfat
     # rsync error while rsync to exfat
-    # rsync -arl $data_pool $source_mountpoint 
+    # rsync -arl $data_pool $source_mountpoint
     # use cp -r
     echo -e "\n    cp -r $data_pool/* $source_mountpoint\n"
     cp -r $data_pool/* $source_mountpoint

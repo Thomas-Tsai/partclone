@@ -86,7 +86,7 @@ static void fs_open(char* device){
     ret = open(device, O_RDONLY);
     if(lseek(ret, 1024, SEEK_SET) != 1024)
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: device %s seek fail\n", __FILE__, device);
-	
+
     buffer = (char*)malloc(sizeof(HFSPlusVolumeHeader));
     if (read (ret, buffer, sizeof(HFSPlusVolumeHeader)) != sizeof(HFSPlusVolumeHeader))
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: read HFSPlusVolumeHeader fail\n", __FILE__);
@@ -107,7 +107,7 @@ static void fs_open(char* device){
     } else {
         if (HFS_Clean)
             log_mesg(3, 0, 0, fs_opt.debug, "%s: HFS_Plus '%s' is clean\n", __FILE__, device);
-        else 
+        else
             log_mesg(0, 1, 1, fs_opt.debug, "%s: HFS_Plus Volume '%s' is scheduled for a check or it was shutdown\nuncleanly. Please fix it by fsck.\n", __FILE__, device);
     }
 

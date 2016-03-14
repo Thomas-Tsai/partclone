@@ -1418,7 +1418,7 @@ xfs_bmbt_rec_host_t *                 /* pointer to found extent entry */
 xfs_bmap_search_extents(
 	xfs_inode_t     *ip,            /* incore inode pointer */
 	xfs_fileoff_t   bno,            /* block number searched for */
-	int             fork,      	/* data or attr fork */
+	int             fork,	/* data or attr fork */
 	int             *eofp,          /* out: end of file found */
 	xfs_extnum_t    *lastxp,        /* out: last extent index */
 	xfs_bmbt_irec_t *gotp,          /* out: extent entry found */

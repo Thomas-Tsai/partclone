@@ -24,7 +24,7 @@
  * ULIST_ITER_INIT(&uiter);
  *
  * while ((elem = ulist_next(ulist, &uiter)) {
- * 	for (all child nodes n in elem)
+ *	for (all child nodes n in elem)
  *		ulist_add(ulist, n);
  *	do something useful with the node;
  * }

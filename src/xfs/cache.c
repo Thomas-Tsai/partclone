@@ -613,13 +613,13 @@ cache_flush(
 #define	HASH_REPORT	(3 * HASH_CACHE_RATIO)
 void
 cache_report(
-	FILE 			*fp,
-	const char 		*name,
-	struct cache 		*cache)
+	FILE			*fp,
+	const char		*name,
+	struct cache		*cache)
 {
-	int 			i;
-	unsigned long 		count, index, total;
-	unsigned long 		hash_bucket_lengths[HASH_REPORT + 2];
+	int			i;
+	unsigned long		count, index, total;
+	unsigned long		hash_bucket_lengths[HASH_REPORT + 2];
 
 	if ((cache->c_hits + cache->c_misses) == 0)
 		return;

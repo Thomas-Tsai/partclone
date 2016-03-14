@@ -840,7 +840,7 @@ libxfs_umount(xfs_mount_t *mp)
 	if (mp->m_logdev_targp != mp->m_ddev_targp)
 		kmem_free(mp->m_logdev_targp);
 	kmem_free(mp->m_ddev_targp);
-	
+
 }
 
 /*

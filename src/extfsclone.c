@@ -49,7 +49,7 @@ static void fs_open(char* device){
     } else
 	retval = ext2fs_open (device, flags, use_superblock, use_blocksize, unix_io_manager, &fs);
 
-    if (retval) 
+    if (retval)
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't find valid filesystem superblock.\n", __FILE__);
 
     ext2fs_mark_valid(fs);
@@ -135,7 +135,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	    ext2fs_get_block_bitmap_range2(fs->block_map, blk_itr, block_nbytes << 3, block_bitmap);
 
 	    if (fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM){
-#ifdef EXTFS_1_41		
+#ifdef EXTFS_1_41
 		    bg_flags = fs->group_desc[group].bg_flags;
 #else
 		    bg_flags = ext2fs_bg_flags(fs, group);
@@ -160,7 +160,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 		    pc_clear_bit(current_block, bitmap);
 		    log_mesg(3, 0, 0, fs_opt.debug, "%s: free block %llu at group %lu init %i\n", __FILE__, current_block, group, (int)B_UN_INIT);
 		}
-		
+
 		/// update progress
 		update_pui(&prog, current_block, current_block, 0);//keep update
 	    }
@@ -168,8 +168,8 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	}
 	log_mesg(2, 0, 0, fs_opt.debug, "%s: free bitmap (gfree = %lli, bg_blocks_count = %lli)at %lu group.\n", __FILE__, gfree, ext2fs_bg_free_blocks_count(fs, group), group);
 	/// check free blocks in group
-#ifdef EXTFS_1_41		
-	if (gfree != fs->group_desc[group].bg_free_blocks_count){	
+#ifdef EXTFS_1_41
+	if (gfree != fs->group_desc[group].bg_free_blocks_count){
 #else
 	if (gfree != ext2fs_bg_free_blocks_count(fs, group)){
 #endif

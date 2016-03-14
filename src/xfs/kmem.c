@@ -13,7 +13,7 @@ kmem_zone_init(int size, char *name)
 
 	if (ptr == NULL) {
 		fprintf(stderr, _("%s: zone init failed (%s, %d bytes): %s\n"),
-			progname, name, (int)sizeof(kmem_zone_t), 
+			progname, name, (int)sizeof(kmem_zone_t),
 			strerror(errno));
 		exit(1);
 	}

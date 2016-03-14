@@ -1080,8 +1080,8 @@ libxfs_brelse(struct cache_node *node)
 
 static unsigned int
 libxfs_bulkrelse(
-	struct cache 		*cache,
-	struct list_head 	*list)
+	struct cache		*cache,
+	struct list_head	*list)
 {
 	xfs_buf_t		*bp;
 	int			count = 0;

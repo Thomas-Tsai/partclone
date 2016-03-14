@@ -65,7 +65,7 @@ int flip(void *p, int size) {
 }
 
 int usage(char *progname) {
-  fprintf(stderr, 
+  fprintf(stderr,
     "adjust filesystem geometry for a NTFS partition"
     "\nUsage: %s [-h # -t #] [-s start] [-b] [-w] [-f] [-p] device"
     "\nwhere device points to an NTFS partition"
@@ -133,7 +133,7 @@ int read_options(int argc, char *argv[]) {
 
   // read options
   for (i = 1 ; i < argc ; ++i) {
-    if (argv[i][0] == '-' && readopts) { 
+    if (argv[i][0] == '-' && readopts) {
       opt = argv[i][1];
       // -h, -t and -s need a number to follow
       if ((opt == 'h') || (opt == 't') || (opt == 's')) {
@@ -241,7 +241,7 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "The exact error was:\n");
       perror("ioctl");
       return 2;
-    }			
+    }
   } else {
     haveGeom = 1;
 
@@ -321,7 +321,7 @@ int main(int argc, char *argv[]) {
   // HS   Start  tgt HS  tgt Start
   // 0      0     part     part  (if no partition geometry, use fs)
   // 0      1     fs       opt
-  // 1      0     opt      part 
+  // 1      0     opt      part
   // 1      1     opt      opt
   if (!optSpecifyHS && !optSpecifyStart) {
     if (haveGeom) {

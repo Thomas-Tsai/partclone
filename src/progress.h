@@ -44,7 +44,7 @@ struct prog_stat_t{
     float total_percent;
     float speed;
     char speed_unit[5];
-    
+
 };
 typedef struct prog_stat_t prog_stat_t;
 

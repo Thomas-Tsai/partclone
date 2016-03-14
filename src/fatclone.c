@@ -33,9 +33,9 @@ int FS;
 char *fat_type = "FATXX";
 #define FAT12_THRESHOLD  4085
 #define FAT16_THRESHOLD 65525
-/* Unaligned fields must first be accessed byte-wise */ 
+/* Unaligned fields must first be accessed byte-wise */
 #define GET_UNALIGNED_W(f) ( (uint16_t)f[0] | ((uint16_t)f[1]<<8) )
-/* don't divide by zero */ 
+/* don't divide by zero */
 #define ROUND_TO_MULTIPLE(n,m) ((n) && (m) ? (n)+(m)-1-((n)-1)%(m) : 0)
 #define MSDOS_DIR_BITS 5        /* log2(sizeof(struct msdos_dir_entry)) */
 
@@ -66,7 +66,7 @@ static void get_fat_type(){
             FS = FAT_16;
             fat_type = "FAT16";
             log_mesg(2, 0, 0, fs_opt.debug, "%s: FAT Type : FAT 16(clusters %lu)\n", __FILE__, clusters);
-	    if (clusters >= FAT16_THRESHOLD) 
+	    if (clusters >= FAT16_THRESHOLD)
 		log_mesg(2, 0, 0, fs_opt.debug, "Too many clusters (%lu) for FAT16 filesystem.", clusters);
 
         } else {
@@ -148,7 +148,7 @@ int check_fat_status() {
     int fs_bad = 1;
 
 
-    /// fix. 1.check ret; 
+    /// fix. 1.check ret;
 
     if (FS == FAT_16){
         /// FAT[0] contains BPB_Media code
@@ -167,7 +167,7 @@ int check_fat_status() {
 
         if (Fat16_Entry & 0x4000)
             log_mesg(2, 0, 0, fs_opt.debug, "%s: I/O correct!\n", __FILE__);
-        else 
+        else
             return fs_error;
 
     } else if (FS == FAT_32) {
@@ -424,7 +424,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
             block = check_fat32_entry(bitmap, block, &bfree, &bused, &DamagedClusters);
         } else if (FS == FAT_12){ /// FAT12
             block = check_fat12_entry(bitmap, block, &bfree, &bused, &DamagedClusters);
-        } else 
+        } else
             log_mesg(2, 0, 0, fs_opt.debug, "%s: error fs\n", __FILE__);
         /// update progress
         update_pui(&prog, i, i, 0);//keep update
@@ -482,7 +482,7 @@ static unsigned long long get_used_block()
             block = check_fat32_entry(fat_bitmap, block, &bfree, &bused, &DamagedClusters);
         } else if (FS == FAT_12){ /// FAT12
             block = check_fat12_entry(fat_bitmap, block, &bfree, &bused, &DamagedClusters);
-        } else 
+        } else
             log_mesg(2, 0, 0, fs_opt.debug, "%s: error fs\n", __FILE__);
     }
 

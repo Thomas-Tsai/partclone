@@ -29,7 +29,7 @@ struct exfat ef;
 
 /// open device
 static void fs_open(char* device){
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: exfat_mount\n", __FILE__); 
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: exfat_mount\n", __FILE__);
     if (exfat_mount(&ef, device, "ro") != 0)
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: File system exfat open fail\n", __FILE__);
     log_mesg(2, 0, 0, fs_opt.debug, "%s: exfat_mount done\n", __FILE__);
@@ -38,7 +38,7 @@ static void fs_open(char* device){
 /// close device
 static void fs_close(){
 
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: exfat_umount\n", __FILE__); 
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: exfat_umount\n", __FILE__);
     exfat_unmount(&ef);
     log_mesg(2, 0, 0, fs_opt.debug, "%s: exfat_umount done\n", __FILE__);
 }

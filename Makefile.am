@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS = subdir-objects 
+AUTOMAKE_OPTIONS = subdir-objects
 SUBDIRS= po src docs tests fail-mbr
 
 ACLOCAL_AMFLAGS = -I m4

@@ -293,7 +293,7 @@ static inline block_t sum_blk_addr(struct f2fs_sb_info *sbi, int base, int type)
 	(segno / SIT_ENTRY_PER_BLOCK)
 #define TOTAL_SEGS(sbi) (SM_I(sbi)->main_segments)
 
-#define IS_VALID_NID(sbi, nid) 			\
+#define IS_VALID_NID(sbi, nid)			\
 	do {						\
 		ASSERT(nid <= (NAT_ENTRY_PER_BLOCK *	\
 					F2FS_RAW_SUPER(sbi)->segment_count_nat	\
@@ -302,7 +302,7 @@ static inline block_t sum_blk_addr(struct f2fs_sb_info *sbi, int base, int type)
 
 #define IS_VALID_BLK_ADDR(sbi, addr)				\
 	do {							\
-		if (addr >= F2FS_RAW_SUPER(sbi)->block_count ||	 	\
+		if (addr >= F2FS_RAW_SUPER(sbi)->block_count ||		\
 				addr < SM_I(sbi)->main_blkaddr)	\
 		{						\
 			DBG(0, "block addr [0x%x]\n", addr);	\

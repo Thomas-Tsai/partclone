@@ -126,11 +126,11 @@ am__v_P_1 = :
 AM_V_GEN = $(am__v_GEN_$(V))
 am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
 am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 = 
+am__v_GEN_1 =
 AM_V_at = $(am__v_at_$(V))
 am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))
 am__v_at_0 = @
-am__v_at_1 = 
+am__v_at_1 =
 SOURCES =
 DIST_SOURCES =
 am__can_run_installinfo = \
@@ -188,9 +188,9 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__recheck_rx = ^[ 	]*:recheck:[ 	]*
-am__global_test_result_rx = ^[ 	]*:global-test-result:[ 	]*
-am__copy_in_global_log_rx = ^[ 	]*:copy-in-global-log:[ 	]*
+am__recheck_rx = ^[	]*:recheck:[	]*
+am__global_test_result_rx = ^[	]*:global-test-result:[	]*
+am__copy_in_global_log_rx = ^[	]*:copy-in-global-log:[	]*
 # A command that, given a newline-separated list of test names on the
 # standard input, print the name of the tests that are to be re-run
 # upon "make recheck".
@@ -245,7 +245,7 @@ function rst_section(header) \
       if (line ~ /$(am__global_test_result_rx)/) \
         { \
           sub("$(am__global_test_result_rx)", "", line); \
-          sub("[ 	]*$$", "", line); \
+          sub("[	]*$$", "", line); \
           global_test_result = line; \
         } \
       else if (line ~ /$(am__copy_in_global_log_rx)[nN][oO]/) \
@@ -290,25 +290,25 @@ $(am__tty_colors);					\
 srcdir=$(srcdir); export srcdir;			\
 case "$@" in						\
   */*) am__odir=`echo "./$@" | sed 's|/[^/]*$$||'`;;	\
-    *) am__odir=.;; 					\
+    *) am__odir=.;;					\
 esac;							\
-test "x$$am__odir" = x"." || test -d "$$am__odir" 	\
+test "x$$am__odir" = x"." || test -d "$$am__odir"	\
   || $(MKDIR_P) "$$am__odir" || exit $$?;		\
 if test -f "./$$f"; then dir=./;			\
 elif test -f "$$f"; then dir=;				\
 else dir="$(srcdir)/"; fi;				\
-tst=$$dir$$f; log='$@'; 				\
+tst=$$dir$$f; log='$@';				\
 if test -n '$(DISABLE_HARD_ERRORS)'; then		\
-  am__enable_hard_errors=no; 				\
+  am__enable_hard_errors=no;				\
 else							\
-  am__enable_hard_errors=yes; 				\
-fi; 							\
+  am__enable_hard_errors=yes;				\
+fi;							\
 case " $(XFAIL_TESTS) " in				\
   *[\ \	]$$f[\ \	]* | *[\ \	]$$dir$$f[\ \	]*) \
     am__expect_failure=yes;;				\
   *)							\
     am__expect_failure=no;;				\
-esac; 							\
+esac;							\
 $(AM_TESTS_ENVIRONMENT) $(TESTS_ENVIRONMENT)
 # A shell command to get the names of the tests scripts with any registered
 # extension removed (i.e., equivalently, the names of the test logs, with
@@ -353,17 +353,17 @@ CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2 -Wall
 CPP = gcc -E
-CPPFLAGS = 
+CPPFLAGS =
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
-ECHO_C = 
+ECHO_C =
 ECHO_N = -n
-ECHO_T = 
+ECHO_T =
 EGREP = /bin/grep -E
-EXEEXT = 
-EXT2FS_CFLAGS = -I/usr/include/ext2fs -I/usr/include/et 
-EXT2FS_LIBS = -lext2fs 
+EXEEXT =
+EXT2FS_CFLAGS = -I/usr/include/ext2fs -I/usr/include/et
+EXT2FS_LIBS = -lext2fs
 GMSGFMT = /usr/bin/msgfmt
 GMSGFMT_015 = /usr/bin/msgfmt
 GREP = /bin/grep
@@ -372,24 +372,24 @@ INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
-INTLLIBS = 
-INTL_MACOSX_LIBS = 
-LDFLAGS = 
+INTLLIBS =
+INTL_MACOSX_LIBS =
+LDFLAGS =
 LIBICONV = -liconv
-LIBINTL = 
-LIBOBJS = 
-LIBS = -lpthread 
+LIBINTL =
+LIBOBJS =
+LIBS = -lpthread
 LN_S = ln -s
 LTLIBICONV = -liconv
-LTLIBINTL = 
-LTLIBOBJS = 
+LTLIBINTL =
+LTLIBOBJS =
 MAKEINFO = ${SHELL} /home/thomas/work_house/partclone/missing makeinfo
 MKDIR_P = /bin/mkdir -p
 MSGFMT = /usr/bin/msgfmt
 MSGFMT_015 = /usr/bin/msgfmt
 MSGMERGE = /usr/bin/msgmerge
-NTFS_CFLAGS = 
-NTFS_LIBS = -lpthread -lntfs-3g 
+NTFS_CFLAGS =
+NTFS_LIBS = -lpthread -lntfs-3g
 OBJEXT = o
 ORIGINAL_CFLAGS = -g -O2
 PACKAGE = partclone
@@ -397,20 +397,20 @@ PACKAGE_BUGREPORT = thomas@nchc.org.tw
 PACKAGE_NAME = Partclone
 PACKAGE_STRING = Partclone 0.3.3
 PACKAGE_TARNAME = partclone
-PACKAGE_URL = 
+PACKAGE_URL =
 PACKAGE_VERSION = 0.3.3
 PATH_SEPARATOR = :
 PKG_CONFIG = /usr/bin/pkg-config
-PKG_CONFIG_LIBDIR = 
-PKG_CONFIG_PATH = 
+PKG_CONFIG_LIBDIR =
+PKG_CONFIG_PATH =
 POSUB = po
 RM = /bin/rm
-SET_MAKE = 
+SET_MAKE =
 SHELL = /bin/bash
-STRIP = 
+STRIP =
 USE_NLS = yes
-UUID_CFLAGS = -I/usr/include/uuid 
-UUID_LIBS = -luuid 
+UUID_CFLAGS = -I/usr/include/uuid
+UUID_LIBS = -luuid
 VERSION = 0.3.3
 XGETTEXT = /usr/bin/xgettext
 XGETTEXT_015 = /usr/bin/xgettext
@@ -421,12 +421,12 @@ abs_top_srcdir = /home/thomas/work_house/partclone
 ac_ct_CC = gcc
 am__include = include
 am__leading_dot = .
-am__quote = 
+am__quote =
 am__tar = $${TAR-tar} chof - "$$tardir"
 am__untar = $${TAR-tar} xf -
 bindir = ${exec_prefix}/bin
 build = x86_64-unknown-linux-gnu
-build_alias = 
+build_alias =
 build_cpu = x86_64
 build_os = linux-gnu
 build_vendor = unknown
@@ -437,7 +437,7 @@ docdir = ${datarootdir}/doc/${PACKAGE_TARNAME}
 dvidir = ${docdir}
 exec_prefix = ${prefix}
 host = x86_64-unknown-linux-gnu
-host_alias = 
+host_alias =
 host_cpu = x86_64
 host_os = linux-gnu
 host_vendor = unknown
@@ -460,7 +460,7 @@ sbindir = ${exec_prefix}/sbin
 sharedstatedir = ${prefix}/com
 srcdir = .
 sysconfdir = ${prefix}/etc
-target_alias = 
+target_alias =
 top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
@@ -556,7 +556,7 @@ $(TEST_SUITE_LOG): $(TEST_LOGS)
 	  test $$st -eq 0 || exit 1; \
 	fi
 	@$(am__sh_e_setup); $(am__tty_colors); $(am__set_TESTS_bases); \
-	ws='[ 	]'; \
+	ws='[	]'; \
 	results=`for b in $$bases; do echo $$b.trs; done`; \
 	test -n "$$results" || results=/dev/null; \
 	all=`  grep "^$$ws*:test-result:"           $$results | wc -l`; \
@@ -617,9 +617,9 @@ $(TEST_SUITE_LOG): $(TEST_LOGS)
 	  col="$$red";							\
 	  test x"$$VERBOSE" = x || cat $(TEST_SUITE_LOG);		\
 	fi;								\
-	echo "$${col}$$br$${std}"; 					\
+	echo "$${col}$$br$${std}";					\
 	echo "$${col}Testsuite summary for $(PACKAGE_STRING)$${std}";	\
-	echo "$${col}$$br$${std}"; 					\
+	echo "$${col}$$br$${std}";					\
 	create_testsuite_report --maybe-color;				\
 	echo "$$col$$br$$std";						\
 	if $$success; then :; else					\
@@ -641,7 +641,7 @@ check-TESTS:
 	log_list=`echo $$log_list`; trs_list=`echo $$trs_list`; \
 	$(MAKE) $(AM_MAKEFLAGS) $(TEST_SUITE_LOG) TEST_LOGS="$$log_list"; \
 	exit $$?;
-recheck: all 
+recheck: all
 	@test -z "$(TEST_SUITE_LOG)" || rm -f $(TEST_SUITE_LOG)
 	@set +e; $(am__set_TESTS_bases); \
 	bases=`for i in $$bases; do echo $$i; done \

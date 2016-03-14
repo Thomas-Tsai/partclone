@@ -10,10 +10,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 021110-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 #include "ctree.h"
 #include "disk-io.h"
@@ -1405,7 +1404,7 @@ static int noinline insert_new_root(struct btrfs_trans_handle *trans,
 		btrfs_node_key(lower, &lower_key, 0);
 
 	c = btrfs_alloc_free_block(trans, root, root->nodesize,
-				   root->root_key.objectid, &lower_key, 
+				   root->root_key.objectid, &lower_key,
 				   level, root->node->start, 0);
 
 	if (IS_ERR(c))
@@ -2076,7 +2075,7 @@ again:
 			}
 		}
 	}
-	
+
 	if (split == 0)
 		btrfs_cpu_key_to_disk(&disk_key, ins_key);
 	else

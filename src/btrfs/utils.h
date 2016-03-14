@@ -10,10 +10,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 021110-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #ifndef __UTILS__
@@ -92,8 +91,8 @@ int btrfs_device_already_in_root(struct btrfs_root *root, int fd,
 				 int super_offset);
 
 int pretty_size_snprintf(u64 size, char *str, size_t str_bytes, unsigned unit_mode);
-#define pretty_size(size) 	pretty_size_mode(size, UNITS_DEFAULT)
-#define pretty_size_mode(size, mode) 					      \
+#define pretty_size(size)	pretty_size_mode(size, UNITS_DEFAULT)
+#define pretty_size_mode(size, mode)					      \
 	({								      \
 		static __thread char _str[32];				      \
 		(void)pretty_size_snprintf((size), _str, sizeof(_str), (mode)); \

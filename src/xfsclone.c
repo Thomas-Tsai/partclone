@@ -104,7 +104,7 @@ addtohist(
 
 
 	log_mesg(1, 0, 0, fs_opt.debug, "%s: add %8d %8d %8d\n", __FILE__, agno, agbno, len);
-	
+
 	start_block = (agno*mp->m_sb.sb_agblocks) + agbno;
 	set_bitmap(xfs_bitmap, start_block, len);
 

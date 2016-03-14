@@ -20,7 +20,7 @@ We made some utilies:
 * partclone.minix
 * partclone.f2fs
 * partclone.nilfs
-* partclone.info 
+* partclone.info
 * partclone.restore
 * partclone.chkimg
 * partclone.dd

@@ -118,7 +118,7 @@ struct cache {
 	struct cache_mru	c_mrus[CACHE_MAX_PRIORITY + 1];
 	unsigned long long	c_misses;	/* cache misses */
 	unsigned long long	c_hits;		/* cache hits */
-	unsigned int 		c_max;		/* max nodes ever used */
+	unsigned int		c_max;		/* max nodes ever used */
 };
 
 struct cache *cache_init(int, unsigned int, struct cache_operations *);

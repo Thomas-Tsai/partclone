@@ -138,7 +138,7 @@ typedef struct xfs_perag {
 #define LIBXFS_MOUNT_COMPAT_ATTR	0x0008
 #define LIBXFS_MOUNT_ATTR2		0x0010
 
-#define LIBXFS_BHASHSIZE(sbp) 		(1<<10)
+#define LIBXFS_BHASHSIZE(sbp)		(1<<10)
 
 extern xfs_mount_t	*libxfs_mount (xfs_mount_t *, xfs_sb_t *,
 				dev_t, dev_t, dev_t, int);

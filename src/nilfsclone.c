@@ -116,7 +116,7 @@ static void fs_open(char* device)
     int open_flags;
     int mkstatus = 0;
     struct stat st;
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: nilfs_mount\n", __FILE__); 
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: nilfs_mount\n", __FILE__);
 
     if (stat(mnt_path, &st) != 0) {
 	if (mkdir(mnt_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0 && errno != EEXIST) {
@@ -130,7 +130,7 @@ static void fs_open(char* device)
     open_flags = NILFS_OPEN_RDONLY | NILFS_OPEN_RAW;
     nilfs = nilfs_open(device, NULL, open_flags);
     if (nilfs == NULL) {
-	umount(mnt_path);	
+	umount(mnt_path);
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: cannot open NILFS on %s: %m\n", __FILE__, device ? : "device");
     }
     log_mesg(2, 0, 0, fs_opt.debug, "%s: nilfs_mount done\n", __FILE__);

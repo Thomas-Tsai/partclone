@@ -1,5 +1,5 @@
 /**
- * The main program of partclone 
+ * The main program of partclone
  *
  * Copyright (c) 2007~ Thomas Tsai <thomas at nchc org tw>
  *
@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
 	int			debug = 0;		/// debug level
 	int			tui = 0;		/// text user interface
 	int			pui = 0;		/// progress mode(default text)
-	
+
 	int			flag;
 	int			pres = 0;
 	pthread_t		prog_thread;
@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
 
 	/**
 	 * if "-d / --debug" given
-	 * open debug file in "/var/log/partclone.log" for log message 
+	 * open debug file in "/var/log/partclone.log" for log message
 	 */
 	memset(&fs_opt, 0, sizeof(fs_cmd_opt));
 	debug = opt.debug;
@@ -331,7 +331,7 @@ int main(int argc, char **argv) {
 
 		    struct stat target_stat;
 		    if ((stat(opt.target, &target_stat) != -1) && (strcmp(opt.target, "-") != 0)) {
-			if (S_ISBLK(target_stat.st_mode)) 
+			if (S_ISBLK(target_stat.st_mode))
 			    check_size(&dfw, fs_info.device_size);
 			else {
 			    unsigned long long needed_space = 0;
@@ -347,7 +347,7 @@ int main(int argc, char **argv) {
 
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
 		log_mesg(0, 0, 1, debug, "done!\n");
-    
+
 	}
 
 	log_mesg(1, 0, 0, debug, "print image information\n");

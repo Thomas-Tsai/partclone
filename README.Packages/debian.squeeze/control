@@ -9,11 +9,11 @@ Package: partclone
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: The utility to clone and restore a partition.
- Partclone is a project like the well-known backup utility 
- "Partition Image" a.k.a partimage. 
+ Partclone is a project like the well-known backup utility
+ "Partition Image" a.k.a partimage.
  .
- Partclone provides utilities to back up used blocks and 
- design for higher compatibility of the file system using 
+ Partclone provides utilities to back up used blocks and
+ design for higher compatibility of the file system using
  supported library like e2fslibs.
  .
  check the project website for more details
@@ -25,8 +25,8 @@ Priority: extra
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: The utility to clone and restore a partition.
- Partclone is a project like the well-known backup utility 
- "Partition Image" a.k.a partimage. 
+ Partclone is a project like the well-known backup utility
+ "Partition Image" a.k.a partimage.
  .
  This package contains the debugging symbols.
  .

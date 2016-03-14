@@ -43,6 +43,6 @@ losetup -d $offset_loop_device
 
 set -e
 echo -e "\nremove row file\n"
-rm -f $row_A_file $row_B_file 
+rm -f $row_A_file $row_B_file
 
 echo -e "\noffset test ok\n"

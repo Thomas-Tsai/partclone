@@ -55,14 +55,14 @@ typedef struct fs_disk_quota {
 	__s32		d_itimer;	/* zero if within inode limits */
 					/* if not, we refuse service */
 	__s32		d_btimer;	/* similar to above; for disk blocks */
-	__u16	  	d_iwarns;       /* # warnings issued wrt num inodes */
-	__u16	  	d_bwarns;       /* # warnings issued wrt disk blocks */
+	__u16		d_iwarns;       /* # warnings issued wrt num inodes */
+	__u16		d_bwarns;       /* # warnings issued wrt disk blocks */
 	__s32		d_padding2;	/* padding2 - for future use */
 	__u64		d_rtb_hardlimit;/* absolute limit on realtime blks */
 	__u64		d_rtb_softlimit;/* preferred limit on RT disk blks */
 	__u64		d_rtbcount;	/* # realtime blocks owned */
 	__s32		d_rtbtimer;	/* similar to above; for RT disk blks */
-	__u16	  	d_rtbwarns;     /* # warnings issued wrt RT disk blks */
+	__u16		d_rtbwarns;     /* # warnings issued wrt RT disk blks */
 	__s16		d_padding3;	/* padding3 - for future use */
 	char		d_padding4[8];	/* yet more padding */
 } fs_disk_quota_t;
@@ -73,7 +73,7 @@ typedef struct fs_disk_quota {
 #define FS_DQ_ISOFT	(1<<0)
 #define FS_DQ_IHARD	(1<<1)
 #define FS_DQ_BSOFT	(1<<2)
-#define FS_DQ_BHARD 	(1<<3)
+#define FS_DQ_BHARD	(1<<3)
 #define FS_DQ_RTBSOFT	(1<<4)
 #define FS_DQ_RTBHARD	(1<<5)
 #define FS_DQ_LIMIT_MASK	(FS_DQ_ISOFT | FS_DQ_IHARD | FS_DQ_BSOFT | \
@@ -87,7 +87,7 @@ typedef struct fs_disk_quota {
  */
 #define FS_DQ_BTIMER	(1<<6)
 #define FS_DQ_ITIMER	(1<<7)
-#define FS_DQ_RTBTIMER 	(1<<8)
+#define FS_DQ_RTBTIMER	(1<<8)
 #define FS_DQ_TIMER_MASK	(FS_DQ_BTIMER | FS_DQ_ITIMER | FS_DQ_RTBTIMER)
 
 /*

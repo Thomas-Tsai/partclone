@@ -70,7 +70,7 @@ static void fs_open(char* device){
         if (!state)
             log_mesg(1, 0, 0, fs_opt.debug, "%s: REISER4: FS marked consistent\n", __FILE__);
 
-        if (state) 
+        if (state)
             log_mesg(3, 0, 0, fs_opt.debug, "%s: REISER4: stat : %i\n", __FILE__, state);
 
         if (state != FS_OK)

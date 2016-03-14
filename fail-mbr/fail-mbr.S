@@ -27,7 +27,7 @@
 
 	/* Tell GAS to generate 16-bit instructions so that this code works
 	   in real mode. */
-	.code16 
+	.code16
 
 	.globl _start
 
@@ -52,7 +52,7 @@ after_signature:
 	push	%ax
 	pop	%ds		/* zero in ds */
 	mov	$(failure_msg + real_start - _start), %si	/* point to the message */
-start_msg1:	
+start_msg1:
 	lods	%ds:(%si),%al	/* get one char and increment the pointer */
 	cmp	$0x0, %al	/* is the cstring finished? */
 	je	end_msg1
@@ -65,14 +65,13 @@ end_msg1:
 	mov	$0x2, %ah	/* prepare a call to Set cursor position */
 	mov	$0x100, %dx	/* row 0, column 1 */
 	int	$0x10		/* BIOS call */
-wait_forever:	
+wait_forever:
 	cmp	$0x0,%al
 	je	wait_forever
-	
+
 failure_msg:
 	.ascii "Image loading failure. Reload image!\0"
-	
+
 /* filling with zeros to match the length of another mbr file */
 	. = _start + 0x1bd
 	.byte 0x0
-	

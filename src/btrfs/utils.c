@@ -11,10 +11,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 021110-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #define _XOPEN_SOURCE 700
@@ -896,8 +895,8 @@ out:
 
 /*
  * Given a pathname, return a filehandle to:
- * 	the original pathname or,
- * 	if the pathname is a mounted btrfs device, to its mountpoint.
+ *	the original pathname or,
+ *	if the pathname is a mounted btrfs device, to its mountpoint.
  *
  * On error, return -1, errno should be set.
  */

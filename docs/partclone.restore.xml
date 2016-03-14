@@ -122,7 +122,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	</group>
 	</group>
 	<replaceable class="option">target</replaceable>
-      </arg> 	
+      </arg>
       <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-dX</option></arg>
@@ -177,7 +177,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	<replaceable class="option">logfile</replaceable>
 
 	</arg>
-     
+
     </cmdsynopsis>
   </refsynopsisdiv>
   <refsect1 id="description">
@@ -341,10 +341,10 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
  restore /dev/hda1 from hda1.img and display debug information.
   partclone.restore -d -s hda1.img -o /dev/hda1
 
- restore image from clonezilla(split, gzip,) with stdin source 
+ restore image from clonezilla(split, gzip,) with stdin source
   cat  sda1.ext3-ptcl-img.gz.a*  | gunzip -c | partclone.restore -d -s - -o /dev/sda1
 
- restore  raw  image  from  partclone.dd  
+ restore  raw  image  from  partclone.dd
   partclone.dd  -d  -c  -s  /dev/sda1  -o  - | partclone.restore -d -s - -o /dev/sdb1
     </screen>
     </refsect1>

@@ -11,7 +11,7 @@ dd_count=$normal_size
 
 #main
 for fs in $test_fs; do
-    
+
     echo -e "Basic $fs test"
     echo -e "==========================\n"
     ptlfs=$(_ptlname $fs)

@@ -94,7 +94,7 @@ extern int	xlog_bread_noalign(struct xlog *log, xfs_daddr_t blk_no,
 
 extern int	xlog_find_zeroed(struct xlog *log, xfs_daddr_t *blk_no);
 extern int	xlog_find_cycle_start(struct xlog *log, xfs_buf_t *bp,
-				xfs_daddr_t first_blk, xfs_daddr_t *last_blk, 
+				xfs_daddr_t first_blk, xfs_daddr_t *last_blk,
 				uint cycle);
 extern int	xlog_find_tail(struct xlog *log, xfs_daddr_t *head_blk,
 				xfs_daddr_t *tail_blk);
@@ -114,7 +114,7 @@ extern int	xlog_do_recovery_pass(struct xlog *log, xfs_daddr_t head_blk,
 				xfs_daddr_t tail_blk, int pass);
 extern int	xlog_recover_do_trans(struct xlog *log, xlog_recover_t *trans,
 				int pass);
-extern int	xlog_header_check_recover(xfs_mount_t *mp, 
+extern int	xlog_header_check_recover(xfs_mount_t *mp,
 				xlog_rec_header_t *head);
 extern int	xlog_header_check_mount(xfs_mount_t *mp,
 				xlog_rec_header_t *head);

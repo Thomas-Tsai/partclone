@@ -64,7 +64,7 @@ All partclone utils could be run like partclone\&.[fstype] is very smiliar fsck 
        minix                   partclone\&.minix
        f2fs                    partclone\&.f2fs
        nilfs2                  partclone\&.nilfs2
-    
+
 .fi
 .if n \{\
 .RE
@@ -212,7 +212,7 @@ partclone
 
  restore image from clonezilla(split, gzip,) with stdin source
    cat sda1\&.ext3\-ptcl\-img\&.gz\&.a* | gunzip \-c | partclone\&.ext3 \-d \-r \-s \- \-o /dev/sda1
-    
+
 .fi
 .if n \{\
 .RE
