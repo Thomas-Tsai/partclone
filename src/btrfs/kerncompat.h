@@ -16,8 +16,8 @@
  * Boston, MA 021110-1307, USA.
  */
 
-#ifndef __KERNCOMPAT
-#define __KERNCOMPAT
+#ifndef __KERNCOMPAT_H__
+#define __KERNCOMPAT_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +29,16 @@
 #include <stddef.h>
 #include <linux/types.h>
 #include <stdint.h>
+
+#include <features.h>
+
+#ifndef __GLIBC__
+#ifndef BTRFS_DISABLE_BACKTRACE
+#define BTRFS_DISABLE_BACKTRACE
+#endif
+#define __always_inline __inline __attribute__ ((__always_inline__))
+#endif
+
 #ifndef BTRFS_DISABLE_BACKTRACE
 #include <execinfo.h>
 #endif
@@ -62,7 +72,7 @@
 static inline void print_trace(void)
 {
 	void *array[MAX_BACKTRACE];
-	size_t size;
+	int size;
 
 	size = backtrace(array, MAX_BACKTRACE);
 	backtrace_symbols_fd(array, size, 2);
@@ -123,7 +133,7 @@ typedef unsigned long long u64;
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef long long s64;
-typedef int s32
+typedef int s32;
 #endif
 
 
@@ -231,26 +241,6 @@ static inline long IS_ERR(const void *ptr)
 }
 
 /*
- * max/min macro
- */
-#define min(x,y) ({ \
-	typeof(x) _x = (x);	\
-	typeof(y) _y = (y);	\
-	(void) (&_x == &_y);		\
-	_x < _y ? _x : _y; })
-
-#define max(x,y) ({ \
-	typeof(x) _x = (x);	\
-	typeof(y) _y = (y);	\
-	(void) (&_x == &_y);		\
-	_x > _y ? _x : _y; })
-
-#define min_t(type,x,y) \
-	({ type __x = (x); type __y = (y); __x < __y ? __x: __y; })
-#define max_t(type,x,y) \
-	({ type __x = (x); type __y = (y); __x > __y ? __x: __y; })
-
-/*
  * This looks more complex than it should be. But we need to
  * get the type for the ~ right in round_down (it needs to be
  * as wide as the result!), and we want to evaluate the macro
@@ -300,6 +290,14 @@ static inline long IS_ERR(const void *ptr)
 #define __bitwise
 #endif
 
+/* Alignment check */
+#define IS_ALIGNED(x, a)                (((x) & ((typeof(x))(a) - 1)) == 0)
+
+static inline int is_power_of_2(unsigned long n)
+{
+	return (n != 0 && ((n & (n - 1)) == 0));
+}
+
 typedef u16 __bitwise __le16;
 typedef u16 __bitwise __be16;
 typedef u32 __bitwise __le32;
@@ -336,14 +334,17 @@ struct __una_u32 { __le32 x; } __attribute__((__packed__));
 struct __una_u64 { __le64 x; } __attribute__((__packed__));
 
 #define get_unaligned_le8(p) (*((u8 *)(p)))
+#define get_unaligned_8(p) (*((u8 *)(p)))
 #define put_unaligned_le8(val,p) ((*((u8 *)(p))) = (val))
 #define get_unaligned_le16(p) le16_to_cpu(((const struct __una_u16 *)(p))->x)
+#define get_unaligned_16(p) (((const struct __una_u16 *)(p))->x)
 #define put_unaligned_le16(val,p) (((struct __una_u16 *)(p))->x = cpu_to_le16(val))
 #define get_unaligned_le32(p) le32_to_cpu(((const struct __una_u32 *)(p))->x)
+#define get_unaligned_32(p) (((const struct __una_u32 *)(p))->x)
 #define put_unaligned_le32(val,p) (((struct __una_u32 *)(p))->x = cpu_to_le32(val))
 #define get_unaligned_le64(p) le64_to_cpu(((const struct __una_u64 *)(p))->x)
+#define get_unaligned_64(p) (((const struct __una_u64 *)(p))->x)
 #define put_unaligned_le64(val,p) (((struct __una_u64 *)(p))->x = cpu_to_le64(val))
-#endif
 
 #ifndef true
 #define true 1
@@ -352,4 +353,6 @@ struct __una_u64 { __le64 x; } __attribute__((__packed__));
 
 #ifndef noinline
 #define noinline
+#endif
+
 #endif

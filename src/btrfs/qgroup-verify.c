@@ -37,24 +37,33 @@ static unsigned long tot_extents_scanned = 0;
 
 static void add_bytes(u64 root_objectid, u64 num_bytes, int exclusive);
 
-struct qgroup_count {
-	u64				qgroupid;
-	int				subvol_exists;
-
-	struct btrfs_disk_key		key;
-	struct btrfs_qgroup_info_item	diskinfo;
-
-	struct btrfs_qgroup_info_item	info;
-
-	struct rb_node			rb_node;
+struct qgroup_info {
+	u64 referenced;
+	u64 referenced_compressed;
+	u64 exclusive;
+	u64 exclusive_compressed;
 };
 
-struct counts_tree {
+struct qgroup_count {
+	u64 qgroupid;
+	int subvol_exists;
+
+	struct btrfs_disk_key key;
+	struct qgroup_info diskinfo;
+
+	struct qgroup_info info;
+
+	struct rb_node rb_node;
+};
+
+static struct counts_tree {
 	struct rb_root		root;
 	unsigned int		num_groups;
+	unsigned int		rescan_running:1;
+	unsigned int		qgroup_inconsist:1;
 } counts = { .root = RB_ROOT };
 
-struct rb_root by_bytenr = RB_ROOT;
+static struct rb_root by_bytenr = RB_ROOT;
 
 /*
  * List of interior tree blocks. We walk this list after loading the
@@ -68,8 +77,8 @@ struct rb_root by_bytenr = RB_ROOT;
  * exist further down the tree, the fact that our interior node has a
  * ref means we need to account anything below it to all its roots.
  */
-struct ulist *tree_blocks = NULL;	/* unode->val = bytenr, ->aux
-					 * = tree_block pointer */
+static struct ulist *tree_blocks = NULL;	/* unode->val = bytenr, ->aux
+						 * = tree_block pointer */
 struct tree_block {
 	int			level;
 	u64			num_bytes;
@@ -513,7 +522,7 @@ static int travel_tree(struct btrfs_fs_info *info, struct btrfs_root *root,
 //	       bytenr, num_bytes, ref_parent);
 
 	eb = read_tree_block(root, bytenr, num_bytes, 0);
-	if (!eb)
+	if (!extent_buffer_uptodate(eb))
 		return -EIO;
 
 	ret = 0;
@@ -537,8 +546,7 @@ static int travel_tree(struct btrfs_fs_info *info, struct btrfs_root *root,
 	nr = btrfs_header_nritems(eb);
 	for (i = 0; i < nr; i++) {
 		new_bytenr = btrfs_node_blockptr(eb, i);
-		new_num_bytes = btrfs_level_size(root,
-						 btrfs_header_level(eb) - 1);
+		new_num_bytes = root->nodesize;
 
 		ret = travel_tree(info, root, new_bytenr, new_num_bytes,
 				  ref_parent);
@@ -647,14 +655,13 @@ static struct qgroup_count *alloc_count(struct btrfs_disk_key *key,
 					struct btrfs_qgroup_info_item *disk)
 {
 	struct qgroup_count *c = calloc(1, sizeof(*c));
-	struct btrfs_qgroup_info_item *item;
+	struct qgroup_info *item;
 
 	if (c) {
 		c->qgroupid = btrfs_disk_key_offset(key);
 		c->key = *key;
 
 		item = &c->diskinfo;
-		item->generation = btrfs_qgroup_info_generation(leaf, disk);
 		item->referenced = btrfs_qgroup_info_referenced(leaf, disk);
 		item->referenced_compressed =
 			btrfs_qgroup_info_referenced_compressed(leaf, disk);
@@ -673,7 +680,7 @@ static struct qgroup_count *alloc_count(struct btrfs_disk_key *key,
 static void add_bytes(u64 root_objectid, u64 num_bytes, int exclusive)
 {
 	struct qgroup_count *count = find_count(root_objectid);
-	struct btrfs_qgroup_info_item *qg;
+	struct qgroup_info *qg;
 
 	BUG_ON(num_bytes < 4096); /* Random sanity check. */
 
@@ -693,6 +700,19 @@ static void add_bytes(u64 root_objectid, u64 num_bytes, int exclusive)
 		qg->exclusive += num_bytes;
 		qg->exclusive_compressed += num_bytes;
 	}
+}
+
+static void read_qgroup_status(struct btrfs_path *path,
+			      struct counts_tree *counts)
+{
+	struct btrfs_qgroup_status_item *status_item;
+	u64 flags;
+
+	status_item = btrfs_item_ptr(path->nodes[0], path->slots[0],
+				     struct btrfs_qgroup_status_item);
+	flags = btrfs_qgroup_status_flags(path->nodes[0], status_item);
+	counts->qgroup_inconsist = flags & BTRFS_QGROUP_STATUS_FLAG_INCONSISTENT;
+	counts->rescan_running = flags & BTRFS_QGROUP_STATUS_FLAG_RESCAN;
 }
 
 static int load_quota_info(struct btrfs_fs_info *info)
@@ -729,13 +749,17 @@ static int load_quota_info(struct btrfs_fs_info *info)
 			btrfs_item_key(leaf, &disk_key, i);
 			btrfs_disk_key_to_cpu(&key, &disk_key);
 
+			if (key.type == BTRFS_QGROUP_STATUS_KEY) {
+				read_qgroup_status(&path, &counts);
+				continue;
+			}
 			if (key.type == BTRFS_QGROUP_RELATION_KEY)
 				printf("Ignoring qgroup relation key %llu\n",
 				       key.objectid);
 
 			/*
-			 * Ignore: BTRFS_QGROUP_STATUS_KEY,
-			 * BTRFS_QGROUP_LIMIT_KEY, BTRFS_QGROUP_RELATION_KEY
+			 * Ignore: BTRFS_QGROUP_LIMIT_KEY,
+			 * 	   BTRFS_QGROUP_RELATION_KEY
 			 */
 			if (key.type != BTRFS_QGROUP_INFO_KEY)
 				continue;
@@ -756,7 +780,7 @@ static int load_quota_info(struct btrfs_fs_info *info)
 			tmproot = btrfs_read_fs_root_no_cache(info, &root_key);
 			if (tmproot && !IS_ERR(tmproot)) {
 				count->subvol_exists = 1;
-				free(tmproot);
+				btrfs_free_fs_root(tmproot);
 			}
 		}
 
@@ -938,7 +962,7 @@ static int scan_extents(struct btrfs_fs_info *info,
 				bytenr = key.objectid;
 				num_bytes = key.offset;
 				if (key.type == BTRFS_METADATA_ITEM_KEY) {
-					num_bytes = info->extent_root->leafsize;
+					num_bytes = info->extent_root->nodesize;
 					meta = 1;
 				}
 
@@ -1011,11 +1035,11 @@ static void print_fields_signed(long long bytes,
 	       prefix, type, bytes, type, bytes_compressed);
 }
 
-static void print_qgroup_difference(struct qgroup_count *count, int verbose)
+static int report_qgroup_difference(struct qgroup_count *count, int verbose)
 {
 	int is_different;
-	struct btrfs_qgroup_info_item *info = &count->info;
-	struct btrfs_qgroup_info_item *disk = &count->diskinfo;
+	struct qgroup_info *info = &count->info;
+	struct qgroup_info *disk = &count->diskinfo;
 	long long excl_diff = info->exclusive - disk->exclusive;
 	long long ref_diff = info->referenced - disk->referenced;
 
@@ -1041,19 +1065,34 @@ static void print_qgroup_difference(struct qgroup_count *count, int verbose)
 			print_fields_signed(excl_diff, excl_diff,
 					    "diff:", "exclusive");
 	}
+	return (is_different && count->subvol_exists);
 }
 
-void print_qgroup_report(int all)
+int report_qgroups(int all)
 {
 	struct rb_node *node;
 	struct qgroup_count *c;
+	int ret = 0;
 
+	if (counts.rescan_running) {
+		if (all) {
+			printf(
+	"Qgroup rescan is running, qgroup counts difference is expected\n");
+		} else {
+			printf(
+	"Qgroup rescan is running, ignore qgroup check\n");
+			return ret;
+		}
+	}
+	if (counts.qgroup_inconsist && !counts.rescan_running)
+		fprintf(stderr, "Qgroup is already inconsistent before checking\n");
 	node = rb_first(&counts.root);
 	while (node) {
 		c = rb_entry(node, struct qgroup_count, rb_node);
-		print_qgroup_difference(c, all);
+		ret |= report_qgroup_difference(c, all);
 		node = rb_next(node);
 	}
+	return ret;
 }
 
 int qgroup_verify_all(struct btrfs_fs_info *info)

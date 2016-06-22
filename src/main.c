@@ -201,7 +201,7 @@ int main(int argc, char **argv) {
 
 #ifndef CHKIMG
 	if (geteuid() != 0)
-		log_mesg(0, 1, 1, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n");
+		log_mesg(0, 0, 1, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n");
 	else
 		log_mesg(1, 0, 0, debug, "UID is root.\n");
 #endif

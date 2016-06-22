@@ -15,8 +15,9 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 021110-1307, USA.
  */
-#ifndef SEND_STREAM_H_
-#define SEND_STREAM_H_
+
+#ifndef __BTRFS_SEND_STREAM_H__
+#define __BTRFS_SEND_STREAM_H__
 
 /*
  * NOTE: this file is public API, any incompatible change has to update
@@ -26,6 +27,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#if BTRFS_FLAT_INCLUDES
+#include "kerncompat.h"
+#else
+#include <btrfs/kerncompat.h>
+#endif /* BTRFS_FLAT_INCLUDES */
 
 struct btrfs_send_ops {
 	int (*subvol)(const char *path, const u8 *uuid, u64 ctransid,
@@ -70,4 +77,4 @@ int btrfs_read_and_process_send_stream(int fd,
 }
 #endif
 
-#endif /* SEND_STREAM_H_ */
+#endif
