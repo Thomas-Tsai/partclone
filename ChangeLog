@@ -1,4 +1,20 @@
+2016-06-23  Thomas Tsai  <thomas@nchc.org.tw>
+
+	merge
+
+	add xz comp for debian package
+
+	release 0.2.89
+	upgrade btrfs to 4.4.2 for btrfs issue
+	accept patch from Andre Naujoks <nautsch2 at gmail.com> // Debian Bug report logs - #825990
+
+2016-06-22  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update btrfs to 4.2.2
+
 2016-02-19  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.88
 
 	build 0.2.88
 

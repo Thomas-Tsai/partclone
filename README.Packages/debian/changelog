@@ -1,3 +1,10 @@
+partclone (0.2.89-1) unstable; urgency=medium
+
+  * upgrade btrfs to 4.4.2
+  * accept patch for non root issue
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 23 Jun 2016 12:14:54 +0800
+
 partclone (0.2.88-1) unstable; urgency=medium
 
   * fix: memory leak issue
