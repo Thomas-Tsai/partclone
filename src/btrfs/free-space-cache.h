@@ -16,8 +16,12 @@
  * Boston, MA 021110-1307, USA.
  */
 
-#ifndef __BTRFS_FREE_SPACE_CACHE
-#define __BTRFS_FREE_SPACE_CACHE
+#ifndef __BTRFS_FREE_SPACE_CACHE_H__
+#define __BTRFS_FREE_SPACE_CACHE_H__
+
+#include "kerncompat.h"
+#include "ctree.h"
+#include "rbtree.h"
 
 struct btrfs_free_space {
 	struct rb_node offset_index;
@@ -53,4 +57,6 @@ int btrfs_init_free_space_ctl(struct btrfs_block_group_cache *block_group,
 			      int sectorsize);
 void unlink_free_space(struct btrfs_free_space_ctl *ctl,
 		       struct btrfs_free_space *info);
+int btrfs_add_free_space(struct btrfs_free_space_ctl *ctl, u64 offset,
+			 u64 bytes);
 #endif

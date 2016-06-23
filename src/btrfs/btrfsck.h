@@ -17,15 +17,17 @@
  * Boston, MA 021110-1307, USA.
  */
 
-#ifndef __CHUNK_CHECK_H__
-#define __CHUNK_CHECK_H__
+#ifndef __BTRFS_CHECK_H__
+#define __BTRFS_CHECK_H__
 
 #if BTRFS_FLAT_INCLUDES
 #include "kerncompat.h"
+#include "ctree.h"
 #include "extent-cache.h"
 #include "list.h"
 #else
 #include <btrfs/kerncompat.h>
+#include <btrfs/ctree.h>
 #include <btrfs/extent-cache.h>
 #include <btrfs/list.h>
 #endif /* BTRFS_FLAT_INCLUDES */
@@ -140,6 +142,23 @@ static inline unsigned long btrfs_chunk_record_size(int num_stripes)
 }
 void free_chunk_cache_tree(struct cache_tree *chunk_cache);
 
+/*
+ * Function to check validation for num_stripes, or it can call
+ * float point error for 0 division
+ * return < 0 for invalid combination
+ * return 0 for valid combination
+ */
+static inline int check_num_stripes(u64 type, int num_stripes)
+{
+	if (num_stripes == 0)
+		return -1;
+	if (type & BTRFS_BLOCK_GROUP_RAID5 && num_stripes <= 1)
+		return -1;
+	if (type & BTRFS_BLOCK_GROUP_RAID6 && num_stripes <= 2)
+		return -1;
+	return 0;
+}
+
 u64 calc_stripe_length(u64 type, u64 length, int num_stripes);
 /* For block group tree */
 static inline void block_group_tree_init(struct block_group_tree *tree)
@@ -179,5 +198,6 @@ btrfs_new_device_extent_record(struct extent_buffer *leaf,
 int check_chunks(struct cache_tree *chunk_cache,
 		 struct block_group_tree *block_group_cache,
 		 struct device_extent_tree *dev_extent_cache,
-		 struct list_head *good, struct list_head *bad, int silent);
+		 struct list_head *good, struct list_head *bad,
+		 struct list_head *rebuild, int silent);
 #endif

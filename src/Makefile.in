@@ -169,7 +169,8 @@ am__partclone_btrfs_SOURCES_DIST = main.c partclone.c progress.c \
 	btrfs/send-utils.h btrfs/uuid-tree.c btrfs/ctree.c \
 	btrfs/extent-cache.h btrfs/hash.h btrfs/list_sort.h \
 	btrfs/qgroup-verify.h btrfs/repair.h btrfs/transaction.h \
-	btrfs/version.h btrfs/rbtree-utils.h btrfs/rbtree_augmented.h
+	btrfs/version.h btrfs/rbtree-utils.h btrfs/rbtree_augmented.h \
+	btrfs/internal.h btrfs/commands.h
 am__dirstamp = $(am__leading_dot)dirstamp
 am__objects_1 = btrfs/partclone_btrfs-extent_io.$(OBJEXT) \
 	btrfs/partclone_btrfs-inode-item.$(OBJEXT) \
@@ -741,7 +742,7 @@ btrfs/btrfs-list.h btrfs/disk-io.h btrfs/file-item.c btrfs/kerncompat.h btrfs/qg
 btrfs/crc32c.c btrfs/free-space-cache.c btrfs/list.h btrfs/qgroup.h btrfs/rbtree.h btrfs/send-utils.c btrfs/utils-lib.c btrfs/rbtree-utils.c\
 btrfs/crc32c.h btrfs/extent-cache.c btrfs/free-space-cache.h btrfs/list_sort.c btrfs/qgroup-verify.c btrfs/repair.c btrfs/send-utils.h\
 btrfs/uuid-tree.c btrfs/ctree.c btrfs/extent-cache.h btrfs/hash.h btrfs/list_sort.h btrfs/qgroup-verify.h btrfs/repair.h btrfs/transaction.h\
-btrfs/version.h btrfs/rbtree-utils.h btrfs/rbtree_augmented.h
+btrfs/version.h btrfs/rbtree-utils.h btrfs/rbtree_augmented.h btrfs/internal.h btrfs/commands.h
 
 XFS_SOURCE = \
 xfs/atomic.h xfs/libxfs_priv.h xfs/xfs_arch.h xfs/xfs_da_format.h xfs/xfs_inode_fork.h xfs/bitops.h xfs/libxlog.h xfs/xfs_attr.c xfs/xfs_dir2_block.c xfs/xfs_inode.h xfs/cache.c xfs/linux.c xfs/xfs_attr_leaf.c xfs/xfs_dir2.c xfs/xfs_log_format.h xfs/cache.h xfs/linux.h xfs/xfs_attr_leaf.h xfs/xfs_dir2_data.c xfs/xfs_log_recover.h xfs/command.h xfs/list.h xfs/xfs_attr_remote.c xfs/xfs_dir2.h xfs/xfs_log_rlimit.c xfs/crc32.c xfs/logitem.c xfs/xfs_attr_remote.h xfs/xfs_dir2_leaf.c xfs/xfs_metadump.h xfs/crc32defs.h xfs/parent.h xfs/xfs_attr_sf.h xfs/xfs_dir2_node.c xfs/xfs_mount.h xfs/path.h xfs/xfs_bit.c xfs/xfs_dir2_priv.h xfs/xfs_quota_defs.h  xfs/platform_defs.h xfs/xfs_bit.h xfs/xfs_dir2_sf.c xfs/xfs_rtbitmap.c xfs/handle.h xfs/platform_defs.h.in xfs/xfs_bmap_btree.c xfs/xfs_dquot_buf.c xfs/xfs_sb.c xfs/hlist.h xfs/project.h xfs/xfs_bmap_btree.h xfs/xfs_format.h xfs/xfs_sb.h xfs/init.c xfs/radix-tree.c xfs/xfs_bmap.c xfs/xfs_fs.h xfs/xfs_shared.h xfs/init.h xfs/radix-tree.h xfs/xfs_bmap.h xfs/xfs.h xfs/xfs_symlink_remote.c xfs/input.h xfs/rdwr.c xfs/xfs_btree.c xfs/xfs_ialloc_btree.c xfs/xfs_trace.h xfs/jdm.h xfs/trans.c xfs/xfs_btree.h xfs/xfs_ialloc_btree.h xfs/xfs_trans.h xfs/kmem.c xfs/util.c xfs/xfs_btree_trace.h xfs/xfs_ialloc.c xfs/xfs_trans_resv.c xfs/kmem.h xfs/xfs_alloc_btree.c xfs/xfs_cksum.h xfs/xfs_ialloc.h xfs/xfs_trans_resv.h xfs/libxfs_api_defs.h xfs/xfs_alloc_btree.h xfs/xfs_da_btree.c xfs/xfs_inode_buf.c xfs/xfs_trans_space.h xfs/libxfs.h xfs/xfs_alloc.c xfs/xfs_da_btree.h xfs/xfs_inode_buf.h xfs/xfs_types.h xfs/libxfs_io.h xfs/xfs_alloc.h xfs/xfs_da_format.c xfs/xfs_inode_fork.c xfs/xqm.h xfs/crc32table.h
@@ -806,7 +807,7 @@ partclone_ntfsfixboot_SOURCES = ntfsfixboot.c
 @ENABLE_JFS_TRUE@partclone_jfs_CFLAGS = -DJFS
 @ENABLE_JFS_TRUE@partclone_jfs_LDADD = -luuid -ljfs
 @ENABLE_BTRFS_TRUE@partclone_btrfs_SOURCES = main.c partclone.c progress.c btrfsclone.c btrfsclone.h partclone.h progress.h gettext.h $(BTRFS_SOURCE)
-@ENABLE_BTRFS_TRUE@partclone_btrfs_CFLAGS = -DBTRFS -DBTRFS_FLAT_INCLUDES
+@ENABLE_BTRFS_TRUE@partclone_btrfs_CFLAGS = -DBTRFS -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE=1
 @ENABLE_BTRFS_TRUE@partclone_btrfs_LDADD = -luuid -lblkid
 @ENABLE_MINIX_TRUE@partclone_minix_SOURCES = main.c partclone.c progress.c minixclone.c minixclone.h partclone.h progress.h gettext.h
 @ENABLE_MINIX_TRUE@partclone_minix_CFLAGS = -DMINIX
