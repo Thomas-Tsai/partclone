@@ -1,5 +1,7 @@
 2016-06-23  Thomas Tsai  <thomas@nchc.org.tw>
 
+	release 0.2.89
+
 	merge
 
 	add xz comp for debian package
