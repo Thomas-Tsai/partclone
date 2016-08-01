@@ -7447,12 +7447,12 @@ if test -n "$EXT2FS_CFLAGS"; then
     pkg_cv_EXT2FS_CFLAGS="$EXT2FS_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"ext2fs >= 1.42\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "ext2fs >= 1.42") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_EXT2FS_CFLAGS=`$PKG_CONFIG --cflags "ext2fs >= 1.42" 2>/dev/null`
+  pkg_cv_EXT2FS_CFLAGS=`$PKG_CONFIG --cflags "" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -7464,12 +7464,12 @@ if test -n "$EXT2FS_LIBS"; then
     pkg_cv_EXT2FS_LIBS="$EXT2FS_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"ext2fs >= 1.42\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "ext2fs >= 1.42") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_EXT2FS_LIBS=`$PKG_CONFIG --libs "ext2fs >= 1.42" 2>/dev/null`
+  pkg_cv_EXT2FS_LIBS=`$PKG_CONFIG --libs "" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -7490,14 +7490,14 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        EXT2FS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "ext2fs >= 1.42" 2>&1`
+	        EXT2FS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "" 2>&1`
         else
-	        EXT2FS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "ext2fs >= 1.42" 2>&1`
+	        EXT2FS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$EXT2FS_PKG_ERRORS" >&5
 
-	as_fn_error $? "Package requirements (ext2fs >= 1.42) were not met:
+	as_fn_error $? "Package requirements () were not met:
 
 $EXT2FS_PKG_ERRORS
 

@@ -1,52 +1,62 @@
 Name:         partclone
-Version:      0.1.0
-Release:      10
+Version:      0.2.88
+Release:      1%{?dist}
 Group:        System/Filesystems
-URL:          http://partclone.org
+URL:          http://partclone.org/
 License:      GPL
-Summary:      File System Clone Utilities for ext2/3/4, reiserfs, reiser4, xfs, hfs+ File System
-Source0:      http://free.nchc.org.tw/drbl-core/pool/drbl/unstable/p/partclone/%{name}_%{version}-%{release}.tar.gz
-BuildRequires: e2fsprogs-devel >= 1.41.3, libprogsreiserfs-devel-static, reiser4progs, xfsprogs-devel, ntfsprogs-devel, ncurses-static
-BuildRoot:    %{_tmppath}/%{name}-build
+Summary:      File System Clone Utilities for xfs, ntfs, fat, exfat, and some other filesystems
+Source:       https://sourceforge.net/projects/%{name}/files/stable/%{version}/%{name}-%{version}.tar.gz
+Patch:        %{name}-el6-ext2fslib.patch
+Prefix:       /usr
+BuildRequires: e2fsprogs-devel, xfsprogs-devel, ntfs-3g-devel
+#BuildRequires: e2fsprogs-devel, libprogsreiserfs-devel-static, reiser4progs, xfsprogs-devel, ntfs-3g-devel, ncurses-static
 
 %description
-A set of file system clone utilities, including
-ext2/3, reiserfs, reiser4, xfs, hfs+ file system
+A set of file system clone utilities, including (depends on build):
+ext2/3, ntfs, xfs, hfs, hfs+, fat, exfat and more...
 
 Authors:
 --------
     Thomas Tsai <Thomas _at_ nchc org tw>
     Jazz Wang <jazz _at_ nchc org tw>
-    http://partclone.org, http://partclone.nchc.org.tw
+    http://partclone.org
 
 %prep
-%setup -q -n %{name}
+%setup -q
+%if 0%{?rhel} && %{rhel} < 7
+%{error: RHEL=%{rhel}, at least 7 is highly recommended}
+%patch
+%endif
 
 %build
 [ -d $RPM_BUILD_ROOT ] && rm -rf $RPM_BUILD_ROOT
-./configure --prefix=/usr --enable-all --enable-static --enable-ncursesw LIBS=-ltinfo 
-make -j4
+./configure --prefix=%{prefix} --enable-extfs --enable-xfs --enable-hfsp --enable-fat --enable-exfat --enable-f2fs --enable-ntfs --enable-btrfs --enable-minix --enable-ncursesw
+#./configure --prefix=%{prefix} --enable-all --enable-static --enable-ncursesw LIBS=-ltinfo 
+make %{?_smp_mflags} CFLAGS="%{optflags}"
 
 %install
-make DESTDIR=$RPM_BUILD_ROOT install
+rm -rf %{buildroot}
+make DESTDIR=%{buildroot} install
 
 %post
 
 %postun
 ldconfig
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
-
 %files
 %defattr(-,root,root)
-%doc AUTHORS COPYING ChangeLog NEWS README TODO
+%doc AUTHORS COPYING ChangeLog NEWS README.md TODO
 %doc %{_mandir}/man?/*
 %{_sbindir}/*
-/usr/share/locale/*
+%{_datadir}/locale/*
+%{_datadir}/%{name}/*
 
 %changelog
+* Thu Jun 16 2016 - Budy Wuysang <nguik.gnuik@gmail.com>
+- Spec adaptation to version 0.2.88 (stable) and RHEL6 or later.
+- Patch to enable build on system with ext2fs libs <= 1.41.
+- Relocatable package by using prefix: directive.
+
 * Fri May 01 2009 - Steven Shiau <steven _at_ nchc org tw> 0.1.0-10
 - New upstream 0.1.0-10.
 

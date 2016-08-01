@@ -30,6 +30,10 @@
 #include "progress.h"
 #include "fs_common.h"
 
+#ifndef EXT2_FLAG_64BITS
+#	define EXTFS_1_41 1.41
+#endif
+
 ext2_filsys  fs;
 char *EXECNAME = "partclone.extfs";
 extern fs_cmd_opt fs_opt;
@@ -41,7 +45,11 @@ static void fs_open(char* device){
     int use_blocksize = 0;
     int flags;
 
+#ifdef EXTFS_1_41
+    flags = EXT2_FLAG_JOURNAL_DEV_OK | EXT2_FLAG_SOFTSUPP_FEATURES;
+#else
     flags = EXT2_FLAG_JOURNAL_DEV_OK | EXT2_FLAG_SOFTSUPP_FEATURES | EXT2_FLAG_64BITS;
+#endif
     if (use_superblock && !use_blocksize) {
 	for (use_blocksize = EXT2_MIN_BLOCK_SIZE; use_blocksize <= EXT2_MAX_BLOCK_SIZE; use_blocksize *= 2) {
 	    retval = ext2fs_open (device, flags, use_superblock, use_blocksize, unix_io_manager, &fs);
@@ -134,10 +142,14 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	B_UN_INIT = 0;
 
 	if (block_bitmap) {
+#ifdef EXTFS_1_41
+	    ext2fs_get_block_bitmap_range(fs->block_map, blk_itr, block_nbytes << 3, block_bitmap);
+#else
 	    ext2fs_get_block_bitmap_range2(fs->block_map, blk_itr, block_nbytes << 3, block_bitmap);
+#endif
 
 	    if (fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM){
-#ifdef EXTFS_1_41		
+#ifdef EXTFS_1_41
 		    bg_flags = fs->group_desc[group].bg_flags;
 #else
 		    bg_flags = ext2fs_bg_flags(fs, group);
@@ -170,7 +182,7 @@ extern void readbitmap(char* device, image_head image_hdr, unsigned long* bitmap
 	}
 	log_mesg(2, 0, 0, fs_opt.debug, "%s: free bitmap (gfree = %lli, bg_blocks_count = %lli)at %lu group.\n", __FILE__, gfree, ext2fs_bg_free_blocks_count(fs, group), group);
 	/// check free blocks in group
-#ifdef EXTFS_1_41		
+#ifdef EXTFS_1_41
 	if (gfree != fs->group_desc[group].bg_free_blocks_count){	
 #else
 	if (gfree != ext2fs_bg_free_blocks_count(fs, group)){
