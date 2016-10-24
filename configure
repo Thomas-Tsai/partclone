@@ -1482,25 +1482,45 @@ Optional Features:
   --disable-rpath         do not hardcode runtime library paths
   --disable-largefile     omit support for large files
   --enable-all            enable all supported file system
+
   --enable-extfs          enable ext2/3/4 file system
+
   --enable-xfs            enable XFS file system
+
   --enable-reiserfs       enable REISERFS 3.6/3.6 file system
+
   --enable-reiser4        enable Reiser4 file system
+
   --enable-hfsp           enable HFS plus file system
+
   --enable-fat            enable FAT file system
+
   --enable-exfat          enable EXFAT file system
+
   --enable-f2fs           enable f2fs file system
+
   --enable-nilfs2         enable nilfs2 file system
+
   --enable-ntfs           enable NTFS file system
+
   --enable-ufs            enable UFS(1/2) file system
+
   --enable-vmfs           enable vmfs file system
+
   --enable-jfs            enable jfs file system
+
   --enable-btrfs          enable btrfs file system
+
   --enable-minix          enable minix file system
+
   --enable-ncursesw       enable TEXT User Interface
+
   --enable-static         enable static linking
+
   --enable-mtrace         enable memory tracing
+
   --enable-fs-test        enable file system clone/restore test
+
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -6679,7 +6699,7 @@ supported_fs=""
 ##enable-all##
 # Check whether --enable-all was given.
 if test "${enable_all+set}" = set; then :
-  enableval=$enable_all; enable_all=yes
+  enableval=$enable_all;
 fi
 
  if test "$enable_all" = yes; then
@@ -6962,10 +6982,7 @@ fi
 ##ext2/3##
 # Check whether --enable-extfs was given.
 if test "${enable_extfs+set}" = set; then :
-  enableval=$enable_extfs; enable_extfs=yes
-else
-  enable_extfs=no
-
+  enableval=$enable_extfs;
 fi
 
  if test "$enable_extfs" = yes; then
@@ -7447,12 +7464,12 @@ if test -n "$EXT2FS_CFLAGS"; then
     pkg_cv_EXT2FS_CFLAGS="$EXT2FS_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"ext2fs\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "ext2fs") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_EXT2FS_CFLAGS=`$PKG_CONFIG --cflags "" 2>/dev/null`
+  pkg_cv_EXT2FS_CFLAGS=`$PKG_CONFIG --cflags "ext2fs" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -7464,12 +7481,12 @@ if test -n "$EXT2FS_LIBS"; then
     pkg_cv_EXT2FS_LIBS="$EXT2FS_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"ext2fs\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "ext2fs") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_EXT2FS_LIBS=`$PKG_CONFIG --libs "" 2>/dev/null`
+  pkg_cv_EXT2FS_LIBS=`$PKG_CONFIG --libs "ext2fs" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -7490,14 +7507,14 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        EXT2FS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "" 2>&1`
+	        EXT2FS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "ext2fs" 2>&1`
         else
-	        EXT2FS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "" 2>&1`
+	        EXT2FS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "ext2fs" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$EXT2FS_PKG_ERRORS" >&5
 
-	as_fn_error $? "Package requirements () were not met:
+	as_fn_error $? "Package requirements (ext2fs) were not met:
 
 $EXT2FS_PKG_ERRORS
 
@@ -7537,10 +7554,7 @@ fi
 ##XFS##
 # Check whether --enable-xfs was given.
 if test "${enable_xfs+set}" = set; then :
-  enableval=$enable_xfs; enable_xfs=yes
-else
-  enable_xfs=no
-
+  enableval=$enable_xfs;
 fi
 
  if test "$enable_xfs" = yes; then
@@ -7561,10 +7575,7 @@ fi
 ##reiserfs##
 # Check whether --enable-reiserfs was given.
 if test "${enable_reiserfs+set}" = set; then :
-  enableval=$enable_reiserfs; enable_reiserfs=yes
-else
-  enable_reiserfs=no
-
+  enableval=$enable_reiserfs;
 fi
 
  if test "$enable_reiserfs" = yes; then
@@ -7690,10 +7701,7 @@ fi
 ##reiser4##
 # Check whether --enable-reiser4 was given.
 if test "${enable_reiser4+set}" = set; then :
-  enableval=$enable_reiser4; enable_reiser4=yes
-else
-  enable_reiser4=no
-
+  enableval=$enable_reiser4;
 fi
 
  if test "$enable_reiser4" = yes; then
@@ -7774,10 +7782,7 @@ fi
 ##hfs plus##
 # Check whether --enable-hfsp was given.
 if test "${enable_hfsp+set}" = set; then :
-  enableval=$enable_hfsp; enable_hfsp=yes
-else
-  enable_hfsp=no
-
+  enableval=$enable_hfsp;
 fi
 
  if test "$enable_hfsp" = yes; then
@@ -7798,10 +7803,7 @@ fi
 ##fat##
 # Check whether --enable-fat was given.
 if test "${enable_fat+set}" = set; then :
-  enableval=$enable_fat; enable_fat=yes
-else
-  enable_fat=no
-
+  enableval=$enable_fat;
 fi
 
  if test "$enable_fat" = yes; then
@@ -7822,10 +7824,7 @@ fi
 ##exfat##
 # Check whether --enable-exfat was given.
 if test "${enable_exfat+set}" = set; then :
-  enableval=$enable_exfat; enable_exfat=yes
-else
-  enable_exfat=no
-
+  enableval=$enable_exfat;
 fi
 
  if test "$enable_exfat" = yes; then
@@ -7846,10 +7845,7 @@ fi
 ##f2fs##
 # Check whether --enable-f2fs was given.
 if test "${enable_f2fs+set}" = set; then :
-  enableval=$enable_f2fs; enable_f2fs=yes
-else
-  enable_f2fs=no
-
+  enableval=$enable_f2fs;
 fi
 
  if test "$enable_f2fs" = yes; then
@@ -7870,10 +7866,7 @@ fi
 ##nilfs2##
 # Check whether --enable-nilfs2 was given.
 if test "${enable_nilfs2+set}" = set; then :
-  enableval=$enable_nilfs2; enable_nilfs2=yes
-else
-  enable_nilfs2=no
-
+  enableval=$enable_nilfs2;
 fi
 
  if test "$enable_nilfs2" = yes; then
@@ -7972,10 +7965,7 @@ fi
 ##NTFS##
 # Check whether --enable-ntfs was given.
 if test "${enable_ntfs+set}" = set; then :
-  enableval=$enable_ntfs; enable_ntfs=yes
-else
-  enable_ntfs=no
-
+  enableval=$enable_ntfs;
 fi
 
 
@@ -8236,10 +8226,7 @@ fi
 ##UFS##
 # Check whether --enable-ufs was given.
 if test "${enable_ufs+set}" = set; then :
-  enableval=$enable_ufs; enable_ufs=yes
-else
-  enable_ufs=no
-
+  enableval=$enable_ufs;
 fi
 
  if test "$enable_ufs" = yes; then
@@ -8306,10 +8293,7 @@ fi
 ##VMFS##
 # Check whether --enable-vmfs was given.
 if test "${enable_vmfs+set}" = set; then :
-  enableval=$enable_vmfs; enable_vmfs=yes
-else
-  enable_vmfs=no
-
+  enableval=$enable_vmfs;
 fi
 
  if test "$enable_vmfs" = yes; then
@@ -8381,10 +8365,7 @@ fi
 ##JFS##
 # Check whether --enable-jfs was given.
 if test "${enable_jfs+set}" = set; then :
-  enableval=$enable_jfs; enable_jfs=yes
-else
-  enable_jfs=no
-
+  enableval=$enable_jfs;
 fi
 
  if test "$enable_jfs" = yes; then
@@ -8456,10 +8437,7 @@ fi
 ##btrfs##
 # Check whether --enable-btrfs was given.
 if test "${enable_btrfs+set}" = set; then :
-  enableval=$enable_btrfs; enable_btrfs=yes
-else
-  enable_btrfs=no
-
+  enableval=$enable_btrfs;
 fi
 
  if test "$enable_btrfs" = yes; then
@@ -8495,10 +8473,7 @@ fi
 ##minix##
 # Check whether --enable-minix was given.
 if test "${enable_minix+set}" = set; then :
-  enableval=$enable_minix; enable_minix=yes
-else
-  enable_minix=no
-
+  enableval=$enable_minix;
 fi
 
  if test "$enable_minix" = yes; then
@@ -8520,7 +8495,7 @@ fi
 ##libncursesw##
 # Check whether --enable-ncursesw was given.
 if test "${enable_ncursesw+set}" = set; then :
-  enableval=$enable_ncursesw; enable_ncursesw=yes
+  enableval=$enable_ncursesw;
 fi
 
  if test "$enable_ncursesw" = yes; then
@@ -8604,7 +8579,7 @@ fi
 ##static linking##
 # Check whether --enable-static was given.
 if test "${enable_static+set}" = set; then :
-  enableval=$enable_static; enable_static=yes
+  enableval=$enable_static;
 fi
 
  if test "$enable_static" = yes; then
@@ -8671,9 +8646,10 @@ fi
 ##memory tracing##
 # Check whether --enable-mtrace was given.
 if test "${enable_mtrace+set}" = set; then :
-  enableval=$enable_mtrace; enable_memtrace=yes
+  enableval=$enable_mtrace;
 fi
 
+enable_memtrace=$enable_mtrace
  if test "$enable_memtrace" = yes; then
   ENABLE_MEMTRACE_TRUE=
   ENABLE_MEMTRACE_FALSE='#'
@@ -8687,7 +8663,7 @@ fi
 ##extra test
 # Check whether --enable-fs-test was given.
 if test "${enable_fs_test+set}" = set; then :
-  enableval=$enable_fs_test; enable_fs_test=yes
+  enableval=$enable_fs_test;
 fi
 
  if test "$enable_fs_test" = yes; then
