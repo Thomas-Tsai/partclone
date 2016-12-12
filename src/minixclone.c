@@ -260,7 +260,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	    test_zone = 0;
 	if(isset(zone_map,test_zone)){
 	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu in use\n", __FILE__, test_block);    
-	    pc_set_bit(test_block, bitmap);
+	    pc_set_bit(test_block, bitmap, fs_info.totalblock);
 	}else{
 	    log_mesg(3, 0, 0, fs_opt.debug, "%s: test_block %lu not use\n", __FILE__, test_block);    
 	}

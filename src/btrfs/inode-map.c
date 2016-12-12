@@ -19,6 +19,7 @@
 #include "ctree.h"
 #include "disk-io.h"
 #include "transaction.h"
+#include "internal.h"
 
 /*
  * walks the btree of allocated inodes and find a hole.
@@ -44,6 +45,7 @@ int btrfs_find_free_objectid(struct btrfs_trans_handle *trans,
 				BTRFS_FIRST_FREE_OBJECTID);
 	search_key.objectid = search_start;
 	search_key.offset = 0;
+	search_key.type = 0;
 
 	btrfs_init_path(path);
 	start_found = 0;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 SUSE.  All rights reserved.
+ * Copyright (C) 2007 Oracle.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -16,15 +16,27 @@
  * Boston, MA 021110-1307, USA.
  */
 
-#ifndef __BTRFS_QGROUP_VERIFY_H__
-#define __BTRFS_QGROUP_VERIFY_H__
+#ifndef __INTERNAL_H__
+#define __INTERNAL_H__
 
-#include "kerncompat.h"
-#include "ctree.h"
+/*
+ * max/min macro
+ */
+#define min(x,y) ({ \
+	typeof(x) _x = (x);	\
+	typeof(y) _y = (y);	\
+	(void) (&_x == &_y);		\
+	_x < _y ? _x : _y; })
 
-int qgroup_verify_all(struct btrfs_fs_info *info);
-int report_qgroups(int all);
+#define max(x,y) ({ \
+	typeof(x) _x = (x);	\
+	typeof(y) _y = (y);	\
+	(void) (&_x == &_y);		\
+	_x > _y ? _x : _y; })
 
-int print_extent_state(struct btrfs_fs_info *info, u64 subvol);
+#define min_t(type,x,y) \
+	({ type __x = (x); type __y = (y); __x < __y ? __x: __y; })
+#define max_t(type,x,y) \
+	({ type __x = (x); type __y = (y); __x > __y ? __x: __y; })
 
 #endif

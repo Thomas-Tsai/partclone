@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.3.3], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.3.4], [thomas@nchc.org.tw])
 AM_INIT_AUTOMAKE([-Wall foreign])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
@@ -74,7 +74,7 @@ AC_CHECK_LIB([ext2fs], [ext2fs_initialize], true,
     AC_MSG_ERROR([*** EXT2/3 library (libext2fs) not found]))
 
 AC_MSG_CHECKING(version of libextfs)
-PKG_CHECK_MODULES([EXT2FS], [ext2fs >= 1.42], [extfs_version=`pkg-config --modversion ext2fs`])
+PKG_CHECK_MODULES([EXT2FS], [ext2fs], [extfs_version=`pkg-config --modversion ext2fs`], )
 supported_fs=$supported_fs" extfs"
 
 fi

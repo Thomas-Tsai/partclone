@@ -16,8 +16,6 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 021110-1307, USA.
  */
-#define _XOPEN_SOURCE 600
-#define __USE_XOPEN2K
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -29,6 +27,7 @@
 #include "list.h"
 #include "ctree.h"
 #include "volumes.h"
+#include "internal.h"
 
 void extent_io_tree_init(struct extent_io_tree *tree)
 {
@@ -540,12 +539,11 @@ static struct extent_buffer *__alloc_extent_buffer(struct extent_io_tree *tree,
 {
 	struct extent_buffer *eb;
 
-	eb = malloc(sizeof(struct extent_buffer) + blocksize);
+	eb = calloc(1, sizeof(struct extent_buffer) + blocksize);
 	if (!eb) {
 		BUG();
 		return NULL;
 	}
-	memset(eb, 0, sizeof(struct extent_buffer) + blocksize);
 
 	eb->start = bytenr;
 	eb->len = blocksize;
@@ -577,7 +575,7 @@ struct extent_buffer *btrfs_clone_extent_buffer(struct extent_buffer *src)
 
 void free_extent_buffer(struct extent_buffer *eb)
 {
-	if (!eb)
+	if (!eb || IS_ERR(eb))
 		return;
 
 	eb->refs--;
@@ -716,7 +714,7 @@ int read_data_from_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 		device = multi->stripes[0].dev;
 
 		read_len = min(bytes_left, read_len);
-		if (device->fd == 0) {
+		if (device->fd <= 0) {
 			kfree(multi);
 			return -EIO;
 		}
@@ -773,7 +771,7 @@ int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 			u64 stripe_len = this_len;
 
 			this_len = min(this_len, bytes_left);
-			this_len = min(this_len, (u64)info->tree_root->leafsize);
+			this_len = min(this_len, (u64)info->tree_root->nodesize);
 
 			eb = malloc(sizeof(struct extent_buffer) + this_len);
 			BUG_ON(!eb);
@@ -792,7 +790,7 @@ int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 			raid_map = NULL;
 		} else while (dev_nr < multi->num_stripes) {
 			device = multi->stripes[dev_nr].dev;
-			if (device->fd == 0) {
+			if (device->fd <= 0) {
 				kfree(multi);
 				return -EIO;
 			}
@@ -826,30 +824,6 @@ int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 		kfree(multi);
 		multi = NULL;
 	}
-	return 0;
-}
-
-
-int set_extent_buffer_uptodate(struct extent_buffer *eb)
-{
-	eb->flags |= EXTENT_UPTODATE;
-	return 0;
-}
-
-int clear_extent_buffer_uptodate(struct extent_io_tree *tree,
-				struct extent_buffer *eb)
-{
-	eb->flags &= ~EXTENT_UPTODATE;
-	return 0;
-}
-
-int extent_buffer_uptodate(struct extent_buffer *eb)
-{
-	if (!eb)
-		return 0;
-
-	if (eb->flags & EXTENT_UPTODATE)
-		return 1;
 	return 0;
 }
 
@@ -910,4 +884,10 @@ void memset_extent_buffer(struct extent_buffer *eb, char c,
 			  unsigned long start, unsigned long len)
 {
 	memset(eb->data + start, c, len);
+}
+
+int extent_buffer_test_bit(struct extent_buffer *eb, unsigned long start,
+			   unsigned long nr)
+{
+	return test_bit(nr, (unsigned long *)(eb->data + start));
 }

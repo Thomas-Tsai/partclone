@@ -230,11 +230,11 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	    if (jfs_bit_inuse(d_map.wmap, pb) == 1){
 		block_used++;
 		log_mesg(3, 0, 0, fs_opt.debug, "%s: used pb = %lli tb = %lli\n", __FILE__, pb, tb);
-		pc_set_bit(tb, bitmap);
+		pc_set_bit(tb, bitmap, fs_info.totalblock);
 	    } else {
 		block_free++;
 		log_mesg(3, 0, 0, fs_opt.debug, "%s: free pb = %lli tb = %lli\n", __FILE__, pb, tb);
-		pc_clear_bit(tb, bitmap);
+		pc_clear_bit(tb, bitmap, fs_info.totalblock);
 	    }
 	    tb++;
 	    update_pui(&prog, tb, tb, 0);//keep update
@@ -260,7 +260,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     for (;tb <= fs_info.totalblock; tb++){
 
 	if ((tb >= logloc) && (tb < (logloc+logsize))){
-	    pc_set_bit(tb, bitmap);
+	    pc_set_bit(tb, bitmap, fs_info.totalblock);
 	    block_used++;
 	    log_mesg(3, 0, 0, fs_opt.debug, "%s: log used tb = %llu\n", __FILE__, pb, tb);
 	}

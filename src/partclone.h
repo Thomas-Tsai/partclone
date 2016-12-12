@@ -113,10 +113,10 @@ struct cmd_opt
     int no_block_detail;
     int restore_raw_file;
     int skip_write_error;
-    int buffer_size;
-    unsigned long offset;
+    unsigned int buffer_size;
+    off_t offset;
     unsigned long fresh;
-    unsigned long long offset_domain;
+    off_t offset_domain;
 
     int checksum_mode;
     int reseed_checksum;
@@ -300,7 +300,6 @@ extern const char *get_bitmap_mode_str(bitmap_mode_t bitmap_mode);
  */
 extern void read_super_blocks(char* device, file_system_info* fs_info);
 extern void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui);
-
 /**
  * for open and close
  * open_source	- open device or image or stdin

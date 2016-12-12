@@ -57,7 +57,7 @@ static void set_bitmap(unsigned long* bitmap, uint64_t segm, uint64_t count){
 
     for(block = pos_block; block < block_end; block++){
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: block %i is used\n",__FILE__,  block);
-	pc_set_bit(block, bitmap);
+	pc_set_bit(block, bitmap, total_block);
     }
 }
 

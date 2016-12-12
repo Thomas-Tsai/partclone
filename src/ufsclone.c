@@ -153,11 +153,11 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
         for (block = 0; block < acg.cg_ndblk; block++){
             if (isset(p, block)) {
-                pc_clear_bit(total_block, bitmap);
+                pc_clear_bit(total_block, bitmap, fs_info.totalblock);
                 bfree++;
                 log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is free %lli\n", __FILE__, block);
             } else {
-                pc_set_bit(total_block, bitmap);
+                pc_set_bit(total_block, bitmap, fs_info.totalblock);
                 bused++;
                 log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %lli\n", __FILE__, block);
             }
