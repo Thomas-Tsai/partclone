@@ -1483,7 +1483,7 @@ xfs_dir2_leaf_replace(
 	xfs_dir2_data_entry_t	*dep;		/* data block entry */
 	xfs_inode_t		*dp;		/* incore directory inode */
 	int			error;		/* error return code */
-	int			index;		/* index of leaf entry */
+	int			index = -1;		/* index of leaf entry */
 	struct xfs_buf		*lbp;		/* leaf buffer */
 	xfs_dir2_leaf_t		*leaf;		/* leaf structure */
 	xfs_dir2_leaf_entry_t	*lep;		/* leaf entry */
@@ -1504,6 +1504,7 @@ xfs_dir2_leaf_replace(
 	/*
 	 * Point to the leaf entry, get data address from it.
 	 */
+    if (-1 == index) return -1;
 	lep = &ents[index];
 	/*
 	 * Point to the data entry.
