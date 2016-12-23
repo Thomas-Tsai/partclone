@@ -75,8 +75,10 @@ static void merge_and_restore_back_links(void *priv,
 		 */
 		(*cmp)(priv, tail->next, tail->next);
 
-		tail->next->prev = tail;
-		tail = tail->next;
+		if (tail->next) {
+            tail->next->prev = tail;
+		    tail = tail->next;
+        }
 	} while (tail->next);
 
 	tail->next = head;
