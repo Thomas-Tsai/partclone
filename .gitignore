@@ -2,14 +2,14 @@
 */Makefile
 Makefile
 autom4te.cache/
-config.h
+config.h*
 config.log
 config.status
 get_lib_version
 po/Makefile.in
 fail-mbr/fail-mbr.bin
 fail-mbr/fail-mbr.image
-src/.deps/
+.deps
 src/partclone.btrfs
 src/partclone.fstype
 src/partclone.jfs
@@ -34,3 +34,7 @@ src/partclone.minix
 src/partclone.f2fs
 src/version.h
 stamp-h1
+*.m4
+ltmain.sh
+.dirstamp
+*.nilfs2
