@@ -1371,7 +1371,7 @@ int check_mount(const char* device, char* mount_p){
 int open_source(char* source, cmd_opt* opt) {
 	int ret = 0;
 	int debug = opt->debug;
-	char *mp;
+	char *mp = NULL;
 	int flags = O_RDONLY | O_LARGEFILE;
         struct stat st_dev;
 	int ddd_block_device = -1;
@@ -1397,10 +1397,10 @@ int open_source(char* source, cmd_opt* opt) {
 
 		if (check_mount(source, mp) == 1) {
 			log_mesg(0, 0, 1, debug, "device (%s) is mounted at %s\n", source, mp);
-			free(mp);
+			free(mp); mp = NULL;
 			log_mesg(0, 1, 1, debug, "error exit\n");
 		}
-		free(mp);
+		if (mp) free(mp); mp = NULL;
 
 		if ((ret = open(source, flags, S_IRUSR)) == -1)
 			log_mesg(0, 1, 1, debug, "clone: open %s error\n", source);
@@ -1422,7 +1422,7 @@ int open_source(char* source, cmd_opt* opt) {
 int open_target(char* target, cmd_opt* opt) {
 	int ret = 0;
 	int debug = opt->debug;
-	char *mp;
+	char *mp = NULL;
 	int flags = O_WRONLY | O_LARGEFILE;
 	struct stat st_dev;
 	int ddd_block_device = -1;
@@ -1469,10 +1469,10 @@ int open_target(char* target, cmd_opt* opt) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		if (check_mount(target, mp)) {
 			log_mesg(0, 0, 1, debug, "device (%s) is mounted at %s\n", target, mp);
-			free(mp);
+			free(mp); mp = NULL;
 			log_mesg(0, 1, 1, debug, "error exit\n");
 		}
-		free(mp);
+		if (mp) free(mp); mp = NULL;
 
 		/// check block device
 		stat(target, &st_dev);
