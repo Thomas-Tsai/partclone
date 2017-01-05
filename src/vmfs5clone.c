@@ -370,9 +370,9 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     /// add base
 
-    pc_set_bit(vmfs_hb_base/vmfs_fs_get_blocksize(fs), bitmap, image_hdr.totalblock);
-    pc_set_bit(vmfs_fsinfo_base/vmfs_fs_get_blocksize(fs), bitmap, image_hdr.totalblock);
-    pc_set_bit(vmfs_volinfo_base/vmfs_fs_get_blocksize(fs), bitmap, image_hdr.totalblock);
+    pc_set_bit(vmfs_hb_base/vmfs_fs_get_blocksize(fs), bitmap, fs_info.totalblock);
+    pc_set_bit(vmfs_fsinfo_base/vmfs_fs_get_blocksize(fs), bitmap, fs_info.totalblock);
+    pc_set_bit(vmfs_volinfo_base/vmfs_fs_get_blocksize(fs), bitmap, fs_info.totalblock);
 
     fdc_bmp = &fs->fdc->bmh;
     log_mesg(3, 0, 0, fs_opt.debug, "Scanning %u FDC entries...\n",fdc_bmp->total_items);

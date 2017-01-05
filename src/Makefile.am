@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = subdir-objects
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\" -D_FILE_OFFSET_BITS=64
 LDADD = $(LIBINTL)
-sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg partclone.imager
+sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg partclone.imager partclone.imgfuse partclone.block
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 
 BTRFS_SOURCE=\
@@ -45,6 +45,9 @@ version.h: FORCE
 main_files=main.c partclone.c progress.c checksum.c partclone.h progress.h gettext.h checksum.h
 
 partclone_info_SOURCES=info.c partclone.c checksum.c partclone.h fs_common.h checksum.h
+partclone_imgfuse_SOURCES=fuseimg.c partclone.c checksum.c partclone.h fs_common.h checksum.h
+partclone_imgfuse_CFLAGS=-lfuse
+partclone_block_SOURCES=readblock.c partclone.c checksum.c partclone.h fs_common.h checksum.h
 
 partclone_restore_SOURCES=$(main_files) ddclone.c ddclone.h
 partclone_restore_CFLAGS=-DRESTORE -DDD

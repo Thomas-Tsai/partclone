@@ -89,18 +89,18 @@ build_triplet = i686-pc-linux-gnu
 host_triplet = i686-pc-linux-gnu
 #am__append_1 = ext2.test \
 #	ext3.test ext4.test
-#am__append_2 = btrfs.test
-#am__append_3 = fat.test
-#am__append_4 = reiserfs.test
+##am__append_2 = btrfs.test
+##am__append_3 = fat.test
+##am__append_4 = reiserfs.test
 
 #if ENABLE_REISER4
 #TESTS += reiser4.test
 #endif
-#am__append_5 = hfsplus.test
-#am__append_6 = xfs.test
-#am__append_7 = exfat.test
-#am__append_8 = f2fs.test
-#am__append_9 = ntfs.test
+##am__append_5 = hfsplus.test
+##am__append_6 = xfs.test
+##am__append_7 = exfat.test
+##am__append_8 = f2fs.test
+##am__append_9 = ntfs.test
 
 #if ENABLE_UFS
 #TESTS += ufs.test
@@ -109,10 +109,10 @@ host_triplet = i686-pc-linux-gnu
 #if ENABLE_VMFS
 #TESTS += vmfs.test
 #endif
-#am__append_10 = jfs.test
-#am__append_11 = btrfs.test
-#am__append_12 = exfat.test
-#am__append_13 = nilfs2.test
+##am__append_10 = jfs.test
+##am__append_11 = btrfs.test
+##am__append_12 = exfat.test
+##am__append_13 = nilfs2.test
 ##am__append_14 = ncursesw.test
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -399,7 +399,7 @@ MSGFMT = /usr/bin/msgfmt
 MSGFMT_015 = /usr/bin/msgfmt
 MSGMERGE = /usr/bin/msgmerge
 NTFS_CFLAGS = 
-NTFS_LIBS = -lpthread -lntfs-3g
+NTFS_LIBS = 
 OBJEXT = o
 ORIGINAL_CFLAGS = -g -O2
 PACKAGE = partclone

@@ -63,6 +63,6 @@ for fs in $test_fs; do
     echo -e "\ninfo test ok\n"
     echo -e "\nclear tmp files $img $raw $logfile $md5\n"
     _ptlbreak
-    rm -f $img $raw $logfile $md5
+#    rm -f $img $raw $logfile $md5
 
 done

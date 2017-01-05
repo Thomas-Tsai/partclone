@@ -370,12 +370,12 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     uint64_t bused = 0;
     uint64_t bfree = 0;
     unsigned long long current_block = 0;
-    total_block = image_hdr.totalblock;
+    total_block = fs_info.totalblock;
 
     xfs_bitmap = bitmap;
 
     for(current_block = 0; current_block <= fs_info.totalblock; current_block++){
-	pc_set_bit(current_block, bitmap);
+	pc_set_bit(current_block, bitmap, fs_info.totalblock);
     }
     /// init progress
     progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
@@ -398,7 +398,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	scan_ag(agno);
     }
     for(current_block = 0; current_block <= fs_info.totalblock; current_block++){
-	if(pc_test_bit(current_block, bitmap))
+	if(pc_test_bit(current_block, bitmap, fs_info.totalblock))
 	    bused++;
 	else
 	    bfree++;

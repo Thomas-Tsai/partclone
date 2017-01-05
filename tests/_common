@@ -1,6 +1,6 @@
 #!/bin/bash
 
-break_debug=0
+break_debug=1
 logfile='test.log'
 img='floppy.img'
 raw='floppy.raw'
