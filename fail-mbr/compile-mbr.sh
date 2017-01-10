@@ -2,7 +2,7 @@
 if dpkg-architecture -e amd64 || dpkg-architecture -e i386; then
    # compile the file fail-mbr.bin
     echo -n "Compiling: fail-mbr.S -> fail-mbr.o -> "
-    gcc -Wall -Werror -m32 -nostdlib -o fail-mbr.o fail-mbr.S
+    gcc -Wall -Werror -m32 -nostdlib -static -o fail-mbr.o fail-mbr.S
 
     echo -n "fail-mbr.image -> "
     gcc -Os -Wall -W -Wshadow -Wpointer-arith -Wmissing-prototypes -Wundef -Wstrict-prototypes -g -falign-jumps=1 -falign-loops=1 -falign-functions=1 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow -fno-dwarf2-cfi-asm -fno-asynchronous-unwind-tables -m32 -fno-stack-protector -mno-stack-arg-probe -Werror -Wno-trampolines -DUSE_ASCII_FAILBACK=1 -DHAVE_UNIFONT_WIDTHSPEC=1  -mrtd -mregparm=3       -fno-builtin   -m32 -Wl,--build-id=none   -nostdlib -Wl,-N,-S -Wl,-N -Wl,-Ttext,0x7C00   -o fail-mbr.image fail-mbr.o
