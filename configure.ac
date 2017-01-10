@@ -4,6 +4,7 @@ AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
 AC_PROG_CC
 AM_PROG_CC_C_O
+AM_PROG_AS
 AC_PROG_INSTALL
 AC_PATH_PROG(RM, rm, rm)
 AC_PROG_LN_S
@@ -54,6 +55,7 @@ PKG_CHECK_MODULES(UUID, uuid,,exit)
 uuidcfg=`pkg-config --cflags --libs uuid`
 
 AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([*** pthread library (libpthread) not found]))
+AC_PATH_PROG(OBJCOPY, objcopy, ,)
 
 ##ext2/3##
 AC_ARG_ENABLE([extfs],
