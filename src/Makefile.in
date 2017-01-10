@@ -871,7 +871,7 @@ partclone_ntfsfixboot_SOURCES = ntfsfixboot.c
 @ENABLE_JFS_TRUE@partclone_jfs_CFLAGS = -DJFS
 @ENABLE_JFS_TRUE@partclone_jfs_LDADD = -luuid -ljfs
 @ENABLE_BTRFS_TRUE@partclone_btrfs_SOURCES = $(main_files) btrfsclone.c btrfsclone.h $(BTRFS_SOURCE)
-@ENABLE_BTRFS_TRUE@partclone_btrfs_CFLAGS = -DBTRFS -DBTRFS_FLAT_INCLUDES
+@ENABLE_BTRFS_TRUE@partclone_btrfs_CFLAGS = -DBTRFS -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -D_GNU_SOURCE
 @ENABLE_BTRFS_TRUE@partclone_btrfs_LDADD = -luuid -lblkid 
 @ENABLE_MINIX_TRUE@partclone_minix_SOURCES = $(main_files) minixclone.c minixclone.h
 @ENABLE_MINIX_TRUE@partclone_minix_CFLAGS = -DMINIX

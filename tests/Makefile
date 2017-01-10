@@ -87,20 +87,20 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = x86_64-unknown-linux-gnu
 host_triplet = x86_64-unknown-linux-gnu
-##am__append_1 = ext2.test \
-##	ext3.test ext4.test
-##am__append_2 = btrfs.test
-##am__append_3 = fat.test
-##am__append_4 = reiserfs.test
+#am__append_1 = ext2.test \
+#	ext3.test ext4.test
+#am__append_2 = btrfs.test
+#am__append_3 = fat.test
+#am__append_4 = reiserfs.test
 
 #if ENABLE_REISER4
 #TESTS += reiser4.test
 #endif
-##am__append_5 = hfsplus.test
-##am__append_6 = xfs.test
-##am__append_7 = exfat.test
-##am__append_8 = f2fs.test
-##am__append_9 = ntfs.test
+#am__append_5 = hfsplus.test
+#am__append_6 = xfs.test
+#am__append_7 = exfat.test
+#am__append_8 = f2fs.test
+#am__append_9 = ntfs.test
 
 #if ENABLE_UFS
 #TESTS += ufs.test
@@ -109,10 +109,10 @@ host_triplet = x86_64-unknown-linux-gnu
 #if ENABLE_VMFS
 #TESTS += vmfs.test
 #endif
-##am__append_10 = jfs.test
-##am__append_11 = btrfs.test
-##am__append_12 = exfat.test
-##am__append_13 = nilfs2.test
+#am__append_10 = jfs.test
+#am__append_11 = btrfs.test
+#am__append_12 = exfat.test
+#am__append_13 = nilfs2.test
 ##am__append_14 = ncursesw.test
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -362,7 +362,7 @@ AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2 -Wall
-CPP = 
+CPP = gcc -E
 CPPFLAGS = 
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
@@ -370,15 +370,15 @@ DEPDIR = .deps
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
-EGREP = 
+EGREP = /bin/grep -E
 EXEEXT = 
-EXT2FS_CFLAGS = 
-EXT2FS_LIBS = 
+EXT2FS_CFLAGS = -I/usr/include/ext2fs -I/usr/include/et 
+EXT2FS_LIBS = -lext2fs 
 FUSE_CFLAGS = -D_FILE_OFFSET_BITS=64 -I/usr/include/fuse 
 FUSE_LIBS = -lfuse -pthread 
 GMSGFMT = /usr/bin/msgfmt
 GMSGFMT_015 = /usr/bin/msgfmt
-GREP = 
+GREP = /bin/grep
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -401,16 +401,16 @@ MSGFMT = /usr/bin/msgfmt
 MSGFMT_015 = /usr/bin/msgfmt
 MSGMERGE = /usr/bin/msgmerge
 NTFS_CFLAGS = 
-NTFS_LIBS = 
+NTFS_LIBS = -lpthread -lntfs-3g 
 OBJEXT = o
 ORIGINAL_CFLAGS = -g -O2
 PACKAGE = partclone
 PACKAGE_BUGREPORT = thomas@nchc.org.tw
 PACKAGE_NAME = Partclone
-PACKAGE_STRING = Partclone 0.3.4
+PACKAGE_STRING = Partclone 0.3.5a
 PACKAGE_TARNAME = partclone
 PACKAGE_URL = 
-PACKAGE_VERSION = 0.3.4
+PACKAGE_VERSION = 0.3.5a
 PATH_SEPARATOR = :
 PKG_CONFIG = /usr/bin/pkg-config
 PKG_CONFIG_LIBDIR = 
@@ -423,7 +423,7 @@ STRIP =
 USE_NLS = yes
 UUID_CFLAGS = -I/usr/include/uuid 
 UUID_LIBS = -luuid 
-VERSION = 0.3.4
+VERSION = 0.3.5a
 XGETTEXT = /usr/bin/xgettext
 XGETTEXT_015 = /usr/bin/xgettext
 abs_builddir = /home/thomas/partclone/tests

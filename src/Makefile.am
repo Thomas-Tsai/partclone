@@ -167,7 +167,7 @@ endif
 if ENABLE_BTRFS
 sbin_PROGRAMS += partclone.btrfs
 partclone_btrfs_SOURCES=$(main_files) btrfsclone.c btrfsclone.h $(BTRFS_SOURCE)
-partclone_btrfs_CFLAGS=-DBTRFS -DBTRFS_FLAT_INCLUDES
+partclone_btrfs_CFLAGS=-DBTRFS -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -D_GNU_SOURCE
 partclone_btrfs_LDADD=-luuid -lblkid 
 endif
 
