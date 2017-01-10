@@ -1,5 +1,9 @@
 2017-01-10  Thomas Tsai  <thomas@nchc.org.tw>
 
+	add define for btrfs
+
+	release 0.3.5a
+
 	add configure for fuse
 
 2017-01-06  Thomas Tsai  <thomas@nchc.org.tw>
