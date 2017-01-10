@@ -45,10 +45,6 @@ version.h: FORCE
 main_files=main.c partclone.c progress.c checksum.c partclone.h progress.h gettext.h checksum.h
 
 partclone_info_SOURCES=info.c partclone.c checksum.c partclone.h fs_common.h checksum.h
-partclone_imgfuse_SOURCES=fuseimg.c partclone.c checksum.c partclone.h fs_common.h checksum.h
-partclone_imgfuse_CFLAGS=-lfuse
-partclone_block_SOURCES=readblock.c partclone.c checksum.c partclone.h fs_common.h checksum.h
-
 partclone_restore_SOURCES=$(main_files) ddclone.c ddclone.h
 partclone_restore_CFLAGS=-DRESTORE -DDD
 
@@ -180,6 +176,13 @@ sbin_PROGRAMS += partclone.minix
 partclone_minix_SOURCES=$(main_files) minixclone.c minixclone.h
 partclone_minix_CFLAGS=-DMINIX
 endif
+
+if ENABLE_FUSE
+partclone_imgfuse_SOURCES=fuseimg.c partclone.c checksum.c partclone.h fs_common.h checksum.h
+partclone_imgfuse_CFLAGS=-lfuse
+partclone_block_SOURCES=readblock.c partclone.c checksum.c partclone.h fs_common.h checksum.h
+endif
+
 
 
 # Extra

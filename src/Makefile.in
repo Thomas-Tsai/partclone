@@ -149,8 +149,10 @@ CONFIG_CLEAN_VPATH_FILES =
 @ENABLE_MINIX_TRUE@am__EXEEXT_15 = partclone.minix$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
-am_partclone_block_OBJECTS = readblock.$(OBJEXT) partclone.$(OBJEXT) \
-	checksum.$(OBJEXT)
+am__partclone_block_SOURCES_DIST = readblock.c partclone.c checksum.c \
+	partclone.h fs_common.h checksum.h
+@ENABLE_FUSE_TRUE@am_partclone_block_OBJECTS = readblock.$(OBJEXT) \
+@ENABLE_FUSE_TRUE@	partclone.$(OBJEXT) checksum.$(OBJEXT)
 partclone_block_OBJECTS = $(am_partclone_block_OBJECTS)
 partclone_block_LDADD = $(LDADD)
 am__DEPENDENCIES_1 =
@@ -344,9 +346,12 @@ partclone_imager_LDADD = $(LDADD)
 partclone_imager_DEPENDENCIES = $(am__DEPENDENCIES_1)
 partclone_imager_LINK = $(CCLD) $(partclone_imager_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_partclone_imgfuse_OBJECTS = partclone_imgfuse-fuseimg.$(OBJEXT) \
-	partclone_imgfuse-partclone.$(OBJEXT) \
-	partclone_imgfuse-checksum.$(OBJEXT)
+am__partclone_imgfuse_SOURCES_DIST = fuseimg.c partclone.c checksum.c \
+	partclone.h fs_common.h checksum.h
+@ENABLE_FUSE_TRUE@am_partclone_imgfuse_OBJECTS =  \
+@ENABLE_FUSE_TRUE@	partclone_imgfuse-fuseimg.$(OBJEXT) \
+@ENABLE_FUSE_TRUE@	partclone_imgfuse-partclone.$(OBJEXT) \
+@ENABLE_FUSE_TRUE@	partclone_imgfuse-checksum.$(OBJEXT)
 partclone_imgfuse_OBJECTS = $(am_partclone_imgfuse_OBJECTS)
 partclone_imgfuse_LDADD = $(LDADD)
 partclone_imgfuse_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -616,7 +621,7 @@ SOURCES = $(partclone_block_SOURCES) $(partclone_btrfs_SOURCES) \
 	$(partclone_restore_SOURCES) $(partclone_ufs_SOURCES) \
 	$(partclone_vmfs_SOURCES) $(partclone_vmfs5_SOURCES) \
 	$(partclone_xfs_SOURCES)
-DIST_SOURCES = $(partclone_block_SOURCES) \
+DIST_SOURCES = $(am__partclone_block_SOURCES_DIST) \
 	$(am__partclone_btrfs_SOURCES_DIST) \
 	$(partclone_chkimg_SOURCES) $(partclone_dd_SOURCES) \
 	$(am__partclone_exfat_SOURCES_DIST) \
@@ -625,8 +630,8 @@ DIST_SOURCES = $(partclone_block_SOURCES) \
 	$(am__partclone_fat_SOURCES_DIST) \
 	$(am__partclone_fstype_SOURCES_DIST) \
 	$(am__partclone_hfsp_SOURCES_DIST) $(partclone_imager_SOURCES) \
-	$(partclone_imgfuse_SOURCES) $(partclone_info_SOURCES) \
-	$(am__partclone_jfs_SOURCES_DIST) \
+	$(am__partclone_imgfuse_SOURCES_DIST) \
+	$(partclone_info_SOURCES) $(am__partclone_jfs_SOURCES_DIST) \
 	$(am__partclone_minix_SOURCES_DIST) \
 	$(am__partclone_nilfs2_SOURCES_DIST) \
 	$(am__partclone_ntfs_SOURCES_DIST) \
@@ -685,6 +690,8 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 EXT2FS_CFLAGS = @EXT2FS_CFLAGS@
 EXT2FS_LIBS = @EXT2FS_LIBS@
+FUSE_CFLAGS = @FUSE_CFLAGS@
+FUSE_LIBS = @FUSE_LIBS@
 GMSGFMT = @GMSGFMT@
 GMSGFMT_015 = @GMSGFMT_015@
 GREP = @GREP@
@@ -809,9 +816,6 @@ F2FS_SOURCE = f2fs/fsck.c f2fs/libf2fs.c f2fs/fsck.h f2fs/mount.c f2fs/f2fs_fs.h
 AM_CFLAGS = -D_FILE_OFFSET_BITS=64 $(am__append_2) $(am__append_3)
 main_files = main.c partclone.c progress.c checksum.c partclone.h progress.h gettext.h checksum.h
 partclone_info_SOURCES = info.c partclone.c checksum.c partclone.h fs_common.h checksum.h
-partclone_imgfuse_SOURCES = fuseimg.c partclone.c checksum.c partclone.h fs_common.h checksum.h
-partclone_imgfuse_CFLAGS = -lfuse
-partclone_block_SOURCES = readblock.c partclone.c checksum.c partclone.h fs_common.h checksum.h
 partclone_restore_SOURCES = $(main_files) ddclone.c ddclone.h
 partclone_restore_CFLAGS = -DRESTORE -DDD
 partclone_chkimg_SOURCES = $(main_files) ddclone.c ddclone.h
@@ -871,6 +875,9 @@ partclone_ntfsfixboot_SOURCES = ntfsfixboot.c
 @ENABLE_BTRFS_TRUE@partclone_btrfs_LDADD = -luuid -lblkid 
 @ENABLE_MINIX_TRUE@partclone_minix_SOURCES = $(main_files) minixclone.c minixclone.h
 @ENABLE_MINIX_TRUE@partclone_minix_CFLAGS = -DMINIX
+@ENABLE_FUSE_TRUE@partclone_imgfuse_SOURCES = fuseimg.c partclone.c checksum.c partclone.h fs_common.h checksum.h
+@ENABLE_FUSE_TRUE@partclone_imgfuse_CFLAGS = -lfuse
+@ENABLE_FUSE_TRUE@partclone_block_SOURCES = readblock.c partclone.c checksum.c partclone.h fs_common.h checksum.h
 all: all-am
 
 .SUFFIXES:
