@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.3.4], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.3.5a], [thomas@nchc.org.tw])
 AM_INIT_AUTOMAKE([-Wall foreign])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
@@ -14,6 +14,7 @@ AC_SYS_LARGEFILE
 
 # default value##
 supported_fs=""
+enable_fuse="yes"
 
 ##enable-all##
 AC_ARG_ENABLE([all],
@@ -38,6 +39,7 @@ enable_btrfs="yes"
 enable_minix="yes"
 enable_f2fs="yes"
 enable_nilfs2="yes"
+enable_fuse="yes"
 fi
 
 ORIGINAL_CFLAGS="$CFLAGS"
@@ -53,6 +55,12 @@ fi
 dnl Check for uuid 
 PKG_CHECK_MODULES(UUID, uuid,,exit)
 uuidcfg=`pkg-config --cflags --libs uuid`
+
+AM_CONDITIONAL(ENABLE_FUSE, test "$enable_fuse" = yes)
+if test "$enable_fuse" = "yes"; then
+    PKG_CHECK_MODULES(FUSE, fuse,,exit)
+    uuidcfg=`pkg-config --cflags --libs fuse`
+fi
 
 AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([*** pthread library (libpthread) not found]))
 AC_PATH_PROG(OBJCOPY, objcopy, ,)
