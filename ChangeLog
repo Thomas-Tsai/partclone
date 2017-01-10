@@ -1,4 +1,180 @@
+2017-01-10  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add configure for fuse
+
+2017-01-06  Thomas Tsai  <thomas@nchc.org.tw>
+
+	init fuse support; mount partclone image as block file for bt mode of clonezilla
+
+2016-12-12  Thomas Tsai  <thomas@nchc.org.tw>
+
+	merge release
+
+2016-11-06  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add pt_BR support
+
+	add pt_BR support
+
+2016-10-24  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update makefile
+
+2016-10-04  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #80 from rindeal/autoconf
+	fix AC_ARG_ENABLE so that --disable-* options work as expected
+
+	Merge pull request #80 from rindeal/autoconf
+	fix AC_ARG_ENABLE so that --disable-* options work as expected
+
+2016-10-04  Jan Chren (rindeal)  <dev.rindeal@gmail.com>
+
+	fix AC_ARG_ENABLE so that --disable-* options work as expected
+	Currently, if AC_ARG_ENABLE contains '--enable-foo' and user passes
+	'--disable-foo' to './configure', '$enable_foo' will contain 'yes'.
+
+	This commit strips 'action-if-(un)specified' arguments of AC_ARG_ENABLE
+	in order to leverage the default behaviour, which sets `$enable_*'
+	content appropriately.
+
+2016-08-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	accept patch from Budy Wuysang <nguik.gnuik _AT_ gmail.com> to fix compile issue on Cent OS 6.8 system
+
+2016-06-23  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add xz comp for debian package
+
+	release 0.2.89
+	upgrade btrfs to 4.4.2 for btrfs issue
+	accept patch from Andre Naujoks <nautsch2 at gmail.com> // Debian Bug report logs - #825990
+
+2016-06-22  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update btrfs to 4.2.2
+
+2016-02-19  Thomas Tsai  <thomas@nchc.org.tw>
+
+	build 0.2.88
+
+	release 0.2.88
+
+	try to add reversed area manually
+
+2016-02-03  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update po
+
+2016-02-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	try to fix signed block_size issue, the second advisory from David Gnedt
+
+2016-01-28  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #77 from kenhys/xfsclone-fix-Wsign-compare-warnings
+	Fix sign-compare warnings in xfsclone.c
+
+2016-01-27  HAYASHI Kentaro  <hayashi@clear-code.com>
+
+	Fix sign-compare warnings in xfsclone.c
+	  xfsclone.c:211:9: warning: comparison between signed and unsigned [-Wsign-compare]
+	     if (i == be32_to_cpu(agf->agf_fllast))
+	         ^
+	  xfsclone.c:213:11: warning: comparison between signed and unsigned [-Wsign-compare]
+	     if (++i == XFS_AGFL_SIZE(mp))
+
+2016-01-21  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #76 from kenhys/fix-mismatch-in-format-string
+	Fix mismatch in format string
+
+	Merge pull request #75 from kenhys/fix-memory-leak
+	partclone: fix memory leak
+
+	Merge pull request #74 from kenhys/fix-common-realloc-mistake
+	f2fs: fix common realloc mistake
+
+	Merge pull request #73 from kenhys/remove-unused-variables
+	f2fs: remove unused variables
+
+	Merge pull request #72 from kenhys/customize-mini-clone-test-fs-bs
+	Customize mini clone test fs and bs
+
+2016-01-20  HAYASHI Kentaro  <hayashi@clear-code.com>
+
+	Fix type mismatch in format string
+	  src/btrfs/print-tree.c:952]: (warning) %lld in format string (no. 4) requires 'long long' but the argument type is 'unsigned long long'.
+	  src/progress.c:205]: (warning) %lld in format string (no. 2) requires 'long long' but the argument type is 'unsigned long long'.
+	  src/progress.c:205]: (warning) %lld in format string (no. 3) requires 'long long' but the argument type is 'unsigned long long'.
+	  src/progress.c:215]: (warning) %lld in format string (no. 2) requires 'long long' but the argument type is 'unsigned long long'.
+	  src/progress.c:215]: (warning) %lld in format string (no. 3) requires 'long long' but the argument type is 'unsigned long long'.
+
+	Fix type mismatch in format string
+	  src/btrfs/kerncompat.h:77]: (warning) %d in format string (no. 2) requires 'int' but the argument type is 'unsigned int'.
+	  src/btrfs/kerncompat.h:80]: (warning) %d in format string (no. 2) requires 'int' but the argument type is 'unsigned int'.
+	  src/btrfs/ctree.c:2483]: (warning) %d in format string (no. 2) requires 'int' but the argument type is 'unsigned int'.
+	  src/btrfs/ctree.c:2483]: (warning) %d in format string (no. 3) requires 'int' but the argument type is 'unsigned int'.
+	  src/btrfs/print-tree.c:496]: (warning) %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'.
+	  src/btrfs/print-tree.c:802]: (warning) %d in format string (no. 2) requires 'int' but the argument type is 'unsigned int'.
+	  src/btrfs/print-tree.c:1034]: (warning) %d in format string (no. 3) requires 'int' but the argument type is 'unsigned int'.
+	  src/btrfs/utils.c:1363]: (warning) %d in format string (no. 1) requires 'int' but the argument type is 'unsigned int'.
+
+	partclone: fix memory leak
+	This commit fixes following the error which is reported by cppcheck:
+
+	  src/partclone.c:803]: (error) Memory leak: real_fsname
+
+	f2fs: fix common realloc mistake
+	This commit fixes following the error which is reported by cppcheck.
+
+	  src/f2fs/fsck.c:508]: (error) Common realloc mistake: 'tree_mark' nulled but not freed upon failure
+
+	f2fs: remove unused variables
+	This commit fixes following the errors which are reported cppcheck.
+
+	  src/f2fsclone.c:88]: (error) Uninitialized variable: bused
+	  src/f2fsclone.c:98]: (error) Uninitialized variable: bfree
+
+2016-01-13  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix bitmap issue
+
+2016-01-12  Thomas Tsai  <thomas@nchc.org.tw>
+
+	try to fix fat issue
+
+2016-01-07  HAYASHI Kentaro  <hayashi@clear-code.com>
+
+	tests: Support to customize block size (-b) and file size (-f)
+	Before:
+	  ./mini_clone_restore_test ext4
+
+	After:
+	  same behavior as before:
+	    ./mini_clone_restore_test ext4
+
+	  extended to accept options:
+	    ./mini_clone_restore_test -f 2G -b 4KB ext4
+
+	  extended to accept long options:
+	    ./mini_clone_restore_test --file-size 2G --block-size 4KB ext4
+
+	Additionally, now accepts multiple fs.
+	  ./mini_clone_restore_test ext4 ntfs
+
+	tests: Add new usage which can customize bs and fs
+
+	tests: Add function to convert given string into bytes
+
+2016-01-05  Thomas Tsai  <thomas@nchc.org.tw>
+
+	receive report "Security Vulnerability in Partclone from David Gnedt."
+	and try to fix bitmap( set/clear/test bitmap out of boundary) overflow issue.
+
 2015-12-24  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.87
 
 	0.2.87 release ready
 
@@ -8,7 +184,13 @@
 
 	fix ntfs raw restore issue
 
+2015-11-14  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix some conflict
+
 2015-11-12  Thomas Tsai  <thomas@nchc.org.tw>
+
+	merge release update
 
 	Merge branch 'release' of github.com:Thomas-Tsai/partclone into release
 
@@ -53,7 +235,53 @@
 
 2015-11-09  Thomas Tsai  <thomas@nchc.org.tw>
 
+	add `
+
+	rename README.markdown README.md
+
+2015-11-09  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #67 from PeterDaveHello/patch-1
+	Update README.markdown
+
+	Merge pull request #68 from PeterDaveHello/patch-2
+	Create zh_CN.po
+
+2015-11-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	remove ``
+
+2015-11-09  Peter Dave Hello  <PeterDaveHello@users.noreply.github.com>
+
+	Create zh_CN.po
+
+2015-11-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'release'
+
 	update nilfs mount and mkdir
+
+2015-11-09  Peter Dave Hello  <PeterDaveHello@users.noreply.github.com>
+
+	Update README.markdown
+
+2015-11-09  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #66 from PeterDaveHello/patch-1
+	Update and rename README to README.markdown
+
+2015-11-09  Peter Dave Hello  <PeterDaveHello@users.noreply.github.com>
+
+	Update and rename README to README.markdown
+	Use markdown to be rich text!
+
+2015-11-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	merge and compile work
+
+	merge current release
+
+	update README
 
 	Merge branch 'release' of github.com:Thomas-Tsai/partclone into release
 
@@ -117,7 +345,21 @@
 
 2015-09-19  Thomas Tsai  <thomas@nchc.org.tw>
 
+	fix conflict from merge release
+
+	just replace all _row_ to _raw_
+
 	replace _row_ to _raw_ in all xml files
+
+2015-09-19  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #65 from shanemikel/patch-1
+	typo in man page
+
+2015-09-19  shanemikel  <shanemikel1@gmail.com>
+
+	Typo in flag
+	--restore_row_file should be --restore_raw_file
 
 2015-08-31  Thomas Tsai  <thomas@nchc.org.tw>
 
@@ -145,15 +387,52 @@
 
 	fix 4k and dirty partiiton issue
 
+2015-08-19  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update test
+
+2015-08-03  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #62 from Gelma/master
+	INSTALL: fix typo
+
+2015-08-03  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update some test
+
+2015-08-03  Andrea Gelmini  <andrea.gelmini@gelma.net>
+
+	INSTALL: fix typo
+
+2015-07-31  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix error for dev-to-dev clone and add some tests
+
+	add special test for checksum
+
+	fix 2 similar error for crc error and read fail if used blocks can be divide by block ber checksum
+
+2015-07-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix compile error and warnings
+
 2015-07-23  Thomas Tsai  <thomas@nchc.org.tw>
 
 	0.2.81
+
+	Merge branch 'release'
 
 2015-07-23  ThomasTsai  <thomas@nchc.org.tw>
 
 	changs ncurses update
 
+2015-07-22  Thomas Tsai  <thomas@nchc.org.tw>
+
+	merege from current release
+
 2015-07-21  Thomas Tsai  <thomas@nchc.org.tw>
+
+	autoreconf
 
 	fix calloc error
 
@@ -184,6 +463,27 @@
 2015-06-30  Thomas Tsai  <thomas@nchc.org.tw>
 
 	try to fix vmfs5
+
+2015-06-24  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #61 from DimStar77/master
+	Fix missing includes
+
+2015-06-24  Dominique Leuenberger  <dimstar@opensuse.org>
+
+	Fix missing includes
+	When building with gcc5, string.h is no longer implicit included and the
+	source must declare the includes.
+
+	Otherwise, the build 'warns' about this error (which can have quite bad
+	results):
+
+	[   26s] ./src/deplib_version.c:31:9: warning: implicit declaration of
+	function 'strcmp' [-Wimplicit-function-declaration]
+	[   26s]      if (strcmp(libfs, "ntfs") == 0){
+
+	Spotted by openSUSE Build Root Policy verification:
+	[   40s] E: partclone implicit-fortify-decl ./src/deplib_version.c:31
 
 2015-05-15  Thomas Tsai  <thomas@nchc.org.tw>
 
@@ -225,6 +525,10 @@
 
 	 * fix xfs clone issue while set size to backup but bigger then device size and not stop
 
+2015-01-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix char related issue for bad sectors by Chris Clayton
+
 2014-12-30  Thomas Tsai  <thomas@nchc.org.tw>
 
 	release 0.2.75
@@ -246,6 +550,25 @@
 	hide note: without note option
 
 	update version script
+	Conflicts:
+		toolbox
+
+	add --note option to fix issue #56 add fail-mbr/Makefile.am to pass prefix to new makefile which note from Fisiu (https://github.com/Thomas-Tsai/partclone/commit/cc5b6545bccd60f567d49944d7d9c36e0f4fc74b#commitcomment-8413428) fix issue #57 and use PKG_CHECK_MODULES to check version
+	Conflicts:
+		configure
+		configure.ac
+		src/partclone.c
+		src/partclone.h
+		tests/Makefile
+
+	test about exfat and f2fs
+	Conflicts:
+		src/version.h
+		tests/_common
+
+	hide note: without note option
+
+	update version script
 
 	add --note option to fix issue #56 add fail-mbr/Makefile.am to pass prefix to new makefile which note from Fisiu (https://github.com/Thomas-Tsai/partclone/commit/cc5b6545bccd60f567d49944d7d9c36e0f4fc74b#commitcomment-8413428) fix issue #57 and use PKG_CHECK_MODULES to check version
 
@@ -254,6 +577,22 @@
 	test about exfat and f2fs
 
 2014-09-03  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix dd mode
+
+	merge release
+
+	merge release bux xfs error
+
+	merge bb99bf
+
+	merge 3f4ab3
+
+	merge cd9230
+
+	merge 0e9d79
+
+	merge a1e231
 
 	upgrade exfat to 1.1.0
 
@@ -279,19 +618,122 @@
 
 	fix configure.ac and add libblkid-dev check
 
+2014-07-08  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #49 from pfrouleau/review/teach_toolbox-version_to_only_returns_the_commit_id
+	toolbox-version: grab only the commit hash instead of the commit message
+
+2014-07-08  Patrick Rouleau  <pfrouleau@gmail.com>
+
+	toolbox-version: grab only the commit hash instead of the commit message
+	This change prevent toolbox-version to keep too many lines when it updates
+	src/version.h, which was happening when the commit message contains the
+	word "commit".
+
+2014-07-07  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #48 from pfrouleau/review/replace_EXECNAME_by_get_exec_name
+	Review/replace EXECNAME by get_exec_name
+
+	Merge pull request #47 from pfrouleau/review/fix_compilation_warnings
+	Review/fix compilation warnings
+
 2014-07-07  Thomas Tsai  <thomas@nchc.org.tw>
 
 	fix xfs
 
+2014-07-06  Patrick Rouleau  <prouleau72@gmail.com>
+
+	Remove file system's dependancies from main.c since they are not needed
+
+	Remove EXECNAME since it is not used anymore
+
+	Use the actual program's file name instead of using a hardcoded one
+
+	Fix the definition of badsector_magic to fix a compilation warning
+
+	Remove unused variables
+
 2014-05-14  Thomas Tsai  <thomas@nchc.org.tw>
 
 	0.2.71 ready to release
+	Conflicts:
+		src/version.h
+
+	0.2.71 ready to release
+
+	merger btrfs to 3.14 and update makefile
+	Conflicts:
+		Makefile.in
+		aclocal.m4
+		configure
+		docs/Makefile.in
+		src/Makefile.in
+		src/version.h
+		tests/Makefile
+		tests/Makefile.in
+
+	try to merge btrfs 3.14.1
+	Conflicts:
+		src/btrfs/disk-io.c
 
 	merger btrfs to 3.14 and update makefile
 
 2014-05-13  Thomas Tsai  <thomas@nchc.org.tw>
 
 	try to merge btrfs 3.14.1
+
+2014-03-10  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #44 from dannf/master
+	cleanup errors generated by autoreconf
+
+2014-03-08  dann frazier  <dannf@debian.org>
+
+	automake: use AC_PROG_MKDIR_P instead of AM_PROG_MKDIR_P
+	autoreconf emits the warning below. It can be resolved by following the
+	advice provided by the warning. Though this is just a warning, it is fatal
+	on Ubuntu because warnings are treated as errors.
+	 See: https://bugs.launchpad.net/ubuntu/+source/partclone/+bug/1283294
+
+	Warnings from autoreconf:
+	  configure.ac:4: warning: The 'AM_PROG_MKDIR_P' macro is deprecated, and its use is discouraged.
+	  configure.ac:4: You should use the Autoconf-provided 'AC_PROG_MKDIR_P' macro instead,
+	  configure.ac:4: and use '$(MKDIR_P)' instead of '$(mkdir_p)'in your Makefile.am files.
+
+	automake: Enable subdir-objects option
+	When running autoreconf, automake currently reports the message below, followed
+	by an additional warning for every .c file in a subdir. It is just a warning,
+	but on Ubuntu this is fatal because warnings are treated as errors.
+	 See: https://bugs.launchpad.net/ubuntu/+source/partclone/+bug/1283294
+
+	Warnings from autoreconf:
+	  src/Makefile.am:6: warning: source file 'btrfs/crc32c.c' is in a subdirectory,
+	  src/Makefile.am:6: but option 'subdir-objects' is disabled
+	  automake: warning: possible forward-incompatibility.
+	  automake: At least a source file is in a subdirectory, but the 'subdir-objects'
+	  automake: automake option hasn't been enabled.  For now, the corresponding output
+	  automake: object file(s) will be placed in the top-level directory.  However,
+	  automake: this behaviour will change in future Automake versions: they will
+	  automake: unconditionally cause object files to be placed in the same subdirectory
+	  automake: of the corresponding sources.
+	  automake: You are advised to start using 'subdir-objects' option throughout your
+	  automake: project, to avoid future incompatibilities.
+
+2014-02-04  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix manpage warning
+
+2014-01-21  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update version to 0.2.70
+	Conflicts:
+		configure
+		configure.ac
+		src/version.h
+		tests/Makefile
+
+	fix restore-to-raw option
 
 2014-01-20  Thomas Tsai  <thomas@nchc.org.tw>
 
@@ -308,6 +750,20 @@
 	ready to release 0.2.69
 
 2013-12-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	remove extra_data_test
+
+	fix tests scripts
+
+	accept tests script
+
+	merge partclone.c
+
+	update vi.po
+
+	add test for reiser4
+
+	update makefile
 
 	finish tests script
 
@@ -333,11 +789,19 @@
 
 	add translation for Vietnamese from Trần Ngọc Quân  vnwildman@gmail.com
 
+	add translation for Vietnamese from Trần Ngọc Quân  vnwildman@gmail.com
+
 2013-12-09  Thomas Tsai  <thomas@nchc.org.tw>
 
 	0.2.68 autoreconf done
 
 	add stdin for partclone.info
+
+	add stdin for partclone.info
+
+2013-12-04  Thomas Tsai  <thomas@nchc.org.tw>
+
+	merge release update
 
 2013-12-03  Thomas Tsai  <thomas@nchc.org.tw>
 
@@ -351,9 +815,280 @@
 
 	accept patch from daniel Rozenberg. While checking the man file I noticed some typos, fixed here
 
+	accept patch from daniel Rozenberg. While checking the man file I noticed some typos, fixed here
+
 	update version and log
 
 	fix makefile for archlinux
+
+	fix makefile for archlinux
+
+2013-11-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update btrfs
+
+2013-11-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	ext3 test
+
+2013-11-08  Thomas Tsai  <thomas@nchc.org.tw>
+
+	merge format 2 ...
+
+	merge format 2
+
+2013-09-15  Patryck Rouleau  <pfrouleau@gmail.com>
+
+	Test various blocks per checksum to check various checksum patterns
+	The checksum's offset varies when blocks per checksum is odd,
+	so it is better to test various values.
+
+	partclone.chkimg: check only the image's size when it does not contains checksums
+
+	partclone.info: show the image's details
+	Show the details like:
+	- partclone's version used to create the image
+	- bitmap mode
+	- checksum options
+
+	print_partclone_info() learns about the info mode
+
+	Enable image format version 0002
+	Add the command line parameters to allow the user to select which features
+	to use when he clones a file system.
+
+	From this point, the image format writen by partclone is 0002.
+
+	Partclone learns to handle various image version
+	This commit updates load_image_desc() to handle the image by determining its
+	version. The version written is still 0001.
+
+	Clone & Restore operations learns to handle checksum on a block count other than 1
+	These changes update the code producing the checksum and make it aware of
+	value for blocks_per_checksum other than 1.
+
+	load_image_bitmap() learns to load various type of bitmap
+
+	write_image_bitmap() learns to write various type of bitmap
+
+	Handle the checksum in a generic way
+	Image version 0002 must supports various checksum algorithms. To that end,
+	we move the checksum code in a new file and we define generic functions to
+	hide the details of the selected algorithm.
+
+	After this, partclone still generates images in version 0001, but the bases
+	to supports more checksum algorithms is in place.
+
+	Introduce image_options and supports a dynamic checksum's size
+	A lot of changes in preparation for the image format 0002. All the changes
+	require the image_options to determine how to handle the image.
+	check_mem_size() is rewritten to handle the various cases.
+
+2013-09-10  Patryck Rouleau  <pfrouleau@gmail.com>
+
+	Move the file system's information into its own struct
+	This commit impacts a lot of code, but it is mostly the remplacement of the
+	type image_head by file_system_info. The code uses file_system_info_v2
+	instead of *_v1 because the field "fs" is not available otherwise.
+	image_head is only required inside load_image_desc() and write_image_desc().
+
+	The functions get_image_* are renamed into load_image_* to indicate they
+	load the informations from an image file.
+
+	initial_image_hdr() is renamed into read_super_blocks() to indicate more
+	precisely that it read the super blocks from a device.
+
+	The image format written by partclone is still 0001.
+
+	Prepare the code to handle a new image version
+	Also rename VERSION_SIZE into IMAGE_VERSION_SIZE to make it more uniform.
+
+	IMAGE_VERSION_CURRENT is to be used when the code does not care for other
+	versions and can only handle the current image version.
+
+	Remove repetition in Makefile.in
+	Use a variable instead of repeating the same files all over.
+
+	Teach restore_image_hdr() to validate the header he gets from the image
+	This change is to simplify the handling of various image version.
+
+	Move bitmap's signature check in get_image_bitmap()
+	This change simplify the implementation of image version 0002,
+	in which we have to read both version.
+
+	Move bitmap writing in write_image_bitmap()
+	This change will simplify the implementation of image 0002, in which
+	the user can choose the bitmap format to be recorded.
+
+	Move image_head writing in write_image_head
+	This change will make the modifications for image version 0002 more
+	localized.
+
+	Disable struct's members alignment and regroup the structs' definitions
+	The compiler automatically align the struct's members on the platform's
+	memory boundary. This is to prevent a lost of performance when the members
+	cross the memory boundary of the platform. If the alignment is not disabled,
+	the image created with a 64 bits version is not usable by a 32 bits version
+	and vice-versa.
+
+	In our case, a padding of 2 bytes is added before block_size to align it
+	on the next address divisible by 4.
+
+	    00000000  70 61 72 74 63 6c 6f 6e  65 2d 69 6d 61 67 65 45  |partclone-imageE|
+	    00000010  58 54 46 53 00 00 00 00  00 00 00 00 00 00 30 30  |XTFS..........00|
+	    00000020  30 31 XX XX 00-04-00-00  00-d0-ff-1f-00-00-00-00  |01..............|
+	    00000030  f4-ff-07-00-00-00-00-00  be-c3-01-00-00-00-00-00  |................|
+	    00000040  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+
+	Declare fs_opt from fs_common.h instead of declaring it in every fs' implementation
+	This is simply to reduce code deduplication.
+
+	Declare read_bitmap() and initial_image_hdr() in one place
+	This reduce code duplication and simplify the modification of their
+	declaration when they must be updated.
+
+	readbitmap() is renamed read_bitmap() to follow the coding standard.
+
+	Add functions to allocate and initialize the bitmap
+	This make the code a little bit easier to read and maintain.
+
+	Fix warnings from btrfs by using the same type than them
+	btrfs uses u64 instead of uint64_t and they force the compiler to check
+	the types passed to the API.
+
+	Use the right type spec when calling log_mesg()
+
+	toolbox: do not rewrite version.h if the version is the same
+	When version.h is modified, every programs are recompiled. By avoiding to
+	modify it, we avoid to recompile every thing at each execution of make.
+
+2013-08-31  Thomas Tsai  <thomas@nchc.org.tw>
+
+	mergr release
+
+2013-08-04  Patryck Rouleau  <pfrouleau@gmail.com>
+
+	Enable image format version 0002
+	Add the command line parameters to allow the user to select which features
+	to use when he clones a file system.
+
+	From this point, the image format writen by partclone is 0002.
+
+	Partclone learns to handle various image version
+	This commit updates load_image_desc() to handle the image by determining its
+	version. The version written is still 0001.
+
+	Clone & Restore operations learns to handle checksum on a block count other than 1
+	These changes update the code producing the checksum and make it aware of
+	value for blocks_per_checksum other than 1.
+
+	BUG: fail to validate the latest checksum
+
+	load_image_bitmap() learns to load various type of bitmap
+
+	write_image_bitmap() learns to write various type of bitmap
+
+	Handle the checksum in a generic way
+	Image version 0002 must supports various checksum algorithms. To that end,
+	we move the checksum code in a new file and we define generic functions to
+	hide the details of the selected algorithm.
+
+	After this, partclone still generates images in version 0001, but the bases
+	to supports more checksum algorithms is in place.
+
+	Introduce image_options and supports a dynamic checksum's size
+	A lot of changes in preparation for the image format 0002. All the changes
+	require the image_options to determine how to handle the image:
+	- what is the size of the checksum?
+
+	check_mem_size() is rewritten to handle the various cases.
+
+	Move the file system's information into its own struct
+	This commit impacts a lot of code, but it is mostly the remplacement of the
+	type image_head by file_system_info. The code uses file_system_info_v2
+	instead of *_v1 because the field "fs" is not available otherwise.
+	image_head is only required inside load_image_desc() and write_image_desc().
+
+	The functions get_image_* are renamed into load_image_* to indicate they
+	load the informations from an image file.
+
+	initial_image_hdr() is renamed into read_super_blocks() to indicate more
+	precisely that it read the super blocks from a device.
+
+	The image format written by partclone is still 0001.
+
+	Prepare the code to handle a new image version
+	Also rename VERSION_SIZE into IMAGE_VERSION_SIZE to make it more uniform.
+
+	IMAGE_VERSION_CURRENT is to be used when the code does not care for other
+	versions and can only handle the current image version.
+
+	Remove repetition in Makefile.in
+	Use a variable instead of repeating the same files all over.
+
+	Teach restore_image_hdr() to validate the header he gets from the image
+	This change is to simplify the handling of various image version.
+
+	Move bitmap's signature check in get_image_bitmap()
+	This change simplify the implementation of image version 0002,
+	in which we have to read both version.
+
+	Move bitmap writing in write_image_bitmap()
+	This change will simplify the implementation of image 0002, in which
+	the user can choose the bitmap format to be recorded.
+
+	Move image_head writing in write_image_head
+	This change will make the modifications for image version 0002 more
+	localized.
+
+	Disable struct's members alignment and regroup the structs' definitions
+	The compiler automatically align the struct's members on the platform's
+	memory boundary. This is to prevent a lost of performance when the members
+	cross the memory boundary of the platform. If the alignment is not disabled,
+	the image created with a 64 bits version is not usable by a 32 bits version
+	and vice-versa.
+
+	In our case, a padding of 2 bytes is added before block_size to align it
+	on the next address divisible by 4.
+
+	    00000000  70 61 72 74 63 6c 6f 6e  65 2d 69 6d 61 67 65 45  |partclone-imageE|
+	    00000010  58 54 46 53 00 00 00 00  00 00 00 00 00 00 30 30  |XTFS..........00|
+	    00000020  30 31 XX XX 00-04-00-00  00-d0-ff-1f-00-00-00-00  |01..............|
+	    00000030  f4-ff-07-00-00-00-00-00  be-c3-01-00-00-00-00-00  |................|
+	    00000040  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+
+	Declare fs_opt from fs_common.h instead of declaring it in every fs' implementation
+	This is simply to reduce code deduplication.
+
+	Declare read_bitmap() and initial_image_hdr() in one place
+	This reduce code duplication and simplify the modification of their
+	declaration when they must be updated.
+
+	readbitmap() is renamed read_bitmap() to follow the coding standard.
+
+	Add functions to allocate and initialize the bitmap
+	This make the code a little bit easier to read and maintain.
+
+	Fix warnings from btrfs by using the same type than them
+	btrfs uses u64 instead of uint64_t and they force the compiler to check
+	the types passed to the API.
+
+	Use the right type spec when calling log_mesg()
+
+	toolbox: do not rewrite version.h if the version is the same
+	When version.h is modified, every programs are recompiled. By avoiding to
+	modify it, we avoid to recompile every thing at each execution of make.
+
+2013-08-04  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix used_block error
+
+2013-08-04  Patryck Rouleau  <pfrouleau@gmail.com>
+
+	Ignore tests/Makefile since it is a generated file
+
+	Revert "Ignore files generated by automake and autoheader"
+	This reverts commit bab8877a93b5d5858d04f2876ad1be2d183c2fa7.
 
 2013-07-09  Thomas Tsai  <thomas@nchc.org.tw>
 
@@ -389,6 +1124,17 @@
 
 	add imager and fix dd
 
+2013-06-20  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix used_block error
+
+2013-06-20  Patryck Rouleau  <pfrouleau@gmail.com>
+
+	Ignore tests/Makefile since it is a generated file
+
+	Revert "Ignore files generated by automake and autoheader"
+	This reverts commit bab8877a93b5d5858d04f2876ad1be2d183c2fa7.
+
 2013-06-18  Thomas Tsai  <thomas@nchc.org.tw>
 
 	add version.h
@@ -400,6 +1146,49 @@
 	fix unused variable
 
 	fix used_block error
+
+2013-06-18  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #37 from pfrouleau/fixes
+	Fixes
+
+2013-06-17  Patryck Rouleau  <pfrouleau@gmail.com>
+
+	Ignore files generated by automake and autoheader
+
+	Initialize the bitmap for every file system
+	Some file systems only use pc_set_bit() (ie they do not call pc_clear_bit())
+	when they build the bitmap of blocks in use. In these case it is important
+	to clear the bitmap first.
+
+	Remove unused variable from crc32()
+
+	Add declaration of print_version() in partclone.h
+
+	toolbox: only grep the line starting with "commit"
+	This allow grep to ignore the keyword when it appears in the commit's title
+	or commit's message.
+
+	btrfs: fix memory management in find_and_setup_log_root()
+	log_root does not have to be freed at the end because it is assigned to
+	fs_info->log_root_tree.
+	However, it have to be freed when the function returns on an error. Idem
+	for log_root->node.
+
+	I have based my modifications on the most recent btrfs's commit, at
+	http://git.kernel.org/cgit/linux/kernel/git/mason/btrfs-progs.git/tree/disk-io.c?id=650e656a8b9c1fbe4ec5cd8c48ae285b8abd3b69
+
+	I have ordered the lines differently to make the code a little bit simpler.
+
+2013-06-14  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #36 from nickgarvey/master
+	Close ext fs after opening for determining type
+
+2013-06-14  Nick Garvey  <ngarvey@dattobackup.com>
+
+	Properly close device after opening it to determine type
+	The prior code was unreachable due to the returns above it.
 
 2013-06-13  Tran Ngoc Quan  <vnwildman@gmail.com>
 
