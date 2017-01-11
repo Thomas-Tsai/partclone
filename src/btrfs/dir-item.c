@@ -86,7 +86,7 @@ int btrfs_insert_xattr_item(struct btrfs_trans_handle *trans,
 					name, name_len);
 	/*
 	 * FIXME: at some point we should handle xattr's that are larger than
-	 * what we can fit in our leaf.  We set location to NULL b/c we arent
+	 * what we can fit in our leaf.  We set location to NULL b/c we aren't
 	 * pointing at anything else, that will change if we store the xattr
 	 * data in a separate inode.
 	 */
@@ -277,7 +277,7 @@ int btrfs_delete_one_dir_name(struct btrfs_trans_handle *trans,
 	return ret;
 }
 
-int verify_dir_item(struct btrfs_root *root,
+static int verify_dir_item(struct btrfs_root *root,
 		    struct extent_buffer *leaf,
 		    struct btrfs_dir_item *dir_item)
 {
@@ -285,7 +285,7 @@ int verify_dir_item(struct btrfs_root *root,
 	u8 type = btrfs_dir_type(leaf, dir_item);
 
 	if (type >= BTRFS_FT_MAX) {
-		fprintf(stderr, "invalid dir item type: %d",
+		fprintf(stderr, "invalid dir item type: %d\n",
 		       (int)type);
 		return 1;
 	}
@@ -294,7 +294,7 @@ int verify_dir_item(struct btrfs_root *root,
 		namelen = XATTR_NAME_MAX;
 
 	if (btrfs_dir_name_len(leaf, dir_item) > namelen) {
-		fprintf(stderr, "invalid dir item name len: %u",
+		fprintf(stderr, "invalid dir item name len: %u\n",
 		       (unsigned)btrfs_dir_data_len(leaf, dir_item));
 		return 1;
 	}
@@ -302,7 +302,7 @@ int verify_dir_item(struct btrfs_root *root,
 	/* BTRFS_MAX_XATTR_SIZE is the same for all dir items */
 	if ((btrfs_dir_data_len(leaf, dir_item) +
 	     btrfs_dir_name_len(leaf, dir_item)) > BTRFS_MAX_XATTR_SIZE(root)) {
-		fprintf(stderr, "invalid dir item name + data len: %u + %u",
+		fprintf(stderr, "invalid dir item name + data len: %u + %u\n",
 		       (unsigned)btrfs_dir_name_len(leaf, dir_item),
 		       (unsigned)btrfs_dir_data_len(leaf, dir_item));
 		return 1;

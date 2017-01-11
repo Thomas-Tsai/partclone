@@ -190,7 +190,7 @@ void print_pos_by_id (const vmfs_fs_t *fs, uint32_t blk_id)
     if ( current > total_block )
 	log_mesg(3, 0, 0, fs_opt.debug, "total_block Error Blockid = 0x%8.8x, Type = 0x%2.2x, Pos: %llu, bitmapid: %llu, c: %llu\n", blk_id, blk_type, pos, current, checked);
     log_mesg(3, 0, 0, fs_opt.debug, "Blockid = 0x%8.8x, Type = 0x%2.2x, Pos: %llu, bitmapid: %llu, c: %llu\n", blk_id, blk_type, pos, current, checked);
-    pc_set_bit(current, blk_bitmap);
+    pc_set_bit(current, blk_bitmap, total_block);
 }
 
 
@@ -370,9 +370,9 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     /// add base
 
-    pc_set_bit(vmfs_hb_base/vmfs_fs_get_blocksize(fs), bitmap);
-    pc_set_bit(vmfs_fsinfo_base/vmfs_fs_get_blocksize(fs), bitmap);
-    pc_set_bit(vmfs_volinfo_base/vmfs_fs_get_blocksize(fs), bitmap);
+    pc_set_bit(vmfs_hb_base/vmfs_fs_get_blocksize(fs), bitmap, fs_info.totalblock);
+    pc_set_bit(vmfs_fsinfo_base/vmfs_fs_get_blocksize(fs), bitmap, fs_info.totalblock);
+    pc_set_bit(vmfs_volinfo_base/vmfs_fs_get_blocksize(fs), bitmap, fs_info.totalblock);
 
     fdc_bmp = &fs->fdc->bmh;
     log_mesg(3, 0, 0, fs_opt.debug, "Scanning %u FDC entries...\n",fdc_bmp->total_items);

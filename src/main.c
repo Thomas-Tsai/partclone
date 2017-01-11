@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
 
 #ifndef CHKIMG
 	if (geteuid() != 0)
-		log_mesg(0, 1, 1, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n");
+		log_mesg(0, 0, 1, debug, "You are not logged as root. You may have \"access denied\" errors when working.\n");
 	else
 		log_mesg(1, 0, 0, debug, "UID is root.\n");
 #endif
@@ -296,7 +296,10 @@ int main(int argc, char **argv) {
 
 		/// check the dest partition size.
 		if (opt.dd && opt.check) {
+		    if (!opt.restore_raw_file)
 			check_size(&dfw, fs_info.device_size);
+		    else
+			check_free_space(&dfw, fs_info.device_size);
 		}
 
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
@@ -328,7 +331,6 @@ int main(int argc, char **argv) {
 
 		/// check the dest partition size.
 		if (opt.check) {
-
 		    struct stat target_stat;
 		    if ((stat(opt.target, &target_stat) != -1) && (strcmp(opt.target, "-") != 0)) {
 			if (S_ISBLK(target_stat.st_mode)) 
@@ -341,6 +343,7 @@ int main(int argc, char **argv) {
 			    needed_space += cnv_blocks_to_bytes(0, fs_info.usedblocks, fs_info.block_size, &img_opt);
 
 			    check_free_space(&dfw, needed_space);
+
 			}
 		    }
 		}
@@ -427,7 +430,7 @@ int main(int argc, char **argv) {
 			/// skip unused blocks
 			for (blocks_skip = 0;
 			     block_id + blocks_skip < blocks_total &&
-			     !pc_test_bit(block_id + blocks_skip, bitmap);
+			     !pc_test_bit(block_id + blocks_skip, bitmap, fs_info.totalblock);
 			     blocks_skip++);
 			if (block_id + blocks_skip == blocks_total)
 				break;
@@ -438,7 +441,7 @@ int main(int argc, char **argv) {
 			/// read blocks
 			for (blocks_read = 0;
 			     block_id + blocks_read < blocks_total && blocks_read < buffer_capacity &&
-			     pc_test_bit(block_id + blocks_read, bitmap);
+			     pc_test_bit(block_id + blocks_read, bitmap, fs_info.totalblock);
 			     ++blocks_read);
 			if (!blocks_read)
 				break;
@@ -555,7 +558,7 @@ int main(int argc, char **argv) {
 
 		// fix some super block record incorrect
 		for (test_block = 0; test_block < blocks_total; ++test_block)
-			if (pc_test_bit(test_block, bitmap))
+			if (pc_test_bit(test_block, bitmap, fs_info.totalblock))
 				blocks_used_fix++;
 
 		if (blocks_used_fix != blocks_used) {
@@ -594,10 +597,12 @@ int main(int argc, char **argv) {
 			unsigned long long blocks_written, bytes_skip;
 			unsigned int read_size;
 			// max chunk to read using one read(2) syscall
-			int blocks_read = copied + buffer_capacity < blocks_used ?
+			unsigned int blocks_read = copied + buffer_capacity < blocks_used ?
 				buffer_capacity : blocks_used - copied;
 			if (!blocks_read)
-				break;
+			    break;
+			if (blocks_read < 0)
+			    log_mesg(0, 1, 1, debug, "blocks_read ERROR: impossible size of blocks_read\n");
 
 			log_mesg(1, 0, 0, debug, "blocks_read = %d and copied = %lld\n", blocks_read, copied);
 			read_size = cnv_blocks_to_bytes(copied, blocks_read, block_size, &img_opt);
@@ -674,12 +679,12 @@ int main(int argc, char **argv) {
 
 			blocks_written = 0;
 			do {
-				int blocks_write;
+				unsigned int blocks_write = 0;
 
 				/// count bytes to skip
 				for (bytes_skip = 0;
 				     block_id < blocks_total &&
-				     !pc_test_bit(block_id, bitmap);
+				     !pc_test_bit(block_id, bitmap, fs_info.totalblock);
 				     block_id++, bytes_skip += block_size);
 
 #ifndef CHKIMG
@@ -692,7 +697,7 @@ int main(int argc, char **argv) {
 				for (blocks_write = 0;
 				     block_id + blocks_write < blocks_total &&
 				     blocks_written + blocks_write < blocks_read &&
-				     pc_test_bit(block_id + blocks_write, bitmap);
+				     pc_test_bit(block_id + blocks_write, bitmap, fs_info.totalblock);
 				     blocks_write++);
 
 #ifndef CHKIMG
@@ -720,9 +725,11 @@ int main(int argc, char **argv) {
 
 #ifndef CHKIMG
 		/// restore_raw_file option
-		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap)) {
-			if (ftruncate(dfw, (off_t)(blocks_total * block_size)) == -1)
-				log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
+		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap, fs_info.totalblock)) {
+		    if (ftruncate(dfw, (off_t)fs_info.device_size) == -1){
+			log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
+		    }
+		    log_mesg(1, 0, 0, debug, "ftruncate:%llu\n", (off_t)fs_info.device_size);
 		}
 #endif
 
@@ -755,7 +762,7 @@ int main(int argc, char **argv) {
 			/// skip unused blocks
 			for (blocks_skip = 0;
 			     block_id + blocks_skip < blocks_total &&
-			     !pc_test_bit(block_id + blocks_skip, bitmap);
+			     !pc_test_bit(block_id + blocks_skip, bitmap, fs_info.totalblock);
 			     blocks_skip++);
 
 			if (block_id + blocks_skip == blocks_total)
@@ -767,7 +774,7 @@ int main(int argc, char **argv) {
 			/// read chunk from source
 			for (blocks_read = 0;
 			     block_id + blocks_read < blocks_total && blocks_read < buffer_capacity &&
-			     pc_test_bit(block_id + blocks_read, bitmap);
+			     pc_test_bit(block_id + blocks_read, bitmap, fs_info.totalblock);
 			     ++blocks_read);
 
 			if (!blocks_read)
@@ -819,9 +826,11 @@ int main(int argc, char **argv) {
 		free(buffer);
 
 		/// restore_raw_file option
-		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap)) {
-			if (ftruncate(dfw, (off_t)(blocks_total * block_size)) == -1)
-				log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
+		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap, fs_info.totalblock)) {
+		    if (ftruncate(dfw, (off_t)fs_info.device_size) == -1){
+			log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
+		    }
+		    log_mesg(1, 0, 0, debug, "ftruncate:%llu\n", (off_t)fs_info.device_size);
 		}
 
 	} else if (opt.domain) {
@@ -838,10 +847,10 @@ int main(int argc, char **argv) {
 		dprintf(dfw, "0x%08llX     ?\n", opt.offset_domain + (fs_info.totalblock * fs_info.block_size));
 		dprintf(dfw, "#      pos        size  status\n");
 		// start logging the used/unused areas
-		cmp = pc_test_bit(0, bitmap);
+		cmp = pc_test_bit(0, bitmap, fs_info.totalblock);
 		for (block_id = 0; block_id <= fs_info.totalblock; block_id++) {
 			if (block_id < fs_info.totalblock) {
-				nx_current = pc_test_bit(block_id, bitmap);
+				nx_current = pc_test_bit(block_id, bitmap, fs_info.totalblock);
 				if (nx_current)
 					copied++;
 			} else
@@ -882,7 +891,7 @@ int main(int argc, char **argv) {
 			/// read chunk from source
 			for (blocks_read = 0;
 			     block_id + blocks_read < blocks_total && blocks_read < blocks_in_buffer &&
-			     pc_test_bit(block_id + blocks_read, bitmap);
+			     pc_test_bit(block_id + blocks_read, bitmap, fs_info.totalblock);
 			     blocks_read++);
 
 			if (!blocks_read)
@@ -932,9 +941,11 @@ int main(int argc, char **argv) {
 		free(buffer);
 
 		/// restore_raw_file option
-		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap)) {
-			if (ftruncate(dfw, (off_t)(blocks_total * block_size)) == -1)
-				log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
+		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap, fs_info.totalblock)) {
+		    if (ftruncate(dfw, (off_t)fs_info.device_size) == -1){
+			log_mesg(0, 0, 1, debug, "ftruncate ERROR:%s\n", strerror(errno));
+		    }
+		    log_mesg(1, 0, 0, debug, "ftruncate:%llu\n", (off_t)fs_info.device_size);
 		}
 
 

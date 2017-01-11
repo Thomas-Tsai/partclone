@@ -26,6 +26,7 @@ int	source_fd = -1;
 int     first_residue;
 progress_bar        prog;
 unsigned long long checked;
+unsigned long long total_block;
 int bitmap_done = 0;
 unsigned long* xfs_bitmap;
 
@@ -79,7 +80,7 @@ static void set_bitmap(unsigned long* bitmap, uint64_t start, int count)
 
 
     for (block = start; block < start+count; block++){
-	pc_clear_bit(block, bitmap);
+	pc_clear_bit(block, bitmap, total_block);
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: block %i is free\n", __FILE__, block);
 	checked++;
     }
@@ -373,11 +374,12 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     uint64_t bused = 0;
     uint64_t bfree = 0;
     unsigned long long current_block = 0;
+    total_block = fs_info.totalblock;
 
     xfs_bitmap = bitmap;
 
     for(current_block = 0; current_block <= fs_info.totalblock; current_block++){
-	pc_set_bit(current_block, bitmap);
+	pc_set_bit(current_block, bitmap, fs_info.totalblock);
     }
     /// init progress
     progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
@@ -400,7 +402,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	scan_ag(agno);
     }
     for(current_block = 0; current_block <= fs_info.totalblock; current_block++){
-	if(pc_test_bit(current_block, bitmap))
+	if(pc_test_bit(current_block, bitmap, fs_info.totalblock))
 	    bused++;
 	else
 	    bfree++;

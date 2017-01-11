@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.2.51\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2015-09-24 10:11+0800\n"
+"POT-Creation-Date: 2017-01-10 08:14+0800\n"
 "PO-Revision-Date: 2007-11-01 11:35+0800\n"
 "Last-Translator: Peter Dave Hello\n"
 "Language-Team: Peter Dave Hello\n"
@@ -78,91 +78,150 @@ msgstr "全部时间：%s 剩余时间: %s "
 msgid "Ave. Rate: %6.2f%s/min"
 msgstr "平均速率：%6.2f%s/min"
 
-#: src/partclone.c:1094
+#: src/partclone.c:1609
 #, c-format
 msgid "Partclone v%s http://partclone.org\n"
 msgstr ""
 
-#: src/partclone.c:1096
+#: src/partclone.c:1611
 #, c-format
 msgid "Starting to check image (%s)\n"
 msgstr "开始检查镜像 (%s)\n"
 
-#: src/partclone.c:1098
+#: src/partclone.c:1613
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
 msgstr "开始备份 装置 (%s) 到 镜像 (%s)\n"
 
-#: src/partclone.c:1100
+#: src/partclone.c:1615
 #, c-format
 msgid "Starting to restore image (%s) to device (%s)\n"
 msgstr "开始恢复 镜像 (%s) 到 装置 (%s)\n"
 
-#: src/partclone.c:1102
+#: src/partclone.c:1617
 #, c-format
 msgid "Starting to back up device(%s) to device(%s)\n"
 msgstr "开始备份 装置 (%s) 到 装置 (%s)\n"
 
-#: src/partclone.c:1104
+#: src/partclone.c:1619
 #, c-format
 msgid "Starting to map device (%s) to domain log (%s)\n"
 msgstr "开始输出 装置 (%s)块 到 资料文件 (%s)\n"
 
-#: src/partclone.c:1106
+#: src/partclone.c:1621
 #, fuzzy, c-format
 msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
 msgstr "开始备份 装置 (%s) 到 镜像 (%s)\n"
 
-#: src/partclone.c:1108
-msgid "Display image information\n"
-msgstr ""
+#: src/partclone.c:1623
+#, fuzzy, c-format
+msgid "Showing info of image (%s)\n"
+msgstr "开始检查镜像 (%s)\n"
 
-#: src/partclone.c:1129
+#: src/partclone.c:1644
 #, c-format
 msgid "File system:  %s\n"
 msgstr "文件系统: %s\n"
 
-#: src/partclone.c:1132
+#: src/partclone.c:1647
 #, fuzzy, c-format
 msgid "Device size:  %s = %llu Blocks\n"
 msgstr "装置大小: %s = %lld Blocks\n"
 
-#: src/partclone.c:1135
+#: src/partclone.c:1650
 #, fuzzy, c-format
 msgid "Space in use: %s = %llu Blocks\n"
 msgstr "装置使用到空间: %s = %lld Blocks\n"
 
-#: src/partclone.c:1138
+#: src/partclone.c:1653
 #, fuzzy, c-format
 msgid "Free Space:   %s = %llu Blocks\n"
 msgstr "剩余空间: %s = %lld Blocks\n"
 
-#: src/partclone.c:1140
+#: src/partclone.c:1655
 #, c-format
 msgid "Block size:   %i Byte\n"
 msgstr "装置块大小: %i Byte\n"
 
-#: src/partclone.c:1152
+#: src/partclone.c:1668
+#, c-format
+msgid "image format:    %04d\n"
+msgstr ""
+
+#: src/partclone.c:1672 src/partclone.c:1679
+#, c-format
+msgid "created on a:    %s\n"
+msgstr ""
+
+#: src/partclone.c:1674 src/partclone.c:1682
+#, c-format
+msgid "with partclone:  %s\n"
+msgstr ""
+
+#: src/partclone.c:1678
+#, c-format
+msgid "%d bits platform"
+msgstr ""
+
+#: src/partclone.c:1681
+#, fuzzy, c-format
+msgid "v%s"
+msgstr "%s"
+
+#: src/partclone.c:1685
+#, c-format
+msgid "bitmap mode:     %s\n"
+msgstr ""
+
+#: src/partclone.c:1687
+#, c-format
+msgid "checksum algo:   %s\n"
+msgstr ""
+
+#: src/partclone.c:1691 src/partclone.c:1700
+#, fuzzy, c-format
+msgid "checksum size:   %s\n"
+msgstr "装置块大小: %i Byte\n"
+
+#: src/partclone.c:1693 src/partclone.c:1703
+#, c-format
+msgid "blocks/checksum: %s\n"
+msgstr ""
+
+#: src/partclone.c:1695 src/partclone.c:1705
+#, c-format
+msgid "reseed checksum: %s\n"
+msgstr ""
+
+#: src/partclone.c:1705
+msgid "yes"
+msgstr ""
+
+#: src/partclone.c:1705
+msgid "no"
+msgstr ""
+
+#: src/partclone.c:1718
 #, c-format
 msgid "Partclone successfully checked the image (%s)\n"
 msgstr "检查镜像 (%s) 完成\n"
 
-#: src/partclone.c:1154
+#: src/partclone.c:1720
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr "备份 装置 (%s) 到 镜像 (%s) 完成\n"
 
-#: src/partclone.c:1156
+#: src/partclone.c:1722
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr "恢复 镜像 (%s) 到 装置 (%s) 完成\n"
 
-#: src/partclone.c:1158
+#: src/partclone.c:1724
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr "备份 装置 (%s) 到 装置 (%s) 完成\n"
 
-#: src/partclone.c:1160
+#: src/partclone.c:1726
 #, c-format
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
 msgstr "输出装置 (%s) 块信息 到 数据文件 (%s) 完成\n"

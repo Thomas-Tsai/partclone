@@ -1,3 +1,15 @@
+partclone (0.3.5a-1) unstable; urgency=medium
+
+  * test fuse image 
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 10 Jan 2017 10:36:23 +0800
+
+partclone (0.2.87-1) unstable; urgency=medium
+
+  * fix ntfs restore raw file issue 
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 24 Dec 2015 15:13:38 +0800
+
 partclone (0.2.86-1) unstable; urgency=medium
 
   * add zh_CN language support

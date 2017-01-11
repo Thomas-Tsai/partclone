@@ -16,8 +16,11 @@
  * Boston, MA 021110-1307, USA.
  */
 
-#ifndef __BTRFS_VOLUMES_
-#define __BTRFS_VOLUMES_
+#ifndef __BTRFS_VOLUMES_H__
+#define __BTRFS_VOLUMES_H__
+
+#include "kerncompat.h"
+#include "ctree.h"
 
 #define BTRFS_STRIPE_LEN	(64 * 1024)
 
@@ -133,6 +136,9 @@ struct map_lookup {
 #define BTRFS_BALANCE_ARGS_DRANGE	(1ULL << 3)
 #define BTRFS_BALANCE_ARGS_VRANGE	(1ULL << 4)
 #define BTRFS_BALANCE_ARGS_LIMIT	(1ULL << 5)
+#define BTRFS_BALANCE_ARGS_LIMIT_RANGE	(1ULL << 6)
+#define BTRFS_BALANCE_ARGS_STRIPES_RANGE (1ULL << 7)
+#define BTRFS_BALANCE_ARGS_USAGE_RANGE	(1ULL << 10)
 
 /*
  * Profile changing flags.  When SOFT is set we won't relocate chunk if
@@ -145,6 +151,16 @@ struct map_lookup {
 #define BTRFS_RAID5_P_STRIPE ((u64)-2)
 #define BTRFS_RAID6_Q_STRIPE ((u64)-1)
 
+/*
+ * Check if the given range cross stripes.
+ * To ensure kernel scrub won't causing bug on with METADATA in mixed
+ * block group
+ */
+static inline int check_crossing_stripes(u64 start, u64 len)
+{
+	return (start / BTRFS_STRIPE_LEN) !=
+	       ((start + len - 1) / BTRFS_STRIPE_LEN);
+}
 
 int __btrfs_map_block(struct btrfs_mapping_tree *map_tree, int rw,
 		      u64 logical, u64 *length, u64 *type,
@@ -154,8 +170,20 @@ int btrfs_map_block(struct btrfs_mapping_tree *map_tree, int rw,
 		    u64 logical, u64 *length,
 		    struct btrfs_multi_bio **multi_ret, int mirror_num,
 		    u64 **raid_map_ret);
-int btrfs_next_metadata(struct btrfs_mapping_tree *map_tree, u64 *logical,
-			u64 *size);
+int btrfs_next_bg(struct btrfs_mapping_tree *map_tree, u64 *logical,
+		     u64 *size, u64 type);
+static inline int btrfs_next_bg_metadata(struct btrfs_mapping_tree *map_tree,
+				      u64 *logical, u64 *size)
+{
+	return btrfs_next_bg(map_tree, logical, size,
+			BTRFS_BLOCK_GROUP_METADATA);
+}
+static inline int btrfs_next_bg_system(struct btrfs_mapping_tree *map_tree,
+				    u64 *logical, u64 *size)
+{
+	return btrfs_next_bg(map_tree, logical, size,
+			BTRFS_BLOCK_GROUP_SYSTEM);
+}
 int btrfs_rmap_block(struct btrfs_mapping_tree *map_tree,
 		     u64 chunk_start, u64 physical, u64 devid,
 		     u64 **logical, int *naddrs, int *stripe_len);
@@ -166,7 +194,7 @@ int btrfs_alloc_chunk(struct btrfs_trans_handle *trans,
 		      u64 *num_bytes, u64 type);
 int btrfs_alloc_data_chunk(struct btrfs_trans_handle *trans,
 			   struct btrfs_root *extent_root, u64 *start,
-			   u64 num_bytes, u64 type);
+			   u64 num_bytes, u64 type, int convert);
 int btrfs_read_super_device(struct btrfs_root *root, struct extent_buffer *buf);
 int btrfs_add_device(struct btrfs_trans_handle *trans,
 		     struct btrfs_root *root,
@@ -174,6 +202,7 @@ int btrfs_add_device(struct btrfs_trans_handle *trans,
 int btrfs_open_devices(struct btrfs_fs_devices *fs_devices,
 		       int flags);
 int btrfs_close_devices(struct btrfs_fs_devices *fs_devices);
+void btrfs_close_all_devices(void);
 int btrfs_add_device(struct btrfs_trans_handle *trans,
 		     struct btrfs_root *root,
 		     struct btrfs_device *device);

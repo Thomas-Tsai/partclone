@@ -1,9 +1,10 @@
-AC_INIT([Partclone], [0.3.3], [thomas@nchc.org.tw])
+AC_INIT([Partclone], [0.3.5a], [thomas@nchc.org.tw])
 AM_INIT_AUTOMAKE([-Wall foreign])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
 AC_PROG_CC
 AM_PROG_CC_C_O
+AM_PROG_AS
 AC_PROG_INSTALL
 AC_PATH_PROG(RM, rm, rm)
 AC_PROG_LN_S
@@ -13,6 +14,7 @@ AC_SYS_LARGEFILE
 
 # default value##
 supported_fs=""
+enable_fuse="yes"
 
 ##enable-all##
 AC_ARG_ENABLE([all],
@@ -37,6 +39,7 @@ enable_btrfs="yes"
 enable_minix="yes"
 enable_f2fs="yes"
 enable_nilfs2="yes"
+enable_fuse="yes"
 fi
 
 ORIGINAL_CFLAGS="$CFLAGS"
@@ -53,7 +56,14 @@ dnl Check for uuid
 PKG_CHECK_MODULES(UUID, uuid,,exit)
 uuidcfg=`pkg-config --cflags --libs uuid`
 
+AM_CONDITIONAL(ENABLE_FUSE, test "$enable_fuse" = yes)
+if test "$enable_fuse" = "yes"; then
+    PKG_CHECK_MODULES(FUSE, fuse,,exit)
+    uuidcfg=`pkg-config --cflags --libs fuse`
+fi
+
 AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([*** pthread library (libpthread) not found]))
+AC_PATH_PROG(OBJCOPY, objcopy, ,)
 
 ##ext2/3##
 AC_ARG_ENABLE([extfs],
@@ -74,7 +84,7 @@ AC_CHECK_LIB([ext2fs], [ext2fs_initialize], true,
     AC_MSG_ERROR([*** EXT2/3 library (libext2fs) not found]))
 
 AC_MSG_CHECKING(version of libextfs)
-PKG_CHECK_MODULES([EXT2FS], [ext2fs >= 1.42], [extfs_version=`pkg-config --modversion ext2fs`])
+PKG_CHECK_MODULES([EXT2FS], [ext2fs], [extfs_version=`pkg-config --modversion ext2fs`], )
 supported_fs=$supported_fs" extfs"
 
 fi

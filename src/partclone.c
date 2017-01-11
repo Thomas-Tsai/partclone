@@ -465,7 +465,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				mode=1;
 				break;
 			case OPT_OFFSET_DOMAIN:
-				opt->offset_domain = strtoull(optarg, NULL, 0);
+				opt->offset_domain = (off_t)strtoull(optarg, NULL, 0);
 				break;
 			case 'R':
 				opt->rescue++;
@@ -500,7 +500,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				opt->quiet = 1;
 				break;
 			case 'E':
-				opt->offset = atol(optarg);
+				opt->offset = (off_t)atol(optarg);
 				break;
 #endif
 #ifdef HAVE_LIBNCURSESW
@@ -537,6 +537,16 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 
 	if (opt->buffer_size < 512) {
 		fprintf(stderr, "Too small or bad buffer size. Use --help get more info.\n");
+		exit(0);
+	}
+
+	if (opt->offset < 0) {
+		fprintf(stderr, "Too small or bad offset. Use --help get more info.\n");
+		exit(0);
+	}
+
+	if (opt->offset_domain < 0) {
+		fprintf(stderr, "Too small or bad offset of domain file. Use --help get more info.\n");
 		exit(0);
 	}
 
@@ -977,7 +987,7 @@ void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_op
 
 		for (i = 0; i < fs_info.totalblock; ++i) {
 
-			bbuffer[i % sizeof(bbuffer)] = pc_test_bit(i, bitmap);
+			bbuffer[i % sizeof(bbuffer)] = pc_test_bit(i, bitmap, fs_info.totalblock);
 
 			if (i % sizeof(bbuffer) == sizeof(bbuffer) - 1 || i == fs_info.totalblock - 1) {
 
@@ -1118,7 +1128,7 @@ void update_used_blocks_count(file_system_info* fs_info, unsigned long* bitmap) 
 	unsigned int i;
 
 	for(i = 0; i < fs_info->totalblock; ++i) {
-		if (pc_test_bit(i, bitmap))
+		if (pc_test_bit(i, bitmap, fs_info->totalblock))
 			++used;
 	}
 
@@ -1259,10 +1269,10 @@ void load_image_bitmap_bytes(int* ret, cmd_opt opt, file_system_info fs_info, un
 			log_mesg(0, 1, 1, debug, "Unable to read bitmap.\n");
 		for (i = 0; i < r_need; i++) {
 			if (buffer[i] == 1) {
-				pc_set_bit(offset + i, bitmap);
+				pc_set_bit(offset + i, bitmap, fs_info.totalblock);
 				bused++;
 			} else {
-				pc_clear_bit(offset + i, bitmap);
+				pc_clear_bit(offset + i, bitmap, fs_info.totalblock);
 				bfree++;
 			}
 		}
