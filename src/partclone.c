@@ -1353,18 +1353,19 @@ int check_mount(const char* device, char* mount_p){
 
 	real_fsname = malloc(PATH_MAX + 1);
 	if (!real_fsname) {
-		free(real_file);
+		free(real_file); real_file = NULL;
 		return -1;
 	}
 
 	if (!realpath(device, real_file)) {
-		free(real_fsname);
+		free(real_fsname); real_fsname = NULL;
+        if (real_file) free(real_file); real_file = NULL;
 		return -1;
 	}
 
 	if ((f = setmntent(MOUNTED, "r")) == 0) {
-		free(real_file);
-		free(real_fsname);
+		if (real_file) free(real_file); real_file = NULL;
+		if (real_fsname) free(real_fsname); real_fsname = NULL;
 		return -1;
 	}
 
@@ -1378,8 +1379,8 @@ int check_mount(const char* device, char* mount_p){
 	}
 	endmntent(f);
 
-	free(real_file);
-	free(real_fsname);
+	if (real_file) free(real_file); real_file = NULL;
+	if (real_fsname) free(real_fsname); real_fsname = NULL;
 	return isMounted;
 }
 
