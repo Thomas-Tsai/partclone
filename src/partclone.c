@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <inttypes.h>
+#include <assert.h>
 #include "gettext.h"
 #include <linux/fs.h>
 #define _(STRING) gettext(STRING)
@@ -418,15 +419,13 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				opt->source = optarg;
 				break;
 			case 'd':
-				if (optarg)
-					opt->debug = atol(optarg);
-				else
-					opt->debug = 1;
+				opt->debug = optarg ? atol(optarg) : 1;
 				break;
 			case 'L':
 				opt->logfile = optarg;
 				break;
 			case 'f':
+                assert(optarg != NULL);
 				opt->fresh = atol(optarg);
 				break;
 			case 'C':
@@ -442,6 +441,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				opt->no_block_detail = 1;
 				break;
 			case 'z':
+                assert(optarg != NULL);
 				opt->buffer_size = atol(optarg);
 				break;
 #ifndef CHKIMG
@@ -471,9 +471,11 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				opt->rescue++;
 				break;
 			case 'a':
+                assert(optarg != NULL);
 				opt->checksum_mode = convert_to_checksum_mode(atol(optarg));
 				break;
 			case 'k':
+                assert(optarg != NULL);
 				opt->blocks_per_checksum = atol(optarg);
 				break;
 			case 'K':
@@ -500,6 +502,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				opt->quiet = 1;
 				break;
 			case 'E':
+                assert(optarg != NULL);
 				opt->offset = (off_t)atol(optarg);
 				break;
 #endif
@@ -908,6 +911,7 @@ void load_image_desc(int* ret, cmd_opt* opt, image_head_v2* img_head, file_syste
 	if (memcmp(buf_v2.head.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE))
 		log_mesg(0, 1, 1, debug, "This is not partclone image.\n");
 
+    assert(buf_v2.head.version != NULL);
 	img_version = atol(buf_v2.head.version);
 
 	switch(img_version) {
