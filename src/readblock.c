@@ -203,5 +203,7 @@ int main(int argc, char **argv){
     close(dfr);     /// close source
     free(bitmap);   /// free bitmap
     close_log();
+    free(read_buffer);
+    free(write_buffer);
     return 0;       /// finish
 }

@@ -202,6 +202,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     fs_close();
     /// update progress
     update_pui(&prog, 1, 1, 1);//finish
+    if (block_bitmap) free(block_bitmap); block_bitmap = NULL;
 }
 
 /// get extfs type

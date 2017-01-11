@@ -1226,13 +1226,12 @@ void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt
 	test_read   = malloc(raw_io_size);
 	test_write  = malloc(raw_io_size + cs_size);
 
-	if (test_bitmap == NULL || test_read == NULL || test_write == NULL)
-		log_mesg(0, 1, 1, opt.debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_size);
-	else {
-		free(test_bitmap);
-		free(test_read);
-		free(test_write);
-	}
+    free(test_bitmap);
+    free(test_read);
+    free(test_write);
+	if (test_bitmap == NULL || test_read == NULL || test_write == NULL) {
+        log_mesg(0, 1, 1, opt.debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_size);
+    }
 }
 
 void load_image_bitmap_bits(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap) {
