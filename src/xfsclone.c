@@ -61,7 +61,7 @@ void get_sb(xfs_sb_t *sbp, xfs_off_t off, int size, xfs_agnumber_t agno)
         }
 
         if (buf && (rval = read(source_fd, buf, size)) != size)  {
-                free(buf);
+                free(buf); buf = NULL;
                 log_mesg(0, 1, 1, fs_opt.debug, "%s: superblock read failed, offset %" PRId64 ", size %d, ag %u, rval %d\n", __FILE__, off, size, agno, rval);
         }
         if (buf) {
