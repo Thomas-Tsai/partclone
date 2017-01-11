@@ -1,0 +1,13 @@
+libtoolize --force --copy
+aclocal -I m4
+autoconf
+autoheader
+automake --add-missing
+
+scan-build -k -v -V ./configure --prefix=/usr --enable-extfs --enable-reiserfs --enable-fat \
+    --enable-hfsp --enable-btrfs --enable-ncursesw --enable-ntfs \
+    --enable-exfat --enable-f2fs --enable-minix --enable-nilfs2 --enable-xfs \
+    --sbindir=/usr/bin
+make clean
+scan-build -k -v -V make -j4
+
