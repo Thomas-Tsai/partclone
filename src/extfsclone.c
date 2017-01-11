@@ -101,8 +101,8 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     errcode_t retval;
     unsigned long group;
     unsigned long long current_block, block;
-    unsigned long long free, gfree;
-    char *block_bitmap=NULL;
+    unsigned long long lfree, gfree;
+    char *block_bitmap = NULL;
     int block_nbytes;
     unsigned long long blk_itr;
     int bg_flags = 0;
@@ -125,7 +125,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     /// initial image bitmap as 1 (all block are used)
     pc_init_bitmap(bitmap, 0xFF, fs_info.totalblock);
 
-    free = 0;
+    lfree = 0;
     current_block = 0;
     blk_itr = fs->super->s_first_data_block;
 
@@ -167,7 +167,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 			pc_set_bit(current_block, bitmap, fs_info.totalblock);
 			log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %llu at group %lu\n", __FILE__, current_block, group);
 		} else {
-		    free++;
+		    lfree++;
 		    gfree++;
 		    pc_clear_bit(current_block, bitmap, fs_info.totalblock);
 		    log_mesg(3, 0, 0, fs_opt.debug, "%s: free block %llu at group %lu init %i\n", __FILE__, current_block, group, (int)B_UN_INIT);
@@ -192,17 +192,17 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	}
     }
     /// check all free blocks in partition
-    if (free != ext2fs_free_blocks_count(fs->super)) {
+    if (lfree != ext2fs_free_blocks_count(fs->super)) {
 	if ((fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM) && (ext4_gfree_mismatch))
 	    log_mesg(1, 0, 0, fs_opt.debug, "%s: EXT4 bitmap metadata mismatch\n", __FILE__);
 	else
-	    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, partclone get free:%llu but extfs get %llu\n", __FILE__, free, ext2fs_free_blocks_count(fs->super));
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, partclone get free:%llu but extfs get %llu\n", __FILE__, lfree, ext2fs_free_blocks_count(fs->super));
     }
 
     fs_close();
     /// update progress
     update_pui(&prog, 1, 1, 1);//finish
-    if (block_bitmap) free(block_bitmap); block_bitmap = NULL;
+    free(block_bitmap);
 }
 
 /// get extfs type
