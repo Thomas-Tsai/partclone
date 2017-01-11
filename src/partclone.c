@@ -465,6 +465,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				mode=1;
 				break;
 			case OPT_OFFSET_DOMAIN:
+                assert(optarg != NULL);
 				opt->offset_domain = (off_t)strtoull(optarg, NULL, 0);
 				break;
 			case 'R':

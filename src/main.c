@@ -26,6 +26,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <assert.h>
 
 /**
  * progress.h - only for progress bar
@@ -901,6 +902,7 @@ int main(int argc, char **argv) {
 			if (r_size != (int)(blocks_read * block_size)) {
 				if ((r_size == -1) && (errno == EIO)) {
 					if (opt.rescue) {
+                        assert(buffer != NULL);
 						memset(buffer, 0, blocks_read * block_size);
 						for (r_size = 0; r_size < blocks_read * block_size; r_size += PART_SECTOR_SIZE)
 							rescue_sector(&dfr, r_size, buffer + r_size, &opt);
