@@ -4,9 +4,9 @@ autoconf
 autoheader
 automake --add-missing
 
-scan-build -k -v -V ./configure --prefix=/usr --enable-extfs --enable-reiserfs --enable-fat \
+scan-build -k -v -V ./configure --prefix=/usr --enable-extfs --disable-reiserfs --enable-fat \
     --enable-hfsp --enable-btrfs --enable-ncursesw --enable-ntfs \
-    --enable-exfat --enable-f2fs --enable-minix --enable-nilfs2 --enable-xfs \
+    --enable-exfat --enable-f2fs --enable-minix --disable-nilfs2 --enable-xfs \
     --sbindir=/usr/bin
 make clean
 scan-build -k -v -V make -j4

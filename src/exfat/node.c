@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <string.h>
 #include <inttypes.h>
+#include <assert.h>
 
 /* on-disk nodes iterator */
 struct iterator

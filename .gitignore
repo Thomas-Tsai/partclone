@@ -8,6 +8,7 @@ config.status
 configure
 get_lib_version
 Makefile.in
+aclocal.m4
 compile
 depcomp
 missing
