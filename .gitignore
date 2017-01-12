@@ -15,6 +15,9 @@ missing
 fail-mbr/fail-mbr.bin
 fail-mbr/fail-mbr.image
 .deps
+*.plist
+clang_output_*
+*.exec
 src/partclone.btrfs
 src/partclone.fstype
 src/partclone.jfs
