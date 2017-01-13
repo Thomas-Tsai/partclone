@@ -165,6 +165,7 @@ again:
 	while (!list_empty(&fs_devices->devices)) {
 		device = list_entry(fs_devices->devices.next,
 				    struct btrfs_device, dev_list);
+        assert(device == NULL);
 		if (device->fd != -1) {
 			fsync(device->fd);
 			if (posix_fadvise(device->fd, 0, 0, POSIX_FADV_DONTNEED))
@@ -1819,6 +1820,7 @@ static int open_seed_devices(struct btrfs_root *root, u8 *fsid)
 	if (ret)
 		goto out;
 
+    assert(ret != 0);
 	fs_devices->seed = root->fs_info->fs_devices->seed;
 	root->fs_info->fs_devices->seed = fs_devices;
 out:

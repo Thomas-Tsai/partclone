@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <inttypes.h>
+#include <assert.h>
 #include "gettext.h"
 #include <linux/fs.h>
 #define _(STRING) gettext(STRING)
@@ -418,15 +419,13 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				opt->source = optarg;
 				break;
 			case 'd':
-				if (optarg)
-					opt->debug = atol(optarg);
-				else
-					opt->debug = 1;
+				opt->debug = optarg ? atol(optarg) : 1;
 				break;
 			case 'L':
 				opt->logfile = optarg;
 				break;
 			case 'f':
+                assert(optarg != NULL);
 				opt->fresh = atol(optarg);
 				break;
 			case 'C':
@@ -442,6 +441,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				opt->no_block_detail = 1;
 				break;
 			case 'z':
+                assert(optarg != NULL);
 				opt->buffer_size = atol(optarg);
 				break;
 #ifndef CHKIMG
@@ -465,15 +465,18 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				mode=1;
 				break;
 			case OPT_OFFSET_DOMAIN:
+                assert(optarg != NULL);
 				opt->offset_domain = (off_t)strtoull(optarg, NULL, 0);
 				break;
 			case 'R':
 				opt->rescue++;
 				break;
 			case 'a':
+                assert(optarg != NULL);
 				opt->checksum_mode = convert_to_checksum_mode(atol(optarg));
 				break;
 			case 'k':
+                assert(optarg != NULL);
 				opt->blocks_per_checksum = atol(optarg);
 				break;
 			case 'K':
@@ -500,6 +503,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				opt->quiet = 1;
 				break;
 			case 'E':
+                assert(optarg != NULL);
 				opt->offset = (off_t)atol(optarg);
 				break;
 #endif
@@ -908,6 +912,7 @@ void load_image_desc(int* ret, cmd_opt* opt, image_head_v2* img_head, file_syste
 	if (memcmp(buf_v2.head.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE))
 		log_mesg(0, 1, 1, debug, "This is not partclone image.\n");
 
+    assert(buf_v2.head.version != NULL);
 	img_version = atol(buf_v2.head.version);
 
 	switch(img_version) {
@@ -1221,13 +1226,12 @@ void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt
 	test_read   = malloc(raw_io_size);
 	test_write  = malloc(raw_io_size + cs_size);
 
-	if (test_bitmap == NULL || test_read == NULL || test_write == NULL)
-		log_mesg(0, 1, 1, opt.debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_size);
-	else {
-		free(test_bitmap);
-		free(test_read);
-		free(test_write);
-	}
+    free(test_bitmap);
+    free(test_read);
+    free(test_write);
+	if (test_bitmap == NULL || test_read == NULL || test_write == NULL) {
+        log_mesg(0, 1, 1, opt.debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_size);
+    }
 }
 
 void load_image_bitmap_bits(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap) {
@@ -1348,18 +1352,19 @@ int check_mount(const char* device, char* mount_p){
 
 	real_fsname = malloc(PATH_MAX + 1);
 	if (!real_fsname) {
-		free(real_file);
+		free(real_file); real_file = NULL;
 		return -1;
 	}
 
 	if (!realpath(device, real_file)) {
-		free(real_fsname);
+		free(real_fsname); real_fsname = NULL;
+        if (real_file) free(real_file); real_file = NULL;
 		return -1;
 	}
 
 	if ((f = setmntent(MOUNTED, "r")) == 0) {
-		free(real_file);
-		free(real_fsname);
+		if (real_file) free(real_file); real_file = NULL;
+		if (real_fsname) free(real_fsname); real_fsname = NULL;
 		return -1;
 	}
 
@@ -1373,15 +1378,15 @@ int check_mount(const char* device, char* mount_p){
 	}
 	endmntent(f);
 
-	free(real_file);
-	free(real_fsname);
+	if (real_file) free(real_file); real_file = NULL;
+	if (real_fsname) free(real_fsname); real_fsname = NULL;
 	return isMounted;
 }
 
 int open_source(char* source, cmd_opt* opt) {
 	int ret = 0;
 	int debug = opt->debug;
-	char *mp;
+	char *mp = NULL;
 	int flags = O_RDONLY | O_LARGEFILE;
         struct stat st_dev;
 	int ddd_block_device = -1;
@@ -1407,10 +1412,10 @@ int open_source(char* source, cmd_opt* opt) {
 
 		if (check_mount(source, mp) == 1) {
 			log_mesg(0, 0, 1, debug, "device (%s) is mounted at %s\n", source, mp);
-			free(mp);
+			free(mp); mp = NULL;
 			log_mesg(0, 1, 1, debug, "error exit\n");
 		}
-		free(mp);
+		if (mp) free(mp); mp = NULL;
 
 		if ((ret = open(source, flags, S_IRUSR)) == -1)
 			log_mesg(0, 1, 1, debug, "clone: open %s error\n", source);
@@ -1432,7 +1437,7 @@ int open_source(char* source, cmd_opt* opt) {
 int open_target(char* target, cmd_opt* opt) {
 	int ret = 0;
 	int debug = opt->debug;
-	char *mp;
+	char *mp = NULL;
 	int flags = O_WRONLY | O_LARGEFILE;
 	struct stat st_dev;
 	int ddd_block_device = -1;
@@ -1479,10 +1484,10 @@ int open_target(char* target, cmd_opt* opt) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		if (check_mount(target, mp)) {
 			log_mesg(0, 0, 1, debug, "device (%s) is mounted at %s\n", target, mp);
-			free(mp);
+			free(mp); mp = NULL;
 			log_mesg(0, 1, 1, debug, "error exit\n");
 		}
-		free(mp);
+		if (mp) free(mp); mp = NULL;
 
 		/// check block device
 		stat(target, &st_dev);

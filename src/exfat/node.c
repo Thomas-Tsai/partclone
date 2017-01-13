@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <string.h>
 #include <inttypes.h>
+#include <assert.h>
 
 /* on-disk nodes iterator */
 struct iterator
@@ -548,6 +549,7 @@ static void reset_cache(struct exfat* ef, struct exfat_node* node)
 	while (node->child)
 	{
 		struct exfat_node* p = node->child;
+        assert(p == NULL);
 		reset_cache(ef, p);
 		tree_detach(p);
 		free(p);

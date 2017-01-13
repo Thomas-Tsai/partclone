@@ -178,10 +178,9 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
             update_pui(&prog, block, block, 0);
 
         }
-        free(extent_bitmap);
         log_mesg(2, 0, 0, 2, "%s: next exten\n", __FILE__);
         log_mesg(2, 0, 0, 2, "%s: extent_bitmap:%i\n", __FILE__, extent_bitmap);
-
+        free(extent_bitmap);
         log_mesg(2, 0, 0, 2, "%s: bfree:%i\n", __FILE__, bfree);
         log_mesg(2, 0, 0, 2, "%s: bused:%i\n", __FILE__, bused);
     }

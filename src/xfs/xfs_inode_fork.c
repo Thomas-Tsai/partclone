@@ -15,6 +15,8 @@
  * along with this program; if not, write the Free Software Foundation,
  * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
+#include <assert.h>
+
 #include "libxfs_priv.h"
 #include "xfs_fs.h"
 #include "xfs_format.h"
@@ -558,6 +560,7 @@ xfs_iroot_realloc(
 		 */
 		op = (char *)XFS_BMBT_REC_ADDR(mp, ifp->if_broot, 1);
 		np = (char *)XFS_BMBT_REC_ADDR(mp, new_broot, 1);
+        assert(np != NULL);
 		memcpy(np, op, new_max * (uint)sizeof(xfs_bmbt_rec_t));
 
 		/*

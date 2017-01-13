@@ -41,6 +41,8 @@
 #include <ntfs/support.h>
 #endif
 
+#include <assert.h>
+
 #include "partclone.h"
 #include "ntfsclone-ng.h"
 #include "progress.h"
@@ -239,6 +241,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     if ((bitmap == NULL) || (ntfs_bitmap == NULL)) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap alloc error\n", __FILE__);
     }
+    assert(ntfs_bitmap != NULL);
     memset(ntfs_bitmap, 0, bitmap_size);
 
     pos = 0;

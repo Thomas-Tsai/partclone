@@ -69,6 +69,13 @@
 
 #ifndef BTRFS_DISABLE_BACKTRACE
 #define MAX_BACKTRACE	16
+
+#ifdef __clang__
+#define CLANG_ANALYZER_NORETURN __attribute__((analyzer_noreturn))
+#else
+#define CLANG_ANALYZER_NORETURN
+#endif
+
 static inline void print_trace(void)
 {
 	void *array[MAX_BACKTRACE];
@@ -79,7 +86,7 @@ static inline void print_trace(void)
 }
 
 static inline void assert_trace(const char *assertion, const char *filename,
-			      const char *func, unsigned line, int val)
+			      const char *func, unsigned line, int val) CLANG_ANALYZER_NORETURN
 {
 	if (val)
 		return;

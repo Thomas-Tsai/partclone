@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "partclone.h"
 #include "fatclone.h"
@@ -259,6 +260,7 @@ static void fs_open(char* device)
     }
     if(read (ret, buffer, sizeof(FatBootSector)) != sizeof(FatBootSector))
 	log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+    assert(buffer != NULL);
     memcpy(&fat_sb, buffer, sizeof(FatBootSector));
     free(buffer);
 
@@ -268,6 +270,7 @@ static void fs_open(char* device)
     }
     if (read(ret, &fatfs_info, sizeof(FatFsInfo)) != sizeof(FatFsInfo))
 	log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+    assert(buffer != NULL);
     memcpy(&fatfs_info, buffer, sizeof(FatFsInfo));
     free(buffer);
 

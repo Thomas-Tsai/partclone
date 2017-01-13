@@ -1,0 +1,35 @@
+Static Analyzer:
+
+libtoolize --force --copy
+aclocal -I m4
+autoconf
+autoheader
+automake --add-missing
+
+scan-build -k -v -V ./configure --prefix=/usr --enable-extfs --disable-reiserfs --enable-fat \
+    --enable-hfsp --enable-btrfs --enable-ncursesw --enable-ntfs \
+    --enable-exfat --enable-f2fs --enable-minix --disable-nilfs2 --enable-xfs \
+    --sbindir=/usr/bin
+make clean
+scan-build -k -v -V make -j4
+
+
+Sanitizer:
+
+export CC=clang
+export CFLAGS="$CFLAGS -Wall -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -g"
+export LDFLAGS="$LDFLAGS -fsanitize=address -fsanitize=undefined"
+
+libtoolize --force --copy
+aclocal -I m4
+autoconf
+autoheader
+automake --add-missing
+
+./configure --prefix=/usr --enable-extfs --disable-reiserfs --enable-fat \
+    --enable-hfsp --enable-btrfs --enable-ncursesw --enable-ntfs \
+    --enable-exfat --enable-f2fs --enable-minix --disable-nilfs2 --enable-xfs \
+    --sbindir=/usr/bin
+make clean
+make -j4
+

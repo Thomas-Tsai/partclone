@@ -73,6 +73,7 @@ void extent_io_tree_cleanup(struct extent_io_tree *tree)
 
 	while(!list_empty(&tree->lru)) {
 		eb = list_entry(tree->lru.next, struct extent_buffer, lru);
+        assert(eb == NULL);
 		fprintf(stderr, "extent buffer leak: "
 			"start %llu len %u\n",
 			(unsigned long long)eb->start, eb->len);

@@ -1519,7 +1519,8 @@ u64 btrfs_device_size(int fd, struct stat *st)
 
 static int zero_blocks(int fd, off_t start, size_t len)
 {
-	char *buf = malloc(len);
+	assert(len != 0);
+       char *buf = malloc(len);
 	int ret = 0;
 	ssize_t written;
 
