@@ -55,7 +55,7 @@ _check_return_code(){
 }
 
 _ptlbreak(){
-    if [ $break_debug -ne 0 ];then
+    if [[ $break_debug -ne 0 && $- = *"i"* ]];then
 
 	echo "continue test process(Y/n)? default yes"
 	read con
