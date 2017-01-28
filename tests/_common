@@ -91,7 +91,12 @@ _findmkfs(){
 	;;
     esac
 
-    mkfs_path=$(locate mkfs.$fs|grep sbin|head -n 1)
+    locate_path=$(type -P locate)
+    if [ -z $locate_path ]; then
+        locate_path="which"
+    fi
+
+    mkfs_path=$($locate_path mkfs.$fs|grep sbin|head -n 1)
     if [ -z $mkfs_path ]; then
 	echo  >&2 "can't find mkfs.$fs"
 	exit 1
