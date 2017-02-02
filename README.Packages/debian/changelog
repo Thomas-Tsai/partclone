@@ -1,3 +1,17 @@
+partclone (0.2.89-1) unstable; urgency=medium
+
+  * upgrade btrfs to 4.4.2
+  * accept patch for non root issue
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 23 Jun 2016 15:14:24 +0800
+
+partclone (0.2.88-1) unstable; urgency=medium
+
+  * fix: memory leak issue
+  * fix: add btrfs reversed area backup
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Fri, 19 Feb 2016 11:15:25 +0800
+
 partclone (0.2.87-1) unstable; urgency=medium
 
   * fix ntfs restore raw file issue 

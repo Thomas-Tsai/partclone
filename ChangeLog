@@ -1,4 +1,53 @@
+2016-06-23  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.89
+
+	merge
+
+	add xz comp for debian package
+
+	release 0.2.89
+	upgrade btrfs to 4.4.2 for btrfs issue
+	accept patch from Andre Naujoks <nautsch2 at gmail.com> // Debian Bug report logs - #825990
+
+2016-06-22  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update btrfs to 4.2.2
+
+2016-02-19  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.88
+
+	build 0.2.88
+
+	release 0.2.88
+
+	try to add reversed area manually
+
+2016-02-03  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update po
+
+2016-02-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	try to fix signed block_size issue, the second advisory from David Gnedt
+
+2016-01-13  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix bitmap issue
+
+2016-01-12  Thomas Tsai  <thomas@nchc.org.tw>
+
+	try to fix fat issue
+
+2016-01-05  Thomas Tsai  <thomas@nchc.org.tw>
+
+	receive report "Security Vulnerability in Partclone from David Gnedt."
+	and try to fix bitmap( set/clear/test bitmap out of boundary) overflow issue.
+
 2015-12-24  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.87
 
 	0.2.87 release ready
 

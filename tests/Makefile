@@ -87,20 +87,20 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = i686-pc-linux-gnu
 host_triplet = i686-pc-linux-gnu
-#am__append_1 = ext2.test \
-#	ext3.test ext4.test
-#am__append_2 = btrfs.test
-#am__append_3 = fat.test
-#am__append_4 = reiserfs.test
+##am__append_1 = ext2.test \
+##	ext3.test ext4.test
+##am__append_2 = btrfs.test
+##am__append_3 = fat.test
+##am__append_4 = reiserfs.test
 
 #if ENABLE_REISER4
 #TESTS += reiser4.test
 #endif
-#am__append_5 = hfsplus.test
-#am__append_6 = xfs.test
-#am__append_7 = exfat.test
-#am__append_8 = f2fs.test
-#am__append_9 = ntfs.test
+##am__append_5 = hfsplus.test
+##am__append_6 = xfs.test
+##am__append_7 = exfat.test
+##am__append_8 = f2fs.test
+##am__append_9 = ntfs.test
 
 #if ENABLE_UFS
 #TESTS += ufs.test
@@ -109,11 +109,11 @@ host_triplet = i686-pc-linux-gnu
 #if ENABLE_VMFS
 #TESTS += vmfs.test
 #endif
-#am__append_10 = jfs.test
-#am__append_11 = btrfs.test
-#am__append_12 = exfat.test
-#am__append_13 = nilfs2.test
-#am__append_14 = ncursesw.test
+##am__append_10 = jfs.test
+##am__append_11 = btrfs.test
+##am__append_12 = exfat.test
+##am__append_13 = nilfs2.test
+##am__append_14 = ncursesw.test
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
@@ -362,7 +362,7 @@ AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2 -Wall
-CPP = gcc -E
+CPP = 
 CPPFLAGS = 
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
@@ -370,13 +370,13 @@ DEPDIR = .deps
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
-EGREP = /bin/grep -E
+EGREP = 
 EXEEXT = 
-EXT2FS_CFLAGS = -I/usr/include/ext2fs -I/usr/include/et
-EXT2FS_LIBS = -lext2fs
+EXT2FS_CFLAGS = 
+EXT2FS_LIBS = 
 GMSGFMT = /usr/bin/msgfmt
 GMSGFMT_015 = /usr/bin/msgfmt
-GREP = /bin/grep
+GREP = 
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -388,7 +388,7 @@ LDFLAGS =
 LIBICONV = -liconv
 LIBINTL = 
 LIBOBJS = 
-LIBS = -lncursesw -lpthread 
+LIBS = -lpthread 
 LN_S = ln -s
 LTLIBICONV = -liconv
 LTLIBINTL = 
@@ -399,7 +399,7 @@ MSGFMT = /usr/bin/msgfmt
 MSGFMT_015 = /usr/bin/msgfmt
 MSGMERGE = /usr/bin/msgmerge
 NTFS_CFLAGS = 
-NTFS_LIBS = -lpthread -lntfs-3g
+NTFS_LIBS = 
 OBJEXT = o
 ORIGINAL_CFLAGS = -g -O2
 PACKAGE = partclone

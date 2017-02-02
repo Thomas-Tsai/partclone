@@ -74,7 +74,7 @@ AC_CHECK_LIB([ext2fs], [ext2fs_initialize], true,
     AC_MSG_ERROR([*** EXT2/3 library (libext2fs) not found]))
 
 AC_MSG_CHECKING(version of libextfs)
-PKG_CHECK_MODULES([EXT2FS], , [extfs_version=`pkg-config --modversion ext2fs`])
+PKG_CHECK_MODULES([EXT2FS], [ext2fs], [extfs_version=`pkg-config --modversion ext2fs`], )
 supported_fs=$supported_fs" extfs"
 
 fi
