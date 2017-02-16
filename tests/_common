@@ -1,12 +1,12 @@
 #!/bin/bash
 
-break_debug=1
+break_debug=0
 logfile='test.log'
 img='floppy.img'
 raw='floppy.raw'
 raw_restore='floppy_restore.raw'
 dd_bs=1024
-normal_size=$((1024*1024*1))
+normal_size=$((256*1))
 floppy_size=1024
 current_dir=`pwd`
 ptldir="../src"
