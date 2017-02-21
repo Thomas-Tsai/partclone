@@ -215,7 +215,7 @@ static int readdir_block(const char *path, void *buf, fuse_fill_dir_t filler, of
 
     (void) offset;
     (void) fi;
-    char buffer[32];
+    char buffer[33];
     int n;
     unsigned long long test_block = 0;
 
