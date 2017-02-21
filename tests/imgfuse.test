@@ -1,0 +1,41 @@
+#!/bin/bash
+set -e
+
+. _common
+fs="ext4"
+ptlfs="../src/partclone.extfs"
+mkfs=$(_findmkfs $fs)
+dd_count=$((normal_size/2))
+echo -e "Ncurses test"
+echo -e "====================\n"
+echo -e "\ncreate raw file $raw\n"
+_ptlbreak
+[ -f $raw ] && rm $raw
+echo -e "    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count\n"
+dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
+
+echo -e "\n\nformat $raw as $fs raw partition\n"
+echo -e "    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw\n"
+_ptlbreak
+$mkfs `eval echo "$"mkfs_option_for_$fs""` $raw
+
+echo -e "\nclone $raw to $img\n"
+[ -f $img ] && rm $img
+echo -e "    $ptlfs -d -N -s $raw -O $img -F -L $logfile\n"
+_ptlbreak
+$ptlfs -d -c -s $raw -O $img -F -L $logfile -a 1 -k 17
+_check_return_code
+
+echo -e "\nFUSE mount image\n"
+echo -e "   ../src/partclone.imgfuse $img /tmp/mnt/\n"
+mkdir -p /tmp/mnt
+../src/partclone.imgfuse $img /tmp/mnt/
+ls -l /tmp/mnt/
+fusermount -u /tmp/mnt
+
+echo -e "\nclear tmp files $img $raw $logfile $md5\n"
+_ptlbreak
+rm -f $img $raw $logfile $md5
+rm -r /tmp/mnt
+
+
