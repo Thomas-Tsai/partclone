@@ -1,13 +1,10 @@
 failmbrdir=$(datadir)/@PACKAGE@/
-nodist_pkgdata_DATA = fail-mbr.bin
-CLEANFILES = $(nodist_pkglib_DATA)
+failmbr_DATA = fail-mbr.bin
 
-AM_CCASFLAGS = -fno-builtin -nostdinc
-failmbr_exec_LDFLAGS = -nostdlib -Wl,-N,-Ttext,7C00
+clean-local:
+	rm -f *~ *.o *.image *.bin
 
-noinst_PROGRAMS = failmbr.exec
-failmbr_exec_SOURCES = fail-mbr.S
+distclean-local: clean-local
 
-fail-mbr.bin: failmbr.exec
-	$(OBJCOPY) -O binary -R .note -R .comment -R .note.gnu.build-id -R .reginfo -R .rel.dyn  $< $@
-
+fail-mbr.bin:
+	sh compile-mbr.sh
