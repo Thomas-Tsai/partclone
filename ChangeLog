@@ -1,4 +1,42 @@
+2017-03-24  Thomas Tsai  <thomas@nchc.org.tw>
+
+	0.2.90
+
+	update malloc
+
+	update malloc
+
+2017-02-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'release' of github.com:Thomas-Tsai/partclone into release
+
+2017-01-09  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'release' of github.com:Thomas-Tsai/partclone into release
+
+2016-11-06  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add pt_BR support
+
+2016-10-24  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update makefile
+
+2016-10-04  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #80 from rindeal/autoconf
+	fix AC_ARG_ENABLE so that --disable-* options work as expected
+
+	Merge pull request #80 from rindeal/autoconf
+	fix AC_ARG_ENABLE so that --disable-* options work as expected
+
+2016-08-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	accept patch from Budy Wuysang <nguik.gnuik _AT_ gmail.com> to fix compile issue on Cent OS 6.8 system
+
 2016-06-23  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.2.89
 
 	release 0.2.89
 
