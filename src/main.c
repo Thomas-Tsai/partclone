@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
 	char			bitmagic[8] = "BiTmAgIc";// only for check postition
 	char			bitmagic_r[8]="00000000";/// read magic string from image
 	unsigned long		*bitmap = NULL;		/// the point for bitmap data
-	size_t			memsize = 0;
+	unsigned long long	memsize = 0;
 	int			debug = 0;		/// debug level
 	int			tui = 0;		/// text user interface
 	int			pui = 0;		/// progress mode(default text)
