@@ -26,6 +26,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <malloc.h>
 
 /**
  * progress.h - only for progress bar
@@ -141,6 +142,7 @@ int main(int argc, char **argv) {
 	char			bitmagic[8] = "BiTmAgIc";// only for check postition
 	char			bitmagic_r[8]="00000000";/// read magic string from image
 	unsigned long		*bitmap = NULL;		/// the point for bitmap data
+	size_t			memsize = 0;
 	int			debug = 0;		/// debug level
 	int			tui = 0;		/// text user interface
 	int			pui = 0;		/// progress mode(default text)
@@ -258,7 +260,9 @@ int main(int argc, char **argv) {
 
 		/// alloc a memory to store bitmap
 		bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
-		if (bitmap == NULL) {
+		memsize = sizeof(unsigned long) * LONGS(image_hdr.totalblock);
+		
+		if ((bitmap == NULL) || (malloc_usable_size(bitmap) < memsize)) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
 
@@ -309,7 +313,9 @@ int main(int argc, char **argv) {
 
 		/// alloc a memory to restore bitmap
 		bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
-		if (bitmap == NULL) {
+		memsize = sizeof(unsigned long) * LONGS(image_hdr.totalblock);
+		
+		if ((bitmap == NULL) || (malloc_usable_size(bitmap) < memsize)) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
 
@@ -359,7 +365,9 @@ int main(int argc, char **argv) {
 
 		/// alloc a memory to restore bitmap
 		bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
-		if (bitmap == NULL) {
+		memsize = sizeof(unsigned long) * LONGS(image_hdr.totalblock);
+		
+		if ((bitmap == NULL) || (malloc_usable_size(bitmap) < memsize)) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
 
@@ -404,7 +412,9 @@ int main(int argc, char **argv) {
 
 		/// alloc a memory to restore bitmap
 		bitmap = (unsigned long*)calloc(sizeof(unsigned long), LONGS(image_hdr.totalblock));
-		if (bitmap == NULL) {
+		memsize = sizeof(unsigned long) * LONGS(image_hdr.totalblock);
+		
+		if ((bitmap == NULL) || (malloc_usable_size(bitmap) < memsize)) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
 

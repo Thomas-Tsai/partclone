@@ -641,6 +641,12 @@ void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr) {
 	if (image_hdr->usedblocks <= 0)
 	    log_mesg(0, 1, 1, debug, "read image_hdr usedblocks error\n");
 	
+	if (image_hdr->usedblocks > image_hdr->totalblock)
+	    log_mesg(0, 1, 1, debug, "usedblocks larger than total block error\n");
+	
+	if (image_hdr->block_size * image_hdr->totalblock > image_hdr->device_size )
+	    log_mesg(0, 0, 1, debug, "device size not match block count\n");
+	
 	dev_size = (unsigned long long)(image_hdr->totalblock * image_hdr->block_size);
 	if (opt->restore_raw_file == 1) {
 	    return;
