@@ -704,8 +704,13 @@ int main(int argc, char **argv) {
 #ifndef CHKIMG
 				// write blocks
 				if (blocks_write > 0) {
-					w_size = write_all(&dfw, write_buffer + blocks_written * block_size,
-						blocks_write * block_size, &opt);
+				        if (opt.blockfile == 1){
+					    w_size = write_block_file(&dfw, write_buffer + blocks_written * block_size,
+						    blocks_write * block_size, &opt);
+					}else{
+					    w_size = write_all(&dfw, write_buffer + blocks_written * block_size,
+						    blocks_write * block_size, &opt);
+					}
 					if (w_size != blocks_write * block_size) {
 						if (!opt.skip_write_error)
 							log_mesg(0, 1, 1, debug, "write block %llu ERROR:%s\n", block_id + blocks_written, strerror(errno));
