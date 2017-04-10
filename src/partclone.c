@@ -36,6 +36,8 @@
 #include <assert.h>
 #include "gettext.h"
 #include <linux/fs.h>
+#include <sys/types.h>
+#include <dirent.h>
 #define _(STRING) gettext(STRING)
 //#define PACKAGE "partclone"
 #include "version.h"
@@ -247,6 +249,7 @@ void usage(void) {
 #ifndef CHKIMG
 		"    -q,  --quiet            Disable progress message\n"
 		"    -E,  --offset=X         Add offset X (bytes) to OUTPUT\n"
+		"    -T,  --btfiles          Restore block as file for ClonezillaBT\n"
 #endif
 		"    -n,  --note NOTE        Display Message Note (128 words)\n"
 		"    -v,  --version          Display partclone version\n"
@@ -309,11 +312,11 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #if CHKIMG
 	static const char *sopt = "-hvd::L:s:f:CFiBz:Nn:";
 #elif RESTORE
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:b";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:T";
 #elif DD
 	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:";
 #else
-	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBz:E:a:k:Kn:";
+	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBz:E:a:k:Kn:T";
 #endif
 
 	static const struct option lopt[] = {
@@ -355,7 +358,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "ignore_fschk",	no_argument,		NULL,   'I' },
 		{ "quiet",		no_argument,		NULL,   'q' },
 		{ "offset",		required_argument,	NULL,   'E' },
-		{ "btfiles",		no_argument,		NULL,   'b' },
+		{ "btfiles",		no_argument,		NULL,   'T' },
 #endif
 #ifdef HAVE_LIBNCURSESW
 		{ "ncurses",		no_argument,		NULL,   'N' },
@@ -504,7 +507,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 			case 'q':
 				opt->quiet = 1;
 				break;
-			case 'b':
+			case 'T':
 				opt->blockfile = 1;
 				break;
 			case 'E':
@@ -1441,6 +1444,7 @@ int open_source(char* source, cmd_opt* opt) {
 
 int open_target(char* target, cmd_opt* opt) {
 	int ret = 0;
+	DIR *retDir;
 	int debug = opt->debug;
 	char *mp = NULL;
 	int flags = O_WRONLY | O_LARGEFILE;
@@ -1465,7 +1469,7 @@ int open_target(char* target, cmd_opt* opt) {
 	    ddd_block_device = 0;
 	}
 
-	if (opt->clone || opt->domain || (ddd_block_device == 0)) {
+	if ((opt->clone || opt->domain || (ddd_block_device == 0)) && (opt->blockfile == 0)) {
 		if (strcmp(target, "-") == 0) {
 			if ((ret = fileno(stdout)) == -1)
 				log_mesg(0, 1, 1, debug, "clone: open %s(stdout) error\n", target);
@@ -1481,7 +1485,7 @@ int open_target(char* target, cmd_opt* opt) {
 				log_mesg(0, 0, 1, debug, "open target fail %s: %s (%i)\n", target, strerror(errno), errno);
 			}
 		}
-	} else if ((opt->restore) || (opt->dd) || (ddd_block_device == 1)) {    /// always is device, restore to device=target
+	} else if (((opt->restore) || (opt->dd) || (ddd_block_device == 1)) && (opt->blockfile == 0)) {    /// always is device, restore to device=target
 
 		/// check mounted
 		mp = malloc(PATH_MAX + 1);
@@ -1492,7 +1496,10 @@ int open_target(char* target, cmd_opt* opt) {
 			free(mp); mp = NULL;
 			log_mesg(0, 1, 1, debug, "error exit\n");
 		}
-		if (mp) free(mp); mp = NULL;
+		if (mp) {
+		    free(mp);
+		    mp = NULL;
+		}
 
 		/// check block device
 		stat(target, &st_dev);
@@ -1510,38 +1517,38 @@ int open_target(char* target, cmd_opt* opt) {
 			}
 			log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
 		}
+	} else if ((opt->restore) && (opt->blockfile == 1)) {    /// always is folder
+	    if (stat(target, &st_dev) == -1){
+		mkdir(target, 0700);
+		if ((retDir = opendir (target)) == -1) {
+		    log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
+		}
+		return retDir;
+	    } else {
+		// remove dir if -O given
+	    }
 	}
 
 	return ret;
 }
-int write_block_file(int *fd, char *buf, unsigned long long count, cmd_opt* opt){
+int write_block_file(char* target, char *buf, unsigned long long count, unsigned long long offset, cmd_opt* opt){
 	long long int i;
 	int debug = opt->debug;
 	unsigned long long size = count;
 	extern unsigned long long rescue_write_size;
-	int flags = O_WRONLY | O_LARGEFILE;
-	struct stat st_dev;
-
-	/// check block device and create file
-	stat(target, &st_dev);
-	if (!S_ISBLK(st_dev.st_mode)) {
-	    log_mesg(1, 0, 1, debug, "Warning, did you restore to non-block device(%s)?\n", target);
-	    flags |= O_CREAT;
-	    if (!opt->overwrite){
-		flags |= O_EXCL;
-	    }
-	}
-
-	if ((ret = open (target, flags, S_IRUSR)) == -1) {
-	    if (errno == EEXIST) {
-		log_mesg(0, 0, 1, debug, "Output file '%s' already exists.\nUse option --overwrite if you want to replace its content.\n", target);
-	    }
-	    log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
+	int flags = O_WRONLY | O_LARGEFILE | O_CREAT ;
+        int torrent_fd = 0;
+	char *block_filename = malloc(PATH_MAX + 1);
+	log_mesg(0, 0, 0,debug,  "offset %lld, size %lld\n", offset, count);
+	sprintf(block_filename,"%s/%032llx", target, offset);
+	
+	if ((torrent_fd = open (block_filename, flags, S_IRUSR)) == -1) {
+	    log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, block_filename, errno);
 	}
 
 	// for sync I/O buffer, when use stdin or pipe.
 	while (count > 0) {
-	    i = write(*fd, buf, count);
+	    i = write(torrent_fd, buf, count);
 
 	    if (i < 0) {
 		log_mesg(1, 0, 1, debug, "%s: errno = %i(%s)\n",__func__, errno, strerror(errno));
@@ -1549,19 +1556,18 @@ int write_block_file(int *fd, char *buf, unsigned long long count, cmd_opt* opt)
 		    return -1;
 		}
 	    } else if (i == 0) {
-	    log_mesg(1, 0, 1, debug, "%s: nothing to read. errno = %i(%s)\n",__func__, errno, strerror(errno));
-	    rescue_write_size = size - count;
-	    log_mesg(1, 0, 0, debug, "%s: rescue write size = %llu\n",__func__, rescue_write_size);
-	    return 0;
-	} else {
-	count -= i;
-	buf = i + (char *) buf;
-	log_mesg(2, 0, 0, debug, "%s: %s %lli, %llu left.\n",
-	__func__, "write block file", i, count);
+		log_mesg(1, 0, 1, debug, "%s: nothing to read. errno = %i(%s)\n",__func__, errno, strerror(errno));
+		rescue_write_size = size - count;
+		log_mesg(1, 0, 0, debug, "%s: rescue write size = %llu\n",__func__, rescue_write_size);
+		return 0;
+	    } else {
+		count -= i;
+		buf = i + (char *) buf;
+		log_mesg(2, 0, 0, debug, "%s: %s %lli, %llu left.\n", __func__, "write block file", i, count);
+	    }
 	}
-    }
+    close(torrent_fd);
     return size;
-
 }
 
 /// the io function, reference from ntfsprogs(ntfsclone).

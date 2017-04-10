@@ -1,6 +1,6 @@
 #!/bin/bash
 
-break_debug=0
+break_debug=1
 logfile='test.log'
 img='floppy.img'
 raw='floppy.raw'
@@ -96,7 +96,7 @@ _findmkfs(){
         locate_path="which"
     fi
 
-    mkfs_path=$($locate_path mkfs.$fs|grep sbin|head -n 1)
+    mkfs_path=$($locate_path mkfs.$fs|grep sbin| sort -n -r |head -n 1)
     if [ -z $mkfs_path ]; then
 	echo  >&2 "can't find mkfs.$fs"
 	exit 1

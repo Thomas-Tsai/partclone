@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <assert.h>
+#include<dirent.h>
 
 /**
  * progress.h - only for progress bar
@@ -63,6 +64,7 @@ int main(int argc, char **argv) {
 	char*			source;			/// source data
 	char*			target;			/// target data
 	int			dfr, dfw;		/// file descriptor for source and target
+	DIR*			dfwDir;
 	int			r_size, w_size;		/// read and write size
 	unsigned		cs_size = 0;		/// checksum_size
 	int			cs_reseed = 1;
@@ -155,9 +157,14 @@ int main(int argc, char **argv) {
 	}
 
 #ifndef CHKIMG
-	dfw = open_target(target, &opt);
-	if (dfw == -1) {
+	if (opt.blockfile == 0) {
+	    dfw = open_target(target, &opt);
+	    if (dfw == -1) {
 		log_mesg(0, 1, 1, debug, "Error exit\n");
+	    }
+	} else {
+	    dfwDir = open_target(target, &opt);
+	    dfw = -1;
 	}
 #else
 	dfw = -1;
@@ -262,6 +269,8 @@ int main(int argc, char **argv) {
 			check_free_space(&dfw, fs_info.device_size);
 		else if (opt.check)
 			check_size(&dfw, fs_info.device_size);
+		else if (opt.blockfile == 1)
+			//check_free_space(&dfw, fs_info.usedblocks*fs_info.block_size);
 #endif
 
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
@@ -581,8 +590,11 @@ int main(int argc, char **argv) {
 
 #ifndef CHKIMG
 		/// seek to the first
-		if (lseek(dfw, opt.offset, SEEK_SET) == (off_t)-1)
+		if (opt.blockfile == 0) {
+		    if (lseek(dfw, opt.offset, SEEK_SET) == (off_t)-1){
 			log_mesg(0, 1, 1, debug, "target seek ERROR:%s\n", strerror(errno));
+		    }
+		}
 #endif
 
 		/// start restore image file to partition
@@ -690,8 +702,11 @@ int main(int argc, char **argv) {
 
 #ifndef CHKIMG
 				/// skip empty blocks
-				if (bytes_skip > 0 && lseek(dfw, (off_t)bytes_skip, SEEK_CUR) == (off_t)-1)
+				if (blocks_write == 0) {
+				    if (opt.blockfile == 0 && bytes_skip > 0 && lseek(dfw, (off_t)bytes_skip, SEEK_CUR) == (off_t)-1) {
 					log_mesg(0, 1, 1, debug, "target seek ERROR:%s\n", strerror(errno));
+				    }
+				}
 #endif
 
 				/// blocks to write
@@ -705,8 +720,8 @@ int main(int argc, char **argv) {
 				// write blocks
 				if (blocks_write > 0) {
 				        if (opt.blockfile == 1){
-					    w_size = write_block_file(&dfw, write_buffer + blocks_written * block_size,
-						    blocks_write * block_size, &opt);
+					    w_size = write_block_file(target, write_buffer + blocks_written * block_size,
+						    blocks_write * block_size, (block_id*block_size), &opt);
 					}else{
 					    w_size = write_all(&dfw, write_buffer + blocks_written * block_size,
 						    blocks_write * block_size, &opt);
