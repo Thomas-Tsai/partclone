@@ -337,3 +337,6 @@ extern void print_finish_info(cmd_opt opt);
 
 /// get partition size
 extern unsigned long long get_partition_size(int* ret);
+
+/// get partition size
+extern int  write_block_file(char* target, char *buf, unsigned long long count, unsigned long long offset, cmd_opt* opt);

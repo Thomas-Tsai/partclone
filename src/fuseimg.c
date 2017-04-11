@@ -216,7 +216,7 @@ static int readdir_block(const char *path, void *buf, fuse_fill_dir_t filler, of
     (void) offset;
     (void) fi;
     char buffer[33];
-    int n;
+    int n = 0;
     unsigned long long test_block = 0;
 
     filler(buf, ".", NULL, 0);
@@ -225,8 +225,10 @@ static int readdir_block(const char *path, void *buf, fuse_fill_dir_t filler, of
     for (test_block = 0; test_block < fs_info.totalblock; ++test_block){
 	if (pc_test_bit(test_block, bitmap, fs_info.totalblock)){
 	    n = sprintf (buffer, "%032llx", test_block*fs_info.block_size);
-	    filler(buf, buffer, NULL, 0);
-	    test_block = test_block + (get_file_size(test_block)/fs_info.block_size);
+	    if (n >0){ 
+		filler(buf, buffer, NULL, 0);
+		test_block = test_block + (get_file_size(test_block)/fs_info.block_size);
+	    }
 	}
     }
 

@@ -180,7 +180,7 @@ endif
 if ENABLE_FUSE
 partclone_imgfuse_SOURCES=fuseimg.c partclone.c checksum.c partclone.h fs_common.h checksum.h
 partclone_imgfuse_CFLAGS=-lfuse
-partclone_block_SOURCES=readblock.c partclone.c checksum.c partclone.h fs_common.h checksum.h
+#partclone_block_SOURCES=readblock.c partclone.c checksum.c partclone.h fs_common.h checksum.h
 endif
 
 

@@ -1366,13 +1366,13 @@ int check_mount(const char* device, char* mount_p){
 
 	if (!realpath(device, real_file)) {
 		free(real_fsname); real_fsname = NULL;
-        if (real_file) free(real_file); real_file = NULL;
+        if (real_file){ free(real_file); real_file = NULL;}
 		return -1;
 	}
 
 	if ((f = setmntent(MOUNTED, "r")) == 0) {
-		if (real_file) free(real_file); real_file = NULL;
-		if (real_fsname) free(real_fsname); real_fsname = NULL;
+		if (real_file){ free(real_file); real_file = NULL;}
+		if (real_fsname){ free(real_fsname); real_fsname = NULL;}
 		return -1;
 	}
 
@@ -1386,8 +1386,8 @@ int check_mount(const char* device, char* mount_p){
 	}
 	endmntent(f);
 
-	if (real_file) free(real_file); real_file = NULL;
-	if (real_fsname) free(real_fsname); real_fsname = NULL;
+	if (real_file){ free(real_file); real_file = NULL;}
+	if (real_fsname){ free(real_fsname); real_fsname = NULL;}
 	return isMounted;
 }
 
@@ -1423,7 +1423,7 @@ int open_source(char* source, cmd_opt* opt) {
 			free(mp); mp = NULL;
 			log_mesg(0, 1, 1, debug, "error exit\n");
 		}
-		if (mp) free(mp); mp = NULL;
+		if (mp){ free(mp); mp = NULL;}
 
 		if ((ret = open(source, flags, S_IRUSR)) == -1)
 			log_mesg(0, 1, 1, debug, "clone: open %s error\n", source);
@@ -1444,7 +1444,6 @@ int open_source(char* source, cmd_opt* opt) {
 
 int open_target(char* target, cmd_opt* opt) {
 	int ret = 0;
-	DIR *retDir;
 	int debug = opt->debug;
 	char *mp = NULL;
 	int flags = O_WRONLY | O_LARGEFILE;
@@ -1520,10 +1519,10 @@ int open_target(char* target, cmd_opt* opt) {
 	} else if ((opt->restore) && (opt->blockfile == 1)) {    /// always is folder
 	    if (stat(target, &st_dev) == -1){
 		mkdir(target, 0700);
-		if ((retDir = opendir (target)) == -1) {
+		if ( opendir (target) == NULL) {
 		    log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
 		}
-		return retDir;
+		ret = 0;
 	    } else {
 		// remove dir if -O given
 	    }

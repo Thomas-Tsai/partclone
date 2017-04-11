@@ -64,7 +64,6 @@ int main(int argc, char **argv) {
 	char*			source;			/// source data
 	char*			target;			/// target data
 	int			dfr, dfw;		/// file descriptor for source and target
-	DIR*			dfwDir;
 	int			r_size, w_size;		/// read and write size
 	unsigned		cs_size = 0;		/// checksum_size
 	int			cs_reseed = 1;
@@ -157,14 +156,11 @@ int main(int argc, char **argv) {
 	}
 
 #ifndef CHKIMG
+	dfw = open_target(target, &opt);
 	if (opt.blockfile == 0) {
-	    dfw = open_target(target, &opt);
 	    if (dfw == -1) {
 		log_mesg(0, 1, 1, debug, "Error exit\n");
 	    }
-	} else {
-	    dfwDir = open_target(target, &opt);
-	    dfw = -1;
 	}
 #else
 	dfw = -1;
@@ -863,7 +859,7 @@ int main(int argc, char **argv) {
 		// write domain log comment and status line
 		dprintf(dfw, "# Domain logfile created by %s v%s\n", get_exec_name(), VERSION);
 		dprintf(dfw, "# Source: %s\n", opt.source);
-		dprintf(dfw, "# Offset: 0x%08llX\n", opt.offset_domain);
+		dprintf(dfw, "# Offset: 0x%08llX\n", (unsigned long long)opt.offset_domain);
 		dprintf(dfw, "# current_pos  current_status\n");
 		dprintf(dfw, "0x%08llX     ?\n", opt.offset_domain + (fs_info.totalblock * fs_info.block_size));
 		dprintf(dfw, "#      pos        size  status\n");
