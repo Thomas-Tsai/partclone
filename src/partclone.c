@@ -1524,7 +1524,7 @@ int open_target(char* target, cmd_opt* opt) {
 		}
 		ret = 0;
 	    } else {
-		// remove dir if -O given
+		log_mesg(1, 1, 1, debug, "%s,%s,%i: directory %s exist\n", __FILE__, __func__, __LINE__, target);
 	    }
 	}
 

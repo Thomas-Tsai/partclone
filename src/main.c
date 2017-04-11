@@ -263,7 +263,7 @@ int main(int argc, char **argv) {
 		/// check the dest partition size.
 		if (opt.restore_raw_file)
 			check_free_space(&dfw, fs_info.device_size);
-		else if (opt.check)
+		else if ((opt.check) && (opt.blockfile == 0))
 			check_size(&dfw, fs_info.device_size);
 		else if (opt.blockfile == 1)
 			//check_free_space(&dfw, fs_info.usedblocks*fs_info.block_size);

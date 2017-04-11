@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = subdir-objects
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\" -D_FILE_OFFSET_BITS=64
 LDADD = $(LIBINTL)
-sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg partclone.imager partclone.imgfuse partclone.block
+sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg partclone.imager partclone.imgfuse #partclone.block
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 
 BTRFS_SOURCE=\
