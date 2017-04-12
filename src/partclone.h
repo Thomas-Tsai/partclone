@@ -319,7 +319,7 @@ extern int open_target(char* target, cmd_opt* opt);
 extern int check_size(int* ret, unsigned long long size);
 
 /// check free space
-extern void check_free_space(int* ret, unsigned long long size);
+extern void check_free_space(char* path, unsigned long long size);
 
 /// check free memory size
 extern void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt);

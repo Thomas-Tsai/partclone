@@ -1124,6 +1124,69 @@ int check_size(int* ret, unsigned long long size) {
 
 }
 
+/// remove DIR, copy from http://stackoverflow.com/questions/2256945/removing-a-non-empty-directory-programmatically-in-c-or-c
+int remove_directory(const char *path)
+{
+   DIR *d = opendir(path);
+   size_t path_len = strlen(path);
+   int r = -1;
+
+   if (d)
+   {
+      struct dirent *p;
+
+      r = 0;
+
+      while (!r && (p=readdir(d)))
+      {
+          int r2 = -1;
+          char *buf;
+          size_t len;
+
+          /* Skip the names "." and ".." as we don't want to recurse on them. */
+          if (!strcmp(p->d_name, ".") || !strcmp(p->d_name, ".."))
+          {
+             continue;
+          }
+
+          len = path_len + strlen(p->d_name) + 2; 
+          buf = malloc(len);
+
+          if (buf)
+          {
+             struct stat statbuf;
+
+             snprintf(buf, len, "%s/%s", path, p->d_name);
+
+             if (!stat(buf, &statbuf))
+             {
+                if (S_ISDIR(statbuf.st_mode))
+                {
+                   r2 = remove_directory(buf);
+                }
+                else
+                {
+                   r2 = unlink(buf);
+                }
+             }
+
+             free(buf);
+          }
+
+          r = r2;
+      }
+
+      closedir(d);
+   }
+
+   if (!r)
+   {
+      r = rmdir(path);
+   }
+
+   return r;
+}
+
 /// return the number of checksum required for the number of blocks
 unsigned long get_checksum_count(unsigned long long block_count, const image_options *img_opt) {
 
@@ -1176,22 +1239,22 @@ unsigned long long get_bitmap_size_on_disk(const file_system_info* fs_info, cons
 }
 
 /// check free space 
-void check_free_space(int* ret, unsigned long long size) {
+void check_free_space(char* path, unsigned long long size) {
 
 	unsigned long long dest_size;
 	struct statvfs stvfs;
-	struct stat stat;
+	struct stat statP;
 	int debug = 1;
 
-	if (fstatvfs(*ret, &stvfs) == -1) {
+	if (statvfs(path, &stvfs) == -1) {
 		printf("WARNING: Unknown free space on the destination: %s\n",
 			strerror(errno));
 		return;
 	}
 
 	/* if file is a FIFO there is no point in checking the size */
-	if (!fstat(*ret, &stat)) {
-		if (S_ISFIFO(stat.st_mode))
+	if (!stat(path, &statP)) {
+		if (S_ISFIFO(statP.st_mode))
 			return;
 	} else {
 		printf("WARNING: Couldn't get file info because of the following error: %s\n",
@@ -1517,7 +1580,9 @@ int open_target(char* target, cmd_opt* opt) {
 			log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
 		}
 	} else if ((opt->restore) && (opt->blockfile == 1)) {    /// always is folder
-	    if (stat(target, &st_dev) == -1){
+
+	    if ((stat(target, &st_dev) == -1) || (opt->overwrite)){
+		remove_directory(target);
 		mkdir(target, 0700);
 		if ( opendir (target) == NULL) {
 		    log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
@@ -1651,6 +1716,7 @@ void print_opt(cmd_opt opt) {
 	log_mesg(1, 0, 0, debug, "QUIET: %i\n", opt.quiet);
 	log_mesg(1, 0, 0, debug, "FRESH: %i\n", opt.fresh);
 	log_mesg(1, 0, 0, debug, "FORCE: %i\n", opt.force);
+	log_mesg(1, 0, 0, debug, "BTFILES: %i\n", opt.blockfile);
 #ifdef HAVE_LIBNCURSESW
 	log_mesg(1, 0, 0, debug, "NCURSES: %i\n", opt.ncurses);
 #endif
@@ -1675,9 +1741,12 @@ void print_partclone_info(cmd_opt opt) {
 		log_mesg(0, 0, 1, debug, _("Starting to check image (%s)\n"), opt.source);	
 	else if (opt.clone)
 		log_mesg(0, 0, 1, debug, _("Starting to clone device (%s) to image (%s)\n"), opt.source, opt.target);	
-	else if(opt.restore)
-		log_mesg(0, 0, 1, debug, _("Starting to restore image (%s) to device (%s)\n"), opt.source, opt.target);
-	else if(opt.dd)
+	else if(opt.restore){
+	        if (opt.blockfile)
+		    log_mesg(0, 0, 1, debug, _("Starting to restore image (%s) to block files (%s)\n"), opt.source, opt.target);
+		else
+		    log_mesg(0, 0, 1, debug, _("Starting to restore image (%s) to device (%s)\n"), opt.source, opt.target);
+	}else if(opt.dd)
 		log_mesg(0, 0, 1, debug, _("Starting to back up device(%s) to device(%s)\n"), opt.source, opt.target);
 	else if (opt.domain)
 		log_mesg(0, 0, 1, debug, _("Starting to map device (%s) to domain log (%s)\n"), opt.source, opt.target);

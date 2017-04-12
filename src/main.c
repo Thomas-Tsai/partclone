@@ -221,7 +221,7 @@ int main(int argc, char **argv) {
 			needed_space += get_bitmap_size_on_disk(&fs_info, &img_opt, &opt);
 			needed_space += cnv_blocks_to_bytes(0, fs_info.usedblocks, fs_info.block_size, &img_opt);
 
-			check_free_space(&dfw, needed_space);
+			check_free_space(target, needed_space);
 		}
 
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
@@ -262,11 +262,11 @@ int main(int argc, char **argv) {
 #ifndef CHKIMG
 		/// check the dest partition size.
 		if (opt.restore_raw_file)
-			check_free_space(&dfw, fs_info.device_size);
+			check_free_space(target, fs_info.device_size);
 		else if ((opt.check) && (opt.blockfile == 0))
 			check_size(&dfw, fs_info.device_size);
 		else if (opt.blockfile == 1)
-			//check_free_space(&dfw, fs_info.usedblocks*fs_info.block_size);
+			check_free_space(target, fs_info.usedblocks*fs_info.block_size);
 #endif
 
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
@@ -305,7 +305,7 @@ int main(int argc, char **argv) {
 		    if (!opt.restore_raw_file)
 			check_size(&dfw, fs_info.device_size);
 		    else
-			check_free_space(&dfw, fs_info.device_size);
+			check_free_space(target, fs_info.device_size);
 		}
 
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
@@ -348,7 +348,7 @@ int main(int argc, char **argv) {
 			    needed_space += get_bitmap_size_on_disk(&fs_info, &img_opt, &opt);
 			    needed_space += cnv_blocks_to_bytes(0, fs_info.usedblocks, fs_info.block_size, &img_opt);
 
-			    check_free_space(&dfw, needed_space);
+			    check_free_space(target, needed_space);
 
 			}
 		    }
