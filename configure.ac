@@ -14,7 +14,6 @@ AC_SYS_LARGEFILE
 
 # default value##
 supported_fs=""
-enable_fuse="yes"
 
 ##enable-all##
 AC_ARG_ENABLE([all],
@@ -39,7 +38,6 @@ enable_btrfs="yes"
 enable_minix="yes"
 enable_f2fs="yes"
 enable_nilfs2="yes"
-enable_fuse="yes"
 fi
 
 ORIGINAL_CFLAGS="$CFLAGS"
@@ -56,9 +54,15 @@ dnl Check for uuid
 PKG_CHECK_MODULES(UUID, uuid,,exit)
 uuidcfg=`pkg-config --cflags --libs uuid`
 
+AC_ARG_ENABLE([fuse],
+    AS_HELP_STRING(
+        [--enable-fuse],
+        [enable imgfuse, mount image file to block files])
+)
 AM_CONDITIONAL(ENABLE_FUSE, test "$enable_fuse" = yes)
 if test "$enable_fuse" = "yes"; then
-    PKG_CHECK_MODULES(FUSE, fuse,,exit)
+AC_CHECKING([ for FUSE Library and Header files ... ])
+    PKG_CHECK_MODULES([FUSE], [fuse],,exit)
     uuidcfg=`pkg-config --cflags --libs fuse`
 fi
 

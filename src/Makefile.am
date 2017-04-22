@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = subdir-objects
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\" -D_FILE_OFFSET_BITS=64
 LDADD = $(LIBINTL)
-sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg partclone.imager partclone.imgfuse #partclone.block
+sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg partclone.imager #partclone.imgfuse #partclone.block
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 
 BTRFS_SOURCE=\
@@ -178,9 +178,12 @@ partclone_minix_CFLAGS=-DMINIX
 endif
 
 if ENABLE_FUSE
+sbin_PROGRAMS+=partclone.imgfuse
 partclone_imgfuse_SOURCES=fuseimg.c partclone.c checksum.c partclone.h fs_common.h checksum.h
-partclone_imgfuse_CFLAGS=-lfuse
-#partclone_block_SOURCES=readblock.c partclone.c checksum.c partclone.h fs_common.h checksum.h
+partclone_imgfuse_LDADD=-lfuse
+if ENABLE_STATIC
+partclone_imgfuse_LDADD+=-ldl
+endif
 endif
 
 
