@@ -227,8 +227,10 @@ int main(int argc, char **argv) {
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
 		log_mesg(1, 0, 0, debug, "Writing super block and bitmap...\n");
 
-		write_image_desc(&dfw, fs_info, img_opt, &opt);
-		write_image_bitmap(&dfw, fs_info, img_opt, bitmap, &opt);
+		if (opt.blockfile == 0) {
+			write_image_desc(&dfw, fs_info, img_opt, &opt);
+			write_image_bitmap(&dfw, fs_info, img_opt, bitmap, &opt);
+		}
 
 		log_mesg(0, 0, 1, debug, "done!\n");
 
@@ -471,6 +473,7 @@ int main(int argc, char **argv) {
 
 			/// calculate checksum
 			log_mesg(2, 0, 0, debug, "blocks_read = %i\n", blocks_read);
+
 			for (i = 0; i < blocks_read; ++i) {
 
 				memcpy(write_buffer + write_offset,
@@ -478,24 +481,32 @@ int main(int argc, char **argv) {
 
 				write_offset += block_size;
 
-				update_checksum(checksum, read_buffer + i * block_size, block_size);
+				/// blockfile no need checksum
+				/// TODO maybe we can make torrent at this time
+				if (opt.blockfile == 0) {
+					update_checksum(checksum, read_buffer + i * block_size, block_size);
 
-				if (blocks_per_cs > 0 && ++blocks_in_cs == blocks_per_cs) {
-				    log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
+					if (blocks_per_cs > 0 && ++blocks_in_cs == blocks_per_cs) {
+					    log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
 
-					memcpy(write_buffer + write_offset, checksum, cs_size);
+						memcpy(write_buffer + write_offset, checksum, cs_size);
 
-					++cs_added;
-					write_offset += cs_size;
+						++cs_added;
+						write_offset += cs_size;
 
-					blocks_in_cs = 0;
-					if (cs_reseed)
-						init_checksum(img_opt.checksum_mode, checksum, debug);
+						blocks_in_cs = 0;
+						if (cs_reseed)
+							init_checksum(img_opt.checksum_mode, checksum, debug);
+					}
 				}
 			}
 
 			/// write buffer to target
-			w_size = write_all(&dfw, write_buffer, write_offset, &opt);
+			if (opt.blockfile) {
+				w_size = write_block_file(target, write_buffer, write_offset, block_id * block_size, &opt);
+			} else {
+				w_size = write_all(&dfw, write_buffer, write_offset, &opt);
+			}
 			if (w_size != write_offset)
 				log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
 
