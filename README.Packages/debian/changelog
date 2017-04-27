@@ -1,3 +1,21 @@
+partclone (0.3.6-1) unstable; urgency=medium
+
+  * update static compile issue
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 27 Apr 2017 13:30:27 +0800
+
+partclone (0.3.5g-1) unstable; urgency=medium
+
+  * add overwrite for blockfilesfunction
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 13 Apr 2017 00:01:35 +0800
+
+partclone (0.3.5f-1) unstable; urgency=medium
+
+  * restore image to block files
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 12 Apr 2017 00:47:01 +0800
+
 partclone (0.3.5a-1) unstable; urgency=medium
 
   * test fuse image 

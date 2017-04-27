@@ -1,4 +1,112 @@
+2017-04-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	set version 0.3.6
+
+2017-04-22  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix static compile
+
+2017-04-12  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add features for btfiles mode 1. overwrite function to remove dir first 2. free space check 3. description
+
+	bt files done, start test
+
+2017-04-11  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix \'if\' warnings
+
+2017-04-10  Thomas Tsai  <thomas@nchc.org.tw>
+
+	initial, basic work! still alot buggy
+
+2017-04-06  Thomas Tsai  <thomas@nchc.org.tw>
+
+	branch for bt mode block files IO
+
+2017-02-22  Thomas Tsai  <thomas@nchc.org.tw>
+
+	0.3.5e
+
+	Merge branch 'master' of https://github.com/Thomas-Tsai/partclone
+
+	fix failmbr
+
+2017-02-21  Thomas Tsai  <thomas@nchc.org.tw>
+
+	0.3.5d
+
+	update array size
+
+	0.3.5c
+
+	fuse test
+
+2017-02-16  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release another test
+
+	fix tests
+
+2017-02-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add notice while bitmap count error
+
+2017-02-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	easy to run automake
+
+2017-02-01  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #87 from robert-scheck/locate
+	Use "which" if "locate" doesn't exist (e.g. in build environments)
+
+2017-01-28  Robert Scheck  <robert@fedoraproject.org>
+
+	Use "which" if "locate" doesn't exist (e.g. in build environments)
+
+2017-01-13  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #84 from isoft-linux/master
+	Remove useless files using automake
+
+2017-01-12  Leslie Zhai  <xiangzhai83@gmail.com>
+
+	Add clang analyzer script
+
+2017-01-11  Leslie Zhai  <xiangzhai83@gmail.com>
+
+	FIXME: failed to build with Clang Sanitizer
+
+	Do *NOT* use keyword as variable's name!
+
+	Fix Memory-leak issue #8
+
+	Fix Memory-leak #8
+
+	Added CLANG_ANALYZER_NORETURN for custom assert marco
+
+	Fix Null pointer passed as an argument to a 'nonnull' parameter issue #7
+
+	Fix Null pointer passed as an argument to a 'nonnull' parameter issue #7
+
+	Fix Use-after-free issue #3
+
+	Remove useless file
+
+	Merge remote-tracking branch 'upstream/master'
+
+	Update gitignore
+
 2017-01-10  Thomas Tsai  <thomas@nchc.org.tw>
+
+	merge and fix failmbr issue
+
+	fix failmbr compile issue
+
+	update fail-mbr compile issue
+
+	release 0.3.5a
 
 	update control
 
@@ -19,6 +127,35 @@
 2017-01-06  Thomas Tsai  <thomas@nchc.org.tw>
 
 	init fuse support; mount partclone image as block file for bt mode of clonezilla
+
+2016-12-23  Leslie Zhai  <xiangzhai83@gmail.com>
+
+	Fix Dereference of null pointer found with Clang Static Analyzer #6
+
+	Fix Array subscript is undefined issue #4
+
+	Fix Use-after-free found with Clang Static Analyzer #3
+
+	Fix Double free issue found with Clang Static Analyzer #2
+	Reviewers: @yetist
+
+	Fix Undefined allocation of 0 bytes issue
+	It was detected by Clang Static Analyzer #1
+	so I just add assert() to tell Clang Static Analyzer that this path is
+	unreachable.
+
+	Reviewers: @yetist
+
+	Remove useless files using automake
+	It often:
+
+	$ libtoolize --force --copy
+	$ aclocal -I m4
+	$ autoconf
+	$ autoheader
+	$ automake --add-missing
+
+	for automake project, so it is better to remove such useless files.
 
 2016-12-12  Thomas Tsai  <thomas@nchc.org.tw>
 
