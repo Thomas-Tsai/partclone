@@ -429,6 +429,7 @@ int main(int argc, char **argv) {
 		init_checksum(img_opt.checksum_mode, checksum, debug);
 
 		block_id = 0;
+		unsigned long long save_block_id = block_id;
 		do {
 			/// scan bitmap
 			unsigned long long i, blocks_skip, blocks_read;
@@ -443,8 +444,10 @@ int main(int argc, char **argv) {
 			if (block_id + blocks_skip == blocks_total)
 				break;
 
-			if (blocks_skip)
+			if (blocks_skip) {
 				block_id += blocks_skip;
+				save_block_id = block_id;
+			}
 
 			/// read blocks
 			for (blocks_read = 0;
@@ -503,7 +506,7 @@ int main(int argc, char **argv) {
 
 			/// write buffer to target
 			if (opt.blockfile) {
-				w_size = write_block_file(target, write_buffer, write_offset, block_id * block_size, &opt);
+				w_size = write_block_file(target, write_buffer, write_offset, save_block_id * block_size, &opt);
 			} else {
 				w_size = write_all(&dfw, write_buffer, write_offset, &opt);
 			}

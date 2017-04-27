@@ -1600,7 +1600,7 @@ int write_block_file(char* target, char *buf, unsigned long long count, unsigned
 	int debug = opt->debug;
 	unsigned long long size = count;
 	extern unsigned long long rescue_write_size;
-	int flags = O_WRONLY | O_LARGEFILE | O_CREAT ;
+	int flags = O_WRONLY | O_LARGEFILE | O_CREAT | O_APPEND;
         int torrent_fd = 0;
 	char *block_filename = malloc(PATH_MAX + 1);
 	log_mesg(0, 0, 0,debug,  "offset %lld, size %lld\n", offset, count);
