@@ -1579,7 +1579,7 @@ int open_target(char* target, cmd_opt* opt) {
 			}
 			log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
 		}
-	} else if ((opt->restore) && (opt->blockfile == 1)) {    /// always is folder
+	} else if ((opt->clone || opt->restore) && (opt->blockfile == 1)) {    /// always is folder
 
 	    if ((stat(target, &st_dev) == -1) || (opt->overwrite)){
 		remove_directory(target);
