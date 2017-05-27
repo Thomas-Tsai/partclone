@@ -535,13 +535,19 @@ int main(int argc, char **argv) {
 			}
 
 			/// write buffer to target
-			if (opt.blockfile) {
-				w_size = write_block_file(target, write_buffer, write_offset, save_block_id * block_size, &opt);
-			} else {
-				w_size = write_all(&dfw, write_buffer, write_offset, &opt);
+			if (opt.torrent_only == 0) {
+				if (opt.blockfile) {
+					w_size = write_block_file(target, write_buffer, write_offset, save_block_id * block_size, &opt);
+				} else {
+					w_size = write_all(&dfw, write_buffer, write_offset, &opt);
+				}
+				if (w_size != write_offset)
+					log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
+
+				/// read or write error
+				if (r_size + cs_added * cs_size != w_size)
+					log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
 			}
-			if (w_size != write_offset)
-				log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
 
 			/// count copied block
 			copied += blocks_read;
@@ -549,10 +555,6 @@ int main(int argc, char **argv) {
 
 			/// next block
 			block_id += blocks_read;
-
-			/// read or write error
-			if (r_size + cs_added * cs_size != w_size)
-				log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
 
 		} while (1);
 

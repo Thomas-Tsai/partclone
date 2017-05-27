@@ -250,6 +250,7 @@ void usage(void) {
 		"    -q,  --quiet            Disable progress message\n"
 		"    -E,  --offset=X         Add offset X (bytes) to OUTPUT\n"
 		"    -T,  --btfiles          Restore block as file for ClonezillaBT\n"
+		"    -t,  --torrent-only     Create torrent only\n"
 #endif
 		"    -n,  --note NOTE        Display Message Note (128 words)\n"
 		"    -v,  --version          Display partclone version\n"
@@ -316,7 +317,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #elif DD
 	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:";
 #else
-	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBz:E:a:k:Kn:T";
+	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBz:E:a:k:Kn:Tt";
 #endif
 
 	static const struct option lopt[] = {
@@ -359,6 +360,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "quiet",		no_argument,		NULL,   'q' },
 		{ "offset",		required_argument,	NULL,   'E' },
 		{ "btfiles",		no_argument,		NULL,   'T' },
+		{ "torrent-only",	no_argument,		NULL,   't' },
 #endif
 #ifdef HAVE_LIBNCURSESW
 		{ "ncurses",		no_argument,		NULL,   'N' },
@@ -387,6 +389,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	opt->reseed_checksum = 1;
 	opt->blocks_per_checksum = 0;
 	opt->blockfile = 0;
+	opt->torrent_only = 0;
 
 
 #ifdef DD
@@ -509,6 +512,10 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				break;
 			case 'T':
 				opt->blockfile = 1;
+				break;
+			case 't':
+				opt->blockfile = 1;
+				opt->torrent_only = 1;
 				break;
 			case 'E':
                 assert(optarg != NULL);
