@@ -29,6 +29,8 @@
 #include <assert.h>
 #include<dirent.h>
 
+#include <openssl/sha.h>
+
 /**
  * progress.h - only for progress bar
  */
@@ -400,6 +402,9 @@ int main(int argc, char **argv) {
 		const unsigned int block_size = fs_info.block_size;
 		const unsigned int buffer_capacity = opt.buffer_size > block_size ? opt.buffer_size / block_size : 1; // in blocks
 		unsigned char checksum[cs_size];
+		SHA_CTX ctx;
+		unsigned char hash[SHA_DIGEST_LENGTH + 1] = {'\0'};
+		unsigned long long sha_length = 0;
 		unsigned int blocks_in_cs, blocks_per_cs, write_size;
 		char *read_buffer, *write_buffer;
 
@@ -427,9 +432,12 @@ int main(int argc, char **argv) {
 
 		blocks_in_cs = 0;
 		init_checksum(img_opt.checksum_mode, checksum, debug);
+		SHA1_Init(&ctx);
 
 		block_id = 0;
 		unsigned long long save_block_id = block_id;
+		// TODO
+		printf("offset: %032llx\n", save_block_id * block_size);
 		do {
 			/// scan bitmap
 			unsigned long long i, blocks_skip, blocks_read;
@@ -445,8 +453,14 @@ int main(int argc, char **argv) {
 				break;
 
 			if (blocks_skip) {
+				// TODO output to right place
+				printf("length: %032llx\n", (block_id - save_block_id) * block_size);
+
 				block_id += blocks_skip;
 				save_block_id = block_id;
+
+				// TODO output to right place
+				printf("offset: %032llx\n", save_block_id * block_size);
 			}
 
 			/// read blocks
@@ -486,7 +500,23 @@ int main(int argc, char **argv) {
 
 				/// blockfile no need checksum
 				/// TODO maybe we can make torrent at this time
-				if (opt.blockfile == 0) {
+				/// 16MiB per piece
+				if (opt.blockfile == 1) {
+					if (sha_length >= 16ULL * 1024 * 1024) {
+						SHA1_Final(hash, &ctx);
+						SHA1_Init(&ctx);
+						sha_length = 0;
+
+						// TODO output sha1 to file
+						printf("sha1: ");
+						for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+							printf("%02x", hash[x]);
+						}
+						puts("");
+					}
+					sha_length += block_size;
+					SHA1_Update(&ctx, write_buffer + write_offset - block_size, block_size);
+				} else {
 					update_checksum(checksum, read_buffer + i * block_size, block_size);
 
 					if (blocks_per_cs > 0 && ++blocks_in_cs == blocks_per_cs) {
@@ -505,13 +535,19 @@ int main(int argc, char **argv) {
 			}
 
 			/// write buffer to target
-			if (opt.blockfile) {
-				w_size = write_block_file(target, write_buffer, write_offset, save_block_id * block_size, &opt);
-			} else {
-				w_size = write_all(&dfw, write_buffer, write_offset, &opt);
+			if (opt.torrent_only == 0) {
+				if (opt.blockfile) {
+					w_size = write_block_file(target, write_buffer, write_offset, save_block_id * block_size, &opt);
+				} else {
+					w_size = write_all(&dfw, write_buffer, write_offset, &opt);
+				}
+				if (w_size != write_offset)
+					log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
+
+				/// read or write error
+				if (r_size + cs_added * cs_size != w_size)
+					log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
 			}
-			if (w_size != write_offset)
-				log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
 
 			/// count copied block
 			copied += blocks_read;
@@ -520,11 +556,21 @@ int main(int argc, char **argv) {
 			/// next block
 			block_id += blocks_read;
 
-			/// read or write error
-			if (r_size + cs_added * cs_size != w_size)
-				log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
-
 		} while (1);
+
+		// final block size
+		// TODO output to right place
+		printf("length: %032llx\n", (block_id - save_block_id) * block_size);
+		// final piece
+		if (sha_length) {
+			SHA1_Final(hash, &ctx);
+			// TODO output sha1 to file
+			printf("sha1: ");
+			for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+				printf("%02x", hash[x]);
+			}
+			puts("");
+		}
 
 		if (blocks_in_cs > 0) {
 

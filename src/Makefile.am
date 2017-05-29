@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = subdir-objects
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\" -D_FILE_OFFSET_BITS=64
-LDADD = $(LIBINTL)
+LDADD = $(LIBINTL) -lcrypto
 sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg partclone.imager #partclone.imgfuse #partclone.block
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 
@@ -61,7 +61,7 @@ if ENABLE_EXTFS
 sbin_PROGRAMS += partclone.extfs
 partclone_extfs_SOURCES=$(main_files) extfsclone.c extfsclone.h
 partclone_extfs_CFLAGS=-DEXTFS
-partclone_extfs_LDADD=-lext2fs -lcom_err -lpthread
+partclone_extfs_LDADD=-lext2fs -lcom_err -lpthread -lcrypto
 endif
 
 if ENABLE_REISERFS
