@@ -629,6 +629,9 @@ void restore_image_hdr(int* ret, cmd_opt* opt, image_head* image_hdr) {
 	memcpy(image_hdr, buffer, sizeof(image_head));
 	free(buffer);
 
+	if (strncmp(image_hdr->version, IMAGE_VERSION, VERSION_SIZE) != 0)
+	    log_mesg(0, 1, 1, debug, "The Image version NOT support. The image version is %.4s.\n", image_hdr->version);
+
 	if (image_hdr->block_size <= 0)
 	    log_mesg(0, 1, 1, debug, "read image_hdr block_size error\n");
 
@@ -1169,6 +1172,7 @@ void print_image_hdr_info(image_head image_hdr, cmd_opt opt) {
 	log_mesg(0, 0, 1, debug, _("Free Space:   %s = %llu Blocks\n"), size_str, (total-used));
 
 	log_mesg(0, 0, 1, debug, _("Block size:   %i Byte\n"), block_s);
+	log_mesg(0, 0, 1, debug, _("Image Version:   %.4s\n"), image_hdr.version);
 }
 
 /// print finish message
