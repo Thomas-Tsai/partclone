@@ -1,44 +1,32 @@
-partclone (0.2.90-1) unstable; urgency=medium
+partclone (0.2.91-1) unstable; urgency=medium
 
-  * fix Partclone_HeapOverFlow issue 
+  * add image version check support 
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Fri, 24 Mar 2017 16:12:55 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 22 Jun 2017 09:44:01 +0800
 
-partclone (0.3.5e-1) unstable; urgency=medium
+partclone (0.3.6-1) unstable; urgency=medium
 
-  * fail0mbr bux fix
+  * update static compile issue
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 22 Feb 2017 11:49:34 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 27 Apr 2017 13:30:27 +0800
 
-partclone (0.3.5d-1) unstable; urgency=medium
+partclone (0.3.5g-1) unstable; urgency=medium
 
-  * fuse bug fix
+  * add overwrite for blockfilesfunction
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 21 Feb 2017 22:54:51 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 13 Apr 2017 00:01:35 +0800
 
-partclone (0.3.5c-1) unstable; urgency=medium
+partclone (0.3.5f-1) unstable; urgency=medium
 
-  * test fuse 
+  * restore image to block files
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 21 Feb 2017 10:12:32 +0800
-
-partclone (0.3.5b-1) unstable; urgency=medium
-
-  * test fuse image 
-
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 16 Feb 2017 16:26:00 +0800
-
-partclone (0.3.5b-1) unstable; urgency=medium
-
-  * test fuse image 
-
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 16 Feb 2017 16:25:05 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 12 Apr 2017 00:47:01 +0800
 
 partclone (0.3.5a-1) unstable; urgency=medium
 
   * test fuse image 
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 02 Feb 2017 00:17:50 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 10 Jan 2017 10:36:23 +0800
 
 partclone (0.2.87-1) unstable; urgency=medium
 
