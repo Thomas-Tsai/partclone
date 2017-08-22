@@ -128,7 +128,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     UInt32 bused = 0, bfree = 0, mused = 0;
     UInt32 block = 0, extent_block = 0, tb = 0;
     int allocation_exten = 0;
-    UInt32 allocation_start_block;
+    UInt64 allocation_start_block;
     UInt32 allocation_block_size;
     int start = 0;
     int bit_size = 1;
