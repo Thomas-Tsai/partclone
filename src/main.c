@@ -933,7 +933,11 @@ int main(int argc, char **argv) {
 			}
 
 			/// write buffer to target
-			w_size = write_all(&dfw, buffer, blocks_read * block_size, &opt);
+			if (opt.blockfile == 1){
+			    w_size = write_block_file(target, buffer, blocks_read * block_size, copied*block_size, &opt);
+			} else {
+			    w_size = write_all(&dfw, buffer, blocks_read * block_size, &opt);
+			}
 			if (w_size != (int)(blocks_read * block_size)) {
 				if (opt.skip_write_error)
 					log_mesg(0, 0, 1, debug, "skip write block %lli error:%s\n", block_id, strerror(errno));
