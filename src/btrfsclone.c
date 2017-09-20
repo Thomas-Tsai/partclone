@@ -341,6 +341,8 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     struct btrfs_root_item ri;
     int slot;
 
+    total_block = fs_info.totalblock;
+
     fs_open(device);
     dev_size = fs_info.device_size;
     block_size  = btrfs_super_nodesize(info->super_copy);
