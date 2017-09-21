@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.2.9\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2017-04-27 13:30+0800\n"
+"POT-Creation-Date: 2017-09-21 22:35+0800\n"
 "PO-Revision-Date: 2010-11-01 10:13+0100\n"
 "Last-Translator: \n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -122,122 +122,127 @@ msgstr "Démarrage sauvegarde périphérique (%s) vers périphérique (%s)\n"
 msgid "Starting to map device (%s) to domain log (%s)\n"
 msgstr "Démarrage clonage périphérique (%s) vers image (%s)\n"
 
-#: src/partclone.c:1754
+#: src/partclone.c:1755
+#, fuzzy, c-format
+msgid "Starting to dd image (%s) to block files (%s)\n"
+msgstr "Démarrage restauration image (%s) vers périphérique (%s)\n"
+
+#: src/partclone.c:1757
 #, fuzzy, c-format
 msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
 msgstr "Démarrage clonage périphérique (%s) vers image (%s)\n"
 
-#: src/partclone.c:1756
+#: src/partclone.c:1759
 #, fuzzy, c-format
 msgid "Showing info of image (%s)\n"
 msgstr "Démarrage audit image (%s)\n"
 
-#: src/partclone.c:1777
+#: src/partclone.c:1780
 #, c-format
 msgid "File system:  %s\n"
 msgstr "Système de fichiers:  %s\n"
 
-#: src/partclone.c:1780
+#: src/partclone.c:1783
 #, fuzzy, c-format
 msgid "Device size:  %s = %llu Blocks\n"
 msgstr "Taille du périphérique: %s\n"
 
-#: src/partclone.c:1783
+#: src/partclone.c:1786
 #, fuzzy, c-format
 msgid "Space in use: %s = %llu Blocks\n"
 msgstr "Espace utilisé: %s\n"
 
-#: src/partclone.c:1786
+#: src/partclone.c:1789
 #, fuzzy, c-format
 msgid "Free Space:   %s = %llu Blocks\n"
 msgstr "Espace libre:  %s\n"
 
-#: src/partclone.c:1788
+#: src/partclone.c:1791
 #, c-format
 msgid "Block size:   %i Byte\n"
 msgstr "Taille de bloc:  %i octets\n"
 
-#: src/partclone.c:1801
+#: src/partclone.c:1804
 #, c-format
 msgid "image format:    %04d\n"
 msgstr ""
 
-#: src/partclone.c:1805 src/partclone.c:1812
+#: src/partclone.c:1808 src/partclone.c:1815
 #, c-format
 msgid "created on a:    %s\n"
 msgstr ""
 
-#: src/partclone.c:1807 src/partclone.c:1815
+#: src/partclone.c:1810 src/partclone.c:1818
 #, c-format
 msgid "with partclone:  %s\n"
 msgstr ""
 
-#: src/partclone.c:1811
+#: src/partclone.c:1814
 #, c-format
 msgid "%d bits platform"
 msgstr ""
 
-#: src/partclone.c:1814
+#: src/partclone.c:1817
 #, fuzzy, c-format
 msgid "v%s"
 msgstr "%s"
 
-#: src/partclone.c:1818
+#: src/partclone.c:1821
 #, c-format
 msgid "bitmap mode:     %s\n"
 msgstr ""
 
-#: src/partclone.c:1820
+#: src/partclone.c:1823
 #, c-format
 msgid "checksum algo:   %s\n"
 msgstr ""
 
-#: src/partclone.c:1824 src/partclone.c:1833
+#: src/partclone.c:1827 src/partclone.c:1836
 #, fuzzy, c-format
 msgid "checksum size:   %s\n"
 msgstr "Taille de bloc:  %i octets\n"
 
-#: src/partclone.c:1826 src/partclone.c:1836
+#: src/partclone.c:1829 src/partclone.c:1839
 #, c-format
 msgid "blocks/checksum: %s\n"
 msgstr ""
 
-#: src/partclone.c:1828 src/partclone.c:1838
+#: src/partclone.c:1831 src/partclone.c:1841
 #, c-format
 msgid "reseed checksum: %s\n"
 msgstr ""
 
-#: src/partclone.c:1838
+#: src/partclone.c:1841
 msgid "yes"
 msgstr ""
 
-#: src/partclone.c:1838
+#: src/partclone.c:1841
 msgid "no"
 msgstr ""
 
-#: src/partclone.c:1851
+#: src/partclone.c:1854
 #, fuzzy, c-format
 msgid "Partclone successfully checked the image (%s)\n"
 msgstr "Partclone a réussi à auditer l'image (%s)\n"
 
-#: src/partclone.c:1853
+#: src/partclone.c:1856
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr "Partclone a réussi à cloner le périphérique (%s) vers l'image (%s)\n"
 
-#: src/partclone.c:1855
+#: src/partclone.c:1858
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr ""
 "Partclone a réussi à restaurer l'image (%s) vers le périphérique (%s)\n"
 
-#: src/partclone.c:1857
+#: src/partclone.c:1860
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr ""
 "Partclone a réussi à cloner le périphérique (%s) vers le périphérique (%s)\n"
 
-#: src/partclone.c:1859
+#: src/partclone.c:1862
 #, fuzzy, c-format
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
 msgstr "Partclone a réussi à cloner le périphérique (%s) vers l'image (%s)\n"

@@ -1,4 +1,56 @@
+2017-09-21  Thomas Tsai  <thomas@nchc.org.tw>
+
+	set version 0.3.7
+
+	update version
+
+2017-09-21  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #101 from jeremybuisson/master
+	fix small bugs in btrfs support
+
+2017-09-20  Thomas Tsai  <thomas@nchc.org.tw>
+
+	dd for ClonezilaBT
+
+2017-09-01  Jeremy Buisson  <jeremy.buisson@st-cyr.terre-net.defense.gouv.fr>
+
+	Fix the progress bar
+
+	fixing btrfs support
+	  * bad assertion check in src/btrfs/volumes.c
+	  * missing initialization of total_block in src/btrfsclone.c
+
+2017-08-29  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #99 from robert-scheck/rpmbuild
+	Honor $RPM_ARCH alternatively to dpkg-architecture(1) for build-time architecture detection
+
+2017-08-22  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #100 from Sebastian-Roth/master
+	Prevent from integer overflow that occours if one of the extent
+
+2017-08-22  Sebastian Roth  <sebaroth@gmx.de>
+
+	Prevent from integer overflow that occours if one of the extent blocks starts beyond disk sector 1048576.
+
+2017-08-16  Robert Scheck  <robert@fedoraproject.org>
+
+	Honor $RPM_ARCH alternatively to dpkg-architecture(1) for build-time architecture detection
+
+2017-08-16  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #98 from robert-scheck/fsf-address
+	Update incorrect FSF address (fixes #83)
+
+2017-08-16  Robert Scheck  <robert@fedoraproject.org>
+
+	Update incorrect FSF address (fixes #83)
+
 2017-04-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.3.6
 
 	set version 0.3.6
 

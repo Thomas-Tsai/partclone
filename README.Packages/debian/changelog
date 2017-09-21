@@ -1,3 +1,15 @@
+partclone (0.3.7-1) unstable; urgency=medium
+
+  * add dd for blockfilesfunction 
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 21 Sep 2017 22:36:09 +0800
+
+partclone (0.2.91-1) unstable; urgency=medium
+
+  * add image version check support 
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 22 Jun 2017 09:44:01 +0800
+
 partclone (0.3.6-1) unstable; urgency=medium
 
   * update static compile issue
