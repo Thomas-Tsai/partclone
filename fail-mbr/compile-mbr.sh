@@ -1,5 +1,5 @@
 ############### compiles source file for x86 architectures ##################
-if dpkg-architecture -e amd64 || dpkg-architecture -e i386; then
+if dpkg-architecture -e amd64 || dpkg-architecture -e i386 || [ "$RPM_ARCH" = "x86_64" ] || [ "$RPM_ARCH" = "i386" ]; then
    # compile the file fail-mbr.bin
     #echo -n "Compiling: fail-mbr.S -> fail-mbr.o -> "
     #gcc -Wall -Werror -m32 -nostdlib -static -o fail-mbr.o fail-mbr.S

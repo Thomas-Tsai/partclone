@@ -1521,7 +1521,7 @@ int open_target(char* target, cmd_opt* opt) {
 		else
 		    ddd_block_device = 0;
 	    } else {
-		ddd_block_device = 0;   
+		ddd_block_device = 0;
 	    }
 
 	    log_mesg(1, 0, 0, debug, "ddd target file(0) or device(1) ? %i \n", ddd_block_device);
@@ -1579,7 +1579,7 @@ int open_target(char* target, cmd_opt* opt) {
 			}
 			log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
 		}
-	} else if ((opt->restore) && (opt->blockfile == 1)) {    /// always is folder
+	} else if ((opt->restore || (ddd_block_device == 0)) && (opt->blockfile == 1)) {    /// always is folder
 
 	    if ((stat(target, &st_dev) == -1) || (opt->overwrite)){
 		remove_directory(target);
@@ -1751,7 +1751,10 @@ void print_partclone_info(cmd_opt opt) {
 	else if (opt.domain)
 		log_mesg(0, 0, 1, debug, _("Starting to map device (%s) to domain log (%s)\n"), opt.source, opt.target);
 	else if (opt.ddd)
-		log_mesg(0, 0, 1, debug, _("Starting to clone/restore (%s) to (%s) with dd mode\n"), opt.source, opt.target);
+	        if (opt.blockfile)
+		    log_mesg(0, 0, 1, debug, _("Starting to dd image (%s) to block files (%s)\n"), opt.source, opt.target);
+		else
+		    log_mesg(0, 0, 1, debug, _("Starting to clone/restore (%s) to (%s) with dd mode\n"), opt.source, opt.target);
 	else if (opt.info)
 		log_mesg(0, 0, 1, debug, _("Showing info of image (%s)\n"), opt.source);
 	else
