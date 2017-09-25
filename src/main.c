@@ -313,11 +313,13 @@ int main(int argc, char **argv) {
 		log_mesg(0, 0, 1, debug, "done!\n");
 	} else if (opt.ddd){
 
-		if (dfr != 0)
+		if (dfr != 0){
+		    fs_info.device_size = get_partition_size(&dfr);
 		    read_super_blocks(source, &fs_info);
-		else
+		}else{
+		    fs_info.device_size = get_free_space(target);
 		    read_super_blocks(target, &fs_info);
-
+		}
 		img_opt.checksum_mode = opt.checksum_mode;
 		img_opt.checksum_size = get_checksum_size(opt.checksum_mode, opt.debug);
 		img_opt.blocks_per_checksum = opt.blocks_per_checksum;

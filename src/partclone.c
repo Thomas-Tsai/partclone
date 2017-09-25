@@ -1238,6 +1238,37 @@ unsigned long long get_bitmap_size_on_disk(const file_system_info* fs_info, cons
 	return size;
 }
 
+/// get free space
+unsigned long long get_free_space(char* path){
+
+	unsigned long long dest_size;
+	struct statvfs stvfs;
+	struct stat statP;
+	int debug=1;
+
+	if (statvfs(path, &stvfs) == -1) {
+		printf("WARNING: Unknown free space on the destination: %s\n",
+			strerror(errno));
+		return 0;
+	}
+
+	/* if file is a FIFO there is no point in checking the size */
+	if (!stat(path, &statP)) {
+		if (S_ISFIFO(statP.st_mode))
+			return 0;
+	} else {
+		printf("WARNING: Couldn't get file info because of the following error: %s\n",
+			strerror(errno));
+	}
+
+	dest_size = (unsigned long long)stvfs.f_frsize * stvfs.f_bfree;
+	if (!dest_size)
+		dest_size = (unsigned long long)stvfs.f_bsize * stvfs.f_bfree;
+	log_mesg(0, 0, 0, debug, "Destination have free space: %llu MB \n", print_size(dest_size, MBYTE));
+
+	return dest_size;
+}
+
 /// check free space 
 void check_free_space(char* path, unsigned long long size) {
 

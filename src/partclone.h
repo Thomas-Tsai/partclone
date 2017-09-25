@@ -318,6 +318,9 @@ extern int open_target(char* target, cmd_opt* opt);
 /// check partition size
 extern int check_size(int* ret, unsigned long long size);
 
+/// get free size
+extern unsigned long long get_free_space(char* path);
+
 /// check free space
 extern void check_free_space(char* path, unsigned long long size);
 
