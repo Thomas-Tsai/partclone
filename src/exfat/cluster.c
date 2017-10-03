@@ -3,7 +3,7 @@
 	exFAT file system implementation library.
 
 	Free exFAT implementation.
-	Copyright (C) 2010-2014  Andrew Nayenko
+	Copyright (C) 2010-2016  Andrew Nayenko
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ static cluster_t s2c(const struct exfat* ef, off_t sector)
 static uint32_t bytes2clusters(const struct exfat* ef, uint64_t bytes)
 {
 	uint64_t cluster_size = CLUSTER_SIZE(*ef->sb);
-	return (bytes + cluster_size - 1) / cluster_size;
+	return DIV_ROUND_UP(bytes, cluster_size);
 }
 
 cluster_t exfat_next_cluster(const struct exfat* ef,
@@ -149,10 +149,13 @@ static int flush_nodes(struct exfat* ef, struct exfat_node* node)
 	return exfat_flush_node(ef, node);
 }
 
+int exfat_flush_nodes(struct exfat* ef)
+{
+	return flush_nodes(ef, ef->root);
+}
+
 int exfat_flush(struct exfat* ef)
 {
-	int rc = flush_nodes(ef, ef->root);
-
 	if (ef->cmap.dirty)
 	{
 		if (exfat_pwrite(ef->dev, ef->cmap.chunk,
@@ -165,7 +168,7 @@ int exfat_flush(struct exfat* ef)
 		ef->cmap.dirty = false;
 	}
 
-	return rc;
+	return 0;
 }
 
 static bool set_next_cluster(const struct exfat* ef, bool contiguous,

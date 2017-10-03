@@ -4,7 +4,7 @@
 	same kernel can use different libc implementations.
 
 	Free exFAT implementation.
-	Copyright (C) 2010-2014  Andrew Nayenko
+	Copyright (C) 2010-2016  Andrew Nayenko
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 #ifndef PLATFORM_H_INCLUDED
 #define PLATFORM_H_INCLUDED
 
-#if defined(__GLIBC__)
+#if defined(__linux__) || defined(__GLIBC__) || defined(__GNU__)
 
 #include <endian.h>
 #include <byteswap.h>

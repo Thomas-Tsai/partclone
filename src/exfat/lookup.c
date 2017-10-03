@@ -3,7 +3,7 @@
 	exFAT file system implementation library.
 
 	Free exFAT implementation.
-	Copyright (C) 2010-2014  Andrew Nayenko
+	Copyright (C) 2010-2016  Andrew Nayenko
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -61,10 +61,7 @@ struct exfat_node* exfat_readdir(struct exfat* ef, struct exfat_iterator* it)
 
 static int compare_char(struct exfat* ef, uint16_t a, uint16_t b)
 {
-	if (a >= ef->upcase_chars || b >= ef->upcase_chars)
-		return (int) a - (int) b;
-
-	return (int) le16_to_cpu(ef->upcase[a]) - (int) le16_to_cpu(ef->upcase[b]);
+	return (int) ef->upcase[a] - (int) ef->upcase[b];
 }
 
 static int compare_name(struct exfat* ef, const le16_t* a, const le16_t* b)
