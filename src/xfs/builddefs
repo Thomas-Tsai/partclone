@@ -1,0 +1,176 @@
+#
+# Copyright (c) 2004-2006 Silicon Graphics, Inc.
+# All Rights Reserved.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it would be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write the Free Software Foundation,
+# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+#
+# include/builddefs.  Generated from builddefs.in by configure.
+#
+
+ifndef _BUILDDEFS_INCLUDED_
+_BUILDDEFS_INCLUDED_ = 1
+
+DEBUG = -DDEBUG
+OPTIMIZER = -g -O2
+MALLOCLIB = 
+LOADERFLAGS = 
+LTLDFLAGS = 
+CFLAGS = -g -O2 -D_FILE_OFFSET_BITS=64
+
+LIBRT = -lrt
+LIBUUID = -luuid
+LIBPTHREAD = -lpthread
+LIBTERMCAP = 
+LIBEDITLINE = 
+LIBREADLINE = 
+LIBBLKID = -lblkid
+LIBXFS = $(TOPDIR)/libxfs/libxfs.la
+LIBXCMD = $(TOPDIR)/libxcmd/libxcmd.la
+LIBXLOG = $(TOPDIR)/libxlog/libxlog.la
+LIBHANDLE = $(TOPDIR)/libhandle/libhandle.la
+
+PKG_NAME	= xfsprogs
+PKG_USER	= thomas
+PKG_GROUP	= thomas
+PKG_RELEASE	= 1
+PKG_VERSION	= 4.9.0
+PKG_PLATFORM	= linux
+PKG_DISTRIBUTION= Linux
+
+prefix		= /usr
+exec_prefix	= ${prefix}
+datarootdir	= ${prefix}/share
+top_builddir	= ..
+
+PKG_SBIN_DIR	= ${exec_prefix}/sbin
+PKG_ROOT_SBIN_DIR = /sbin
+PKG_ROOT_LIB_DIR= /lib
+PKG_LIB_DIR	= ${exec_prefix}/lib
+PKG_INC_DIR	= ${prefix}/include/xfs
+DK_INC_DIR	= ${prefix}/include/disk
+PKG_MAN_DIR	= ${datarootdir}/man
+PKG_DOC_DIR	= ${datarootdir}/doc/xfsprogs
+PKG_LOCALE_DIR	= ${datarootdir}/locale
+
+CC		= gcc
+BUILD_CC	= gcc
+AWK		= gawk
+SED		= /bin/sed
+TAR		= /bin/tar
+ZIP		= /bin/gzip
+MAKE		= /usr/bin/make
+ECHO		= printf %s\n
+SORT		= /usr/bin/sort
+LN_S		= ln -s
+SHELL		= /bin/bash
+LIBTOOL		= $(SHELL) $(top_builddir)/libtool
+MAKEDEPEND	= gcc -MM
+
+MSGFMT		= /usr/bin/msgfmt
+MSGMERGE	= /usr/bin/msgmerge
+XGETTEXT	= /usr/bin/xgettext
+LOCALIZED_FILES	=  $(TOPDIR)/./quota/report.c $(TOPDIR)/./quota/project.c $(TOPDIR)/./quota/path.c $(TOPDIR)/./quota/darwin.c $(TOPDIR)/./quota/init.c $(TOPDIR)/./quota/quot.c $(TOPDIR)/./quota/edit.c $(TOPDIR)/./quota/freebsd.c $(TOPDIR)/./quota/state.c $(TOPDIR)/./quota/free.c $(TOPDIR)/./quota/util.c $(TOPDIR)/./quota/linux.c $(TOPDIR)/./quota/irix.c $(TOPDIR)/./quota/quota.c $(TOPDIR)/./libxlog/xfs_log_recover.c $(TOPDIR)/./libxlog/util.c $(TOPDIR)/./libxfs/xfs_ialloc.c $(TOPDIR)/./libxfs/xfs_trans_resv.c $(TOPDIR)/./libxfs/xfs_dir2.c $(TOPDIR)/./libxfs/xfs_rmap.c $(TOPDIR)/./libxfs/rdwr.c $(TOPDIR)/./libxfs/xfs_inode_buf.c $(TOPDIR)/./libxfs/list_sort.c $(TOPDIR)/./libxfs/radix-tree.c $(TOPDIR)/./libxfs/xfs_attr_leaf.c $(TOPDIR)/./libxfs/xfs_da_btree.c $(TOPDIR)/./libxfs/xfs_alloc.c $(TOPDIR)/./libxfs/logitem.c $(TOPDIR)/./libxfs/cache.c $(TOPDIR)/./libxfs/darwin.c $(TOPDIR)/./libxfs/xfs_inode_fork.c $(TOPDIR)/./libxfs/crc32.c $(TOPDIR)/./libxfs/xfs_rmap_btree.c $(TOPDIR)/./libxfs/xfs_log_rlimit.c $(TOPDIR)/./libxfs/xfs_btree.c $(TOPDIR)/./libxfs/xfs_rtbitmap.c $(TOPDIR)/./libxfs/xfs_defer.c $(TOPDIR)/./libxfs/init.c $(TOPDIR)/./libxfs/xfs_bmap.c $(TOPDIR)/./libxfs/xfs_symlink_remote.c $(TOPDIR)/./libxfs/trans.c $(TOPDIR)/./libxfs/xfs_dir2_leaf.c $(TOPDIR)/./libxfs/xfs_dir2_sf.c $(TOPDIR)/./libxfs/freebsd.c $(TOPDIR)/./libxfs/xfs_ialloc_btree.c $(TOPDIR)/./libxfs/kmem.c $(TOPDIR)/./libxfs/xfs_bit.c $(TOPDIR)/./libxfs/defer_item.c $(TOPDIR)/./libxfs/util.c $(TOPDIR)/./libxfs/xfs_dquot_buf.c $(TOPDIR)/./libxfs/xfs_bmap_btree.c $(TOPDIR)/./libxfs/xfs_da_format.c $(TOPDIR)/./libxfs/xfs_dir2_node.c $(TOPDIR)/./libxfs/linux.c $(TOPDIR)/./libxfs/xfs_ag_resv.c $(TOPDIR)/./libxfs/irix.c $(TOPDIR)/./libxfs/xfs_dir2_block.c $(TOPDIR)/./libxfs/xfs_sb.c $(TOPDIR)/./libxfs/xfs_attr.c $(TOPDIR)/./libxfs/xfs_refcount.c $(TOPDIR)/./libxfs/xfs_alloc_btree.c $(TOPDIR)/./libxfs/gen_crc32table.c $(TOPDIR)/./libxfs/xfs_refcount_btree.c $(TOPDIR)/./libxfs/xfs_dir2_data.c $(TOPDIR)/./libxfs/xfs_attr_remote.c $(TOPDIR)/./rtcp/xfs_rtcp.c $(TOPDIR)/./mkfs/proto.c $(TOPDIR)/./mkfs/xfs_mkfs.c $(TOPDIR)/./mkfs/maxtrres.c $(TOPDIR)/./logprint/log_print_trans.c $(TOPDIR)/./logprint/log_redo.c $(TOPDIR)/./logprint/log_misc.c $(TOPDIR)/./logprint/log_print_all.c $(TOPDIR)/./logprint/log_copy.c $(TOPDIR)/./logprint/log_dump.c $(TOPDIR)/./logprint/logprint.c $(TOPDIR)/./libhandle/jdm.c $(TOPDIR)/./libhandle/handle.c $(TOPDIR)/./io/imap.c $(TOPDIR)/./io/mincore.c $(TOPDIR)/./io/madvise.c $(TOPDIR)/./io/shutdown.c $(TOPDIR)/./io/bmap.c $(TOPDIR)/./io/inject.c $(TOPDIR)/./io/copy_file_range.c $(TOPDIR)/./io/attr.c $(TOPDIR)/./io/getrusage.c $(TOPDIR)/./io/init.c $(TOPDIR)/./io/sync.c $(TOPDIR)/./io/prealloc.c $(TOPDIR)/./io/cowextsize.c $(TOPDIR)/./io/resblks.c $(TOPDIR)/./io/fsync.c $(TOPDIR)/./io/link.c $(TOPDIR)/./io/sync_file_range.c $(TOPDIR)/./io/pread.c $(TOPDIR)/./io/truncate.c $(TOPDIR)/./io/open.c $(TOPDIR)/./io/reflink.c $(TOPDIR)/./io/readdir.c $(TOPDIR)/./io/file.c $(TOPDIR)/./io/pwrite.c $(TOPDIR)/./io/sendfile.c $(TOPDIR)/./io/fiemap.c $(TOPDIR)/./io/fadvise.c $(TOPDIR)/./io/parent.c $(TOPDIR)/./io/mmap.c $(TOPDIR)/./io/freeze.c $(TOPDIR)/./io/seek.c $(TOPDIR)/./growfs/xfs_growfs.c $(TOPDIR)/./libxcmd/paths.c $(TOPDIR)/./libxcmd/projects.c $(TOPDIR)/./libxcmd/input.c $(TOPDIR)/./libxcmd/quit.c $(TOPDIR)/./libxcmd/command.c $(TOPDIR)/./libxcmd/help.c $(TOPDIR)/./libxcmd/topology.c $(TOPDIR)/./fsr/xfs_fsr.c $(TOPDIR)/./estimate/xfs_estimate.c $(TOPDIR)/./copy/xfs_copy.c $(TOPDIR)/./mdrestore/xfs_mdrestore.c $(TOPDIR)/./repair/dir2.c $(TOPDIR)/./repair/incore_ino.c $(TOPDIR)/./repair/threads.c $(TOPDIR)/./repair/globals.c $(TOPDIR)/./repair/bmap.c $(TOPDIR)/./repair/avl.c $(TOPDIR)/./repair/progress.c $(TOPDIR)/./repair/incore_ext.c $(TOPDIR)/./repair/xfs_repair.c $(TOPDIR)/./repair/phase3.c $(TOPDIR)/./repair/dinode.c $(TOPDIR)/./repair/phase7.c $(TOPDIR)/./repair/phase5.c $(TOPDIR)/./repair/phase2.c $(TOPDIR)/./repair/init.c $(TOPDIR)/./repair/dino_chunks.c $(TOPDIR)/./repair/phase6.c $(TOPDIR)/./repair/phase1.c $(TOPDIR)/./repair/prefetch.c $(TOPDIR)/./repair/sb.c $(TOPDIR)/./repair/avl64.c $(TOPDIR)/./repair/rt.c $(TOPDIR)/./repair/da_util.c $(TOPDIR)/./repair/phase4.c $(TOPDIR)/./repair/rmap.c $(TOPDIR)/./repair/btree.c $(TOPDIR)/./repair/incore.c $(TOPDIR)/./repair/scan.c $(TOPDIR)/./repair/slab.c $(TOPDIR)/./repair/attr_repair.c $(TOPDIR)/./repair/versions.c $(TOPDIR)/./repair/agheader.c $(TOPDIR)/./repair/incore_bmc.c $(TOPDIR)/./db/malloc.c $(TOPDIR)/./db/dir2.c $(TOPDIR)/./db/attrset.c $(TOPDIR)/./db/crc.c $(TOPDIR)/./db/inode.c $(TOPDIR)/./db/strvec.c $(TOPDIR)/./db/bmroot.c $(TOPDIR)/./db/debug.c $(TOPDIR)/./db/bmap.c $(TOPDIR)/./db/type.c $(TOPDIR)/./db/freesp.c $(TOPDIR)/./db/io.c $(TOPDIR)/./db/field.c $(TOPDIR)/./db/faddr.c $(TOPDIR)/./db/attr.c $(TOPDIR)/./db/sig.c $(TOPDIR)/./db/init.c $(TOPDIR)/./db/convert.c $(TOPDIR)/./db/fsmap.c $(TOPDIR)/./db/check.c $(TOPDIR)/./db/agf.c $(TOPDIR)/./db/block.c $(TOPDIR)/./db/input.c $(TOPDIR)/./db/symlink.c $(TOPDIR)/./db/flist.c $(TOPDIR)/./db/quit.c $(TOPDIR)/./db/agfl.c $(TOPDIR)/./db/sb.c $(TOPDIR)/./db/command.c $(TOPDIR)/./db/help.c $(TOPDIR)/./db/frag.c $(TOPDIR)/./db/dquot.c $(TOPDIR)/./db/metadump.c $(TOPDIR)/./db/output.c $(TOPDIR)/./db/agi.c $(TOPDIR)/./db/print.c $(TOPDIR)/./db/echo.c $(TOPDIR)/./db/bit.c $(TOPDIR)/./db/addr.c $(TOPDIR)/./db/btblock.c $(TOPDIR)/./db/text.c $(TOPDIR)/./db/write.c $(TOPDIR)/./db/fprint.c $(TOPDIR)/./db/attrshort.c $(TOPDIR)/./db/dir2sf.c $(TOPDIR)/./db/hash.c $(TOPDIR)/./db/logformat.c $(TOPDIR)/./fs/xfs/xfs_rmap_item.c
+
+RPM		= /usr/bin/rpm
+RPMBUILD	= /usr/bin/rpmbuild
+RPM_VERSION	= 4
+
+ENABLE_SHARED	= yes
+ENABLE_GETTEXT	= yes
+ENABLE_EDITLINE	= no
+ENABLE_READLINE	= no
+ENABLE_BLKID	= yes
+
+HAVE_ZIPPED_MANPAGES = false
+
+HAVE_FADVISE = yes
+HAVE_MADVISE = yes
+HAVE_MINCORE = yes
+HAVE_SENDFILE = yes
+HAVE_GETMNTENT = yes
+HAVE_GETMNTINFO = 
+HAVE_FALLOCATE = yes
+HAVE_FIEMAP = yes
+HAVE_PREADV = yes
+HAVE_COPY_FILE_RANGE = yes
+HAVE_SYNC_FILE_RANGE = yes
+HAVE_READDIR = yes
+HAVE_MNTENT = yes
+HAVE_FLS = 
+HAVE_FSETXATTR = 
+HAVE_MREMAP = yes
+NEED_INTERNAL_FSXATTR = 
+
+GCCFLAGS = -funsigned-char -fno-strict-aliasing -Wall
+#	   -Wbitwise -Wno-transparent-union -Wno-old-initializer -Wno-decl
+
+ifeq ($(PKG_PLATFORM),linux)
+PCFLAGS = -D_GNU_SOURCE $(GCCFLAGS)
+ifeq ($(HAVE_UMODE_T),yes)
+PCFLAGS += -DHAVE_UMODE_T
+endif
+DEPENDFLAGS = -D__linux__
+endif
+ifeq ($(PKG_PLATFORM),gnukfreebsd)
+PCFLAGS = -D_GNU_SOURCE $(GCCFLAGS)
+endif
+ifeq ($(PKG_PLATFORM),darwin)
+PCFLAGS = $(GCCFLAGS)
+DEPENDFLAGS = -D__APPLE__ -D_DARWIN_FEATURE_64_BIT_INODE
+endif
+ifeq ($(PKG_PLATFORM),irix)
+PLDLIBS = -ldisk -lgen
+DEPENDFLAGS = -D__sgi__
+endif
+ifeq ($(PKG_PLATFORM),freebsd)
+PLDLIBS = -L/usr/local/lib -lintl
+PCFLAGS = -I/usr/local/include $(GCCFLAGS)
+DEPENDFLAGS = -D__FreeBSD__
+endif
+ifeq ($(HAVE_FLS),yes)
+LCFLAGS+= -DHAVE_FLS
+endif
+ifeq ($(HAVE_MNTENT),yes)
+PCFLAGS+= -DHAVE_MNTENT
+endif
+ifeq ($(HAVE_FSETXATTR),yes)
+PCFLAGS+= -DHAVE_FSETXATTR
+endif
+ifeq ($(ENABLE_BLKID),yes)
+PCFLAGS+= -DENABLE_BLKID
+endif
+ifeq ($(NEED_INTERNAL_FSXATTR),yes)
+PCFLAGS+= -DOVERRIDE_SYSTEM_FSXATTR
+endif
+
+
+GCFLAGS = $(OPTIMIZER) $(DEBUG) \
+	  -DVERSION=\"$(PKG_VERSION)\" -DLOCALEDIR=\"$(PKG_LOCALE_DIR)\"  \
+	  -DPACKAGE=\"$(PKG_NAME)\" -I$(TOPDIR)/include -I$(TOPDIR)/libxfs
+
+ifeq ($(ENABLE_GETTEXT),yes)
+GCFLAGS += -DENABLE_GETTEXT
+endif
+
+# First, Global, Platform, Local CFLAGS
+CFLAGS += $(FCFLAGS) $(GCFLAGS) $(PCFLAGS) $(LCFLAGS)
+
+include $(TOPDIR)/include/buildmacros
+
+endif
+
+#
+# For targets that should always be rebuilt,
+# define a target that is never up-to-date.
+# Targets needing this should depend on $(_FORCE)
+_FORCE = __force_build
