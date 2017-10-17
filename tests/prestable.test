@@ -14,7 +14,7 @@ empty_part_test="mini_clone_restore_test"
 data_part_test="data_clone_restore_test"
 pushd $PARTCLONE_PATH
 make clean
-autoreconf
+./autogen
 ./configure --enable-all --enable-ncursesw
 make
 popd
