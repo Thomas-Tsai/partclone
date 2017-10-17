@@ -1,4 +1,32 @@
+2017-10-17  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release  version 0.3.9 Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+	update test and ready to release
+
+2017-10-17  root  <root@ptldev.localdomain>
+
+	remove trash and update dd
+
+2017-10-16  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update xfs
+
+2017-10-03  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update exfat
+
+2017-09-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+	set version 0.3.8
+
+	fix pip issue for dd +bt
+
 2017-09-21  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.3.7
 
 	set version 0.3.7
 

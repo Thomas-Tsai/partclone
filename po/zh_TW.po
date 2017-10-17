@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.2.51\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2017-09-21 22:35+0800\n"
+"POT-Creation-Date: 2017-10-17 22:55+0800\n"
 "PO-Revision-Date: 2007-11-01 11:35+0800\n"
 "Last-Translator: Yu-Chin Tsai <thomas@nchc.org.tw>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -80,160 +80,160 @@ msgstr "全部時間：%s 剩餘時間: %s "
 msgid "Ave. Rate: %6.2f%s/min"
 msgstr "平均速率：%6.2f%s/min"
 
-#: src/partclone.c:1739
+#: src/partclone.c:1770
 #, c-format
 msgid "Partclone v%s http://partclone.org\n"
 msgstr ""
 
-#: src/partclone.c:1741
+#: src/partclone.c:1772
 #, c-format
 msgid "Starting to check image (%s)\n"
 msgstr "開始檢查印象檔 (%s)\n"
 
-#: src/partclone.c:1743
+#: src/partclone.c:1774
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
 msgstr "開始備份 裝置 (%s) 到 印象檔 (%s)\n"
 
-#: src/partclone.c:1746
+#: src/partclone.c:1777
 #, fuzzy, c-format
 msgid "Starting to restore image (%s) to block files (%s)\n"
 msgstr "開始還原 印象檔 (%s) 到 裝置 (%s)\n"
 
-#: src/partclone.c:1748
+#: src/partclone.c:1779
 #, c-format
 msgid "Starting to restore image (%s) to device (%s)\n"
 msgstr "開始還原 印象檔 (%s) 到 裝置 (%s)\n"
 
-#: src/partclone.c:1750
+#: src/partclone.c:1781
 #, c-format
 msgid "Starting to back up device(%s) to device(%s)\n"
 msgstr "開始備份 裝置 (%s) 到 裝置 (%s)\n"
 
-#: src/partclone.c:1752
+#: src/partclone.c:1783
 #, c-format
 msgid "Starting to map device (%s) to domain log (%s)\n"
 msgstr "開始輸出 裝置 (%s)區塊 到 資料檔 (%s)\n"
 
-#: src/partclone.c:1755
+#: src/partclone.c:1786
 #, fuzzy, c-format
 msgid "Starting to dd image (%s) to block files (%s)\n"
 msgstr "開始還原 印象檔 (%s) 到 裝置 (%s)\n"
 
-#: src/partclone.c:1757
+#: src/partclone.c:1788
 #, fuzzy, c-format
 msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
 msgstr "開始備份 裝置 (%s) 到 印象檔 (%s)\n"
 
-#: src/partclone.c:1759
+#: src/partclone.c:1790
 #, fuzzy, c-format
 msgid "Showing info of image (%s)\n"
 msgstr "開始檢查印象檔 (%s)\n"
 
-#: src/partclone.c:1780
+#: src/partclone.c:1811
 #, c-format
 msgid "File system:  %s\n"
 msgstr "檔案系統: %s\n"
 
-#: src/partclone.c:1783
+#: src/partclone.c:1814
 #, fuzzy, c-format
 msgid "Device size:  %s = %llu Blocks\n"
 msgstr "裝置大小: %s = %lld Blocks\n"
 
-#: src/partclone.c:1786
+#: src/partclone.c:1817
 #, fuzzy, c-format
 msgid "Space in use: %s = %llu Blocks\n"
 msgstr "裝置使用到空間: %s = %lld Blocks\n"
 
-#: src/partclone.c:1789
+#: src/partclone.c:1820
 #, fuzzy, c-format
 msgid "Free Space:   %s = %llu Blocks\n"
 msgstr "剩餘空間: %s = %lld Blocks\n"
 
-#: src/partclone.c:1791
+#: src/partclone.c:1822
 #, c-format
 msgid "Block size:   %i Byte\n"
 msgstr "裝置區塊大小: %i Byte\n"
 
-#: src/partclone.c:1804
+#: src/partclone.c:1835
 #, c-format
 msgid "image format:    %04d\n"
 msgstr ""
 
-#: src/partclone.c:1808 src/partclone.c:1815
+#: src/partclone.c:1839 src/partclone.c:1846
 #, c-format
 msgid "created on a:    %s\n"
 msgstr ""
 
-#: src/partclone.c:1810 src/partclone.c:1818
+#: src/partclone.c:1841 src/partclone.c:1849
 #, c-format
 msgid "with partclone:  %s\n"
 msgstr ""
 
-#: src/partclone.c:1814
+#: src/partclone.c:1845
 #, c-format
 msgid "%d bits platform"
 msgstr ""
 
-#: src/partclone.c:1817
+#: src/partclone.c:1848
 #, fuzzy, c-format
 msgid "v%s"
 msgstr "%s"
 
-#: src/partclone.c:1821
+#: src/partclone.c:1852
 #, c-format
 msgid "bitmap mode:     %s\n"
 msgstr ""
 
-#: src/partclone.c:1823
+#: src/partclone.c:1854
 #, c-format
 msgid "checksum algo:   %s\n"
 msgstr ""
 
-#: src/partclone.c:1827 src/partclone.c:1836
+#: src/partclone.c:1858 src/partclone.c:1867
 #, fuzzy, c-format
 msgid "checksum size:   %s\n"
 msgstr "裝置區塊大小: %i Byte\n"
 
-#: src/partclone.c:1829 src/partclone.c:1839
+#: src/partclone.c:1860 src/partclone.c:1870
 #, c-format
 msgid "blocks/checksum: %s\n"
 msgstr ""
 
-#: src/partclone.c:1831 src/partclone.c:1841
+#: src/partclone.c:1862 src/partclone.c:1872
 #, c-format
 msgid "reseed checksum: %s\n"
 msgstr ""
 
-#: src/partclone.c:1841
+#: src/partclone.c:1872
 msgid "yes"
 msgstr ""
 
-#: src/partclone.c:1841
+#: src/partclone.c:1872
 msgid "no"
 msgstr ""
 
-#: src/partclone.c:1854
+#: src/partclone.c:1885
 #, c-format
 msgid "Partclone successfully checked the image (%s)\n"
 msgstr "檢查印象檔 (%s) 完成\n"
 
-#: src/partclone.c:1856
+#: src/partclone.c:1887
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr "備份 裝置 (%s) 到 印象檔 (%s) 完成\n"
 
-#: src/partclone.c:1858
+#: src/partclone.c:1889
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr "還原 印象檔 (%s) 到 裝置 (%s) 完成\n"
 
-#: src/partclone.c:1860
+#: src/partclone.c:1891
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr "備份 裝置 (%s) 到 裝置 (%s) 完成\n"
 
-#: src/partclone.c:1862
+#: src/partclone.c:1893
 #, c-format
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
 msgstr "輸出裝置 (%s) 區塊資訊 到 資料檔 (%s) 完成\n"

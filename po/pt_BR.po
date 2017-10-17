@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.3.3\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2017-09-21 22:35+0800\n"
+"POT-Creation-Date: 2017-10-17 22:55+0800\n"
 "PO-Revision-Date: 2016-11-04 17:11-0200\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -82,163 +82,163 @@ msgstr "Tempo total: %s Restante: %s "
 msgid "Ave. Rate: %6.2f%s/min"
 msgstr "Taxa média: %6.2f%s/min"
 
-#: src/partclone.c:1739
+#: src/partclone.c:1770
 #, c-format
 msgid "Partclone v%s http://partclone.org\n"
 msgstr "Partclone v%s http://partclone.org\n"
 
-#: src/partclone.c:1741
+#: src/partclone.c:1772
 #, c-format
 msgid "Starting to check image (%s)\n"
 msgstr "Iniciando a verificação da imagem (%s)\n"
 
-#: src/partclone.c:1743
+#: src/partclone.c:1774
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
 msgstr "Iniciando a clonagem de dispositivo (%s) para imagem (%s)\n"
 
-#: src/partclone.c:1746
+#: src/partclone.c:1777
 #, fuzzy, c-format
 msgid "Starting to restore image (%s) to block files (%s)\n"
 msgstr "Iniciando a restauração da imagem (%s) para dispositivo (%s)\n"
 
-#: src/partclone.c:1748
+#: src/partclone.c:1779
 #, c-format
 msgid "Starting to restore image (%s) to device (%s)\n"
 msgstr "Iniciando a restauração da imagem (%s) para dispositivo (%s)\n"
 
-#: src/partclone.c:1750
+#: src/partclone.c:1781
 #, c-format
 msgid "Starting to back up device(%s) to device(%s)\n"
 msgstr "Iniciando a backup de dispositivo (%s) para dispositivo (%s)\n"
 
-#: src/partclone.c:1752
+#: src/partclone.c:1783
 #, c-format
 msgid "Starting to map device (%s) to domain log (%s)\n"
 msgstr ""
 "Iniciando a mapeamento de dispositivo (%s) para registro de domínio (%s)\n"
 
-#: src/partclone.c:1755
+#: src/partclone.c:1786
 #, fuzzy, c-format
 msgid "Starting to dd image (%s) to block files (%s)\n"
 msgstr "Iniciando a restauração da imagem (%s) para dispositivo (%s)\n"
 
-#: src/partclone.c:1757
+#: src/partclone.c:1788
 #, c-format
 msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
 msgstr "Iniciando a clonagem/restauração (%s) para (%s) com modo dd\n"
 
-#: src/partclone.c:1759
+#: src/partclone.c:1790
 #, c-format
 msgid "Showing info of image (%s)\n"
 msgstr "Mostrando info sobre a imagem (%s)\n"
 
-#: src/partclone.c:1780
+#: src/partclone.c:1811
 #, c-format
 msgid "File system:  %s\n"
 msgstr "Sistema de arquivos: %s\n"
 
-#: src/partclone.c:1783
+#: src/partclone.c:1814
 #, c-format
 msgid "Device size:  %s = %llu Blocks\n"
 msgstr "Tam. dispos.:  %s = %llu blocos\n"
 
-#: src/partclone.c:1786
+#: src/partclone.c:1817
 #, c-format
 msgid "Space in use: %s = %llu Blocks\n"
 msgstr "Espaço em uso: %s = %llu blocos\n"
 
-#: src/partclone.c:1789
+#: src/partclone.c:1820
 #, c-format
 msgid "Free Space:   %s = %llu Blocks\n"
 msgstr "Espaço livre:  %s = %llu blocos\n"
 
-#: src/partclone.c:1791
+#: src/partclone.c:1822
 #, c-format
 msgid "Block size:   %i Byte\n"
 msgstr "Tam. bloco:    %i Byte\n"
 
-#: src/partclone.c:1804
+#: src/partclone.c:1835
 #, c-format
 msgid "image format:    %04d\n"
 msgstr "formato img.:    %04d\n"
 
-#: src/partclone.c:1808 src/partclone.c:1815
+#: src/partclone.c:1839 src/partclone.c:1846
 #, c-format
 msgid "created on a:    %s\n"
 msgstr "criada em um:    %s\n"
 
-#: src/partclone.c:1810 src/partclone.c:1818
+#: src/partclone.c:1841 src/partclone.c:1849
 #, c-format
 msgid "with partclone:  %s\n"
 msgstr "com partclone:   %s\n"
 
-#: src/partclone.c:1814
+#: src/partclone.c:1845
 #, c-format
 msgid "%d bits platform"
 msgstr "plataforma de %d bits"
 
-#: src/partclone.c:1817
+#: src/partclone.c:1848
 #, c-format
 msgid "v%s"
 msgstr "v%s"
 
-#: src/partclone.c:1821
+#: src/partclone.c:1852
 #, c-format
 msgid "bitmap mode:     %s\n"
 msgstr "modo bitmap:     %s\n"
 
-#: src/partclone.c:1823
+#: src/partclone.c:1854
 #, c-format
 msgid "checksum algo:   %s\n"
 msgstr "algo. checksum:  %s\n"
 
-#: src/partclone.c:1827 src/partclone.c:1836
+#: src/partclone.c:1858 src/partclone.c:1867
 #, c-format
 msgid "checksum size:   %s\n"
 msgstr "tam. checksum:   %s\n"
 
-#: src/partclone.c:1829 src/partclone.c:1839
+#: src/partclone.c:1860 src/partclone.c:1870
 #, c-format
 msgid "blocks/checksum: %s\n"
 msgstr "blocos/checksum: %s\n"
 
-#: src/partclone.c:1831 src/partclone.c:1841
+#: src/partclone.c:1862 src/partclone.c:1872
 #, c-format
 msgid "reseed checksum: %s\n"
 msgstr "ressemear checksum: %s\n"
 
-#: src/partclone.c:1841
+#: src/partclone.c:1872
 msgid "yes"
 msgstr "sim"
 
-#: src/partclone.c:1841
+#: src/partclone.c:1872
 msgid "no"
 msgstr "não"
 
-#: src/partclone.c:1854
+#: src/partclone.c:1885
 #, c-format
 msgid "Partclone successfully checked the image (%s)\n"
 msgstr "Partclone verificou com sucesso a imagem (%s)\n"
 
-#: src/partclone.c:1856
+#: src/partclone.c:1887
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr "Partclone clonou com sucesso o dispositivo (%s) para a imagem (%s)\n"
 
-#: src/partclone.c:1858
+#: src/partclone.c:1889
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr ""
 "Partclone restaurou com sucesso a imagem (%s) para o dispositivo (%s)\n"
 
-#: src/partclone.c:1860
+#: src/partclone.c:1891
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr ""
 "Partclone clonou com sucesso o dispositivo (%s) para o dispositivo (%s)\n"
 
-#: src/partclone.c:1862
+#: src/partclone.c:1893
 #, c-format
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
 msgstr ""

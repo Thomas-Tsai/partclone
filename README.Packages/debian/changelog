@@ -1,3 +1,17 @@
+partclone (0.3.8-1) UNRELEASED; urgency=medium
+
+  * update xfs source code to 4.9.0
+  * update exfat
+  * fix dd partition isze issue
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 17 Oct 2017 22:55:33 +0800
+
+partclone (0.3.8-1) unstable; urgency=medium
+
+  * make dd suport pipe to bt mode 
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 25 Sep 2017 20:42:07 +0800
+
 partclone (0.3.7-1) unstable; urgency=medium
 
   * add dd for blockfilesfunction 
