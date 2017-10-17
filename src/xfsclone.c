@@ -378,7 +378,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     xfs_bitmap = bitmap;
 
-    for(current_block = 0; current_block <= fs_info.totalblock; current_block++){
+    for(current_block = 0; current_block < fs_info.totalblock; current_block++){
 	pc_set_bit(current_block, bitmap, fs_info.totalblock);
     }
     /// init progress
@@ -401,7 +401,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	/* read in first blocks of the ag */
 	scan_ag(agno);
     }
-    for(current_block = 0; current_block <= fs_info.totalblock; current_block++){
+    for(current_block = 0; current_block < fs_info.totalblock; current_block++){
 	if(pc_test_bit(current_block, bitmap, fs_info.totalblock))
 	    bused++;
 	else
