@@ -3,7 +3,7 @@
 	exFAT file system implementation library.
 
 	Free exFAT implementation.
-	Copyright (C) 2010-2014  Andrew Nayenko
+	Copyright (C) 2010-2016  Andrew Nayenko
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -30,23 +30,32 @@
 
 static uint64_t rootdir_size(const struct exfat* ef)
 {
-	uint64_t clusters = 0;
+	uint32_t clusters = 0;
+	uint32_t clusters_max = le32_to_cpu(ef->sb->cluster_count);
 	cluster_t rootdir_cluster = le32_to_cpu(ef->sb->rootdir_cluster);
 
-	while (!CLUSTER_INVALID(rootdir_cluster))
+	/* Iterate all clusters of the root directory to calculate its size.
+	   It can't be contiguous because there is no flag to indicate this. */
+	do
 	{
-		clusters++;
-		/* root directory cannot be contiguous because there is no flag
-		   to indicate this */
+		if (clusters == clusters_max) /* infinite loop detected */
+		{
+			exfat_error("root directory cannot occupy all %d clusters",
+					clusters);
+			return 0;
+		}
+		if (CLUSTER_INVALID(rootdir_cluster))
+		{
+			exfat_error("bad cluster %#x while reading root directory",
+					rootdir_cluster);
+			return 0;
+		}
 		rootdir_cluster = exfat_next_cluster(ef, ef->root, rootdir_cluster);
+		clusters++;
 	}
-	if (rootdir_cluster != EXFAT_CLUSTER_END)
-	{
-		exfat_error("bad cluster %#x while reading root directory",
-				rootdir_cluster);
-		return 0;
-	}
-	return clusters * CLUSTER_SIZE(*ef->sb);
+	while (rootdir_cluster != EXFAT_CLUSTER_END);
+
+	return (uint64_t) clusters * CLUSTER_SIZE(*ef->sb);
 }
 
 static const char* get_option(const char* options, const char* option_name)
@@ -84,13 +93,11 @@ static bool match_option(const char* options, const char* option_name)
 
 static void parse_options(struct exfat* ef, const char* options)
 {
-	int sys_umask = umask(0);
 	int opt_umask;
 
-	umask(sys_umask); /* restore umask */
-	opt_umask = get_int_option(options, "umask", 8, sys_umask);
-	ef->dmask = get_int_option(options, "dmask", 8, opt_umask) & 0777;
-	ef->fmask = get_int_option(options, "fmask", 8, opt_umask) & 0777;
+	opt_umask = get_int_option(options, "umask", 8, 0);
+	ef->dmask = get_int_option(options, "dmask", 8, opt_umask);
+	ef->fmask = get_int_option(options, "fmask", 8, opt_umask);
 
 	ef->uid = get_int_option(options, "uid", 10, geteuid());
 	ef->gid = get_int_option(options, "gid", 10, getegid());
@@ -208,6 +215,23 @@ int exfat_mount(struct exfat* ef, const char* spec, const char* options)
 		exfat_error("exFAT file system is not found");
 		return -EIO;
 	}
+	/* sector cannot be smaller than 512 bytes */
+	if (ef->sb->sector_bits < 9)
+	{
+		exfat_close(ef->dev);
+		exfat_error("too small sector size: 2^%hhd", ef->sb->sector_bits);
+		free(ef->sb);
+		return -EIO;
+	}
+	/* officially exFAT supports cluster size up to 32 MB */
+	if ((int) ef->sb->sector_bits + (int) ef->sb->spc_bits > 25)
+	{
+		exfat_close(ef->dev);
+		exfat_error("too big cluster size: 2^(%hhd+%hhd)",
+				ef->sb->sector_bits, ef->sb->spc_bits);
+		free(ef->sb);
+		return -EIO;
+	}
 	ef->zero_cluster = malloc(CLUSTER_SIZE(*ef->sb));
 	if (ef->zero_cluster == NULL)
 	{
@@ -242,27 +266,15 @@ int exfat_mount(struct exfat* ef, const char* spec, const char* options)
 		free(ef->sb);
 		return -EIO;
 	}
-	/* officially exFAT supports cluster size up to 32 MB */
-	if ((int) ef->sb->sector_bits + (int) ef->sb->spc_bits > 25)
-	{
-		free(ef->zero_cluster);
-		exfat_close(ef->dev);
-		exfat_error("too big cluster size: 2^%d",
-				(int) ef->sb->sector_bits + (int) ef->sb->spc_bits);
-		free(ef->sb);
-		return -EIO;
-	}
 	if (le64_to_cpu(ef->sb->sector_count) * SECTOR_SIZE(*ef->sb) >
 			exfat_get_size(ef->dev))
 	{
-		free(ef->zero_cluster);
-		exfat_error("file system is larger than underlying device: "
+		/* this can cause I/O errors later but we don't fail mounting to let
+		   user rescue data */
+		exfat_warn("file system is larger than underlying device: "
 				"%"PRIu64" > %"PRIu64,
 				le64_to_cpu(ef->sb->sector_count) * SECTOR_SIZE(*ef->sb),
 				exfat_get_size(ef->dev));
-		exfat_close(ef->dev);
-		free(ef->sb);
-		return -EIO;
 	}
 
 	ef->root = malloc(sizeof(struct exfat_node));
@@ -347,7 +359,8 @@ static void finalize_super_block(struct exfat* ef)
 
 void exfat_unmount(struct exfat* ef)
 {
-	exfat_flush(ef);	/* ignore return code */
+	exfat_flush_nodes(ef);	/* ignore return code */
+	exfat_flush(ef);		/* ignore return code */
 	exfat_put_node(ef, ef->root);
 	exfat_reset_cache(ef);
 	free(ef->root);
@@ -363,5 +376,4 @@ void exfat_unmount(struct exfat* ef)
 	ef->sb = NULL;
 	free(ef->upcase);
 	ef->upcase = NULL;
-	ef->upcase_chars = 0;
 }

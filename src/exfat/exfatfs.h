@@ -3,7 +3,7 @@
 	Definitions of structures and constants used in exFAT file system.
 
 	Free exFAT implementation.
-	Copyright (C) 2010-2014  Andrew Nayenko
+	Copyright (C) 2010-2016  Andrew Nayenko
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #define EXFATFS_H_INCLUDED
 
 #include "byteorder.h"
+#include "compiler.h"
 
 typedef uint32_t cluster_t;		/* cluster number */
 
@@ -69,6 +70,7 @@ STATIC_ASSERT(sizeof(struct exfat_super_block) == 512);
 
 #define EXFAT_ENTRY_VALID     0x80
 #define EXFAT_ENTRY_CONTINUED 0x40
+#define EXFAT_ENTRY_OPTIONAL  0x20
 
 #define EXFAT_ENTRY_BITMAP    (0x01 | EXFAT_ENTRY_VALID)
 #define EXFAT_ENTRY_UPCASE    (0x02 | EXFAT_ENTRY_VALID)
@@ -96,6 +98,8 @@ struct exfat_entry_bitmap			/* allocated clusters bitmap */
 }
 PACKED;
 STATIC_ASSERT(sizeof(struct exfat_entry_bitmap) == 32);
+
+#define EXFAT_UPCASE_CHARS 0x10000
 
 struct exfat_entry_upcase			/* upper case translation table */
 {

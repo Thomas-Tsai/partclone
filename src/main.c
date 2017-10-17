@@ -78,6 +78,7 @@ int main(int argc, char **argv) {
 	int			pres = 0;
 	pthread_t		prog_thread;
 	void			*p_result;
+	struct stat st_dev;
 
 	static const char *const bad_sectors_warning_msg =
 		"*************************************************************************\n"
@@ -317,7 +318,14 @@ int main(int argc, char **argv) {
 		    fs_info.device_size = get_partition_size(&dfr);
 		    read_super_blocks(source, &fs_info);
 		}else{
-		    fs_info.device_size = get_free_space(target);
+		    if (stat(target, &st_dev) != -1) {
+		        if (S_ISBLK(st_dev.st_mode)) 
+			    fs_info.device_size = get_partition_size(&dfw);
+			else
+			    fs_info.device_size = get_free_space(target);
+		    } else {
+			fs_info.device_size = get_free_space(target);
+		    }
 		    read_super_blocks(target, &fs_info);
 		}
 		img_opt.checksum_mode = opt.checksum_mode;

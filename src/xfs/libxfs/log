@@ -1,0 +1,104 @@
+    [CC]     gen_crc32table
+gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID  -o gen_crc32table gen_crc32table.c
+    [GENERATE] crc32table.h
+./gen_crc32table > crc32table.h
+gcc -MM -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID  cache.c crc32.c defer_item.c init.c kmem.c list_sort.c logitem.c radix-tree.c rdwr.c trans.c util.c xfs_ag_resv.c xfs_alloc.c xfs_alloc_btree.c xfs_attr.c xfs_attr_leaf.c xfs_attr_remote.c xfs_bit.c xfs_bmap.c xfs_bmap_btree.c xfs_btree.c xfs_da_btree.c xfs_da_format.c xfs_defer.c xfs_dir2.c xfs_dir2_block.c xfs_dir2_data.c xfs_dir2_leaf.c xfs_dir2_node.c xfs_dir2_sf.c xfs_dquot_buf.c xfs_ialloc.c xfs_inode_buf.c xfs_inode_fork.c xfs_ialloc_btree.c xfs_log_rlimit.c xfs_refcount.c xfs_refcount_btree.c xfs_rmap.c xfs_rmap_btree.c xfs_rtbitmap.c xfs_sb.c xfs_symlink_remote.c xfs_trans_resv.c linux.c | /bin/sed -e 's,^\([^:]*\)\.o,\1.lo,' > .ltdep
+    [TEST]    CRC32
+gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID  -D CRC32_SELFTEST=1 crc32.c -o crc32selftest
+./crc32selftest
+CRC_LE_BITS = 32
+crc32: tests passed, 225944 bytes in 90 usec
+crc32c: tests passed, 225944 bytes in 90 usec
+rm -f .ltdep
+    [CC]     cache.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c cache.c
+    [CC]     crc32.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c crc32.c
+    [CC]     defer_item.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c defer_item.c
+    [CC]     init.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c init.c
+    [CC]     kmem.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c kmem.c
+    [CC]     list_sort.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c list_sort.c
+    [CC]     logitem.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c logitem.c
+    [CC]     radix-tree.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c radix-tree.c
+    [CC]     rdwr.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c rdwr.c
+    [CC]     trans.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c trans.c
+    [CC]     util.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c util.c
+    [CC]     xfs_ag_resv.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_ag_resv.c
+    [CC]     xfs_alloc.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_alloc.c
+    [CC]     xfs_alloc_btree.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_alloc_btree.c
+    [CC]     xfs_attr.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_attr.c
+    [CC]     xfs_attr_leaf.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_attr_leaf.c
+    [CC]     xfs_attr_remote.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_attr_remote.c
+    [CC]     xfs_bit.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_bit.c
+    [CC]     xfs_bmap.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_bmap.c
+    [CC]     xfs_bmap_btree.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_bmap_btree.c
+    [CC]     xfs_btree.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_btree.c
+    [CC]     xfs_da_btree.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_da_btree.c
+    [CC]     xfs_da_format.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_da_format.c
+    [CC]     xfs_defer.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_defer.c
+    [CC]     xfs_dir2.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_dir2.c
+    [CC]     xfs_dir2_block.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_dir2_block.c
+    [CC]     xfs_dir2_data.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_dir2_data.c
+    [CC]     xfs_dir2_leaf.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_dir2_leaf.c
+    [CC]     xfs_dir2_node.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_dir2_node.c
+    [CC]     xfs_dir2_sf.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_dir2_sf.c
+    [CC]     xfs_dquot_buf.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_dquot_buf.c
+    [CC]     xfs_ialloc.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_ialloc.c
+    [CC]     xfs_inode_buf.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_inode_buf.c
+    [CC]     xfs_inode_fork.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_inode_fork.c
+    [CC]     xfs_ialloc_btree.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_ialloc_btree.c
+    [CC]     xfs_log_rlimit.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_log_rlimit.c
+    [CC]     xfs_refcount.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_refcount.c
+    [CC]     xfs_refcount_btree.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_refcount_btree.c
+    [CC]     xfs_rmap.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_rmap.c
+    [CC]     xfs_rmap_btree.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_rmap_btree.c
+    [CC]     xfs_rtbitmap.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_rtbitmap.c
+    [CC]     xfs_sb.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_sb.c
+    [CC]     xfs_symlink_remote.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_symlink_remote.c
+    [CC]     xfs_trans_resv.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c xfs_trans_resv.c
+    [CC]     linux.lo
+/bin/bash ../libtool --quiet --tag=CC --mode=compile gcc -g -O2 -D_FILE_OFFSET_BITS=64 -I. -g -O2 -DNDEBUG -DVERSION=\"4.9.0\" -DLOCALEDIR=\"/usr/share/locale\" -DPACKAGE=\"xfsprogs\" -I../include -I../libxfs -DENABLE_GETTEXT -D_GNU_SOURCE -funsigned-char -fno-strict-aliasing -Wall -DHAVE_MNTENT -DENABLE_BLKID   -c linux.c
+    [LD]     libxfs.la
+/bin/bash ../libtool --quiet --tag=CC --mode=link gcc   -rpath /lib -version-info 0:0:0 -o libxfs.la cache.lo crc32.lo defer_item.lo init.lo kmem.lo list_sort.lo logitem.lo radix-tree.lo rdwr.lo trans.lo util.lo xfs_ag_resv.lo xfs_alloc.lo xfs_alloc_btree.lo xfs_attr.lo xfs_attr_leaf.lo xfs_attr_remote.lo xfs_bit.lo xfs_bmap.lo xfs_bmap_btree.lo xfs_btree.lo xfs_da_btree.lo xfs_da_format.lo xfs_defer.lo xfs_dir2.lo xfs_dir2_block.lo xfs_dir2_data.lo xfs_dir2_leaf.lo xfs_dir2_node.lo xfs_dir2_sf.lo xfs_dquot_buf.lo xfs_ialloc.lo xfs_inode_buf.lo xfs_inode_fork.lo xfs_ialloc_btree.lo xfs_log_rlimit.lo xfs_refcount.lo xfs_refcount_btree.lo xfs_rmap.lo xfs_rmap_btree.lo xfs_rtbitmap.lo xfs_sb.lo xfs_symlink_remote.lo xfs_trans_resv.lo linux.lo -lpthread -lrt

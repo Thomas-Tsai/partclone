@@ -3,7 +3,7 @@
 	exFAT file system implementation library.
 
 	Free exFAT implementation.
-	Copyright (C) 2010-2014  Andrew Nayenko
+	Copyright (C) 2010-2016  Andrew Nayenko
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -24,14 +24,12 @@
 #include <errno.h>
 #include <string.h>
 #include <inttypes.h>
-#include <assert.h>
 
 /* on-disk nodes iterator */
 struct iterator
 {
 	cluster_t cluster;
 	off_t offset;
-	int contiguous;
 	char* chunk;
 };
 
@@ -96,21 +94,35 @@ static off_t co2o(struct exfat* ef, cluster_t cluster, off_t offset)
 static int opendir(struct exfat* ef, const struct exfat_node* dir,
 		struct iterator* it)
 {
+	char buffer[UTF8_BYTES(EXFAT_NAME_MAX) + 1];
+
 	if (!(dir->flags & EXFAT_ATTRIB_DIR))
-		exfat_bug("not a directory");
+	{
+		exfat_get_name(dir, buffer, sizeof(buffer) - 1);
+		exfat_bug("'%s' is not a directory", buffer);
+	}
+	if (CLUSTER_INVALID(dir->start_cluster))
+	{
+		exfat_get_name(dir, buffer, sizeof(buffer) - 1);
+		exfat_error("'%s' directory starts with invalid cluster %#x", buffer,
+				dir->start_cluster);
+		return -EIO;
+	}
 	it->cluster = dir->start_cluster;
 	it->offset = 0;
-	it->contiguous = IS_CONTIGUOUS(*dir);
 	it->chunk = malloc(CLUSTER_SIZE(*ef->sb));
 	if (it->chunk == NULL)
 	{
-		exfat_error("out of memory");
+		exfat_error("failed to allocate memory for directory cluster");
 		return -ENOMEM;
 	}
 	if (exfat_pread(ef->dev, it->chunk, CLUSTER_SIZE(*ef->sb),
 			exfat_c2o(ef, it->cluster)) < 0)
 	{
-		exfat_error("failed to read directory cluster %#x", it->cluster);
+		free(it->chunk);
+		exfat_get_name(dir, buffer, sizeof(buffer) - 1);
+		exfat_error("failed to read '%s' directory cluster %#x", buffer,
+				it->cluster);
 		return -EIO;
 	}
 	return 0;
@@ -120,7 +132,6 @@ static void closedir(struct iterator* it)
 {
 	it->cluster = 0;
 	it->offset = 0;
-	it->contiguous = 0;
 	free(it->chunk);
 	it->chunk = NULL;
 }
@@ -195,9 +206,10 @@ static const struct exfat_entry* get_entry_ptr(const struct exfat* ef,
 }
 
 static bool check_node(const struct exfat_node* node, uint16_t actual_checksum,
-		uint16_t reference_checksum, uint64_t valid_size)
+		uint16_t reference_checksum, uint64_t valid_size, int cluster_size)
 {
 	char buffer[UTF8_BYTES(EXFAT_NAME_MAX) + 1];
+	bool ret = true;
 
 	/*
 	   Validate checksum first. If it's invalid all other fields probably
@@ -208,7 +220,7 @@ static bool check_node(const struct exfat_node* node, uint16_t actual_checksum,
 		exfat_get_name(node, buffer, sizeof(buffer) - 1);
 		exfat_error("'%s' has invalid checksum (%#hx != %#hx)", buffer,
 				actual_checksum, reference_checksum);
-		return false;
+		ret = false;
 	}
 
 	/*
@@ -222,10 +234,69 @@ static bool check_node(const struct exfat_node* node, uint16_t actual_checksum,
 		exfat_get_name(node, buffer, sizeof(buffer) - 1);
 		exfat_error("'%s' has valid size (%"PRIu64") greater than size "
 				"(%"PRIu64")", buffer, valid_size, node->size);
-		return false;
+		ret = false;
 	}
 
-	return true;
+	/*
+	   Empty file must have zero start cluster. Non-empty file must start
+	   with a valid cluster. Directories cannot be empty (i.e. must always
+	   have a valid start cluster), but we will check this later in opendir()
+	   to give user a chance to read current directory.
+	*/
+	if (node->size == 0 && node->start_cluster != EXFAT_CLUSTER_FREE)
+	{
+		exfat_get_name(node, buffer, sizeof(buffer) - 1);
+		exfat_error("'%s' is empty but start cluster is %#x", buffer,
+				node->start_cluster);
+		ret = false;
+	}
+	if (node->size > 0 && CLUSTER_INVALID(node->start_cluster))
+	{
+		exfat_get_name(node, buffer, sizeof(buffer) - 1);
+		exfat_error("'%s' points to invalid cluster %#x", buffer,
+				node->start_cluster);
+		ret = false;
+	}
+
+	/* Empty file or directory must be marked as non-contiguous. */
+	if (node->size == 0 && (node->flags & EXFAT_ATTRIB_CONTIGUOUS))
+	{
+		exfat_get_name(node, buffer, sizeof(buffer) - 1);
+		exfat_error("'%s' is empty but marked as contiguous (%#x)", buffer,
+				node->flags);
+		ret = false;
+	}
+
+	/* Directory size must be aligned on at cluster boundary. */
+	if ((node->flags & EXFAT_ATTRIB_DIR) && node->size % cluster_size != 0)
+	{
+		exfat_get_name(node, buffer, sizeof(buffer) - 1);
+		exfat_error("'%s' directory size %"PRIu64" is not divisible by %d", buffer,
+				node->size, cluster_size);
+		ret = false;
+	}
+
+	return ret;
+}
+
+static void decompress_upcase(uint16_t* output, const le16_t* source,
+		size_t size)
+{
+	size_t si;
+	size_t oi;
+
+	for (oi = 0; oi < EXFAT_UPCASE_CHARS; oi++)
+		output[oi] = oi;
+
+	for (si = 0, oi = 0; si < size && oi < EXFAT_UPCASE_CHARS; si++)
+	{
+		uint16_t ch = le16_to_cpu(source[si]);
+
+		if (ch == 0xffff && si + 1 < size)	/* indicates a run */
+			oi += le16_to_cpu(source[++si]);
+		else
+			output[oi++] = ch;
+	}
 }
 
 /*
@@ -248,6 +319,8 @@ static int readdir(struct exfat* ef, const struct exfat_node* parent,
 	uint16_t reference_checksum = 0;
 	uint16_t actual_checksum = 0;
 	uint64_t valid_size = 0;
+	uint64_t upcase_size = 0;
+	le16_t* upcase_comp = NULL;
 
 	*node = NULL;
 
@@ -319,21 +392,6 @@ static int readdir(struct exfat* ef, const struct exfat_node* parent,
 			init_node_meta2(*node, meta2);
 			actual_checksum = exfat_add_checksum(entry, actual_checksum);
 			valid_size = le64_to_cpu(meta2->valid_size);
-			/* empty files must be marked as non-contiguous */
-			if ((*node)->size == 0 && (meta2->flags & EXFAT_FLAG_CONTIGUOUS))
-			{
-				exfat_error("empty file marked as contiguous (0x%hhx)",
-						meta2->flags);
-				goto error;
-			}
-			/* directories must be aligned on at cluster boundary */
-			if (((*node)->flags & EXFAT_ATTRIB_DIR) &&
-				(*node)->size % CLUSTER_SIZE(*ef->sb) != 0)
-			{
-				exfat_error("directory has invalid size %"PRIu64" bytes",
-						(*node)->size);
-				goto error;
-			}
 			--continuations;
 			break;
 
@@ -354,7 +412,7 @@ static int readdir(struct exfat* ef, const struct exfat_node* parent,
 			if (--continuations == 0)
 			{
 				if (!check_node(*node, actual_checksum, reference_checksum,
-						valid_size))
+						valid_size, CLUSTER_SIZE(*ef->sb)))
 					goto error;
 				if (!fetch_next_entry(ef, parent, it))
 					goto error;
@@ -372,33 +430,48 @@ static int readdir(struct exfat* ef, const struct exfat_node* parent,
 						le32_to_cpu(upcase->start_cluster));
 				goto error;
 			}
-			if (le64_to_cpu(upcase->size) == 0 ||
-				le64_to_cpu(upcase->size) > 0xffff * sizeof(uint16_t) ||
-				le64_to_cpu(upcase->size) % sizeof(uint16_t) != 0)
+			upcase_size = le64_to_cpu(upcase->size);
+			if (upcase_size == 0 ||
+				upcase_size > EXFAT_UPCASE_CHARS * sizeof(uint16_t) ||
+				upcase_size % sizeof(uint16_t) != 0)
 			{
 				exfat_error("bad upcase table size (%"PRIu64" bytes)",
-						le64_to_cpu(upcase->size));
+						upcase_size);
 				goto error;
 			}
-			ef->upcase = malloc(le64_to_cpu(upcase->size));
-			if (ef->upcase == NULL)
+			upcase_comp = malloc(upcase_size);
+			if (upcase_comp == NULL)
 			{
 				exfat_error("failed to allocate upcase table (%"PRIu64" bytes)",
-						le64_to_cpu(upcase->size));
+						upcase_size);
 				rc = -ENOMEM;
 				goto error;
 			}
-			ef->upcase_chars = le64_to_cpu(upcase->size) / sizeof(le16_t);
 
-			if (exfat_pread(ef->dev, ef->upcase, le64_to_cpu(upcase->size),
+			/* read compressed upcase table */
+			if (exfat_pread(ef->dev, upcase_comp, upcase_size,
 					exfat_c2o(ef, le32_to_cpu(upcase->start_cluster))) < 0)
 			{
+				free(upcase_comp);
 				exfat_error("failed to read upper case table "
 						"(%"PRIu64" bytes starting at cluster %#x)",
-						le64_to_cpu(upcase->size),
+						upcase_size,
 						le32_to_cpu(upcase->start_cluster));
 				goto error;
 			}
+
+			/* decompress upcase table */
+			ef->upcase = calloc(EXFAT_UPCASE_CHARS, sizeof(uint16_t));
+			if (ef->upcase == NULL)
+			{
+				free(upcase_comp);
+				exfat_error("failed to allocate decompressed upcase table");
+				rc = -ENOMEM;
+				goto error;
+			}
+			decompress_upcase(ef->upcase, upcase_comp,
+					upcase_size / sizeof(uint16_t));
+			free(upcase_comp);
 			break;
 
 		case EXFAT_ENTRY_BITMAP:
@@ -455,11 +528,21 @@ static int readdir(struct exfat* ef, const struct exfat_node* parent,
 			break;
 
 		default:
-			if (entry->type & EXFAT_ENTRY_VALID)
+			if (!(entry->type & EXFAT_ENTRY_VALID))
+				break; /* deleted entry, ignore it */
+			if (!(entry->type & EXFAT_ENTRY_OPTIONAL))
 			{
-				exfat_error("unknown entry type 0x%hhx", entry->type);
+				exfat_error("unknown entry type %#hhx", entry->type);
 				goto error;
 			}
+			/* optional entry, warn and skip */
+			exfat_warn("unknown entry type %#hhx", entry->type);
+			if (continuations == 0)
+			{
+				exfat_error("unexpected continuation");
+				goto error;
+			}
+			--continuations;
 			break;
 		}
 
@@ -549,7 +632,6 @@ static void reset_cache(struct exfat* ef, struct exfat_node* node)
 	while (node->child)
 	{
 		struct exfat_node* p = node->child;
-        assert(p == NULL);
 		reset_cache(ef, p);
 		tree_detach(p);
 		free(p);
@@ -656,7 +738,7 @@ int exfat_flush_node(struct exfat* ef, struct exfat_node* node)
 	}
 
 	node->flags &= ~EXFAT_ATTRIB_DIRTY;
-	return 0;
+	return exfat_flush(ef);
 }
 
 static bool erase_entry(struct exfat* ef, struct exfat_node* node)
@@ -965,7 +1047,7 @@ int exfat_mkdir(struct exfat* ef, const char* path)
 	int rc;
 	struct exfat_node* node;
 
-	rc = create(ef, path, EXFAT_ATTRIB_ARCH | EXFAT_ATTRIB_DIR);
+	rc = create(ef, path, EXFAT_ATTRIB_DIR);
 	if (rc != 0)
 		return rc;
 	rc = exfat_lookup(ef, &node, path);
@@ -1120,6 +1202,16 @@ int exfat_rename(struct exfat* ef, const char* old_path, const char* new_path)
 					rc = -EISDIR;
 			}
 			exfat_put_node(ef, existing);
+			if (rc != 0)
+			{
+				/* free clusters even if something went wrong; overwise they
+				   will be just lost */
+				exfat_cleanup_node(ef, existing);
+				exfat_put_node(ef, dir);
+				exfat_put_node(ef, node);
+				return rc;
+			}
+			rc = exfat_cleanup_node(ef, existing);
 			if (rc != 0)
 			{
 				exfat_put_node(ef, dir);

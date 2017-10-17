@@ -3,7 +3,7 @@
 	Endianness stuff. exFAT uses little-endian byte order.
 
 	Free exFAT implementation.
-	Copyright (C) 2010-2014  Andrew Nayenko
+	Copyright (C) 2010-2016  Andrew Nayenko
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -23,8 +23,9 @@
 #ifndef BYTEORDER_H_INCLUDED
 #define BYTEORDER_H_INCLUDED
 
-#include <stdint.h>
 #include "platform.h"
+#include <stdint.h>
+#include <stddef.h>
 
 typedef struct { uint16_t __u16; } le16_t;
 typedef struct { uint32_t __u32; } le32_t;
