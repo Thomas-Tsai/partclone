@@ -86,7 +86,7 @@ endif
 if ENABLE_XFS
 sbin_PROGRAMS += partclone.xfs
 partclone_xfs_SOURCES=$(main_files) xfsclone.c xfsclone.h $(XFS_SOURCE)
-partclone_xfs_CFLAGS=-Ixfs/include -Ixfs/libxfs/ -DXFS -D_GNU_SOURCE -DNDEBUG  $(UUID_CFLAGS) 
+partclone_xfs_CFLAGS=-Ixfs/include -Ixfs/libxfs/ -Ixfs/include/xfs/ -DXFS -D_GNU_SOURCE -DNDEBUG  $(UUID_CFLAGS) 
 partclone_xfs_LDADD=-lrt -lpthread -luuid
 endif
 
