@@ -1,4 +1,18 @@
+2017-10-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update merge
+
+	remove trash
+
+	remove trash and set version 0.3.10
+
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+	remove trash
+
 2017-10-17  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.3.9
 
 	release 0.3.9
 

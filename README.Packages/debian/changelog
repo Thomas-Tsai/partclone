@@ -1,3 +1,9 @@
+partclone (0.3.10-1) unstable; urgency=medium
+
+  * update xfs
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 18 Oct 2017 14:27:09 +0800
+
 partclone (0.3.9-1) unstable; urgency=medium
 
   * update xfs source code to 4.9.0
