@@ -27,8 +27,8 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <assert.h>
-#include<dirent.h>
-
+#include <dirent.h>
+#include <openssl/sha.h>
 /**
  * progress.h - only for progress bar
  */
@@ -79,6 +79,10 @@ int main(int argc, char **argv) {
 	pthread_t		prog_thread;
 	void			*p_result;
 	struct stat st_dev;
+	static const char *const torrent_info = "torrent.info";
+	SHA_CTX ctx;
+	unsigned char hash[SHA_DIGEST_LENGTH + 1] = {'\0'};
+		unsigned long long sha_length = 0;
 
 	static const char *const bad_sectors_warning_msg =
 		"*************************************************************************\n"
@@ -156,6 +160,8 @@ int main(int argc, char **argv) {
 	if (dfr == -1) {
 		log_mesg(0, 1, 1, debug, "Error exit\n");
 	}
+
+	int tinfo = open(torrent_info, O_RDWR | O_CREAT);
 
 #ifndef CHKIMG
 	dfw = open_target(target, &opt);
@@ -438,6 +444,9 @@ int main(int argc, char **argv) {
 		init_checksum(img_opt.checksum_mode, checksum, debug);
 
 		block_id = 0;
+		unsigned long long save_block_id = block_id;
+		SHA1_Init(&ctx);
+		dprintf(tinfo, "offset: %032llx\n", save_block_id * block_size);
 		do {
 			/// scan bitmap
 			unsigned long long i, blocks_skip, blocks_read;
@@ -452,8 +461,12 @@ int main(int argc, char **argv) {
 			if (block_id + blocks_skip == blocks_total)
 				break;
 
-			if (blocks_skip)
+			if (blocks_skip) {
+				dprintf(tinfo, "length: %032llx\n", (block_id - save_block_id) * block_size);
 				block_id += blocks_skip;
+				save_block_id = block_id;
+				dprintf(tinfo, "offset: %032llx\n", save_block_id * block_size);
+			}
 
 			/// read blocks
 			for (blocks_read = 0;
@@ -489,6 +502,19 @@ int main(int argc, char **argv) {
 
 				write_offset += block_size;
 
+				if (sha_length >= 16ULL * 1024 * 1024) {
+					SHA1_Final(hash, &ctx);
+					SHA1_Init(&ctx);
+					sha_length = 0;
+					dprintf(tinfo, "sha1: ");
+					for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+						dprintf(tinfo, "%02x", hash[x]);
+					}
+					dprintf(tinfo, "\n");
+				}
+				sha_length += block_size;
+				SHA1_Update(&ctx, write_buffer + write_offset - block_size, block_size);
+
 				update_checksum(checksum, read_buffer + i * block_size, block_size);
 
 				if (blocks_per_cs > 0 && ++blocks_in_cs == blocks_per_cs) {
@@ -522,6 +548,17 @@ int main(int argc, char **argv) {
 				log_mesg(0, 1, 1, debug, "read(%i) and write(%i) different\n", r_size, w_size);
 
 		} while (1);
+		
+		dprintf(tinfo, "length: %032llx\n", (block_id - save_block_id) * block_size);
+		if (sha_length) {
+			SHA1_Final(hash, &ctx);
+			// TODO output sha1 to file
+			dprintf(tinfo, "sha1: ");
+			for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+				dprintf(tinfo, "%02x", hash[x]);
+			}
+			dprintf(tinfo, "\n");
+		}
 
 		if (blocks_in_cs > 0) {
 
@@ -774,6 +811,8 @@ int main(int argc, char **argv) {
 		}
 
 		block_id = 0;
+		unsigned long long save_block_id = block_id;
+		dprintf(tinfo, "offset: %032llx\n", save_block_id * block_size);
 
 		if (lseek(dfr, 0, SEEK_SET) == (off_t)-1)
 			log_mesg(0, 1, 1, debug, "source seek ERROR:%d\n", strerror(errno));
@@ -784,8 +823,11 @@ int main(int argc, char **argv) {
 		log_mesg(1, 0, 0, debug, "start backup data device-to-device...\n");
 		do {
 			/// scan bitmap
+			unsigned int i;
 			unsigned long long blocks_skip, blocks_read;
+			unsigned int write_offset = 0;
 			off_t offset;
+			log_mesg(0, 0, 0, debug, "Mother fucker\n");
 
 			/// skip unused blocks
 			for (blocks_skip = 0;
@@ -796,8 +838,16 @@ int main(int argc, char **argv) {
 			if (block_id + blocks_skip == blocks_total)
 				break;
 
-			if (blocks_skip)
+			if (blocks_skip) {
+				// TODO output to right place
+				dprintf(tinfo, "length: %032llx\n", (block_id - save_block_id) * block_size);
+
 				block_id += blocks_skip;
+				save_block_id = block_id;
+
+				// TODO output to right place
+				dprintf(tinfo, "offset: %032llx\n", save_block_id * block_size);
+			}
 
 			/// read chunk from source
 			for (blocks_read = 0;
@@ -827,6 +877,24 @@ int main(int argc, char **argv) {
 					log_mesg(0, 1, 1, debug, "source read ERROR %s\n", strerror(errno));
 			}
 
+			for (i = 0; i < blocks_read; ++i) {
+				printf("aaaaaerwewrw\n");
+				write_offset += block_size;
+				if (sha_length >= 16ULL * 1024 * 1024) {
+					SHA1_Final(hash, &ctx);
+					SHA1_Init(&ctx);
+					sha_length = 0;
+					// TODO output sha1 to file
+					dprintf(tinfo, "sha1: ");
+					for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+						dprintf(tinfo, "%02x", hash[x]);
+					}
+					dprintf(tinfo, "\n");
+				}
+				sha_length += block_size;
+				SHA1_Update(&ctx, buffer + write_offset - block_size, block_size);				
+			}
+
 			/// write buffer to target
 			w_size = write_all(&dfw, buffer, blocks_read * block_size, &opt);
 			if (w_size != (int)(blocks_read * block_size)) {
@@ -850,6 +918,18 @@ int main(int argc, char **argv) {
 					log_mesg(0, 1, 1, debug, "read and write different\n");
 			}
 		} while (1);
+		
+		dprintf(tinfo, "length: %032llx\n", (block_id - save_block_id) * block_size);
+		// final piece
+		if (sha_length) {
+			SHA1_Final(hash, &ctx);
+			// TODO output sha1 to file
+			dprintf(tinfo, "sha1: ");
+			for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+				dprintf(tinfo, "%02x", hash[x]);
+			}
+			dprintf(tinfo, "\n");
+		}
 
 		free(buffer);
 
@@ -906,15 +986,19 @@ int main(int argc, char **argv) {
 		}
 
 		block_id = 0;
-
+		SHA1_Init(&ctx);
 
 		log_mesg(0, 0, 0, debug, "Total block %llu\n", blocks_total);
 
 		/// start clone partition to partition
 		log_mesg(1, 0, 0, debug, "start backup data device-to-device...\n");
+		unsigned long long save_block_id = block_id;
+		dprintf(tinfo, "offset: %032llx\n", save_block_id * block_size);
+		dprintf(tinfo, "length: %032llx\n", blocks_total * block_size);
 		do {
 			/// scan bitmap
-			unsigned long long blocks_read;
+			unsigned long long i, blocks_read;
+			unsigned int write_offset = 0;
 
 			/// read chunk from source
 			for (blocks_read = 0;
@@ -924,6 +1008,7 @@ int main(int argc, char **argv) {
 
 			if (!blocks_read)
 				break;
+
 
 			r_size = read_all(&dfr, buffer, blocks_read * block_size, &opt);
 			if (r_size != (int)(blocks_read * block_size)) {
@@ -941,6 +1026,23 @@ int main(int argc, char **argv) {
 				    break;
 				} else
 					log_mesg(0, 1, 1, debug, "source read ERROR %s\n", strerror(errno));
+			}
+
+			for (i = 0; i < blocks_read; ++i) {
+				write_offset += block_size;
+				if (sha_length >= 16ULL * 1024 * 1024) {
+					SHA1_Final(hash, &ctx);
+					SHA1_Init(&ctx);
+					sha_length = 0;
+					// TODO output sha1 to file
+					dprintf(tinfo, "sha1: ");
+					for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+						dprintf(tinfo, "%02x", hash[x]);
+					}
+					dprintf(tinfo, "\n");
+				}
+				sha_length += block_size;
+				SHA1_Update(&ctx, buffer + write_offset - block_size, block_size);				
 			}
 
 			/// write buffer to target
@@ -970,6 +1072,15 @@ int main(int argc, char **argv) {
 					log_mesg(0, 1, 1, debug, "read and write different\n");
 			}
 		} while (1);
+		if (sha_length) {
+			SHA1_Final(hash, &ctx);
+			// TODO output sha1 to file
+			dprintf(tinfo, "sha1: ");
+			for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+				dprintf(tinfo, "%02x", hash[x]);
+			}
+			dprintf(tinfo, "\n");
+		}
 
 		free(buffer);
 
