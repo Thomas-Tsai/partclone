@@ -162,6 +162,8 @@ int main(int argc, char **argv){
     log_mesg(0, 0, 1, opt.debug, "\n");
     print_image_info(img_head, img_opt, opt);
 
+	printf("image header size: %ld\n",lseek( dfr, 0, SEEK_CUR));
+
     close(dfr);     /// close source
     free(bitmap);   /// free bitmap
     close_log();
