@@ -1648,6 +1648,8 @@ int close_target(int dfw) {
 
 	if (compress_pipe)
 		ret = pclose(compress_pipe);
+	else
+		ret = close(dfw);
 	compress_pipe = NULL;
 	return ret;
 }
