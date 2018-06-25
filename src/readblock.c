@@ -198,7 +198,7 @@ int main(int argc, char **argv){
 	log_mesg(0, 1, 1, opt.debug, "source seek ERROR:%s\n", strerror(errno));
     r_size = read_all(&dfr, read_buffer, fs_info.block_size, &opt);
     w_size = write_all(&dfw, read_buffer, fs_info.block_size, &opt);
-    close(dfw);
+    close_target(dfw);
 
     close(dfr);     /// close source
     free(bitmap);   /// free bitmap

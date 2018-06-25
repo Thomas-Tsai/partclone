@@ -999,7 +999,7 @@ int main(int argc, char **argv) {
 	close(dfr);
 	/// close target
 	if (dfw != -1)
-		close(dfw);
+		close_target(dfw);
 	/// free bitmp
 	free(bitmap);
 	close_pui(pui);

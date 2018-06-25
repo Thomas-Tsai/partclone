@@ -217,6 +217,7 @@ void usage(void) {
 #ifndef RESTORE
 #ifndef DD
 		"    -c,  --clone            Save to the special image format\n"
+		"    -x,  --compresscmd CMD  Start CMD as an output pipe to compress the cloned image\n"
 		"    -r,  --restore          Restore from the special image format\n"
 		"    -b,  --dev-to-dev       Local device to device copy mode\n"
 #endif
@@ -316,7 +317,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #elif DD
 	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:";
 #else
-	static const char *sopt = "-hvd::L:cbrDo:O:s:f:RCFINiqWBz:E:a:k:Kn:T";
+	static const char *sopt = "-hvd::L:cx:brDo:O:s:f:RCFINiqWBz:E:a:k:Kn:T";
 #endif
 
 	static const struct option lopt[] = {
@@ -338,6 +339,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #ifndef RESTORE
 #ifndef DD
 		{ "clone",		no_argument,		NULL,   'c' },
+		{ "compresscmd",	required_argument,	NULL,	'x' },
 		{ "restore",		no_argument,		NULL,   'r' },
 		{ "dev-to-dev",		no_argument,		NULL,   'b' },
 #endif
@@ -455,6 +457,9 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 			case 'c':
 				opt->clone++;
 				mode=1;
+				break;
+			case 'x':
+				opt->compresscmd = optarg;
 				break;
 			case 'r':
 				opt->restore++;
@@ -1536,6 +1541,8 @@ int open_source(char* source, cmd_opt* opt) {
 	return ret;
 }
 
+static FILE *compress_pipe = NULL;
+
 int open_target(char* target, cmd_opt* opt) {
 	int ret = 0;
 	int debug = opt->debug;
@@ -1563,7 +1570,16 @@ int open_target(char* target, cmd_opt* opt) {
 	}
 
 	if ((opt->clone || opt->domain || (ddd_block_device == 0)) && (opt->blockfile == 0)) {
-		if (strcmp(target, "-") == 0) {
+		if (opt->compresscmd) {
+			int strsz = strlen(opt->compresscmd) + strlen(target) + 4;
+			char *compresscmd = malloc(strsz);
+
+			sprintf(compresscmd, "%s >%s", opt->compresscmd, target);
+			compress_pipe = popen(compresscmd, "w");
+			free(compresscmd);
+			if ((ret = (compress_pipe ? fileno(compress_pipe) : -1)) == -1)
+				log_mesg(0, 1, 1, debug, "clone: popen (%s >%s) error\n", opt->compresscmd, target);
+		} else if (strcmp(target, "-") == 0) {
 			if ((ret = fileno(stdout)) == -1)
 				log_mesg(0, 1, 1, debug, "clone: open %s(stdout) error\n", target);
 		} else {
@@ -1626,6 +1642,18 @@ int open_target(char* target, cmd_opt* opt) {
 
 	return ret;
 }
+
+int close_target(int dfw) {
+	int ret = 0;
+
+	if (compress_pipe)
+		ret = pclose(compress_pipe);
+	else
+		ret = close(dfw);
+	compress_pipe = NULL;
+	return ret;
+}
+
 int write_block_file(char* target, char *buf, unsigned long long count, unsigned long long offset, cmd_opt* opt){
 	long long int i;
 	int debug = opt->debug;
@@ -1770,9 +1798,12 @@ void print_partclone_info(cmd_opt opt) {
 	log_mesg(0, 0, 1, debug, _("Partclone v%s http://partclone.org\n"), VERSION);
 	if (opt.chkimg)
 		log_mesg(0, 0, 1, debug, _("Starting to check image (%s)\n"), opt.source);	
-	else if (opt.clone)
-		log_mesg(0, 0, 1, debug, _("Starting to clone device (%s) to image (%s)\n"), opt.source, opt.target);	
-	else if(opt.restore){
+	else if (opt.clone) {
+		if (opt.compresscmd)
+			log_mesg(0, 0, 1, debug, _("Starting to clone device (%s) to compressed image (%s)\n"), opt.source, opt.target);
+		else
+			log_mesg(0, 0, 1, debug, _("Starting to clone device (%s) to image (%s)\n"), opt.source, opt.target);
+	} else if(opt.restore){
 	        if (opt.blockfile)
 		    log_mesg(0, 0, 1, debug, _("Starting to restore image (%s) to block files (%s)\n"), opt.source, opt.target);
 		else
