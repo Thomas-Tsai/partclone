@@ -4,8 +4,8 @@ Partclone now supports ext2, ext3, ext4, hfs+, reiserfs, reiser4, btrfs, vmfs3, 
 
 We made some utilities:
 
-* partclone.ext2, partclone.ext3, partclone.extfs
-* partclone.ext4
+* partclone.ext2, partclone.ext3, partclone.ext4
+* partclone.extfs
 * partclone.reiserfs
 * partclone.reiser4
 * partclone.xfs
@@ -25,8 +25,6 @@ We made some utilities:
 * partclone.chkimg
 * partclone.dd
 ...
-
-For more info about partclone, check our website http://partclone.org.
 
 master branch is NOT STABLE, Please check 'release' branch
 
