@@ -1,4 +1,35 @@
+2018-06-25  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #111 from zboszor/pipe-compressor
+	Support compressed cloned images
+
+2018-06-07  Böszörményi Zoltán  <zboszor@pr.hu>
+
+	Fix close_target()
+	close(target_fd) must be done when not in compressing mode.
+
+	Support compressed cloned images
+	The ncurses mode obviously conflicts with writing the cloned image
+	to stdout. Piping the image to a command to compress it while in
+	ncurses mode is unusable because of this.
+
+	Fix it by adding a new option -x / --compresscmd CMD that is
+	executed in a write-only pipe internally by partclone.
+
+2018-05-05  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #88 from robert-scheck/non-interactive
+	Distinguish between (non-)interactive shell (courtesy of "UNIX F.A.Q.", 1993)
+
 2017-10-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	set version 0.3.11
+
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+	make xfs clean and compile work
+
+	release 0.3.10
 
 	update merge
 
@@ -160,6 +191,8 @@
 	Use "which" if "locate" doesn't exist (e.g. in build environments)
 
 2017-01-28  Robert Scheck  <robert@fedoraproject.org>
+
+	Distinguish between (non-)interactive shell (courtesy of "UNIX F.A.Q.", 1993)
 
 	Use "which" if "locate" doesn't exist (e.g. in build environments)
 
