@@ -22,11 +22,11 @@ TEST=0
 _dch_options="-b"
 is_release=1
 USAGE(){
-    
+
     cat << EOF
-	$0 is script to auto release partclone. This cript will create partclone 
-	tar ball file and auto build  debian package with my key.
-	It's only for developer used.
+	$0 is script to auto release partclone. This script will create partclone
+	tar ball file and auto build debian package with my key.
+	It's only for developer usage.
 
 	recognized flags are:
 	-s, --src       build tar ball
