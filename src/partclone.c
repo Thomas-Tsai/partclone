@@ -11,7 +11,9 @@
  * (at your option) any later version.
  */
 
+
 #include <config.h>
+#define _GNU_SOURCE
 #define _LARGEFILE64_SOURCE
 #include <features.h>
 #include <fcntl.h>
@@ -315,7 +317,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #elif RESTORE
 	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:T";
 #elif DD
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:T";
 #else
 	static const char *sopt = "-hvd::L:cx:brDo:O:s:f:RCFINiqWBz:E:a:k:Kn:T";
 #endif
@@ -1699,14 +1701,24 @@ int io_all(int *fd, char *buf, unsigned long long count, int do_write, cmd_opt* 
 	int debug = opt->debug;
 	unsigned long long size = count;
 	extern unsigned long long rescue_write_size;
+        #define BSIZE 512
+        void *Bbuffer;
 
 	// for sync I/O buffer, when use stdin or pipe.
 	while (count > 0) {
-		if (do_write)
-			i = write(*fd, buf, count);
-		else
-			i = read(*fd, buf, count);
+		if (do_write) {
+                        if (opt->restore){
+                            posix_memalign(&Bbuffer, BSIZE, BSIZE);
+                            memcpy(Bbuffer, buf, BSIZE);
+			    i = write(*fd, buf, BSIZE);
+                            free(Bbuffer);
+                        } else {
+                            i = write(*fd, buf, count);
+                        }
 
+                } else {
+			i = read(*fd, buf, count);
+                }
 		if (i < 0) {
 			log_mesg(1, 0, 1, debug, "%s: errno = %i(%s)\n",__func__, errno, strerror(errno));
 			if (errno != EAGAIN && errno != EINTR) {
