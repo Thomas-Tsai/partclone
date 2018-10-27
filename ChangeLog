@@ -1,5 +1,7 @@
 2017-06-22  Thomas Tsai  <thomas@nchc.org.tw>
 
+	release 0.2.91
+
 	Merge branch 'release' of github.com:Thomas-Tsai/partclone into release
 
 	add image version check

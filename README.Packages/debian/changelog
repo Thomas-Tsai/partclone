@@ -1,54 +1,10 @@
-partclone (0.2.91-1) unstable; urgency=medium
-
-  * add image version check support 
-
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 22 Jun 2017 09:44:01 +0800
-
-partclone (0.3.6-1) unstable; urgency=medium
-
-  * update static compile issue
-
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 27 Apr 2017 13:30:27 +0800
-
-partclone (0.3.5g-1) unstable; urgency=medium
-
-  * add overwrite for blockfilesfunction
-
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 13 Apr 2017 00:01:35 +0800
-
-partclone (0.3.5f-1) unstable; urgency=medium
-
-  * restore image to block files
-
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 12 Apr 2017 00:47:01 +0800
-
-partclone (0.3.5a-1) unstable; urgency=medium
-
-  * test fuse image 
-
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 10 Jan 2017 10:36:23 +0800
-
-partclone (0.2.87-1) unstable; urgency=medium
-
-  * fix ntfs restore raw file issue 
-
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 24 Dec 2015 15:13:38 +0800
-
-partclone (0.2.86-1) unstable; urgency=medium
-
-  * add zh_CN language support
-  * fix fat cluster count issue
-  * fix nilfs mount issue
-
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 12 Nov 2015 14:04:16 +0800
-
 partclone (0.2.85-1) unstable; urgency=medium
 
   * update configure.ac for ntfs check
   * fix fat 16 clone issue
   * add fat 12, fat 16 and fat 32 test script
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 12 Nov 2015 11:43:14 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 05 Nov 2015 10:56:27 +0800
 
 partclone (0.2.84-1) unstable; urgency=medium
 
