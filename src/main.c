@@ -27,7 +27,10 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <assert.h>
-#include<dirent.h>
+#include <dirent.h>
+
+// SHA1 for torrent info
+#include <openssl/sha.h>
 
 /**
  * progress.h - only for progress bar
@@ -571,6 +574,13 @@ int main(int argc, char **argv) {
 		char *read_buffer, *write_buffer;
 		unsigned long long blocks_used_fix = 0, test_block = 0;
 
+		// SHA1 for torrent info
+		SHA_CTX ctx;
+		unsigned char hash[SHA_DIGEST_LENGTH + 1] = {'\0'};
+		unsigned long long sha_length = 0;
+		const unsigned long long BT_PIECE_SIZE = 16ULL * 1024 * 1024;
+		int tinfo = -1;
+
 		log_mesg(1, 0, 0, debug, "#\nBuffer capacity = %u, Blocks per cs = %u\n#\n", buffer_capacity, blocks_per_cs);
 
 		// fix some super block record incorrect
@@ -610,6 +620,15 @@ int main(int argc, char **argv) {
 		blocks_in_cs = 0;
 		if (!opt.ignore_crc)
 			init_checksum(img_opt.checksum_mode, checksum, debug);
+
+		// init SHA1 for torrent info
+		if (opt.blockfile == 1) {
+			char torrent_name[PATH_MAX + 1] = {'\0'};
+			sprintf(torrent_name,"%s/torrent.info", target);
+			tinfo = open(torrent_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+
+			SHA1_Init(&ctx);
+		}
 
 		block_id = 0;
 		do {
@@ -727,6 +746,51 @@ int main(int argc, char **argv) {
 				// write blocks
 				if (blocks_write > 0) {
 				        if (opt.blockfile == 1){
+					    // SHA1 for torrent info
+					    // Not always bigger or smaller than 16MB
+					    
+					    // first we write out block_id * block_size for filename
+					    // because when calling write_block_file
+					    // we will create a new file to describe a continuous block (or buffer is full)
+					    // and never write to same file again
+					    dprintf(tinfo, "offset: %032llx\n", block_id * block_size);
+					    dprintf(tinfo, "length: %032llx\n", blocks_write * block_size);
+
+					    // every BT piece is 16MiB
+					    unsigned long long sha_remain_length = BT_PIECE_SIZE - sha_length;
+					    unsigned long long buffer_remain_length = blocks_write * block_size;
+					    unsigned long long buffer_offset = 0;
+					    while (buffer_remain_length > 0) {
+					        sha_remain_length = BT_PIECE_SIZE - sha_length;
+						if (sha_remain_length <= 0) {
+						    // finish a piece
+						    SHA1_Final(hash, &ctx);
+						    dprintf(tinfo, "sha1: ");
+						    for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+						        dprintf(tinfo, "%02x", hash[x]);
+						    }
+						    dprintf(tinfo, "\n");
+						    // start for next piece;
+						    SHA1_Init(&ctx);
+						    sha_length = 0;
+					            sha_remain_length = BT_PIECE_SIZE;
+						}
+						if (buffer_remain_length <= 0) {
+						    break;
+						}
+						else if (sha_remain_length > buffer_remain_length) {
+						    SHA1_Update(&ctx, write_buffer + blocks_written * block_size + buffer_offset, buffer_remain_length);
+						    sha_length += buffer_remain_length;
+						    break;
+						}
+						else {
+						    SHA1_Update(&ctx, write_buffer + blocks_written * block_size + buffer_offset, sha_remain_length);
+						    buffer_offset += sha_remain_length;
+						    buffer_remain_length -= sha_remain_length;
+						    sha_length += sha_remain_length;
+						}
+					    }
+
 					    w_size = write_block_file(target, write_buffer + blocks_written * block_size,
 						    blocks_write * block_size, (block_id*block_size), &opt);
 					}else{
@@ -748,6 +812,19 @@ int main(int argc, char **argv) {
 			} while (blocks_written < blocks_read);
 
 		} while(1);
+
+		// finish SHA1 for torrent info
+		if (opt.blockfile == 1) {
+			if (sha_length) {
+				SHA1_Final(hash, &ctx);
+				dprintf(tinfo, "sha1: ");
+				for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+					dprintf(tinfo, "%02x", hash[x]);
+				}
+				dprintf(tinfo, "\n");
+			}
+		}
+
 		free(write_buffer);
 		free(read_buffer);
 

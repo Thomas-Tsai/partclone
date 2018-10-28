@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = subdir-objects
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\" -D_FILE_OFFSET_BITS=64
-LDADD = $(LIBINTL)
+LDADD = $(LIBINTL) -lcrypto
 sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg partclone.imager #partclone.imgfuse #partclone.block
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 
@@ -60,21 +60,21 @@ if ENABLE_EXTFS
 sbin_PROGRAMS += partclone.extfs
 partclone_extfs_SOURCES=$(main_files) extfsclone.c extfsclone.h
 partclone_extfs_CFLAGS=-DEXTFS
-partclone_extfs_LDADD=-lext2fs -lcom_err -lpthread
+partclone_extfs_LDADD=-lext2fs -lcom_err -lpthread -lcrypto
 endif
 
 if ENABLE_REISERFS
 sbin_PROGRAMS += partclone.reiserfs
 partclone_reiserfs_SOURCES=$(main_files) reiserfsclone.c reiserfsclone.h
 partclone_reiserfs_CFLAGS=-DREISERFS
-partclone_reiserfs_LDADD=-lreiserfs -ldal
+partclone_reiserfs_LDADD=-lreiserfs -ldal -lcrypto
 endif
 
 if ENABLE_REISER4
 sbin_PROGRAMS += partclone.reiser4
 partclone_reiser4_SOURCES=$(main_files) reiser4clone.c reiser4clone.h
 partclone_reiser4_CFLAGS=-DREISER4
-partclone_reiser4_LDADD=-lreiser4 -laal
+partclone_reiser4_LDADD=-lreiser4 -laal -lcrypto
 endif
 
 if ENABLE_HFSP
@@ -87,7 +87,7 @@ if ENABLE_XFS
 sbin_PROGRAMS += partclone.xfs
 partclone_xfs_SOURCES=$(main_files) xfsclone.c xfsclone.h $(XFS_SOURCE)
 partclone_xfs_CFLAGS=-Ixfs/include -Ixfs/libxfs/ -Ixfs/include/xfs/ -DXFS -D_GNU_SOURCE -DNDEBUG  $(UUID_CFLAGS) 
-partclone_xfs_LDADD=-lrt -lpthread -luuid
+partclone_xfs_LDADD=-lrt -lpthread -luuid -lcrypto
 endif
 
 if ENABLE_EXFAT
@@ -100,14 +100,14 @@ if ENABLE_F2FS
 sbin_PROGRAMS += partclone.f2fs
 partclone_f2fs_SOURCES=$(main_files) f2fsclone.c f2fsclone.h $(F2FS_SOURCE)
 partclone_f2fs_CFLAGS=-DF2FS
-partclone_f2fs_LDADD=-luuid
+partclone_f2fs_LDADD=-luuid -lcrypto
 endif
 
 if ENABLE_NILFS2
 sbin_PROGRAMS += partclone.nilfs2
 partclone_nilfs2_SOURCES=$(main_files) nilfsclone.c nilfsclone.h
 partclone_nilfs2_CFLAGS=-DNILFS
-partclone_nilfs2_LDADD=-lnilfs
+partclone_nilfs2_LDADD=-lnilfs -lcrypto
 endif
 
 if ENABLE_FAT
@@ -123,10 +123,10 @@ sbin_PROGRAMS += partclone.ntfs
 partclone_ntfs_SOURCES=$(main_files) ntfsclone-ng.c ntfsclone-ng.h
 if ENABLE_NTFS_3G
 partclone_ntfs_CFLAGS=-DNTFS3G
-partclone_ntfs_LDADD=-lntfs-3g
+partclone_ntfs_LDADD=-lntfs-3g -lcrypto
 else
 partclone_ntfs_CFLAGS=-DNTFS
-partclone_ntfs_LDADD=-lntfs
+partclone_ntfs_LDADD=-lntfs -lcrypto
 endif
 endif
 
@@ -134,24 +134,24 @@ if ENABLE_UFS
 sbin_PROGRAMS += partclone.ufs
 partclone_ufs_SOURCES=$(main_files) ufsclone.c ufsclone.h
 partclone_ufs_CFLAGS=-DUFS -D_GNU_SOURCE
-partclone_ufs_LDADD=-lufs -lbsd
+partclone_ufs_LDADD=-lufs -lbsd -lcrypto
 endif
 
 if ENABLE_VMFS
 sbin_PROGRAMS += partclone.vmfs
 partclone_vmfs_SOURCES=$(main_files) vmfsclone.c vmfsclone.h
 partclone_vmfs_CFLAGS=-DVMFS -D_GNU_SOURCE $(UUID_CFLAGS)
-partclone_vmfs_LDADD=-lvmfs -luuid
+partclone_vmfs_LDADD=-lvmfs -luuid -lcrypto
 
 sbin_PROGRAMS += partclone.vmfs5
 partclone_vmfs5_SOURCES=$(main_files) vmfs5clone.c vmfsclone.h
 partclone_vmfs5_CFLAGS=-DVMFS -D_GNU_SOURCE $(UUID_CFLAGS)
-partclone_vmfs5_LDADD=-lvmfs -luuid
+partclone_vmfs5_LDADD=-lvmfs -luuid -lcrypto
 
 sbin_PROGRAMS += partclone.fstype
 partclone_fstype_SOURCES=fstype.c
 partclone_fstype_CFLAGS=-DVMFS -D_GNU_SOURCE $(UUID_CFLAGS)
-partclone_fstype_LDADD=-lvmfs -luuid
+partclone_fstype_LDADD=-lvmfs -luuid -lcrypto
 
 endif
 
@@ -160,14 +160,14 @@ sbin_PROGRAMS += partclone.jfs
 #partclone_jfs_SOURCES=$(main_files) jfs_devices.c jfs_devices.h jfsclone.c jfsclone.h
 partclone_jfs_SOURCES=$(main_files) jfsclone.c jfsclone.h
 partclone_jfs_CFLAGS=-DJFS
-partclone_jfs_LDADD=-luuid -ljfs
+partclone_jfs_LDADD=-luuid -ljfs -lcrypto
 endif
 
 if ENABLE_BTRFS
 sbin_PROGRAMS += partclone.btrfs
 partclone_btrfs_SOURCES=$(main_files) btrfsclone.c btrfsclone.h $(BTRFS_SOURCE)
 partclone_btrfs_CFLAGS=-DBTRFS -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -D_GNU_SOURCE
-partclone_btrfs_LDADD=-luuid -lblkid 
+partclone_btrfs_LDADD=-luuid -lblkid -lcrypto
 endif
 
 if ENABLE_MINIX
@@ -179,9 +179,9 @@ endif
 if ENABLE_FUSE
 sbin_PROGRAMS+=partclone.imgfuse
 partclone_imgfuse_SOURCES=fuseimg.c partclone.c checksum.c partclone.h fs_common.h checksum.h
-partclone_imgfuse_LDADD=-lfuse
+partclone_imgfuse_LDADD=-lfuse -lcrypto
 if ENABLE_STATIC
-partclone_imgfuse_LDADD+=-ldl
+partclone_imgfuse_LDADD+=-ldl -lcrypto
 endif
 endif
 
