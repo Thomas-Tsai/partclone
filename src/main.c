@@ -937,7 +937,11 @@ int main(int argc, char **argv) {
 						log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
 				} else if (r_size == 0){ // done for ddd
 				    /// write buffer to target
-				    w_size = write_all(&dfw, buffer, rescue_write_size, &opt);
+                                    if (opt.blockfile == 1){
+                                        w_size = write_block_file(target, buffer, rescue_write_size, copied*block_size, &opt);
+                                    } else {
+                                        w_size = write_all(&dfw, buffer, rescue_write_size, &opt);
+                                    }
 				    break;
 				} else
 					log_mesg(0, 1, 1, debug, "source read ERROR %s\n", strerror(errno));
