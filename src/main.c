@@ -28,6 +28,7 @@
 #include <pthread.h>
 #include <assert.h>
 #include <dirent.h>
+#include <limits.h>
 
 // SHA1 for torrent info
 #include <openssl/sha.h>
