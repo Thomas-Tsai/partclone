@@ -12,6 +12,8 @@
  */
 
 #include <config.h>
+#define _GNU_SOURCE
+#define _LARGEFILE64_SOURCE
 #include <errno.h>
 #include <features.h>
 #include <fcntl.h>
@@ -600,7 +602,9 @@ int main(int argc, char **argv) {
 			// Allocate more memory in case the image is affected by the 64 bits bug
 			read_buffer = (char*)malloc(buffer_size + buffer_capacity * cs_size);
 		}
-		write_buffer = (char*)malloc(buffer_capacity * block_size);
+		//write_buffer = (char*)malloc(buffer_capacity * block_size);
+		#define BSIZE 512
+		posix_memalign(&write_buffer, BSIZE, buffer_capacity * block_size);
 		if (read_buffer == NULL || write_buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}

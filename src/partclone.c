@@ -1701,21 +1701,11 @@ int io_all(int *fd, char *buf, unsigned long long count, int do_write, cmd_opt* 
 	int debug = opt->debug;
 	unsigned long long size = count;
 	extern unsigned long long rescue_write_size;
-        #define BSIZE 512
-        void *Bbuffer;
 
 	// for sync I/O buffer, when use stdin or pipe.
 	while (count > 0) {
 		if (do_write) {
-                        if (opt->restore){
-                            posix_memalign(&Bbuffer, BSIZE, BSIZE);
-                            memcpy(Bbuffer, buf, BSIZE);
-			    i = write(*fd, buf, BSIZE);
-                            free(Bbuffer);
-                        } else {
-                            i = write(*fd, buf, count);
-                        }
-
+			i = write(*fd, buf, count);
                 } else {
 			i = read(*fd, buf, count);
                 }
