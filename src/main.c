@@ -982,6 +982,13 @@ int main(int argc, char **argv) {
 		unsigned long long blocks_total = fs_info.totalblock;
 		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 
+		// SHA1 for torrent info
+		SHA_CTX ctx;
+		unsigned char hash[SHA_DIGEST_LENGTH + 1] = {'\0'};
+		unsigned long long sha_length = 0;
+		const unsigned long long BT_PIECE_SIZE = 16ULL * 1024 * 1024;
+		int tinfo = -1;
+
 		buffer = (char*)malloc(blocks_in_buffer * block_size);
 		if (buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
@@ -989,6 +996,14 @@ int main(int argc, char **argv) {
 
 		block_id = 0;
 
+		// init SHA1 for torrent info
+		if (opt.blockfile == 1) {
+			char torrent_name[PATH_MAX + 1] = {'\0'};
+			sprintf(torrent_name,"%s/torrent.info", target);
+			tinfo = open(torrent_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+
+			SHA1_Init(&ctx);
+		}
 
 		log_mesg(0, 0, 0, debug, "Total block %llu\n", blocks_total);
 
@@ -1020,6 +1035,51 @@ int main(int argc, char **argv) {
 				} else if (r_size == 0){ // done for ddd
 				    /// write buffer to target
                                     if (opt.blockfile == 1){
+				        // SHA1 for torrent info
+				        // Not always bigger or smaller than 16MB
+				        
+				        // first we write out block_id * block_size for filename
+				        // because when calling write_block_file
+				        // we will create a new file to describe a continuous block (or buffer is full)
+				        // and never write to same file again
+				        dprintf(tinfo, "offset: %032llx\n", copied * block_size);
+				        dprintf(tinfo, "length: %032llx\n", blocks_read * block_size);
+                                        
+				        // every BT piece is 16MiB
+				        unsigned long long sha_remain_length = BT_PIECE_SIZE - sha_length;
+				        unsigned long long buffer_remain_length = rescue_write_size;
+				        unsigned long long buffer_offset = 0;
+				        while (buffer_remain_length > 0) {
+				            sha_remain_length = BT_PIECE_SIZE - sha_length;
+				            if (sha_remain_length <= 0) {
+				                // finish a piece
+				                SHA1_Final(hash, &ctx);
+				                dprintf(tinfo, "sha1: ");
+				                for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+				            	dprintf(tinfo, "%02x", hash[x]);
+				                }
+				                dprintf(tinfo, "\n");
+				                // start for next piece;
+				                SHA1_Init(&ctx);
+				                sha_length = 0;
+				                sha_remain_length = BT_PIECE_SIZE;
+				            }
+				            if (buffer_remain_length <= 0) {
+				                break;
+				            }
+				            else if (sha_remain_length > buffer_remain_length) {
+				                SHA1_Update(&ctx, write_buffer + buffer_offset, buffer_remain_length);
+				                sha_length += buffer_remain_length;
+				                break;
+				            }
+				            else {
+				                SHA1_Update(&ctx, write_buffer + buffer_offset, sha_remain_length);
+				                buffer_offset += sha_remain_length;
+				                buffer_remain_length -= sha_remain_length;
+				                sha_length += sha_remain_length;
+				            }
+				        }
+
                                         w_size = write_block_file(target, buffer, rescue_write_size, copied*block_size, &opt);
                                     } else {
                                         w_size = write_all(&dfw, buffer, rescue_write_size, &opt);
@@ -1031,6 +1091,51 @@ int main(int argc, char **argv) {
 
 			/// write buffer to target
 			if (opt.blockfile == 1){
+			    // SHA1 for torrent info
+			    // Not always bigger or smaller than 16MB
+			    
+			    // first we write out block_id * block_size for filename
+			    // because when calling write_block_file
+			    // we will create a new file to describe a continuous block (or buffer is full)
+			    // and never write to same file again
+			    dprintf(tinfo, "offset: %032llx\n", copied * block_size);
+			    dprintf(tinfo, "length: %032llx\n", blocks_read * block_size);
+
+			    // every BT piece is 16MiB
+			    unsigned long long sha_remain_length = BT_PIECE_SIZE - sha_length;
+			    unsigned long long buffer_remain_length = blocks_read * block_size;
+			    unsigned long long buffer_offset = 0;
+			    while (buffer_remain_length > 0) {
+				sha_remain_length = BT_PIECE_SIZE - sha_length;
+				if (sha_remain_length <= 0) {
+				    // finish a piece
+				    SHA1_Final(hash, &ctx);
+				    dprintf(tinfo, "sha1: ");
+				    for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+					dprintf(tinfo, "%02x", hash[x]);
+				    }
+				    dprintf(tinfo, "\n");
+				    // start for next piece;
+				    SHA1_Init(&ctx);
+				    sha_length = 0;
+				    sha_remain_length = BT_PIECE_SIZE;
+				}
+				if (buffer_remain_length <= 0) {
+				    break;
+				}
+				else if (sha_remain_length > buffer_remain_length) {
+				    SHA1_Update(&ctx, write_buffer + buffer_offset, buffer_remain_length);
+				    sha_length += buffer_remain_length;
+				    break;
+				}
+				else {
+				    SHA1_Update(&ctx, write_buffer + buffer_offset, sha_remain_length);
+				    buffer_offset += sha_remain_length;
+				    buffer_remain_length -= sha_remain_length;
+				    sha_length += sha_remain_length;
+				}
+			    }
+
 			    w_size = write_block_file(target, buffer, blocks_read * block_size, copied*block_size, &opt);
 			} else {
 			    w_size = write_all(&dfw, buffer, blocks_read * block_size, &opt);
@@ -1056,6 +1161,18 @@ int main(int argc, char **argv) {
 					log_mesg(0, 1, 1, debug, "read and write different\n");
 			}
 		} while (1);
+
+		// finish SHA1 for torrent info
+		if (opt.blockfile == 1) {
+			if (sha_length) {
+				SHA1_Final(hash, &ctx);
+				dprintf(tinfo, "sha1: ");
+				for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+					dprintf(tinfo, "%02x", hash[x]);
+				}
+				dprintf(tinfo, "\n");
+			}
+		}
 
 		free(buffer);
 
