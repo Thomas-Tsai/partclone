@@ -605,7 +605,7 @@ int main(int argc, char **argv) {
 		}
 		//write_buffer = (char*)malloc(buffer_capacity * block_size);
 		#define BSIZE 512
-		posix_memalign(&write_buffer, BSIZE, buffer_capacity * block_size);
+		posix_memalign((void**)&write_buffer, BSIZE, buffer_capacity * block_size);
 		if (read_buffer == NULL || write_buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
@@ -1068,12 +1068,12 @@ int main(int argc, char **argv) {
 				                break;
 				            }
 				            else if (sha_remain_length > buffer_remain_length) {
-				                SHA1_Update(&ctx, write_buffer + buffer_offset, buffer_remain_length);
+				                SHA1_Update(&ctx, buffer + buffer_offset, buffer_remain_length);
 				                sha_length += buffer_remain_length;
 				                break;
 				            }
 				            else {
-				                SHA1_Update(&ctx, write_buffer + buffer_offset, sha_remain_length);
+				                SHA1_Update(&ctx, buffer + buffer_offset, sha_remain_length);
 				                buffer_offset += sha_remain_length;
 				                buffer_remain_length -= sha_remain_length;
 				                sha_length += sha_remain_length;
@@ -1124,12 +1124,12 @@ int main(int argc, char **argv) {
 				    break;
 				}
 				else if (sha_remain_length > buffer_remain_length) {
-				    SHA1_Update(&ctx, write_buffer + buffer_offset, buffer_remain_length);
+				    SHA1_Update(&ctx, buffer + buffer_offset, buffer_remain_length);
 				    sha_length += buffer_remain_length;
 				    break;
 				}
 				else {
-				    SHA1_Update(&ctx, write_buffer + buffer_offset, sha_remain_length);
+				    SHA1_Update(&ctx, buffer + buffer_offset, sha_remain_length);
 				    buffer_offset += sha_remain_length;
 				    buffer_remain_length -= sha_remain_length;
 				    sha_length += sha_remain_length;
