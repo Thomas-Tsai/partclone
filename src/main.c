@@ -771,7 +771,8 @@ int main(int argc, char **argv) {
 						    // finish a piece
 						    SHA1_Final(hash, &ctx);
 						    dprintf(tinfo, "sha1: ");
-						    for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+						    int x = 0;
+						    for (x = 0; x < SHA_DIGEST_LENGTH; x++) {
 						        dprintf(tinfo, "%02x", hash[x]);
 						    }
 						    dprintf(tinfo, "\n");
@@ -823,7 +824,8 @@ int main(int argc, char **argv) {
 			if (sha_length) {
 				SHA1_Final(hash, &ctx);
 				dprintf(tinfo, "sha1: ");
-				for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+				int x = 0;
+				for (x = 0; x < SHA_DIGEST_LENGTH; x++) {
 					dprintf(tinfo, "%02x", hash[x]);
 				}
 				dprintf(tinfo, "\n");
@@ -1055,7 +1057,8 @@ int main(int argc, char **argv) {
 				                // finish a piece
 				                SHA1_Final(hash, &ctx);
 				                dprintf(tinfo, "sha1: ");
-				                for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+						int x = 0;
+				                for (x = 0; x < SHA_DIGEST_LENGTH; x++) {
 				            	dprintf(tinfo, "%02x", hash[x]);
 				                }
 				                dprintf(tinfo, "\n");
@@ -1111,7 +1114,8 @@ int main(int argc, char **argv) {
 				    // finish a piece
 				    SHA1_Final(hash, &ctx);
 				    dprintf(tinfo, "sha1: ");
-				    for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+				    int x = 0;
+				    for (x = 0; x < SHA_DIGEST_LENGTH; x++) {
 					dprintf(tinfo, "%02x", hash[x]);
 				    }
 				    dprintf(tinfo, "\n");
@@ -1167,7 +1171,8 @@ int main(int argc, char **argv) {
 			if (sha_length) {
 				SHA1_Final(hash, &ctx);
 				dprintf(tinfo, "sha1: ");
-				for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+				int x = 0;
+				for (x = 0; x < SHA_DIGEST_LENGTH; x++) {
 					dprintf(tinfo, "%02x", hash[x]);
 				}
 				dprintf(tinfo, "\n");
