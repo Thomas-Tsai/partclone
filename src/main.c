@@ -799,8 +799,12 @@ int main(int argc, char **argv) {
 
 					    torrent_update(&torrent, write_buffer, blocks_write * block_size);
 
-					    w_size = write_block_file(target, write_buffer + blocks_written * block_size,
-						    blocks_write * block_size, (block_id*block_size), &opt);
+					    if (opt.torrent_only == 1) {
+						w_size = locks_write * block_size;
+					    } else {
+					    	w_size = write_block_file(target, write_buffer + blocks_written * block_size,
+							blocks_write * block_size, (block_id*block_size), &opt);
+					    }
 					}else{
 					    w_size = write_all(&dfw, write_buffer + blocks_written * block_size,
 						    blocks_write * block_size, &opt);
@@ -1039,7 +1043,11 @@ int main(int argc, char **argv) {
                                         
 					torrent_update(&torrent, buffer, rescue_write_size);
 
-                                        w_size = write_block_file(target, buffer, rescue_write_size, copied*block_size, &opt);
+					if (opt.torrent_only == 1) {
+						w_size = rescue_write_size;
+					} else {
+                                        	w_size = write_block_file(target, buffer, rescue_write_size, copied*block_size, &opt);
+					}
                                     } else {
                                         w_size = write_all(&dfw, buffer, rescue_write_size, &opt);
                                     }
@@ -1062,7 +1070,11 @@ int main(int argc, char **argv) {
 
 			    torrent_update(&torrent, buffer, blocks_read * block_size);
 
-			    w_size = write_block_file(target, buffer, blocks_read * block_size, copied*block_size, &opt);
+			    if (opt.torrent_only == 1) {
+				    w_size = blocks_read * block_size;
+			    } else {
+			 	w_size = write_block_file(target, buffer, blocks_read * block_size, copied*block_size, &opt);
+			    }
 			} else {
 			    w_size = write_all(&dfw, buffer, blocks_read * block_size, &opt);
 			}
