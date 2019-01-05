@@ -540,7 +540,11 @@ int main(int argc, char **argv) {
 
 				torrent_update(&torrent, read_buffer, blocks_read * block_size);
 
-				w_size = write_block_file(target, read_buffer, blocks_read * block_size, block_id * block_size, &opt);
+				if (opt.torrent_only == 1) {
+					w_size = blocks_read * block_size;
+				} else {
+					w_size = write_block_file(target, read_buffer, blocks_read * block_size, block_id * block_size, &opt);
+				}
 			} else {
 				w_size = write_all(&dfw, write_buffer, write_offset, &opt);
 				if (w_size != write_offset)
