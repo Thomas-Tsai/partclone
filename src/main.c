@@ -418,6 +418,10 @@ int main(int argc, char **argv) {
 		unsigned int blocks_in_cs, blocks_per_cs, write_size;
 		char *read_buffer, *write_buffer;
 
+		// SHA1 for torrent info
+		int tinfo = -1;
+		torrent_generator torrent;
+
 		blocks_per_cs = img_opt.blocks_per_checksum;
 
 		log_mesg(1, 0, 0, debug, "#\nBuffer capacity = %u, Blocks per cs = %u\n#\n", buffer_capacity, blocks_per_cs);
@@ -442,6 +446,14 @@ int main(int argc, char **argv) {
 
 		blocks_in_cs = 0;
 		init_checksum(img_opt.checksum_mode, checksum, debug);
+
+		if (opt.blockfile == 1) {
+			char torrent_name[PATH_MAX + 1] = {'\0'};
+			sprintf(torrent_name,"%s/torrent.info", target);
+			tinfo = open(torrent_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+
+			torrent_init(&torrent, tinfo);
+		}
 
 		block_id = 0;
 		do {
@@ -486,35 +498,54 @@ int main(int argc, char **argv) {
 					log_mesg(0, 1, 1, debug, "read error: %s\n", strerror(errno));
 			}
 
-			/// calculate checksum
 			log_mesg(2, 0, 0, debug, "blocks_read = %i\n", blocks_read);
-			for (i = 0; i < blocks_read; ++i) {
 
-				memcpy(write_buffer + write_offset,
-					read_buffer + i * block_size, block_size);
+			/// calculate checksum
+			if (opt.blockfile == 0) {
+				for (i = 0; i < blocks_read; ++i) {
 
-				write_offset += block_size;
+					memcpy(write_buffer + write_offset,
+						read_buffer + i * block_size, block_size);
 
-				update_checksum(checksum, read_buffer + i * block_size, block_size);
+					write_offset += block_size;
 
-				if (blocks_per_cs > 0 && ++blocks_in_cs == blocks_per_cs) {
-				    log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
+					update_checksum(checksum, read_buffer + i * block_size, block_size);
 
-					memcpy(write_buffer + write_offset, checksum, cs_size);
+					if (blocks_per_cs > 0 && ++blocks_in_cs == blocks_per_cs) {
+					    log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
 
-					++cs_added;
-					write_offset += cs_size;
+						memcpy(write_buffer + write_offset, checksum, cs_size);
 
-					blocks_in_cs = 0;
-					if (cs_reseed)
-						init_checksum(img_opt.checksum_mode, checksum, debug);
+						++cs_added;
+						write_offset += cs_size;
+
+						blocks_in_cs = 0;
+						if (cs_reseed)
+							init_checksum(img_opt.checksum_mode, checksum, debug);
+					}
 				}
 			}
 
 			/// write buffer to target
-			w_size = write_all(&dfw, write_buffer, write_offset, &opt);
-			if (w_size != write_offset)
-				log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
+			if (opt.blockfile == 1) {
+				// SHA1 for torrent info
+				// Not always bigger or smaller than 16MB
+
+				// first we write out block_id * block_size for filename
+				// because when calling write_block_file
+				// we will create a new file to describe a continuous block (or buffer is full)
+				// and never write to same file again
+				torrent_start_offset(&torrent, block_id * block_size);
+				torrent_end_length(&torrent, blocks_read * block_size);
+
+				torrent_update(&torrent, read_buffer, blocks_read * block_size);
+
+				w_size = write_block_file(target, read_buffer, blocks_read * block_size, block_id * block_size, &opt);
+			} else {
+				w_size = write_all(&dfw, write_buffer, write_offset, &opt);
+				if (w_size != write_offset)
+					log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
+			}
 
 			/// count copied block
 			copied += blocks_read;
@@ -529,14 +560,18 @@ int main(int argc, char **argv) {
 
 		} while (1);
 
-		if (blocks_in_cs > 0) {
+		if (opt.blockfile == 1) {
+			torrent_final(&torrent);
+		} else {
+			if (blocks_in_cs > 0) {
 
-			// Write the checksum for the latest blocks
-			log_mesg(1, 0, 0, debug, "Write the checksum for the latest blocks. size = %i\n", cs_size);
-			log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
-			w_size = write_all(&dfw, (char*)checksum, cs_size, &opt);
-			if (w_size != cs_size)
-				log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
+				// Write the checksum for the latest blocks
+				log_mesg(1, 0, 0, debug, "Write the checksum for the latest blocks. size = %i\n", cs_size);
+				log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
+				w_size = write_all(&dfw, (char*)checksum, cs_size, &opt);
+				if (w_size != cs_size)
+					log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
+			}
 		}
 
 		free(write_buffer);
