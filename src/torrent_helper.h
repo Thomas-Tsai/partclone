@@ -29,7 +29,7 @@
 typedef struct {
 	unsigned long long PIECE_SIZE;
 	unsigned char hash[SHA_DIGEST_LENGTH];
-	/* fd for torrent.infoi. You should close fd yourself */
+	/* fd for torrent.info. You should close fd yourself */
 	int tinfo;
 	/* remember the length for a piece size */
 	SHA_CTX ctx;
