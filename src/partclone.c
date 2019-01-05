@@ -521,7 +521,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				break;
 			case 't':
 				opt->blockfile = 1;
-				opt->torrent = 1;
+				opt->torrent_only = 1;
 				break;
 			case 'E':
                 assert(optarg != NULL);
