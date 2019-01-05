@@ -800,7 +800,7 @@ int main(int argc, char **argv) {
 					    torrent_update(&torrent, write_buffer, blocks_write * block_size);
 
 					    if (opt.torrent_only == 1) {
-						w_size = locks_write * block_size;
+						w_size = blocks_write * block_size;
 					    } else {
 					    	w_size = write_block_file(target, write_buffer + blocks_written * block_size,
 							blocks_write * block_size, (block_id*block_size), &opt);
