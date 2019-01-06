@@ -452,7 +452,7 @@ int main(int argc, char **argv) {
 		if (opt.blockfile == 1) {
 			char torrent_name[PATH_MAX + 1] = {'\0'};
 			sprintf(torrent_name,"%s/torrent.info", target);
-			tinfo = open(torrent_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+			tinfo = open(torrent_name, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 
 			torrent_init(&torrent, tinfo);
 		}
