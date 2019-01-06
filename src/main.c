@@ -235,8 +235,10 @@ int main(int argc, char **argv) {
 		log_mesg(2, 0, 0, debug, "check main bitmap pointer %p\n", bitmap);
 		log_mesg(1, 0, 0, debug, "Writing super block and bitmap...\n");
 
-		write_image_desc(&dfw, fs_info, img_opt, &opt);
-		write_image_bitmap(&dfw, fs_info, img_opt, bitmap, &opt);
+		if (opt.blockfile == 0) {
+			write_image_desc(&dfw, fs_info, img_opt, &opt);
+			write_image_bitmap(&dfw, fs_info, img_opt, bitmap, &opt);
+		}
 
 		log_mesg(0, 0, 1, debug, "done!\n");
 
