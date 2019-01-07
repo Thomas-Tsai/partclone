@@ -253,6 +253,7 @@ void usage(void) {
 		"    -q,  --quiet            Disable progress message\n"
 		"    -E,  --offset=X         Add offset X (bytes) to OUTPUT\n"
 		"    -T,  --btfiles          Restore block as file for ClonezillaBT\n"
+		"    -t,  --btfiles_torrent  Restore block as file for ClonezillaBT but only generate torrent\n"
 #endif
 		"    -n,  --note NOTE        Display Message Note (128 words)\n"
 		"    -v,  --version          Display partclone version\n"
@@ -315,11 +316,11 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #if CHKIMG
 	static const char *sopt = "-hvd::L:s:f:CFiBz:Nn:";
 #elif RESTORE
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:T";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:Tt";
 #elif DD
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:T";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:Tt";
 #else
-	static const char *sopt = "-hvd::L:cx:brDo:O:s:f:RCFINiqWBz:E:a:k:Kn:T";
+	static const char *sopt = "-hvd::L:cx:brDo:O:s:f:RCFINiqWBz:E:a:k:Kn:Tt";
 #endif
 
 	static const struct option lopt[] = {
@@ -363,6 +364,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "quiet",		no_argument,		NULL,   'q' },
 		{ "offset",		required_argument,	NULL,   'E' },
 		{ "btfiles",		no_argument,		NULL,   'T' },
+		{ "btfiles_torrent",	no_argument,		NULL,   't' },
 #endif
 #ifdef HAVE_LIBNCURSESW
 		{ "ncurses",		no_argument,		NULL,   'N' },
@@ -516,6 +518,10 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				break;
 			case 'T':
 				opt->blockfile = 1;
+				break;
+			case 't':
+				opt->blockfile = 1;
+				opt->torrent_only = 1;
 				break;
 			case 'E':
                 assert(optarg != NULL);

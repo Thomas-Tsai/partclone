@@ -112,6 +112,7 @@ struct cmd_opt
     int ignore_crc;
     int quiet;
     int blockfile;
+    int torrent_only;
     int no_block_detail;
     int restore_raw_file;
     int skip_write_error;
