@@ -221,7 +221,8 @@ int main(int argc, char **argv) {
 		read_bitmap(source, fs_info, bitmap, pui);
 		update_used_blocks_count(&fs_info, bitmap);
 
-		if (opt.check) {
+		/* skip check free space while torrent_only on */
+		if ((opt.check) && (opt.torrent_only == 0)) {
 
 			unsigned long long needed_space = 0;
 
@@ -355,7 +356,8 @@ int main(int argc, char **argv) {
 		read_bitmap(source, fs_info, bitmap, pui);
 
 		/// check the dest partition size.
-		if (opt.check) {
+		/* skip check free space while torrent_only on */
+		if ((opt.check) && (opt.torrent_only == 0)) {
 		    struct stat target_stat;
 		    if ((stat(opt.target, &target_stat) != -1) && (strcmp(opt.target, "-") != 0)) {
 			if (S_ISBLK(target_stat.st_mode)) 
