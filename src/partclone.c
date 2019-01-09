@@ -522,6 +522,8 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 			case 't':
 				opt->blockfile = 1;
 				opt->torrent_only = 1;
+				/* Don't check disk free space */
+				opt->check = 0;
 				break;
 			case 'E':
                 assert(optarg != NULL);
