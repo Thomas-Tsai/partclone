@@ -276,7 +276,7 @@ int main(int argc, char **argv) {
 			check_free_space(target, fs_info.device_size);
 		else if ((opt.check) && (opt.blockfile == 0))
 			check_size(&dfw, fs_info.device_size);
-		else if (opt.blockfile == 1)
+		else if (opt.blockfile == 1 && opt.torrent_only == 0)
 			check_free_space(target, fs_info.usedblocks*fs_info.block_size);
 #endif
 
