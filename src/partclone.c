@@ -193,7 +193,7 @@ void print_readable_size_str(unsigned long long size_byte, char *new_size_str) {
 /**
  * options
  * usage                    - print message "how to use this"
- * print_version
+ * version
  * parse_options            - get parameters from agrc, argv
  */
 void usage(void) {
@@ -326,7 +326,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	static const struct option lopt[] = {
 // common options
 		{ "help",		no_argument,		NULL,   'h' },
-		{ "print_version",	no_argument,		NULL,   'v' },
+		{ "version",		no_argument,		NULL,   'v' },
 		{ "note",		required_argument,	NULL,   'n' },
 		{ "source",		required_argument,	NULL,   's' },
 		{ "debug",		optional_argument,	NULL,   'd' },
