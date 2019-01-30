@@ -28,6 +28,7 @@ enable_extfs="yes"
 enable_reiserfs="yes"
 enable_reiser4="yes"
 enable_hfsp="yes"
+enable_apfs="yes"
 enable_fat="yes"
 enable_exfat="yes"
 enable_ntfs="yes"
@@ -168,6 +169,20 @@ AM_CONDITIONAL(ENABLE_HFSP, test "$enable_hfsp" = yes)
 if test "$enable_hfsp" = "yes"; then
 supported_fs=$supported_fs" hfs-plus"
 hfs_plus_version="build-in"
+fi
+#end of check hfsplus
+
+##apfs##
+AC_ARG_ENABLE([apfs],
+    AS_HELP_STRING(
+        [--enable-apfs],
+        [enable APFS file system])
+)
+AM_CONDITIONAL(ENABLE_APFS, test "$enable_apfs" = yes)
+
+if test "$enable_apfs" = "yes"; then
+supported_fs=$supported_fs" apfs"
+apfs_version="build-in"
 fi
 #end of check hfsplus
 
@@ -452,6 +467,7 @@ echo "ntfs.......... $enable_ntfs, $ntfs_version"
 echo "fat12/16/32... $enable_fat, $fat_version"
 echo "exfat......... $enable_exfat, $exfat_version"
 echo "hfs plus...... $enable_hfsp, $hfs_plus_version"
+echo "apfs.......... $enable_apfs, $apfs_version"
 echo "ufs .......... $enable_ufs, $ufs_version"
 echo "vmfs ......... $enable_vmfs, $vmfs_version"
 echo "jfs .......... $enable_jfs, $jfs_version"

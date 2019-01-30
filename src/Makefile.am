@@ -83,6 +83,13 @@ partclone_hfsp_SOURCES=$(main_files) hfsplusclone.c hfsplusclone.h
 partclone_hfsp_CFLAGS=-DHFSPLUS
 endif
 
+if ENABLE_APFS
+sbin_PROGRAMS += partclone.apfs
+partclone_hfsp_SOURCES=$(main_files) apfsclone.c apfsclone.h
+partclone_hfsp_CFLAGS=-DAPFS
+endif
+
+
 if ENABLE_XFS
 sbin_PROGRAMS += partclone.xfs
 partclone_xfs_SOURCES=$(main_files) xfsclone.c xfsclone.h $(XFS_SOURCE)
