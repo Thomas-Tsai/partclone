@@ -41,7 +41,7 @@ endif
 version.h: FORCE
 	$(TOOLBOX) --update-version
 
-main_files=main.c partclone.c progress.c checksum.c torrent_helper.c partclone.h progress.h gettext.h checksum.h torrent_helper.h
+main_files=main.c partclone.c progress.c checksum.c torrent_helper.c partclone.h progress.h gettext.h checksum.h torrent_helper.h bitmap.h
 
 partclone_info_SOURCES=info.c partclone.c checksum.c partclone.h fs_common.h checksum.h
 partclone_restore_SOURCES=$(main_files) ddclone.c ddclone.h
@@ -85,8 +85,8 @@ endif
 
 if ENABLE_APFS
 sbin_PROGRAMS += partclone.apfs
-partclone_hfsp_SOURCES=$(main_files) apfsclone.c apfsclone.h
-partclone_hfsp_CFLAGS=-DAPFS
+partclone_apfs_SOURCES=$(main_files) apfsclone.c apfsclone.h
+partclone_apfs_CFLAGS=-DAPFS
 endif
 
 

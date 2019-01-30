@@ -30,34 +30,60 @@
 #include "fs_common.h"
 
 int APFSDEV;
+struct APFS_Superblock_NXSB nxsb;
+
+/// get_apfs_free_count
+static uint64_t get_apfs_free_count(){
+
+    struct APFS_Block_8_5_Spaceman apfs_spaceman;
+    char *buf;
+    int buffer_size = 4096;
+    size_t size = 0;
+
+    buf = (char *)malloc(buffer_size);
+    memset(buf, 0, buffer_size);
+
+    size = pread(APFSDEV, buf, buffer_size, nxsb.bid_spaceman_area_start*buffer_size);
+
+    memcpy(&apfs_spaceman, buf, sizeof(APFS_Block_8_5_Spaceman));
+
+    // printf("blocks_total %lld\n", apfs_spaceman.blocks_total);
+    // printf("blocks_free %lld\n", apfs_spaceman.blocks_free);
+    return apfs_spaceman.blocks_free;
+}
 
 /// open device
 static void fs_open(char* device){
 
-    int block = 0;
     unsigned long *buf;
-    unsigned long *buf_id_mapping;
-    unsigned long *buf_4_7;
     size_t buffer_size = 4096;
-    size_t size = 0;
-    char *file;
-    struct APFS_Superblock_NXSB nxsb;
+    size_t read_size = 0;
 
     APFSDEV = open(device, O_RDONLY);
-    if (APFSDEV == -1){printf("open error");}
+    if (APFSDEV == -1){
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: Cannot open the partition (%s).\n", __FILE__, device);
+    }
     buf = (char *)malloc(buffer_size);
     memset(buf, 0, buffer_size);
-    size = read(APFSDEV, buf, buffer_size);
-    memcpy(&nxsb, buf, sizeof(nxsb));
-    printf("0x%jX\n", nxsb.hdr.checksum);
-    printf("block size %x\n", nxsb.block_size);
-    printf("block count %x\n", nxsb.block_count);
-    printf("next_xid %x\n", nxsb.next_xid);
-    printf("current_sb_start %x\n", nxsb.current_sb_start);
-    printf("current_sb_len %x\n", nxsb.current_sb_len);
-    printf("current_spaceman_start %x\n", nxsb.current_spaceman_start);
-    printf("current_spaceman_len %x\n", nxsb.current_spaceman_len);
-    printf("bid_spaceman_area_start  %x\n", nxsb.bid_spaceman_area_start);
+    read_size = read(APFSDEV, buf, buffer_size);
+    memcpy(&nxsb, buf, sizeof(APFS_Superblock_NXSB));
+    // todo : add apfs check!
+
+    // printf("0x%jX\n", nxsb.hdr.checksum);
+    // printf("block size %x\n", nxsb.block_size);
+    // printf("block count %x\n", nxsb.block_count);
+    // printf("next_xid %x\n", nxsb.next_xid);
+    // printf("current_sb_start %x\n", nxsb.current_sb_start);
+    // printf("current_sb_len %x\n", nxsb.current_sb_len);
+    // printf("current_spaceman_start %x\n", nxsb.current_spaceman_start);
+    // printf("current_spaceman_len %x\n", nxsb.current_spaceman_len);
+    // printf("bid_spaceman_area_start  %x\n", nxsb.bid_spaceman_area_start);
+
+    if(lseek(APFSDEV, 0, SEEK_SET) != 0) {
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: device %s seek fail\n", __FILE__, device);
+    }
+
+    free(buf);
 
 }
 
@@ -70,8 +96,20 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 {
     unsigned long          *fs_bitmap;
     unsigned long long     bit, block, bused = 0, bfree = 0;
+    unsigned long long apfs_block;
     int start = 0;
     int bit_size = 1;
+
+    unsigned long *spaceman_buf;
+    unsigned long *bitmap_buf;
+    unsigned long *bitmap_entry_buf;
+    size_t buffer_size = 4096;
+    size_t size = 0;
+
+    struct APFS_BlockHeader apfs_bh;
+    struct APFS_TableHeader apfs_th;
+    struct APFS_Block_8_5_Spaceman apfs_spaceman;
+    size_t k; 
 
     fs_open(device);
 
@@ -79,89 +117,64 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     progress_bar   prog;	/// progress_bar structure defined in progress.h
     progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
 
-    int block = 0;
-    unsigned long *buf;
-    unsigned long *buf_id_mapping;
-    unsigned long *buf_4_7;
-    size_t buffer_size = 4096;
-    size_t size = 0;
-    char *file;
-    int ret;
-    struct APFS_Superblock_NXSB nxsb;
+    //size_t id_mapping_block = nxsb.bid_spaceman_area_start;
 
-    file = argv[1];
-    ret = open(file, O_RDONLY);
-    if (ret == -1){printf("open error");}
-    buf = (char *)malloc(buffer_size);
-    memset(buf, 0, buffer_size);
-    size = read(ret, buf, buffer_size);
-    memcpy(&nxsb, buf, sizeof(nxsb));
-    printf("0x%jX\n", nxsb.hdr.checksum);
-    printf("block size %x\n", nxsb.block_size);
-    printf("block count %x\n", nxsb.block_count);
-    printf("next_xid %x\n", nxsb.next_xid);
-    printf("current_sb_start %x\n", nxsb.current_sb_start);
-    printf("current_sb_len %x\n", nxsb.current_sb_len);
-    printf("current_spaceman_start %x\n", nxsb.current_spaceman_start);
-    printf("current_spaceman_len %x\n", nxsb.current_spaceman_len);
-    printf("bid_spaceman_area_start  %x\n", nxsb.bid_spaceman_area_start);
-
-    size_t id_mapping_block = nxsb.bid_spaceman_area_start;
-
-    buf_id_mapping = (char *)malloc(buffer_size);
-    memset(buf_id_mapping, 0, buffer_size);
-
-    size = pread(ret, buf_id_mapping, buffer_size, id_mapping_block*buffer_size);
+    spaceman_buf = (char *)malloc(buffer_size);
+    memset(spaceman_buf, 0, buffer_size);
+    size = pread(APFSDEV, spaceman_buf, buffer_size, nxsb.bid_spaceman_area_start*buffer_size);
     
-    struct APFS_BlockHeader apfs_bh;
-    struct APFS_TableHeader apfs_th;
-    struct APFS_Block_8_5_Spaceman apfs_spaceman;
+    memcpy(&apfs_bh, spaceman_buf, sizeof(APFS_BlockHeader));
+    memcpy(&apfs_th, spaceman_buf+sizeof(APFS_BlockHeader), sizeof(APFS_TableHeader));
+    memcpy(&apfs_spaceman, spaceman_buf, sizeof(APFS_Block_8_5_Spaceman));
 
-    memcpy(&apfs_bh, buf_id_mapping, sizeof(APFS_BlockHeader));
-    memcpy(&apfs_th, buf_id_mapping+sizeof(APFS_BlockHeader), sizeof(APFS_TableHeader));
-    memcpy(&apfs_spaceman, buf_id_mapping, sizeof(APFS_Block_8_5_Spaceman));
+    // printf("block nid %x\n", apfs_bh.nid);
+    // printf("block xid %x\n", apfs_bh.xid);
+    // printf("block type %x\n", apfs_bh.type);
 
-    printf("block nid %x\n", apfs_bh.nid);
-    printf("block xid %x\n", apfs_bh.xid);
-    printf("block type %x\n", apfs_bh.type);
+    // printf("block table entries_cnt %x\n", apfs_th.entries_cnt);
 
-    printf("block table entries_cnt %x\n", apfs_th.entries_cnt);
-
-    printf("blocks_total %lld\n", apfs_spaceman.blocks_total);
-    printf("blocks_free %lld\n", apfs_spaceman.blocks_free);
-    printf("blocks blockid_vol_bitmap_hdr %X\n", apfs_spaceman.blockid_vol_bitmap_hdr);
+    // printf("blocks_total %lld\n", apfs_spaceman.blocks_total);
+    // printf("blocks_free %lld\n", apfs_spaceman.blocks_free);
+    // printf("blocks blockid_vol_bitmap_hdr %X\n", apfs_spaceman.blockid_vol_bitmap_hdr);
 
     // read bitmap
     struct APFS_Block_4_7_Bitmaps apfs_4_7;
-    buf_4_7 = (char *)malloc(buffer_size);
-    size = pread(ret, buf_4_7, buffer_size, apfs_spaceman.blockid_vol_bitmap_hdr*buffer_size);
-    memcpy(&apfs_4_7, buf_4_7, sizeof(APFS_Block_4_7_Bitmaps));
-    printf("block type %x\n", apfs_4_7.hdr.type);
-    printf("block type %x\n", apfs_4_7.hdr.nid);
-
-    size_t k; 
-
-    for (k = 0; k < apfs_4_7.tbl.entries_cnt; k++) 
-        { 
-            printf("%X, %X, %X, %X, %X\n", apfs_4_7.bmp[k].xid, apfs_4_7.bmp[k].offset, apfs_4_7.bmp[k].bits_total, apfs_4_7.bmp[k].bits_avail, apfs_4_7.bmp[k].block);
-        } 
+    bitmap_buf = (char *)malloc(buffer_size);
+    size = pread(APFSDEV, bitmap_buf, buffer_size, apfs_spaceman.blockid_vol_bitmap_hdr*buffer_size);
+    memcpy(&apfs_4_7, bitmap_buf, sizeof(APFS_Block_4_7_Bitmaps));
+    // printf("block type %x\n", apfs_4_7.hdr.type);
+    // printf("block type %x\n", apfs_4_7.hdr.nid);
 
 
-    //for(bit = 0; bit < reiser4_format_get_len(fs->format); bit++){
-    //    block = bit ;
-    //    if(reiser4_bitmap_test(fs_bitmap, bit)){
-    //        bused++;
-    //        pc_set_bit(block, bitmap, fs_info.totalblock);
-    //        log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %llu", __FILE__, block);
-    //    } else {
-    //        pc_clear_bit(block, bitmap, fs_info.totalblock);
-    //        bfree++;
-    //        log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is free %llu", __FILE__, block);
-    //    }
-    //    /// update progress
+    for (block = 0; block < fs_info.totalblock; block++){
+        pc_clear_bit(block, bitmap, fs_info.totalblock);
+    }
+    for (k = 0; k < apfs_4_7.tbl.entries_cnt; k++) { 
+        // printf("%X, %X, %X, %X, %X\n", apfs_4_7.bmp[k].xid, apfs_4_7.bmp[k].offset, apfs_4_7.bmp[k].bits_total, apfs_4_7.bmp[k].bits_avail, apfs_4_7.bmp[k].block);
+        bitmap_entry_buf = (char *)malloc(buffer_size);
+        memset(bitmap_entry_buf, 0, buffer_size);
+        size = pread(APFSDEV, bitmap_entry_buf, buffer_size, buffer_size*apfs_4_7.bmp[k].block);
+        if (apfs_4_7.bmp[k].bits_avail != 0x8000){
+            for (block = 0; block < apfs_4_7.bmp[k].bits_total; block++){
+                apfs_block = apfs_4_7.bmp[k].offset+block;
+                pc_set_bit(apfs_block, bitmap, fs_info.totalblock);
+            }
+        }
+        // for (block = 0; block < apfs_4_7.bmp[k].bits_total; block++){
+            // if (pc_test_bit(block, bitmap_entry_buf, fs_info.totalblock) == 0){
+            //     apfs_block = apfs_4_7.bmp[k].offset+block;
+            //     pc_clear_bit(apfs_block, bitmap, fs_info.totalblock);
+            // }
+        // }
+        /// update progress
         update_pui(&prog, bit, bit, 0);
+    } 
+    unsigned long used = 0;
+    // for (block = 0; block < fs_info.totalblock; block++){
+    //     used = pc_test_bit(block, bitmap, fs_info.totalblock);
+    //     printf("block status %X:%i \n", block, used);
+    // }
 
-    //}
 
     //if(bfree != reiser4_format_get_free(fs->format))
     //    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, bfree:%llu, sfree=%llu\n", __FILE__, bfree, reiser4_format_get_free(fs->format));
@@ -174,15 +187,16 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 void read_super_blocks(char* device, file_system_info* fs_info)
 {
     unsigned long      *fs_bitmap;
-    unsigned long long free_blocks=0;
+    unsigned long long free_blocks = 0;
 
     fs_open(device);
+    free_blocks = get_apfs_free_count();
 
     strncpy(fs_info->fs, apfs_MAGIC, FS_MAGIC_SIZE);
-    fs_info->block_size  = 0;
-    fs_info->totalblock  = 0;
-    fs_info->usedblocks  = 0;
-    fs_info->device_size = 0;
+    fs_info->block_size  = nxsb.block_size;
+    fs_info->totalblock  = nxsb.block_count;
+    fs_info->usedblocks  = fs_info->totalblock-free_blocks;
+    fs_info->device_size = fs_info->totalblock*fs_info->block_size;
     fs_close();
 }
 

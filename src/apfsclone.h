@@ -123,7 +123,7 @@ struct APFS_Superblock_NXSB // Ab 0x20
         uint64_t unk_520; 
         // There's some more stuff here, but I have no idea about it's meaning ... 
 };
-typedef struct APFS_Superblock_NXSB structAPFS_Superblock_NXSB;
+typedef struct APFS_Superblock_NXSB APFS_Superblock_NXSB;
 
 struct APFS_Superblock_APSB_AccessInfo 
 { 
