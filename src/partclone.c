@@ -1634,7 +1634,7 @@ int open_target(char* target, cmd_opt* opt) {
 			}
 			log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
 		}
-	} else if ((opt->restore || (ddd_block_device == 0)) && (opt->blockfile == 1)) {    /// always is folder
+	} else if ((opt->clone || opt->restore || (ddd_block_device == 0)) && (opt->blockfile == 1)) {    /// always is folder
 
 	    if ((stat(target, &st_dev) == -1) || (opt->overwrite)){
 		remove_directory(target);
@@ -1643,7 +1643,7 @@ int open_target(char* target, cmd_opt* opt) {
 		    log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
 		}
 		ret = 0;
-	    } else {
+	    } else if (opt->torrent_only == 0) {
 		log_mesg(1, 1, 1, debug, "%s,%s,%i: directory %s exist\n", __FILE__, __func__, __LINE__, target);
 	    }
 	}

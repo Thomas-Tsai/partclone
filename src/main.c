@@ -221,7 +221,8 @@ int main(int argc, char **argv) {
 		read_bitmap(source, fs_info, bitmap, pui);
 		update_used_blocks_count(&fs_info, bitmap);
 
-		if (opt.check) {
+		/* skip check free space while torrent_only on */
+		if ((opt.check) && (opt.torrent_only == 0)) {
 
 			unsigned long long needed_space = 0;
 
@@ -275,7 +276,7 @@ int main(int argc, char **argv) {
 			check_free_space(target, fs_info.device_size);
 		else if ((opt.check) && (opt.blockfile == 0))
 			check_size(&dfw, fs_info.device_size);
-		else if (opt.blockfile == 1)
+		else if (opt.blockfile == 1 && opt.torrent_only == 0)
 			check_free_space(target, fs_info.usedblocks*fs_info.block_size);
 #endif
 
@@ -355,7 +356,8 @@ int main(int argc, char **argv) {
 		read_bitmap(source, fs_info, bitmap, pui);
 
 		/// check the dest partition size.
-		if (opt.check) {
+		/* skip check free space while torrent_only on */
+		if ((opt.check) && (opt.torrent_only == 0)) {
 		    struct stat target_stat;
 		    if ((stat(opt.target, &target_stat) != -1) && (strcmp(opt.target, "-") != 0)) {
 			if (S_ISBLK(target_stat.st_mode)) 
@@ -668,7 +670,7 @@ int main(int argc, char **argv) {
 		if (opt.blockfile == 1) {
 			char torrent_name[PATH_MAX + 1] = {'\0'};
 			sprintf(torrent_name,"%s/torrent.info", target);
-			tinfo = open(torrent_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+			tinfo = open(torrent_name, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 
 			torrent_init(&torrent, tinfo);
 		}
@@ -999,7 +1001,7 @@ int main(int argc, char **argv) {
 		if (opt.blockfile == 1) {
 			char torrent_name[PATH_MAX + 1] = {'\0'};
 			sprintf(torrent_name,"%s/torrent.info", target);
-			tinfo = open(torrent_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+			tinfo = open(torrent_name, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 			torrent_init(&torrent, tinfo);
 		}
 
