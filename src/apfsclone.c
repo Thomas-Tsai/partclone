@@ -75,15 +75,15 @@ static void fs_open(char* device){
     memcpy(&nxsb, buf, sizeof(APFS_Superblock_NXSB));
     // todo : add apfs check!
 
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: 0x%jX\n", nxsb.hdr.checksum, __FILE__);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: block size %x\n", nxsb.block_size, __FILE__);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: block count %x\n", nxsb.block_count);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: next_xid %x\n", nxsb.next_xid, __FILE__);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: current_sb_start %x\n", nxsb.current_sb_start, __FILE__);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: current_sb_len %x\n", nxsb.current_sb_len, __FILE__);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: current_spaceman_start %x\n", nxsb.current_spaceman_start, __FILE__);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: current_spaceman_len %x\n", nxsb.current_spaceman_len, __FILE__);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: bid_spaceman_area_start  %x\n", nxsb.bid_spaceman_area_start, __FILE__);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: 0x%jX\n", __FILE__, nxsb.hdr.checksum);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: block size %x\n", __FILE__, nxsb.block_size);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: block count %x\n", __FILE__, nxsb.block_count);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: next_xid %x\n", __FILE__, nxsb.next_xid);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: current_sb_start %x\n", __FILE__, nxsb.current_sb_start);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: current_sb_len %x\n", __FILE__, nxsb.current_sb_len);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: current_spaceman_start %x\n", __FILE__, nxsb.current_spaceman_start);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: current_spaceman_len %x\n", __FILE__, nxsb.current_spaceman_len);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: bid_spaceman_area_start  %x\n", __FILE__, nxsb.bid_spaceman_area_start);
 
     if(lseek(APFSDEV, 0, SEEK_SET) != 0) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: device %s seek fail\n", __FILE__, device);
@@ -134,15 +134,15 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     memcpy(&apfs_spaceman, spaceman_buf, sizeof(APFS_Block_8_5_Spaceman));
 
     // todo add check
-    // printf("block type %x\n", apfs_bh.type);
-
-    // todo add chjeck
-    // printf("block table entries_cnt %x\n", apfs_th.entries_cnt);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: apfs hb block type %x\n", __FILE__, apfs_bh.type);
 
     // todo add check
-    // printf("blocks_total %lld\n", apfs_spaceman.blocks_total);
-    // printf("blocks_free %lld\n", apfs_spaceman.blocks_free);
-    // printf("blocks blockid_vol_bitmap_hdr %X\n", apfs_spaceman.blockid_vol_bitmap_hdr);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: block table entries_cnt %x\n", __FILE__, apfs_th.entries_cnt);
+
+    // todo add check
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: blocks_total %lld\n", __FILE__, apfs_spaceman.blocks_total);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: blocks_free %lld\n", __FILE__, apfs_spaceman.blocks_free);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: blocks blockid_vol_bitmap_hdr %X\n", __FILE__, apfs_spaceman.blockid_vol_bitmap_hdr);
 
     // read bitmap
     struct APFS_Block_4_7_Bitmaps apfs_4_7;
@@ -153,8 +153,8 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     }
     memcpy(&apfs_4_7, bitmap_buf, sizeof(APFS_Block_4_7_Bitmaps));
     // todo add check
-    // printf("block type %x\n", apfs_4_7.hdr.type);
-    // printf("block type %x\n", apfs_4_7.hdr.nid);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: apfs 4 7 hrd block type %x\n", __FILE__, apfs_4_7.hdr.type);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: apfs 4 7 hrd block  nid %x\n", __FILE__, apfs_4_7.hdr.nid);
 
 
     for (block = 0; block < fs_info.totalblock; block++){
