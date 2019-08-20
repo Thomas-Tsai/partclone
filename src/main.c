@@ -801,7 +801,7 @@ int main(int argc, char **argv) {
 					    torrent_start_offset(&torrent, block_id * block_size);
 					    torrent_end_length(&torrent, blocks_write * block_size);
 
-					    torrent_update(&torrent, write_buffer, blocks_write * block_size);
+					    torrent_update(&torrent, write_buffer + blocks_written * block_size, blocks_write * block_size);
 
 					    if (opt.torrent_only == 1) {
 						w_size = blocks_write * block_size;
