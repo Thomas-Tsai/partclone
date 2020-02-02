@@ -80,8 +80,8 @@ const char* get_exec_name();
 #undef crc32
 #endif
 
-char *EXECNAME;
-unsigned long long rescue_write_size;
+extern char *EXECNAME;
+extern unsigned long long rescue_write_size;
 
 /**
  * option

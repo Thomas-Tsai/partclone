@@ -55,6 +55,7 @@
 
 
 FILE* msg = NULL;
+unsigned long long rescue_write_size;
 #ifdef HAVE_LIBNCURSESW
 #include <ncurses.h>
 WINDOW *log_win;
