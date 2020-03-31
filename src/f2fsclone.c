@@ -72,7 +72,7 @@ extern void read_bitmap(char* device, file_system_info fs_info, unsigned long* b
 
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
-    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
+    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size, 0);
 
     /// bitmap test
     log_mesg(1, 0, 0, fs_opt.debug, "%s: start f2fs bitmap dump\n", __FILE__);

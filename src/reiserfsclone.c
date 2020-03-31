@@ -77,7 +77,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     
     /// init progress
     progress_bar   bprog;	/// progress_bar structure defined in progress.h
-    progress_init(&bprog, start, fs->super->s_v1.sb_block_count, fs->super->s_v1.sb_block_count, BITMAP, bit_size);
+    progress_init(&bprog, start, fs->super->s_v1.sb_block_count, fs->super->s_v1.sb_block_count, BITMAP, bit_size, 0);
 
     for( blk = 0; blk < (unsigned long long)fs->super->s_v1.sb_block_count; blk++ ){
 	

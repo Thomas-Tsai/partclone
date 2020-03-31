@@ -399,7 +399,7 @@ int main(int argc, char **argv) {
 		flag = NO_BLOCK_DETAIL;
 	else
 		flag = IO;
-	progress_init(&prog, start, stop, fs_info.totalblock, flag, fs_info.block_size);
+	progress_init(&prog, start, stop, fs_info.totalblock, flag, fs_info.block_size, opt.prog_second);
 	copied = 0;				/// initial number is 0
 
 	/**

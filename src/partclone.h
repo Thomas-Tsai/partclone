@@ -111,6 +111,7 @@ struct cmd_opt
     int force;
     int ignore_fschk;
     int ignore_crc;
+    int prog_second;
     int quiet;
     int blockfile;
     int torrent_only;

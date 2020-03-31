@@ -55,7 +55,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     fs_open(device);
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
-    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
+    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size, 0);
     pc_init_bitmap(bitmap, 0x00, fs_info.totalblock);
 
     while (exfat_find_used_sectors(&ef, &a, &b) == 0){
