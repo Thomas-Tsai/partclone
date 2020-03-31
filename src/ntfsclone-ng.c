@@ -251,7 +251,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     /// init progress
     progress_bar   prog;
-    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
+    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size, 0);
 
     if (count == -1){					    // On error and nothing has been read
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: read ntfs attr error: %s\n", __FILE__, strerror(errno));

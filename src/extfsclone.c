@@ -131,7 +131,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     /// init progress
     progress_bar	prog;		/// progress_bar structure defined in progress.h
-    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
+    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size, 0);
 
     /// each group
     for (group = 0; group < fs->group_desc_count; group++) {

@@ -32,6 +32,7 @@ struct progress_bar {
 	time_t interval_time;
         float unit;
         float total_unit;
+        float second;
 	int pui;
 	int flag;
 };
@@ -53,7 +54,7 @@ extern void close_pui(int pui);
 extern void update_pui(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done);
 
 /// initial progress bar
-extern void progress_init(struct progress_bar *prog, int start, unsigned long long stop, unsigned long long total, int flag, int size);
+extern void progress_init(struct progress_bar *prog, int start, unsigned long long stop, unsigned long long total, int flag, int size, int time_flag);
 
 /// update number
 extern void progress_update(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done);

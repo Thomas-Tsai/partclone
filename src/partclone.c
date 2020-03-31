@@ -320,7 +320,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #elif DD
 	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:Tt";
 #else
-	static const char *sopt = "-hvd::L:cx:brDo:O:s:f:RCFINiqWBz:E:a:k:Kn:Tt";
+	static const char *sopt = "-hvd::L:cx:brDo:O:s:f:RCFINiPqWBz:E:a:k:Kn:Tt";
 #endif
 
 	static const struct option lopt[] = {
@@ -334,6 +334,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "UI-fresh",		required_argument,	NULL,   'f' },
 		{ "no_check",		no_argument,		NULL,   'C' },
 		{ "ignore_crc",		no_argument,		NULL,   'i' },
+		{ "prog_second",	no_argument,		NULL,   'P' },
 		{ "force",		no_argument,		NULL,   'F' },
 		{ "no_block_detail",	no_argument,		NULL,   'B' },
 		{ "buffer_size",	required_argument,	NULL,   'z' },
@@ -384,6 +385,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	opt->skip_write_error = 0;
 	opt->check = 1;
 	opt->ignore_crc = 0;
+	opt->prog_second = 0;
 	opt->quiet = 0;
 	opt->no_block_detail = 0;
 	opt->fresh = 2;
@@ -441,6 +443,9 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				break;
 			case 'C':
 				opt->check = 0;
+				break;
+			case 'P':
+				opt->prog_second = 1;
 				break;
 			case 'i':
 				opt->ignore_crc = 1;

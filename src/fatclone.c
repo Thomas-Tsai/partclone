@@ -414,7 +414,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
-    progress_init(&prog, start, cluster_count, fs_info.totalblock, BITMAP, bit_size);
+    progress_init(&prog, start, cluster_count, fs_info.totalblock, BITMAP, bit_size, 0);
 
     /// init bitmap
     pc_init_bitmap(bitmap, 0xFF, total_sector);

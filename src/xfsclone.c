@@ -382,7 +382,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	pc_set_bit(current_block, bitmap, fs_info.totalblock);
     }
     /// init progress
-    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
+    progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size, 0);
     checked = 0;
     /**
      * thread to print progress
