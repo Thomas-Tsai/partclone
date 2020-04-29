@@ -171,7 +171,7 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long copied
 	strftime(Rformated, sizeof(Rformated), format, Rtm);
 
 	if ((unsigned int)elapsed > 86400){
-	    snprintf(Eformated, sizeof(Eformated), " > %3i hrs ", ((int)elapsed/3600));
+	    snprintf(Eformated, sizeof(Eformated), " > %3i hrs \0", ((int)elapsed/3600));
 	}else{
 	    Etm = gmtime(&elapsed);
 	    strftime(Eformated, sizeof(Eformated), format, Etm);
