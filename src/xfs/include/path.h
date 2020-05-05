@@ -1,19 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2005 Silicon Graphics, Inc.
  * All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it would be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write the Free Software Foundation,
- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 #ifndef __PATH_H__
 #define __PATH_H__
@@ -56,6 +44,8 @@ extern void fs_table_insert_project_path(char *__dir, uint __projid);
 
 
 extern fs_path_t *fs_table_lookup(const char *__dir, uint __flags);
+extern fs_path_t *fs_table_lookup_mount(const char *__dir);
+extern fs_path_t *fs_table_lookup_blkdev(const char *bdev);
 
 typedef struct fs_cursor {
 	uint		count;		/* total count of mount entries	*/

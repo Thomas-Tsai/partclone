@@ -1,4 +1,4 @@
-#
+# SPDX-License-Identifier: GPL-2.0
 # Copyright (c) 2002-2003 Silicon Graphics, Inc.  All Rights Reserved.
 #
 
@@ -9,7 +9,7 @@ BUILDRULES = $(TOPDIR)/include/buildrules
 # $(CXXFILES), or $(HFILES) and is used to construct the manifest list
 # during the "dist" phase (packaging).
 
-LDFLAGS += $(LOADERFLAGS) $(LLDFLAGS)
+LDFLAGS += $(SANITIZER_LDFLAGS) $(LOADERFLAGS) $(LLDFLAGS)
 LTLDFLAGS += $(LOADERFLAGS)
 LDLIBS = $(LLDLIBS) $(PLDLIBS) $(MALLOCLIB)
 
@@ -75,7 +75,13 @@ INSTALL_LTLIB_DEV = \
 	../$(INSTALL) -m 644 -T old_lib $(LIBNAME).lai $(PKG_LIB_DIR); \
 	../$(INSTALL) -m 644 $(LIBNAME).lai $(PKG_LIB_DIR)/$(LIBNAME).la ; \
 	../$(INSTALL) -m 755 -d $(PKG_ROOT_LIB_DIR); \
-	../$(INSTALL) -T so_base $(LIBNAME).lai $(PKG_ROOT_LIB_DIR);
+	../$(INSTALL) -T so_base $(LIBNAME).lai $(PKG_ROOT_LIB_DIR); \
+	if [ "x$(shell readlink -f $(PKG_LIB_DIR))" != \
+	     "x$(shell readlink -f $(PKG_ROOT_LIB_DIR))" ]; then \
+		../$(INSTALL) -S $(PKG_LIB_DIR)/$(LIBNAME).a $(PKG_ROOT_LIB_DIR)/$(LIBNAME).a; \
+		../$(INSTALL) -S $(PKG_LIB_DIR)/$(LIBNAME).la $(PKG_ROOT_LIB_DIR)/$(LIBNAME).la; \
+		../$(INSTALL) -S $(PKG_ROOT_LIB_DIR)/$(LIBNAME).so $(PKG_LIB_DIR)/$(LIBNAME).so; \
+	fi
 else
 INSTALL_LTLIB_DEV = $(INSTALL_LTLIB_STATIC)
 endif

@@ -1,19 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2000-2005 Silicon Graphics, Inc.
  * All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it would be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write the Free Software Foundation,
- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef __LIBXFS_H__
@@ -43,10 +31,7 @@
 
 
 /* CRC stuff, buffer API dependent on it */
-extern uint32_t crc32_le(uint32_t crc, unsigned char const *p, size_t len);
 extern uint32_t crc32c_le(uint32_t crc, unsigned char const *p, size_t len);
-
-#define crc32(c,p,l)	crc32_le((c),(unsigned char const *)(p),(l))
 #define crc32c(c,p,l)	crc32c_le((c),(unsigned char const *)(p),(l))
 
 #include "xfs_cksum.h"
@@ -61,6 +46,7 @@ extern uint32_t crc32c_le(uint32_t crc, unsigned char const *p, size_t len);
 #include "xfs_sb.h"
 #include "xfs_mount.h"
 #include "xfs_defer.h"
+#include "xfs_errortag.h"
 #include "xfs_da_format.h"
 #include "xfs_da_btree.h"
 #include "xfs_dir2.h"
@@ -95,7 +81,7 @@ extern uint32_t crc32c_le(uint32_t crc, unsigned char const *p, size_t len);
 /*
  * Argument structure for libxfs_init().
  */
-typedef struct {
+typedef struct libxfs_xinit {
 				/* input parameters */
 	char            *volname;       /* pathname of volume */
 	char            *dname;         /* pathname of data "subvolume" */
@@ -164,7 +150,6 @@ extern int	libxfs_log_header(char *, uuid_t *, int, int, int, xfs_lsn_t,
 
 
 /* Shared utility routines */
-extern unsigned int	libxfs_log2_roundup(unsigned int i);
 
 extern int	libxfs_alloc_file_space (struct xfs_inode *, xfs_off_t,
 				xfs_off_t, int, int);
@@ -209,19 +194,25 @@ xfs_inobt_is_sparse_disk(
 
 static inline void
 libxfs_bmbt_disk_get_all(
-	struct xfs_bmbt_rec	*rp,
+	struct xfs_bmbt_rec	*rec,
 	struct xfs_bmbt_irec	*irec)
 {
-	struct xfs_bmbt_rec_host hrec;
+	uint64_t		l0 = get_unaligned_be64(&rec->l0);
+	uint64_t		l1 = get_unaligned_be64(&rec->l1);
 
-	hrec.l0 = get_unaligned_be64(&rp->l0);
-	hrec.l1 = get_unaligned_be64(&rp->l1);
-	libxfs_bmbt_get_all(&hrec, irec);
+	irec->br_startoff = (l0 & xfs_mask64lo(64 - BMBT_EXNTFLAG_BITLEN)) >> 9;
+	irec->br_startblock = ((l0 & xfs_mask64lo(9)) << 43) | (l1 >> 21);
+	irec->br_blockcount = l1 & xfs_mask64lo(21);
+	if (l0 >> (64 - BMBT_EXNTFLAG_BITLEN))
+		irec->br_state = XFS_EXT_UNWRITTEN;
+	else
+		irec->br_state = XFS_EXT_NORM;
 }
 
 /* XXX: this is clearly a bug - a shared header needs to export this */
 /* xfs_rtalloc.c */
 int libxfs_rtfree_extent(struct xfs_trans *, xfs_rtblock_t, xfs_extlen_t);
+bool libxfs_verify_rtbno(struct xfs_mount *mp, xfs_rtblock_t rtbno);
 
 /* XXX: need parts of xfs_attr.h in userspace */
 #define LIBXFS_ATTR_ROOT	0x0002	/* use attrs in root namespace */

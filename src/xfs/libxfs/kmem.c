@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0
 
 
 #include "libxfs_priv.h"
@@ -21,6 +22,20 @@ kmem_zone_init(int size, char *name)
 	ptr->zone_name = name;
 	ptr->allocated = 0;
 	return ptr;
+}
+
+int
+kmem_zone_destroy(kmem_zone_t *zone)
+{
+	int	leaked = 0;
+
+	if (getenv("LIBXFS_LEAK_CHECK") && zone->allocated) {
+		leaked = 1;
+		fprintf(stderr, "zone %s freed with %d items allocated\n",
+				zone->zone_name, zone->allocated);
+	}
+	free(zone);
+	return leaked;
 }
 
 void *

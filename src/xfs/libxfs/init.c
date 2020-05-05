@@ -1,19 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2000-2005 Silicon Graphics, Inc.
  * All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it would be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write the Free Software Foundation,
- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <sys/stat.h>
@@ -43,15 +31,13 @@ int libxfs_bhash_size;		/* #buckets in bcache */
 
 int	use_xfs_buf_lock;	/* global flag: use xfs_buf_t locks for MT */
 
-static void manage_zones(int);	/* setup global zones */
-
-kmem_zone_t	*xfs_inode_zone;
+static int manage_zones(int);	/* setup/teardown global zones */
 
 /*
  * dev_map - map open devices to fd.
  */
 #define MAX_DEVS 10	/* arbitary maximum */
-int nextfakedev = -1;	/* device number to give to next fake device */
+static int nextfakedev = -1;	/* device number to give to next fake device */
 static struct dev_to_fd {
 	dev_t	dev;
 	int	fd;
@@ -239,13 +225,11 @@ int
 libxfs_init(libxfs_init_t *a)
 {
 	char		*blockfile;
-	char		curdir[MAXPATHLEN];
 	char		*dname;
 	char		dpath[25];
 	int		fd;
 	char		*logname;
 	char		logpath[25];
-	int		needcd;
 	char		*rawfile;
 	char		*rtname;
 	char		rtpath[25];
@@ -261,8 +245,6 @@ libxfs_init(libxfs_init_t *a)
 	a->dsize = a->lbsize = a->rtbsize = 0;
 	a->dbsize = a->logBBsize = a->logBBstart = a->rtsize = 0;
 
-	(void)getcwd(curdir,MAXPATHLEN);
-	needcd = 0;
 	fd = -1;
 	flags = (a->isreadonly | a->isdirect);
 
@@ -276,14 +258,11 @@ libxfs_init(libxfs_init_t *a)
 	if (a->volname) {
 		if(!check_open(a->volname,flags,&rawfile,&blockfile))
 			goto done;
-		needcd = 1;
 		fd = open(rawfile, O_RDONLY);
 		dname = a->dname = a->volname;
 		a->volname = NULL;
 	}
 	if (dname) {
-		if (dname[0] != '/' && needcd)
-			chdir(curdir);
 		if (a->disfile) {
 			a->ddev= libxfs_device_open(dname, a->dcreat, flags,
 						    a->setblksize);
@@ -299,12 +278,9 @@ libxfs_init(libxfs_init_t *a)
 			platform_findsizes(rawfile, a->dfd,
 					   &a->dsize, &a->dbsize);
 		}
-		needcd = 1;
 	} else
 		a->dsize = 0;
 	if (logname) {
-		if (logname[0] != '/' && needcd)
-			chdir(curdir);
 		if (a->lisfile) {
 			a->logdev = libxfs_device_open(logname,
 					a->lcreat, flags, a->setblksize);
@@ -320,12 +296,9 @@ libxfs_init(libxfs_init_t *a)
 			platform_findsizes(rawfile, a->logfd,
 					   &a->logBBsize, &a->lbsize);
 		}
-		needcd = 1;
 	} else
 		a->logBBsize = 0;
 	if (rtname) {
-		if (rtname[0] != '/' && needcd)
-			chdir(curdir);
 		if (a->risfile) {
 			a->rtdev = libxfs_device_open(rtname,
 					a->rcreat, flags, a->setblksize);
@@ -341,7 +314,6 @@ libxfs_init(libxfs_init_t *a)
 			platform_findsizes(rawfile, a->rtfd,
 					   &a->rtsize, &a->rtbsize);
 		}
-		needcd = 1;
 	} else
 		a->rtsize = 0;
 	if (a->dsize < 0) {
@@ -359,8 +331,6 @@ libxfs_init(libxfs_init_t *a)
 			progname);
 		goto done;
 	}
-	if (needcd)
-		chdir(curdir);
 	if (!libxfs_bhash_size)
 		libxfs_bhash_size = LIBXFS_BHASHSIZE(sbp);
 	libxfs_bcache = cache_init(a->bcache_flags, libxfs_bhash_size,
@@ -390,34 +360,30 @@ done:
 /*
  * Initialize/destroy all of the zone allocators we use.
  */
-static void
+static int
 manage_zones(int release)
 {
-	extern kmem_zone_t	*xfs_buf_zone;
-	extern kmem_zone_t	*xfs_ili_zone;
-	extern kmem_zone_t	*xfs_ifork_zone;
-	extern kmem_zone_t	*xfs_buf_item_zone;
-	extern kmem_zone_t	*xfs_da_state_zone;
-	extern kmem_zone_t	*xfs_btree_cur_zone;
-	extern kmem_zone_t	*xfs_bmap_free_item_zone;
-	extern kmem_zone_t	*xfs_log_item_desc_zone;
 	extern void		xfs_dir_startup();
 
 	if (release) {	/* free zone allocation */
-		kmem_free(xfs_buf_zone);
-		kmem_free(xfs_inode_zone);
-		kmem_free(xfs_ifork_zone);
-		kmem_free(xfs_buf_item_zone);
-		kmem_free(xfs_da_state_zone);
-		kmem_free(xfs_btree_cur_zone);
-		kmem_free(xfs_bmap_free_item_zone);
-		kmem_free(xfs_log_item_desc_zone);
-		return;
+		int	leaked = 0;
+
+		leaked += kmem_zone_destroy(xfs_buf_zone);
+		leaked += kmem_zone_destroy(xfs_ili_zone);
+		leaked += kmem_zone_destroy(xfs_inode_zone);
+		leaked += kmem_zone_destroy(xfs_ifork_zone);
+		leaked += kmem_zone_destroy(xfs_buf_item_zone);
+		leaked += kmem_zone_destroy(xfs_da_state_zone);
+		leaked += kmem_zone_destroy(xfs_btree_cur_zone);
+		leaked += kmem_zone_destroy(xfs_bmap_free_item_zone);
+		leaked += kmem_zone_destroy(xfs_trans_zone);
+
+		return leaked;
 	}
 	/* otherwise initialise zone allocation */
 	xfs_buf_zone = kmem_zone_init(sizeof(xfs_buf_t), "xfs_buffer");
 	xfs_inode_zone = kmem_zone_init(sizeof(struct xfs_inode), "xfs_inode");
-	xfs_ifork_zone = kmem_zone_init(sizeof(xfs_ifork_t), "xfs_ifork");
+	xfs_ifork_zone = kmem_zone_init(sizeof(struct xfs_ifork), "xfs_ifork");
 	xfs_ili_zone = kmem_zone_init(
 			sizeof(xfs_inode_log_item_t), "xfs_inode_log_item");
 	xfs_buf_item_zone = kmem_zone_init(
@@ -429,9 +395,11 @@ manage_zones(int release)
 	xfs_bmap_free_item_zone = kmem_zone_init(
 			sizeof(struct xfs_extent_free_item),
 			"xfs_bmap_free_item");
-	xfs_log_item_desc_zone = kmem_zone_init(
-			sizeof(struct xfs_log_item_desc), "xfs_log_item_desc");
+	xfs_trans_zone = kmem_zone_init(
+			sizeof(struct xfs_trans), "xfs_trans");
 	xfs_dir_startup();
+
+	return 0;
 }
 
 /*
@@ -546,7 +514,7 @@ libxfs_initialize_perag(
 		 * the max inode percentage.
 		 */
 		if (mp->m_maxicount) {
-			__uint64_t	icount;
+			uint64_t	icount;
 
 			icount = sbp->sb_dblocks * sbp->sb_imax_pct;
 			do_div(icount, 100);
@@ -705,6 +673,13 @@ libxfs_mount(
 		mp->m_maxicount = 0;
 
 	mp->m_inode_cluster_size = XFS_INODE_BIG_CLUSTER_SIZE;
+	if (xfs_sb_version_hascrc(&mp->m_sb)) {
+		int	new_size = mp->m_inode_cluster_size;
+
+		new_size *= mp->m_sb.sb_inodesize / XFS_DINODE_MIN_SIZE;
+		if (mp->m_sb.sb_inoalignmt >= XFS_B_TO_FSBT(mp, new_size))
+			mp->m_inode_cluster_size = new_size;
+	}
 
 	/*
 	 * Set whether we're using stripe alignment.
@@ -817,6 +792,29 @@ libxfs_mount(
 			return NULL;
 	}
 
+	/*
+	 * libxfs_initialize_perag will allocate a perag structure for each ag.
+	 * If agcount is corrupted and insanely high, this will OOM the box.
+	 * If the agount seems (arbitrarily) high, try to read what would be
+	 * the last AG, and if that fails for a relatively high agcount, just
+	 * read the first one and let the user know to check the geometry.
+	 */
+	if (sbp->sb_agcount > 1000000) {
+		bp = libxfs_readbuf(mp->m_dev,
+				XFS_AG_DADDR(mp, sbp->sb_agcount - 1, 0), 1,
+				!(flags & LIBXFS_MOUNT_DEBUGGER), NULL);
+		if (bp->b_error) {
+			fprintf(stderr, _("%s: read of AG %u failed\n"),
+						progname, sbp->sb_agcount);
+			if (!(flags & LIBXFS_MOUNT_DEBUGGER))
+				return NULL;
+			fprintf(stderr, _("%s: limiting reads to AG 0\n"),
+								progname);
+			sbp->sb_agcount = 1;
+		}
+		libxfs_putbuf(bp);
+	}
+
 	error = libxfs_initialize_perag(mp, sbp->sb_agcount, &mp->m_maxagi);
 	if (error) {
 		fprintf(stderr, _("%s: perag init failed\n"),
@@ -831,9 +829,9 @@ void
 libxfs_rtmount_destroy(xfs_mount_t *mp)
 {
 	if (mp->m_rsumip)
-		IRELE(mp->m_rsumip);
+		libxfs_irele(mp->m_rsumip);
 	if (mp->m_rbmip)
-		IRELE(mp->m_rbmip);
+		libxfs_irele(mp->m_rbmip);
 	mp->m_rsumip = mp->m_rbmip = NULL;
 }
 
@@ -870,8 +868,15 @@ libxfs_umount(xfs_mount_t *mp)
 void
 libxfs_destroy(void)
 {
-	manage_zones(1);
+	int	leaked;
+
+	/* Free everything from the buffer cache before freeing buffer zone */
+	libxfs_bcache_purge();
+	libxfs_bcache_free();
 	cache_destroy(libxfs_bcache);
+	leaked = manage_zones(1);
+	if (getenv("LIBXFS_LEAK_CHECK") && leaked)
+		exit(1);
 }
 
 int
@@ -896,7 +901,12 @@ libxfs_report(FILE *fp)
 int
 libxfs_nproc(void)
 {
-	return platform_nproc();
+	int	nr;
+
+	nr = platform_nproc();
+	if (nr < 1)
+		nr = 1;
+	return nr;
 }
 
 unsigned long

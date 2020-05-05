@@ -1,27 +1,16 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2011 RedHat, Inc.
  * All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it would be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write the Free Software Foundation,
- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 #ifndef __TRACE_H__
 #define __TRACE_H__
 
+#define trace_xfs_agfl_reset(a,b,c,d)		((void) 0)
+#define trace_xfs_agfl_free_defer(a,b,c,d,e)	((void) 0)
 #define trace_xfs_alloc_exact_done(a)		((void) 0)
 #define trace_xfs_alloc_exact_notfound(a)	((void) 0)
 #define trace_xfs_alloc_exact_error(a)		((void) 0)
-#define trace_xfs_alloc_near_nominleft(a)	((void) 0)
 #define trace_xfs_alloc_near_first(a)		((void) 0)
 #define trace_xfs_alloc_near_greater(a)		((void) 0)
 #define trace_xfs_alloc_near_lesser(a)		((void) 0)
@@ -44,8 +33,6 @@
 #define trace_xfs_alloc_vextent_loopfailed(a)	((void) 0)
 #define trace_xfs_alloc_vextent_allfailed(a)	((void) 0)
 
-#define trace_xfs_log_recover_item_reorder_head(a,b,c,d)	((void) 0)
-#define trace_xfs_log_recover_item_reorder_tail(a,b,c,d)	((void) 0)
 #define trace_xfs_log_recover_item_add_cont(a,b,c,d)	((void) 0)
 #define trace_xfs_log_recover_item_add(a,b,c,d)	((void) 0)
 
@@ -63,7 +50,7 @@
 #define trace_xfs_irec_merge_pre(a,b,c,d,e,f)	((void) 0)
 #define trace_xfs_irec_merge_post(a,b,c,d)	((void) 0)
 
-#define trace_xfs_iext_insert(a,b,c,d,e)	((void) 0)
+#define trace_xfs_iext_insert(a,b,c,d)		((void) 0)
 #define trace_xfs_iext_remove(a,b,c,d)		((void) 0)
 
 #define trace_xfs_dir2_grow_inode(a,b)		((void) 0)
@@ -165,28 +152,27 @@
 
 #define trace_xfs_bmap_pre_update(a,b,c,d)	((void) 0)
 #define trace_xfs_bmap_post_update(a,b,c,d)	((void) 0)
-#define trace_xfs_extlist(a,b,c,d)	((void) 0)
-#define trace_xfs_bunmap(a,b,c,d,e)	((void) 0)
+#define trace_xfs_bunmap(a,b,c,d,e)		((void) 0)
 
 /* set c = c to avoid unused var warnings */
+#define trace_xfs_read_extent(a,b,c,d)	((c) = (c))
+#define trace_xfs_write_extent(a,b,c,d)	((c) = (c))
 #define trace_xfs_perag_get(a,b,c,d)	((c) = (c))
 #define trace_xfs_perag_get_tag(a,b,c,d) ((c) = (c))
 #define trace_xfs_perag_put(a,b,c,d)	((c) = (c))
 
-#define trace_xfs_defer_init(a,b)		((void) 0)
 #define trace_xfs_defer_cancel(a,b)		((void) 0)
-#define trace_xfs_defer_intake_work(a,b)	((void) 0)
-#define trace_xfs_defer_intake_cancel(a,b)	((void) 0)
 #define trace_xfs_defer_pending_commit(a,b)	((void) 0)
 #define trace_xfs_defer_pending_abort(a,b)	((void) 0)
-#define trace_xfs_defer_pending_cancel(a,b)	((void) 0)
 #define trace_xfs_defer_pending_finish(a,b)	((void) 0)
 #define trace_xfs_defer_trans_abort(a,b)	((void) 0)
 #define trace_xfs_defer_trans_roll(a,b)		((void) 0)
-#define trace_xfs_defer_trans_roll_error(a,b,c)	((void) 0)
+#define trace_xfs_defer_trans_roll_error(a,b)	((void) 0)
 #define trace_xfs_defer_finish(a,b)		((void) 0)
-#define trace_xfs_defer_finish_error(a,b,c)	((void) 0)
+#define trace_xfs_defer_finish_error(a,b)	((void) 0)
 #define trace_xfs_defer_finish_done(a,b)	((void) 0)
+#define trace_xfs_defer_cancel_list(a,b)	((void) 0)
+#define trace_xfs_defer_create_intent(a,b)	((void) 0)
 
 #define trace_xfs_bmap_free_defer(...)		((void) 0)
 #define trace_xfs_bmap_free_deferred(...)	((void) 0)
@@ -272,7 +258,6 @@
 #define trace_xfs_refcount_find_shared_error(...)	((void) 0)
 
 #define trace_xfs_bmap_remap_alloc(...)		((void) 0)
-#define trace_xfs_bmap_remap_alloc_error(...)	((void) 0)
 #define trace_xfs_bmap_deferred(...)		((void) 0)
 #define trace_xfs_bmap_defer(...)		((void) 0)
 

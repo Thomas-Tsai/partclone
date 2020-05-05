@@ -1,19 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2000-2006 Silicon Graphics, Inc.
  * All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it would be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write the Free Software Foundation,
- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 
@@ -118,9 +106,9 @@ static void unmount_record(void *p)
 	xlog_op_header_t	*op = (xlog_op_header_t *)p;
 	/* the data section must be 32 bit size aligned */
 	struct {
-	    __uint16_t magic;
-	    __uint16_t pad1;
-	    __uint32_t pad2; /* may as well make it 64 bits */
+	    uint16_t magic;
+	    uint16_t pad1;
+	    uint32_t pad2; /* may as well make it 64 bits */
 	} magic = { XLOG_UNMOUNT_TYPE, 0, 0 };
 
 	memset(p, 0, BBSIZE);
@@ -143,7 +131,7 @@ static char *next(
 	struct xfs_buf	*buf = (struct xfs_buf *)private;
 
 	if (buf &&
-	    (XFS_BUF_COUNT(buf) < (int)(ptr - XFS_BUF_PTR(buf)) + offset))
+	    (buf->b_bcount < (int)(ptr - (char *)buf->b_addr) + offset))
 		abort();
 
 	return ptr + offset;
@@ -193,7 +181,7 @@ libxfs_log_clear(
 	 * previous cycle.
 	 */
 	len = ((version == 2) && sunit) ? BTOBB(sunit) : 2;
-	len = MAX(len, 2);
+	len = max(len, 2);
 	lsn = xlog_assign_lsn(cycle, 0);
 	if (cycle == XLOG_INIT_CYCLE)
 		tail_lsn = lsn;
@@ -204,7 +192,7 @@ libxfs_log_clear(
 	ptr = dptr;
 	if (btp) {
 		bp = libxfs_getbufr(btp, start, len);
-		ptr = XFS_BUF_PTR(bp);
+		ptr = bp->b_addr;
 	}
 	libxfs_log_header(ptr, fs_uuid, version, sunit, fmt, lsn, tail_lsn,
 			  next, bp);
@@ -252,7 +240,7 @@ libxfs_log_clear(
 		ptr = dptr;
 		if (btp) {
 			bp = libxfs_getbufr(btp, blk, len);
-			ptr = XFS_BUF_PTR(bp);
+			ptr = bp->b_addr;
 		}
 		/*
 		 * Note: pass the full buffer length as the sunit to initialize
@@ -307,7 +295,7 @@ libxfs_log_header(
 	head->h_prev_block = cpu_to_be32(-1);
 	head->h_num_logops = cpu_to_be32(1);
 	head->h_fmt = cpu_to_be32(fmt);
-	head->h_size = cpu_to_be32(MAX(sunit, XLOG_BIG_RECORD_BSIZE));
+	head->h_size = cpu_to_be32(max(sunit, XLOG_BIG_RECORD_BSIZE));
 
 	head->h_lsn = cpu_to_be64(lsn);
 	head->h_tail_lsn = cpu_to_be64(tail_lsn);
@@ -358,7 +346,7 @@ libxfs_log_header(
 	 * minimum (1 hdr blk + 1 data blk). The record length is the total
 	 * minus however many header blocks are required.
 	 */
-	head->h_len = cpu_to_be32(MAX(BBTOB(2), sunit) - hdrs * BBSIZE);
+	head->h_len = cpu_to_be32(max(BBTOB(2), sunit) - hdrs * BBSIZE);
 
 	/*
 	 * Write out the unmount record, pack the first word into the record
@@ -375,7 +363,7 @@ libxfs_log_header(
 	 * the cycle. We don't need to pack any of these blocks because the
 	 * cycle data in the headers has already been zeroed.
 	 */
-	len = MAX(len, hdrs + 1);
+	len = max(len, hdrs + 1);
 	for (i = hdrs + 1; i < len; i++) {
 		p = nextfunc(p, BBSIZE, private);
 		memset(p, 0, BBSIZE);
@@ -556,14 +544,6 @@ libxfs_bcompare(struct cache_node *node, cache_key_t key)
 	return CACHE_MISS;
 }
 
-void
-libxfs_bprint(xfs_buf_t *bp)
-{
-	fprintf(stderr, "Buffer 0x%p blkno=%llu bytes=%u flags=0x%x count=%u\n",
-		bp, (unsigned long long)bp->b_bn, (unsigned)bp->b_bcount,
-		bp->b_flags, bp->b_node.cn_count);
-}
-
 static void
 __initbuf(xfs_buf_t *bp, struct xfs_buftarg *btp, xfs_daddr_t bno,
 		unsigned int bytes)
@@ -591,6 +571,13 @@ __initbuf(xfs_buf_t *bp, struct xfs_buftarg *btp, xfs_daddr_t bno,
 	bp->b_holder = 0;
 	bp->b_recur = 0;
 	bp->b_ops = NULL;
+
+	if (!bp->b_maps) {
+		bp->b_nmaps = 1;
+		bp->b_maps = &bp->__b_map;
+		bp->b_maps[0].bm_bn = bp->b_bn;
+		bp->b_maps[0].bm_len = bp->b_length;
+	}
 }
 
 static void
@@ -629,7 +616,7 @@ libxfs_initbuf_map(xfs_buf_t *bp, struct xfs_buftarg *btp,
 	bp->b_flags |= LIBXFS_B_DISCONTIG;
 }
 
-xfs_buf_t *
+static xfs_buf_t *
 __libxfs_getbufr(int blen)
 {
 	xfs_buf_t	*bp;
@@ -654,7 +641,8 @@ __libxfs_getbufr(int blen)
 			list_del_init(&bp->b_node.cn_mru);
 			free(bp->b_addr);
 			bp->b_addr = NULL;
-			free(bp->b_maps);
+			if (bp->b_maps != &bp->__b_map)
+				free(bp->b_maps);
 			bp->b_maps = NULL;
 		}
 	} else
@@ -685,7 +673,7 @@ libxfs_getbufr(struct xfs_buftarg *btp, xfs_daddr_t blkno, int bblen)
 	return bp;
 }
 
-xfs_buf_t *
+static xfs_buf_t *
 libxfs_getbufr_map(struct xfs_buftarg *btp, xfs_daddr_t blkno, int bblen,
 		struct xfs_buf_map *map, int nmaps)
 {
@@ -723,8 +711,6 @@ libxfs_getbufr_map(struct xfs_buftarg *btp, xfs_daddr_t blkno, int bblen,
 struct list_head	lock_buf_list = {&lock_buf_list, &lock_buf_list};
 int			lock_buf_count = 0;
 #endif
-
-extern int     use_xfs_buf_lock;
 
 static struct xfs_buf *
 __cache_lookup(struct xfs_bufkey *key, unsigned int flags)
@@ -783,7 +769,7 @@ struct xfs_buf *
 libxfs_getbuf_flags(struct xfs_buftarg *btp, xfs_daddr_t blkno, int len,
 		unsigned int flags)
 {
-	struct xfs_bufkey key = {0};
+	struct xfs_bufkey key = {NULL};
 
 	key.buftarg = btp;
 	key.blkno = blkno;
@@ -826,7 +812,7 @@ static struct xfs_buf *
 __libxfs_getbuf_map(struct xfs_buftarg *btp, struct xfs_buf_map *map,
 		    int nmaps, int flags)
 {
-	struct xfs_bufkey key = {0};
+	struct xfs_bufkey key = {NULL};
 	int i;
 
 	if (nmaps == 1)
@@ -886,7 +872,7 @@ libxfs_putbuf(xfs_buf_t *bp)
 void
 libxfs_purgebuf(xfs_buf_t *bp)
 {
-	struct xfs_bufkey key = {0};
+	struct xfs_bufkey key = {NULL};
 
 	key.buftarg = bp->b_target;
 	key.blkno = bp->b_bn;
@@ -1018,7 +1004,7 @@ libxfs_readbufr_map(struct xfs_buftarg *btp, struct xfs_buf *bp, int flags)
 {
 	int	fd;
 	int	error = 0;
-	char	*buf;
+	void	*buf;
 	int	i;
 
 	fd = libxfs_device_to_fd(btp->dev);
@@ -1139,7 +1125,7 @@ libxfs_writebufr(xfs_buf_t *bp)
 				    LIBXFS_BBTOOFF64(bp->b_bn), bp->b_flags);
 	} else {
 		int	i;
-		char	*buf = bp->b_addr;
+		void	*buf = bp->b_addr;
 
 		for (i = 0; i < bp->b_nmaps; i++) {
 			off64_t	offset = LIBXFS_BBTOOFF64(bp->b_maps[i].bm_bn);
@@ -1267,6 +1253,24 @@ libxfs_bulkrelse(
 }
 
 /*
+ * Free everything from the xfs_buf_freelist MRU, used at final teardown
+ */
+void
+libxfs_bcache_free(void)
+{
+	struct list_head	*cm_list;
+	xfs_buf_t		*bp, *next;
+
+	cm_list = &xfs_buf_freelist.cm_list;
+	list_for_each_entry_safe(bp, next, cm_list, b_node.cn_mru) {
+		free(bp->b_addr);
+		if (bp->b_maps != &bp->__b_map)
+			free(bp->b_maps);
+		kmem_zone_free(xfs_buf_zone, bp);
+	}
+}
+
+/*
  * When a buffer is marked dirty, the error is cleared. Hence if we are trying
  * to flush a buffer prior to cache reclaim that has an error on it it means
  * we've already tried to flush it and it failed. Prevent repeated corruption
@@ -1325,15 +1329,54 @@ struct cache_operations libxfs_bcache_operations = {
  * Inode cache stubs.
  */
 
+kmem_zone_t		*xfs_inode_zone;
 extern kmem_zone_t	*xfs_ili_zone;
-extern kmem_zone_t	*xfs_inode_zone;
+
+/*
+ * If there are inline format data / attr forks attached to this inode,
+ * make sure they're not corrupt.
+ */
+bool
+libxfs_inode_verify_forks(
+	struct xfs_inode	*ip,
+	struct xfs_ifork_ops	*ops)
+{
+	struct xfs_ifork	*ifp;
+	xfs_failaddr_t		fa;
+
+	if (!ops)
+		return true;
+
+	fa = xfs_ifork_verify_data(ip, ops);
+	if (fa) {
+		ifp = XFS_IFORK_PTR(ip, XFS_DATA_FORK);
+		xfs_inode_verifier_error(ip, -EFSCORRUPTED, "data fork",
+				ifp->if_u1.if_data, ifp->if_bytes, fa);
+		return false;
+	}
+
+	fa = xfs_ifork_verify_attr(ip, ops);
+	if (fa) {
+		ifp = XFS_IFORK_PTR(ip, XFS_ATTR_FORK);
+		xfs_inode_verifier_error(ip, -EFSCORRUPTED, "attr fork",
+				ifp ? ifp->if_u1.if_data : NULL,
+				ifp ? ifp->if_bytes : 0, fa);
+		return false;
+	}
+	return true;
+}
 
 int
-libxfs_iget(xfs_mount_t *mp, xfs_trans_t *tp, xfs_ino_t ino, uint lock_flags,
-		xfs_inode_t **ipp)
+libxfs_iget(
+	struct xfs_mount	*mp,
+	struct xfs_trans	*tp,
+	xfs_ino_t		ino,
+	uint			lock_flags,
+	struct xfs_inode	**ipp,
+	struct xfs_ifork_ops	*ifork_ops)
 {
-	xfs_inode_t	*ip;
-	int		error = 0;
+	struct xfs_inode	*ip;
+	int			error = 0;
 
 	ip = kmem_zone_zalloc(xfs_inode_zone, 0);
 	if (!ip)
@@ -1346,6 +1389,11 @@ libxfs_iget(xfs_mount_t *mp, xfs_trans_t *tp, xfs_ino_t ino, uint lock_flags,
 		kmem_zone_free(xfs_inode_zone, ip);
 		*ipp = NULL;
 		return error;
+	}
+
+	if (!libxfs_inode_verify_forks(ip, ifork_ops)) {
+		libxfs_irele(ip);
+		return -EFSCORRUPTED;
 	}
 
 	/*
@@ -1377,7 +1425,8 @@ libxfs_idestroy(xfs_inode_t *ip)
 }
 
 void
-libxfs_iput(xfs_inode_t *ip)
+libxfs_irele(
+	struct xfs_inode	*ip)
 {
 	if (ip->i_itemp)
 		kmem_zone_free(xfs_ili_zone, ip->i_itemp);
