@@ -133,6 +133,12 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Define to 1 if your <xfs/xfs_types.h> defines enum xfs_ag_resv_type. */
+#undef HAVE_XFS_AG_RESV_TYPE
+
+/* Define to 1 if your <xfs/xfs_types.h> defines xfs_icount_range(). */
+#undef HAVE_XFS_ICOUNT_RANGE
+
 /* Name of package */
 #undef PACKAGE
 

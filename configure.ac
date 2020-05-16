@@ -103,10 +103,20 @@ AC_ARG_ENABLE([xfs],
 )
 AM_CONDITIONAL(ENABLE_XFS, test "$enable_xfs" = yes)
 
-if test "$enable_xfs" = "yes"; then
-supported_fs=$supported_fs" xfs"
-xfs_version="build-in"
-fi
+AS_IF([test "$enable_xfs" = "yes"], [
+	supported_fs=$supported_fs" xfs"
+	xfs_version="build-in"
+	AC_CHECK_TYPE([enum xfs_ag_resv_type],
+		[AC_DEFINE(HAVE_XFS_AG_RESV_TYPE, 1, [Define to 1 if your <xfs/xfs_types.h> defines enum xfs_ag_resv_type.])],
+		[],
+		[[#include <xfs/xfs.h>]]
+	)
+	AC_CHECK_DECL([xfs_icount_range],
+		[AC_DEFINE(HAVE_XFS_ICOUNT_RANGE, 1, [Define to 1 if your <xfs/xfs_types.h> defines xfs_icount_range().])],
+		[],
+		[[#include <xfs/xfs.h>]]
+	)
+])
 #end of check xfs
 
 ##reiserfs##

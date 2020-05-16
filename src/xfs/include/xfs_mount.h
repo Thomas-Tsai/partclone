@@ -104,6 +104,7 @@ typedef struct xfs_mount {
 	struct xlog		*m_log;
 } xfs_mount_t;
 
+#if !HAVE_XFS_AG_RESV_TYPE
 /* per-AG block reservation data structures*/
 enum xfs_ag_resv_type {
 	XFS_AG_RESV_NONE = 0,
@@ -111,6 +112,7 @@ enum xfs_ag_resv_type {
 	XFS_AG_RESV_METADATA,
 	XFS_AG_RESV_RMAPBT,
 };
+#endif
 
 struct xfs_ag_resv {
 	/* number of blocks originally reserved here */

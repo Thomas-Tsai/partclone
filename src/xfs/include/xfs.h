@@ -5,6 +5,8 @@
 #ifndef __XFS_H__
 #define __XFS_H__
 
+#include <config.h>
+
 #if defined(__linux__)
 #include <xfs/linux.h>
 #else
