@@ -24,7 +24,7 @@
 #undef crc32
 int	source_fd = -1;
 int     first_residue;
-progress_bar        prog;
+extern progress_bar prog;
 unsigned long long checked;
 unsigned long long total_block;
 int bitmap_done = 0;
