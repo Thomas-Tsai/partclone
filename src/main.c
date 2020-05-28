@@ -746,7 +746,7 @@ int main(int argc, char **argv) {
 
 				read_offset += block_size;
 			}
-			if (blocks_in_cs && blocks_per_cs && blocks_read < buffer_capacity &&
+			if (!opt.ignore_crc && blocks_in_cs && blocks_per_cs && blocks_read < buffer_capacity &&
 					(blocks_read % blocks_per_cs)) {
 
 			    log_mesg(1, 0, 0, debug, "check latest chunk's checksum covering %u blocks\n", blocks_in_cs);

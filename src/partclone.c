@@ -53,6 +53,7 @@
 #define BLKGETSIZE64    _IOR(0x12,114,size_t)   /* Get device size in bytes. */
 #endif
 
+unsigned long long      rescue_write_size;
 
 FILE* msg = NULL;
 unsigned long long rescue_write_size;
@@ -131,20 +132,24 @@ void set_image_options_v2(image_options* img_opt)
 void init_image_head_v1(image_head_v1* image_hdr, char* fs)
 {
 	memset(image_hdr, 0, sizeof(image_head_v1));
-
-	strncpy(image_hdr->magic,   IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-	strncpy(image_hdr->version, IMAGE_VERSION_0001, IMAGE_VERSION_SIZE);
-	strncpy(image_hdr->fs, fs, FS_MAGIC_SIZE);
+        memcpy(image_hdr->magic,   IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
+	memcpy(image_hdr->version, IMAGE_VERSION_0001, IMAGE_VERSION_SIZE);
+	memcpy(image_hdr->fs, fs, FS_MAGIC_SIZE);
 }
 
 void init_image_head_v2(image_head_v2* image_hdr) {
 
+	int cplen = 0;
 	memset(image_hdr, 0, sizeof(image_head_v2));
 
-	strncpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
-	strncpy(image_hdr->version, IMAGE_VERSION_0002, IMAGE_VERSION_SIZE);
-	strncpy(image_hdr->ptc_version, VERSION, PARTCLONE_VERSION_SIZE);
+	memcpy(image_hdr->magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE);
+	memcpy(image_hdr->version, IMAGE_VERSION_0002, IMAGE_VERSION_SIZE);
 
+	if (strlen(VERSION) < PARTCLONE_VERSION_SIZE)
+	    cplen = strlen(VERSION);
+	else
+            cplen = PARTCLONE_VERSION_SIZE;
+	memcpy(image_hdr->ptc_version, VERSION, cplen);
 	image_hdr->endianess = ENDIAN_MAGIC;
 }
 
@@ -425,7 +430,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				print_version();
 				break;
 			case 'n':
-				strncpy(opt->note, optarg, NOTE_SIZE);
+				memcpy(opt->note, optarg, NOTE_SIZE);
 				break;
 			case 's':
 				opt->source = optarg;
@@ -1667,7 +1672,7 @@ int write_block_file(char* target, char *buf, unsigned long long count, unsigned
 	long long int i;
 	int debug = opt->debug;
 	unsigned long long size = count;
-	extern unsigned long long rescue_write_size;
+	//extern unsigned long long rescue_write_size;
 	int flags = O_WRONLY | O_LARGEFILE | O_CREAT ;
         int torrent_fd = 0;
 	char *block_filename = malloc(PATH_MAX + 1);
@@ -1707,7 +1712,7 @@ int io_all(int *fd, char *buf, unsigned long long count, int do_write, cmd_opt* 
 	long long int i;
 	int debug = opt->debug;
 	unsigned long long size = count;
-	extern unsigned long long rescue_write_size;
+	//extern unsigned long long rescue_write_size;
 
 	// for sync I/O buffer, when use stdin or pipe.
 	while (count > 0) {

@@ -1,19 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2000-2005 Silicon Graphics, Inc.
  * All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it would be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write the Free Software Foundation,
- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef __XFS_INODE_H__
@@ -36,6 +24,7 @@ struct xfs_dir_ops;
 struct inode {
 	mode_t		i_mode;
 	uint32_t	i_nlink;
+	xfs_dev_t	i_rdev;		/* This actually holds xfs_dev_t */
 	uint32_t	i_generation;
 	uint64_t	i_version;
 	struct timespec	i_atime;
@@ -65,9 +54,22 @@ typedef struct xfs_inode {
 	struct inode		i_vnode;
 } xfs_inode_t;
 
+/* Convert from vfs inode to xfs inode */
+static inline struct xfs_inode *XFS_I(struct inode *inode)
+{
+	return container_of(inode, struct xfs_inode, i_vnode);
+}
+
+/* convert from xfs inode to vfs inode */
 static inline struct inode *VFS_I(struct xfs_inode *ip)
 {
 	return &ip->i_vnode;
+}
+
+/* We only have i_size in the xfs inode in userspace */
+static inline loff_t i_size_read(struct inode *inode)
+{
+	return XFS_I(inode)->i_size;
 }
 
 /*
@@ -123,8 +125,8 @@ xfs_get_projid(struct xfs_icdinode *id)
 static inline void
 xfs_set_projid(struct xfs_icdinode *id, prid_t projid)
 {
-	id->di_projid_hi = (__uint16_t) (projid >> 16);
-	id->di_projid_lo = (__uint16_t) (projid & 0xffff);
+	id->di_projid_hi = (uint16_t) (projid >> 16);
+	id->di_projid_lo = (uint16_t) (projid & 0xffff);
 }
 
 static inline bool xfs_is_reflink_inode(struct xfs_inode *ip)
@@ -148,10 +150,11 @@ extern void	libxfs_trans_ichgtime(struct xfs_trans *,
 extern int	libxfs_iflush_int (struct xfs_inode *, struct xfs_buf *);
 
 /* Inode Cache Interfaces */
+extern bool	libxfs_inode_verify_forks(struct xfs_inode *ip,
+				struct xfs_ifork_ops *);
 extern int	libxfs_iget(struct xfs_mount *, struct xfs_trans *, xfs_ino_t,
-				uint, struct xfs_inode **);
-extern void	libxfs_iput(struct xfs_inode *);
-
-#define IRELE(ip) libxfs_iput(ip)
+				uint, struct xfs_inode **,
+				struct xfs_ifork_ops *);
+extern void	libxfs_irele(struct xfs_inode *ip);
 
 #endif /* __XFS_INODE_H__ */

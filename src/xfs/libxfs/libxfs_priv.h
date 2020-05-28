@@ -1,19 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2000-2005 Silicon Graphics, Inc.
  * All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it would be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write the Free Software Foundation,
- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /*
@@ -49,14 +37,6 @@
 #ifndef __LIBXFS_INTERNAL_XFS_H__
 #define __LIBXFS_INTERNAL_XFS_H__
 
-/*
- * Repair doesn't have a inode when it calls libxfs_dir2_data_freescan,
- * so we to work around this internally for now.
- */
-#define xfs_dir2_data_freescan(ip, hdr, loghead) \
-	__xfs_dir2_data_freescan((ip)->i_mount->m_dir_geo, \
-				 (ip)->d_ops, hdr, loghead)
-
 #include "libxfs_api_defs.h"
 #include "platform_defs.h"
 #include "xfs.h"
@@ -73,12 +53,16 @@
 #include "xfs_arch.h"
 
 #include "xfs_fs.h"
+#include "crc32c.h"
+
+/* Zones used in libxfs allocations that aren't in shared header files */
+extern kmem_zone_t *xfs_buf_item_zone;
+extern kmem_zone_t *xfs_ili_zone;
+extern kmem_zone_t *xfs_buf_zone;
+extern kmem_zone_t *xfs_inode_zone;
+extern kmem_zone_t *xfs_trans_zone;
 
 /* CRC stuff, buffer API dependent on it */
-extern uint32_t crc32_le(uint32_t crc, unsigned char const *p, size_t len);
-extern uint32_t crc32c_le(uint32_t crc, unsigned char const *p, size_t len);
-
-#define crc32(c,p,l)	crc32_le((c),(unsigned char const *)(p),(l))
 #define crc32c(c,p,l)	crc32c_le((c),(unsigned char const *)(p),(l))
 
 #include "xfs_cksum.h"
@@ -95,6 +79,13 @@ extern char    *progname;
 #undef ASSERT
 #define ASSERT(ex) assert(ex)
 
+/*
+ * We have no need for the "linux" dev_t in userspace, so these
+ * are no-ops, and an xfs_dev_t is stored in VFS_I(ip)->i_rdev
+ */
+#define xfs_to_linux_dev_t(dev)	dev
+#define linux_to_xfs_dev_t(dev) dev
+
 #ifndef EWRONGFS
 #define EWRONGFS	EINVAL
 #endif
@@ -102,6 +93,16 @@ extern char    *progname;
 #define xfs_error_level			0
 
 #define STATIC				static
+
+/*
+ * Starting in Linux 4.15, the %p (raw pointer value) printk modifier
+ * prints a hashed version of the pointer to avoid leaking kernel
+ * pointers into dmesg.  If we're trying to debug the kernel we want the
+ * raw values, so override this behavior as best we can.
+ *
+ * In userspace we don't have this problem.
+ */
+#define PTR_FMT "%p"
 
 /* XXX: need to push these out to make LIBXFS_ATTR defines */
 #define ATTR_ROOT			0x0002
@@ -111,8 +112,6 @@ extern char    *progname;
 #define ATTR_KERNOTIME			0
 #define ATTR_KERNOVAL			0
 
-#define IHOLD(ip)			((void) 0)
-
 #define XFS_IGET_CREATE			0x1
 #define XFS_IGET_UNTRUSTED		0x2
 
@@ -121,12 +120,24 @@ enum ce { CE_DEBUG, CE_CONT, CE_NOTE, CE_WARN, CE_ALERT, CE_PANIC };
 
 #define xfs_notice(mp,fmt,args...)		cmn_err(CE_NOTE,fmt, ## args)
 #define xfs_warn(mp,fmt,args...)		cmn_err(CE_WARN,fmt, ## args)
+#define xfs_err(mp,fmt,args...)			cmn_err(CE_ALERT,fmt, ## args)
+#define xfs_alert(mp,fmt,args...)		cmn_err(CE_ALERT,fmt, ## args)
+#define xfs_alert_tag(mp,tag,fmt,args...)	cmn_err(CE_ALERT,fmt, ## args)
+
 #define xfs_hex_dump(d,n)		((void) 0)
+#define xfs_stack_trace()		((void) 0)
+
 
 #define xfs_force_shutdown(d,n)		((void) 0)
 
 /* stop unused var warnings by assigning mp to itself */
-#define XFS_CORRUPTION_ERROR(e,l,mp,m)	do { \
+
+#define xfs_corruption_error(e,l,mp,b,sz,fi,ln,fa)	do { \
+	(mp) = (mp); \
+	cmn_err(CE_ALERT, "%s: XFS_CORRUPTION_ERROR", (e));  \
+} while (0)
+
+#define XFS_CORRUPTION_ERROR(e, lvl, mp, buf, bufsize)	do { \
 	(mp) = (mp); \
 	cmn_err(CE_ALERT, "%s: XFS_CORRUPTION_ERROR", (e));  \
 } while (0)
@@ -136,17 +147,13 @@ enum ce { CE_DEBUG, CE_CONT, CE_NOTE, CE_WARN, CE_ALERT, CE_PANIC };
 	cmn_err(CE_ALERT, "%s: XFS_ERROR_REPORT", (e));  \
 } while (0)
 
-#define XFS_QM_DQATTACH(mp,ip,flags)	0
 #define XFS_ERRLEVEL_LOW		1
 #define XFS_FORCED_SHUTDOWN(mp)		0
 #define XFS_ILOCK_EXCL			0
 #define XFS_STATS_INC(mp, count)	do { (mp) = (mp); } while (0)
 #define XFS_STATS_DEC(mp, count, x)	do { (mp) = (mp); } while (0)
 #define XFS_STATS_ADD(mp, count, x)	do { (mp) = (mp); } while (0)
-#define XFS_TRANS_MOD_DQUOT_BYINO(mp,tp,ip,field,delta)	do { } while (0)
-#define XFS_TRANS_RESERVE_QUOTA_NBLKS(mp,tp,ip,nblks,ninos,fl)	0
-#define XFS_TRANS_UNRESERVE_QUOTA_NBLKS(mp,tp,ip,nblks,ninos,fl)	0
-#define XFS_TEST_ERROR(expr,a,b,c)	( expr )
+#define XFS_TEST_ERROR(expr,a,b)	( expr )
 #define XFS_WANT_CORRUPTED_GOTO(mp, expr, l)				\
 {									\
 	if (!(expr)) {							\
@@ -169,9 +176,23 @@ enum ce { CE_DEBUG, CE_CONT, CE_NOTE, CE_WARN, CE_ALERT, CE_PANIC };
 
 #ifdef __GNUC__
 #define __return_address	__builtin_return_address(0)
+
+/*
+ * Return the address of a label.  Use barrier() so that the optimizer
+ * won't reorder code to refactor the error jumpouts into a single
+ * return, which throws off the reported address.
+ */
+#define __this_address  ({ __label__ __here; __here: barrier(); &&__here; })
+/* Optimization barrier */
+
+/* The "volatile" is due to gcc bugs */
+#define barrier() __asm__ __volatile__("": : :"memory")
 #endif
 
-#define XFS_DQUOT_CLUSTER_SIZE_FSB (xfs_filblks_t)1
+/* Optimization barrier */
+#ifndef barrier
+# define barrier() __memory_barrier()
+#endif
 
 /* miscellaneous kernel routines not in user space */
 #define down_read(a)		((void) 0)
@@ -183,11 +204,17 @@ enum ce { CE_DEBUG, CE_CONT, CE_NOTE, CE_WARN, CE_ALERT, CE_PANIC };
 #define unlikely(x)		(x)
 #define rcu_read_lock()		((void) 0)
 #define rcu_read_unlock()	((void) 0)
-#define WARN_ON_ONCE(expr)	((void) 0)
+/* Need to be able to handle this bare or in control flow */
+static inline bool WARN_ON_ONCE(bool expr) {
+	return (expr);
+}
 
 #define percpu_counter_read(x)		(*x)
 #define percpu_counter_read_positive(x)	((*x) > 0 ? (*x) : 0)
 #define percpu_counter_sum(x)		(*x)
+
+#define READ_ONCE(x)			(x)
+#define WRITE_ONCE(x, val)		((x) = (val))
 
 /*
  * prandom_u32 is used for di_gen inode allocation, it must be zero for libxfs
@@ -196,6 +223,11 @@ enum ce { CE_DEBUG, CE_CONT, CE_NOTE, CE_WARN, CE_ALERT, CE_PANIC };
 #define prandom_u32()		0
 
 #define PAGE_SIZE		getpagesize()
+
+#define inode_peek_iversion(inode)	(inode)->i_version
+#define inode_set_iversion_queried(inode, version) do { \
+	(inode)->i_version = (version);	\
+} while (0)
 
 static inline int __do_div(unsigned long long *n, unsigned base)
 {
@@ -209,11 +241,36 @@ static inline int __do_div(unsigned long long *n, unsigned base)
 #define do_mod(a, b)		((a) % (b))
 #define rol32(x,y)		(((x) << (y)) | ((x) >> (32 - (y))))
 
+/**
+ * div_u64_rem - unsigned 64bit divide with 32bit divisor with remainder
+ * @dividend: unsigned 64bit dividend
+ * @divisor: unsigned 32bit divisor
+ * @remainder: pointer to unsigned 32bit remainder
+ *
+ * Return: sets ``*remainder``, then returns dividend / divisor
+ *
+ * This is commonly provided by 32bit archs to provide an optimized 64bit
+ * divide.
+ */
+static inline uint64_t
+div_u64_rem(uint64_t dividend, uint32_t divisor, uint32_t *remainder)
+{
+	*remainder = dividend % divisor;
+	return dividend / divisor;
+}
+
 #define min_t(type,x,y) \
 	({ type __x = (x); type __y = (y); __x < __y ? __x: __y; })
 #define max_t(type,x,y) \
 	({ type __x = (x); type __y = (y); __x > __y ? __x: __y; })
 
+/**
+ * swap - swap values of @a and @b
+ * @a: first value
+ * @b: second value
+ */
+#define swap(a, b) \
+	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
 
 #define __round_mask(x, y) ((__typeof__(x))((y)-1))
 #define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
@@ -307,8 +364,8 @@ roundup_pow_of_two(uint v)
 	return 0;
 }
 
-static inline __uint64_t
-roundup_64(__uint64_t x, __uint32_t y)
+static inline uint64_t
+roundup_64(uint64_t x, uint32_t y)
 {
 	x += y - 1;
 	do_div(x, y);
@@ -316,39 +373,34 @@ roundup_64(__uint64_t x, __uint32_t y)
 }
 
 /* buffer management */
-#define XFS_BUF_LOCK			0
-#define XFS_BUF_TRYLOCK			0
-#define XBF_LOCK			XFS_BUF_LOCK
-#define XBF_TRYLOCK			XFS_BUF_TRYLOCK
-#define XBF_DONT_BLOCK			0
+#define XBF_TRYLOCK			0
 #define XBF_UNMAPPED			0
 #define XBF_DONE			0
-#define XFS_BUF_GETERROR(bp)		0
-#define XFS_BUF_DONE(bp)		((bp)->b_flags |= LIBXFS_B_UPTODATE)
-#define XFS_BUF_ISDONE(bp)		((bp)->b_flags & LIBXFS_B_UPTODATE)
 #define xfs_buf_stale(bp)		((bp)->b_flags |= LIBXFS_B_STALE)
 #define XFS_BUF_UNDELAYWRITE(bp)	((bp)->b_flags &= ~LIBXFS_B_DIRTY)
-#define XFS_BUF_SET_VTYPE(a,b)		((void) 0)
-#define XFS_BUF_SET_VTYPE_REF(a,b,c)	((void) 0)
 #define XFS_BUF_SET_BDSTRAT_FUNC(a,b)	((void) 0)
 
 /* avoid gcc warning */
-#define xfs_incore(bt,blkno,len,lockit)	({		\
+#define xfs_buf_incore(bt,blkno,len,lockit) ({		\
 	typeof(blkno) __foo = (blkno);			\
 	typeof(len) __bar = (len);			\
 	(blkno) = __foo;				\
 	(len) = __bar; /* no set-but-unused warning */	\
 	NULL;						\
 })
+#define xfs_buf_get_uncached(t,n,f)     \
+	libxfs_getbufr((t), XFS_BUF_DADDR_NULL, (n));
 #define xfs_buf_relse(bp)		libxfs_putbuf(bp)
 #define xfs_buf_get(devp,blkno,len,f)	(libxfs_getbuf((devp), (blkno), (len)))
 #define xfs_bwrite(bp)			libxfs_writebuf((bp), 0)
 #define xfs_buf_delwri_queue(bp, bl)	libxfs_writebuf((bp), 0)
+#define xfs_buf_delwri_submit(bl)	(0)
+#define xfs_buf_oneshot(bp)		((void) 0)
 
 #define XBRW_READ			LIBXFS_BREAD
 #define XBRW_WRITE			LIBXFS_BWRITE
 #define xfs_buf_iomove(bp,off,len,data,f)	libxfs_iomove(bp,off,len,data,f)
-#define xfs_buf_zero(bp,off,len)	libxfs_iomove(bp,off,len,0,LIBXFS_BZERO)
+#define xfs_buf_zero(bp,off,len)     libxfs_iomove(bp,off,len,NULL,LIBXFS_BZERO)
 
 /* mount stuff */
 #define XFS_MOUNT_32BITINODES		LIBXFS_MOUNT_32BITINODES
@@ -359,11 +411,9 @@ roundup_64(__uint64_t x, __uint32_t y)
 #define XFS_MOUNT_IKEEP			0	/* ignored in userspace */
 #define XFS_MOUNT_SWALLOC		0	/* ignored in userspace */
 #define XFS_MOUNT_RDONLY		0	/* ignored in userspace */
+#define XFS_MOUNT_BAD_SUMMARY		0	/* ignored in userspace */
 
-
-#define xfs_trans_get_block_res(tp)	1
 #define xfs_trans_set_sync(tp)		((void) 0)
-#define xfs_trans_ordered_buf(tp, bp)	((void) 0)
 #define	xfs_trans_agblocks_delta(tp, d)
 #define	xfs_trans_agflist_delta(tp, d)
 #define	xfs_trans_agbtree_delta(tp, d)
@@ -381,25 +431,8 @@ roundup_64(__uint64_t x, __uint32_t y)
 	__d = __d; /* no set-but-unused warning */	\
 })
 #define xfs_buf_readahead_map(a,b,c,ops)	((void) 0)	/* no readahead */
-#define xfs_buftrace(x,y)			((void) 0)	/* debug only */
 
-#define xfs_cmn_err(tag,level,mp,fmt,args...)	cmn_err(level,fmt, ## args)
-#define xfs_warn(mp,fmt,args...)		cmn_err(CE_WARN,fmt, ## args)
-#define xfs_alert(mp,fmt,args...)		cmn_err(CE_ALERT,fmt, ## args)
-#define xfs_alert_tag(mp,tag,fmt,args...)	cmn_err(CE_ALERT,fmt, ## args)
-
-#define xfs_dir2_trace_args(where, args)		((void) 0)
-#define xfs_dir2_trace_args_b(where, args, bp)		((void) 0)
-#define xfs_dir2_trace_args_bb(where, args, lbp, dbp)	((void) 0)
-#define xfs_dir2_trace_args_bibii(where, args, bs, ss, bd, sd, c) ((void) 0)
-#define xfs_dir2_trace_args_db(where, args, db, bp)	((void) 0)
-#define xfs_dir2_trace_args_i(where, args, i)		((void) 0)
-#define xfs_dir2_trace_args_s(where, args, s)		((void) 0)
-#define xfs_dir2_trace_args_sb(where, args, s, bp)	((void) 0)
 #define xfs_sort					qsort
-
-#define xfs_icsb_reinit_counters(mp)			do { } while (0)
-#define xfs_initialize_perag_icache(pag)		((void) 0)
 
 #define xfs_ilock(ip,mode)				((void) 0)
 #define xfs_ilock_nowait(ip,mode)			((void) 0)
@@ -410,26 +443,23 @@ roundup_64(__uint64_t x, __uint32_t y)
 	typeof(mode) __mode = mode;				\
 	__mode = __mode; /* no set-but-unused warning */	\
 })
-#define __xfs_flock(ip)					((void) 0)
 
 /* space allocation */
+#define XFS_EXTENT_BUSY_DISCARDED	0x01	/* undergoing a discard op. */
+#define XFS_EXTENT_BUSY_SKIP_DISCARD	0x02	/* do not discard */
+
 #define xfs_extent_busy_reuse(mp,ag,bno,len,user)	((void) 0)
 /* avoid unused variable warning */
 #define xfs_extent_busy_insert(tp,ag,bno,len,flags)({ 	\
 	xfs_agnumber_t __foo = ag; 			\
 	__foo = __foo; /* no set-but-unused warning */	\
 })
-#define xfs_extent_busy_trim(args,fbno,flen,bno,len) \
-do { \
-	*(bno) = (fbno); \
-	*(len) = (flen); \
-} while (0)
-
-/* avoid unused variable warning */
-#define xfs_alloc_busy_insert(tp,ag,b,len)	({	\
-	xfs_agnumber_t __foo = ag;			\
-	__foo = 0;					\
+#define xfs_extent_busy_trim(args,bno,len,busy_gen) 	({	\
+	unsigned __foo = *(busy_gen);				\
+	*(busy_gen) = __foo;					\
+	false;							\
 })
+#define xfs_extent_busy_flush(mp,pag,busy_gen)		((void)(0))
 
 #define xfs_rotorstep				1
 #define xfs_bmap_rtalloc(a)			(-ENOSYS)
@@ -446,7 +476,7 @@ do { \
 #define xfs_trans_mod_dquot_byino(t,i,f,d)		((void) 0)
 #define xfs_trans_reserve_quota_nblks(t,i,b,n,f)	(0)
 #define xfs_trans_unreserve_quota_nblks(t,i,b,n,f)	((void) 0)
-#define xfs_qm_dqattach(i,f)				(0)
+#define xfs_qm_dqattach(i)				(0)
 
 #define uuid_copy(s,d)		platform_uuid_copy((s),(d))
 #define uuid_equal(s,d)		(platform_uuid_compare((s),(d)) == 0)
@@ -485,7 +515,7 @@ void xfs_mount_common(struct xfs_mount *, struct xfs_sb *);
  * logitem.c and trans.c prototypes
  */
 void xfs_trans_init(struct xfs_mount *);
-int xfs_trans_roll(struct xfs_trans **, struct xfs_inode *);
+int xfs_trans_roll(struct xfs_trans **);
 
 /* xfs_trans_item.c */
 void xfs_trans_add_item(struct xfs_trans *, struct xfs_log_item *);
@@ -512,17 +542,132 @@ int  libxfs_mod_incore_sb(struct xfs_mount *, int, int64_t, int);
 #define xfs_reinit_percpu_counters(mp)
 
 void xfs_trans_mod_sb(struct xfs_trans *, uint, long);
-void xfs_trans_init(struct xfs_mount *);
-int  xfs_trans_roll(struct xfs_trans **, struct xfs_inode *);
-void xfs_verifier_error(struct xfs_buf *bp);
+
+void xfs_verifier_error(struct xfs_buf *bp, int error,
+			xfs_failaddr_t failaddr);
+void xfs_inode_verifier_error(struct xfs_inode *ip, int error,
+			const char *name, void *buf, size_t bufsz,
+			xfs_failaddr_t failaddr);
+
+#define xfs_buf_verifier_error(bp,e,n,bu,bus,fa) \
+	xfs_verifier_error(bp, e, fa)
 
 /* XXX: this is clearly a bug - a shared header needs to export this */
 /* xfs_rtalloc.c */
 int libxfs_rtfree_extent(struct xfs_trans *, xfs_rtblock_t, xfs_extlen_t);
+bool libxfs_verify_rtbno(struct xfs_mount *mp, xfs_rtblock_t rtbno);
+
+struct xfs_rtalloc_rec {
+	xfs_rtblock_t		ar_startext;
+	xfs_rtblock_t		ar_extcount;
+};
+
+typedef int (*xfs_rtalloc_query_range_fn)(
+	struct xfs_trans	*tp,
+	struct xfs_rtalloc_rec	*rec,
+	void			*priv);
 
 int libxfs_zero_extent(struct xfs_inode *ip, xfs_fsblock_t start_fsb,
                         xfs_off_t count_fsb);
 
+
 bool xfs_log_check_lsn(struct xfs_mount *, xfs_lsn_t);
+#define xfs_log_in_recovery(mp)	(false)
+
+/* xfs_icache.c */
+#define xfs_inode_set_cowblocks_tag(ip)	do { } while (0)
+#define xfs_inode_set_eofblocks_tag(ip)	do { } while (0)
+
+/* xfs_stats.h */
+#define XFS_STATS_CALC_INDEX(member)	0
+#define XFS_STATS_INC_OFF(mp, off)
+#define XFS_STATS_ADD_OFF(mp, off, val)
+
+typedef unsigned char u8;
+unsigned int hweight8(unsigned int w);
+unsigned int hweight32(unsigned int w);
+unsigned int hweight64(__u64 w);
+
+#define BIT_MASK(nr)	(1UL << ((nr) % BITS_PER_LONG))
+#define BIT_WORD(nr)	((nr) / BITS_PER_LONG)
+
+static inline void set_bit(int nr, volatile unsigned long *addr)
+{
+	unsigned long mask = BIT_MASK(nr);
+	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
+
+	*p  |= mask;
+}
+
+static inline void clear_bit(int nr, volatile unsigned long *addr)
+{
+	unsigned long mask = BIT_MASK(nr);
+	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
+
+	*p &= ~mask;
+}
+
+static inline int test_bit(int nr, const volatile unsigned long *addr)
+{
+	unsigned long mask = BIT_MASK(nr);
+	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
+
+	return *p & mask;
+}
+
+/* Keep static checkers quiet about nonstatic functions by exporting */
+int xfs_inode_hasattr(struct xfs_inode *ip);
+int xfs_attr_get_ilocked(struct xfs_inode *ip, struct xfs_da_args *args);
+int xfs_attr_get(struct xfs_inode *ip, const unsigned char *name,
+                unsigned char *value, int *valuelenp, int flags);
+int xfs_attr_set(struct xfs_inode *dp, const unsigned char *name,
+                 unsigned char *value, int valuelen, int flags);
+int xfs_attr_remove(struct xfs_inode *dp, const unsigned char *name, int flags);
+
+int xfs_rtbuf_get(struct xfs_mount *mp, struct xfs_trans *tp,
+		  xfs_rtblock_t block, int issum, struct xfs_buf **bpp);
+int xfs_rtcheck_range(struct xfs_mount *mp, struct xfs_trans *tp,
+		      xfs_rtblock_t start, xfs_extlen_t len, int val,
+		      xfs_rtblock_t *new, int *stat);
+int xfs_rtfind_back(struct xfs_mount *mp, struct xfs_trans *tp,
+		    xfs_rtblock_t start, xfs_rtblock_t limit,
+		    xfs_rtblock_t *rtblock);
+int xfs_rtfind_forw(struct xfs_mount *mp, struct xfs_trans *tp,
+		    xfs_rtblock_t start, xfs_rtblock_t limit,
+		    xfs_rtblock_t *rtblock);
+int xfs_rtmodify_range(struct xfs_mount *mp, struct xfs_trans *tp,
+		       xfs_rtblock_t start, xfs_extlen_t len, int val);
+int xfs_rtmodify_summary_int(struct xfs_mount *mp, struct xfs_trans *tp,
+			     int log, xfs_rtblock_t bbno, int delta,
+			     xfs_buf_t **rbpp, xfs_fsblock_t *rsb,
+			     xfs_suminfo_t *sum);
+int xfs_rtmodify_summary(struct xfs_mount *mp, struct xfs_trans *tp, int log,
+			 xfs_rtblock_t bbno, int delta, xfs_buf_t **rbpp,
+			 xfs_fsblock_t *rsb);
+int xfs_rtfree_range(struct xfs_mount *mp, struct xfs_trans *tp,
+		     xfs_rtblock_t start, xfs_extlen_t len,
+		     struct xfs_buf **rbpp, xfs_fsblock_t *rsb);
+int xfs_rtalloc_query_range(struct xfs_trans *tp,
+			    struct xfs_rtalloc_rec *low_rec,
+			    struct xfs_rtalloc_rec *high_rec,
+			    xfs_rtalloc_query_range_fn fn,
+			    void *priv);
+int xfs_rtalloc_query_all(struct xfs_trans *tp,
+			  xfs_rtalloc_query_range_fn fn,
+			  void *priv);
+bool xfs_verify_rtbno(struct xfs_mount *mp, xfs_rtblock_t rtbno);
+int xfs_rtalloc_extent_is_free(struct xfs_mount *mp, struct xfs_trans *tp,
+			       xfs_rtblock_t start, xfs_extlen_t len,
+			       bool *is_free);
+/* xfs_bmap_util.h */
+struct xfs_bmalloca;
+int xfs_bmap_extsize_align(struct xfs_mount *mp, struct xfs_bmbt_irec *gotp,
+			   struct xfs_bmbt_irec *prevp, xfs_extlen_t extsz,
+			   int rt, int eof, int delay, int convert,
+			   xfs_fileoff_t *offp, xfs_extlen_t *lenp);
+void xfs_bmap_adjacent(struct xfs_bmalloca *ap);
+int xfs_bmap_last_extent(struct xfs_trans *tp, struct xfs_inode *ip,
+			 int whichfork, struct xfs_bmbt_irec *rec,
+			 int *is_empty);
 
 #endif	/* __LIBXFS_INTERNAL_XFS_H__ */

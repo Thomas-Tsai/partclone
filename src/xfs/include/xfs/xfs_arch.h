@@ -1,19 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2000-2002,2005 Silicon Graphics, Inc.
  * All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it would be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write the Free Software Foundation,
- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 #ifndef __XFS_ARCH_H__
 #define __XFS_ARCH_H__
@@ -25,10 +13,14 @@
 #endif
 
 #ifdef __CHECKER__
-#define __bitwise		__attribute__((bitwise))
+# ifndef __bitwise
+#  define __bitwise		__attribute__((bitwise))
+# endif
 #define __force			__attribute__((force))
 #else
-#define __bitwise
+# ifndef __bitwise
+#  define __bitwise
+# endif
 #define __force
 #endif
 
@@ -240,39 +232,39 @@ static inline void be64_add_cpu(__be64 *a, __s64 b)
 	*a = cpu_to_be64(be64_to_cpu(*a) + b);
 }
 
-static inline __uint16_t get_unaligned_be16(void *p)
+static inline uint16_t get_unaligned_be16(void *p)
 {
-	__uint8_t *__p = p;
+	uint8_t *__p = p;
 	return __p[0] << 8 | __p[1];
 }
 
-static inline __uint32_t get_unaligned_be32(void *p)
+static inline uint32_t get_unaligned_be32(void *p)
 {
-	__uint8_t *__p = p;
-        return __p[0] << 24 | __p[1] << 16 | __p[2] << 8 | __p[3];
+	uint8_t *__p = p;
+        return (uint32_t)__p[0] << 24 | __p[1] << 16 | __p[2] << 8 | __p[3];
 }
 
-static inline __uint64_t get_unaligned_be64(void *p)
+static inline uint64_t get_unaligned_be64(void *p)
 {
-	return (__uint64_t)get_unaligned_be32(p) << 32 |
+	return (uint64_t)get_unaligned_be32(p) << 32 |
 			   get_unaligned_be32(p + 4);
 }
 
-static inline void put_unaligned_be16(__uint16_t val, void *p)
+static inline void put_unaligned_be16(uint16_t val, void *p)
 {
-	__uint8_t *__p = p;
+	uint8_t *__p = p;
 	*__p++ = val >> 8;
 	*__p++ = val;
 }
 
-static inline void put_unaligned_be32(__uint32_t val, void *p)
+static inline void put_unaligned_be32(uint32_t val, void *p)
 {
-	__uint8_t *__p = p;
+	uint8_t *__p = p;
 	put_unaligned_be16(val >> 16, __p);
 	put_unaligned_be16(val, __p + 2);
 }
 
-static inline void put_unaligned_be64(__uint64_t val, void *p)
+static inline void put_unaligned_be64(uint64_t val, void *p)
 {
 	put_unaligned_be32(val >> 32, p);
 	put_unaligned_be32(val, p + 4);

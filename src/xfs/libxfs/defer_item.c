@@ -1,21 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (C) 2016 Oracle.  All Rights Reserved.
- *
  * Author: Darrick J. Wong <darrick.wong@oracle.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it would be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write the Free Software Foundation,
- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 #include "libxfs_priv.h"
 #include "xfs_fs.h"
@@ -88,7 +74,6 @@ xfs_extent_free_create_done(
 STATIC int
 xfs_extent_free_finish_item(
 	struct xfs_trans		*tp,
-	struct xfs_defer_ops		*dop,
 	struct list_head		*item,
 	void				*done_item,
 	void				**state)
@@ -133,11 +118,55 @@ static const struct xfs_defer_op_type xfs_extent_free_defer_type = {
 	.cancel_item	= xfs_extent_free_cancel_item,
 };
 
+/*
+ * AGFL blocks are accounted differently in the reserve pools and are not
+ * inserted into the busy extent list.
+ */
+STATIC int
+xfs_agfl_free_finish_item(
+	struct xfs_trans		*tp,
+	struct list_head		*item,
+	void				*done_item,
+	void				**state)
+{
+	struct xfs_mount		*mp = tp->t_mountp;
+	struct xfs_extent_free_item	*free;
+	struct xfs_buf			*agbp;
+	int				error;
+	xfs_agnumber_t			agno;
+	xfs_agblock_t			agbno;
+
+	free = container_of(item, struct xfs_extent_free_item, xefi_list);
+	ASSERT(free->xefi_blockcount == 1);
+	agno = XFS_FSB_TO_AGNO(mp, free->xefi_startblock);
+	agbno = XFS_FSB_TO_AGBNO(mp, free->xefi_startblock);
+
+	error = xfs_alloc_read_agf(mp, tp, agno, 0, &agbp);
+	if (!error)
+		error = xfs_free_agfl_block(tp, agno, agbno, agbp,
+					    &free->xefi_oinfo);
+	kmem_free(free);
+	return error;
+}
+
+/* sub-type with special handling for AGFL deferred frees */
+static const struct xfs_defer_op_type xfs_agfl_free_defer_type = {
+	.type		= XFS_DEFER_OPS_TYPE_AGFL_FREE,
+	.diff_items	= xfs_extent_free_diff_items,
+	.create_intent	= xfs_extent_free_create_intent,
+	.abort_intent	= xfs_extent_free_abort_intent,
+	.log_item	= xfs_extent_free_log_item,
+	.create_done	= xfs_extent_free_create_done,
+	.finish_item	= xfs_agfl_free_finish_item,
+	.cancel_item	= xfs_extent_free_cancel_item,
+};
+
 /* Register the deferred op type. */
 void
 xfs_extent_free_init_defer_op(void)
 {
 	xfs_defer_init_op_type(&xfs_extent_free_defer_type);
+	xfs_defer_init_op_type(&xfs_agfl_free_defer_type);
 }
 
 /* Reverse Mapping */
@@ -191,7 +220,6 @@ xfs_rmap_update_create_done(
 STATIC int
 xfs_rmap_update_finish_item(
 	struct xfs_trans		*tp,
-	struct xfs_defer_ops		*dop,
 	struct list_head		*item,
 	void				*done_item,
 	void				**state)
@@ -312,7 +340,6 @@ xfs_refcount_update_create_done(
 STATIC int
 xfs_refcount_update_finish_item(
 	struct xfs_trans		*tp,
-	struct xfs_defer_ops		*dop,
 	struct list_head		*item,
 	void				*done_item,
 	void				**state)
@@ -323,7 +350,7 @@ xfs_refcount_update_finish_item(
 	int				error;
 
 	refc = container_of(item, struct xfs_refcount_intent, ri_list);
-	error = xfs_refcount_finish_one(tp, dop,
+	error = xfs_refcount_finish_one(tp,
 			refc->ri_type,
 			refc->ri_startblock,
 			refc->ri_blockcount,
@@ -439,22 +466,28 @@ xfs_bmap_update_create_done(
 STATIC int
 xfs_bmap_update_finish_item(
 	struct xfs_trans		*tp,
-	struct xfs_defer_ops		*dop,
 	struct list_head		*item,
 	void				*done_item,
 	void				**state)
 {
 	struct xfs_bmap_intent		*bmap;
+	xfs_filblks_t			count;
 	int				error;
 
 	bmap = container_of(item, struct xfs_bmap_intent, bi_list);
-	error = xfs_bmap_finish_one(tp, dop,
+	count = bmap->bi_bmap.br_blockcount;
+	error = xfs_bmap_finish_one(tp,
 			bmap->bi_owner,
 			bmap->bi_type, bmap->bi_whichfork,
 			bmap->bi_bmap.br_startoff,
 			bmap->bi_bmap.br_startblock,
-			bmap->bi_bmap.br_blockcount,
+			&count,
 			bmap->bi_bmap.br_state);
+	if (!error && count > 0) {
+		ASSERT(bmap->bi_type == XFS_BMAP_UNMAP);
+		bmap->bi_bmap.br_blockcount = count;
+		return -EAGAIN;
+	}
 	kmem_free(bmap);
 	return error;
 }

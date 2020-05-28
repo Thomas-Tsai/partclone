@@ -80,8 +80,11 @@ const char* get_exec_name();
 #undef crc32
 #endif
 
+#ifndef partclone
+#define partclone
 extern char *EXECNAME;
 extern unsigned long long rescue_write_size;
+#endif
 
 /**
  * option

@@ -108,7 +108,7 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long copied
     uint64_t gbyte=1000000000.0;
     uint64_t mbyte=1000000;
     uint64_t kbyte=1000;
-
+    int spflen = 0;
 
     percent  = prog->unit * copied;
     if (percent <= 0)
@@ -149,16 +149,18 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long copied
 
     if (done != 1){
         remained = (time_t)((elapsed/percent*100) - elapsed);
-
+        spflen = 0;
 	if ((unsigned int)remained > 86400){
-	    snprintf(Rformated, sizeof(Rformated), " > %3i hrs ", ((int)remained/3600));
+	    spflen = snprintf(NULL, 0, " > %3i hrs ", ((int)remained/3600));
+	    snprintf(Rformated, spflen, " > %3i hrs ", ((int)remained/3600));
 	}else{
 	    Rtm = gmtime(&remained);
 	    strftime(Rformated, sizeof(Rformated), format, Rtm);
 	}
 
 	if ((unsigned int)elapsed > 86400){
-	    snprintf(Eformated, sizeof(Eformated), " > %3i hrs ", ((int)elapsed/3600));
+	    spflen = snprintf(NULL, 0, " > %3i hrs ", ((int)elapsed/3600));
+	    snprintf(Eformated, spflen, " > %3i hrs ", ((int)elapsed/3600));
 	}else{
 	    Etm = gmtime(&elapsed);
 	    strftime(Eformated, sizeof(Eformated), format, Etm);
@@ -171,15 +173,16 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long copied
 	strftime(Rformated, sizeof(Rformated), format, Rtm);
 
 	if ((unsigned int)elapsed > 86400){
-	    snprintf(Eformated, sizeof(Eformated), " > %3i hrs ", ((int)elapsed/3600));
+	    spflen = snprintf(NULL, 0, " > %3i hrs ", ((int)elapsed/3600));
+	    snprintf(Eformated, spflen, " > %3i hrs ", ((int)elapsed/3600));
 	}else{
 	    Etm = gmtime(&elapsed);
 	    strftime(Eformated, sizeof(Eformated), format, Etm);
 	}
     }
 
-    strncpy(prog_stat->Eformated, Eformated, sizeof(prog_stat->Eformated));
-    strncpy(prog_stat->Rformated, Rformated, sizeof(prog_stat->Rformated));
+    strncpy(prog_stat->Eformated, Eformated, sizeof(Eformated)+1);
+    strncpy(prog_stat->Rformated, Rformated, sizeof(Rformated)+1);
 }
 
 /// update information at progress bar

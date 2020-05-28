@@ -1,19 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2000-2005 Silicon Graphics, Inc.
  * All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it would be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write the Free Software Foundation,
- * Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef __LIBXFS_IO_H_
@@ -55,6 +43,7 @@ struct xfs_buf_ops {
 	char *name;
 	void (*verify_read)(struct xfs_buf *);
 	void (*verify_write)(struct xfs_buf *);
+	xfs_failaddr_t (*verify_struct)(struct xfs_buf *);
 };
 
 typedef struct xfs_buf {
@@ -68,14 +57,14 @@ typedef struct xfs_buf {
 	pthread_mutex_t		b_lock;
 	pthread_t		b_holder;
 	unsigned int		b_recur;
-	void			*b_fspriv;
-	void			*b_fsprivate2;
-	void			*b_fsprivate3;
+	void			*b_log_item;
+	void			*b_transp;
 	void			*b_addr;
 	int			b_error;
 	const struct xfs_buf_ops *b_ops;
 	struct xfs_perag	*b_pag;
 	struct xfs_buf_map	*b_maps;
+	struct xfs_buf_map	__b_map;
 	int			b_nmaps;
 #ifdef XFS_BUF_TRACING
 	struct list_head	b_lock_list;
@@ -96,26 +85,11 @@ enum xfs_buf_flags_t {	/* b_flags bits */
 
 #define XFS_BUF_DADDR_NULL		((xfs_daddr_t) (-1LL))
 
-#define XFS_BUF_PTR(bp)			((char *)(bp)->b_addr)
 #define xfs_buf_offset(bp, offset)	((bp)->b_addr + (offset))
 #define XFS_BUF_ADDR(bp)		((bp)->b_bn)
 #define XFS_BUF_SIZE(bp)		((bp)->b_bcount)
-#define XFS_BUF_COUNT(bp)		((bp)->b_bcount)
-#define XFS_BUF_TARGET(bp)		((bp)->b_dev)
-#define XFS_BUF_SET_PTR(bp,p,cnt)	({	\
-	(bp)->b_addr = (char *)(p);		\
-	XFS_BUF_SET_COUNT(bp,cnt);		\
-})
 
 #define XFS_BUF_SET_ADDR(bp,blk)	((bp)->b_bn = (blk))
-#define XFS_BUF_SET_COUNT(bp,cnt)	((bp)->b_bcount = (cnt))
-
-#define XFS_BUF_FSPRIVATE(bp,type)	((type)(bp)->b_fspriv)
-#define XFS_BUF_SET_FSPRIVATE(bp,val)	(bp)->b_fspriv = (void *)(val)
-#define XFS_BUF_FSPRIVATE2(bp,type)	((type)(bp)->b_fsprivate2)
-#define XFS_BUF_SET_FSPRIVATE2(bp,val)	(bp)->b_fsprivate2 = (void *)(val)
-#define XFS_BUF_FSPRIVATE3(bp,type)	((type)(bp)->b_fsprivate3)
-#define XFS_BUF_SET_FSPRIVATE3(bp,val)	(bp)->b_fsprivate3 = (void *)(val)
 
 #define XFS_BUF_SET_PRIORITY(bp,pri)	cache_node_set_priority( \
 						libxfs_bcache, \
@@ -198,6 +172,7 @@ extern void	libxfs_readbuf_verify(struct xfs_buf *bp,
 			const struct xfs_buf_ops *ops);
 extern xfs_buf_t *libxfs_getsb(struct xfs_mount *, int);
 extern void	libxfs_bcache_purge(void);
+extern void	libxfs_bcache_free(void);
 extern void	libxfs_bcache_flush(void);
 extern void	libxfs_purgebuf(xfs_buf_t *);
 extern int	libxfs_bcache_overflowed(void);
@@ -234,6 +209,14 @@ xfs_buf_update_cksum(struct xfs_buf *bp, unsigned long cksum_offset)
 {
 	xfs_update_cksum(bp->b_addr, BBTOB(bp->b_length),
 			 cksum_offset);
+}
+
+static inline int
+xfs_buf_associate_memory(struct xfs_buf *bp, void *mem, size_t len)
+{
+	bp->b_addr = mem;
+	bp->b_bcount = len;
+	return 0;
 }
 
 #endif	/* __LIBXFS_IO_H__ */
