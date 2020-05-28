@@ -88,7 +88,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     fs_open(device);
     /// init progress
-    progress_bar   prog;        /// progress_bar structure defined in progress.h
+    extern progress_bar   prog;        /// progress_bar structure defined in progress.h
     progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
 
     offset = logical_volume_offset(fs);

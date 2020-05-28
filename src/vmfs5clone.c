@@ -27,7 +27,7 @@
 vmfs_fs_t *fs;
 vmfs_dir_t *root_dir;
 unsigned long *blk_bitmap;
-progress_bar   prog;        /// progress_bar structure defined in progress.h
+extern progress_bar   prog;        /// progress_bar structure defined in progress.h
 unsigned long long checked;
 void *thread_update_bitmap_pui(void *arg);
 int bitmap_done = 0;
