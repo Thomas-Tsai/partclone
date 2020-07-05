@@ -1,3 +1,233 @@
+2020-07-05  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.3.15 and test xfs
+
+2020-05-28  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	fix gcc 10:  variables as extern for vmfs
+
+	Merge pull request #137 from robert-scheck/fno-common
+	Declare variables as extern in headers (fixes #136)
+
+	Merge branch 'master' into fno-common
+
+2020-05-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+	xfs link issue
+
+2020-05-19  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #139 from cdeleuze/master
+	Fix for issue #121
+
+	Merge pull request #143 from Sebastian-Roth/master
+	Partly revert 2d1ee7c94 fixing partclone.image to not capture zero si…
+
+2020-05-17  Sebastian Roth  <sebaroth@gmx.de>
+
+	Partly revert 2d1ee7c94 fixing partclone.image to not capture zero size images
+
+2020-05-06  Thomas Tsai  <thomas@nchc.org.tw>
+
+	version 0.3.14
+
+2020-05-05  Thomas Tsai  <thomas@nchc.org.tw>
+
+	manual migrate xfs 4.20.0
+
+2020-04-29  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	fix snprintf issue
+
+	fix strncpy and global variable issue
+
+2020-03-11  Christophe Deleuze  <christophe.deleuze@free.fr>
+
+	Fix for issue #121
+	If opt.ignore_crc is set, must not check the (uncomputed) checksum of
+	the latest chunk
+
+2020-02-03  Robert Scheck  <robert@fedoraproject.org>
+
+	Declare variables as extern in headers (fixes #136)
+	GCC 10 compatibility as per https://gcc.gnu.org/gcc-10/porting_to.html
+
+2019-08-20  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #130 from tjjh89017/hotfix_restore_torrent_info
+	Fixup buffer address passed into torrent helper in restore mode
+
+2019-08-19  tjjh89017  <tjjh89017@hotmail.com>
+
+	Fixup buffer address passed into torrent helper in restore mode
+	in restore mode (convert partclone image to BT image)
+	correct the args passed into torrent helper
+
+2019-04-29  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'master' of https://github.com/Thomas-Tsai/partclone
+
+	some error, try to fix apfs
+
+	update debian-control
+
+2019-02-12  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #125 from junkhacker/patch-1
+	fix typo in option to print version
+
+	Merge pull request #124 from tjjh89017/torrent_only_hotfix
+	Fixup when torrent_only enable, we don't need to check disk free space
+
+2019-02-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	apfs mini done
+
+2019-01-30  Thomas Tsai  <thomas@nchc.org.tw>
+
+	apfs support unstable
+
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+	add apfs in development
+
+2019-01-27  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #126 from stevenshiau/master
+	Add libssl-dev in Build-Depends.
+
+2019-01-22  Steven Shiau  <steven@nchc.org.tw>
+
+	Add libssl-dev in Build-Depends.
+
+2019-01-19  Greg Grammon  <g_grammon@yahoo.com>
+
+	fix typo in option to print version
+	"print_version" long option should have been "version" to correctly match what is listed in help
+
+2019-01-12  tjjh89017  <tjjh89017@hotmail.com>
+
+	fixup open_target when dd mode with torrent_only and directory exists
+
+	Fix up other mode when create torrent
+
+2019-01-09  tjjh89017  <tjjh89017@hotmail.com>
+
+	Fixup restore mode torrent_only will skip check free space
+
+	Fixup when torrent_only enable, we don't need to check disk free space
+
+2019-01-07  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #122 from tjjh89017/bt_direct_disk
+	Generate BT info directly
+
+2019-01-06  tjjh89017  <tjjh89017@hotmail.com>
+
+	If torrent.info exists, overwrite it
+
+	Fixup disable write partclone image header to invalid fd
+
+	fixup typo
+
+2019-01-05  tjjh89017  <tjjh89017@hotmail.com>
+
+	fixup typo
+
+	enable torrent only on `dd` and `restore` mode
+
+	Torrent only for deploy from disk rather than image file
+
+	Rename to `torrent_only`
+
+	enable output bt file in clone mode
+
+	Refactor to torrent_helper
+
+	Refactor for same function about torrent_generator
+
+	Add a flag for torrent only (need squash)
+
+2018-11-08  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #120 from tjjh89017/hotfix_c89_loop
+	Fix for C89 loop init
+
+2018-11-08  tjjh89017  <tjjh89017@hotmail.com>
+
+	Fix for C89 loop init
+
+2018-11-08  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #118 from tjjh89017/hotfix_dd_bt
+	hotfix dd mode dump torrent info
+
+2018-11-08  tjjh89017  <tjjh89017@hotmail.com>
+
+	hotfix dd mode dump torrent info
+
+2018-10-31  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #117 from tjjh89017/dd_bt
+	[WARNING] Create torrent info while dd mode to BT slices
+
+	Merge pull request #116 from tjjh89017/performance_hotfix
+	Performance Fix up
+
+	Merge pull request #115 from maxice8/fix-musl
+	src/main.c: add limits.h include for PATH_MAX
+
+2018-10-29  tjjh89017  <tjjh89017@hotmail.com>
+
+	Create torrent info while dd mode to BT slices
+
+	Performance Fix up
+	too many malloc and free will cause slow performance
+	make aligned (to 512) buffer only affect write_buffer and restore mode
+
+2018-10-29  maxice8  <thinkabit.ukim@gmail.com>
+
+	src/main.c: add limits.h include for PATH_MAX
+	fixes compilation with musl libc
+
+2018-10-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+	fix bug for partclone.dd for pipe, btfiles and buffer-size together. The last block file missing issue.
+
+2018-10-28  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #114 from tjjh89017/sha1_torrent_info
+	Create Torrent Info while converting image to BT format
+
+2018-10-28  tjjh89017  <tjjh89017@hotmail.com>
+
+	Restore image to BT format and calc torrent info
+	Using OpenSSL SHA1 function
+	Thanks to @mangokingTW
+
+2018-10-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	change version to 0.3.12
+
+	add dd option -T for bt mode
+
+2018-10-27  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #113 from pfrouleau/fix_typos_and_formating
+	Fix typos and formating
+
+2018-10-21  Patrick Rouleau  <prouleau72@gmail.com>
+
+	Improve README.md
+	- Put the different version of ext on the same line
+	- remove a duplicated line "For more info..."
+
+	Fix a few typos
+
 2018-06-25  Thomas Tsai  <tlinux.tsai@gmail.com>
 
 	Merge pull request #111 from zboszor/pipe-compressor
