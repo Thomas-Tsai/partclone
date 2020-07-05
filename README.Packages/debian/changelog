@@ -2,7 +2,7 @@ partclone (0.3.15-1) unstable; urgency=medium
 
   * update xfs and vmfs for gcc 10
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Sun, 05 Jul 2020 14:18:51 +0800
+ -- Thomas Tsai <thomas@nchc.org.tw>  Sun, 05 Jul 2020 14:20:17 +0800
 
 partclone (0.3.10-1) unstable; urgency=medium
 
