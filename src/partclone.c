@@ -1291,10 +1291,18 @@ unsigned long long get_free_space(char* path){
 /// check free space 
 void check_free_space(char* path, unsigned long long size) {
 
+	extern cmd_opt opt;
 	unsigned long long dest_size;
 	struct statvfs stvfs;
 	struct stat statP;
 	int debug = 1;
+
+	/*
+	 * Compression is in effect, free space check can be ignored.
+	 * Assume it's enough.
+	 */
+	if (opt.compresscmd)
+		return;
 
 	if (statvfs(path, &stvfs) == -1) {
 		printf("WARNING: Unknown free space on the destination: %s\n",
