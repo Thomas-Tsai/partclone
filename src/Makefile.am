@@ -5,7 +5,7 @@ sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg par
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 
 BTRFS_SOURCE=\
-btrfs/disk-io.c btrfs/rbtree-utils.h btrfs/raid56.c btrfs/btrfs-list.h btrfs/extent_io.h btrfs/rbtree-utils.c\
+btrfs/disk-io.c btrfs/rbtree-utils.h btrfs/raid56.c btrfs/raid56.h  btrfs/btrfs-list.h btrfs/extent_io.h btrfs/rbtree-utils.c\
 btrfs/rbtree.h btrfs/sizes.h btrfs/repair.h btrfs/volumes.h btrfs/qgroup.h btrfs/send.h btrfs/send-utils.h\
 btrfs/rbtree_augmented.h btrfs/hash.h btrfs/common-defs.h btrfs/messages.h btrfs/radix-tree.h btrfs/extent-cache.c\
 btrfs/.deps btrfs/.deps/.dirstamp btrfs/list.h btrfs/btrfs-list.c btrfs/root-tree.c btrfs/print-tree.c\

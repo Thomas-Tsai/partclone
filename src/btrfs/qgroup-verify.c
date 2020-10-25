@@ -711,7 +711,7 @@ static int travel_tree(struct btrfs_fs_info *info, struct btrfs_root *root,
 //	printf("travel_tree: bytenr: %llu\tnum_bytes: %llu\tref_parent: %llu\n",
 //	       bytenr, num_bytes, ref_parent);
 
-	eb = read_tree_block(root, bytenr, num_bytes, 0);
+	eb = read_tree_block(info, bytenr, num_bytes, 0);
 	if (!extent_buffer_uptodate(eb))
 		return -EIO;
 
@@ -736,7 +736,7 @@ static int travel_tree(struct btrfs_fs_info *info, struct btrfs_root *root,
 	nr = btrfs_header_nritems(eb);
 	for (i = 0; i < nr; i++) {
 		new_bytenr = btrfs_node_blockptr(eb, i);
-		new_num_bytes = root->nodesize;
+		new_num_bytes = info->nodesize;
 
 		ret = travel_tree(info, root, new_bytenr, new_num_bytes,
 				  ref_parent);
@@ -1185,7 +1185,7 @@ static int scan_extents(struct btrfs_fs_info *info,
 				bytenr = key.objectid;
 				num_bytes = key.offset;
 				if (key.type == BTRFS_METADATA_ITEM_KEY) {
-					num_bytes = info->extent_root->nodesize;
+					num_bytes = info->nodesize;
 					meta = 1;
 				}
 

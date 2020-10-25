@@ -179,71 +179,70 @@ static inline int check_crossing_stripes(struct btrfs_fs_info *fs_info,
 		(bg_offset + len - 1) / BTRFS_STRIPE_LEN);
 }
 
-int __btrfs_map_block(struct btrfs_mapping_tree *map_tree, int rw,
+int __btrfs_map_block(struct btrfs_fs_info *fs_info, int rw,
 		      u64 logical, u64 *length, u64 *type,
 		      struct btrfs_multi_bio **multi_ret, int mirror_num,
 		      u64 **raid_map);
-int btrfs_map_block(struct btrfs_mapping_tree *map_tree, int rw,
+int btrfs_map_block(struct btrfs_fs_info *fs_info, int rw,
 		    u64 logical, u64 *length,
 		    struct btrfs_multi_bio **multi_ret, int mirror_num,
 		    u64 **raid_map_ret);
-int btrfs_next_bg(struct btrfs_mapping_tree *map_tree, u64 *logical,
+int btrfs_next_bg(struct btrfs_fs_info *map_tree, u64 *logical,
 		     u64 *size, u64 type);
-static inline int btrfs_next_bg_metadata(struct btrfs_mapping_tree *map_tree,
-				      u64 *logical, u64 *size)
+static inline int btrfs_next_bg_metadata(struct btrfs_fs_info *fs_info,
+					 u64 *logical, u64 *size)
 {
-	return btrfs_next_bg(map_tree, logical, size,
+	return btrfs_next_bg(fs_info, logical, size,
 			BTRFS_BLOCK_GROUP_METADATA);
 }
-static inline int btrfs_next_bg_system(struct btrfs_mapping_tree *map_tree,
-				    u64 *logical, u64 *size)
+static inline int btrfs_next_bg_system(struct btrfs_fs_info *fs_info,
+				       u64 *logical, u64 *size)
 {
-	return btrfs_next_bg(map_tree, logical, size,
+	return btrfs_next_bg(fs_info, logical, size,
 			BTRFS_BLOCK_GROUP_SYSTEM);
 }
-int btrfs_rmap_block(struct btrfs_mapping_tree *map_tree,
+int btrfs_rmap_block(struct btrfs_fs_info *fs_info,
 		     u64 chunk_start, u64 physical, u64 devid,
 		     u64 **logical, int *naddrs, int *stripe_len);
-int btrfs_read_sys_array(struct btrfs_root *root);
-int btrfs_read_chunk_tree(struct btrfs_root *root);
+int btrfs_read_sys_array(struct btrfs_fs_info *fs_info);
+int btrfs_read_chunk_tree(struct btrfs_fs_info *fs_info);
 int btrfs_alloc_chunk(struct btrfs_trans_handle *trans,
-		      struct btrfs_root *extent_root, u64 *start,
+		      struct btrfs_fs_info *fs_info, u64 *start,
 		      u64 *num_bytes, u64 type);
 int btrfs_alloc_data_chunk(struct btrfs_trans_handle *trans,
-			   struct btrfs_root *extent_root, u64 *start,
+			   struct btrfs_fs_info *fs_info, u64 *start,
 			   u64 num_bytes, u64 type, int convert);
-int btrfs_read_super_device(struct btrfs_root *root, struct extent_buffer *buf);
-int btrfs_add_device(struct btrfs_trans_handle *trans,
-		     struct btrfs_root *root,
-		     struct btrfs_device *device);
 int btrfs_open_devices(struct btrfs_fs_devices *fs_devices,
 		       int flags);
 int btrfs_close_devices(struct btrfs_fs_devices *fs_devices);
 void btrfs_close_all_devices(void);
 int btrfs_add_device(struct btrfs_trans_handle *trans,
-		     struct btrfs_root *root,
+		     struct btrfs_fs_info *fs_info,
 		     struct btrfs_device *device);
 int btrfs_update_device(struct btrfs_trans_handle *trans,
 			struct btrfs_device *device);
 int btrfs_scan_one_device(int fd, const char *path,
 			  struct btrfs_fs_devices **fs_devices_ret,
 			  u64 *total_devs, u64 super_offset, unsigned sbflags);
-int btrfs_num_copies(struct btrfs_mapping_tree *map_tree, u64 logical, u64 len);
+int btrfs_num_copies(struct btrfs_fs_info *fs_info, u64 logical, u64 len);
 struct list_head *btrfs_scanned_uuids(void);
-int btrfs_add_system_chunk(struct btrfs_root *root, struct btrfs_key *key,
+int btrfs_add_system_chunk(struct btrfs_fs_info *fs_info, struct btrfs_key *key,
 			   struct btrfs_chunk *chunk, int item_size);
-int btrfs_chunk_readonly(struct btrfs_root *root, u64 chunk_offset);
+int btrfs_chunk_readonly(struct btrfs_fs_info *fs_info, u64 chunk_offset);
 struct btrfs_device *
 btrfs_find_device_by_devid(struct btrfs_fs_devices *fs_devices,
 			   u64 devid, int instance);
-struct btrfs_device *btrfs_find_device(struct btrfs_root *root, u64 devid,
+struct btrfs_device *btrfs_find_device(struct btrfs_fs_info *fs_info, u64 devid,
 				       u8 *uuid, u8 *fsid);
 int write_raid56_with_parity(struct btrfs_fs_info *info,
 			     struct extent_buffer *eb,
 			     struct btrfs_multi_bio *multi,
 			     u64 stripe_len, u64 *raid_map);
-int btrfs_check_chunk_valid(struct btrfs_root *root,
+int btrfs_check_chunk_valid(struct btrfs_fs_info *fs_info,
 			    struct extent_buffer *leaf,
 			    struct btrfs_chunk *chunk,
 			    int slot, u64 logical);
+u64 btrfs_stripe_length(struct btrfs_fs_info *fs_info,
+			struct extent_buffer *leaf,
+			struct btrfs_chunk *chunk);
 #endif

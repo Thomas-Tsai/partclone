@@ -28,6 +28,14 @@
 #include "disk-io.h"
 #include "volumes.h"
 #include "utils.h"
+#include "raid56.h"
+
+const u8 raid6_gfmul[256][256] __attribute__((aligned(256))); 
+const u8 raid6_vgfmul[256][32] __attribute__((aligned(256))); 
+const u8 raid6_gfexp[256]      __attribute__((aligned(256))); 
+const u8 raid6_gfinv[256]      __attribute__((aligned(256))); 
+const u8 raid6_gfexi[256]      __attribute__((aligned(256))); 
+
 
 /*
  * This is the C data type to use
@@ -168,5 +176,191 @@ int raid5_gen_result(int nr_devs, size_t stripe_len, int dest, void **data)
 			continue;
 		xor_range(buf, data[i], stripe_len);
 	}
+	return 0;
+}
+
+/*
+ * Raid 6 recovery code copied from kernel lib/raid6/recov.c.
+ * With modifications:
+ * - rename from raid6_2data_recov_intx1
+ * - kfree/free modification for btrfs-progs
+ */
+int raid6_recov_data2(int nr_devs, size_t stripe_len, int dest1, int dest2,
+		      void **data)
+{
+	u8 *p, *q, *dp, *dq;
+	u8 px, qx, db;
+	const u8 *pbmul;	/* P multiplier table for B data */
+	const u8 *qmul;		/* Q multiplier table (for both) */
+	char *zero_mem1, *zero_mem2;
+	int ret = 0;
+
+	/* Early check */
+	if (dest1 < 0 || dest1 >= nr_devs - 2 ||
+	    dest2 < 0 || dest2 >= nr_devs - 2 || dest1 >= dest2)
+		return -EINVAL;
+
+	zero_mem1 = calloc(1, stripe_len);
+	zero_mem2 = calloc(1, stripe_len);
+	if (!zero_mem1 || !zero_mem2) {
+		free(zero_mem1);
+		free(zero_mem2);
+		return -ENOMEM;
+	}
+
+	p = (u8 *)data[nr_devs - 2];
+	q = (u8 *)data[nr_devs - 1];
+
+	/* Compute syndrome with zero for the missing data pages
+	   Use the dead data pages as temporary storage for
+	   delta p and delta q */
+	dp = (u8 *)data[dest1];
+	data[dest1] = (void *)zero_mem1;
+	data[nr_devs - 2] = dp;
+	dq = (u8 *)data[dest2];
+	data[dest2] = (void *)zero_mem2;
+	data[nr_devs - 1] = dq;
+
+	raid6_gen_syndrome(nr_devs, stripe_len, data);
+
+	/* Restore pointer table */
+	data[dest1]   = dp;
+	data[dest2]   = dq;
+	data[nr_devs - 2] = p;
+	data[nr_devs - 1] = q;
+
+	/* Now, pick the proper data tables */
+	pbmul = raid6_gfmul[raid6_gfexi[dest2 - dest1]];
+	qmul  = raid6_gfmul[raid6_gfinv[raid6_gfexp[dest1]^raid6_gfexp[dest2]]];
+
+	/* Now do it... */
+	while ( stripe_len-- ) {
+		px    = *p ^ *dp;
+		qx    = qmul[*q ^ *dq];
+		*dq++ = db = pbmul[px] ^ qx; /* Reconstructed B */
+		*dp++ = db ^ px; /* Reconstructed A */
+		p++; q++;
+	}
+
+	free(zero_mem1);
+	free(zero_mem2);
+	return ret;
+}
+
+/*
+ * Raid 6 recover code copied from kernel lib/raid6/recov.c
+ * - rename from raid6_datap_recov_intx1()
+ * - parameter changed from faila to dest1
+ */
+int raid6_recov_datap(int nr_devs, size_t stripe_len, int dest1, void **data)
+{
+	u8 *p, *q, *dq;
+	const u8 *qmul;		/* Q multiplier table */
+	char *zero_mem;
+
+	p = (u8 *)data[nr_devs - 2];
+	q = (u8 *)data[nr_devs - 1];
+
+	zero_mem = calloc(1, stripe_len);
+	if (!zero_mem)
+		return -ENOMEM;
+
+	/* Compute syndrome with zero for the missing data page
+	   Use the dead data page as temporary storage for delta q */
+	dq = (u8 *)data[dest1];
+	data[dest1] = (void *)zero_mem;
+	data[nr_devs - 1] = dq;
+
+	raid6_gen_syndrome(nr_devs, stripe_len, data);
+
+	/* Restore pointer table */
+	data[dest1]   = dq;
+	data[nr_devs - 1] = q;
+
+	/* Now, pick the proper data tables */
+	qmul  = raid6_gfmul[raid6_gfinv[raid6_gfexp[dest1]]];
+
+	/* Now do it... */
+	while ( stripe_len-- ) {
+		*p++ ^= *dq = qmul[*q ^ *dq];
+		q++; dq++;
+	}
+	return 0;
+}
+
+/* Original raid56 recovery wrapper */
+int raid56_recov(int nr_devs, size_t stripe_len, u64 profile, int dest1,
+		 int dest2, void **data)
+{
+	int min_devs;
+	int ret;
+
+	if (profile & BTRFS_BLOCK_GROUP_RAID5)
+		min_devs = 2;
+	else if (profile & BTRFS_BLOCK_GROUP_RAID6)
+		min_devs = 3;
+	else
+		return -EINVAL;
+	if (nr_devs < min_devs)
+		return -EINVAL;
+
+	/* Nothing to recover */
+	if (dest1 == -1 && dest2 == -1)
+		return 0;
+
+	/* Reorder dest1/2, so only dest2 can be -1  */
+	if (dest1 == -1) {
+		dest1 = dest2;
+		dest2 = -1;
+	} else if (dest2 != -1 && dest1 != -1) {
+		/* Reorder dest1/2, ensure dest2 > dest1 */
+		if (dest1 > dest2) {
+			int tmp;
+
+			tmp = dest2;
+			dest2 = dest1;
+			dest1 = tmp;
+		}
+	}
+
+	if (profile & BTRFS_BLOCK_GROUP_RAID5) {
+		if (dest2 != -1)
+			return 1;
+		return raid5_gen_result(nr_devs, stripe_len, dest1, data);
+	}
+
+	/* RAID6 one dev corrupted case*/
+	if (dest2 == -1) {
+		/* Regenerate P/Q */
+		if (dest1 == nr_devs - 1 || dest1 == nr_devs - 2) {
+			raid6_gen_syndrome(nr_devs, stripe_len, data);
+			return 0;
+		}
+
+		/* Regerneate data from P */
+		return raid5_gen_result(nr_devs - 1, stripe_len, dest1, data);
+	}
+
+	/* P/Q bot corrupted */
+	if (dest1 == nr_devs - 2 && dest2 == nr_devs - 1) {
+		raid6_gen_syndrome(nr_devs, stripe_len, data);
+		return 0;
+	}
+
+	/* 2 Data corrupted */
+	if (dest2 < nr_devs - 2)
+		return raid6_recov_data2(nr_devs, stripe_len, dest1, dest2,
+					 data);
+	/* Data and P*/
+	if (dest2 == nr_devs - 1)
+		return raid6_recov_datap(nr_devs, stripe_len, dest1, data);
+
+	/*
+	 * Final case, Data and Q, recover data first then regenerate Q
+	 */
+	ret = raid5_gen_result(nr_devs - 1, stripe_len, dest1, data);
+	if (ret < 0)
+		return ret;
+	raid6_gen_syndrome(nr_devs, stripe_len, data);
 	return 0;
 }

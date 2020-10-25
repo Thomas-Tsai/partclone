@@ -115,27 +115,19 @@ static inline u64 btrfs_sb_offset(int mirror)
 struct btrfs_device;
 
 int read_whole_eb(struct btrfs_fs_info *info, struct extent_buffer *eb, int mirror);
-struct extent_buffer* read_tree_block_fs_info(
+struct extent_buffer* read_tree_block(
 		struct btrfs_fs_info *fs_info, u64 bytenr, u32 blocksize,
 		u64 parent_transid);
-static inline struct extent_buffer* read_tree_block(
-		struct btrfs_root *root, u64 bytenr, u32 blocksize,
-		u64 parent_transid)
-{
-	return read_tree_block_fs_info(root->fs_info, bytenr, blocksize,
-			parent_transid);
-}
 
-int read_extent_data(struct btrfs_root *root, char *data, u64 logical,
+int read_extent_data(struct btrfs_fs_info *fs_info, char *data, u64 logical,
 		     u64 *len, int mirror);
-void readahead_tree_block(struct btrfs_root *root, u64 bytenr, u32 blocksize,
-			  u64 parent_transid);
+void readahead_tree_block(struct btrfs_fs_info *fs_info, u64 bytenr,
+			  u32 blocksize, u64 parent_transid);
 struct extent_buffer* btrfs_find_create_tree_block(
 		struct btrfs_fs_info *fs_info, u64 bytenr, u32 blocksize);
 
-void btrfs_setup_root(u32 nodesize, u32 leafsize, u32 sectorsize,
-                        u32 stripesize, struct btrfs_root *root,
-                        struct btrfs_fs_info *fs_info, u64 objectid);
+void btrfs_setup_root(struct btrfs_root *root, struct btrfs_fs_info *fs_info,
+		      u64 objectid);
 int clean_tree_block(struct btrfs_trans_handle *trans,
 		     struct btrfs_root *root, struct extent_buffer *buf);
 
@@ -169,14 +161,14 @@ static inline int close_ctree(struct btrfs_root *root)
 	return close_ctree_fs_info(root->fs_info);
 }
 
-int write_all_supers(struct btrfs_root *root);
+int write_all_supers(struct btrfs_fs_info *fs_info);
 int write_ctree_super(struct btrfs_trans_handle *trans,
-		      struct btrfs_root *root);
+		      struct btrfs_fs_info *fs_info);
 int btrfs_read_dev_super(int fd, struct btrfs_super_block *sb, u64 sb_bytenr,
 		unsigned sbflags);
 int btrfs_map_bh_to_logical(struct btrfs_root *root, struct extent_buffer *bh,
 			    u64 logical);
-struct extent_buffer *btrfs_find_tree_block(struct btrfs_root *root,
+struct extent_buffer *btrfs_find_tree_block(struct btrfs_fs_info *fs_info,
 					    u64 bytenr, u32 blocksize);
 struct btrfs_root *btrfs_read_fs_root(struct btrfs_fs_info *fs_info,
 				      struct btrfs_key *location);
@@ -197,12 +189,8 @@ int csum_tree_block_size(struct extent_buffer *buf, u16 csum_sectorsize,
 int verify_tree_block_csum_silent(struct extent_buffer *buf, u16 csum_size);
 int btrfs_read_buffer(struct extent_buffer *buf, u64 parent_transid);
 int write_tree_block(struct btrfs_trans_handle *trans,
-		     struct btrfs_root *root,
+		     struct btrfs_fs_info *fs_info,
 		     struct extent_buffer *eb);
-int write_and_map_eb(struct btrfs_root *root, struct extent_buffer *eb);
-
-/* raid56.c */
-void raid6_gen_syndrome(int disks, size_t bytes, void **ptrs);
-int raid5_gen_result(int nr_devs, size_t stripe_len, int dest, void **data);
+int write_and_map_eb(struct btrfs_fs_info *fs_info, struct extent_buffer *eb);
 
 #endif

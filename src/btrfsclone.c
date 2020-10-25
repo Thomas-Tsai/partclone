@@ -75,7 +75,7 @@ int check_extent_bitmap(unsigned long* bitmap, u64 bytenr, u64 *num_bytes, int t
     u64 maxlen;
 
 
-    if (*num_bytes % root->sectorsize)
+    if (*num_bytes % root->fs_info->sectorsize)
 	return -EINVAL;
 
     if (type == 1){
@@ -175,7 +175,7 @@ int csum_bitmap(unsigned long* bitmap, struct btrfs_root *root){
 	}
 
 	data_len = (btrfs_item_size_nr(leaf, path.slots[0]) /
-		csum_size) * root->sectorsize;
+		csum_size) * root->fs_info->sectorsize;
 	leaf_offset = btrfs_item_ptr_offset(leaf, path.slots[0]);
 	log_mesg(2, 0, 0, fs_opt.debug, "%s: leaf_offset %lu\n", __FILE__, leaf_offset);
 	log_mesg(2, 0, 0, fs_opt.debug, "%s: key.offset %lu\n", __FILE__, key.offset);
@@ -217,7 +217,7 @@ void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct exte
 	return;
     u32 nr = btrfs_header_nritems(eb);
     if (btrfs_is_leaf(eb)) {
-	size = (u64)root->nodesize;
+	size = (u64)root->fs_info->nodesize;
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: DUMP: leaf %llu\n", __FILE__, (unsigned long long)btrfs_header_bytenr(eb));
 	bytenr = (unsigned long long)btrfs_header_bytenr(eb);
 	check_extent_bitmap(bitmap, bytenr, &size, 0);
@@ -260,7 +260,7 @@ void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct exte
     if (!follow)
 	return;
     log_mesg(3, 0, 0, fs_opt.debug, "%s: follow %i\n", __FILE__, follow);
-    leaf_size = root->nodesize;
+    leaf_size = root->fs_info->nodesize;
     for (i = 0; i < nr; i++) {
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: follow %i\n", __FILE__, follow);
 	bytenr = (unsigned long long)btrfs_header_bytenr(eb);
@@ -399,7 +399,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	    read_extent_buffer(leaf, &ri, offset, sizeof(ri));
 	    buf = read_tree_block(tree_root_scan,
 		    btrfs_root_bytenr(&ri),
-		    root->nodesize,
+		    root->fs_info->nodesize,
 		    0);
 	    if (!extent_buffer_uptodate(buf))
 		goto next;

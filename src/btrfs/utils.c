@@ -179,7 +179,8 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 		      u32 sectorsize)
 {
 	struct btrfs_super_block *disk_super;
-	struct btrfs_super_block *super = root->fs_info->super_copy;
+	struct btrfs_fs_info *fs_info = root->fs_info;
+	struct btrfs_super_block *super = fs_info->super_copy;
 	struct btrfs_device *device;
 	struct btrfs_dev_item *dev_item;
 	char *buf = NULL;
@@ -214,7 +215,7 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 	device->total_bytes = device_total_bytes;
 	device->bytes_used = 0;
 	device->total_ios = 0;
-	device->dev_root = root->fs_info->dev_root;
+	device->dev_root = fs_info->dev_root;
 	device->name = strdup(path);
 	if (!device->name) {
 		ret = -ENOMEM;
@@ -222,7 +223,7 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 	}
 
 	INIT_LIST_HEAD(&device->dev_list);
-	ret = btrfs_add_device(trans, root, device);
+	ret = btrfs_add_device(trans, fs_info, device);
 	if (ret)
 		goto out;
 
@@ -248,8 +249,8 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 	BUG_ON(ret != sectorsize);
 
 	free(buf);
-	list_add(&device->dev_list, &root->fs_info->fs_devices->devices);
-	device->fs_devices = root->fs_info->fs_devices;
+	list_add(&device->dev_list, &fs_info->fs_devices->devices);
+	device->fs_devices = fs_info->fs_devices;
 	return 0;
 
 out:
@@ -378,7 +379,7 @@ int btrfs_make_root_dir(struct btrfs_trans_handle *trans,
 	btrfs_set_stack_inode_generation(&inode_item, trans->transid);
 	btrfs_set_stack_inode_size(&inode_item, 0);
 	btrfs_set_stack_inode_nlink(&inode_item, 1);
-	btrfs_set_stack_inode_nbytes(&inode_item, root->nodesize);
+	btrfs_set_stack_inode_nbytes(&inode_item, root->fs_info->nodesize);
 	btrfs_set_stack_inode_mode(&inode_item, S_IFDIR | 0755);
 	btrfs_set_stack_timespec_sec(&inode_item.atime, now);
 	btrfs_set_stack_timespec_nsec(&inode_item.atime, 0);
@@ -2428,6 +2429,58 @@ out:
 	close_file_or_dir(mntfd, dirstream2);
 	close_file_or_dir(fd, dirstream1);
 	free(mnt);
+
+	return ret;
+}
+
+int get_subvol_info_by_rootid(const char *mnt, struct root_info *get_ri, u64 r_id)
+{
+	int fd;
+	int ret;
+	DIR *dirstream = NULL;
+
+	fd = btrfs_open_dir(mnt, &dirstream, 1);
+	if (fd < 0)
+		return -EINVAL;
+
+	memset(get_ri, 0, sizeof(*get_ri));
+	get_ri->root_id = r_id;
+
+	if (r_id == BTRFS_FS_TREE_OBJECTID)
+		ret = btrfs_get_toplevel_subvol(fd, get_ri);
+	else
+		ret = btrfs_get_subvol(fd, get_ri);
+
+	if (ret)
+		error("can't find rootid '%llu' on '%s': %d", r_id, mnt, ret);
+
+	close_file_or_dir(fd, dirstream);
+
+	return ret;
+}
+
+int get_subvol_info_by_uuid(const char *mnt, struct root_info *get_ri, u8 *uuid_arg)
+{
+	int fd;
+	int ret;
+	DIR *dirstream = NULL;
+
+	fd = btrfs_open_dir(mnt, &dirstream, 1);
+	if (fd < 0)
+		return -EINVAL;
+
+	memset(get_ri, 0, sizeof(*get_ri));
+	uuid_copy(get_ri->uuid, uuid_arg);
+
+	ret = btrfs_get_subvol(fd, get_ri);
+	if (ret) {
+		char uuid_parsed[BTRFS_UUID_UNPARSED_SIZE];
+		uuid_unparse(uuid_arg, uuid_parsed);
+		error("can't find uuid '%s' on '%s': %d",
+					uuid_parsed, mnt, ret);
+	}
+
+	close_file_or_dir(fd, dirstream);
 
 	return ret;
 }

@@ -10,8 +10,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #ifndef __BTRFS_COMMANDS_H__
@@ -65,24 +65,10 @@ struct cmd_group {
 	const struct cmd_struct commands[];
 };
 
-/* btrfs.c */
-int prefixcmp(const char *str, const char *prefix);
-
 int handle_command_group(const struct cmd_group *grp, int argc,
 			 char **argv);
 
-/* help.c */
 extern const char * const generic_cmd_help_usage[];
-
-void usage(const char * const *usagestr) __attribute__((noreturn));
-void usage_command(const struct cmd_struct *cmd, int full, int err);
-void usage_command_group(const struct cmd_group *grp, int all, int err);
-void usage_command_group_short(const struct cmd_group *grp);
-
-void help_unknown_token(const char *arg, const struct cmd_group *grp) __attribute__((noreturn));
-void help_ambiguous_token(const char *arg, const struct cmd_group *grp) __attribute__((noreturn));
-
-void help_command_group(const struct cmd_group *grp, int argc, char **argv);
 
 extern const struct cmd_group subvolume_cmd_group;
 extern const struct cmd_group filesystem_cmd_group;
@@ -124,11 +110,5 @@ int cmd_select_super(int argc, char **argv);
 int cmd_dump_super(int argc, char **argv);
 int cmd_debug_tree(int argc, char **argv);
 int cmd_rescue(int argc, char **argv);
-
-/* subvolume exported functions */
-int test_issubvolume(const char *path);
-
-/* send.c */
-char *get_subvol_name(char *mnt, char *full_path);
 
 #endif

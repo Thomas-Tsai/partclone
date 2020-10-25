@@ -197,9 +197,15 @@ static void qgroup_flags_to_str(u64 flags, char *ret)
 
 void print_chunk(struct extent_buffer *eb, struct btrfs_chunk *chunk)
 {
-	int num_stripes = btrfs_chunk_num_stripes(eb, chunk);
+	u16 num_stripes = btrfs_chunk_num_stripes(eb, chunk);
 	int i;
+	u32 chunk_item_size = btrfs_chunk_item_size(num_stripes);
 	char chunk_flags_str[32] = {0};
+
+	if ((unsigned long)chunk + chunk_item_size > eb->len) {
+		printf("\t\tchunk item invalid\n");
+		return;
+	}
 
 	bg_flags_to_str(btrfs_chunk_type(eb, chunk), chunk_flags_str);
 	printf("\t\tlength %llu owner %llu stripe_len %llu type %s\n",
@@ -216,9 +222,21 @@ void print_chunk(struct extent_buffer *eb, struct btrfs_chunk *chunk)
 	for (i = 0 ; i < num_stripes ; i++) {
 		unsigned char dev_uuid[BTRFS_UUID_SIZE];
 		char str_dev_uuid[BTRFS_UUID_UNPARSED_SIZE];
+		u64 uuid_offset;
+		u64 stripe_offset;
+
+		uuid_offset = (unsigned long)btrfs_stripe_dev_uuid_nr(chunk, i);
+		stripe_offset = (unsigned long)btrfs_stripe_nr(chunk, i);
+
+		if (uuid_offset < stripe_offset ||
+			(uuid_offset + BTRFS_UUID_SIZE) >
+				(stripe_offset + sizeof(struct btrfs_stripe))) {
+			printf("\t\t\tstripe %d invalid\n", i);
+			break;
+		}
 
 		read_extent_buffer(eb, dev_uuid,
-			(unsigned long)btrfs_stripe_dev_uuid_nr(chunk, i),
+			uuid_offset,
 			BTRFS_UUID_SIZE);
 		uuid_unparse(dev_uuid, str_dev_uuid);
 		printf("\t\t\tstripe %d devid %llu offset %llu\n", i,
@@ -318,7 +336,7 @@ static void print_file_extent_item(struct extent_buffer *eb,
 				   int slot,
 				   struct btrfs_file_extent_item *fi)
 {
-	int extent_type = btrfs_file_extent_type(eb, fi);
+	unsigned char extent_type = btrfs_file_extent_type(eb, fi);
 	char compress_str[16];
 
 	compress_type_to_str(btrfs_file_extent_compression(eb, fi),
@@ -938,13 +956,35 @@ static void print_dev_stats(struct extent_buffer *eb,
 	}
 }
 
+/* Caller must ensure sizeof(*ret) >= 14 "WRITTEN|RELOC" */
+static void header_flags_to_str(u64 flags, char *ret)
+{
+	int empty = 1;
+
+	if (flags & BTRFS_HEADER_FLAG_WRITTEN) {
+		empty = 0;
+		strcpy(ret, "WRITTEN");
+	}
+	if (flags & BTRFS_HEADER_FLAG_RELOC) {
+		if (!empty)
+			strcat(ret, "|");
+		strcat(ret, "RELOC");
+	}
+}
+
 void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *eb)
 {
 	struct btrfs_item *item;
 	struct btrfs_disk_key disk_key;
+	char flags_str[128];
 	u32 i;
 	u32 nr;
+	u64 flags;
+	u8 backref_rev;
 
+	flags = btrfs_header_flags(eb) & ~BTRFS_BACKREF_REV_MASK;
+	backref_rev = btrfs_header_flags(eb) >> BTRFS_BACKREF_REV_SHIFT;
+	header_flags_to_str(flags, flags_str);
 	nr = btrfs_header_nritems(eb);
 
 	printf("leaf %llu items %d free space %d generation %llu owner %llu\n",
@@ -952,6 +992,8 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *eb)
 		btrfs_leaf_free_space(root, eb),
 		(unsigned long long)btrfs_header_generation(eb),
 		(unsigned long long)btrfs_header_owner(eb));
+	printf("leaf %llu flags 0x%llx(%s) backref revision %d\n",
+		btrfs_header_bytenr(eb), flags, flags_str, backref_rev);
 	print_uuids(eb);
 	fflush(stdout);
 
@@ -1255,7 +1297,7 @@ void btrfs_print_tree(struct btrfs_root *root, struct extent_buffer *eb, int fol
 		(unsigned long long)btrfs_header_owner(eb));
 	print_uuids(eb);
 	fflush(stdout);
-	size = root->nodesize;
+	size = root->fs_info->nodesize;
 	for (i = 0; i < nr; i++) {
 		u64 blocknr = btrfs_node_blockptr(eb, i);
 		btrfs_node_key(eb, &disk_key, i);
@@ -1272,7 +1314,8 @@ void btrfs_print_tree(struct btrfs_root *root, struct extent_buffer *eb, int fol
 		return;
 
 	for (i = 0; i < nr; i++) {
-		next = read_tree_block(root, btrfs_node_blockptr(eb, i), size,
+		next = read_tree_block(root->fs_info,
+				btrfs_node_blockptr(eb, i), size,
 				btrfs_node_ptr_generation(eb, i));
 		if (!extent_buffer_uptodate(next)) {
 			fprintf(stderr, "failed to read %llu in tree %llu\n",
