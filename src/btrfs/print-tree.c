@@ -12,8 +12,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #include <stdio.h>
@@ -496,18 +496,31 @@ static int count_bytes(void *buf, int len, char b)
 	return cnt;
 }
 
+/*
+ * Caller must ensure sizeof(*ret) >= 7 "RDONLY"
+ */
+static void root_flags_to_str(u64 flags, char *ret)
+{
+	if (flags & BTRFS_ROOT_SUBVOL_RDONLY)
+		strcat(ret, "RDONLY");
+	else
+		strcat(ret, "none");
+}
+
 static void print_root(struct extent_buffer *leaf, int slot)
 {
 	struct btrfs_root_item *ri;
 	struct btrfs_root_item root_item;
 	int len;
 	char uuid_str[BTRFS_UUID_UNPARSED_SIZE];
+	char flags_str[32] = {0};
 
 	ri = btrfs_item_ptr(leaf, slot, struct btrfs_root_item);
 	len = btrfs_item_size_nr(leaf, slot);
 
 	memset(&root_item, 0, sizeof(root_item));
 	read_extent_buffer(leaf, &root_item, (unsigned long)ri, len);
+	root_flags_to_str(btrfs_root_flags(&root_item), flags_str);
 
 	printf("\t\troot data bytenr %llu level %d dirid %llu refs %u gen %llu lastsnap %llu\n",
 		(unsigned long long)btrfs_root_bytenr(&root_item),
@@ -516,6 +529,8 @@ static void print_root(struct extent_buffer *leaf, int slot)
 		btrfs_root_refs(&root_item),
 		(unsigned long long)btrfs_root_generation(&root_item),
 		(unsigned long long)btrfs_root_last_snapshot(&root_item));
+	printf("\t\tflags 0x%llx(%s)\n", btrfs_root_flags(&root_item),
+	       flags_str);
 
 	if (root_item.generation == root_item.generation_v2) {
 		uuid_unparse(root_item.uuid, uuid_str);
@@ -542,7 +557,7 @@ static void print_root(struct extent_buffer *leaf, int slot)
 				      &root_item.drop_progress);
 		printf("\t\tdrop ");
 		btrfs_print_key(&root_item.drop_progress);
-		printf(" level %u\n", root_item.drop_level);
+		printf(" level %d\n", root_item.drop_level);
 	}
 }
 
@@ -562,227 +577,228 @@ static void print_free_space_header(struct extent_buffer *leaf, int slot)
 	       (unsigned long long)btrfs_free_space_bitmaps(leaf, header));
 }
 
-static void print_key_type(u64 objectid, u8 type)
+void print_key_type(FILE *stream, u64 objectid, u8 type)
 {
 	if (type == 0 && objectid == BTRFS_FREE_SPACE_OBJECTID) {
-		printf("UNTYPED");
+		fprintf(stream, "UNTYPED");
 		return;
 	}
 
 	switch (type) {
 	case BTRFS_INODE_ITEM_KEY:
-		printf("INODE_ITEM");
+		fprintf(stream, "INODE_ITEM");
 		break;
 	case BTRFS_INODE_REF_KEY:
-		printf("INODE_REF");
+		fprintf(stream, "INODE_REF");
 		break;
 	case BTRFS_INODE_EXTREF_KEY:
-		printf("INODE_EXTREF");
+		fprintf(stream, "INODE_EXTREF");
 		break;
 	case BTRFS_DIR_ITEM_KEY:
-		printf("DIR_ITEM");
+		fprintf(stream, "DIR_ITEM");
 		break;
 	case BTRFS_DIR_INDEX_KEY:
-		printf("DIR_INDEX");
+		fprintf(stream, "DIR_INDEX");
 		break;
 	case BTRFS_DIR_LOG_ITEM_KEY:
-		printf("DIR_LOG_ITEM");
+		fprintf(stream, "DIR_LOG_ITEM");
 		break;
 	case BTRFS_DIR_LOG_INDEX_KEY:
-		printf("DIR_LOG_INDEX");
+		fprintf(stream, "DIR_LOG_INDEX");
 		break;
 	case BTRFS_XATTR_ITEM_KEY:
-		printf("XATTR_ITEM");
+		fprintf(stream, "XATTR_ITEM");
 		break;
 	case BTRFS_ORPHAN_ITEM_KEY:
-		printf("ORPHAN_ITEM");
+		fprintf(stream, "ORPHAN_ITEM");
 		break;
 	case BTRFS_ROOT_ITEM_KEY:
-		printf("ROOT_ITEM");
+		fprintf(stream, "ROOT_ITEM");
 		break;
 	case BTRFS_ROOT_REF_KEY:
-		printf("ROOT_REF");
+		fprintf(stream, "ROOT_REF");
 		break;
 	case BTRFS_ROOT_BACKREF_KEY:
-		printf("ROOT_BACKREF");
+		fprintf(stream, "ROOT_BACKREF");
 		break;
 	case BTRFS_EXTENT_ITEM_KEY:
-		printf("EXTENT_ITEM");
+		fprintf(stream, "EXTENT_ITEM");
 		break;
 	case BTRFS_METADATA_ITEM_KEY:
-		printf("METADATA_ITEM");
+		fprintf(stream, "METADATA_ITEM");
 		break;
 	case BTRFS_TREE_BLOCK_REF_KEY:
-		printf("TREE_BLOCK_REF");
+		fprintf(stream, "TREE_BLOCK_REF");
 		break;
 	case BTRFS_SHARED_BLOCK_REF_KEY:
-		printf("SHARED_BLOCK_REF");
+		fprintf(stream, "SHARED_BLOCK_REF");
 		break;
 	case BTRFS_EXTENT_DATA_REF_KEY:
-		printf("EXTENT_DATA_REF");
+		fprintf(stream, "EXTENT_DATA_REF");
 		break;
 	case BTRFS_SHARED_DATA_REF_KEY:
-		printf("SHARED_DATA_REF");
+		fprintf(stream, "SHARED_DATA_REF");
 		break;
 	case BTRFS_EXTENT_REF_V0_KEY:
-		printf("EXTENT_REF_V0");
+		fprintf(stream, "EXTENT_REF_V0");
 		break;
 	case BTRFS_CSUM_ITEM_KEY:
-		printf("CSUM_ITEM");
+		fprintf(stream, "CSUM_ITEM");
 		break;
 	case BTRFS_EXTENT_CSUM_KEY:
-		printf("EXTENT_CSUM");
+		fprintf(stream, "EXTENT_CSUM");
 		break;
 	case BTRFS_EXTENT_DATA_KEY:
-		printf("EXTENT_DATA");
+		fprintf(stream, "EXTENT_DATA");
 		break;
 	case BTRFS_BLOCK_GROUP_ITEM_KEY:
-		printf("BLOCK_GROUP_ITEM");
+		fprintf(stream, "BLOCK_GROUP_ITEM");
 		break;
 	case BTRFS_FREE_SPACE_INFO_KEY:
-		printf("FREE_SPACE_INFO");
+		fprintf(stream, "FREE_SPACE_INFO");
 		break;
 	case BTRFS_FREE_SPACE_EXTENT_KEY:
-		printf("FREE_SPACE_EXTENT");
+		fprintf(stream, "FREE_SPACE_EXTENT");
 		break;
 	case BTRFS_FREE_SPACE_BITMAP_KEY:
-		printf("FREE_SPACE_BITMAP");
+		fprintf(stream, "FREE_SPACE_BITMAP");
 		break;
 	case BTRFS_CHUNK_ITEM_KEY:
-		printf("CHUNK_ITEM");
+		fprintf(stream, "CHUNK_ITEM");
 		break;
 	case BTRFS_DEV_ITEM_KEY:
-		printf("DEV_ITEM");
+		fprintf(stream, "DEV_ITEM");
 		break;
 	case BTRFS_DEV_EXTENT_KEY:
-		printf("DEV_EXTENT");
+		fprintf(stream, "DEV_EXTENT");
 		break;
 	case BTRFS_BALANCE_ITEM_KEY:
-		printf("BALANCE_ITEM");
+		fprintf(stream, "BALANCE_ITEM");
 		break;
 	case BTRFS_DEV_REPLACE_KEY:
-		printf("DEV_REPLACE");
+		fprintf(stream, "DEV_REPLACE");
 		break;
 	case BTRFS_STRING_ITEM_KEY:
-		printf("STRING_ITEM");
+		fprintf(stream, "STRING_ITEM");
 		break;
 	case BTRFS_QGROUP_STATUS_KEY:
-		printf("QGROUP_STATUS");
+		fprintf(stream, "QGROUP_STATUS");
 		break;
 	case BTRFS_QGROUP_RELATION_KEY:
-		printf("QGROUP_RELATION");
+		fprintf(stream, "QGROUP_RELATION");
 		break;
 	case BTRFS_QGROUP_INFO_KEY:
-		printf("QGROUP_INFO");
+		fprintf(stream, "QGROUP_INFO");
 		break;
 	case BTRFS_QGROUP_LIMIT_KEY:
-		printf("QGROUP_LIMIT");
+		fprintf(stream, "QGROUP_LIMIT");
 		break;
 	case BTRFS_DEV_STATS_KEY:
-		printf("DEV_STATS");
+		fprintf(stream, "DEV_STATS");
 		break;
 	case BTRFS_UUID_KEY_SUBVOL:
-		printf("UUID_KEY_SUBVOL");
+		fprintf(stream, "UUID_KEY_SUBVOL");
 		break;
 	case BTRFS_UUID_KEY_RECEIVED_SUBVOL:
-		printf("UUID_KEY_RECEIVED_SUBVOL");
+		fprintf(stream, "UUID_KEY_RECEIVED_SUBVOL");
 		break;
 	default:
-		printf("UNKNOWN.%d", type);
+		fprintf(stream, "UNKNOWN.%d", type);
 	};
 }
 
-static void print_objectid(u64 objectid, u8 type)
+void print_objectid(FILE *stream, u64 objectid, u8 type)
 {
 	switch (type) {
 	case BTRFS_DEV_EXTENT_KEY:
-		printf("%llu", (unsigned long long)objectid); /* device id */
+		/* device id */
+		fprintf(stream, "%llu", (unsigned long long)objectid);
 		return;
 	case BTRFS_QGROUP_RELATION_KEY:
-		printf("%llu/%llu", btrfs_qgroup_level(objectid),
+		fprintf(stream, "%llu/%llu", btrfs_qgroup_level(objectid),
 		       btrfs_qgroup_subvid(objectid));
 		return;
 	case BTRFS_UUID_KEY_SUBVOL:
 	case BTRFS_UUID_KEY_RECEIVED_SUBVOL:
-		printf("0x%016llx", (unsigned long long)objectid);
+		fprintf(stream, "0x%016llx", (unsigned long long)objectid);
 		return;
 	}
 
 	switch (objectid) {
 	case BTRFS_ROOT_TREE_OBJECTID:
 		if (type == BTRFS_DEV_ITEM_KEY)
-			printf("DEV_ITEMS");
+			fprintf(stream, "DEV_ITEMS");
 		else
-			printf("ROOT_TREE");
+			fprintf(stream, "ROOT_TREE");
 		break;
 	case BTRFS_EXTENT_TREE_OBJECTID:
-		printf("EXTENT_TREE");
+		fprintf(stream, "EXTENT_TREE");
 		break;
 	case BTRFS_CHUNK_TREE_OBJECTID:
-		printf("CHUNK_TREE");
+		fprintf(stream, "CHUNK_TREE");
 		break;
 	case BTRFS_DEV_TREE_OBJECTID:
-		printf("DEV_TREE");
+		fprintf(stream, "DEV_TREE");
 		break;
 	case BTRFS_FS_TREE_OBJECTID:
-		printf("FS_TREE");
+		fprintf(stream, "FS_TREE");
 		break;
 	case BTRFS_ROOT_TREE_DIR_OBJECTID:
-		printf("ROOT_TREE_DIR");
+		fprintf(stream, "ROOT_TREE_DIR");
 		break;
 	case BTRFS_CSUM_TREE_OBJECTID:
-		printf("CSUM_TREE");
+		fprintf(stream, "CSUM_TREE");
 		break;
 	case BTRFS_BALANCE_OBJECTID:
-		printf("BALANCE");
+		fprintf(stream, "BALANCE");
 		break;
 	case BTRFS_ORPHAN_OBJECTID:
-		printf("ORPHAN");
+		fprintf(stream, "ORPHAN");
 		break;
 	case BTRFS_TREE_LOG_OBJECTID:
-		printf("TREE_LOG");
+		fprintf(stream, "TREE_LOG");
 		break;
 	case BTRFS_TREE_LOG_FIXUP_OBJECTID:
-		printf("LOG_FIXUP");
+		fprintf(stream, "LOG_FIXUP");
 		break;
 	case BTRFS_TREE_RELOC_OBJECTID:
-		printf("TREE_RELOC");
+		fprintf(stream, "TREE_RELOC");
 		break;
 	case BTRFS_DATA_RELOC_TREE_OBJECTID:
-		printf("DATA_RELOC_TREE");
+		fprintf(stream, "DATA_RELOC_TREE");
 		break;
 	case BTRFS_EXTENT_CSUM_OBJECTID:
-		printf("EXTENT_CSUM");
+		fprintf(stream, "EXTENT_CSUM");
 		break;
 	case BTRFS_FREE_SPACE_OBJECTID:
-		printf("FREE_SPACE");
+		fprintf(stream, "FREE_SPACE");
 		break;
 	case BTRFS_FREE_INO_OBJECTID:
-		printf("FREE_INO");
+		fprintf(stream, "FREE_INO");
 		break;
 	case BTRFS_QUOTA_TREE_OBJECTID:
-		printf("QUOTA_TREE");
+		fprintf(stream, "QUOTA_TREE");
 		break;
 	case BTRFS_UUID_TREE_OBJECTID:
-		printf("UUID_TREE");
+		fprintf(stream, "UUID_TREE");
 		break;
 	case BTRFS_FREE_SPACE_TREE_OBJECTID:
-		printf("FREE_SPACE_TREE");
+		fprintf(stream, "FREE_SPACE_TREE");
 		break;
 	case BTRFS_MULTIPLE_OBJECTIDS:
-		printf("MULTIPLE");
+		fprintf(stream, "MULTIPLE");
 		break;
 	case (u64)-1:
-		printf("-1");
+		fprintf(stream, "-1");
 		break;
 	case BTRFS_FIRST_CHUNK_TREE_OBJECTID:
 		if (type == BTRFS_CHUNK_ITEM_KEY) {
-			printf("FIRST_CHUNK_TREE");
+			fprintf(stream, "FIRST_CHUNK_TREE");
 			break;
 		}
 		/* fall-thru */
 	default:
-		printf("%llu", (unsigned long long)objectid);
+		fprintf(stream, "%llu", (unsigned long long)objectid);
 	}
 }
 
@@ -793,9 +809,9 @@ void btrfs_print_key(struct btrfs_disk_key *disk_key)
 	u64 offset = btrfs_disk_key_offset(disk_key);
 
 	printf("key (");
-	print_objectid(objectid, type);
+	print_objectid(stdout, objectid, type);
 	printf(" ");
-	print_key_type(objectid, type);
+	print_key_type(stdout, objectid, type);
 	switch (type) {
 	case BTRFS_QGROUP_RELATION_KEY:
 	case BTRFS_QGROUP_INFO_KEY:
@@ -835,6 +851,33 @@ static void print_uuid_item(struct extent_buffer *l, unsigned long offset,
 	}
 }
 
+/* Caller should ensure sizeof(*ret) >= 29 "NODATASUM|NODATACOW|READONLY" */
+static void inode_flags_to_str(u64 flags, char *ret)
+{
+	int empty = 1;
+
+	if (flags & BTRFS_INODE_NODATASUM) {
+		empty = 0;
+		strcpy(ret, "NODATASUM");
+	}
+	if (flags & BTRFS_INODE_NODATACOW) {
+		if (!empty) {
+			empty = 0;
+			strcat(ret, "|");
+		}
+		strcat(ret, "NODATACOW");
+	}
+	if (flags & BTRFS_INODE_READONLY) {
+		if (!empty) {
+			empty = 0;
+			strcat(ret, "|");
+		}
+		strcat(ret, "READONLY");
+	}
+	if (empty)
+		strcat(ret, "none");
+}
+
 void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 {
 	int i;
@@ -861,7 +904,6 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 	u32 type;
 	char flags_str[32];
 
-	printf("btrfs_print_leaf\n");
 	printf("leaf %llu items %d free space %d generation %llu owner %llu\n",
 		(unsigned long long)btrfs_header_bytenr(l), nr,
 		btrfs_leaf_free_space(root, l),
@@ -885,10 +927,12 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 
 		switch (type) {
 		case BTRFS_INODE_ITEM_KEY:
+			memset(flags_str, 0, sizeof(flags_str));
 			ii = btrfs_item_ptr(l, i, struct btrfs_inode_item);
+			inode_flags_to_str(btrfs_inode_flags(l, ii), flags_str);
 			printf("\t\tinode generation %llu transid %llu size %llu nbytes %llu\n"
 			       "\t\tblock group %llu mode %o links %u uid %u gid %u\n"
-			       "\t\trdev %llu flags 0x%llx\n",
+			       "\t\trdev %llu flags 0x%llx(%s)\n",
 			       (unsigned long long)btrfs_inode_generation(l, ii),
 			       (unsigned long long)btrfs_inode_transid(l, ii),
 			       (unsigned long long)btrfs_inode_size(l, ii),
@@ -899,7 +943,8 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 			       btrfs_inode_uid(l, ii),
 			       btrfs_inode_gid(l, ii),
 			       (unsigned long long)btrfs_inode_rdev(l,ii),
-			       (unsigned long long)btrfs_inode_flags(l,ii));
+			       (unsigned long long)btrfs_inode_flags(l,ii),
+			       flags_str);
 			break;
 		case BTRFS_INODE_REF_KEY:
 			iref = btrfs_item_ptr(l, i, struct btrfs_inode_ref);
@@ -1038,7 +1083,7 @@ void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l)
 				btrfs_qgroup_status_generation(l, qg_status),
 				flags_str,
 				(unsigned long long)
-				btrfs_qgroup_status_scan(l, qg_status));
+				btrfs_qgroup_status_rescan(l, qg_status));
 			break;
 		case BTRFS_QGROUP_RELATION_KEY:
 			break;
@@ -1103,19 +1148,16 @@ void btrfs_print_tree(struct btrfs_root *root, struct extent_buffer *eb, int fol
 	u32 size;
 	struct btrfs_disk_key disk_key;
 	struct btrfs_key key;
+	struct extent_buffer *next;
 
-	printf("btrfs_print_tree\n");
-	if (!eb){
-	printf("btrfs_print_tree not eb\n");
+	if (!eb)
 		return;
-	}
 	nr = btrfs_header_nritems(eb);
 	if (btrfs_is_leaf(eb)) {
-	    printf("btrfs_print_tree print leaf\n");
 		btrfs_print_leaf(root, eb);
 		return;
 	}
-	printf("node %llu level %d items %u free %u generation %llu owner %llu\n",
+	printf("node %llu level %d items %d free %u generation %llu owner %llu\n",
 	       (unsigned long long)eb->start,
 	        btrfs_header_level(eb), nr,
 		(u32)BTRFS_NODEPTRS_PER_BLOCK(root) - nr,
@@ -1140,23 +1182,34 @@ void btrfs_print_tree(struct btrfs_root *root, struct extent_buffer *eb, int fol
 		return;
 
 	for (i = 0; i < nr; i++) {
-		struct extent_buffer *next = read_tree_block(root,
-					     btrfs_node_blockptr(eb, i),
-					     size,
-					     btrfs_node_ptr_generation(eb, i));
+		next = read_tree_block(root, btrfs_node_blockptr(eb, i), size,
+				btrfs_node_ptr_generation(eb, i));
 		if (!extent_buffer_uptodate(next)) {
 			fprintf(stderr, "failed to read %llu in tree %llu\n",
 				(unsigned long long)btrfs_node_blockptr(eb, i),
 				(unsigned long long)btrfs_header_owner(eb));
 			continue;
 		}
-		if (btrfs_is_leaf(next) &&
-		    btrfs_header_level(eb) != 1)
-			BUG();
-		if (btrfs_header_level(next) !=
-			btrfs_header_level(eb) - 1)
-			BUG();
+		if (btrfs_is_leaf(next) && btrfs_header_level(eb) != 1) {
+			warning(
+	"eb corrupted: item %d eb level %d next level %d, skipping the rest",
+				i, btrfs_header_level(next),
+				btrfs_header_level(eb));
+			goto out;
+		}
+		if (btrfs_header_level(next) != btrfs_header_level(eb) - 1) {
+			warning(
+	"eb corrupted: item %d eb level %d next level %d, skipping the rest",
+				i, btrfs_header_level(next),
+				btrfs_header_level(eb));
+			goto out;
+		}
 		btrfs_print_tree(root, next, 1);
 		free_extent_buffer(next);
 	}
+
+	return;
+
+out:
+	free_extent_buffer(next);
 }

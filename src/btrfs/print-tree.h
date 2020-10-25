@@ -12,8 +12,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #ifndef __PRINT_TREE_H__
@@ -24,4 +24,6 @@ void btrfs_print_tree(struct btrfs_root *root, struct extent_buffer *t, int foll
 void btrfs_print_key(struct btrfs_disk_key *disk_key);
 void print_chunk(struct extent_buffer *eb, struct btrfs_chunk *chunk);
 void print_extent_item(struct extent_buffer *eb, int slot, int metadata);
+void print_objectid(FILE *stream, u64 objectid, u8 type);
+void print_key_type(FILE *stream, u64 objectid, u8 type);
 #endif

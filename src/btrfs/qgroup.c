@@ -12,8 +12,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #include "qgroup.h"
@@ -148,7 +148,7 @@ void btrfs_qgroup_setup_print_column(enum btrfs_qgroup_column_enum column)
 {
 	int i;
 
-	BUG_ON(column < 0 || column > BTRFS_QGROUP_ALL);
+	ASSERT(0 <= column && column <= BTRFS_QGROUP_ALL);
 
 	if (column < BTRFS_QGROUP_ALL) {
 		btrfs_qgroup_columns[column].need_print = 1;
@@ -213,10 +213,11 @@ static void print_qgroup_column_add_blank(enum btrfs_qgroup_column_enum column,
 static void print_qgroup_column(struct btrfs_qgroup *qgroup,
 				enum btrfs_qgroup_column_enum column)
 {
-	BUG_ON(column >= BTRFS_QGROUP_ALL || column < 0);
 	int len;
 	int unit_mode = btrfs_qgroup_columns[column].unit_mode;
 	int max_len = btrfs_qgroup_columns[column].max_len;
+
+	ASSERT(0 <= column && column < BTRFS_QGROUP_ALL);
 
 	switch (column) {
 
@@ -438,18 +439,13 @@ struct btrfs_qgroup_comparer_set *btrfs_qgroup_alloc_comparer_set(void)
 	       sizeof(struct btrfs_qgroup_comparer);
 	set = calloc(1, size);
 	if (!set) {
-		fprintf(stderr, "memory allocation failed\n");
+		error("memory allocation failed");
 		exit(1);
 	}
 
 	set->total = BTRFS_QGROUP_NCOMPS_INCREASE;
 
 	return set;
-}
-
-void btrfs_qgroup_free_comparer_set(struct btrfs_qgroup_comparer_set *comp_set)
-{
-	free(comp_set);
 }
 
 int btrfs_qgroup_setup_comparer(struct btrfs_qgroup_comparer_set  **comp_set,
@@ -459,9 +455,9 @@ int btrfs_qgroup_setup_comparer(struct btrfs_qgroup_comparer_set  **comp_set,
 	struct btrfs_qgroup_comparer_set *set = *comp_set;
 	int size;
 
-	BUG_ON(!set);
-	BUG_ON(comparer >= BTRFS_QGROUP_COMP_MAX);
-	BUG_ON(set->ncomps > set->total);
+	ASSERT(set != NULL);
+	ASSERT(comparer < BTRFS_QGROUP_COMP_MAX);
+	ASSERT(set->ncomps <= set->total);
 
 	if (set->ncomps == set->total) {
 		void *tmp;
@@ -472,7 +468,7 @@ int btrfs_qgroup_setup_comparer(struct btrfs_qgroup_comparer_set  **comp_set,
 		tmp = set;
 		set = realloc(set, size);
 		if (!set) {
-			fprintf(stderr, "memory allocation failed\n");
+			error("memory allocation failed");
 			free(tmp);
 			exit(1);
 		}
@@ -484,7 +480,7 @@ int btrfs_qgroup_setup_comparer(struct btrfs_qgroup_comparer_set  **comp_set,
 		*comp_set = set;
 	}
 
-	BUG_ON(set->comps[set->ncomps].comp_func);
+	ASSERT(set->comps[set->ncomps].comp_func != NULL);
 
 	set->comps[set->ncomps].comp_func = all_comp_funcs[comparer];
 	set->comps[set->ncomps].is_descending = is_descending;
@@ -616,7 +612,7 @@ static int update_qgroup(struct qgroup_lookup *qgroup_lookup, u64 qgroupid,
 	if (pa && child) {
 		list = malloc(sizeof(*list));
 		if (!list) {
-			fprintf(stderr, "memory allocation failed\n");
+			error("memory allocation failed");
 			exit(1);
 		}
 		list->qgroup = pa;
@@ -645,7 +641,7 @@ static int add_qgroup(struct qgroup_lookup *qgroup_lookup, u64 qgroupid,
 
 	bq = calloc(1, sizeof(*bq));
 	if (!bq) {
-		printf("memory allocation failed\n");
+		error("memory allocation failed");
 		exit(1);
 	}
 	if (qgroupid) {
@@ -674,7 +670,7 @@ static int add_qgroup(struct qgroup_lookup *qgroup_lookup, u64 qgroupid,
 	if (parent && child) {
 		list = malloc(sizeof(*list));
 		if (!list) {
-			fprintf(stderr, "memory allocation failed\n");
+			error("memory allocation failed");
 			exit(1);
 		}
 		list->qgroup = parent;
@@ -684,8 +680,8 @@ static int add_qgroup(struct qgroup_lookup *qgroup_lookup, u64 qgroupid,
 	}
 	ret = qgroup_tree_insert(qgroup_lookup, bq);
 	if (ret) {
-		printf("failed to insert tree %llu\n",
-		       bq->qgroupid);
+		error("failed to insert %llu into tree: %s",
+		       (unsigned long long)bq->qgroupid, strerror(-ret));
 		exit(1);
 	}
 	return ret;
@@ -813,17 +809,12 @@ struct btrfs_qgroup_filter_set *btrfs_qgroup_alloc_filter_set(void)
 	       sizeof(struct btrfs_qgroup_filter);
 	set = calloc(1, size);
 	if (!set) {
-		fprintf(stderr, "memory allocation failed\n");
+		error("memory allocation failed");
 		exit(1);
 	}
 	set->total = BTRFS_QGROUP_NFILTERS_INCREASE;
 
 	return set;
-}
-
-void btrfs_qgroup_free_filter_set(struct btrfs_qgroup_filter_set *filter_set)
-{
-	free(filter_set);
 }
 
 int btrfs_qgroup_setup_filter(struct btrfs_qgroup_filter_set **filter_set,
@@ -832,9 +823,9 @@ int btrfs_qgroup_setup_filter(struct btrfs_qgroup_filter_set **filter_set,
 	struct btrfs_qgroup_filter_set *set = *filter_set;
 	int size;
 
-	BUG_ON(!set);
-	BUG_ON(filter >= BTRFS_QGROUP_FILTER_MAX);
-	BUG_ON(set->nfilters > set->total);
+	ASSERT(set != NULL);
+	ASSERT(filter < BTRFS_QGROUP_FILTER_MAX);
+	ASSERT(set->nfilters <= set->total);
 
 	if (set->nfilters == set->total) {
 		void *tmp;
@@ -845,7 +836,7 @@ int btrfs_qgroup_setup_filter(struct btrfs_qgroup_filter_set **filter_set,
 		tmp = set;
 		set = realloc(set, size);
 		if (!set) {
-			fprintf(stderr, "memory allocation failed\n");
+			error("memory allocation failed");
 			free(tmp);
 			exit(1);
 		}
@@ -855,7 +846,8 @@ int btrfs_qgroup_setup_filter(struct btrfs_qgroup_filter_set **filter_set,
 		set->total += BTRFS_QGROUP_NFILTERS_INCREASE;
 		*filter_set = set;
 	}
-	BUG_ON(set->filters[set->nfilters].filter_func);
+
+	ASSERT(set->filters[set->nfilters].filter_func != NULL);
 	set->filters[set->nfilters].filter_func = all_filter_funcs[filter];
 	set->filters[set->nfilters].data = data;
 	set->nfilters++;
@@ -926,11 +918,12 @@ static int sort_tree_insert(struct qgroup_lookup *sort_tree,
 static void __update_columns_max_len(struct btrfs_qgroup *bq,
 				     enum btrfs_qgroup_column_enum column)
 {
-	BUG_ON(column >= BTRFS_QGROUP_ALL || column < 0);
 	struct btrfs_qgroup_list *list = NULL;
 	char tmp[100];
 	int len;
 	unsigned unit_mode = btrfs_qgroup_columns[column].unit_mode;
+
+	ASSERT(0 <= column && column < BTRFS_QGROUP_ALL);
 
 	switch (column) {
 
@@ -1032,14 +1025,11 @@ static void __filter_and_sort_qgroups(struct qgroup_lookup *all_qgroups,
 static inline void print_status_flag_warning(u64 flags)
 {
 	if (!(flags & BTRFS_QGROUP_STATUS_FLAG_ON))
-		fprintf(stderr,
-		"WARNING: Quota disabled, qgroup data may be out of date\n");
+		warning("quota disabled, qgroup data may be out of date");
 	else if (flags & BTRFS_QGROUP_STATUS_FLAG_RESCAN)
-		fprintf(stderr,
-		"WARNING: Rescan is running, qgroup data may be incorrect\n");
+		warning("rescan is running, qgroup data may be incorrect");
 	else if (flags & BTRFS_QGROUP_STATUS_FLAG_INCONSISTENT)
-		fprintf(stderr,
-		"WARNING: Qgroup data inconsistent, rescan recommended\n");
+		warning("qgroup data inconsistent, rescan recommended");
 }
 
 static int __qgroups_search(int fd, struct qgroup_lookup *qgroup_lookup)
@@ -1075,9 +1065,8 @@ static int __qgroups_search(int fd, struct qgroup_lookup *qgroup_lookup)
 	while (1) {
 		ret = ioctl(fd, BTRFS_IOC_TREE_SEARCH, &args);
 		if (ret < 0) {
-			fprintf(stderr,
-				"ERROR: can't perform the search - %s\n",
-				strerror(errno));
+			error("cannot perform the search: %s",
+					strerror(errno));
 			return ret;
 		}
 		/* the ioctl returns the number of item it found in nr_items */
@@ -1215,8 +1204,8 @@ int btrfs_show_qgroups(int fd,
 	print_all_qgroups(&sort_tree);
 
 	__free_all_qgroups(&qgroup_lookup);
-	btrfs_qgroup_free_filter_set(filter_set);
-	btrfs_qgroup_free_comparer_set(comp_set);
+	free(filter_set);
+	free(comp_set);
 	return ret;
 }
 
@@ -1230,15 +1219,13 @@ u64 btrfs_get_path_rootid(int fd)
 
 	ret = ioctl(fd, BTRFS_IOC_INO_LOOKUP, &args);
 	if (ret < 0) {
-		fprintf(stderr,
-			"ERROR: can't perform the search - %s\n",
-			strerror(errno));
+		error("cannot perform the search: %s", strerror(errno));
 		return ret;
 	}
 	return args.treeid;
 }
 
-int btrfs_qgroup_parse_sort_string(char *opt_arg,
+int btrfs_qgroup_parse_sort_string(const char *opt_arg,
 				   struct btrfs_qgroup_comparer_set **comps)
 {
 	int order;
@@ -1246,8 +1233,14 @@ int btrfs_qgroup_parse_sort_string(char *opt_arg,
 	char *p;
 	char **ptr_argv;
 	int what_to_sort;
+	char *opt_tmp;
+	int ret = 0;
 
-	while ((p = strtok(opt_arg, ",")) != NULL) {
+	opt_tmp = strdup(opt_arg);
+	if (!opt_tmp)
+		return -ENOMEM;
+
+	while ((p = strtok(opt_tmp, ",")) != NULL) {
 		flag = 0;
 		ptr_argv = all_sort_items;
 
@@ -1267,10 +1260,10 @@ int btrfs_qgroup_parse_sort_string(char *opt_arg,
 			ptr_argv++;
 		}
 
-		if (flag == 0)
-			return -1;
-
-		else {
+		if (flag == 0) {
+			ret = -1;
+			goto out;
+		} else {
 			if (*p == '+') {
 				order = 0;
 				p++;
@@ -1281,14 +1274,19 @@ int btrfs_qgroup_parse_sort_string(char *opt_arg,
 				order = 0;
 
 			what_to_sort = btrfs_qgroup_get_sort_item(p);
-			if (what_to_sort < 0)
-				return -1;
+			if (what_to_sort < 0) {
+				ret = -1;
+				goto out;
+			}
 			btrfs_qgroup_setup_comparer(comps, what_to_sort, order);
 		}
-		opt_arg = NULL;
+		free(opt_tmp);
+		opt_tmp = NULL;
 	}
 
-	return 0;
+out:
+	free(opt_tmp);
+	return ret;
 }
 
 int qgroup_inherit_size(struct btrfs_qgroup_inherit *p)
@@ -1312,7 +1310,7 @@ qgroup_inherit_realloc(struct btrfs_qgroup_inherit **inherit, int n, int pos)
 
 	out = calloc(sizeof(*out) + sizeof(out->qgroups[0]) * (nitems + n), 1);
 	if (out == NULL) {
-		fprintf(stderr, "ERROR: Not enough memory\n");
+		error("not enough memory");
 		return -ENOMEM;
 	}
 
@@ -1340,7 +1338,7 @@ int qgroup_inherit_add_group(struct btrfs_qgroup_inherit **inherit, char *arg)
 	int pos = 0;
 
 	if (qgroupid == 0) {
-		fprintf(stderr, "ERROR: bad qgroup specification\n");
+		error("invalid qgroup specification, qgroupid must not 0");
 		return -EINVAL;
 	}
 
@@ -1367,7 +1365,7 @@ int qgroup_inherit_add_copy(struct btrfs_qgroup_inherit **inherit, char *arg,
 	p = strchr(arg, ':');
 	if (!p) {
 bad:
-		fprintf(stderr, "ERROR: bad copy specification\n");
+		error("invalid copy specification, missing separator :");
 		return -EINVAL;
 	}
 	*p = 0;

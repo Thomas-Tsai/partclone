@@ -12,8 +12,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #include <sys/ioctl.h>
@@ -113,7 +113,7 @@ void btrfs_list_setup_print_column(enum btrfs_list_column_enum column)
 {
 	int i;
 
-	BUG_ON(column < 0 || column > BTRFS_LIST_ALL);
+	ASSERT(0 <= column && column <= BTRFS_LIST_ALL);
 
 	if (column < BTRFS_LIST_ALL) {
 		btrfs_list_columns[column].need_print = 1;
@@ -237,20 +237,15 @@ struct btrfs_list_comparer_set *btrfs_list_alloc_comparer_set(void)
 	return set;
 }
 
-void btrfs_list_free_comparer_set(struct btrfs_list_comparer_set *comp_set)
-{
-	free(comp_set);
-}
-
 static int btrfs_list_setup_comparer(struct btrfs_list_comparer_set **comp_set,
 		enum btrfs_list_comp_enum comparer, int is_descending)
 {
 	struct btrfs_list_comparer_set *set = *comp_set;
 	int size;
 
-	BUG_ON(!set);
-	BUG_ON(comparer >= BTRFS_LIST_COMP_MAX);
-	BUG_ON(set->ncomps > set->total);
+	ASSERT(set != NULL);
+	ASSERT(comparer < BTRFS_LIST_COMP_MAX);
+	ASSERT(set->ncomps <= set->total);
 
 	if (set->ncomps == set->total) {
 		void *tmp;
@@ -272,7 +267,7 @@ static int btrfs_list_setup_comparer(struct btrfs_list_comparer_set **comp_set,
 		*comp_set = set;
 	}
 
-	BUG_ON(set->comps[set->ncomps].comp_func);
+	ASSERT(set->comps[set->ncomps].comp_func == NULL);
 
 	set->comps[set->ncomps].comp_func = all_comp_funcs[comparer];
 	set->comps[set->ncomps].is_descending = is_descending;
@@ -813,9 +808,10 @@ static char *__ino_resolve(int fd, u64 dirid)
  * simple string builder, returning a new string with both
  * dirid and name
  */
-static char *build_name(char *dirid, char *name)
+static char *build_name(const char *dirid, const char *name)
 {
 	char *full;
+
 	if (!dirid)
 		return strdup(name);
 
@@ -1209,20 +1205,15 @@ struct btrfs_list_filter_set *btrfs_list_alloc_filter_set(void)
 	return set;
 }
 
-void btrfs_list_free_filter_set(struct btrfs_list_filter_set *filter_set)
-{
-	free(filter_set);
-}
-
 int btrfs_list_setup_filter(struct btrfs_list_filter_set **filter_set,
 			    enum btrfs_list_filter_enum filter, u64 data)
 {
 	struct btrfs_list_filter_set *set = *filter_set;
 	int size;
 
-	BUG_ON(!set);
-	BUG_ON(filter >= BTRFS_LIST_FILTER_MAX);
-	BUG_ON(set->nfilters > set->total);
+	ASSERT(set != NULL);
+	ASSERT(filter < BTRFS_LIST_FILTER_MAX);
+	ASSERT(set->nfilters <= set->total);
 
 	if (set->nfilters == set->total) {
 		void *tmp;
@@ -1244,7 +1235,7 @@ int btrfs_list_setup_filter(struct btrfs_list_filter_set **filter_set,
 		*filter_set = set;
 	}
 
-	BUG_ON(set->filters[set->nfilters].filter_func);
+	ASSERT(set->filters[set->nfilters].filter_func == NULL);
 
 	if (filter == BTRFS_LIST_FILTER_DELETED)
 		set->only_deleted = 1;
@@ -1331,7 +1322,7 @@ static void print_subvolume_column(struct root_info *subv,
 	char tstr[256];
 	char uuidparse[BTRFS_UUID_UNPARSED_SIZE];
 
-	BUG_ON(column >= BTRFS_LIST_ALL || column < 0);
+	ASSERT(0 <= column && column < BTRFS_LIST_ALL);
 
 	switch (column) {
 	case BTRFS_LIST_OBJECTID:

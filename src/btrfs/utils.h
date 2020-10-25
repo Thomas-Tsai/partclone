@@ -12,8 +12,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #ifndef __BTRFS_UTILS_H__
@@ -112,8 +112,8 @@ void btrfs_parse_features_to_string(char *buf, u64 flags);
 
 struct btrfs_mkfs_config {
 	char *label;
-	char *fs_uuid;
-	char *chunk_uuid;
+	char fs_uuid[BTRFS_UUID_UNPARSED_SIZE];
+	char chunk_uuid[BTRFS_UUID_UNPARSED_SIZE];
 	u64 blocks[8];
 	u64 num_bytes;
 	u32 nodesize;
@@ -147,14 +147,18 @@ struct btrfs_convert_context {
 	void *fs_data;
 };
 
+#define	PREP_DEVICE_ZERO_END	(1U << 0)
+#define	PREP_DEVICE_DISCARD	(1U << 1)
+#define	PREP_DEVICE_VERBOSE	(1U << 2)
+
 int make_btrfs(int fd, struct btrfs_mkfs_config *cfg,
 		struct btrfs_convert_context *cctx);
 int btrfs_make_root_dir(struct btrfs_trans_handle *trans,
 			struct btrfs_root *root, u64 objectid);
-int btrfs_prepare_device(int fd, const char *file, int zero_end,
-		u64 *block_count_ret, u64 max_block_count, int discard);
+int btrfs_prepare_device(int fd, const char *file, u64 *block_count_ret,
+		u64 max_block_count, unsigned opflags);
 int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
-		      struct btrfs_root *root, int fd, char *path,
+		      struct btrfs_root *root, int fd, const char *path,
 		      u64 block_count, u32 io_width, u32 io_align,
 		      u32 sectorsize);
 int btrfs_scan_for_fsid(int run_ioctls);
@@ -172,7 +176,6 @@ int pretty_size_snprintf(u64 size, char *str, size_t str_bytes, unsigned unit_mo
 #define pretty_size(size) 	pretty_size_mode(size, UNITS_DEFAULT)
 const char *pretty_size_mode(u64 size, unsigned mode);
 
-int get_mountpt(char *dev, char *mntpt, size_t size);
 u64 parse_size(char *s);
 u64 parse_qgroupid(const char *p);
 u64 arg_strtou64(const char *str);
@@ -180,7 +183,7 @@ int arg_copy_path(char *dest, const char *src, int destlen);
 int open_file_or_dir(const char *fname, DIR **dirstream);
 int open_file_or_dir3(const char *fname, DIR **dirstream, int open_flags);
 void close_file_or_dir(int fd, DIR *dirstream);
-int get_fs_info(char *path, struct btrfs_ioctl_fs_info_args *fi_args,
+int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 		struct btrfs_ioctl_dev_info_args **di_ret);
 int get_label(const char *btrfs_dev, char *label);
 int set_label(const char *btrfs_dev, const char *label);
@@ -212,7 +215,7 @@ int get_device_info(int fd, u64 devid,
 		struct btrfs_ioctl_dev_info_args *di_args);
 int test_uuid_unique(char *fs_uuid);
 u64 disk_size(const char *path);
-//u64 get_partition_size(const char *dev);
+u64 get_btrfs_partition_size(const char *dev);
 
 int test_minimum_size(const char *file, u32 nodesize);
 int test_issubvolname(const char *name);
@@ -303,10 +306,65 @@ const char *get_argv0_buf(void);
 
 unsigned int get_unit_mode_from_arg(int *argc, char *argv[], int df_mode);
 void clean_args_no_options(int argc, char *argv[], const char * const *usage);
+void clean_args_no_options_relaxed(int argc, char *argv[],
+		const char * const *usagestr);
 int string_is_numerical(const char *str);
 
+#if DEBUG_VERBOSE_ERROR
+#define	PRINT_VERBOSE_ERROR	fprintf(stderr, "%s:%d:", __FILE__, __LINE__)
+#else
+#define PRINT_VERBOSE_ERROR
+#endif
+
+#if DEBUG_TRACE_ON_ERROR
+#define PRINT_TRACE_ON_ERROR	print_trace()
+#else
+#define PRINT_TRACE_ON_ERROR
+#endif
+
+#if DEBUG_ABORT_ON_ERROR
+#define DO_ABORT_ON_ERROR	abort()
+#else
+#define DO_ABORT_ON_ERROR
+#endif
+
+#define error(fmt, ...)							\
+	do {								\
+		PRINT_TRACE_ON_ERROR;					\
+		PRINT_VERBOSE_ERROR;					\
+		__error((fmt), ##__VA_ARGS__);				\
+		DO_ABORT_ON_ERROR;					\
+	} while (0)
+
+#define error_on(cond, fmt, ...)					\
+	do {								\
+		if ((cond))						\
+			PRINT_TRACE_ON_ERROR;				\
+		if ((cond))						\
+			PRINT_VERBOSE_ERROR;				\
+		__error_on((cond), (fmt), ##__VA_ARGS__);		\
+		if ((cond))						\
+			DO_ABORT_ON_ERROR;				\
+	} while (0)
+
+#define warning(fmt, ...)						\
+	do {								\
+		PRINT_TRACE_ON_ERROR;					\
+		PRINT_VERBOSE_ERROR;					\
+		__warning((fmt), ##__VA_ARGS__);			\
+	} while (0)
+
+#define warning_on(cond, fmt, ...)					\
+	do {								\
+		if ((cond))						\
+			PRINT_TRACE_ON_ERROR;				\
+		if ((cond))						\
+			PRINT_VERBOSE_ERROR;				\
+		__warning_on((cond), (fmt), ##__VA_ARGS__);		\
+	} while (0)
+
 __attribute__ ((format (printf, 1, 2)))
-static inline void warning(const char *fmt, ...)
+static inline void __warning(const char *fmt, ...)
 {
 	va_list args;
 
@@ -318,7 +376,7 @@ static inline void warning(const char *fmt, ...)
 }
 
 __attribute__ ((format (printf, 1, 2)))
-static inline void error(const char *fmt, ...)
+static inline void __error(const char *fmt, ...)
 {
 	va_list args;
 
@@ -330,7 +388,7 @@ static inline void error(const char *fmt, ...)
 }
 
 __attribute__ ((format (printf, 2, 3)))
-static inline int warning_on(int condition, const char *fmt, ...)
+static inline int __warning_on(int condition, const char *fmt, ...)
 {
 	va_list args;
 
@@ -347,7 +405,7 @@ static inline int warning_on(int condition, const char *fmt, ...)
 }
 
 __attribute__ ((format (printf, 2, 3)))
-static inline int error_on(int condition, const char *fmt, ...)
+static inline int __error_on(int condition, const char *fmt, ...)
 {
 	va_list args;
 

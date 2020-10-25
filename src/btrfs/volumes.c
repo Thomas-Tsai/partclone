@@ -12,8 +12,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -162,10 +162,11 @@ int btrfs_close_devices(struct btrfs_fs_devices *fs_devices)
 	struct btrfs_device *device;
 
 again:
+	if (!fs_devices)
+		return 0;
 	while (!list_empty(&fs_devices->devices)) {
 		device = list_entry(fs_devices->devices.next,
 				    struct btrfs_device, dev_list);
-        assert(device != NULL);
 		if (device->fd != -1) {
 			fsync(device->fd);
 			if (posix_fadvise(device->fd, 0, 0, POSIX_FADV_DONTNEED))
@@ -228,6 +229,8 @@ int btrfs_open_devices(struct btrfs_fs_devices *fs_devices, int flags)
 		fd = open(device->name, flags);
 		if (fd < 0) {
 			ret = -errno;
+			error("cannot open device '%s': %s", device->name,
+					strerror(errno));
 			goto fail;
 		}
 
@@ -250,7 +253,7 @@ fail:
 
 int btrfs_scan_one_device(int fd, const char *path,
 			  struct btrfs_fs_devices **fs_devices_ret,
-			  u64 *total_devs, u64 super_offset, int super_recover)
+			  u64 *total_devs, u64 super_offset, unsigned sbflags)
 {
 	struct btrfs_super_block *disk_super;
 	char buf[BTRFS_SUPER_INFO_SIZE];
@@ -258,7 +261,7 @@ int btrfs_scan_one_device(int fd, const char *path,
 	u64 devid;
 
 	disk_super = (struct btrfs_super_block *)buf;
-	ret = btrfs_read_dev_super(fd, disk_super, super_offset, super_recover);
+	ret = btrfs_read_dev_super(fd, disk_super, super_offset, sbflags);
 	if (ret < 0)
 		return -EIO;
 	devid = btrfs_stack_device_id(&disk_super->dev_item);
@@ -366,7 +369,7 @@ no_more_items:
 				goto check_pending;
 			}
 		}
-		if (btrfs_key_type(&key) != BTRFS_DEV_EXTENT_KEY) {
+		if (key.type != BTRFS_DEV_EXTENT_KEY) {
 			goto next;
 		}
 
@@ -458,7 +461,8 @@ static int find_next_chunk(struct btrfs_root *root, u64 objectid, u64 *offset)
 	struct btrfs_key found_key;
 
 	path = btrfs_alloc_path();
-	BUG_ON(!path);
+	if (!path)
+		return -ENOMEM;
 
 	key.objectid = objectid;
 	key.offset = (u64)-1;
@@ -739,7 +743,7 @@ static int btrfs_device_avail_bytes(struct btrfs_trans_handle *trans,
 			goto next;
 		if (key.objectid > device->devid)
 			break;
-		if (btrfs_key_type(&key) != BTRFS_DEV_EXTENT_KEY)
+		if (key.type != BTRFS_DEV_EXTENT_KEY)
 			goto next;
 		if (key.offset > search_end)
 			break;
@@ -1068,7 +1072,11 @@ int btrfs_alloc_data_chunk(struct btrfs_trans_handle *trans,
 	key.objectid = BTRFS_FIRST_CHUNK_TREE_OBJECTID;
 	key.type = BTRFS_CHUNK_ITEM_KEY;
 	if (convert) {
-		BUG_ON(*start != round_down(*start, extent_root->sectorsize));
+		if (*start != round_down(*start, extent_root->sectorsize)) {
+			error("DATA chunk start not sectorsize aligned: %llu",
+					(unsigned long long)*start);
+			return -EINVAL;
+		}
 		key.offset = *start;
 		dev_offset = *start;
 	} else {
@@ -1613,10 +1621,10 @@ static struct btrfs_device *fill_missing_device(u64 devid)
  * slot == -1: SYSTEM chunk
  * return -EIO on error, otherwise return 0
  */
-static int btrfs_check_chunk_valid(struct btrfs_root *root,
-				   struct extent_buffer *leaf,
-				   struct btrfs_chunk *chunk,
-				   int slot, u64 logical)
+int btrfs_check_chunk_valid(struct btrfs_root *root,
+			    struct extent_buffer *leaf,
+			    struct btrfs_chunk *chunk,
+			    int slot, u64 logical)
 {
 	u64 length;
 	u64 stripe_len;
@@ -1760,6 +1768,8 @@ static int read_one_chunk(struct btrfs_root *root, struct btrfs_key *key,
 			map->stripes[i].dev = fill_missing_device(devid);
 			printf("warning, device %llu is missing\n",
 			       (unsigned long long)devid);
+			list_add(&map->stripes[i].dev->dev_list,
+				 &root->fs_info->fs_devices->devices);
 		}
 
 	}
@@ -1820,7 +1830,6 @@ static int open_seed_devices(struct btrfs_root *root, u8 *fsid)
 	if (ret)
 		goto out;
 
-    assert(ret != 0);
 	fs_devices->seed = root->fs_info->fs_devices->seed;
 	root->fs_info->fs_devices->seed = fs_devices;
 out:
@@ -2154,9 +2163,14 @@ int write_raid56_with_parity(struct btrfs_fs_info *info,
 		ebs[multi->num_stripes - 1] = p_eb;
 		memcpy(p_eb->data, ebs[0]->data, stripe_len);
 		for (j = 1; j < multi->num_stripes - 1; j++) {
-			for (i = 0; i < stripe_len; i += sizeof(unsigned long)) {
-				*(unsigned long *)(p_eb->data + i) ^=
-					*(unsigned long *)(ebs[j]->data + i);
+			for (i = 0; i < stripe_len; i += sizeof(u64)) {
+				u64 p_eb_data;
+				u64 ebs_data;
+
+				p_eb_data = get_unaligned_64(p_eb->data + i);
+				ebs_data = get_unaligned_64(ebs[j]->data + i);
+				p_eb_data ^= ebs_data;
+				put_unaligned_64(p_eb_data, p_eb->data + i);
 			}
 		}
 	}

@@ -12,8 +12,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #ifndef __BTRFS_DISK_IO_H__
@@ -29,21 +29,29 @@
 #define BTRFS_SUPER_MIRROR_SHIFT 12
 
 enum btrfs_open_ctree_flags {
-	OPEN_CTREE_WRITES		= (1 << 0),
-	OPEN_CTREE_PARTIAL		= (1 << 1),
-	OPEN_CTREE_BACKUP_ROOT		= (1 << 2),
-	OPEN_CTREE_RECOVER_SUPER	= (1 << 3),
-	OPEN_CTREE_RESTORE		= (1 << 4),
-	OPEN_CTREE_NO_BLOCK_GROUPS	= (1 << 5),
-	OPEN_CTREE_EXCLUSIVE		= (1 << 6),
-	OPEN_CTREE_NO_DEVICES		= (1 << 7),
+	/* Open filesystem for writes */
+	OPEN_CTREE_WRITES		= (1U << 0),
+	/* Allow to open filesystem with some broken tree roots (eg log root) */
+	OPEN_CTREE_PARTIAL		= (1U << 1),
+	/* If primary root pinters are invalid, try backup copies */
+	OPEN_CTREE_BACKUP_ROOT		= (1U << 2),
+	/* Allow reading all superblock sopies if the primary is damaged */
+	OPEN_CTREE_RECOVER_SUPER	= (1U << 3),
+	/* Restoring filesystem image */
+	OPEN_CTREE_RESTORE		= (1U << 4),
+	/* Do not read block groups (extent tree) */
+	OPEN_CTREE_NO_BLOCK_GROUPS	= (1U << 5),
+	/* Open all devices in O_EXCL mode */
+	OPEN_CTREE_EXCLUSIVE		= (1U << 6),
+	/* Do not scan devices */
+	OPEN_CTREE_NO_DEVICES		= (1U << 7),
 	/*
 	 * Don't print error messages if bytenr or checksums do not match in
 	 * tree block headers. Turn on by OPEN_CTREE_SUPPRESS_ERROR
 	 */
-	OPEN_CTREE_SUPPRESS_CHECK_BLOCK_ERRORS	= (1 << 8),
-	/* Return chunk root */
-	__OPEN_CTREE_RETURN_CHUNK_ROOT	= (1 << 9),
+	OPEN_CTREE_SUPPRESS_CHECK_BLOCK_ERRORS	= (1U << 8),
+	/* Return the chunk root */
+	__OPEN_CTREE_RETURN_CHUNK_ROOT	= (1U << 9),
 	OPEN_CTREE_CHUNK_ROOT_ONLY	= OPEN_CTREE_PARTIAL +
 					  OPEN_CTREE_SUPPRESS_CHECK_BLOCK_ERRORS +
 					  __OPEN_CTREE_RETURN_CHUNK_ROOT,
@@ -53,15 +61,34 @@ enum btrfs_open_ctree_flags {
 	 * Like split PARTIAL into SKIP_CSUM/SKIP_EXTENT
 	 */
 
-	OPEN_CTREE_IGNORE_FSID_MISMATCH	= (1 << 10),
+	/* Ignore UUID mismatches */
+	OPEN_CTREE_IGNORE_FSID_MISMATCH	= (1U << 10),
 
 	/*
-	 * Allow open_ctree_fs_info() to return a incomplete fs_info with
+	 * Allow open_ctree_fs_info() to return an incomplete fs_info with
 	 * system chunks from super block only.
-	 * It's useful for chunk corruption case.
+	 * It's useful when chunks are corrupted.
 	 * Makes no sense for open_ctree variants returning btrfs_root.
 	 */
-	OPEN_CTREE_IGNORE_CHUNK_TREE_ERROR = (1 << 11)
+	OPEN_CTREE_IGNORE_CHUNK_TREE_ERROR = (1U << 11),
+
+	/* Allow to open a partially created filesystem */
+	OPEN_CTREE_FS_PARTIAL = (1U << 12),
+};
+
+/*
+ * Modes of superblock access
+ */
+enum btrfs_read_sb_flags {
+	SBREAD_DEFAULT		= 0,
+	/* Reading superblock during recovery */
+	SBREAD_RECOVER		= (1 << 0),
+
+	/*
+	 * Read superblock with the fake signature, cannot be used with
+	 * SBREAD_RECOVER
+	 */
+	SBREAD_PARTIAL		= (1 << 1),
 };
 
 static inline u64 btrfs_sb_offset(int mirror)
@@ -93,7 +120,7 @@ void readahead_tree_block(struct btrfs_root *root, u64 bytenr, u32 blocksize,
 struct extent_buffer* btrfs_find_create_tree_block(
 		struct btrfs_fs_info *fs_info, u64 bytenr, u32 blocksize);
 
-int __setup_root(u32 nodesize, u32 leafsize, u32 sectorsize,
+void btrfs_setup_root(u32 nodesize, u32 leafsize, u32 sectorsize,
                         u32 stripesize, struct btrfs_root *root,
                         struct btrfs_fs_info *fs_info, u64 objectid);
 int clean_tree_block(struct btrfs_trans_handle *trans,
@@ -103,27 +130,28 @@ void btrfs_free_fs_info(struct btrfs_fs_info *fs_info);
 struct btrfs_fs_info *btrfs_new_fs_info(int writable, u64 sb_bytenr);
 int btrfs_check_fs_compatibility(struct btrfs_super_block *sb, int writable);
 int btrfs_setup_all_roots(struct btrfs_fs_info *fs_info, u64 root_tree_bytenr,
-			  enum btrfs_open_ctree_flags flags);
+			  unsigned flags);
 void btrfs_release_all_roots(struct btrfs_fs_info *fs_info);
 void btrfs_cleanup_all_caches(struct btrfs_fs_info *fs_info);
 int btrfs_scan_fs_devices(int fd, const char *path,
 			  struct btrfs_fs_devices **fs_devices, u64 sb_bytenr,
-			  int super_recover, int skip_devices);
+			  unsigned sbflags, int skip_devices);
 int btrfs_setup_chunk_tree_and_device_map(struct btrfs_fs_info *fs_info,
 			  u64 chunk_root_bytenr);
 
 struct btrfs_root *open_ctree(const char *filename, u64 sb_bytenr,
-			      enum btrfs_open_ctree_flags flags);
+			      unsigned flags);
 struct btrfs_root *open_ctree_fd(int fp, const char *path, u64 sb_bytenr,
-				 enum btrfs_open_ctree_flags flags);
+				 unsigned flags);
 struct btrfs_fs_info *open_ctree_fs_info(const char *filename,
 					 u64 sb_bytenr, u64 root_tree_bytenr,
 					 u64 chunk_root_bytenr,
-					 enum btrfs_open_ctree_flags flags);
+					 unsigned flags);
 int close_ctree_fs_info(struct btrfs_fs_info *fs_info);
 static inline int close_ctree(struct btrfs_root *root)
 {
-	BUG_ON(!root);
+	if (!root)
+		return 0;
 	return close_ctree_fs_info(root->fs_info);
 }
 
@@ -131,7 +159,7 @@ int write_all_supers(struct btrfs_root *root);
 int write_ctree_super(struct btrfs_trans_handle *trans,
 		      struct btrfs_root *root);
 int btrfs_read_dev_super(int fd, struct btrfs_super_block *sb, u64 sb_bytenr,
-			 int super_recover);
+		unsigned sbflags);
 int btrfs_map_bh_to_logical(struct btrfs_root *root, struct extent_buffer *bh,
 			    u64 logical);
 struct extent_buffer *btrfs_find_tree_block(struct btrfs_root *root,
@@ -147,7 +175,7 @@ int btrfs_set_buffer_uptodate(struct extent_buffer *buf);
 int wait_on_tree_block_writeback(struct btrfs_root *root,
 				 struct extent_buffer *buf);
 u32 btrfs_csum_data(struct btrfs_root *root, char *data, u32 seed, size_t len);
-void btrfs_csum_final(u32 crc, char *result);
+void btrfs_csum_final(u32 crc, u8 *result);
 
 int btrfs_commit_transaction(struct btrfs_trans_handle *trans,
 			     struct btrfs_root *root);

@@ -376,7 +376,8 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     key.offset = 0;
     key.objectid = 0;
-    btrfs_set_key_type(&key, BTRFS_ROOT_ITEM_KEY);
+    ////btrfs_set_key_type(&key, BTRFS_ROOT_ITEM_KEY);
+    key.type = BTRFS_ROOT_ITEM_KEY;
     ret = btrfs_search_slot(NULL, tree_root_scan, &key, &path, 0, 0);
     while(1) {
 	leaf = path.nodes[0];
@@ -390,7 +391,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	}
 	btrfs_item_key(leaf, &disk_key, path.slots[0]);
 	btrfs_disk_key_to_cpu(&found_key, &disk_key);
-	if (btrfs_key_type(&found_key) == BTRFS_ROOT_ITEM_KEY) {
+	if (found_key.type == BTRFS_ROOT_ITEM_KEY) {
 	    unsigned long offset;
 	    struct extent_buffer *buf;
 

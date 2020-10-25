@@ -13,8 +13,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,7 +73,6 @@ void extent_io_tree_cleanup(struct extent_io_tree *tree)
 
 	while(!list_empty(&tree->lru)) {
 		eb = list_entry(tree->lru.next, struct extent_buffer, lru);
-        assert(eb == NULL);
 		fprintf(stderr, "extent buffer leak: "
 			"start %llu len %u\n",
 			(unsigned long long)eb->start, eb->len);
@@ -541,10 +540,8 @@ static struct extent_buffer *__alloc_extent_buffer(struct extent_io_tree *tree,
 	struct extent_buffer *eb;
 
 	eb = calloc(1, sizeof(struct extent_buffer) + blocksize);
-	if (!eb) {
-		BUG();
+	if (!eb)
 		return NULL;
-	}
 
 	eb->start = bytenr;
 	eb->len = blocksize;
@@ -565,7 +562,7 @@ struct extent_buffer *btrfs_clone_extent_buffer(struct extent_buffer *src)
 	struct extent_buffer *new;
 
 	new = __alloc_extent_buffer(NULL, src->start, src->len);
-	if (new == NULL)
+	if (!new)
 		return NULL;
 
 	copy_extent_buffer(new, src, 0, 0, src->len);
@@ -775,7 +772,11 @@ int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 			this_len = min(this_len, (u64)info->tree_root->nodesize);
 
 			eb = malloc(sizeof(struct extent_buffer) + this_len);
-			BUG_ON(!eb);
+			if (!eb) {
+				fprintf(stderr, "cannot allocate memory for eb\n");
+				ret = -ENOMEM;
+				goto out;
+			}
 
 			memset(eb, 0, sizeof(struct extent_buffer) + this_len);
 			eb->start = offset;
@@ -826,6 +827,10 @@ int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 		multi = NULL;
 	}
 	return 0;
+
+out:
+	kfree(raid_map);
+	return ret;
 }
 
 int set_extent_buffer_dirty(struct extent_buffer *eb)
@@ -890,5 +895,5 @@ void memset_extent_buffer(struct extent_buffer *eb, char c,
 int extent_buffer_test_bit(struct extent_buffer *eb, unsigned long start,
 			   unsigned long nr)
 {
-	return test_bit(nr, (unsigned long *)(eb->data + start));
+	return le_test_bit(nr, (u8 *)eb->data + start);
 }

@@ -4,11 +4,15 @@
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- *   Boston, MA 02110-1301 USA; either version 2 of the License, or
+ *   the Free Software Foundation, Inc., 53 Temple Place Ste 330,
+ *   Boston MA 02111-1307, USA; either version 2 of the License, or
  *   (at your option) any later version; incorporated herein by reference.
  *
  * ----------------------------------------------------------------------- */
+
+/*
+ * Added helpers for unaligned native int access
+ */
 
 /*
  * raid6int1.c
@@ -33,11 +37,15 @@
 # define NSIZE  8
 # define NSHIFT 3
 typedef uint64_t unative_t;
+#define put_unaligned_native(val,p)	put_unaligned_64((val),(p))
+#define get_unaligned_native(p)		get_unaligned_64((p))
 #else
 # define NBYTES(x) ((x) * 0x01010101U)
 # define NSIZE  4
 # define NSHIFT 2
 typedef uint32_t unative_t;
+#define put_unaligned_native(val,p)	put_unaligned_32((val),(p))
+#define get_unaligned_native(p)		get_unaligned_32((p))
 #endif
 
 /*
@@ -84,9 +92,9 @@ void raid6_gen_syndrome(int disks, size_t bytes, void **ptrs)
 	q = dptr[z0+2];		/* RS syndrome */
 
 	for ( d = 0 ; d < bytes ; d += NSIZE*1 ) {
-		wq0 = wp0 = *(unative_t *)&dptr[z0][d+0*NSIZE];
+		wq0 = wp0 = get_unaligned_native(&dptr[z0][d+0*NSIZE]);
 		for ( z = z0-1 ; z >= 0 ; z-- ) {
-			wd0 = *(unative_t *)&dptr[z][d+0*NSIZE];
+			wd0 = get_unaligned_native(&dptr[z][d+0*NSIZE]);
 			wp0 ^= wd0;
 			w20 = MASK(wq0);
 			w10 = SHLBYTE(wq0);
@@ -94,8 +102,8 @@ void raid6_gen_syndrome(int disks, size_t bytes, void **ptrs)
 			w10 ^= w20;
 			wq0 = w10 ^ wd0;
 		}
-		*(unative_t *)&p[d+NSIZE*0] = wp0;
-		*(unative_t *)&q[d+NSIZE*0] = wq0;
+		put_unaligned_native(wp0, &p[d+NSIZE*0]);
+		put_unaligned_native(wq0, &q[d+NSIZE*0]);
 	}
 }
 

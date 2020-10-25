@@ -13,8 +13,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #include <stdio.h>
@@ -192,7 +192,7 @@ static int reserve_free_space(struct cache_tree *free_tree, u64 len,
 	struct cache_extent *cache;
 	int found = 0;
 
-	BUG_ON(!ret_start);
+	ASSERT(ret_start != NULL);
 	cache = first_cache_extent(free_tree);
 	while (cache) {
 		if (cache->size > len) {
@@ -223,7 +223,7 @@ static inline int write_temp_super(int fd, struct btrfs_super_block *sb,
 
 	crc = btrfs_csum_data(NULL, (char *)sb + BTRFS_CSUM_SIZE, crc,
 			      BTRFS_SUPER_INFO_SIZE - BTRFS_CSUM_SIZE);
-	btrfs_csum_final(crc, (char *)&sb->csum[0]);
+	btrfs_csum_final(crc, &sb->csum[0]);
 	ret = pwrite(fd, sb, BTRFS_SUPER_INFO_SIZE, sb_bytenr);
 	if (ret < BTRFS_SUPER_INFO_SIZE)
 		ret = (ret < 0 ? -errno : -EIO);
@@ -238,6 +238,9 @@ static inline int write_temp_super(int fd, struct btrfs_super_block *sb,
  *
  * For now sys chunk array will be empty and dev_item is empty too.
  * They will be re-initialized at temp chunk tree setup.
+ *
+ * The superblock signature is not valid, denotes a partially created
+ * filesystem, needs to be finalized.
  */
 static int setup_temp_super(int fd, struct btrfs_mkfs_config *cfg,
 			    u64 root_bytenr, u64 chunk_bytenr)
@@ -247,16 +250,10 @@ static int setup_temp_super(int fd, struct btrfs_mkfs_config *cfg,
 	struct btrfs_super_block *super = (struct btrfs_super_block *)super_buf;
 	int ret;
 
-	/*
-	 * We rely on cfg->chunk_uuid and cfg->fs_uuid to pass uuid
-	 * for other functions.
-	 * Caller must allocate space for them
-	 */
-	BUG_ON(!cfg->chunk_uuid || !cfg->fs_uuid);
 	memset(super_buf, 0, BTRFS_SUPER_INFO_SIZE);
 	cfg->num_bytes = round_down(cfg->num_bytes, cfg->sectorsize);
 
-	if (cfg->fs_uuid && *cfg->fs_uuid) {
+	if (*cfg->fs_uuid) {
 		if (uuid_parse(cfg->fs_uuid, super->fsid) != 0) {
 			error("cound not parse UUID: %s", cfg->fs_uuid);
 			ret = -EINVAL;
@@ -276,7 +273,7 @@ static int setup_temp_super(int fd, struct btrfs_mkfs_config *cfg,
 
 	btrfs_set_super_bytenr(super, cfg->super_bytenr);
 	btrfs_set_super_num_devices(super, 1);
-	btrfs_set_super_magic(super, BTRFS_MAGIC);
+	btrfs_set_super_magic(super, BTRFS_MAGIC_PARTIAL);
 	btrfs_set_super_generation(super, 1);
 	btrfs_set_super_root(super, root_bytenr);
 	btrfs_set_super_chunk_root(super, chunk_bytenr);
@@ -317,8 +314,6 @@ static int setup_temp_extent_buffer(struct extent_buffer *buf,
 	unsigned char chunk_uuid[BTRFS_UUID_SIZE];
 	int ret;
 
-	/* We rely on cfg->fs_uuid and chunk_uuid to fsid and chunk uuid */
-	BUG_ON(!cfg->fs_uuid || !cfg->chunk_uuid);
 	ret = uuid_parse(cfg->fs_uuid, fsid);
 	if (ret)
 		return -EINVAL;
@@ -410,8 +405,23 @@ static int setup_temp_root_tree(int fd, struct btrfs_mkfs_config *cfg,
 	 * Provided bytenr must in ascending order, or tree root will have a
 	 * bad key order.
 	 */
-	BUG_ON(!(root_bytenr < extent_bytenr && extent_bytenr < dev_bytenr &&
-		 dev_bytenr < fs_bytenr && fs_bytenr < csum_bytenr));
+	if (!(root_bytenr < extent_bytenr && extent_bytenr < dev_bytenr &&
+	      dev_bytenr < fs_bytenr && fs_bytenr < csum_bytenr)) {
+		error("bad tree bytenr order: "
+				"root < extent %llu < %llu, "
+				"extent < dev %llu < %llu, "
+				"dev < fs %llu < %llu, "
+				"fs < csum %llu < %llu",
+				(unsigned long long)root_bytenr,
+				(unsigned long long)extent_bytenr,
+				(unsigned long long)extent_bytenr,
+				(unsigned long long)dev_bytenr,
+				(unsigned long long)dev_bytenr,
+				(unsigned long long)fs_bytenr,
+				(unsigned long long)fs_bytenr,
+				(unsigned long long)csum_bytenr);
+		return -EINVAL;
+	}
 	buf = malloc(sizeof(*buf) + cfg->nodesize);
 	if (!buf)
 		return -ENOMEM;
@@ -572,7 +582,12 @@ static int setup_temp_chunk_tree(int fd, struct btrfs_mkfs_config *cfg,
 	int ret;
 
 	/* Must ensure SYS chunk starts before META chunk */
-	BUG_ON(meta_chunk_start < sys_chunk_start);
+	if (meta_chunk_start < sys_chunk_start) {
+		error("wrong chunk order: meta < system %llu < %llu",
+				(unsigned long long)meta_chunk_start,
+				(unsigned long long)sys_chunk_start);
+		return -EINVAL;
+	}
 	buf = malloc(sizeof(*buf) + cfg->nodesize);
 	if (!buf)
 		return -ENOMEM;
@@ -638,7 +653,12 @@ static int setup_temp_dev_tree(int fd, struct btrfs_mkfs_config *cfg,
 	int ret;
 
 	/* Must ensure SYS chunk starts before META chunk */
-	BUG_ON(meta_chunk_start < sys_chunk_start);
+	if (meta_chunk_start < sys_chunk_start) {
+		error("wrong chunk order: meta < system %llu < %llu",
+				(unsigned long long)meta_chunk_start,
+				(unsigned long long)sys_chunk_start);
+		return -EINVAL;
+	}
 	buf = malloc(sizeof(*buf) + cfg->nodesize);
 	if (!buf)
 		return -ENOMEM;
@@ -834,9 +854,27 @@ static int setup_temp_extent_tree(int fd, struct btrfs_mkfs_config *cfg,
 	 * We must ensure provided bytenr are in ascending order,
 	 * or extent tree key order will be broken.
 	 */
-	BUG_ON(!(chunk_bytenr < root_bytenr && root_bytenr < extent_bytenr &&
-		 extent_bytenr < dev_bytenr && dev_bytenr < fs_bytenr &&
-		 fs_bytenr < csum_bytenr));
+	if (!(chunk_bytenr < root_bytenr && root_bytenr < extent_bytenr &&
+	      extent_bytenr < dev_bytenr && dev_bytenr < fs_bytenr &&
+	      fs_bytenr < csum_bytenr)) {
+		error("bad tree bytenr order: "
+				"chunk < root %llu < %llu, "
+				"root < extent %llu < %llu, "
+				"extent < dev %llu < %llu, "
+				"dev < fs %llu < %llu, "
+				"fs < csum %llu < %llu",
+				(unsigned long long)chunk_bytenr,
+				(unsigned long long)root_bytenr,
+				(unsigned long long)root_bytenr,
+				(unsigned long long)extent_bytenr,
+				(unsigned long long)extent_bytenr,
+				(unsigned long long)dev_bytenr,
+				(unsigned long long)dev_bytenr,
+				(unsigned long long)fs_bytenr,
+				(unsigned long long)fs_bytenr,
+				(unsigned long long)csum_bytenr);
+		return -EINVAL;
+	}
 	buf = malloc(sizeof(*buf) + cfg->nodesize);
 	if (!buf)
 		return -ENOMEM;
@@ -1004,6 +1042,9 @@ out:
 
 /*
  * @fs_uuid - if NULL, generates a UUID, returns back the new filesystem UUID
+ *
+ * The superblock signature is not valid, denotes a partially created
+ * filesystem, needs to be finalized.
  */
 int make_btrfs(int fd, struct btrfs_mkfs_config *cfg,
 		struct btrfs_convert_context *cctx)
@@ -1043,7 +1084,7 @@ int make_btrfs(int fd, struct btrfs_mkfs_config *cfg,
 	memset(&super, 0, sizeof(super));
 
 	num_bytes = (cfg->num_bytes / cfg->sectorsize) * cfg->sectorsize;
-	if (cfg->fs_uuid && *cfg->fs_uuid) {
+	if (*cfg->fs_uuid) {
 		if (uuid_parse(cfg->fs_uuid, super.fsid) != 0) {
 			error("cannot not parse UUID: %s", cfg->fs_uuid);
 			ret = -EINVAL;
@@ -1064,7 +1105,7 @@ int make_btrfs(int fd, struct btrfs_mkfs_config *cfg,
 
 	btrfs_set_super_bytenr(&super, cfg->blocks[0]);
 	btrfs_set_super_num_devices(&super, 1);
-	btrfs_set_super_magic(&super, BTRFS_MAGIC);
+	btrfs_set_super_magic(&super, BTRFS_MAGIC_PARTIAL);
 	btrfs_set_super_generation(&super, 1);
 	btrfs_set_super_root(&super, cfg->blocks[1]);
 	btrfs_set_super_chunk_root(&super, cfg->blocks[3]);
@@ -1178,8 +1219,21 @@ int make_btrfs(int fd, struct btrfs_mkfs_config *cfg,
 		if (!skinny_metadata)
 			item_size += sizeof(struct btrfs_tree_block_info);
 
-		BUG_ON(cfg->blocks[i] < first_free);
-		BUG_ON(cfg->blocks[i] < cfg->blocks[i - 1]);
+		if (cfg->blocks[i] < first_free) {
+			error("block[%d] below first free: %llu < %llu",
+					i, (unsigned long long)cfg->blocks[i],
+					(unsigned long long)first_free);
+			ret = -EINVAL;
+			goto out;
+		}
+		if (cfg->blocks[i] < cfg->blocks[i - 1]) {
+			error("blocks %d and %d in reverse order: %llu < %llu",
+				i, i - 1,
+				(unsigned long long)cfg->blocks[i],
+				(unsigned long long)cfg->blocks[i - 1]);
+			ret = -EINVAL;
+			goto out;
+		}
 
 		/* create extent item */
 		itemoff -= item_size;
@@ -1379,7 +1433,6 @@ int make_btrfs(int fd, struct btrfs_mkfs_config *cfg,
 	}
 
 	/* and write out the super block */
-	BUG_ON(sizeof(super) > cfg->sectorsize);
 	memset(buf->data, 0, BTRFS_SUPER_INFO_SIZE);
 	memcpy(buf->data, &super, sizeof(super));
 	buf->len = BTRFS_SUPER_INFO_SIZE;
@@ -1519,8 +1572,7 @@ u64 btrfs_device_size(int fd, struct stat *st)
 
 static int zero_blocks(int fd, off_t start, size_t len)
 {
-	assert(len != 0);
-       char *buf = malloc(len);
+	char *buf = malloc(len);
 	int ret = 0;
 	ssize_t written;
 
@@ -1554,7 +1606,7 @@ static int zero_dev_clamped(int fd, off_t start, ssize_t len, u64 dev_size)
 }
 
 int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
-		      struct btrfs_root *root, int fd, char *path,
+		      struct btrfs_root *root, int fd, const char *path,
 		      u64 device_total_bytes, u32 io_width, u32 io_align,
 		      u32 sectorsize)
 {
@@ -1569,13 +1621,16 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 
 	device_total_bytes = (device_total_bytes / sectorsize) * sectorsize;
 
-	device = kzalloc(sizeof(*device), GFP_NOFS);
-	if (!device)
-		goto err_nomem;
-	buf = kzalloc(sectorsize, GFP_NOFS);
-	if (!buf)
-		goto err_nomem;
-	BUG_ON(sizeof(*disk_super) > sectorsize);
+	device = calloc(1, sizeof(*device));
+	if (!device) {
+		ret = -ENOMEM;
+		goto out;
+	}
+	buf = calloc(1, sectorsize);
+	if (!buf) {
+		ret = -ENOMEM;
+		goto out;
+	}
 
 	disk_super = (struct btrfs_super_block *)buf;
 	dev_item = &disk_super->dev_item;
@@ -1593,12 +1648,15 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 	device->total_ios = 0;
 	device->dev_root = root->fs_info->dev_root;
 	device->name = strdup(path);
-	if (!device->name)
-		goto err_nomem;
+	if (!device->name) {
+		ret = -ENOMEM;
+		goto out;
+	}
 
 	INIT_LIST_HEAD(&device->dev_list);
 	ret = btrfs_add_device(trans, root, device);
-	BUG_ON(ret);
+	if (ret)
+		goto out;
 
 	fs_total_bytes = btrfs_super_total_bytes(super) + device_total_bytes;
 	btrfs_set_super_total_bytes(super, fs_total_bytes);
@@ -1621,15 +1679,15 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 	ret = pwrite(fd, buf, sectorsize, BTRFS_SUPER_INFO_OFFSET);
 	BUG_ON(ret != sectorsize);
 
-	kfree(buf);
+	free(buf);
 	list_add(&device->dev_list, &root->fs_info->fs_devices->devices);
 	device->fs_devices = root->fs_info->fs_devices;
 	return 0;
 
-err_nomem:
-	kfree(device);
-	kfree(buf);
-	return -ENOMEM;
+out:
+	free(device);
+	free(buf);
+	return ret;
 }
 
 static int btrfs_wipe_existing_sb(int fd)
@@ -1683,8 +1741,8 @@ out:
 	return ret;
 }
 
-int btrfs_prepare_device(int fd, const char *file, int zero_end,
-		u64 *block_count_ret, u64 max_block_count, int discard)
+int btrfs_prepare_device(int fd, const char *file, u64 *block_count_ret,
+		u64 max_block_count, unsigned opflags)
 {
 	u64 block_count;
 	struct stat st;
@@ -1704,15 +1762,16 @@ int btrfs_prepare_device(int fd, const char *file, int zero_end,
 	if (max_block_count)
 		block_count = min(block_count, max_block_count);
 
-	if (discard) {
+	if (opflags & PREP_DEVICE_DISCARD) {
 		/*
 		 * We intentionally ignore errors from the discard ioctl.  It
 		 * is not necessary for the mkfs functionality but just an
 		 * optimization.
 		 */
 		if (discard_range(fd, 0, 0) == 0) {
-			printf("Performing full device TRIM (%s) ...\n",
-				pretty_size(block_count));
+			if (opflags & PREP_DEVICE_VERBOSE)
+				printf("Performing full device TRIM (%s) ...\n",
+						pretty_size(block_count));
 			discard_blocks(fd, 0, block_count);
 		}
 	}
@@ -1721,7 +1780,7 @@ int btrfs_prepare_device(int fd, const char *file, int zero_end,
 	for (i = 0 ; !ret && i < BTRFS_SUPER_MIRROR_MAX; i++)
 		ret = zero_dev_clamped(fd, btrfs_sb_offset(i),
 				       BTRFS_SUPER_INFO_SIZE, block_count);
-	if (!ret && zero_end)
+	if (!ret && (opflags & PREP_DEVICE_ZERO_END))
 		ret = zero_dev_clamped(fd, block_count - ZERO_DEV_BYTES,
 				       ZERO_DEV_BYTES, block_count);
 
@@ -2272,7 +2331,7 @@ int check_mounted_where(int fd, const char *file, char *where, int size,
 
 	/* scan the initial device */
 	ret = btrfs_scan_one_device(fd, file, &fs_devices_mnt,
-				    &total_devs, BTRFS_SUPER_INFO_OFFSET, 0);
+		    &total_devs, BTRFS_SUPER_INFO_OFFSET, SBREAD_DEFAULT);
 	is_btrfs = (ret >= 0);
 
 	/* scan other devices */
@@ -2400,7 +2459,12 @@ int btrfs_device_already_in_root(struct btrfs_root *root, int fd,
 
 	ret = 0;
 	disk_super = (struct btrfs_super_block *)buf;
-	if (btrfs_super_magic(disk_super) != BTRFS_MAGIC)
+	/*
+	 * Accept devices from the same filesystem, allow partially created
+	 * structures.
+	 */
+	if (btrfs_super_magic(disk_super) != BTRFS_MAGIC &&
+			btrfs_super_magic(disk_super) != BTRFS_MAGIC_PARTIAL)
 		goto brelse;
 
 	if (!memcmp(disk_super->fsid, root->fs_info->super_copy->fsid,
@@ -2464,7 +2528,7 @@ int pretty_size_snprintf(u64 size, char *str, size_t str_size, unsigned unit_mod
 
 	/* Unknown mode */
 	if (!base) {
-		fprintf(stderr, "INTERNAL ERROR: unknown unit base, mode %u\n",
+		fprintf(stderr, "INTERNAL ERROR: unknown unit base, mode %d\n",
 				unit_mode);
 		assert(0);
 		return -1;
@@ -2816,6 +2880,8 @@ path:
 	if (fd < 0)
 		goto err;
 	ret = lookup_ino_rootid(fd, &id);
+	if (ret)
+		error("failed to lookup root id: %s", strerror(-ret));
 	close(fd);
 	if (ret < 0)
 		goto err;
@@ -2965,7 +3031,7 @@ again:
  *
  * Returns 0 on success, or a negative errno.
  */
-int get_fs_info(char *path, struct btrfs_ioctl_fs_info_args *fi_args,
+int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 		struct btrfs_ioctl_dev_info_args **di_ret)
 {
 	int fd = -1;
@@ -3267,6 +3333,7 @@ int test_num_disk_vs_raid(u64 metadata_profile, u64 data_profile,
 	u64 dev_cnt, int mixed, int ssd)
 {
 	u64 allowed = 0;
+	u64 profile = metadata_profile | data_profile;
 
 	switch (dev_cnt) {
 	default:
@@ -3281,8 +3348,7 @@ int test_num_disk_vs_raid(u64 metadata_profile, u64 data_profile,
 		allowed |= BTRFS_BLOCK_GROUP_DUP;
 	}
 
-	if (dev_cnt > 1 &&
-	    ((metadata_profile | data_profile) & BTRFS_BLOCK_GROUP_DUP)) {
+	if (dev_cnt > 1 && profile & BTRFS_BLOCK_GROUP_DUP) {
 		warning("DUP is not recommended on filesystem with multiple devices");
 	}
 	if (metadata_profile & ~allowed) {
@@ -3302,6 +3368,12 @@ int test_num_disk_vs_raid(u64 metadata_profile, u64 data_profile,
 		return 1;
 	}
 
+	if (dev_cnt == 3 && profile & BTRFS_BLOCK_GROUP_RAID6) {
+		warning("RAID6 is not recommended on filesystem with 3 devices only");
+	}
+	if (dev_cnt == 2 && profile & BTRFS_BLOCK_GROUP_RAID5) {
+		warning("RAID5 is not recommended on filesystem with 2 devices only");
+	}
 	warning_on(!mixed && (data_profile & BTRFS_BLOCK_GROUP_DUP) && ssd,
 		   "DUP may not actually lead to 2 copies on the device, see manual page");
 
@@ -3417,7 +3489,8 @@ int btrfs_scan_lblkid(void)
 			continue;
 		}
 		ret = btrfs_scan_one_device(fd, path, &tmp_devices,
-				&num_devices, BTRFS_SUPER_INFO_OFFSET, 0);
+				&num_devices, BTRFS_SUPER_INFO_OFFSET,
+				SBREAD_DEFAULT);
 		if (ret) {
 			error("cannot scan %s: %s", path, strerror(-ret));
 			close (fd);
@@ -3498,10 +3571,8 @@ int lookup_ino_rootid(int fd, u64 *rootid)
 	args.objectid = BTRFS_FIRST_FREE_OBJECTID;
 
 	ret = ioctl(fd, BTRFS_IOC_INO_LOOKUP, &args);
-	if (ret < 0) {
-		error("failed to lookup root id: %s", strerror(errno));
-		return ret;
-	}
+	if (ret < 0)
+		return -errno;
 
 	*rootid = args.treeid;
 
@@ -3691,21 +3762,21 @@ u64 disk_size(const char *path)
 		return sfs.f_bsize * sfs.f_blocks;
 }
 
-//u64 get_partition_size(const char *dev)
-//{
-//	u64 result;
-//	int fd = open(dev, O_RDONLY);
-//
-//	if (fd < 0)
-//		return 0;
-//	if (ioctl(fd, BLKGETSIZE64, &result) < 0) {
-//		close(fd);
-//		return 0;
-//	}
-//	close(fd);
-//
-//	return result;
-//}
+u64 get_btrfs_partition_size(const char *dev)
+{
+	u64 result;
+	int fd = open(dev, O_RDONLY);
+
+	if (fd < 0)
+		return 0;
+	if (ioctl(fd, BLKGETSIZE64, &result) < 0) {
+		close(fd);
+		return 0;
+	}
+	close(fd);
+
+	return result;
+}
 
 int btrfs_tree_search2_ioctl_supported(int fd)
 {
@@ -3929,6 +4000,24 @@ void clean_args_no_options(int argc, char *argv[], const char * const *usagestr)
 				usage(usagestr);
 		}
 	}
+}
+
+/*
+ * Same as clean_args_no_options but pass through arguments that could look
+ * like short options. Eg. reisze which takes a negative resize argument like
+ * '-123M' .
+ *
+ * This accepts only two forms:
+ * - "-- option1 option2 ..."
+ * - "option1 option2 ..."
+ */
+void clean_args_no_options_relaxed(int argc, char *argv[], const char * const *usagestr)
+{
+	if (argc <= 1)
+		return;
+
+	if (strcmp(argv[1], "--") == 0)
+		optind = 2;
 }
 
 /* Subvolume helper functions */
