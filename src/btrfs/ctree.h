@@ -26,6 +26,7 @@
 #include "extent-cache.h"
 #include "extent_io.h"
 #include "ioctl.h"
+#include "sizes.h"
 #else
 #include <btrfs/list.h>
 #include <btrfs/kerncompat.h>
@@ -33,6 +34,7 @@
 #include <btrfs/extent-cache.h>
 #include <btrfs/extent_io.h>
 #include <btrfs/ioctl.h>
+#include <linux/sizes.h>
 #endif /* BTRFS_FLAT_INCLUDES */
 
 struct btrfs_root;
@@ -84,6 +86,9 @@ struct btrfs_free_space_ctl;
 
 /* tracks free space in block groups. */
 #define BTRFS_FREE_SPACE_TREE_OBJECTID 10ULL
+
+/* device stats in the device tree */
+#define BTRFS_DEV_STATS_OBJECTID 0ULL
 
 /* for storing balance parameters in the root tree */
 #define BTRFS_BALANCE_OBJECTID -4ULL
@@ -464,6 +469,14 @@ struct btrfs_super_block {
  * ones specified below then we will fail to mount
  */
 #define BTRFS_FEATURE_COMPAT_RO_FREE_SPACE_TREE	(1ULL << 0)
+/*
+ * Older kernels on big-endian systems produced broken free space tree bitmaps,
+ * and btrfs-progs also used to corrupt the free space tree. If this bit is
+ * clear, then the free space tree cannot be trusted. btrfs-progs can also
+ * intentionally clear this bit to ask the kernel to rebuild the free space
+ * tree.
+ */
+#define BTRFS_FEATURE_COMPAT_RO_FREE_SPACE_TREE_VALID	(1ULL << 1)
 
 #define BTRFS_FEATURE_INCOMPAT_MIXED_BACKREF	(1ULL << 0)
 #define BTRFS_FEATURE_INCOMPAT_DEFAULT_SUBVOL	(1ULL << 1)
@@ -490,6 +503,11 @@ struct btrfs_super_block {
 
 #define BTRFS_FEATURE_COMPAT_SUPP		0ULL
 
+/*
+ * The FREE_SPACE_TREE and FREE_SPACE_TREE_VALID compat_ro bits must not be
+ * added here until read-write support for the free space tree is implemented in
+ * btrfs-progs.
+ */
 #define BTRFS_FEATURE_COMPAT_RO_SUPP		0ULL
 
 #define BTRFS_FEATURE_INCOMPAT_SUPP			\
@@ -552,18 +570,20 @@ struct btrfs_node {
 struct btrfs_path {
 	struct extent_buffer *nodes[BTRFS_MAX_LEVEL];
 	int slots[BTRFS_MAX_LEVEL];
-	/* if there is real range locking, this locks field will change */
+#if 0
+	/* The kernel locking sheme is not done in userspace. */
 	int locks[BTRFS_MAX_LEVEL];
-	int reada;
+#endif
+	signed char reada;
 	/* keep some upper locks as we walk down */
-	int lowest_level;
+	u8 lowest_level;
 
 	/*
 	 * set by btrfs_split_item, tells search_slot to keep all locks
 	 * and to force calls to keep space in the nodes
 	 */
-	unsigned int search_for_split:1;
-	unsigned int skip_check_block:1;
+	u8 search_for_split;
+	u8 skip_check_block;
 };
 
 /*
@@ -583,7 +603,7 @@ struct btrfs_extent_item_v0 {
 
 #define BTRFS_MAX_EXTENT_ITEM_SIZE(r) ((BTRFS_LEAF_DATA_SIZE(r) >> 4) - \
 					sizeof(struct btrfs_item))
-#define BTRFS_MAX_EXTENT_SIZE		(128 * 1024 * 1024)
+#define BTRFS_MAX_EXTENT_SIZE		SZ_128M
 
 #define BTRFS_EXTENT_FLAG_DATA		(1ULL << 0)
 #define BTRFS_EXTENT_FLAG_TREE_BLOCK	(1ULL << 1)
@@ -785,6 +805,84 @@ struct btrfs_root_ref {
 	__le16 name_len;
 } __attribute__ ((__packed__));
 
+struct btrfs_disk_balance_args {
+	/*
+	 * profiles to operate on, single is denoted by
+	 * BTRFS_AVAIL_ALLOC_BIT_SINGLE
+	 */
+	__le64 profiles;
+
+	/*
+	 * usage filter
+	 * BTRFS_BALANCE_ARGS_USAGE with a single value means '0..N'
+	 * BTRFS_BALANCE_ARGS_USAGE_RANGE - range syntax, min..max
+	 */
+	union {
+		__le64 usage;
+		struct {
+			__le32 usage_min;
+			__le32 usage_max;
+		};
+	};
+
+	/* devid filter */
+	__le64 devid;
+
+	/* devid subset filter [pstart..pend) */
+	__le64 pstart;
+	__le64 pend;
+
+	/* btrfs virtual address space subset filter [vstart..vend) */
+	__le64 vstart;
+	__le64 vend;
+
+	/*
+	 * profile to convert to, single is denoted by
+	 * BTRFS_AVAIL_ALLOC_BIT_SINGLE
+	 */
+	__le64 target;
+
+	/* BTRFS_BALANCE_ARGS_* */
+	__le64 flags;
+
+	/*
+	 * BTRFS_BALANCE_ARGS_LIMIT with value 'limit'
+	 * BTRFS_BALANCE_ARGS_LIMIT_RANGE - the extend version can use minimum
+	 * and maximum
+	 */
+	union {
+		__le64 limit;
+		struct {
+			__le32 limit_min;
+			__le32 limit_max;
+		};
+	};
+
+	/*
+	 * Process chunks that cross stripes_min..stripes_max devices,
+	 * BTRFS_BALANCE_ARGS_STRIPES_RANGE
+	 */
+	__le32 stripes_min;
+	__le32 stripes_max;
+
+	__le64 unused[6];
+} __attribute__ ((__packed__));
+
+/*
+ * store balance parameters to disk so that balance can be properly
+ * resumed after crash or unmount
+ */
+struct btrfs_balance_item {
+	/* BTRFS_BALANCE_* */
+	__le64 flags;
+
+	struct btrfs_disk_balance_args data;
+	struct btrfs_disk_balance_args meta;
+	struct btrfs_disk_balance_args sys;
+
+	__le64 unused[4];
+} __attribute__ ((__packed__));
+
 #define BTRFS_FILE_EXTENT_INLINE 0
 #define BTRFS_FILE_EXTENT_REG 1
 #define BTRFS_FILE_EXTENT_PREALLOC 2
@@ -838,6 +936,14 @@ struct btrfs_file_extent_item {
 
 } __attribute__ ((__packed__));
 
+struct btrfs_dev_stats_item {
+        /*
+         * grow this item struct at the end for future enhancements and keep
+         * the existing values unchanged
+         */
+        __le64 values[BTRFS_DEV_STAT_VALUES_MAX];
+} __attribute__ ((__packed__));
+
 struct btrfs_csum_item {
 	u8 csum;
 } __attribute__ ((__packed__));
@@ -848,7 +954,7 @@ struct btrfs_csum_item {
  *  - the first 64k blank is useful for some boot loader/manager
  *  - the first 1M could be scratched by buggy partitioner or somesuch
  */
-#define BTRFS_BLOCK_RESERVED_1M_FOR_SUPER	((u64)1024 * 1024)
+#define BTRFS_BLOCK_RESERVED_1M_FOR_SUPER	((u64)SZ_1M)
 
 /* tag for the radix tree of block groups in ram */
 #define BTRFS_BLOCK_GROUP_DATA		(1ULL << 0)
@@ -1073,7 +1179,6 @@ struct btrfs_root {
 
 
 	u32 type;
-	u64 highest_inode;
 	u64 last_inode_alloc;
 
 	/*
@@ -1211,10 +1316,42 @@ struct btrfs_root {
 #define BTRFS_QGROUP_RELATION_KEY	246
 
 /*
- * Persistently stores the io stats in the device tree.
- * One key for all stats, (0, BTRFS_DEV_STATS_KEY, devid).
+ * Obsolete name, see BTRFS_TEMPORARY_ITEM_KEY.
  */
-#define BTRFS_DEV_STATS_KEY	249
+#define BTRFS_BALANCE_ITEM_KEY	248
+
+/*
+ * The key type for tree items that are stored persistently, but do not need to
+ * exist for extended period of time. The items can exist in any tree.
+ *
+ * [subtype, BTRFS_TEMPORARY_ITEM_KEY, data]
+ *
+ * Existing items:
+ *
+ * - balance status item
+ *   (BTRFS_BALANCE_OBJECTID, BTRFS_TEMPORARY_ITEM_KEY, 0)
+ */
+#define BTRFS_TEMPORARY_ITEM_KEY	248
+
+/*
+ * Obsolete name, see BTRFS_PERSISTENT_ITEM_KEY
+ */
+#define BTRFS_DEV_STATS_KEY		249
+
+/*
+ * The key type for tree items that are stored persistently and usually exist
+ * for a long period, eg. filesystem lifetime. The item kinds can be status
+ * information, stats or preference values. The item can exist in any tree.
+ *
+ * [subtype, BTRFS_PERSISTENT_ITEM_KEY, data]
+ *
+ * Existing items:
+ *
+ * - device statistics, store IO stats in the device tree, one key for all
+ *   stats
+ *   (BTRFS_DEV_STATS_OBJECTID, BTRFS_DEV_STATS_KEY, 0)
+ */
+#define BTRFS_PERSISTENT_ITEM_KEY	249
 
 /*
  * Persistently stores the device replace state in the device tree.
@@ -1246,6 +1383,15 @@ struct btrfs_root {
 #define BTRFS_INODE_NODATASUM		(1 << 0)
 #define BTRFS_INODE_NODATACOW		(1 << 1)
 #define BTRFS_INODE_READONLY		(1 << 2)
+#define BTRFS_INODE_NOCOMPRESS		(1 << 3)
+#define BTRFS_INODE_PREALLOC		(1 << 4)
+#define BTRFS_INODE_SYNC		(1 << 5)
+#define BTRFS_INODE_IMMUTABLE		(1 << 6)
+#define BTRFS_INODE_APPEND		(1 << 7)
+#define BTRFS_INODE_NODUMP		(1 << 8)
+#define BTRFS_INODE_NOATIME		(1 << 9)
+#define BTRFS_INODE_DIRSYNC		(1 << 10)
+#define BTRFS_INODE_COMPRESS		(1 << 11)
 
 #define read_eb_member(eb, ptr, type, member, result) (			\
 	read_extent_buffer(eb, (char *)(result),			\
@@ -1893,31 +2039,10 @@ static inline unsigned long btrfs_header_chunk_tree_uuid(struct extent_buffer *e
 	return offsetof(struct btrfs_header, chunk_tree_uuid);
 }
 
-static inline u8 *btrfs_super_fsid(struct extent_buffer *eb)
-{
-	unsigned long ptr = offsetof(struct btrfs_super_block, fsid);
-	return (u8 *)ptr;
-}
-
 static inline u8 *btrfs_header_csum(struct extent_buffer *eb)
 {
 	unsigned long ptr = offsetof(struct btrfs_header, csum);
 	return (u8 *)ptr;
-}
-
-static inline struct btrfs_node *btrfs_buffer_node(struct extent_buffer *eb)
-{
-	return NULL;
-}
-
-static inline struct btrfs_leaf *btrfs_buffer_leaf(struct extent_buffer *eb)
-{
-	return NULL;
-}
-
-static inline struct btrfs_header *btrfs_buffer_header(struct extent_buffer *eb)
-{
-	return NULL;
 }
 
 static inline int btrfs_is_leaf(struct extent_buffer *eb)
@@ -2181,6 +2306,49 @@ BTRFS_SETGET_STACK_FUNCS(stack_qgroup_limit_rsv_referenced,
 BTRFS_SETGET_STACK_FUNCS(stack_qgroup_limit_rsv_exclusive,
 			 struct btrfs_qgroup_limit_item, rsv_exclusive, 64);
 
+/* btrfs_balance_item */
+BTRFS_SETGET_FUNCS(balance_item_flags, struct btrfs_balance_item, flags, 64);
+
+static inline struct btrfs_disk_balance_args* btrfs_balance_item_data(
+		struct extent_buffer *eb, struct btrfs_balance_item *bi)
+{
+	unsigned long offset = (unsigned long)bi;
+	struct btrfs_balance_item *p;
+	p = (struct btrfs_balance_item *)(eb->data + offset);
+	return &p->data;
+}
+
+static inline struct btrfs_disk_balance_args* btrfs_balance_item_meta(
+		struct extent_buffer *eb, struct btrfs_balance_item *bi)
+{
+	unsigned long offset = (unsigned long)bi;
+	struct btrfs_balance_item *p;
+	p = (struct btrfs_balance_item *)(eb->data + offset);
+	return &p->meta;
+}
+
+static inline struct btrfs_disk_balance_args* btrfs_balance_item_sys(
+		struct extent_buffer *eb, struct btrfs_balance_item *bi)
+{
+	unsigned long offset = (unsigned long)bi;
+	struct btrfs_balance_item *p;
+	p = (struct btrfs_balance_item *)(eb->data + offset);
+	return &p->sys;
+}
+
+/*
+ * btrfs_dev_stats_item helper, returns pointer to the raw array, do the
+ * endiannes conversion, @dsi is offset to eb data
+ */
+static inline __le64* btrfs_dev_stats_values(struct extent_buffer *eb,
+		struct btrfs_dev_stats_item *dsi)
+{
+	unsigned long offset = (unsigned long)dsi;
+	struct btrfs_dev_stats_item *p;
+	p = (struct btrfs_dev_stats_item *)(eb->data + offset);
+	return p->values;
+}
+
 /*
  * this returns the number of bytes used by the item on disk, minus the
  * size of any extent headers.  If a file is compressed on disk, this is
@@ -2253,14 +2421,20 @@ static inline u32 btrfs_level_size(struct btrfs_root *root, int level) {
 	return root->nodesize;
 }
 
-static inline int btrfs_fs_incompat(struct btrfs_fs_info *fs_info, u64 flag)
+#define btrfs_fs_incompat(fs_info, opt) \
+	__btrfs_fs_incompat((fs_info), BTRFS_FEATURE_INCOMPAT_##opt)
+
+static inline int __btrfs_fs_incompat(struct btrfs_fs_info *fs_info, u64 flag)
 {
 	struct btrfs_super_block *disk_super;
 	disk_super = fs_info->super_copy;
 	return !!(btrfs_super_incompat_flags(disk_super) & flag);
 }
 
-static inline int btrfs_fs_compat_ro(struct btrfs_fs_info *fs_info, u64 flag)
+#define btrfs_fs_compat_ro(fs_info, opt) \
+	__btrfs_fs_compat_ro((fs_info), BTRFS_FEATURE_COMPAT_RO_##opt)
+
+static inline int __btrfs_fs_compat_ro(struct btrfs_fs_info *fs_info, u64 flag)
 {
 	struct btrfs_super_block *disk_super;
 	disk_super = fs_info->super_copy;
@@ -2316,6 +2490,10 @@ int btrfs_inc_ref(struct btrfs_trans_handle *trans, struct btrfs_root *root,
 		  struct extent_buffer *buf, int record_parent);
 int btrfs_dec_ref(struct btrfs_trans_handle *trans, struct btrfs_root *root,
 		  struct extent_buffer *buf, int record_parent);
+int btrfs_free_tree_block(struct btrfs_trans_handle *trans,
+			  struct btrfs_root *root,
+			  struct extent_buffer *buf,
+			  u64 parent, int last_ref);
 int btrfs_free_extent(struct btrfs_trans_handle *trans,
 		      struct btrfs_root *root,
 		      u64 bytenr, u64 num_bytes, u64 parent,
@@ -2366,8 +2544,8 @@ u64 hash_extent_data_ref(u64 root_objectid, u64 owner, u64 offset);
 
 /* ctree.c */
 int btrfs_comp_cpu_keys(struct btrfs_key *k1, struct btrfs_key *k2);
-int btrfs_del_ptr(struct btrfs_trans_handle *trans, struct btrfs_root *root,
-		   struct btrfs_path *path, int level, int slot);
+int btrfs_del_ptr(struct btrfs_root *root, struct btrfs_path *path,
+		int level, int slot);
 enum btrfs_tree_block_status
 btrfs_check_node(struct btrfs_root *root, struct btrfs_disk_key *parent_key,
 		 struct extent_buffer *buf);
@@ -2399,11 +2577,9 @@ int btrfs_copy_root(struct btrfs_trans_handle *trans,
 		      struct btrfs_root *root,
 		      struct extent_buffer *buf,
 		      struct extent_buffer **cow_ret, u64 new_root_objectid);
-int btrfs_extend_item(struct btrfs_trans_handle *trans, struct btrfs_root
-		      *root, struct btrfs_path *path, u32 data_size);
-int btrfs_truncate_item(struct btrfs_trans_handle *trans,
-			struct btrfs_root *root,
-			struct btrfs_path *path,
+int btrfs_extend_item(struct btrfs_root *root, struct btrfs_path *path,
+		u32 data_size);
+int btrfs_truncate_item(struct btrfs_root *root, struct btrfs_path *path,
 			u32 new_size, int from_end);
 int btrfs_split_item(struct btrfs_trans_handle *trans,
 		     struct btrfs_root *root,
@@ -2476,6 +2652,8 @@ int btrfs_add_root_ref(struct btrfs_trans_handle *trans,
 int btrfs_insert_root(struct btrfs_trans_handle *trans, struct btrfs_root
 		      *root, struct btrfs_key *key, struct btrfs_root_item
 		      *item);
+int btrfs_del_root(struct btrfs_trans_handle *trans, struct btrfs_root *root,
+		   struct btrfs_key *key);
 int btrfs_update_root(struct btrfs_trans_handle *trans, struct btrfs_root
 		      *root, struct btrfs_key *key, struct btrfs_root_item
 		      *item);
@@ -2535,7 +2713,7 @@ int btrfs_insert_inode_extref(struct btrfs_trans_handle *trans,
 struct btrfs_inode_ref *btrfs_lookup_inode_ref(struct btrfs_trans_handle *trans,
 		struct btrfs_root *root, struct btrfs_path *path,
 		const char *name, int namelen, u64 ino, u64 parent_ino,
-		u64 index, int ins_len);
+		int ins_len);
 int btrfs_del_inode_ref(struct btrfs_trans_handle *trans,
 			struct btrfs_root *root, const char *name, int name_len,
 			u64 ino, u64 parent_ino, u64 *index);

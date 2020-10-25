@@ -21,8 +21,9 @@
 
 #include "kerncompat.h"
 #include "ctree.h"
+#include "sizes.h"
 
-#define BTRFS_SUPER_INFO_OFFSET (64 * 1024)
+#define BTRFS_SUPER_INFO_OFFSET SZ_64K
 #define BTRFS_SUPER_INFO_SIZE 4096
 
 #define BTRFS_SUPER_MIRROR_MAX	 3
@@ -74,6 +75,12 @@ enum btrfs_open_ctree_flags {
 
 	/* Allow to open a partially created filesystem */
 	OPEN_CTREE_FS_PARTIAL = (1U << 12),
+
+	/*
+	 * Invalidate the free space tree (i.e., clear the FREE_SPACE_TREE_VALID
+	 * compat_ro bit).
+	 */
+	OPEN_CTREE_INVALIDATE_FST = (1U << 13),
 };
 
 /*
@@ -91,11 +98,17 @@ enum btrfs_read_sb_flags {
 	SBREAD_PARTIAL		= (1 << 1),
 };
 
+/*
+ * Use macro to define mirror super block position,
+ * so we can use it in static array initialization
+ */
+#define BTRFS_SB_MIRROR_OFFSET(mirror)	((u64)(SZ_16K) << \
+		(BTRFS_SUPER_MIRROR_SHIFT * (mirror)))
+
 static inline u64 btrfs_sb_offset(int mirror)
 {
-	u64 start = 16 * 1024;
 	if (mirror)
-		return start << (BTRFS_SUPER_MIRROR_SHIFT * mirror);
+		return BTRFS_SB_MIRROR_OFFSET(mirror);
 	return BTRFS_SUPER_INFO_OFFSET;
 }
 
@@ -128,7 +141,8 @@ int clean_tree_block(struct btrfs_trans_handle *trans,
 
 void btrfs_free_fs_info(struct btrfs_fs_info *fs_info);
 struct btrfs_fs_info *btrfs_new_fs_info(int writable, u64 sb_bytenr);
-int btrfs_check_fs_compatibility(struct btrfs_super_block *sb, int writable);
+int btrfs_check_fs_compatibility(struct btrfs_super_block *sb,
+				 unsigned int flags);
 int btrfs_setup_all_roots(struct btrfs_fs_info *fs_info, u64 root_tree_bytenr,
 			  unsigned flags);
 void btrfs_release_all_roots(struct btrfs_fs_info *fs_info);
@@ -172,9 +186,7 @@ int btrfs_free_fs_root(struct btrfs_root *root);
 void btrfs_mark_buffer_dirty(struct extent_buffer *buf);
 int btrfs_buffer_uptodate(struct extent_buffer *buf, u64 parent_transid);
 int btrfs_set_buffer_uptodate(struct extent_buffer *buf);
-int wait_on_tree_block_writeback(struct btrfs_root *root,
-				 struct extent_buffer *buf);
-u32 btrfs_csum_data(struct btrfs_root *root, char *data, u32 seed, size_t len);
+u32 btrfs_csum_data(char *data, u32 seed, size_t len);
 void btrfs_csum_final(u32 crc, u8 *result);
 
 int btrfs_commit_transaction(struct btrfs_trans_handle *trans,
@@ -187,10 +199,10 @@ int btrfs_read_buffer(struct extent_buffer *buf, u64 parent_transid);
 int write_tree_block(struct btrfs_trans_handle *trans,
 		     struct btrfs_root *root,
 		     struct extent_buffer *eb);
-int write_and_map_eb(struct btrfs_trans_handle *trans, struct btrfs_root *root,
-		     struct extent_buffer *eb);
+int write_and_map_eb(struct btrfs_root *root, struct extent_buffer *eb);
 
-/* raid6.c */
+/* raid56.c */
 void raid6_gen_syndrome(int disks, size_t bytes, void **ptrs);
+int raid5_gen_result(int nr_devs, size_t stripe_len, int dest, void **data);
 
 #endif

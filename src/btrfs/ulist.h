@@ -20,9 +20,6 @@
  *
  */
 struct ulist_iterator {
-#ifdef CONFIG_BTRFS_DEBUG
-	int i;
-#endif
 	struct list_head *cur_list;  /* hint to start search */
 };
 
@@ -32,10 +29,6 @@ struct ulist_iterator {
 struct ulist_node {
 	u64 val;		/* value to store */
 	u64 aux;		/* auxiliary value saved along with the val */
-
-#ifdef CONFIG_BTRFS_DEBUG
-	int seqnum;		/* sequence number this node is added */
-#endif
 
 	struct list_head list;  /* used to link node */
 	struct rb_node rb_node;	/* used to speed up search */
@@ -58,6 +51,7 @@ void ulist_free(struct ulist *ulist);
 int ulist_add(struct ulist *ulist, u64 val, u64 aux, gfp_t gfp_mask);
 int ulist_add_merge(struct ulist *ulist, u64 val, u64 aux,
 		    u64 *old_aux, gfp_t gfp_mask);
+int ulist_del(struct ulist *ulist, u64 val, u64 aux);
 
 /* just like ulist_add_merge() but take a pointer for the aux data */
 static inline int ulist_add_merge_ptr(struct ulist *ulist, u64 val, void *aux,

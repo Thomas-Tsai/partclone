@@ -25,9 +25,15 @@ extern "C" {
 
 #include <asm/types.h>
 #include <linux/ioctl.h>
+#include <stddef.h>
 
 #ifndef __user
 #define __user
+#endif
+
+/* We don't want to include entire kerncompat.h */
+#ifndef BUILD_ASSERT
+#define BUILD_ASSERT(x)
 #endif
 
 #define BTRFS_IOCTL_MAGIC 0x94
@@ -570,6 +576,38 @@ struct btrfs_ioctl_received_subvol_args {
 BUILD_ASSERT(sizeof(struct btrfs_ioctl_received_subvol_args) == 200);
 
 /*
+ * If we have a 32-bit userspace and 64-bit kernel, then the UAPI
+ * structures are incorrect, as the timespec structure from userspace
+ * is 4 bytes too small. We define these alternatives here for backward
+ * compatibility, the kernel understands both values.
+ */
+
+/*
+ * Structure size is different on 32bit and 64bit, has some padding if the
+ * structure is embedded. Packing makes sure the size is same on both, but will
+ * be misaligned on 64bit.
+ *
+ * NOTE: do not use in your code, this is for testing only
+ */
+struct btrfs_ioctl_timespec_32 {
+	__u64 sec;
+	__u32 nsec;
+} __attribute__ ((__packed__));
+
+struct btrfs_ioctl_received_subvol_args_32 {
+	char	uuid[BTRFS_UUID_SIZE];	/* in */
+	__u64	stransid;		/* in */
+	__u64	rtransid;		/* out */
+	struct btrfs_ioctl_timespec_32 stime; /* in */
+	struct btrfs_ioctl_timespec_32 rtime; /* out */
+	__u64	flags;			/* in */
+	__u64	reserved[16];		/* in */
+} __attribute__ ((__packed__));
+BUILD_ASSERT(sizeof(struct btrfs_ioctl_received_subvol_args_32) == 192);
+
+#define BTRFS_IOC_SET_RECEIVED_SUBVOL_32_COMPAT_DEFINED 1
+
+/*
  * Caller doesn't want file data in the send stream, even if the
  * search of clone sources doesn't find an extent. UPDATE_EXTENT
  * commands will be sent instead of WRITE commands.
@@ -603,14 +641,36 @@ struct btrfs_ioctl_send_args {
 	__u64 reserved[4];		/* in */
 };
 /*
- * Size of structure depends on pointer width, was not caught.  Kernel handles
- * pointer width differences transparently
+ * Size of structure depends on pointer width, was not caught in the early
+ * days.  Kernel handles pointer width differences transparently.
  */
 BUILD_ASSERT(sizeof(__u64 *) == 8
 	     ? sizeof(struct btrfs_ioctl_send_args) == 72
 	     : (sizeof(void *) == 4
 		? sizeof(struct btrfs_ioctl_send_args) == 68
 		: 0));
+
+/*
+ * Different pointer width leads to structure size change. Kernel should accept
+ * both ioctl values (derived from the structures) for backward compatibility.
+ * Size of this structure is same on 32bit and 64bit though.
+ *
+ * NOTE: do not use in your code, this is for testing only
+ */
+struct btrfs_ioctl_send_args_64 {
+	__s64 send_fd;			/* in */
+	__u64 clone_sources_count;	/* in */
+	union {
+		__u64 __user *clone_sources;	/* in */
+		__u64 __clone_sources_alignment;
+	};
+	__u64 parent_root;		/* in */
+	__u64 flags;			/* in */
+	__u64 reserved[4];		/* in */
+} __attribute__((packed));
+BUILD_ASSERT(sizeof(struct btrfs_ioctl_send_args_64) == 72);
+
+#define BTRFS_IOC_SEND_64_COMPAT_DEFINED 1
 
 /* Error codes as returned by the kernel */
 enum btrfs_err_code {
@@ -723,6 +783,17 @@ static inline char *btrfs_err_str(enum btrfs_err_code err_code)
 					struct btrfs_ioctl_logical_ino_args)
 #define BTRFS_IOC_SET_RECEIVED_SUBVOL _IOWR(BTRFS_IOCTL_MAGIC, 37, \
 				struct btrfs_ioctl_received_subvol_args)
+
+#ifdef BTRFS_IOC_SET_RECEIVED_SUBVOL_32_COMPAT_DEFINED
+#define BTRFS_IOC_SET_RECEIVED_SUBVOL_32 _IOWR(BTRFS_IOCTL_MAGIC, 37, \
+				struct btrfs_ioctl_received_subvol_args_32)
+#endif
+
+#ifdef BTRFS_IOC_SEND_64_COMPAT_DEFINED
+#define BTRFS_IOC_SEND_64 _IOW(BTRFS_IOCTL_MAGIC, 38, \
+		struct btrfs_ioctl_send_args_64)
+#endif
+
 #define BTRFS_IOC_SEND _IOW(BTRFS_IOCTL_MAGIC, 38, struct btrfs_ioctl_send_args)
 #define BTRFS_IOC_DEVICES_READY _IOR(BTRFS_IOCTL_MAGIC, 39, \
 				     struct btrfs_ioctl_vol_args)

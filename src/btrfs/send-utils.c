@@ -439,6 +439,19 @@ struct subvol_info *subvol_uuid_search(struct subvol_uuid_search *s,
 				       const char *path,
 				       enum subvol_search_type type)
 {
+	struct subvol_info *si;
+
+	si = subvol_uuid_search2(s, root_id, uuid, transid, path, type);
+	if (IS_ERR(si))
+		return NULL;
+	return si;
+}
+
+struct subvol_info *subvol_uuid_search2(struct subvol_uuid_search *s,
+				       u64 root_id, const u8 *uuid, u64 transid,
+				       const char *path,
+				       enum subvol_search_type type)
+{
 	int ret = 0;
 	struct btrfs_root_item root_item;
 	struct subvol_info *info = NULL;
@@ -474,6 +487,10 @@ struct subvol_info *subvol_uuid_search(struct subvol_uuid_search *s,
 		goto out;
 
 	info = calloc(1, sizeof(*info));
+	if (!info) {
+		ret = -ENOMEM;
+		goto out;
+	}
 	info->root_id = root_id;
 	memcpy(info->uuid, root_item.uuid, BTRFS_UUID_SIZE);
 	memcpy(info->received_uuid, root_item.received_uuid, BTRFS_UUID_SIZE);
@@ -484,17 +501,27 @@ struct subvol_info *subvol_uuid_search(struct subvol_uuid_search *s,
 	info->rtransid = btrfs_root_rtransid(&root_item);
 	if (type == subvol_search_by_path) {
 		info->path = strdup(path);
+		if (!info->path) {
+			ret = -ENOMEM;
+			goto out;
+		}
 	} else {
 		info->path = malloc(PATH_MAX);
+		if (!info->path) {
+			ret = -ENOMEM;
+			goto out;
+		}
 		ret = btrfs_subvolid_resolve(s->mnt_fd, info->path,
 					     PATH_MAX, root_id);
 	}
 
 out:
-	if (ret && info) {
-		free(info->path);
-		free(info);
-		info = NULL;
+	if (ret) {
+		if (info) {
+			free(info->path);
+			free(info);
+		}
+		return ERR_PTR(ret);
 	}
 
 	return info;

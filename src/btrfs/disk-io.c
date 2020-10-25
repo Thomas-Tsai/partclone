@@ -118,7 +118,7 @@ static void print_tree_block_error(struct btrfs_fs_info *fs_info,
 	}
 }
 
-u32 btrfs_csum_data(struct btrfs_root *root, char *data, u32 seed, size_t len)
+u32 btrfs_csum_data(char *data, u32 seed, size_t len)
 {
 	return crc32c(seed, data, len);
 }
@@ -207,7 +207,7 @@ void readahead_tree_block(struct btrfs_root *root, u64 bytenr, u32 blocksize,
 			     bytenr, &length, &multi, 0, NULL)) {
 		device = multi->stripes[0].dev;
 		device->total_ios++;
-		blocksize = min(blocksize, (u32)(64 * 1024));
+		blocksize = min(blocksize, (u32)SZ_64K);
 		readahead(device->fd, multi->stripes[0].physical, blocksize);
 	}
 
@@ -426,9 +426,7 @@ err:
 	return ret;
 }
 
-int write_and_map_eb(struct btrfs_trans_handle *trans,
-		     struct btrfs_root *root,
-		     struct extent_buffer *eb)
+int write_and_map_eb(struct btrfs_root *root, struct extent_buffer *eb)
 {
 	int ret;
 	int dev_nr;
@@ -475,7 +473,7 @@ int write_tree_block(struct btrfs_trans_handle *trans,
 	btrfs_set_header_flag(eb, BTRFS_HEADER_FLAG_WRITTEN);
 	csum_tree_block(root, eb, 0);
 
-	return write_and_map_eb(trans, root, eb);
+	return write_and_map_eb(root, eb);
 }
 
 void btrfs_setup_root(u32 nodesize, u32 leafsize, u32 sectorsize,
@@ -494,7 +492,6 @@ void btrfs_setup_root(u32 nodesize, u32 leafsize, u32 sectorsize,
 	root->fs_info = fs_info;
 	root->objectid = objectid;
 	root->last_trans = 0;
-	root->highest_inode = 0;
 	root->last_inode_alloc = 0;
 
 	INIT_LIST_HEAD(&root->dirty_list);
@@ -618,7 +615,7 @@ commit_tree:
 	write_ctree_super(trans, root);
 	btrfs_finish_extent_commit(trans, fs_info->extent_root,
 			           &fs_info->pinned_extents);
-	btrfs_free_transaction(root, trans);
+	kfree(trans);
 	free_extent_buffer(root->commit_root);
 	root->commit_root = NULL;
 	fs_info->running_transaction = NULL;
@@ -904,7 +901,8 @@ free_all:
 	return NULL;
 }
 
-int btrfs_check_fs_compatibility(struct btrfs_super_block *sb, int writable)
+int btrfs_check_fs_compatibility(struct btrfs_super_block *sb,
+				 unsigned int flags)
 {
 	u64 features;
 
@@ -923,13 +921,22 @@ int btrfs_check_fs_compatibility(struct btrfs_super_block *sb, int writable)
 		btrfs_set_super_incompat_flags(sb, features);
 	}
 
-	features = btrfs_super_compat_ro_flags(sb) &
-		~BTRFS_FEATURE_COMPAT_RO_SUPP;
-	if (writable && features) {
-		printk("couldn't open RDWR because of unsupported "
-		       "option features (%Lx).\n",
-		       (unsigned long long)features);
-		return -ENOTSUP;
+	features = btrfs_super_compat_ro_flags(sb);
+	if (flags & OPEN_CTREE_WRITES) {
+		if (flags & OPEN_CTREE_INVALIDATE_FST) {
+			/* Clear the FREE_SPACE_TREE_VALID bit on disk... */
+			features &= ~BTRFS_FEATURE_COMPAT_RO_FREE_SPACE_TREE_VALID;
+			btrfs_set_super_compat_ro_flags(sb, features);
+			/* ... and ignore the free space tree bit. */
+			features &= ~BTRFS_FEATURE_COMPAT_RO_FREE_SPACE_TREE;
+		}
+		if (features & ~BTRFS_FEATURE_COMPAT_RO_SUPP) {
+			printk("couldn't open RDWR because of unsupported "
+			       "option features (%Lx).\n",
+			       (unsigned long long)features);
+			return -ENOTSUP;
+		}
+
 	}
 	return 0;
 }
@@ -1053,7 +1060,7 @@ int btrfs_setup_all_roots(struct btrfs_fs_info *fs_info, u64 root_tree_bytenr,
 	if (ret == 0)
 		fs_info->quota_enabled = 1;
 
-	if (btrfs_fs_compat_ro(fs_info, BTRFS_FEATURE_COMPAT_RO_FREE_SPACE_TREE)) {
+	if (btrfs_fs_compat_ro(fs_info, FREE_SPACE_TREE)) {
 		ret = find_and_setup_root(root, fs_info, BTRFS_FREE_SPACE_TREE_OBJECTID,
 					  fs_info->free_space_root);
 		if (ret) {
@@ -1167,7 +1174,7 @@ int btrfs_scan_fs_devices(int fd, const char *path,
 	}
 
 	if (!skip_devices && total_devs != 1) {
-		ret = btrfs_scan_lblkid();
+		ret = btrfs_scan_devices();
 		if (ret)
 			return ret;
 	}
@@ -1320,8 +1327,7 @@ static struct btrfs_fs_info *__open_ctree_fd(int fp, const char *path,
 
 	memcpy(fs_info->fsid, &disk_super->fsid, BTRFS_FSID_SIZE);
 
-	ret = btrfs_check_fs_compatibility(fs_info->super_copy,
-					   flags & OPEN_CTREE_WRITES);
+	ret = btrfs_check_fs_compatibility(fs_info->super_copy, flags);
 	if (ret)
 		goto out_devices;
 
@@ -1455,7 +1461,7 @@ static int check_super(struct btrfs_super_block *sb, unsigned sbflags)
 	csum_size = btrfs_csum_sizes[csum_type];
 
 	crc = ~(u32)0;
-	crc = btrfs_csum_data(NULL, (char *)sb + BTRFS_CSUM_SIZE, crc,
+	crc = btrfs_csum_data((char *)sb + BTRFS_CSUM_SIZE, crc,
 			      BTRFS_SUPER_INFO_SIZE - BTRFS_CSUM_SIZE);
 	btrfs_csum_final(crc, result);
 
@@ -1661,7 +1667,7 @@ static int write_dev_supers(struct btrfs_root *root,
 	if (root->fs_info->super_bytenr != BTRFS_SUPER_INFO_OFFSET) {
 		btrfs_set_super_bytenr(sb, root->fs_info->super_bytenr);
 		crc = ~(u32)0;
-		crc = btrfs_csum_data(NULL, (char *)sb + BTRFS_CSUM_SIZE, crc,
+		crc = btrfs_csum_data((char *)sb + BTRFS_CSUM_SIZE, crc,
 				      BTRFS_SUPER_INFO_SIZE - BTRFS_CSUM_SIZE);
 		btrfs_csum_final(crc, &sb->csum[0]);
 
@@ -1685,7 +1691,7 @@ static int write_dev_supers(struct btrfs_root *root,
 		btrfs_set_super_bytenr(sb, bytenr);
 
 		crc = ~(u32)0;
-		crc = btrfs_csum_data(NULL, (char *)sb + BTRFS_CSUM_SIZE, crc,
+		crc = btrfs_csum_data((char *)sb + BTRFS_CSUM_SIZE, crc,
 				      BTRFS_SUPER_INFO_SIZE - BTRFS_CSUM_SIZE);
 		btrfs_csum_final(crc, &sb->csum[0]);
 
@@ -1793,7 +1799,7 @@ int close_ctree_fs_info(struct btrfs_fs_info *fs_info)
 		ret = __commit_transaction(trans, root);
 		BUG_ON(ret);
 		write_ctree_super(trans, root);
-		btrfs_free_transaction(root, trans);
+		kfree(trans);
 	}
 
 	if (fs_info->finalize_on_close) {
@@ -1809,22 +1815,16 @@ int close_ctree_fs_info(struct btrfs_fs_info *fs_info)
 	free_fs_roots_tree(&fs_info->fs_root_tree);
 
 	btrfs_release_all_roots(fs_info);
-	btrfs_close_devices(fs_info->fs_devices);
+	ret = btrfs_close_devices(fs_info->fs_devices);
 	btrfs_cleanup_all_caches(fs_info);
 	btrfs_free_fs_info(fs_info);
-	return 0;
+	return ret;
 }
 
 int clean_tree_block(struct btrfs_trans_handle *trans, struct btrfs_root *root,
 		     struct extent_buffer *eb)
 {
 	return clear_extent_buffer_dirty(eb);
-}
-
-int wait_on_tree_block_writeback(struct btrfs_root *root,
-				 struct extent_buffer *eb)
-{
-	return 0;
 }
 
 void btrfs_mark_buffer_dirty(struct extent_buffer *eb)

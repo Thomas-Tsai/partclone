@@ -1,6 +1,4 @@
 /*
- * Copyright (C) 2007 Oracle.  All rights reserved.
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
  * License v2 as published by the Free Software Foundation.
@@ -16,23 +14,9 @@
  * Boston, MA 021110-1307, USA.
  */
 
-#ifndef __BTRFS_HASH_H__
-#define __BTRFS_HASH_H__
+#ifndef __BTRFS_COMMON_DEFS_H__
+#define __BTRFS_COMMON_DEFS_H__
 
-#include "crc32c.h"
-
-static inline u64 btrfs_name_hash(const char *name, int len)
-{
-	return crc32c((u32)~1, name, len);
-}
-
-/*
- * Figure the key offset of an extended inode ref
- */
-static inline u64 btrfs_extref_hash(u64 parent_objectid, const char *name,
-				    int len)
-{
-	return (u64)btrfs_crc32c(parent_objectid, name, len);
-}
+#define BTRFS_UUID_UNPARSED_SIZE	37
 
 #endif

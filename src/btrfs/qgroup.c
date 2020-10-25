@@ -480,7 +480,7 @@ int btrfs_qgroup_setup_comparer(struct btrfs_qgroup_comparer_set  **comp_set,
 		*comp_set = set;
 	}
 
-	ASSERT(set->comps[set->ncomps].comp_func != NULL);
+	ASSERT(set->comps[set->ncomps].comp_func == NULL);
 
 	set->comps[set->ncomps].comp_func = all_comp_funcs[comparer];
 	set->comps[set->ncomps].is_descending = is_descending;
@@ -847,7 +847,7 @@ int btrfs_qgroup_setup_filter(struct btrfs_qgroup_filter_set **filter_set,
 		*filter_set = set;
 	}
 
-	ASSERT(set->filters[set->nfilters].filter_func != NULL);
+	ASSERT(set->filters[set->nfilters].filter_func == NULL);
 	set->filters[set->nfilters].filter_func = all_filter_funcs[filter];
 	set->filters[set->nfilters].data = data;
 	set->nfilters++;
@@ -1064,11 +1064,9 @@ static int __qgroups_search(int fd, struct qgroup_lookup *qgroup_lookup)
 
 	while (1) {
 		ret = ioctl(fd, BTRFS_IOC_TREE_SEARCH, &args);
-		if (ret < 0) {
-			error("cannot perform the search: %s",
-					strerror(errno));
-			return ret;
-		}
+		if (ret < 0)
+			return -errno;
+
 		/* the ioctl returns the number of item it found in nr_items */
 		if (sk->nr_items == 0)
 			break;
@@ -1207,22 +1205,6 @@ int btrfs_show_qgroups(int fd,
 	free(filter_set);
 	free(comp_set);
 	return ret;
-}
-
-u64 btrfs_get_path_rootid(int fd)
-{
-	int  ret;
-	struct btrfs_ioctl_ino_lookup_args args;
-
-	memset(&args, 0, sizeof(args));
-	args.objectid = BTRFS_FIRST_FREE_OBJECTID;
-
-	ret = ioctl(fd, BTRFS_IOC_INO_LOOKUP, &args);
-	if (ret < 0) {
-		error("cannot perform the search: %s", strerror(errno));
-		return ret;
-	}
-	return args.treeid;
 }
 
 int btrfs_qgroup_parse_sort_string(const char *opt_arg,

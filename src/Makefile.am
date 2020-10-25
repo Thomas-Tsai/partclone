@@ -5,14 +5,18 @@ sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg par
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 
 BTRFS_SOURCE=\
-btrfs/bitops.h btrfs/ctree.h btrfs/extent_io.c btrfs/inode-item.c btrfs/math.h btrfs/radix-tree.c btrfs/root-tree.c btrfs/ulist.c btrfs/volumes.c\
-btrfs/btrfsck.h btrfs/dir-item.c btrfs/extent_io.h btrfs/inode-map.c btrfs/print-tree.c btrfs/radix-tree.h btrfs/send.h btrfs/ulist.h btrfs/volumes.h\
-btrfs/btrfs-list.c btrfs/disk-io.c btrfs/extent-tree.c btrfs/ioctl.h btrfs/print-tree.h btrfs/raid6.c btrfs/send-stream.c btrfs/utils.c\
-btrfs/btrfs-list.h btrfs/disk-io.h btrfs/file-item.c btrfs/kerncompat.h btrfs/qgroup.c btrfs/rbtree.c btrfs/send-stream.h btrfs/utils.h\
-btrfs/crc32c.c btrfs/free-space-cache.c btrfs/list.h btrfs/qgroup.h btrfs/rbtree.h btrfs/send-utils.c btrfs/utils-lib.c btrfs/rbtree-utils.c\
-btrfs/crc32c.h btrfs/extent-cache.c btrfs/free-space-cache.h btrfs/list_sort.c btrfs/qgroup-verify.c btrfs/repair.c btrfs/send-utils.h\
-btrfs/uuid-tree.c btrfs/ctree.c btrfs/extent-cache.h btrfs/hash.h btrfs/list_sort.h btrfs/qgroup-verify.h btrfs/repair.h btrfs/transaction.h\
-btrfs/version.h btrfs/rbtree-utils.h btrfs/rbtree_augmented.h btrfs/internal.h btrfs/commands.h
+btrfs/disk-io.c btrfs/rbtree-utils.h btrfs/raid56.c btrfs/btrfs-list.h btrfs/extent_io.h btrfs/rbtree-utils.c\
+btrfs/rbtree.h btrfs/sizes.h btrfs/repair.h btrfs/volumes.h btrfs/qgroup.h btrfs/send.h btrfs/send-utils.h\
+btrfs/rbtree_augmented.h btrfs/hash.h btrfs/common-defs.h btrfs/messages.h btrfs/radix-tree.h btrfs/extent-cache.c\
+btrfs/.deps btrfs/.deps/.dirstamp btrfs/list.h btrfs/btrfs-list.c btrfs/root-tree.c btrfs/print-tree.c\
+btrfs/ctree.h btrfs/commands.h btrfs/disk-io.h btrfs/extent_io.c btrfs/crc32c.c btrfs/bitops.h btrfs/internal.h\
+btrfs/send-stream.h btrfs/print-tree.h btrfs/radix-tree.c btrfs/utils.c btrfs/kerncompat.h btrfs/ioctl.h\
+btrfs/qgroup-verify.c btrfs/extent-cache.h btrfs/list_sort.c btrfs/inode-map.c btrfs/ulist.h btrfs/send-utils.c\
+btrfs/file-item.c btrfs/qgroup-verify.h btrfs/crc32c.h btrfs/list_sort.h btrfs/uuid-tree.c btrfs/free-space-cache.c\
+btrfs/dir-item.c btrfs/utils-lib.c btrfs/free-space-cache.h btrfs/version.h btrfs/.dirstamp btrfs/send-stream.c\
+btrfs/extent-tree.c btrfs/interval_tree_generic.h btrfs/transaction.h btrfs/utils.h btrfs/qgroup.c\
+btrfs/inode-item.c btrfs/ctree.c btrfs/repair.c btrfs/rbtree.c btrfs/ulist.c btrfs/btrfsck.h btrfs/volumes.c\
+btrfs/messages.c
 
 XFS_SOURCE=xfs/libxfs/cache.c xfs/libxfs/crc32.c xfs/libxfs/defer_item.c xfs/libxfs/init.c xfs/libxfs/kmem.c xfs/libxfs/list_sort.c xfs/libxfs/logitem.c xfs/libxfs/radix-tree.c xfs/libxfs/rdwr.c xfs/libxfs/trans.c xfs/libxfs/util.c xfs/libxfs/xfs_ag_resv.c xfs/libxfs/xfs_alloc.c xfs/libxfs/xfs_alloc_btree.c xfs/libxfs/xfs_attr.c xfs/libxfs/xfs_attr_leaf.c xfs/libxfs/xfs_attr_remote.c xfs/libxfs/xfs_bit.c xfs/libxfs/xfs_bmap.c xfs/libxfs/xfs_bmap_btree.c xfs/libxfs/xfs_btree.c xfs/libxfs/xfs_da_btree.c xfs/libxfs/xfs_da_format.c xfs/libxfs/xfs_defer.c xfs/libxfs/xfs_dir2.c xfs/libxfs/xfs_dir2_block.c xfs/libxfs/xfs_dir2_data.c xfs/libxfs/xfs_dir2_leaf.c xfs/libxfs/xfs_dir2_node.c xfs/libxfs/xfs_dir2_sf.c xfs/libxfs/xfs_dquot_buf.c xfs/libxfs/xfs_ialloc.c xfs/libxfs/xfs_inode_buf.c xfs/libxfs/xfs_inode_fork.c xfs/libxfs/xfs_ialloc_btree.c xfs/libxfs/xfs_log_rlimit.c xfs/libxfs/xfs_refcount.c xfs/libxfs/xfs_refcount_btree.c xfs/libxfs/xfs_rmap.c xfs/libxfs/xfs_rmap_btree.c xfs/libxfs/xfs_rtbitmap.c xfs/libxfs/xfs_sb.c xfs/libxfs/xfs_symlink_remote.c xfs/libxfs/xfs_trans_resv.c xfs/libxfs/linux.c xfs/libxfs/xfs_types.h xfs/libxfs/xfs_types.c xfs/libxfs/xfs_iext_tree.c 
 

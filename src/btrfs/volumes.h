@@ -22,7 +22,7 @@
 #include "kerncompat.h"
 #include "ctree.h"
 
-#define BTRFS_STRIPE_LEN	(64 * 1024)
+#define BTRFS_STRIPE_LEN	SZ_64K
 
 struct btrfs_device {
 	struct list_head dev_list;
@@ -155,11 +155,28 @@ struct map_lookup {
  * Check if the given range cross stripes.
  * To ensure kernel scrub won't causing bug on with METADATA in mixed
  * block group
+ *
+ * Return 1 if the range crosses STRIPE boundary
+ * Return 0 if the range doesn't cross STRIPE boundary or it
+ * doesn't belong to any block group (no boundary to cross)
  */
-static inline int check_crossing_stripes(u64 start, u64 len)
+static inline int check_crossing_stripes(struct btrfs_fs_info *fs_info,
+					 u64 start, u64 len)
 {
-	return (start / BTRFS_STRIPE_LEN) !=
-	       ((start + len - 1) / BTRFS_STRIPE_LEN);
+	struct btrfs_block_group_cache *bg_cache;
+	u64 bg_offset;
+
+	bg_cache = btrfs_lookup_block_group(fs_info, start);
+	/*
+	 * Does not belong to block group, no boundary to cross
+	 * although it's a bigger problem, but here we don't care.
+	 */
+	if (!bg_cache)
+		return 0;
+	bg_offset = start - bg_cache->key.objectid;
+
+	return (bg_offset / BTRFS_STRIPE_LEN !=
+		(bg_offset + len - 1) / BTRFS_STRIPE_LEN);
 }
 
 int __btrfs_map_block(struct btrfs_mapping_tree *map_tree, int rw,
@@ -213,8 +230,7 @@ int btrfs_scan_one_device(int fd, const char *path,
 			  u64 *total_devs, u64 super_offset, unsigned sbflags);
 int btrfs_num_copies(struct btrfs_mapping_tree *map_tree, u64 logical, u64 len);
 struct list_head *btrfs_scanned_uuids(void);
-int btrfs_add_system_chunk(struct btrfs_trans_handle *trans,
-			   struct btrfs_root *root, struct btrfs_key *key,
+int btrfs_add_system_chunk(struct btrfs_root *root, struct btrfs_key *key,
 			   struct btrfs_chunk *chunk, int item_size);
 int btrfs_chunk_readonly(struct btrfs_root *root, u64 chunk_offset);
 struct btrfs_device *

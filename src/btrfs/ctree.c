@@ -21,6 +21,7 @@
 #include "print-tree.h"
 #include "repair.h"
 #include "internal.h"
+#include "sizes.h"
 
 static int split_node(struct btrfs_trans_handle *trans, struct btrfs_root
 		      *root, struct btrfs_path *path, int level);
@@ -368,7 +369,7 @@ int btrfs_cow_block(struct btrfs_trans_handle *trans,
 		return 0;
 	}
 
-	search_start = buf->start & ~((u64)(1024 * 1024 * 1024) - 1);
+	search_start = buf->start & ~((u64)SZ_1G - 1);
 	ret = __btrfs_cow_block(trans, root, buf, parent,
 				 parent_slot, cow_ret, search_start, 0);
 	return ret;
@@ -700,7 +701,6 @@ static int balance_level(struct btrfs_trans_handle *trans,
 		add_root_to_dirty_list(root);
 		path->nodes[level] = NULL;
 		clean_tree_block(trans, root, mid);
-		wait_on_tree_block_writeback(root, mid);
 		/* once for the path */
 		free_extent_buffer(mid);
 
@@ -754,11 +754,9 @@ static int balance_level(struct btrfs_trans_handle *trans,
 			u32 blocksize = right->len;
 
 			clean_tree_block(trans, root, right);
-			wait_on_tree_block_writeback(root, right);
 			free_extent_buffer(right);
 			right = NULL;
-			wret = btrfs_del_ptr(trans, root, path,
-					     level + 1, pslot + 1);
+			wret = btrfs_del_ptr(root, path, level + 1, pslot + 1);
 			if (wret)
 				ret = wret;
 			wret = btrfs_free_extent(trans, root, bytenr,
@@ -802,10 +800,9 @@ static int balance_level(struct btrfs_trans_handle *trans,
 		u64 bytenr = mid->start;
 		u32 blocksize = mid->len;
 		clean_tree_block(trans, root, mid);
-		wait_on_tree_block_writeback(root, mid);
 		free_extent_buffer(mid);
 		mid = NULL;
-		wret = btrfs_del_ptr(trans, root, path, level + 1, pslot);
+		wret = btrfs_del_ptr(root, path, level + 1, pslot);
 		if (wret)
 			ret = wret;
 		wret = btrfs_free_extent(trans, root, bytenr, blocksize,
@@ -1026,9 +1023,9 @@ void reada_for_search(struct btrfs_root *root, struct btrfs_path *path,
 			nread += blocksize;
 		}
 		nscan++;
-		if (path->reada < 2 && (nread > (256 * 1024) || nscan > 32))
+		if (path->reada < 2 && (nread > SZ_256K || nscan > 32))
 			break;
-		if(nread > (1024 * 1024) || nscan > 128)
+		if(nread > SZ_1M || nscan > 128)
 			break;
 
 		if (search < lowest_read)
@@ -2294,9 +2291,7 @@ split:
 	return ret;
 }
 
-int btrfs_truncate_item(struct btrfs_trans_handle *trans,
-			struct btrfs_root *root,
-			struct btrfs_path *path,
+int btrfs_truncate_item(struct btrfs_root *root, struct btrfs_path *path,
 			u32 new_size, int from_end)
 {
 	int ret = 0;
@@ -2391,8 +2386,7 @@ int btrfs_truncate_item(struct btrfs_trans_handle *trans,
 	return ret;
 }
 
-int btrfs_extend_item(struct btrfs_trans_handle *trans,
-		      struct btrfs_root *root, struct btrfs_path *path,
+int btrfs_extend_item(struct btrfs_root *root, struct btrfs_path *path,
 		      u32 data_size)
 {
 	int ret = 0;
@@ -2601,8 +2595,8 @@ int btrfs_insert_item(struct btrfs_trans_handle *trans, struct btrfs_root
  * continuing all the way the root if required.  The root is converted into
  * a leaf if all the nodes are emptied.
  */
-int btrfs_del_ptr(struct btrfs_trans_handle *trans, struct btrfs_root *root,
-		   struct btrfs_path *path, int level, int slot)
+int btrfs_del_ptr(struct btrfs_root *root, struct btrfs_path *path,
+		int level, int slot)
 {
 	struct extent_buffer *parent = path->nodes[level];
 	u32 nritems;
@@ -2650,7 +2644,7 @@ static noinline int btrfs_del_leaf(struct btrfs_trans_handle *trans,
 	int ret;
 
 	WARN_ON(btrfs_header_generation(leaf) != trans->transid);
-	ret = btrfs_del_ptr(trans, root, path, 1, path->slots[1]);
+	ret = btrfs_del_ptr(root, path, 1, path->slots[1]);
 	if (ret)
 		return ret;
 
@@ -2713,8 +2707,6 @@ int btrfs_del_items(struct btrfs_trans_handle *trans, struct btrfs_root *root,
 			btrfs_set_header_level(leaf, 0);
 		} else {
 			clean_tree_block(trans, root, leaf);
-			wait_on_tree_block_writeback(root, leaf);
-
 			wret = btrfs_del_leaf(trans, root, path, leaf);
 			BUG_ON(ret);
 			if (wret)
@@ -2751,8 +2743,6 @@ int btrfs_del_items(struct btrfs_trans_handle *trans, struct btrfs_root *root,
 
 			if (btrfs_header_nritems(leaf) == 0) {
 				clean_tree_block(trans, root, leaf);
-				wait_on_tree_block_writeback(root, leaf);
-
 				path->slots[1] = slot;
 				ret = btrfs_del_leaf(trans, root, path, leaf);
 				BUG_ON(ret);

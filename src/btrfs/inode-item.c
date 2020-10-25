@@ -19,7 +19,7 @@
 #include "ctree.h"
 #include "disk-io.h"
 #include "transaction.h"
-#include "crc32c.h"
+#include "hash.h"
 
 static int find_name_in_backref(struct btrfs_path *path, const char * name,
 			 int name_len, struct btrfs_inode_ref **ref_ret)
@@ -79,7 +79,7 @@ int btrfs_insert_inode_ref(struct btrfs_trans_handle *trans,
 			goto out;
 
 		old_size = btrfs_item_size_nr(path->nodes[0], path->slots[0]);
-		ret = btrfs_extend_item(trans, root, path, ins_len);
+		ret = btrfs_extend_item(root, path, ins_len);
 		BUG_ON(ret);
 		ref = btrfs_item_ptr(path->nodes[0], path->slots[0],
 				     struct btrfs_inode_ref);
@@ -106,8 +106,7 @@ out:
 	btrfs_free_path(path);
 
 	if (ret == -EMLINK) {
-		if (btrfs_fs_incompat(root->fs_info,
-				      BTRFS_FEATURE_INCOMPAT_EXTENDED_IREF))
+		if (btrfs_fs_incompat(root->fs_info, EXTENDED_IREF))
 			ret = btrfs_insert_inode_extref(trans, root, name,
 							name_len,
 							inode_objectid,
@@ -161,7 +160,7 @@ int btrfs_insert_inode(struct btrfs_trans_handle *trans, struct btrfs_root
 struct btrfs_inode_ref *btrfs_lookup_inode_ref(struct btrfs_trans_handle *trans,
 		struct btrfs_root *root, struct btrfs_path *path,
 		const char *name, int namelen, u64 ino, u64 parent_ino,
-		u64 index, int ins_len)
+		int ins_len)
 {
 	struct btrfs_key key;
 	struct btrfs_inode_ref *ret_inode_ref = NULL;
@@ -182,12 +181,6 @@ out:
 		return ERR_PTR(ret);
 	else
 		return ret_inode_ref;
-}
-
-static inline u64 btrfs_extref_hash(u64 parent_ino, const char *name,
-				    int namelen)
-{
-	return (u64)btrfs_crc32c(parent_ino, name, namelen);
 }
 
 static int btrfs_find_name_in_ext_backref(struct btrfs_path *path,
@@ -319,7 +312,7 @@ int btrfs_del_inode_extref(struct btrfs_trans_handle *trans,
 	memmove_extent_buffer(leaf, ptr, ptr + del_len,
 			      item_size - (ptr + del_len - item_start));
 
-	btrfs_truncate_item(trans, root, path, item_size - del_len, 1);
+	btrfs_truncate_item(root, path, item_size - del_len, 1);
 
 out:
 	btrfs_free_path(path);
@@ -361,7 +354,7 @@ int btrfs_insert_inode_extref(struct btrfs_trans_handle *trans,
 						   name, name_len, NULL))
 			goto out;
 
-		btrfs_extend_item(trans, root, path, ins_len);
+		btrfs_extend_item(root, path, ins_len);
 		ret = 0;
 	}
 
@@ -440,14 +433,13 @@ int btrfs_del_inode_ref(struct btrfs_trans_handle *trans,
 	item_start = btrfs_item_ptr_offset(leaf, path->slots[0]);
 	memmove_extent_buffer(leaf, ptr, ptr + sub_item_len,
 			      item_size - (ptr + sub_item_len - item_start));
-	btrfs_truncate_item(trans, root, path, item_size - sub_item_len, 1);
+	btrfs_truncate_item(root, path, item_size - sub_item_len, 1);
 	btrfs_mark_buffer_dirty(path->nodes[0]);
 out:
 	btrfs_free_path(path);
 
 	if (search_ext_refs &&
-	    btrfs_fs_incompat(root->fs_info,
-		    BTRFS_FEATURE_INCOMPAT_EXTENDED_IREF)) {
+	    btrfs_fs_incompat(root->fs_info, EXTENDED_IREF)) {
 		/*
 		 * No refs were found, or we could not find the name in our ref
 		 * array. Find and remove the extended inode ref then.
