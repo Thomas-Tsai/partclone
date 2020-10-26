@@ -24,7 +24,7 @@
 #include "kerncompat.h"
 #include "ctree.h"
 #include "extent-cache.h"
-#include "list.h"
+#include "kernel-lib/list.h"
 #else
 #include <btrfs/kerncompat.h>
 #include <btrfs/ctree.h>
@@ -113,7 +113,7 @@ struct device_extent_record {
 	u8  type;
 	u64 offset;
 
-	u64 chunk_objecteid;
+	u64 chunk_objectid;
 	u64 chunk_offset;
 	u64 length;
 };

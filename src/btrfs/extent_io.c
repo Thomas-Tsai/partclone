@@ -22,12 +22,14 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include "kerncompat.h"
 #include "extent_io.h"
-#include "list.h"
+#include "kernel-lib/list.h"
 #include "ctree.h"
 #include "volumes.h"
-#include "internal.h"
+#include "common/utils.h"
+#include "common/internal.h"
 
 void extent_io_tree_init(struct extent_io_tree *tree)
 {
@@ -35,6 +37,14 @@ void extent_io_tree_init(struct extent_io_tree *tree)
 	cache_tree_init(&tree->cache);
 	INIT_LIST_HEAD(&tree->lru);
 	tree->cache_size = 0;
+	tree->max_cache_size = (u64)total_memory() / 4;
+}
+
+void extent_io_tree_init_cache_max(struct extent_io_tree *tree,
+				   u64 max_cache_size)
+{
+	extent_io_tree_init(tree);
+	tree->max_cache_size = max_cache_size;
 }
 
 static struct extent_state *alloc_extent_state(void)
@@ -67,16 +77,21 @@ static void free_extent_state_func(struct cache_extent *cache)
 	btrfs_free_extent_state(es);
 }
 
+static void free_extent_buffer_final(struct extent_buffer *eb);
 void extent_io_tree_cleanup(struct extent_io_tree *tree)
 {
 	struct extent_buffer *eb;
 
 	while(!list_empty(&tree->lru)) {
 		eb = list_entry(tree->lru.next, struct extent_buffer, lru);
-		fprintf(stderr, "extent buffer leak: "
-			"start %llu len %u\n",
-			(unsigned long long)eb->start, eb->len);
-		free_extent_buffer(eb);
+		if (eb->refs) {
+			fprintf(stderr,
+				"extent buffer leak: start %llu len %u\n",
+				(unsigned long long)eb->start, eb->len);
+			free_extent_buffer_nocache(eb);
+		} else {
+			free_extent_buffer_final(eb);
+		}
 	}
 
 	cache_tree_free_extents(&tree->state, free_extent_state_func);
@@ -187,6 +202,62 @@ static int clear_state_bit(struct extent_io_tree *tree,
 		merge_state(tree, state);
 	}
 	return ret;
+}
+
+/*
+ * extent_buffer_bitmap_set - set an area of a bitmap
+ * @eb: the extent buffer
+ * @start: offset of the bitmap item in the extent buffer
+ * @pos: bit number of the first bit
+ * @len: number of bits to set
+ */
+void extent_buffer_bitmap_set(struct extent_buffer *eb, unsigned long start,
+                              unsigned long pos, unsigned long len)
+{
+	u8 *p = (u8 *)eb->data + start + BIT_BYTE(pos);
+	const unsigned int size = pos + len;
+	int bits_to_set = BITS_PER_BYTE - (pos % BITS_PER_BYTE);
+	u8 mask_to_set = BITMAP_FIRST_BYTE_MASK(pos);
+
+	while (len >= bits_to_set) {
+		*p |= mask_to_set;
+		len -= bits_to_set;
+		bits_to_set = BITS_PER_BYTE;
+		mask_to_set = ~0;
+		p++;
+	}
+	if (len) {
+		mask_to_set &= BITMAP_LAST_BYTE_MASK(size);
+		*p |= mask_to_set;
+	}
+}
+
+/*
+ * extent_buffer_bitmap_clear - clear an area of a bitmap
+ * @eb: the extent buffer
+ * @start: offset of the bitmap item in the extent buffer
+ * @pos: bit number of the first bit
+ * @len: number of bits to clear
+ */
+void extent_buffer_bitmap_clear(struct extent_buffer *eb, unsigned long start,
+                                unsigned long pos, unsigned long len)
+{
+	u8 *p = (u8 *)eb->data + start + BIT_BYTE(pos);
+	const unsigned int size = pos + len;
+	int bits_to_clear = BITS_PER_BYTE - (pos % BITS_PER_BYTE);
+	u8 mask_to_clear = BITMAP_FIRST_BYTE_MASK(pos);
+
+	while (len >= bits_to_clear) {
+		*p &= ~mask_to_clear;
+		len -= bits_to_clear;
+		bits_to_clear = BITS_PER_BYTE;
+		mask_to_clear = ~0;
+		p++;
+	}
+	if (len) {
+		mask_to_clear &= BITMAP_LAST_BYTE_MASK(size);
+		*p &= ~mask_to_clear;
+	}
 }
 
 /*
@@ -530,7 +601,7 @@ out:
 	return ret;
 }
 
-static struct extent_buffer *__alloc_extent_buffer(struct extent_io_tree *tree,
+static struct extent_buffer *__alloc_extent_buffer(struct btrfs_fs_info *info,
 						   u64 bytenr, u32 blocksize)
 {
 	struct extent_buffer *eb;
@@ -543,12 +614,14 @@ static struct extent_buffer *__alloc_extent_buffer(struct extent_io_tree *tree,
 	eb->len = blocksize;
 	eb->refs = 1;
 	eb->flags = 0;
-	eb->tree = tree;
 	eb->fd = -1;
 	eb->dev_bytenr = (u64)-1;
 	eb->cache_node.start = bytenr;
 	eb->cache_node.size = blocksize;
+	eb->fs_info = info;
+	eb->tree = &info->extent_cache;
 	INIT_LIST_HEAD(&eb->recow);
+	INIT_LIST_HEAD(&eb->lru);
 
 	return eb;
 }
@@ -557,9 +630,11 @@ struct extent_buffer *btrfs_clone_extent_buffer(struct extent_buffer *src)
 {
 	struct extent_buffer *new;
 
-	new = __alloc_extent_buffer(NULL, src->start, src->len);
+	new = __alloc_extent_buffer(src->fs_info, src->start, src->len);
 	if (!new)
 		return NULL;
+	/* cloned eb is not linked into fs_info->extent_cache */
+	new->tree = NULL;
 
 	copy_extent_buffer(new, src, 0, 0, src->len);
 	new->flags |= EXTENT_BUFFER_DUMMY;
@@ -567,7 +642,21 @@ struct extent_buffer *btrfs_clone_extent_buffer(struct extent_buffer *src)
 	return new;
 }
 
-void free_extent_buffer(struct extent_buffer *eb)
+static void free_extent_buffer_final(struct extent_buffer *eb)
+{
+	struct extent_io_tree *tree = eb->tree;
+
+	BUG_ON(eb->refs);
+	BUG_ON(tree && tree->cache_size < eb->len);
+	list_del_init(&eb->lru);
+	if (!(eb->flags & EXTENT_BUFFER_DUMMY)) {
+		remove_cache_extent(&tree->cache, &eb->cache_node);
+		tree->cache_size -= eb->len;
+	}
+	free(eb);
+}
+
+static void free_extent_buffer_internal(struct extent_buffer *eb, bool free_now)
 {
 	if (!eb || IS_ERR(eb))
 		return;
@@ -575,17 +664,25 @@ void free_extent_buffer(struct extent_buffer *eb)
 	eb->refs--;
 	BUG_ON(eb->refs < 0);
 	if (eb->refs == 0) {
-		struct extent_io_tree *tree = eb->tree;
-		BUG_ON(eb->flags & EXTENT_DIRTY);
-		list_del_init(&eb->lru);
-		list_del_init(&eb->recow);
-		if (!(eb->flags & EXTENT_BUFFER_DUMMY)) {
-			BUG_ON(tree->cache_size < eb->len);
-			remove_cache_extent(&tree->cache, &eb->cache_node);
-			tree->cache_size -= eb->len;
+		if (eb->flags & EXTENT_DIRTY) {
+			warning(
+			"dirty eb leak (aborted trans): start %llu len %u",
+				eb->start, eb->len);
 		}
-		free(eb);
+		list_del_init(&eb->recow);
+		if (eb->flags & EXTENT_BUFFER_DUMMY || free_now)
+			free_extent_buffer_final(eb);
 	}
+}
+
+void free_extent_buffer(struct extent_buffer *eb)
+{
+	free_extent_buffer_internal(eb, 0);
+}
+
+void free_extent_buffer_nocache(struct extent_buffer *eb)
+{
+	free_extent_buffer_internal(eb, 1);
 }
 
 struct extent_buffer *find_extent_buffer(struct extent_io_tree *tree,
@@ -619,10 +716,23 @@ struct extent_buffer *find_first_extent_buffer(struct extent_io_tree *tree,
 	return eb;
 }
 
-struct extent_buffer *alloc_extent_buffer(struct extent_io_tree *tree,
+static void trim_extent_buffer_cache(struct extent_io_tree *tree)
+{
+	struct extent_buffer *eb, *tmp;
+
+	list_for_each_entry_safe(eb, tmp, &tree->lru, lru) {
+		if (eb->refs == 0)
+			free_extent_buffer_final(eb);
+		if (tree->cache_size <= ((tree->max_cache_size * 9) / 10))
+			break;
+	}
+}
+
+struct extent_buffer *alloc_extent_buffer(struct btrfs_fs_info *fs_info,
 					  u64 bytenr, u32 blocksize)
 {
 	struct extent_buffer *eb;
+	struct extent_io_tree *tree = &fs_info->extent_cache;
 	struct cache_extent *cache;
 
 	cache = lookup_cache_extent(&tree->cache, bytenr, blocksize);
@@ -639,7 +749,7 @@ struct extent_buffer *alloc_extent_buffer(struct extent_io_tree *tree,
 					  cache_node);
 			free_extent_buffer(eb);
 		}
-		eb = __alloc_extent_buffer(tree, bytenr, blocksize);
+		eb = __alloc_extent_buffer(fs_info, bytenr, blocksize);
 		if (!eb)
 			return NULL;
 		ret = insert_cache_extent(&tree->cache, &eb->cache_node);
@@ -649,8 +759,36 @@ struct extent_buffer *alloc_extent_buffer(struct extent_io_tree *tree,
 		}
 		list_add_tail(&eb->lru, &tree->lru);
 		tree->cache_size += blocksize;
+		if (tree->cache_size >= tree->max_cache_size)
+			trim_extent_buffer_cache(tree);
 	}
 	return eb;
+}
+
+/*
+ * Allocate a dummy extent buffer which won't be inserted into extent buffer
+ * cache.
+ *
+ * This mostly allows super block read write using existing eb infrastructure
+ * without pulluting the eb cache.
+ *
+ * This is especially important to avoid injecting eb->start == SZ_64K, as
+ * fuzzed image could have invalid tree bytenr covers super block range,
+ * and cause ref count underflow.
+ */
+struct extent_buffer *alloc_dummy_extent_buffer(struct btrfs_fs_info *fs_info,
+						u64 bytenr, u32 blocksize)
+{
+	struct extent_buffer *ret;
+
+	ret = __alloc_extent_buffer(fs_info, bytenr, blocksize);
+	if (!ret)
+		return NULL;
+
+	ret->tree = NULL;
+	ret->flags |= EXTENT_BUFFER_DUMMY;
+
+	return ret;
 }
 
 int read_extent_from_disk(struct extent_buffer *eb,
@@ -851,13 +989,13 @@ int clear_extent_buffer_dirty(struct extent_buffer *eb)
 	return 0;
 }
 
-int memcmp_extent_buffer(struct extent_buffer *eb, const void *ptrv,
+int memcmp_extent_buffer(const struct extent_buffer *eb, const void *ptrv,
 			 unsigned long start, unsigned long len)
 {
 	return memcmp(eb->data + start, ptrv, len);
 }
 
-void read_extent_buffer(struct extent_buffer *eb, void *dst,
+void read_extent_buffer(const struct extent_buffer *eb, void *dst,
 			unsigned long start, unsigned long len)
 {
 	memcpy(dst, eb->data + start, len);

@@ -21,7 +21,7 @@
 
 #if BTRFS_FLAT_INCLUDES
 #include "kerncompat.h"
-#include "rbtree.h"
+#include "kernel-lib/rbtree.h"
 #else
 #include <btrfs/kerncompat.h>
 #include <btrfs/rbtree.h>
@@ -106,8 +106,6 @@ struct cache_extent *search_cache_extent2(struct cache_tree *tree,
  */
 struct cache_extent *lookup_cache_extent2(struct cache_tree *tree,
 					  u64 objectid, u64 start, u64 size);
-int add_cache_extent2(struct cache_tree *tree,
-		      u64 objectid, u64 start, u64 size);
 int insert_cache_extent2(struct cache_tree *tree, struct cache_extent *pe);
 
 /*

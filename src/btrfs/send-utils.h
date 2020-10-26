@@ -22,7 +22,7 @@
 #if BTRFS_FLAT_INCLUDES
 #include "kerncompat.h"
 #include "ctree.h"
-#include "rbtree.h"
+#include "kernel-lib/rbtree.h"
 #else
 #include <btrfs/kerncompat.h>
 #include <btrfs/ctree.h>
@@ -103,15 +103,6 @@ void subvol_uuid_search_add(struct subvol_uuid_search *s,
 			    struct subvol_info *si);
 
 int btrfs_subvolid_resolve(int fd, char *path, size_t path_len, u64 subvol_id);
-
-/*
- * DEPRECATED: the functions path_cat and path_cat3 are unsafe and should not
- * be used, use the _out variants and always check the return code.
- */
-__attribute__((deprecated))
-char *path_cat(const char *p1, const char *p2);
-__attribute__((deprecated))
-char *path_cat3(const char *p1, const char *p2, const char *p3);
 
 int path_cat_out(char *out, const char *p1, const char *p2);
 int path_cat3_out(char *out, const char *p1, const char *p2, const char *p3);

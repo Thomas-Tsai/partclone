@@ -21,8 +21,8 @@
 
 #include "send.h"
 #include "send-stream.h"
-#include "crc32c.h"
-#include "utils.h"
+#include "crypto/crc32c.h"
+#include "common/utils.h"
 
 struct btrfs_send_stream {
 	int fd;
@@ -35,7 +35,7 @@ struct btrfs_send_stream {
 
 	/*
 	 * end of last successful read, equivalent to start of current
-	 * malformated part of block
+	 * malformed part of block
 	 */
 	size_t stream_pos;
 
@@ -61,8 +61,7 @@ static int read_buf(struct btrfs_send_stream *sctx, char *buf, size_t len)
 		rbytes = read(sctx->fd, buf + pos, len - pos);
 		if (rbytes < 0) {
 			ret = -errno;
-			error("read from stream failed: %s",
-					strerror(-ret));
+			error("read from stream failed: %m");
 			goto out;
 		}
 		if (rbytes == 0) {
@@ -158,8 +157,7 @@ static int read_cmd(struct btrfs_send_stream *sctx)
 		tlv_type = le16_to_cpu(tlv_hdr->tlv_type);
 		tlv_len = le16_to_cpu(tlv_hdr->tlv_len);
 
-		if (tlv_type == 0 || tlv_type > BTRFS_SEND_A_MAX
-		    || tlv_len > BTRFS_SEND_BUF_SIZE) {
+		if (tlv_type == 0 || tlv_type > BTRFS_SEND_A_MAX) {
 			error("invalid tlv in cmd tlv_type = %hu, tlv_len = %hu",
 					tlv_type, tlv_len);
 			ret = -EINVAL;

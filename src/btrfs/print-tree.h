@@ -19,10 +19,23 @@
 #ifndef __PRINT_TREE_H__
 #define __PRINT_TREE_H__
 
-void btrfs_print_leaf(struct btrfs_root *root, struct extent_buffer *l);
-void btrfs_print_tree(struct btrfs_root *root, struct extent_buffer *t, int follow);
+void btrfs_print_leaf(struct extent_buffer *l);
+
+/*
+ * Print a tree block (applies to both node and leaf).
+ *
+ * @eb:		Tree block
+ * @follow:	Set true to print all its children.
+ * @traverse:	The traverse order. Support DFS and BFS.
+ *		Will fallback to DFS for unknown order.
+ */
+#define BTRFS_PRINT_TREE_DFS		0
+#define BTRFS_PRINT_TREE_BFS		1
+#define BTRFS_PRINT_TREE_DEFAULT	BTRFS_PRINT_TREE_BFS
+void btrfs_print_tree(struct extent_buffer *eb, bool follow, int traverse);
+
 void btrfs_print_key(struct btrfs_disk_key *disk_key);
-void print_chunk(struct extent_buffer *eb, struct btrfs_chunk *chunk);
+void print_chunk_item(struct extent_buffer *eb, struct btrfs_chunk *chunk);
 void print_extent_item(struct extent_buffer *eb, int slot, int metadata);
 void print_objectid(FILE *stream, u64 objectid, u8 type);
 void print_key_type(FILE *stream, u64 objectid, u8 type);

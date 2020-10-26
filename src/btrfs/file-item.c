@@ -19,15 +19,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "kerncompat.h"
-#include "radix-tree.h"
+#include "kernel-lib/radix-tree.h"
 #include "ctree.h"
 #include "disk-io.h"
 #include "transaction.h"
 #include "print-tree.h"
-#include "crc32c.h"
-#include "internal.h"
+#include "crypto/crc32c.h"
+#include "common/internal.h"
 
-#define MAX_CSUM_ITEMS(r,size) ((((BTRFS_LEAF_DATA_SIZE(r) - \
+#define MAX_CSUM_ITEMS(r, size) ((((BTRFS_LEAF_DATA_SIZE(r->fs_info) - \
 			       sizeof(struct btrfs_item) * 2) / \
 			       size) - 1))
 int btrfs_insert_file_extent(struct btrfs_trans_handle *trans,
@@ -86,7 +86,7 @@ out:
 
 int btrfs_insert_inline_extent(struct btrfs_trans_handle *trans,
 			       struct btrfs_root *root, u64 objectid,
-			       u64 offset, char *buffer, size_t size)
+			       u64 offset, const char *buffer, size_t size)
 {
 	struct btrfs_key key;
 	struct btrfs_path *path;
@@ -195,12 +195,15 @@ int btrfs_csum_file_block(struct btrfs_trans_handle *trans,
 	struct btrfs_csum_item *item;
 	struct extent_buffer *leaf = NULL;
 	u64 csum_offset;
-	u32 csum_result = ~(u32)0;
+	u8 csum_result[BTRFS_CSUM_SIZE];
 	u32 sectorsize = root->fs_info->sectorsize;
 	u32 nritems;
 	u32 ins_size;
 	u16 csum_size =
 		btrfs_super_csum_size(root->fs_info->super_copy);
+
+	u16 csum_type =
+		btrfs_super_csum_type(root->fs_info->super_copy);
 
 	path = btrfs_alloc_path();
 	if (!path)
@@ -312,14 +315,14 @@ csum:
 	item = (struct btrfs_csum_item *)((unsigned char *)item +
 					  csum_offset * csum_size);
 found:
-	csum_result = btrfs_csum_data(data, csum_result, len);
-	btrfs_csum_final(csum_result, (u8 *)&csum_result);
+	btrfs_csum_data(csum_type, (u8 *)data, csum_result, len);
+	/* FIXME: does not make sense for non-crc32c */
 	if (csum_result == 0) {
 		printk("csum result is 0 for block %llu\n",
 		       (unsigned long long)bytenr);
 	}
 
-	write_extent_buffer(leaf, &csum_result, (unsigned long)item,
+	write_extent_buffer(leaf, csum_result, (unsigned long)item,
 			    csum_size);
 	btrfs_mark_buffer_dirty(path->nodes[0]);
 fail:
@@ -394,8 +397,7 @@ static noinline int truncate_one_csum(struct btrfs_root *root,
  * deletes the csum items from the csum tree for a given
  * range of bytes.
  */
-int btrfs_del_csums(struct btrfs_trans_handle *trans,
-		    struct btrfs_root *root, u64 bytenr, u64 len)
+int btrfs_del_csums(struct btrfs_trans_handle *trans, u64 bytenr, u64 len)
 {
 	struct btrfs_path *path;
 	struct btrfs_key key;
@@ -403,11 +405,10 @@ int btrfs_del_csums(struct btrfs_trans_handle *trans,
 	u64 csum_end;
 	struct extent_buffer *leaf;
 	int ret;
-	u16 csum_size =
-		btrfs_super_csum_size(root->fs_info->super_copy);
-	int blocksize = root->fs_info->sectorsize;
+	u16 csum_size = btrfs_super_csum_size(trans->fs_info->super_copy);
+	int blocksize = trans->fs_info->sectorsize;
+	struct btrfs_root *csum_root = trans->fs_info->csum_root;
 
-	root = root->fs_info->csum_root;
 
 	path = btrfs_alloc_path();
 	if (!path)
@@ -418,7 +419,7 @@ int btrfs_del_csums(struct btrfs_trans_handle *trans,
 		key.offset = end_byte - 1;
 		key.type = BTRFS_EXTENT_CSUM_KEY;
 
-		ret = btrfs_search_slot(trans, root, &key, path, -1, 1);
+		ret = btrfs_search_slot(trans, csum_root, &key, path, -1, 1);
 		if (ret > 0) {
 			if (path->slots[0] == 0)
 				goto out;
@@ -445,7 +446,7 @@ int btrfs_del_csums(struct btrfs_trans_handle *trans,
 
 		/* delete the entire item, it is inside our range */
 		if (key.offset >= bytenr && csum_end <= end_byte) {
-			ret = btrfs_del_item(trans, root, path);
+			ret = btrfs_del_item(trans, csum_root, path);
 			BUG_ON(ret);
 		} else if (key.offset < bytenr && csum_end > end_byte) {
 			unsigned long offset;
@@ -485,12 +486,14 @@ int btrfs_del_csums(struct btrfs_trans_handle *trans,
 			 * btrfs_split_item returns -EAGAIN when the
 			 * item changed size or key
 			 */
-			ret = btrfs_split_item(trans, root, path, &key, offset);
+			ret = btrfs_split_item(trans, csum_root, path, &key,
+					       offset);
 			BUG_ON(ret && ret != -EAGAIN);
 
 			key.offset = end_byte - 1;
 		} else {
-			ret = truncate_one_csum(root, path, &key, bytenr, len);
+			ret = truncate_one_csum(csum_root, path, &key, bytenr,
+						len);
 			BUG_ON(ret);
 		}
 		btrfs_release_path(path);

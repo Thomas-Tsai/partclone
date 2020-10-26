@@ -40,8 +40,7 @@ static int btrfs_get_root_id_by_sub_path(int mnt_fd, const char *sub_path,
 	subvol_fd = openat(mnt_fd, sub_path, O_RDONLY);
 	if (subvol_fd < 0) {
 		ret = -errno;
-		fprintf(stderr, "ERROR: open %s failed. %s\n", sub_path,
-			strerror(-ret));
+		fprintf(stderr, "ERROR: open %s failed: %m\n", sub_path);
 		return ret;
 	}
 
@@ -83,8 +82,7 @@ static int btrfs_read_root_item_raw(int mnt_fd, u64 root_id, size_t buf_len,
 		ret = ioctl(mnt_fd, BTRFS_IOC_TREE_SEARCH, &args);
 		if (ret < 0) {
 			fprintf(stderr,
-				"ERROR: can't perform the search - %s\n",
-				strerror(errno));
+				"ERROR: can't perform the search - %m\n");
 			return 0;
 		}
 		/* the ioctl returns the number of item it found in nr_items */
@@ -153,10 +151,21 @@ static int btrfs_read_root_item(int mnt_fd, u64 root_id,
 		return ret;
 
 	if (read_len < sizeof(*item) ||
-	    btrfs_root_generation(item) != btrfs_root_generation_v2(item))
-		memset(&item->generation_v2, 0,
+	    btrfs_root_generation(item) != btrfs_root_generation_v2(item)) {
+		/*
+		 * Workaround for gcc9 that warns that memset over
+		 * generation_v2 overflows, which is what we want but would
+		 * be otherwise a bug
+		 *
+		 * The below is &item->generation_v2
+		 */
+		char *start = (char *)item + offsetof(struct btrfs_root_item,
+						      generation_v2);
+
+		memset(start, 0,
 			sizeof(*item) - offsetof(struct btrfs_root_item,
 						 generation_v2));
+	}
 
 	return 0;
 }
@@ -267,8 +276,8 @@ static int btrfs_subvolid_resolve_sub(int fd, char *path, size_t *path_len,
 	ret = ioctl(fd, BTRFS_IOC_TREE_SEARCH, &search_arg);
 	if (ret < 0) {
 		fprintf(stderr,
-			"ioctl(BTRFS_IOC_TREE_SEARCH, subvol_id %llu) ret=%d, error: %s\n",
-			(unsigned long long)subvol_id, ret, strerror(errno));
+			"ioctl(BTRFS_IOC_TREE_SEARCH, subvol_id %llu) ret=%d, error: %m\n",
+			(unsigned long long)subvol_id, ret);
 		return ret;
 	}
 
@@ -306,8 +315,8 @@ static int btrfs_subvolid_resolve_sub(int fd, char *path, size_t *path_len,
 		ret = ioctl(fd, BTRFS_IOC_INO_LOOKUP, &ino_lookup_arg);
 		if (ret < 0) {
 			fprintf(stderr,
-				"ioctl(BTRFS_IOC_INO_LOOKUP) ret=%d, error: %s\n",
-				ret, strerror(errno));
+				"ioctl(BTRFS_IOC_INO_LOOKUP) ret=%d, error: %m\n",
+				ret);
 			return ret;
 		}
 
@@ -586,8 +595,7 @@ int subvol_uuid_search_init(int mnt_fd, struct subvol_uuid_search *s)
 	ret = is_uuid_tree_supported(mnt_fd);
 	if (ret < 0) {
 		fprintf(stderr,
-			"ERROR: check if we support uuid tree fails - %s\n",
-			strerror(errno));
+			"ERROR: check if we support uuid tree fails - %m\n");
 		return ret;
 	} else if (ret) {
 		/* uuid tree is supported */
@@ -608,8 +616,7 @@ int subvol_uuid_search_init(int mnt_fd, struct subvol_uuid_search *s)
 	while (1) {
 		ret = ioctl(mnt_fd, BTRFS_IOC_TREE_SEARCH, &args);
 		if (ret < 0) {
-			fprintf(stderr, "ERROR: can't perform the search - %s\n",
-				strerror(errno));
+			fprintf(stderr, "ERROR: can't perform the search - %m\n");
 			return ret;
 		}
 		if (sk->nr_items == 0)
@@ -760,18 +767,6 @@ int path_cat_out(char *out, const char *p1, const char *p2)
 	return 0;
 }
 
-__attribute__((deprecated))
-char *path_cat(const char *p1, const char *p2)
-{
-	int p1_len = strlen(p1);
-	int p2_len = strlen(p2);
-	char *new = malloc(p1_len + p2_len + 2);
-
-	path_cat_out(new, p1, p2);
-
-	return new;
-}
-
 int path_cat3_out(char *out, const char *p1, const char *p2, const char *p3)
 {
 	int p1_len = strlen(p1);
@@ -790,17 +785,4 @@ int path_cat3_out(char *out, const char *p1, const char *p2, const char *p3)
 	sprintf(out, "%.*s/%.*s/%.*s", p1_len, p1, p2_len, p2, p3_len, p3);
 
 	return 0;
-}
-
-__attribute__((deprecated))
-char *path_cat3(const char *p1, const char *p2, const char *p3)
-{
-	int p1_len = strlen(p1);
-	int p2_len = strlen(p2);
-	int p3_len = strlen(p3);
-	char *new = malloc(p1_len + p2_len + p3_len + 3);
-
-	path_cat3_out(new, p1, p2, p3);
-
-	return new;
 }
