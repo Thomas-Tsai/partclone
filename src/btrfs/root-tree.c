@@ -12,8 +12,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #include "ctree.h"
@@ -31,12 +31,14 @@ int btrfs_find_last_root(struct btrfs_root *root, u64 objectid,
 	int ret;
 	int slot;
 
+	path = btrfs_alloc_path();
+	if (!path)
+		return -ENOMEM;
+
 	search_key.objectid = objectid;
 	search_key.type = BTRFS_ROOT_ITEM_KEY;
 	search_key.offset = (u64)-1;
 
-	path = btrfs_alloc_path();
-	BUG_ON(!path);
 	ret = btrfs_search_slot(NULL, root, &search_key, path, 0, 0);
 	if (ret < 0)
 		goto out;
@@ -49,7 +51,8 @@ int btrfs_find_last_root(struct btrfs_root *root, u64 objectid,
 	l = path->nodes[0];
 	slot = path->slots[0] - 1;
 	btrfs_item_key_to_cpu(l, &found_key, slot);
-	if (found_key.objectid != objectid) {
+	if (found_key.type != BTRFS_ROOT_ITEM_KEY ||
+	    found_key.objectid != objectid) {
 		ret = -ENOENT;
 		goto out;
 	}
@@ -74,7 +77,9 @@ int btrfs_update_root(struct btrfs_trans_handle *trans, struct btrfs_root
 	u32 old_len;
 
 	path = btrfs_alloc_path();
-	BUG_ON(!path);
+	if (!path)
+		return -ENOMEM;
+
 	ret = btrfs_search_slot(trans, root, key, path, 0, 1);
 	if (ret < 0)
 		goto out;
@@ -136,6 +141,31 @@ int btrfs_insert_root(struct btrfs_trans_handle *trans, struct btrfs_root
 	 */
 	btrfs_set_root_generation_v2(item, btrfs_root_generation(item));
 	ret = btrfs_insert_item(trans, root, key, item, sizeof(*item));
+	return ret;
+}
+
+/* drop the root item for 'key' from 'root' */
+int btrfs_del_root(struct btrfs_trans_handle *trans, struct btrfs_root *root,
+		   struct btrfs_key *key)
+{
+	struct btrfs_path *path;
+	int ret;
+
+	path = btrfs_alloc_path();
+	if (!path)
+		return -ENOMEM;
+	ret = btrfs_search_slot(trans, root, key, path, -1, 1);
+	if (ret < 0)
+		goto out;
+
+	if (ret != 0) {
+		ret = -ENOENT;
+		goto out;
+	}
+
+	ret = btrfs_del_item(trans, root, path);
+out:
+	btrfs_free_path(path);
 	return ret;
 }
 

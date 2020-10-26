@@ -12,8 +12,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #include "kerncompat.h"
@@ -22,9 +22,10 @@
 #include "transaction.h"
 #include "disk-io.h"
 #include "extent_io.h"
-#include "crc32c.h"
-#include "bitops.h"
-#include "internal.h"
+#include "crypto/crc32c.h"
+#include "kernel-lib/bitops.h"
+#include "common/internal.h"
+#include "common/utils.h"
 
 /*
  * Kernel always uses PAGE_CACHE_SIZE for sectorsize, but we don't have
@@ -32,7 +33,7 @@
  * filesystem
  */
 #define BITS_PER_BITMAP(sectorsize)		((sectorsize) * 8)
-#define MAX_CACHE_BYTES_PER_GIG	(32 * 1024)
+#define MAX_CACHE_BYTES_PER_GIG	SZ_32K
 
 static int link_free_space(struct btrfs_free_space_ctl *ctl,
 			   struct btrfs_free_space *info);
@@ -53,7 +54,7 @@ static int io_ctl_init(struct io_ctl *io_ctl, u64 size, u64 ino,
 		       struct btrfs_root *root)
 {
 	memset(io_ctl, 0, sizeof(struct io_ctl));
-	io_ctl->num_pages = (size + root->sectorsize - 1) / root->sectorsize;
+	io_ctl->num_pages = DIV_ROUND_UP(size, root->fs_info->sectorsize);
 	io_ctl->buffer = kzalloc(size, GFP_NOFS);
 	if (!io_ctl->buffer)
 		return -ENOMEM;
@@ -80,11 +81,12 @@ static void io_ctl_unmap_page(struct io_ctl *io_ctl)
 static void io_ctl_map_page(struct io_ctl *io_ctl, int clear)
 {
 	BUG_ON(io_ctl->index >= io_ctl->num_pages);
-	io_ctl->cur = io_ctl->buffer + (io_ctl->index++ * io_ctl->root->sectorsize);
+	io_ctl->cur = io_ctl->buffer + (io_ctl->index++ *
+					io_ctl->root->fs_info->sectorsize);
 	io_ctl->orig = io_ctl->cur;
-	io_ctl->size = io_ctl->root->sectorsize;
+	io_ctl->size = io_ctl->root->fs_info->sectorsize;
 	if (clear)
-		memset(io_ctl->cur, 0, io_ctl->root->sectorsize);
+		memset(io_ctl->cur, 0, io_ctl->root->fs_info->sectorsize);
 }
 
 static void io_ctl_drop_pages(struct io_ctl *io_ctl)
@@ -209,8 +211,9 @@ static int io_ctl_check_crc(struct io_ctl *io_ctl, int index)
 	val = *tmp;
 
 	io_ctl_map_page(io_ctl, 0);
-	crc = crc32c(crc, io_ctl->orig + offset, io_ctl->root->sectorsize - offset);
-	btrfs_csum_final(crc, (char *)&crc);
+	crc = crc32c(crc, io_ctl->orig + offset,
+			io_ctl->root->fs_info->sectorsize - offset);
+	put_unaligned_le32(~crc, (u8 *)&crc);
 	if (val != crc) {
 		printk("btrfs: csum mismatch on free space cache\n");
 		io_ctl_unmap_page(io_ctl);
@@ -256,7 +259,7 @@ static int io_ctl_read_bitmap(struct io_ctl *io_ctl,
 	if (ret)
 		return ret;
 
-	memcpy(entry->bitmap, io_ctl->cur, io_ctl->root->sectorsize);
+	memcpy(entry->bitmap, io_ctl->cur, io_ctl->root->fs_info->sectorsize);
 	io_ctl_unmap_page(io_ctl);
 
 	return 0;
@@ -433,9 +436,10 @@ int load_free_space_cache(struct btrfs_fs_info *fs_info,
 {
 	struct btrfs_free_space_ctl *ctl = block_group->free_space_ctl;
 	struct btrfs_path *path;
-	u64 used = btrfs_block_group_used(&block_group->item);
+	u64 used = block_group->used;
 	int ret = 0;
-	int matched;
+	u64 bg_free;
+	s64 diff;
 
 	path = btrfs_alloc_path();
 	if (!path)
@@ -445,18 +449,33 @@ int load_free_space_cache(struct btrfs_fs_info *fs_info,
 				      block_group->key.objectid);
 	btrfs_free_path(path);
 
-	matched = (ctl->free_space == (block_group->key.offset - used -
-				       block_group->bytes_super));
-	if (ret == 1 && !matched) {
-		__btrfs_remove_free_space_cache(ctl);
+	bg_free = block_group->key.offset - used - block_group->bytes_super;
+	diff = ctl->free_space - bg_free;
+	if (ret == 1 && diff) {
 		fprintf(stderr,
-		       "block group %llu has wrong amount of free space\n",
-		       block_group->key.objectid);
+		       "block group %llu has wrong amount of free space, free space cache has %llu block group has %llu\n",
+		       block_group->key.objectid, ctl->free_space, bg_free);
+		__btrfs_remove_free_space_cache(ctl);
+		/*
+		 * Due to btrfs_reserve_extent() can happen out of a
+		 * transaction, but all btrfs_release_extent() happens inside
+		 * a transaction, so under heavy race it's possible that free
+		 * space cache has less free space, and both kernel just discard
+		 * such cache. But if we find some case where free space cache
+		 * has more free space, this means under certain case such
+		 * cache can be loaded and cause double allocate.
+		 *
+		 * Detect such possibility here.
+		 */
+		if (diff > 0)
+			error(
+"free space cache has more free space than block group item, this could leads to serious corruption, please contact btrfs developers");
 		ret = -1;
 	}
 
 	if (ret < 0) {
-		ret = 0;
+		if (diff <= 0)
+			ret = 0;
 
 		fprintf(stderr,
 		       "failed to load free space cache for block group %llu\n",
@@ -819,10 +838,8 @@ int btrfs_add_free_space(struct btrfs_free_space_ctl *ctl, u64 offset,
 	try_merge_free_space(ctl, info);
 
 	ret = link_free_space(ctl, info);
-	if (ret) {
+	if (ret)
 		printk(KERN_CRIT "btrfs: unable to add free space :%d\n", ret);
-		BUG_ON(ret == -EEXIST);
-	}
 
 	return ret;
 }
@@ -876,4 +893,130 @@ again:
 next:
 		prev = e;
 	}
+}
+
+int btrfs_clear_free_space_cache(struct btrfs_fs_info *fs_info,
+				 struct btrfs_block_group_cache *bg)
+{
+	struct btrfs_trans_handle *trans;
+	struct btrfs_root *tree_root = fs_info->tree_root;
+	struct btrfs_path path;
+	struct btrfs_key key;
+	struct btrfs_disk_key location;
+	struct btrfs_free_space_header *sc_header;
+	struct extent_buffer *node;
+	u64 ino;
+	int slot;
+	int ret;
+
+	trans = btrfs_start_transaction(tree_root, 1);
+	if (IS_ERR(trans))
+		return PTR_ERR(trans);
+
+	btrfs_init_path(&path);
+
+	key.objectid = BTRFS_FREE_SPACE_OBJECTID;
+	key.type = 0;
+	key.offset = bg->key.objectid;
+
+	ret = btrfs_search_slot(trans, tree_root, &key, &path, -1, 1);
+	if (ret > 0) {
+		ret = 0;
+		goto out;
+	}
+	if (ret < 0)
+		goto out;
+
+	node = path.nodes[0];
+	slot = path.slots[0];
+	sc_header = btrfs_item_ptr(node, slot, struct btrfs_free_space_header);
+	btrfs_free_space_key(node, sc_header, &location);
+	ino = btrfs_disk_key_objectid(&location);
+
+	/* Delete the free space header, as we have the ino to continue */
+	ret = btrfs_del_item(trans, tree_root, &path);
+	if (ret < 0) {
+		error("failed to remove free space header for block group %llu: %d",
+		      bg->key.objectid, ret);
+		goto out;
+	}
+	btrfs_release_path(&path);
+
+	/* Iterate from the end of the free space cache inode */
+	key.objectid = ino;
+	key.type = BTRFS_EXTENT_DATA_KEY;
+	key.offset = (u64)-1;
+	ret = btrfs_search_slot(trans, tree_root, &key, &path, -1, 1);
+	if (ret < 0) {
+		error("failed to locate free space cache extent for block group %llu: %d",
+		      bg->key.objectid, ret);
+		goto out;
+	}
+	while (1) {
+		struct btrfs_file_extent_item *fi;
+		u64 disk_bytenr;
+		u64 disk_num_bytes;
+
+		ret = btrfs_previous_item(tree_root, &path, ino,
+					  BTRFS_EXTENT_DATA_KEY);
+		if (ret > 0) {
+			ret = 0;
+			break;
+		}
+		if (ret < 0) {
+			error(
+	"failed to locate free space cache extent for block group %llu: %d",
+				bg->key.objectid, ret);
+			goto out;
+		}
+		node = path.nodes[0];
+		slot = path.slots[0];
+		btrfs_item_key_to_cpu(node, &key, slot);
+		fi = btrfs_item_ptr(node, slot, struct btrfs_file_extent_item);
+		disk_bytenr = btrfs_file_extent_disk_bytenr(node, fi);
+		disk_num_bytes = btrfs_file_extent_disk_num_bytes(node, fi);
+
+		ret = btrfs_free_extent(trans, tree_root, disk_bytenr,
+					disk_num_bytes, 0, tree_root->objectid,
+					ino, key.offset);
+		if (ret < 0) {
+			error("failed to remove backref for disk bytenr %llu: %d",
+			      disk_bytenr, ret);
+			goto out;
+		}
+		ret = btrfs_del_item(trans, tree_root, &path);
+		if (ret < 0) {
+			error(
+	"failed to remove free space extent data for ino %llu offset %llu: %d",
+			      ino, key.offset, ret);
+			goto out;
+		}
+	}
+	btrfs_release_path(&path);
+
+	/* Now delete free space cache inode item */
+	key.objectid = ino;
+	key.type = BTRFS_INODE_ITEM_KEY;
+	key.offset = 0;
+
+	ret = btrfs_search_slot(trans, tree_root, &key, &path, -1, 1);
+	if (ret > 0)
+		warning("free space inode %llu not found, ignore", ino);
+	if (ret < 0) {
+		error(
+	"failed to locate free space cache inode %llu for block group %llu: %d",
+		      ino, bg->key.objectid, ret);
+		goto out;
+	}
+	ret = btrfs_del_item(trans, tree_root, &path);
+	if (ret < 0) {
+		error(
+	"failed to delete free space cache inode %llu for block group %llu: %d",
+		      ino, bg->key.objectid, ret);
+	}
+out:
+	btrfs_release_path(&path);
+	if (!ret)
+		btrfs_commit_transaction(trans, tree_root);
+	return ret;
 }

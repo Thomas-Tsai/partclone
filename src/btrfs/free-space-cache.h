@@ -12,8 +12,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #ifndef __BTRFS_FREE_SPACE_CACHE_H__
@@ -21,7 +21,7 @@
 
 #include "kerncompat.h"
 #include "ctree.h"
-#include "rbtree.h"
+#include "kernel-lib/rbtree.h"
 
 struct btrfs_free_space {
 	struct rb_node offset_index;
@@ -59,4 +59,6 @@ void unlink_free_space(struct btrfs_free_space_ctl *ctl,
 		       struct btrfs_free_space *info);
 int btrfs_add_free_space(struct btrfs_free_space_ctl *ctl, u64 offset,
 			 u64 bytes);
+int btrfs_clear_free_space_cache(struct btrfs_fs_info *fs_info,
+				 struct btrfs_block_group_cache *bg);
 #endif

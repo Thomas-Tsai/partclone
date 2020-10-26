@@ -12,8 +12,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #ifndef __BTRFS_SEND_UTILS_H__
@@ -22,7 +22,7 @@
 #if BTRFS_FLAT_INCLUDES
 #include "kerncompat.h"
 #include "ctree.h"
-#include "rbtree.h"
+#include "kernel-lib/rbtree.h"
 #else
 #include <btrfs/kerncompat.h>
 #include <btrfs/ctree.h>
@@ -80,7 +80,22 @@ struct subvol_uuid_search {
 
 int subvol_uuid_search_init(int mnt_fd, struct subvol_uuid_search *s);
 void subvol_uuid_search_finit(struct subvol_uuid_search *s);
+/*
+ * Search for a subvolume by given type (received uuid, root id, path), returns
+ * pointer to newly allocated struct subvol_info or NULL in case it's not found
+ * or there was another error. This ambiguity of error value is fixed by
+ * subvol_uuid_search2 that returns a negative errno in case of an error, of a
+ * valid pointer otherwise.
+ *
+ * This function will be deprecated in the future, please consider using v2 in
+ * new code unless you need to keep backward compatibility with older
+ * btrfs-progs.
+ */
 struct subvol_info *subvol_uuid_search(struct subvol_uuid_search *s,
+				       u64 root_id, const u8 *uuid, u64 transid,
+				       const char *path,
+				       enum subvol_search_type type);
+struct subvol_info *subvol_uuid_search2(struct subvol_uuid_search *s,
 				       u64 root_id, const u8 *uuid, u64 transid,
 				       const char *path,
 				       enum subvol_search_type type);
@@ -88,15 +103,6 @@ void subvol_uuid_search_add(struct subvol_uuid_search *s,
 			    struct subvol_info *si);
 
 int btrfs_subvolid_resolve(int fd, char *path, size_t path_len, u64 subvol_id);
-
-/*
- * DEPRECATED: the functions path_cat and path_cat3 are unsafe and should not
- * be used, use the _out variants and always check the return code.
- */
-__attribute__((deprecated))
-char *path_cat(const char *p1, const char *p2);
-__attribute__((deprecated))
-char *path_cat3(const char *p1, const char *p2, const char *p3);
 
 int path_cat_out(char *out, const char *p1, const char *p2);
 int path_cat3_out(char *out, const char *p1, const char *p2, const char *p3);

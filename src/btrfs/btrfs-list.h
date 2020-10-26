@@ -12,8 +12,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #ifndef __BTRFS_LIST_H__
@@ -21,7 +21,7 @@
 
 #if BTRFS_FLAT_INCLUDES
 #include "kerncompat.h"
-#include "rbtree.h"
+#include "kernel-lib/rbtree.h"
 #include "ioctl.h"
 #else
 #include <btrfs/kerncompat.h>
@@ -31,9 +31,11 @@
 
 #include <time.h>
 
-#define BTRFS_LIST_LAYOUT_DEFAULT	0
-#define BTRFS_LIST_LAYOUT_TABLE	1
-#define BTRFS_LIST_LAYOUT_RAW		2
+enum btrfs_list_layout {
+	BTRFS_LIST_LAYOUT_DEFAULT = 0,
+	BTRFS_LIST_LAYOUT_TABLE,
+	BTRFS_LIST_LAYOUT_RAW
+};
 
 /*
  * one of these for each root we find.
@@ -160,19 +162,19 @@ int btrfs_list_parse_filter_string(char *optarg,
 				   enum btrfs_list_filter_enum type);
 void btrfs_list_setup_print_column(enum btrfs_list_column_enum column);
 struct btrfs_list_filter_set *btrfs_list_alloc_filter_set(void);
-void btrfs_list_free_filter_set(struct btrfs_list_filter_set *filter_set);
-int btrfs_list_setup_filter(struct btrfs_list_filter_set **filter_set,
+void btrfs_list_setup_filter(struct btrfs_list_filter_set **filter_set,
 			    enum btrfs_list_filter_enum filter, u64 data);
 struct btrfs_list_comparer_set *btrfs_list_alloc_comparer_set(void);
-void btrfs_list_free_comparer_set(struct btrfs_list_comparer_set *comp_set);
 
 int btrfs_list_subvols_print(int fd, struct btrfs_list_filter_set *filter_set,
 		       struct btrfs_list_comparer_set *comp_set,
-		       int is_tab_result, int full_path, char *raw_prefix);
+		       enum btrfs_list_layout layout, int full_path,
+		       const char *raw_prefix);
 int btrfs_list_find_updated_files(int fd, u64 root_id, u64 oldest_gen);
 int btrfs_list_get_default_subvolume(int fd, u64 *default_id);
 char *btrfs_list_path_for_root(int fd, u64 root);
 int btrfs_list_get_path_rootid(int fd, u64 *treeid);
 int btrfs_get_subvol(int fd, struct root_info *the_ri);
+int btrfs_get_toplevel_subvol(int fd, struct root_info *the_ri);
 
 #endif

@@ -25,7 +25,7 @@
 #include "btrfs/ctree.h"
 #include "btrfs/volumes.h"
 #include "btrfs/disk-io.h"
-#include "btrfs/utils.h"
+#include "btrfs/common/utils.h"
 #include "btrfs/version.h"
 
 
@@ -75,14 +75,14 @@ int check_extent_bitmap(unsigned long* bitmap, u64 bytenr, u64 *num_bytes, int t
     u64 maxlen;
 
 
-    if (*num_bytes % root->sectorsize)
+    if (*num_bytes % root->fs_info->sectorsize)
 	return -EINVAL;
 
     if (type == 1){
 	maxlen = *num_bytes;
     }
 
-    ret = btrfs_map_block(&info->mapping_tree, READ, bytenr, num_bytes,
+    ret = btrfs_map_block(info, READ, bytenr, num_bytes,
 	    &multi, mirror, NULL);
     if (ret) {
 	log_mesg(1, 0, 0, fs_opt.debug, "%s: Couldn't map the block %llu\n", __FILE__, bytenr);
@@ -175,7 +175,7 @@ int csum_bitmap(unsigned long* bitmap, struct btrfs_root *root){
 	}
 
 	data_len = (btrfs_item_size_nr(leaf, path.slots[0]) /
-		csum_size) * root->sectorsize;
+		csum_size) * root->fs_info->sectorsize;
 	leaf_offset = btrfs_item_ptr_offset(leaf, path.slots[0]);
 	log_mesg(2, 0, 0, fs_opt.debug, "%s: leaf_offset %lu\n", __FILE__, leaf_offset);
 	log_mesg(2, 0, 0, fs_opt.debug, "%s: key.offset %lu\n", __FILE__, key.offset);
@@ -211,13 +211,12 @@ void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct exte
     struct btrfs_item *item;
     struct btrfs_disk_key disk_key;
     struct btrfs_file_extent_item *fi;
-    u32 leaf_size;
 
     if (!eb)
 	return;
     u32 nr = btrfs_header_nritems(eb);
     if (btrfs_is_leaf(eb)) {
-	size = (u64)root->nodesize;
+	size = (u64)root->fs_info->nodesize;
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: DUMP: leaf %llu\n", __FILE__, (unsigned long long)btrfs_header_bytenr(eb));
 	bytenr = (unsigned long long)btrfs_header_bytenr(eb);
 	check_extent_bitmap(bitmap, bytenr, &size, 0);
@@ -260,14 +259,12 @@ void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct exte
     if (!follow)
 	return;
     log_mesg(3, 0, 0, fs_opt.debug, "%s: follow %i\n", __FILE__, follow);
-    leaf_size = root->nodesize;
     for (i = 0; i < nr; i++) {
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: follow %i\n", __FILE__, follow);
 	bytenr = (unsigned long long)btrfs_header_bytenr(eb);
 	check_extent_bitmap(bitmap, bytenr, &size, 0);
-	struct extent_buffer *next = read_tree_block(root,
+	struct extent_buffer *next = read_tree_block(root->fs_info,
 		btrfs_node_blockptr(eb, i),
-		leaf_size,
 		btrfs_node_ptr_generation(eb, i));
 	bytenr = (unsigned long long)btrfs_header_bytenr(next);
 	check_extent_bitmap(bitmap, bytenr, &size, 0);
@@ -376,7 +373,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     key.offset = 0;
     key.objectid = 0;
-    btrfs_set_key_type(&key, BTRFS_ROOT_ITEM_KEY);
+    key.type = BTRFS_ROOT_ITEM_KEY;
     ret = btrfs_search_slot(NULL, tree_root_scan, &key, &path, 0, 0);
     while(1) {
 	leaf = path.nodes[0];
@@ -390,15 +387,14 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	}
 	btrfs_item_key(leaf, &disk_key, path.slots[0]);
 	btrfs_disk_key_to_cpu(&found_key, &disk_key);
-	if (btrfs_key_type(&found_key) == BTRFS_ROOT_ITEM_KEY) {
+	if (found_key.type == BTRFS_ROOT_ITEM_KEY) {
 	    unsigned long offset;
 	    struct extent_buffer *buf;
 
 	    offset = btrfs_item_ptr_offset(leaf, slot);
 	    read_extent_buffer(leaf, &ri, offset, sizeof(ri));
-	    buf = read_tree_block(tree_root_scan,
+	    buf = read_tree_block(tree_root_scan->fs_info,
 		    btrfs_root_bytenr(&ri),
-		    root->nodesize,
 		    0);
 	    if (!extent_buffer_uptodate(buf))
 		goto next;
