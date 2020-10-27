@@ -1,3 +1,11 @@
+partclone (0.3.16-1) unstable; urgency=medium
+
+  * update btrfs to 5.4.1
+  * fix crash when backing up swap partition
+  * Ignore free space check if compression is enabled
+
+ -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 27 Oct 2020 10:28:39 +0800
+
 partclone (0.3.15-1) unstable; urgency=medium
 
   * update xfs and vmfs for gcc 10

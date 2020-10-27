@@ -1,4 +1,54 @@
+2020-10-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	set version to 0.3.16
+
+	merge
+
+2020-10-26  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #151 from boretom/to-btrfs-progs-5.4.1
+	Update to btrfs-progs 5.4.1
+
+2020-10-26  Thomas Kupper  <thomas.kupper@gmail.com>
+
+	Update to btrfs-progs 5.4.1
+	Also:
+	- Update toolbox script to use rsync for btrfs-prog code sync. This since it involves subdirectories
+	- Update .gitignore to include APFS binary `src\partclone.apfs`
+	- Set file size for btrfs test since it failed because of a minimal size necessary
+
+2020-10-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update btrfs to 4.12
+
+	try to update to btrfs 4.10
+
+	try to update btrfs to 4.8
+
+2020-07-24  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #148 from justforlxz/master
+	fix: crash when backing up swap partition
+
+2020-07-24  Zhang, DingYuan  <justforlxz@gmail.com>
+
+	fix: crash when backing up swap partition
+	args: -s /dev/nvme0n1p5 -o - -c -z 1048576 -L /var/log/partclone.log
+
+	/dev/nvme0n1p5 is the swap partition, I noticed that in the calculate_speed function of progress.c, percent = prog->unit * copied; percent is NaN, prog->unit is Inf, so the next judgment was not successfully modified percent, which caused the retained to be the wrong value, and the strftime function crashed.
+
+2020-07-13  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #147 from zboszor/ignore-free-space-check-with-compression
+	Ignore free space check if compression is enabled.
+
+2020-07-10  Zoltán Böszörményi  <zboszor@pr.hu>
+
+	Ignore free space check if compression is enabled.
+
 2020-07-05  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.3.15
 
 	release 0.3.14
 
