@@ -18,6 +18,7 @@ fail-mbr/fail-mbr.image
 *.plist
 clang_output_*
 *.exec
+src/partclone.apfs
 src/partclone.btrfs
 src/partclone.fstype
 src/partclone.jfs

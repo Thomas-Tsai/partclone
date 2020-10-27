@@ -13,8 +13,8 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #ifndef __BTRFS_CHECK_H__
@@ -24,7 +24,7 @@
 #include "kerncompat.h"
 #include "ctree.h"
 #include "extent-cache.h"
-#include "list.h"
+#include "kernel-lib/list.h"
 #else
 #include <btrfs/kerncompat.h>
 #include <btrfs/ctree.h>
@@ -113,7 +113,7 @@ struct device_extent_record {
 	u8  type;
 	u64 offset;
 
-	u64 chunk_objecteid;
+	u64 chunk_objectid;
 	u64 chunk_offset;
 	u64 length;
 };

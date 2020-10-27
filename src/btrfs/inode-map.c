@@ -12,14 +12,14 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #include "ctree.h"
 #include "disk-io.h"
 #include "transaction.h"
-#include "internal.h"
+#include "common/internal.h"
 
 /*
  * walks the btree of allocated inodes and find a hole.
@@ -39,7 +39,9 @@ int btrfs_find_free_objectid(struct btrfs_trans_handle *trans,
 	u64 search_start = dirid;
 
 	path = btrfs_alloc_path();
-	BUG_ON(!path);
+	if (!path)
+		return -ENOMEM;
+
 	search_start = root->last_inode_alloc;
 	search_start = max((unsigned long long)search_start,
 				BTRFS_FIRST_FREE_OBJECTID);

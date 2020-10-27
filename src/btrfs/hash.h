@@ -12,17 +12,27 @@
  *
  * You should have received a copy of the GNU General Public
  * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301 USA.
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
  */
 
 #ifndef __BTRFS_HASH_H__
 #define __BTRFS_HASH_H__
 
-#include "crc32c.h"
+#include "crypto/crc32c.h"
 
 static inline u64 btrfs_name_hash(const char *name, int len)
 {
 	return crc32c((u32)~1, name, len);
 }
+
+/*
+ * Figure the key offset of an extended inode ref
+ */
+static inline u64 btrfs_extref_hash(u64 parent_objectid, const char *name,
+				    int len)
+{
+	return (u64)btrfs_crc32c(parent_objectid, name, len);
+}
+
 #endif
