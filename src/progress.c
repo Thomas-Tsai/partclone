@@ -43,7 +43,7 @@ extern void progress_init(struct progress_bar *prog, int start, unsigned long lo
     prog->stop = stop;
     prog->total = total;
 
-    if ((stop - stop) != 0) {
+    if ((stop - stop) == 0) {
         prog->unit = 100.0 / (stop - start);
         prog->total_unit = 100.0 / (total - start);
     }
