@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <math.h>
+#include <float.h>
 #include "config.h"
 #include "progress.h"
 #include "gettext.h"
@@ -43,9 +44,12 @@ extern void progress_init(struct progress_bar *prog, int start, unsigned long lo
     prog->stop = stop;
     prog->total = total;
 
-    if ((stop - stop) != 0) {
-        prog->unit = 100.0 / (stop - start);
-        prog->total_unit = 100.0 / (total - start);
+    prog->unit = 100.0 / (stop - start);
+    prog->total_unit = 100.0 / (total - start);
+
+    if (!isnormal(prog->unit) || !isnormal(prog->total_unit)){
+        prog->unit = 0;
+        prog->total_unit = 0;
     }
 
     prog->initial_time = time(0);
