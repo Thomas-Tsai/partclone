@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.2.9\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
-"POT-Creation-Date: 2020-10-27 10:28+0800\n"
+"POT-Creation-Date: 2020-10-29 12:20+0800\n"
 "PO-Revision-Date: 2010-11-01 10:13+0100\n"
 "Last-Translator: \n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -18,27 +18,27 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: src/progress.c:207
+#: src/progress.c:211
 #, c-format
 msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: %6.2f%%"
 msgstr "\r%80c\rEcoulé: %s, Restant: %s, Complété:%6.2f%%,"
 
-#: src/progress.c:210
+#: src/progress.c:214
 #, c-format
 msgid ", %6.2f%s/min,"
 msgstr ", %6.2f%s/mn"
 
-#: src/progress.c:218
+#: src/progress.c:222
 #, fuzzy, c-format
 msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: 100.00%%"
 msgstr "\r%80c\rEcoulé: %s, Restant: %s, Complété:%6.2f%%,"
 
-#: src/progress.c:220
+#: src/progress.c:224
 #, c-format
 msgid ", Rate: %6.2f%s/min,"
 msgstr ", Débit: %6.2f%s/mn,"
 
-#: src/progress.c:224
+#: src/progress.c:228
 #, c-format
 msgid ""
 "\n"
@@ -47,17 +47,17 @@ msgstr ""
 "\n"
 "Durée totale: %s, "
 
-#: src/progress.c:226
+#: src/progress.c:230
 #, c-format
 msgid "Ave. Rate: %6.1f%s/min, "
 msgstr "Débit moyen: %6.1f%s/mn, "
 
-#: src/progress.c:227
+#: src/progress.c:231
 #, c-format
 msgid "%s"
 msgstr "%s"
 
-#: src/progress.c:254
+#: src/progress.c:258
 #, fuzzy, c-format
 msgid "Elapsed: %s Remaining: %s "
 msgstr ""
@@ -65,24 +65,24 @@ msgstr ""
 "  Restant: %s\n"
 "  Complété:%6.2f%%"
 
-#: src/progress.c:256
+#: src/progress.c:260
 #, c-format
 msgid "Rate: %6.2f%s/min"
 msgstr "Débit: %6.2f%s/mn"
 
-#: src/progress.c:258
+#: src/progress.c:262
 #, c-format
 msgid "Current Block: %llu  Total Block: %llu "
 msgstr ""
 
-#: src/progress.c:289
+#: src/progress.c:293
 #, fuzzy, c-format
 msgid "Total Time: %s Remaining: %s "
 msgstr ""
 "\n"
 "Durée totale: %s, "
 
-#: src/progress.c:291
+#: src/progress.c:295
 #, c-format
 msgid "Ave. Rate: %6.2f%s/min"
 msgstr "Débit moyen: %6.2f%s/min"

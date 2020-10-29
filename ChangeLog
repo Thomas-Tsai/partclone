@@ -1,4 +1,16 @@
+2020-10-29  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+2020-10-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add float check
+
+	fix progress issue
+
 2020-10-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.3.16
 
 	set version to 0.3.16
 
