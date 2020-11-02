@@ -720,8 +720,10 @@ int main(int argc, char **argv) {
 
 				if (opt.ignore_crc) {
 					read_offset += block_size;
-					if (++blocks_in_cs == blocks_per_cs)
+					if (++blocks_in_cs == blocks_per_cs){
 						read_offset += cs_size;
+                                                blocks_in_cs = 0;
+                                            }
 					continue;
 				}
 
