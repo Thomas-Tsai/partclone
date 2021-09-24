@@ -457,6 +457,8 @@ int main(int argc, char **argv) {
 			tinfo = open(torrent_name, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 
 			torrent_init(&torrent, tinfo);
+			dprintf(tinfo, "block_size: %u\n", block_size);
+			dprintf(tinfo, "blocks_total: %llu\n", blocks_total);
 		}
 
 		block_id = 0;
@@ -673,6 +675,8 @@ int main(int argc, char **argv) {
 			tinfo = open(torrent_name, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 
 			torrent_init(&torrent, tinfo);
+			dprintf(tinfo, "block_size: %u\n", block_size);
+			dprintf(tinfo, "blocks_total: %llu\n", blocks_total);
 		}
 
 		block_id = 0;
@@ -1005,6 +1009,8 @@ int main(int argc, char **argv) {
 			sprintf(torrent_name,"%s/torrent.info", target);
 			tinfo = open(torrent_name, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 			torrent_init(&torrent, tinfo);
+			dprintf(tinfo, "block_size: %u\n", block_size);
+			dprintf(tinfo, "blocks_total: %llu\n", blocks_total);
 		}
 
 		log_mesg(0, 0, 0, debug, "Total block %llu\n", blocks_total);
