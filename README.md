@@ -26,8 +26,6 @@ We made some utilities:
 * partclone.dd
 ...
 
-master branch is NOT STABLE, Please check 'release' branch
-
 Basic Usage:
 
  - clone partition to image

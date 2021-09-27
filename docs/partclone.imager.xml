@@ -280,7 +280,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>-l <replaceable>FILE</replaceable></option></term>
+        <term><option>-L <replaceable>FILE</replaceable></option></term>
         <term><option>--logfile <replaceable>FILE</replaceable></option></term>
         <listitem>
           <para>put special path to record partclone log information.(default /var/log/partclone.log)</para>

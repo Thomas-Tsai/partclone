@@ -30,6 +30,7 @@ void torrent_update(torrent_generator *torrent, void *buffer, size_t length)
 	unsigned long long buffer_offset = 0;
 
 	int tinfo = torrent->tinfo;
+	int x = 0;
 
 	while (buffer_remain_length > 0) {
 		sha_remain_length = BT_PIECE_SIZE - sha_length;
@@ -37,7 +38,7 @@ void torrent_update(torrent_generator *torrent, void *buffer, size_t length)
 			// finish a piece
 			SHA1_Final(torrent->hash, &torrent->ctx);
 			dprintf(tinfo, "sha1: ");
-			for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+			for (x = 0; x < SHA_DIGEST_LENGTH; x++) {
 				dprintf(tinfo, "%02x", torrent->hash[x]);
 			}
 			dprintf(tinfo, "\n");
@@ -67,10 +68,12 @@ void torrent_update(torrent_generator *torrent, void *buffer, size_t length)
 
 void torrent_final(torrent_generator *torrent)
 {
+	int x = 0;
+
 	if (torrent->length) {
 		SHA1_Final(torrent->hash, &torrent->ctx);
 		dprintf(torrent->tinfo, "sha1: ");
-		for (int x = 0; x < SHA_DIGEST_LENGTH; x++) {
+		for (x = 0; x < SHA_DIGEST_LENGTH; x++) {
 			dprintf(torrent->tinfo, "%02x", torrent->hash[x]);
 		}
 		dprintf(torrent->tinfo, "\n");
