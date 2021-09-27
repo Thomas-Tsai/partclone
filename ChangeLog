@@ -1,4 +1,54 @@
+2021-09-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+2021-09-24  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #164 from tjjh89017/more_torrent_info
+	WIP: Add block_size and blocks_total in torrent.info to provide partition info
+
+2021-09-24  Date Huang  <tjjh89017@hotmail.com>
+
+	Add block_size and blocks_total in torrent.info to provide partition info
+
+2021-06-14  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #162 from mjoerg/master
+	doc: fix typo for logfile argument
+
+2021-06-12  Martin Joerg  <martin.joerg@gmail.com>
+
+	doc: fix typo for logfile argument
+
+2021-03-03  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #157 from pfrouleau/document_partclone_image_formats
+	doc: document the image formats
+
+2021-03-03  Patrick Rouleau  <prouleau72@gmail.com>
+
+	doc: document the image formats
+
+2021-02-17  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Update README.md
+
+2021-01-06  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #152 from robert-scheck/c99-for-loop
+	Change C99 for loop init to C89 for compatibility
+
+2020-12-31  Robert Scheck  <robert@fedoraproject.org>
+
+	Change C99 for loop init to C89 for compatibility
+
+2020-11-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	* try to fix ignore_crc not working properly in partclone 3.12. * issue is 2.8 image restored by 3.X with ignore_crc and get fail. reference https://github.com/Sebastian-Roth/partclone/commit/80ca94dccadbc4998b80f3eabe8c84bdc638c7b5
+
 2020-10-29  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.3.17
 
 	release 0.3.16
 
