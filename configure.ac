@@ -1,4 +1,4 @@
-AC_INIT([Partclone], [0.3.17], [thomas@nchc.org.tw])
+AC_INIT([Partclone],[0.3.17],[thomas@nchc.org.tw])
 AM_INIT_AUTOMAKE([-Wall foreign])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
@@ -62,7 +62,7 @@ AC_ARG_ENABLE([fuse],
 )
 AM_CONDITIONAL(ENABLE_FUSE, test "$enable_fuse" = yes)
 if test "$enable_fuse" = "yes"; then
-AC_CHECKING([ for FUSE Library and Header files ... ])
+AS_MESSAGE([checking  for FUSE Library and Header files ... ...])
     PKG_CHECK_MODULES([FUSE], [fuse],,exit)
     uuidcfg=`pkg-config --cflags --libs fuse`
 fi
@@ -81,7 +81,7 @@ AM_CONDITIONAL(ENABLE_EXTFS, test "$enable_extfs" = yes)
 if test "$enable_extfs" = "yes"; then
 #check library of some filesystems
 dnl Check for EXT2/3
-AC_CHECKING([ for EXT2/3 Library and Header files ... ])
+AS_MESSAGE([checking  for EXT2/3 Library and Header files ... ...])
 AC_CHECK_HEADERS([ext2fs/ext2fs.h], ,
   AC_MSG_ERROR([*** EXT2/3 header files (ext2fs/ext2fs.h) not found])
 )
@@ -120,7 +120,7 @@ AM_CONDITIONAL(ENABLE_REISERFS, test "$enable_reiserfs" = yes)
 if test "$enable_reiserfs" = "yes"; then
 
 dnl Check for REISERFS
-AC_CHECKING([ for Reiserfs Library and Header files ... ])
+AS_MESSAGE([checking  for Reiserfs Library and Header files ... ...])
 AC_CHECK_HEADERS([reiserfs/reiserfs.h], ,
     AC_MSG_ERROR([*** reiserfs header files (reiserfs/reiserfs.h) not found])
 )
@@ -147,7 +147,7 @@ if test "$enable_reiser4" = "yes"; then
 
 dnl Check for REISER4
 dnl Check uuid library which depended by REISER4
-AC_CHECKING([ for Reiser4 Library and Header files ... ])
+AS_MESSAGE([checking  for Reiser4 Library and Header files ... ...])
 AC_CHECK_HEADERS([reiser4/libreiser4.h], ,
   AC_MSG_ERROR([*** reiser4 header files (reiser4/libreiser4.h) not found])
 )
@@ -238,7 +238,7 @@ AM_CONDITIONAL(ENABLE_NILFS2, test "$enable_nilfs2" = yes)
 
 if test "$enable_nilfs2" = "yes"; then
 dnl Check headers which depended by NILFS2
-AC_CHECKING([ for NILFS2 header files ... ])
+AS_MESSAGE([checking  for NILFS2 header files ... ...])
 AC_CHECK_HEADERS([ctype.h fcntl.h grp.h libintl.h limits.h linux/magic.h \
 		  linux/types.h locale.h mntent.h mqueue.h paths.h pwd.h \
 		  semaphore.h stdlib.h string.h strings.h sys/ioctl.h \
@@ -270,14 +270,14 @@ if test "$enable_ntfs" = "yes"; then
     ntfsprogs_l=0
     #check library of some filesystems
     dnl Check for NTFS-3g
-    AC_CHECKING([ for NTFS-3g Library and Header files ... ])
+    AS_MESSAGE([checking  for NTFS-3g Library and Header files ... ...])
     AC_CHECK_HEADERS([ntfs-3g/misc.h], ntfs_3g_h=1,
     AC_MSG_WARN([*** NTFS(libntfs-3g-dev) header not found]))
     AC_CHECK_LIB([ntfs-3g], [ntfs_mount], ntfs_3g_l=1,
     AC_MSG_WARN([*** ntfs depend library (libntfs-3g) not found]))
 
     dnl Check for NTFSPROGS
-    AC_CHECKING([ for NTFS Library and Header files ... ])
+    AS_MESSAGE([checking  for NTFS Library and Header files ... ...])
     AC_CHECK_HEADERS([ntfs/version.h], ntfsprogs_h=1,
     AC_MSG_WARN([*** NTFS(ntfsprogs) header not found]))
     AC_CHECK_LIB([ntfs], [ntfs_mount], ntfsprogs_l=1,
@@ -310,7 +310,7 @@ if test "$enable_ufs" = "yes"; then
 #check library of some filesystems
 
 dnl Check for UFS 
-AC_CHECKING([ for UFS Library ... ])
+AS_MESSAGE([checking  for UFS Library ... ...])
 AC_CHECK_LIB([ufs], [ufs_disk_fillout], true,
         AC_MSG_ERROR([*** ufs depend library (libufs2) not found]))
 supported_fs=$supported_fs" ufs"
@@ -330,10 +330,10 @@ if test "$enable_vmfs" = "yes"; then
 #check library of some filesystems
 
 dnl Check for VMFS 
-##AC_CHECKING([ for VMFS Library and Header files ... ])
+##AS_MESSAGE([checking  for VMFS Library and Header files ... ...])
 ##AC_CHECK_HEADERS([uuid/uuid.h vmfs/vmfs.h], ,
 ##   AC_MSG_ERROR([*** VMFS(vmfs-tools) header not found]))
-AC_CHECKING([for VMFS Library files ... ])
+AS_MESSAGE([checking for VMFS Library files ... ...])
 AC_CHECK_LIB([vmfs -luuid], [vmfs_host_init], true,
         AC_MSG_ERROR([*** vmfs depend library (libvmfs) not found]))
 supported_fs=$supported_fs" vmfs"
@@ -353,10 +353,10 @@ if test "$enable_jfs" = "yes"; then
 #check library of some filesystems
 
 dnl Check for JFS 
-##AC_CHECKING([ for JFS Library and Header files ... ])
+##AS_MESSAGE([checking  for JFS Library and Header files ... ...])
 ##AC_CHECK_HEADERS([uuid/uuid.h jfs/jfs_superblock.h], ,
 ##   AC_MSG_ERROR([*** JFS(libjfs) header not found]))
-AC_CHECKING([for JFS Library files ... ])
+AS_MESSAGE([checking for JFS Library files ... ...])
 AC_CHECK_LIB([jfs -luuid], [ujfs_get_superblk], true,
         AC_MSG_ERROR([*** jfs depend library (libjfs) not found]))
 supported_fs=$supported_fs" jfs"
@@ -407,7 +407,7 @@ AM_CONDITIONAL(ENABLE_NCURSESW, test "$enable_ncursesw" = yes)
 if test "$enable_ncursesw" = "yes"; then
 
 dnl Check for NCURSESW
-AC_CHECKING([ for Ncursesw Library and Header files ... ])
+AS_MESSAGE([checking  for Ncursesw Library and Header files ... ...])
 AC_CHECK_HEADERS([ncurses.h], ,
     AC_MSG_ERROR([*** ncurses header files (ncurses.h) not found])
 )

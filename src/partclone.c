@@ -850,7 +850,7 @@ void log_mesg(int log_level, int log_exit, int log_stderr, int debug, const char
 			if (log_exit)
 				wattron(log_win, A_STANDOUT);
 
-			wprintw(log_win, tmp_str);
+			wprintw(log_win, "%s", tmp_str);
 
 			if (log_exit) {
 				wattroff(log_win, A_STANDOUT);
