@@ -22,17 +22,25 @@
 #include <stdint.h>
 
 /* SHA1 for torrent info */
+#if defined(HAVE_EVP_MD_CTX_new) || defined(HAVE_EVP_MD_CTX_create)
+#include <openssl/evp.h>
+#else
 #include <openssl/sha.h>
+#endif
 
 #define DEFAULT_PIECE_SIZE (16ULL * 1024 * 1024)
 
 typedef struct {
 	unsigned long long PIECE_SIZE;
-	unsigned char hash[SHA_DIGEST_LENGTH];
+	unsigned char hash[20]; /* SHA_DIGEST_LENGTH, only present in <openssl/sha.h> */
 	/* fd for torrent.info. You should close fd yourself */
 	int tinfo;
 	/* remember the length for a piece size */
+#if defined(HAVE_EVP_MD_CTX_new) || defined(HAVE_EVP_MD_CTX_create)
+	EVP_MD_CTX *ctxt;
+#else
 	SHA_CTX ctx;
+#endif
 	size_t length;
 } torrent_generator;
 
