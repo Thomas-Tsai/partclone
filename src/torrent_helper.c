@@ -50,7 +50,7 @@ void torrent_update(torrent_generator *torrent, void *buffer, size_t length)
 			SHA1_Final(torrent->hash, &torrent->ctx);
 #endif
 			dprintf(tinfo, "sha1: ");
-			for (x = 0; x < SHA_DIGEST_LENGTH; x++) {
+			for (x = 0; x < 20 /* SHA_DIGEST_LENGTH */; x++) {
 				dprintf(tinfo, "%02x", torrent->hash[x]);
 			}
 			dprintf(tinfo, "\n");
@@ -96,18 +96,17 @@ void torrent_final(torrent_generator *torrent)
 	int x = 0;
 
 	if (torrent->length) {
-#if defined(HAVE_EVP_MD_CTX_new) || defined(HAVE_EVP_MD_CTX_create)
+#if defined(HAVE_EVP_MD_CTX_new)
 		EVP_DigestFinal(torrent->ctx, torrent->hash, NULL);
-# ifdef HAVE_EVP_MD_CTX_new
-		EVP_MD_CTX_free(ctxt);
-# else
-		EVP_MD_CTX_destroy(ctxt);
-# endif
+		EVP_MD_CTX_free(torrent->ctx);
+#elif defined(HAVE_EVP_MD_CTX_create)
+		EVP_DigestFinal(torrent->ctx, torrent->hash, NULL);
+		EVP_MD_CTX_destroy(torrent->ctx);
 #else
 		SHA1_Final(torrent->hash, &torrent->ctx);
 #endif
 		dprintf(torrent->tinfo, "sha1: ");
-		for (x = 0; x < SHA_DIGEST_LENGTH; x++) {
+		for (x = 0; x < 20 /* SHA_DIGEST_LENGTH */; x++) {
 			dprintf(torrent->tinfo, "%02x", torrent->hash[x]);
 		}
 		dprintf(torrent->tinfo, "\n");

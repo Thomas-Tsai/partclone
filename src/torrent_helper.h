@@ -17,6 +17,7 @@
  * https://github.com/tjjh89017/ezio utils/partclone_create_torrent.py
  */
 
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -37,7 +38,7 @@ typedef struct {
 	int tinfo;
 	/* remember the length for a piece size */
 #if defined(HAVE_EVP_MD_CTX_new) || defined(HAVE_EVP_MD_CTX_create)
-	EVP_MD_CTX *ctxt;
+	EVP_MD_CTX *ctx;
 #else
 	SHA_CTX ctx;
 #endif
