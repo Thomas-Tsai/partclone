@@ -415,6 +415,9 @@ AC_CHECK_LIB([ncursesw], [initscr], ,
     AC_MSG_ERROR([*** Ncursesw library (libncursesw5) not found]))
 fi
 
+##libcrypto##
+AC_CHECK_LIB(crypto, EVP_MD_CTX_new, [AC_DEFINE([HAVE_EVP_MD_CTX_new],1,[OpenSSL 1.1.0+])])
+AC_CHECK_LIB(crypto, EVP_MD_CTX_create, [AC_DEFINE([HAVE_EVP_MD_CTX_create],1,[OpenSSL 1.0+])])
 
 ##static linking##
 AC_ARG_ENABLE([static],
