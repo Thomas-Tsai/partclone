@@ -30,29 +30,43 @@
 #include "fs_common.h"
 
 int APFSDEV;
-struct APFS_Superblock_NXSB nxsb;
+struct nx_superblock_t nxsb;
 
 /// get_apfs_free_count
 static uint64_t get_apfs_free_count(){
 
-    struct APFS_Block_8_5_Spaceman apfs_spaceman;
-    char *buf;
-    int buffer_size = 4096;
+    int block_size = 4096;
     size_t size = 0;
 
-    buf = (char *)malloc(buffer_size);
-    memset(buf, 0, buffer_size);
+    struct spaceman_phys_t spaceman;
+    char *spaceman_buf;
 
-    size = pread(APFSDEV, buf, buffer_size, nxsb.bid_spaceman_area_start*buffer_size);
-    if ( size != buffer_size ){
-        log_mesg(0, 1, 1, fs_opt.debug, "%s: read spaceman_area error\n", __FILE__);
+    int sd = 0;
+    int cnt = 0;
+    int total_cnt = 0;
+    uint64_t read_size = 0;
+    uint64_t free_count = 0;
+    uint64_t total_free_count = 0;
+
+    spaceman_buf = (char *)malloc(block_size*nxsb.nx_xp_data_len);
+    memset(spaceman_buf, 0, block_size*nxsb.nx_xp_data_len); // not sure what is real size
+    read_size = pread(APFSDEV, spaceman_buf,  block_size*nxsb.nx_xp_data_len, nxsb.nx_xp_data_base*block_size);
+    memcpy(&spaceman, spaceman_buf, sizeof(spaceman));
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: sm_block_size %x\n", __FILE__, spaceman.sm_block_size);
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: blocks_per_chunk %x\n", __FILE__, spaceman.sm_blocks_per_chunk);
+    log_mesg(2, 0 ,0, fs_opt.debug, "%s: sd count=%i\n", __FILE__, sd);
+
+    for (sd = 0; sd < SD_COUNT; sd++){
+    
+        free_count = spaceman.sm_dev[sd].sm_free_count;
+
+	log_mesg(1, 0, 0, fs_opt.debug, "%s: block_count %x in sd %x\n", __FILE__, spaceman.sm_dev[sd].sm_block_count, sd);
+	log_mesg(1, 0, 0, fs_opt.debug, "%s: free_count  %x in sd %x\n", __FILE__, free_count, sd);
+
+        total_free_count += free_count;
     }
-
-    memcpy(&apfs_spaceman, buf, sizeof(APFS_Block_8_5_Spaceman));
-
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: blocks_total %lld\n", apfs_spaceman.blocks_total, __FILE__);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: blocks_free %lld\n", apfs_spaceman.blocks_free, __FILE__);
-    return apfs_spaceman.blocks_free;
+ 
+    return total_free_count;
 }
 
 /// open device
@@ -72,18 +86,10 @@ static void fs_open(char* device){
     if (read_size != buffer_size){
         log_mesg(0, 1, 1, fs_opt.debug, "%s: read error\n", __FILE__);
     }
-    memcpy(&nxsb, buf, sizeof(APFS_Superblock_NXSB));
+    memcpy(&nxsb, buf, sizeof(nxsb));
     // todo : add apfs check!
 
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: 0x%jX\n", __FILE__, nxsb.hdr.checksum);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: block size %x\n", __FILE__, nxsb.block_size);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: block count %x\n", __FILE__, nxsb.block_count);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: next_xid %x\n", __FILE__, nxsb.next_xid);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: current_sb_start %x\n", __FILE__, nxsb.current_sb_start);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: current_sb_len %x\n", __FILE__, nxsb.current_sb_len);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: current_spaceman_start %x\n", __FILE__, nxsb.current_spaceman_start);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: current_spaceman_len %x\n", __FILE__, nxsb.current_spaceman_len);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: bid_spaceman_area_start  %x\n", __FILE__, nxsb.bid_spaceman_area_start);
+    log_mesg(1, 0, 0, fs_opt.debug, "%s:APFS MAGIC 0x%jX\n", __FILE__, nxsb.nx_magic);
 
     if(lseek(APFSDEV, 0, SEEK_SET) != 0) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: device %s seek fail\n", __FILE__, device);
@@ -100,21 +106,37 @@ static void fs_close(){
 
 void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui)
 {
-    unsigned long long block;
-    unsigned long long apfs_block;
     int start = 0;
     int bit_size = 1;
 
-    char *spaceman_buf;
-    char *bitmap_buf;
-    unsigned long *bitmap_entry_buf;
-    size_t buffer_size = 4096;
+    uint32_t block_size = 4096;
     size_t size = 0;
 
-    struct APFS_BlockHeader apfs_bh;
-    struct APFS_TableHeader apfs_th;
-    struct APFS_Block_8_5_Spaceman apfs_spaceman;
-    size_t k; 
+    struct spaceman_phys_t spaceman;
+    char *spaceman_buf;
+    uint64_t sm_offset = 0;
+    
+    char *chunk_info_block_buf;
+    struct obj_phys_t obj_phys_t;
+    struct chunk_info_block_t chunk_info_block;
+    struct chunk_info_t chunk_info;
+    uint64_t  read_size = 0;
+    uint64_t  addr;
+    uint64_t  addr_data;
+    uint64_t cnt = 0;
+    uint64_t cnt_count = 0;
+    uint64_t chunk = 0;
+    uint64_t blocks_per_chunk = 0;
+
+    int sd = 0;
+    int total_cnt = 0;
+    int ci_bitmap = 0;
+    uint64_t free_count = 0;
+    uint64_t total_free_count = 0;
+
+    uint64_t block = 0;
+    uint64_t bitmap_block = 0;
+    char *bitmap_entry_buf;
 
     fs_open(device);
 
@@ -122,70 +144,99 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     progress_bar   prog;	/// progress_bar structure defined in progress.h
     progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
 
-    spaceman_buf = (char *)malloc(buffer_size);
-    memset(spaceman_buf, 0, buffer_size);
-    size = pread(APFSDEV, spaceman_buf, buffer_size, (nxsb.bid_spaceman_area_start+nxsb.current_spaceman_start)*buffer_size);
-    if (size != buffer_size){
-        log_mesg(0, 1, 1, fs_opt.debug, "%s: read current spaceman_area error\n", __FILE__);
-    }
-    
-    memcpy(&apfs_bh, spaceman_buf, sizeof(APFS_BlockHeader));
-    memcpy(&apfs_th, spaceman_buf+sizeof(APFS_BlockHeader), sizeof(APFS_TableHeader));
-    memcpy(&apfs_spaceman, spaceman_buf, sizeof(APFS_Block_8_5_Spaceman));
-
-    // todo add check
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: apfs hb block type %x\n", __FILE__, apfs_bh.type);
-
-    // todo add check
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: block table entries_cnt %x\n", __FILE__, apfs_th.entries_cnt);
-
-    // todo add check
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: blocks_total %lld\n", __FILE__, apfs_spaceman.blocks_total);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: blocks_free %lld\n", __FILE__, apfs_spaceman.blocks_free);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: blocks blockid_vol_bitmap_hdr %X\n", __FILE__, apfs_spaceman.blockid_vol_bitmap_hdr);
-
-    // read bitmap
-    struct APFS_Block_4_7_Bitmaps apfs_4_7;
-    bitmap_buf = (char *)malloc(buffer_size);
-    size = pread(APFSDEV, bitmap_buf, buffer_size, apfs_spaceman.blockid_vol_bitmap_hdr*buffer_size);
-    if (size != buffer_size){
-        log_mesg(0, 1, 1, fs_opt.debug, "%s: read bitmap hdr error\n", __FILE__);
-    }
-    memcpy(&apfs_4_7, bitmap_buf, sizeof(APFS_Block_4_7_Bitmaps));
-    // todo add check
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: apfs 4 7 hrd block type %x\n", __FILE__, apfs_4_7.hdr.type);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: apfs 4 7 hrd block  nid %x\n", __FILE__, apfs_4_7.hdr.nid);
-
 
     for (block = 0; block < fs_info.totalblock; block++){
         pc_set_bit(block, bitmap, fs_info.totalblock);
     }
-    for (k = 0; k < apfs_4_7.tbl.entries_cnt; k++) { 
-        log_mesg(3, 0, 0, fs_opt.debug, "%s: %X, %X, %X, %X, %X\n", __FILE__, apfs_4_7.bmp[k].xid, apfs_4_7.bmp[k].offset, apfs_4_7.bmp[k].bits_total, apfs_4_7.bmp[k].bits_avail, apfs_4_7.bmp[k].block);
-        bitmap_entry_buf = (unsigned long *)malloc(buffer_size);
-        memset(bitmap_entry_buf, 0, buffer_size);
-        size = pread(APFSDEV, bitmap_entry_buf, buffer_size, buffer_size*apfs_4_7.bmp[k].block);
-        if (size != buffer_size){
-            log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap error\n", __FILE__);
+
+    spaceman_buf = (char *)malloc(block_size);
+    memset(spaceman_buf, 0, block_size);
+    read_size = pread(APFSDEV, spaceman_buf, block_size, nxsb.nx_xp_data_base*block_size);
+    memcpy(&spaceman, spaceman_buf, sizeof(spaceman));
+
+    block_size = nxsb.nx_block_size;
+    blocks_per_chunk = spaceman.sm_blocks_per_chunk;
+
+    chunk_info_block_buf = (char *)malloc(block_size);
+    bitmap_entry_buf = (char *)malloc(block_size);
+
+    for (sd = 0; sd < SD_COUNT; sd++){
+    
+        sm_offset = spaceman.sm_dev[sd].sm_addr_offset;
+
+        if (spaceman.sm_dev[sd].sm_cab_count > 0){
+            cnt_count = spaceman.sm_dev[sd].sm_cab_count;
+        } else {
+            cnt_count = spaceman.sm_dev[sd].sm_cib_count;
         }
-        // if (apfs_4_7.bmp[k].bits_avail != 0x8000){
-        //     for (block = 0; block < apfs_4_7.bmp[k].bits_total; block++){
-        //         apfs_block = apfs_4_7.bmp[k].offset+block;
-        //         pc_set_bit(apfs_block, bitmap, fs_info.totalblock);
-        //     }
-        // }
-        for (block = 0; block < apfs_4_7.bmp[k].bits_total; block++){
-            if (pc_test_bit(block, bitmap_entry_buf, fs_info.totalblock) == 0){
-                apfs_block = apfs_4_7.bmp[k].offset+block;
-                pc_clear_bit(apfs_block, bitmap, fs_info.totalblock);
-                /// update progress
-                update_pui(&prog, apfs_block, apfs_block, 0);
-            }
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: sd %u, sm_offset %x, cnt_count %x\n", __FILE__, sd, sm_offset, cnt_count);
+
+        if ((sm_offset != 0) && (cnt_count != 0)) {
+	    log_mesg(2, 0, 0, fs_opt.debug, "%s: check each chunk\n", __FILE__);
+
+            for (cnt = 0; cnt < cnt_count; cnt++){
+		log_mesg(2, 0, 0, fs_opt.debug, "%s: check chunk %u\n", __FILE__, cnt);
+
+                addr = sm_offset + sizeof(addr)*cnt;
+
+                memset(&addr_data, 0, sizeof(addr));
+                memcpy(&addr_data, spaceman_buf+addr, sizeof(addr));
+                log_mesg(2, 0, 0, fs_opt.debug, "%s: bitmap addr  %lx\n", __FILE__, addr_data);
+
+                memset(chunk_info_block_buf, 0,  block_size);
+                memset(&chunk_info_block, 0, sizeof(chunk_info_block));
+                read_size = pread(APFSDEV, chunk_info_block_buf, block_size, addr_data*block_size);
+                memcpy(&chunk_info_block, chunk_info_block_buf, sizeof(chunk_info_block));
+                memcpy(&obj_phys_t, chunk_info_block_buf, sizeof(obj_phys_t));
+
+                log_mesg(2, 0, 0, fs_opt.debug, "%s: chunk_info_count %x\n", __FILE__, chunk_info_block.cib_chunk_info_count);
+                log_mesg(2, 0, 0, fs_opt.debug, "%s: block type %x\n", __FILE__, obj_phys_t.o_type);
+
+                if(obj_phys_t.o_type == 0x40000007){
+                
+                    log_mesg(3, 0, 0, fs_opt.debug, "%s: get addr %x\n", __FILE__, addr_data);
+                    for (chunk = 0; chunk < chunk_info_block.cib_chunk_info_count; chunk++) {
+                        memset(&chunk_info, 0, sizeof(chunk_info));
+                        memcpy(&chunk_info, chunk_info_block_buf+sizeof(chunk_info_block)+chunk*sizeof(chunk_info), sizeof(chunk_info));
+                        log_mesg(2, 0, 0, fs_opt.debug, "%s: xid = %x, offset = %x, bitTot = %x, bit avl = %x, block = %x\n", __FILE__, chunk_info.ci_xid, chunk_info.ci_addr, chunk_info.ci_block_count, chunk_info.ci_free_count, chunk_info.ci_bitmap_addr );
+    
+                        
+                        if ((chunk_info.ci_bitmap_addr == 0) && (chunk_info.ci_free_count == blocks_per_chunk))  { // 0x8000, all free
+                            for (block = 0 ; block < chunk_info.ci_block_count; block++){
+                                pc_clear_bit(block+chunk_info.ci_addr, bitmap, fs_info.totalblock);
+				//log_mesg(3, 0, 0, fs_opt.debug, "%s: free block  %lx\n", __FILE__, block+chunk_info.ci_addr);
+                            }
+                        } else {
+                        
+                            memset(bitmap_entry_buf, 0, block_size);
+                            read_size = pread(APFSDEV, bitmap_entry_buf, block_size, chunk_info.ci_bitmap_addr*block_size);
+    
+                            for (block = 0 ; block < chunk_info.ci_block_count; block++){
+                                if (pc_test_bit(block, bitmap_entry_buf, chunk_info.ci_block_count) == 0){
+                                    pc_clear_bit(block+chunk_info.ci_addr, bitmap, fs_info.totalblock);
+				    //log_mesg(3, 0, 0, fs_opt.debug, "%s: free block  %lx\n", __FILE__, block+chunk_info.ci_addr);
+                                }
+                            }
+                        }
+    		    update_pui(&prog, block, block, 0);
+                    } // end of bitmap
+                } else { // end of type check
+                    for (chunk = 0; chunk < spaceman.sm_blocks_per_chunk; chunk++) {
+                        for (block = 0 ; block < spaceman.sm_chunks_per_cib; block++){
+                            bitmap_block = block+spaceman.sm_blocks_per_chunk*spaceman.sm_chunks_per_cib*cnt;
+                            if (bitmap_block <= fs_info.totalblock){
+                                pc_clear_bit(bitmap_block, bitmap, fs_info.totalblock);
+				//log_mesg(3, 0, 0, fs_opt.debug, "%s: free block  %lx\n", __FILE__, bitmap_block);
+                            }
+                        }
+                    }
+                } // end of type check
+            } // end of cnt
         }
-        for (apfs_block = 0;  apfs_block<= nxsb.bid_nodemap+1; apfs_block++) {
-            pc_set_bit(apfs_block, bitmap, fs_info.totalblock);
-        }
-    } 
+    }
+    free(bitmap_entry_buf);
+    free(chunk_info_block_buf);
+    free(spaceman_buf);
 
     fs_close();
     ///// update progress
@@ -200,8 +251,8 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     free_blocks = get_apfs_free_count();
 
     strncpy(fs_info->fs, apfs_MAGIC, FS_MAGIC_SIZE);
-    fs_info->block_size  = nxsb.block_size;
-    fs_info->totalblock  = nxsb.block_count;
+    fs_info->block_size  = nxsb.nx_block_size;
+    fs_info->totalblock  = nxsb.nx_block_count;
     fs_info->usedblocks  = fs_info->totalblock-free_blocks;
     fs_info->device_size = fs_info->totalblock*fs_info->block_size;
     fs_close();
