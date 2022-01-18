@@ -248,7 +248,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
       </varlistentry>
       <varlistentry>
         <term><option>-N</option></term>
-        <term><option>--ncurse</option></term>
+        <term><option>--ncurses</option></term>
         <listitem>
           <para>Using Ncurses Text User Interface.</para>
         </listitem>
