@@ -24,10 +24,10 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include "kerncompat.h"
-#include "extent_io.h"
+#include "kernel-shared/extent_io.h"
 #include "kernel-lib/list.h"
-#include "ctree.h"
-#include "volumes.h"
+#include "kernel-shared/ctree.h"
+#include "kernel-shared/volumes.h"
 #include "common/utils.h"
 #include "common/internal.h"
 

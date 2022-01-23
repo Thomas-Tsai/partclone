@@ -432,7 +432,7 @@ free_cache:
 }
 
 int load_free_space_cache(struct btrfs_fs_info *fs_info,
-			  struct btrfs_block_group_cache *block_group)
+			  struct btrfs_block_group *block_group)
 {
 	struct btrfs_free_space_ctl *ctl = block_group->free_space_ctl;
 	struct btrfs_path *path;
@@ -446,15 +446,15 @@ int load_free_space_cache(struct btrfs_fs_info *fs_info,
 		return 0;
 
 	ret = __load_free_space_cache(fs_info->tree_root, ctl, path,
-				      block_group->key.objectid);
+				      block_group->start);
 	btrfs_free_path(path);
 
-	bg_free = block_group->key.offset - used - block_group->bytes_super;
+	bg_free = block_group->length - used - block_group->bytes_super;
 	diff = ctl->free_space - bg_free;
 	if (ret == 1 && diff) {
 		fprintf(stderr,
 		       "block group %llu has wrong amount of free space, free space cache has %llu block group has %llu\n",
-		       block_group->key.objectid, ctl->free_space, bg_free);
+		       block_group->start, ctl->free_space, bg_free);
 		__btrfs_remove_free_space_cache(ctl);
 		/*
 		 * Due to btrfs_reserve_extent() can happen out of a
@@ -479,7 +479,7 @@ int load_free_space_cache(struct btrfs_fs_info *fs_info,
 
 		fprintf(stderr,
 		       "failed to load free space cache for block group %llu\n",
-		       block_group->key.objectid);
+		       block_group->start);
 	}
 
 	return ret;
@@ -766,7 +766,7 @@ static void try_merge_free_space(struct btrfs_free_space_ctl *ctl,
 	}
 }
 
-void btrfs_dump_free_space(struct btrfs_block_group_cache *block_group,
+void btrfs_dump_free_space(struct btrfs_block_group *block_group,
 			   u64 bytes)
 {
 	struct btrfs_free_space_ctl *ctl = block_group->free_space_ctl;
@@ -786,7 +786,7 @@ void btrfs_dump_free_space(struct btrfs_block_group_cache *block_group,
 	printk("%d blocks of free space at or bigger than bytes is \n", count);
 }
 
-int btrfs_init_free_space_ctl(struct btrfs_block_group_cache *block_group,
+int btrfs_init_free_space_ctl(struct btrfs_block_group *block_group,
 			      int sectorsize)
 {
 	struct btrfs_free_space_ctl *ctl;
@@ -797,7 +797,7 @@ int btrfs_init_free_space_ctl(struct btrfs_block_group_cache *block_group,
 
 	ctl->sectorsize = sectorsize;
 	ctl->unit = sectorsize;
-	ctl->start = block_group->key.objectid;
+	ctl->start = block_group->start;
 	ctl->private = block_group;
 	block_group->free_space_ctl = ctl;
 
@@ -817,7 +817,7 @@ void __btrfs_remove_free_space_cache(struct btrfs_free_space_ctl *ctl)
 	}
 }
 
-void btrfs_remove_free_space_cache(struct btrfs_block_group_cache *block_group)
+void btrfs_remove_free_space_cache(struct btrfs_block_group *block_group)
 {
 	__btrfs_remove_free_space_cache(block_group->free_space_ctl);
 }
@@ -896,7 +896,7 @@ next:
 }
 
 int btrfs_clear_free_space_cache(struct btrfs_fs_info *fs_info,
-				 struct btrfs_block_group_cache *bg)
+				 struct btrfs_block_group *bg)
 {
 	struct btrfs_trans_handle *trans;
 	struct btrfs_root *tree_root = fs_info->tree_root;
@@ -917,7 +917,7 @@ int btrfs_clear_free_space_cache(struct btrfs_fs_info *fs_info,
 
 	key.objectid = BTRFS_FREE_SPACE_OBJECTID;
 	key.type = 0;
-	key.offset = bg->key.objectid;
+	key.offset = bg->start;
 
 	ret = btrfs_search_slot(trans, tree_root, &key, &path, -1, 1);
 	if (ret > 0) {
@@ -937,7 +937,7 @@ int btrfs_clear_free_space_cache(struct btrfs_fs_info *fs_info,
 	ret = btrfs_del_item(trans, tree_root, &path);
 	if (ret < 0) {
 		error("failed to remove free space header for block group %llu: %d",
-		      bg->key.objectid, ret);
+		      bg->start, ret);
 		goto out;
 	}
 	btrfs_release_path(&path);
@@ -949,7 +949,7 @@ int btrfs_clear_free_space_cache(struct btrfs_fs_info *fs_info,
 	ret = btrfs_search_slot(trans, tree_root, &key, &path, -1, 1);
 	if (ret < 0) {
 		error("failed to locate free space cache extent for block group %llu: %d",
-		      bg->key.objectid, ret);
+		      bg->start, ret);
 		goto out;
 	}
 	while (1) {
@@ -966,7 +966,7 @@ int btrfs_clear_free_space_cache(struct btrfs_fs_info *fs_info,
 		if (ret < 0) {
 			error(
 	"failed to locate free space cache extent for block group %llu: %d",
-				bg->key.objectid, ret);
+				bg->start, ret);
 			goto out;
 		}
 		node = path.nodes[0];
@@ -1005,14 +1005,14 @@ int btrfs_clear_free_space_cache(struct btrfs_fs_info *fs_info,
 	if (ret < 0) {
 		error(
 	"failed to locate free space cache inode %llu for block group %llu: %d",
-		      ino, bg->key.objectid, ret);
+		      ino, bg->start, ret);
 		goto out;
 	}
 	ret = btrfs_del_item(trans, tree_root, &path);
 	if (ret < 0) {
 		error(
 	"failed to delete free space cache inode %llu for block group %llu: %d",
-		      ino, bg->key.objectid, ret);
+		      ino, bg->start, ret);
 	}
 out:
 	btrfs_release_path(&path);

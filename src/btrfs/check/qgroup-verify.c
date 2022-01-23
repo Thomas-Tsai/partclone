@@ -23,13 +23,13 @@
 #include <uuid/uuid.h>
 #include "kerncompat.h"
 #include "kernel-lib/radix-tree.h"
-#include "ctree.h"
-#include "disk-io.h"
-#include "print-tree.h"
+#include "kernel-shared/ctree.h"
+#include "kernel-shared/disk-io.h"
+#include "kernel-shared/print-tree.h"
 #include "common/utils.h"
 #include "kernel-shared/ulist.h"
 #include "common/rbtree-utils.h"
-#include "transaction.h"
+#include "kernel-shared/transaction.h"
 #include "repair.h"
 
 #include "qgroup-verify.h"
@@ -743,7 +743,8 @@ static int travel_tree(struct btrfs_fs_info *info, struct btrfs_root *root,
 	 */
 	nr = btrfs_header_nritems(eb);
 	for (i = 0; i < nr; i++) {
-		(*qgroup_item_count)++;
+		if (qgroup_item_count)
+			(*qgroup_item_count)++;
 		new_bytenr = btrfs_node_blockptr(eb, i);
 		new_num_bytes = info->nodesize;
 
@@ -1310,18 +1311,13 @@ static int report_qgroup_difference(struct qgroup_count *count, int verbose)
 
 /*
  * Report qgroups errors
- * Return 0 if nothing wrong.
- * Return <0 if any qgroup is inconsistent.
- *
  * @all:	if set, all qgroup will be checked and reported even already
  * 		inconsistent or under rescan.
  */
-int report_qgroups(int all)
+void report_qgroups(int all)
 {
 	struct rb_node *node;
 	struct qgroup_count *c;
-	bool found_err = false;
-	bool skip_err = false;
 
 	if (!repair && counts.rescan_running) {
 		if (all) {
@@ -1330,34 +1326,23 @@ int report_qgroups(int all)
 		} else {
 			printf(
 	"Qgroup rescan is running, qgroups will not be printed.\n");
-			return 0;
+			return;
 		}
 	}
 	/*
 	 * It's possible that rescan hasn't been initialized yet.
 	 */
-	if (counts.qgroup_inconsist && !counts.rescan_running &&
-	    counts.rescan_running == 0) {
-		printf(
-"Rescan hasn't been initialized, a difference in qgroup accounting is expected\n");
-		skip_err = true;
-	}
 	if (counts.qgroup_inconsist && !counts.rescan_running)
-		fprintf(stderr, "Qgroup are marked as inconsistent.\n");
+		printf(
+"Rescan hasn't been initialzied, a difference in qgroup accounting is expected\n");
 	node = rb_first(&counts.root);
 	while (node) {
 		c = rb_entry(node, struct qgroup_count, rb_node);
 
-		if (report_qgroup_difference(c, all)) {
-			list_add_tail(&c->bad_list, &bad_qgroups);
-			found_err = true;
-		}
+		report_qgroup_difference(c, all);
 
 		node = rb_next(node);
 	}
-	if (found_err && !skip_err)
-		return -EUCLEAN;
-	return 0;
 }
 
 void free_qgroup_counts(void)
@@ -1392,9 +1377,29 @@ void free_qgroup_counts(void)
 	}
 }
 
+static bool is_bad_qgroup(struct qgroup_count *count)
+{
+	struct qgroup_info *info = &count->info;
+	struct qgroup_info *disk = &count->diskinfo;
+	s64 excl_diff = info->exclusive - disk->exclusive;
+	s64 ref_diff = info->referenced - disk->referenced;
+
+	return (excl_diff || ref_diff);
+}
+
+/*
+ * Verify all qgroup numbers.
+ *
+ * Return <0 for fatal errors (e.g. ENOMEM or failed to read quota tree)
+ * Return 0 if all qgroup numbers are correct or no need to check (under rescan)
+ * Return >0 if qgroup numbers are inconsistent.
+ */
 int qgroup_verify_all(struct btrfs_fs_info *info)
 {
 	int ret;
+	bool found_err = false;
+	bool skip_err = false;
+	struct rb_node *node;
 
 	if (!info->quota_enabled)
 		return 0;
@@ -1411,6 +1416,12 @@ int qgroup_verify_all(struct btrfs_fs_info *info)
 		fprintf(stderr, "ERROR: Loading qgroups from disk: %d\n", ret);
 		goto out;
 	}
+
+	if (counts.rescan_running)
+		skip_err = true;
+	if (counts.qgroup_inconsist && !counts.rescan_running &&
+	    counts.rescan_running == 0)
+		skip_err = true;
 
 	/*
 	 * Put all extent refs into our rbtree
@@ -1429,6 +1440,22 @@ int qgroup_verify_all(struct btrfs_fs_info *info)
 
 	ret = account_all_refs(1, 0);
 
+	/*
+	 * Do the correctness check here, so for callers who don't want
+	 * verbose report can skip calling report_qgroups()
+	 */
+	node = rb_first(&counts.root);
+	while (node) {
+		struct qgroup_count *c;
+
+		c = rb_entry(node, struct qgroup_count, rb_node);
+		if (is_bad_qgroup(c)) {
+			list_add_tail(&c->bad_list, &bad_qgroups);
+			found_err = true;
+		}
+		node = rb_next(node);
+	}
+
 out:
 	/*
 	 * Don't free the qgroup count records as they will be walked
@@ -1436,6 +1463,8 @@ out:
 	 */
 	free_tree_blocks();
 	free_ref_tree(&by_bytenr);
+	if (!ret && !skip_err && found_err)
+		ret = 1;
 	return ret;
 }
 
@@ -1508,7 +1537,7 @@ out:
 }
 
 static int repair_qgroup_info(struct btrfs_fs_info *info,
-			      struct qgroup_count *count)
+			      struct qgroup_count *count, bool silent)
 {
 	int ret;
 	struct btrfs_root *root = info->quota_root;
@@ -1517,8 +1546,10 @@ static int repair_qgroup_info(struct btrfs_fs_info *info,
 	struct btrfs_qgroup_info_item *info_item;
 	struct btrfs_key key;
 
-	printf("Repair qgroup %llu/%llu\n", btrfs_qgroup_level(count->qgroupid),
-	       btrfs_qgroup_subvid(count->qgroupid));
+	if (!silent)
+		printf("Repair qgroup %llu/%llu\n",
+			btrfs_qgroup_level(count->qgroupid),
+			btrfs_qgroup_subvid(count->qgroupid));
 
 	trans = btrfs_start_transaction(root, 1);
 	if (IS_ERR(trans))
@@ -1563,7 +1594,7 @@ out:
 	return ret;
 }
 
-static int repair_qgroup_status(struct btrfs_fs_info *info)
+static int repair_qgroup_status(struct btrfs_fs_info *info, bool silent)
 {
 	int ret;
 	struct btrfs_root *root = info->quota_root;
@@ -1572,7 +1603,8 @@ static int repair_qgroup_status(struct btrfs_fs_info *info)
 	struct btrfs_key key;
 	struct btrfs_qgroup_status_item *status_item;
 
-	printf("Repair qgroup status item\n");
+	if (!silent)
+		printf("Repair qgroup status item\n");
 
 	trans = btrfs_start_transaction(root, 1);
 	if (IS_ERR(trans))
@@ -1597,6 +1629,8 @@ static int repair_qgroup_status(struct btrfs_fs_info *info)
 	btrfs_set_qgroup_status_rescan(path.nodes[0], status_item, 0);
 	btrfs_set_qgroup_status_generation(path.nodes[0], status_item,
 					   trans->transid);
+	btrfs_set_qgroup_status_version(path.nodes[0], status_item,
+					BTRFS_QGROUP_STATUS_VERSION);
 
 	btrfs_mark_buffer_dirty(path.nodes[0]);
 
@@ -1607,18 +1641,18 @@ out:
 	return ret;
 }
 
-int repair_qgroups(struct btrfs_fs_info *info, int *repaired)
+int repair_qgroups(struct btrfs_fs_info *info, int *repaired, bool silent)
 {
 	int ret = 0;
 	struct qgroup_count *count, *tmpcount;
 
 	*repaired = 0;
 
-	if (!repair)
+	if (info->readonly)
 		return 0;
 
 	list_for_each_entry_safe(count, tmpcount, &bad_qgroups, bad_list) {
-		ret = repair_qgroup_info(info, count);
+		ret = repair_qgroup_info(info, count, silent);
 		if (ret) {
 			goto out;
 		}
@@ -1634,7 +1668,7 @@ int repair_qgroups(struct btrfs_fs_info *info, int *repaired)
 	 * mount.
 	 */
 	if (*repaired || counts.qgroup_inconsist || counts.rescan_running) {
-		ret = repair_qgroup_status(info);
+		ret = repair_qgroup_status(info, silent);
 		if (ret)
 			goto out;
 

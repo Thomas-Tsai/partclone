@@ -17,8 +17,7 @@
 #include "kerncompat.h"
 #include "disk-io.h"
 #include "transaction.h"
-#include "delayed-ref.h"
-
+#include "kernel-shared/delayed-ref.h"
 #include "common/messages.h"
 
 struct btrfs_trans_handle* btrfs_start_transaction(struct btrfs_root *root,
@@ -52,6 +51,7 @@ struct btrfs_trans_handle* btrfs_start_transaction(struct btrfs_root *root,
 	root->last_trans = h->transid;
 	root->commit_root = root->node;
 	extent_buffer_get(root->node);
+	INIT_LIST_HEAD(&h->dirty_bgs);
 
 	return h;
 }
@@ -77,7 +77,9 @@ static int update_cowonly_root(struct btrfs_trans_handle *trans,
 					&root->root_item);
 		if (ret < 0)
 			return ret;
-		btrfs_write_dirty_block_groups(trans);
+		ret = btrfs_write_dirty_block_groups(trans);
+		if (ret)
+			return ret;
 	}
 	return 0;
 }
@@ -200,8 +202,7 @@ commit_tree:
 	 * again, we need to exhause both dirty blocks and delayed refs
 	 */
 	while (!RB_EMPTY_ROOT(&trans->delayed_refs.href_root) ||
-	       test_range_bit(&fs_info->block_group_cache, 0, (u64)-1,
-			      BLOCK_GROUP_DIRTY, 0)) {
+	       !list_empty(&trans->dirty_bgs)) {
 		ret = btrfs_write_dirty_block_groups(trans);
 		if (ret < 0)
 			goto error;

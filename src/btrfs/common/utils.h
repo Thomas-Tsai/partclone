@@ -20,10 +20,10 @@
 #define __BTRFS_UTILS_H__
 
 #include <sys/stat.h>
-#include "ctree.h"
+#include "kernel-shared/ctree.h"
 #include <dirent.h>
 #include <stdarg.h>
-#include "common-defs.h"
+#include "common/defs.h"
 #include "common/internal.h"
 #include "btrfs-list.h"
 #include "kernel-lib/sizes.h"
@@ -52,6 +52,17 @@
 #define UNITS_HUMAN			(UNITS_HUMAN_BINARY)
 #define UNITS_DEFAULT			(UNITS_HUMAN)
 
+enum exclusive_operation {
+	BTRFS_EXCLOP_NONE,
+	BTRFS_EXCLOP_BALANCE,
+	BTRFS_EXCLOP_DEV_ADD,
+	BTRFS_EXCLOP_DEV_REMOVE,
+	BTRFS_EXCLOP_DEV_REPLACE,
+	BTRFS_EXCLOP_RESIZE,
+	BTRFS_EXCLOP_SWAP_ACTIVATE,
+	BTRFS_EXCLOP_UNKNOWN = -1,
+};
+
 void units_set_mode(unsigned *units, unsigned mode);
 void units_set_base(unsigned *units, unsigned base);
 
@@ -66,7 +77,7 @@ int pretty_size_snprintf(u64 size, char *str, size_t str_bytes, unsigned unit_mo
 const char *pretty_size_mode(u64 size, unsigned mode);
 
 enum btrfs_csum_type parse_csum_type(const char *s);
-u64 parse_size(const char *s);
+u64 parse_size_from_string(const char *s);
 u64 parse_qgroupid(const char *p);
 u64 arg_strtou64(const char *str);
 int open_file_or_dir(const char *fname, DIR **dirstream);
@@ -75,6 +86,10 @@ void close_file_or_dir(int fd, DIR *dirstream);
 int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 		struct btrfs_ioctl_dev_info_args **di_ret);
 int get_fsid(const char *path, u8 *fsid, int silent);
+int get_fsid_fd(int fd, u8 *fsid);
+int get_fs_exclop(int fd);
+int check_running_fs_exclop(int fd, enum exclusive_operation start, bool enqueue);
+const char *get_fs_exclop_name(int op);
 
 int get_label(const char *btrfs_dev, char *label);
 int set_label(const char *btrfs_dev, const char *label);
@@ -92,6 +107,7 @@ int csum_tree_block(struct btrfs_fs_info *root, struct extent_buffer *buf,
 int ask_user(const char *question);
 int lookup_path_rootid(int fd, u64 *rootid);
 int get_btrfs_mount(const char *dev, char *mp, size_t mp_size);
+int find_mount_fsroot(const char *subvol, const char *subvolid, char **mount);
 int find_mount_root(const char *path, char **mount_root);
 int get_device_info(int fd, u64 devid,
 		struct btrfs_ioctl_dev_info_args *di_args);
@@ -117,16 +133,28 @@ unsigned long total_memory(void);
 void print_device_info(struct btrfs_device *device, char *prefix);
 void print_all_devices(struct list_head *devices);
 
+#define BTRFS_BCONF_UNSET	-1
+#define BTRFS_BCONF_QUIET	 0
 /*
  * Global program state, configurable by command line and available to
  * functions without extra context passing.
  */
 struct btrfs_config {
 	unsigned int output_format;
+
+	/*
+	 * Values:
+	 *   BTRFS_BCONF_QUIET
+	 *   BTRFS_BCONF_UNSET
+	 *   > 0: verbose level
+	 */
+	int verbose;
 };
 extern struct btrfs_config bconf;
 
 void btrfs_config_init(void);
+void bconf_be_verbose(void);
+void bconf_be_quiet(void);
 
 /* Pseudo random number generator wrappers */
 int rand_int(void);
@@ -136,5 +164,11 @@ u32 rand_u32(void);
 u64 rand_u64(void);
 unsigned int rand_range(unsigned int upper);
 void init_rand_seed(u64 seed);
+
+char *btrfs_test_for_multiple_profiles(int fd);
+int btrfs_warn_multiple_profiles(int fd);
+
+int sysfs_open_fsid_file(int fd, const char *filename);
+int sysfs_read_file(int fd, char *buf, size_t size);
 
 #endif

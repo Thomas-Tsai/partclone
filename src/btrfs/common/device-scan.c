@@ -31,10 +31,10 @@
 #include "common/device-scan.h"
 #include "common/messages.h"
 #include "common/utils.h"
-#include "common-defs.h"
-#include "ctree.h"
-#include "volumes.h"
-#include "disk-io.h"
+#include "common/defs.h"
+#include "kernel-shared/ctree.h"
+#include "kernel-shared/volumes.h"
+#include "kernel-shared/disk-io.h"
 #include "ioctl.h"
 
 static int btrfs_scan_done = 0;
@@ -360,7 +360,7 @@ void free_seen_fsid(struct seen_fsid *seen_fsid_hash[])
 	}
 }
 
-int btrfs_scan_devices(void)
+int btrfs_scan_devices(int verbose)
 {
 	int fd = -1;
 	int ret;
@@ -404,6 +404,7 @@ int btrfs_scan_devices(void)
 			close (fd);
 			continue;
 		}
+		pr_verbose(verbose, "registered: %s\n", path);
 
 		close(fd);
 	}

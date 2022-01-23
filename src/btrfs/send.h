@@ -20,7 +20,11 @@
 #ifndef __BTRFS_SEND_H__
 #define __BTRFS_SEND_H__
 
-#include "ctree.h"
+#if BTRFS_FLAT_INCLUDES
+#include "kernel-shared/ctree.h"
+#else
+#include <btrfs/ctree.h>
+#endif /* BTRFS_FLAT_INCLUDES */
 
 #ifdef __cplusplus
 extern "C" {

@@ -4,7 +4,7 @@ LDADD = $(LIBINTL) -lcrypto
 sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg partclone.imager #partclone.imgfuse #partclone.block
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 
-BTRFS_SOURCE=btrfs/btrfs-list.c btrfs/common/device-scan.c btrfs/common/messages.c btrfs/common/path-utils.c btrfs/common/rbtree-utils.c btrfs/common/utils.c btrfs/crypto/blake2b-ref.c btrfs/crypto/crc32c.c btrfs/crypto/hash.c btrfs/crypto/sha224-256.c btrfs/crypto/xxhash.c btrfs/ctree.c btrfs/delayed-ref.c btrfs/dir-item.c btrfs/disk-io.c btrfs/extent-cache.c btrfs/extent-tree.c btrfs/extent_io.c btrfs/file-item.c btrfs/free-space-cache.c btrfs/free-space-tree.c btrfs/inode-item.c btrfs/inode-map.c btrfs/kernel-lib/list_sort.c btrfs/kernel-lib/radix-tree.c btrfs/kernel-lib/raid56.c btrfs/kernel-lib/rbtree.c btrfs/kernel-lib/tables.c btrfs/kernel-shared/ulist.c btrfs/libbtrfsutil/stubs.c btrfs/libbtrfsutil/subvolume.c btrfs/print-tree.c btrfs/qgroup.c btrfs/repair.c btrfs/root-tree.c btrfs/send-stream.c btrfs/send-utils.c btrfs/transaction.c btrfs/utils-lib.c btrfs/uuid-tree.c btrfs/volumes.c
+BTRFS_SOURCE=btrfs/btrfs-list.c btrfs/common/device-scan.c btrfs/common/messages.c btrfs/common/path-utils.c btrfs/common/rbtree-utils.c btrfs/common/utils.c btrfs/crypto/blake2b-ref.c btrfs/crypto/crc32c.c btrfs/crypto/hash.c btrfs/crypto/sha224-256.c btrfs/crypto/xxhash.c btrfs/ctree.c btrfs/delayed-ref.c btrfs/dir-item.c btrfs/disk-io.c btrfs/extent-cache.c btrfs/extent-tree.c btrfs/extent_io.c btrfs/file-item.c btrfs/free-space-cache.c btrfs/free-space-tree.c btrfs/inode-item.c btrfs/inode-map.c btrfs/kernel-lib/list_sort.c btrfs/kernel-lib/radix-tree.c btrfs/kernel-lib/raid56.c btrfs/kernel-lib/rbtree.c btrfs/kernel-lib/tables.c btrfs/kernel-shared/ulist.c btrfs/libbtrfsutil/stubs.c btrfs/libbtrfsutil/subvolume.c btrfs/print-tree.c btrfs/qgroup.c btrfs/repair.c btrfs/root-tree.c btrfs/send-stream.c btrfs/transaction.c btrfs/utils-lib.c btrfs/uuid-tree.c btrfs/volumes.c
 
 XFS_SOURCE=xfs/libxfs/cache.c xfs/libxfs/crc32.c xfs/libxfs/defer_item.c xfs/libxfs/init.c xfs/libxfs/kmem.c xfs/libxfs/list_sort.c xfs/libxfs/logitem.c xfs/libxfs/radix-tree.c xfs/libxfs/rdwr.c xfs/libxfs/trans.c xfs/libxfs/util.c xfs/libxfs/xfs_ag_resv.c xfs/libxfs/xfs_alloc.c xfs/libxfs/xfs_alloc_btree.c xfs/libxfs/xfs_attr.c xfs/libxfs/xfs_attr_leaf.c xfs/libxfs/xfs_attr_remote.c xfs/libxfs/xfs_bit.c xfs/libxfs/xfs_bmap.c xfs/libxfs/xfs_bmap_btree.c xfs/libxfs/xfs_btree.c xfs/libxfs/xfs_da_btree.c xfs/libxfs/xfs_da_format.c xfs/libxfs/xfs_defer.c xfs/libxfs/xfs_dir2.c xfs/libxfs/xfs_dir2_block.c xfs/libxfs/xfs_dir2_data.c xfs/libxfs/xfs_dir2_leaf.c xfs/libxfs/xfs_dir2_node.c xfs/libxfs/xfs_dir2_sf.c xfs/libxfs/xfs_dquot_buf.c xfs/libxfs/xfs_ialloc.c xfs/libxfs/xfs_inode_buf.c xfs/libxfs/xfs_inode_fork.c xfs/libxfs/xfs_ialloc_btree.c xfs/libxfs/xfs_log_rlimit.c xfs/libxfs/xfs_refcount.c xfs/libxfs/xfs_refcount_btree.c xfs/libxfs/xfs_rmap.c xfs/libxfs/xfs_rmap_btree.c xfs/libxfs/xfs_rtbitmap.c xfs/libxfs/xfs_sb.c xfs/libxfs/xfs_symlink_remote.c xfs/libxfs/xfs_trans_resv.c xfs/libxfs/linux.c xfs/libxfs/xfs_types.h xfs/libxfs/xfs_types.c xfs/libxfs/xfs_iext_tree.c 
 
@@ -165,8 +165,8 @@ endif
 if ENABLE_BTRFS
 sbin_PROGRAMS += partclone.btrfs
 partclone_btrfs_SOURCES=$(main_files) btrfsclone.c btrfsclone.h $(BTRFS_SOURCE)
-partclone_btrfs_CFLAGS=-DBTRFS -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -D_GNU_SOURCE -Ibtrfs -Ibtrfs/libbtrfsutil
-partclone_btrfs_LDADD=-luuid -lblkid -lcrypto
+partclone_btrfs_CFLAGS=-DBTRFS -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -D_GNU_SOURCE -DCRYPTOPROVIDER_BUILTIN=1 -Ibtrfs -Ibtrfs/libbtrfsutil
+partclone_btrfs_LDADD=-luuid -lblkid -lcrypto -lmount
 endif
 
 if ENABLE_MINIX

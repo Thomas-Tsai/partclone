@@ -15,16 +15,16 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 021110-1307, USA.
  */
-#include "ctree.h"
-#include "disk-io.h"
-#include "transaction.h"
-#include "print-tree.h"
+#include "kernel-shared/ctree.h"
+#include "kernel-shared/disk-io.h"
+#include "kernel-shared/transaction.h"
+#include "kernel-shared/print-tree.h"
 #include "repair.h"
 #include "common/internal.h"
 #include "common/messages.h"
 #include "common/utils.h"
 #include "kernel-lib/sizes.h"
-#include "volumes.h"
+#include "kernel-shared/volumes.h"
 
 static int split_node(struct btrfs_trans_handle *trans, struct btrfs_root
 		      *root, struct btrfs_path *path, int level);
@@ -809,9 +809,9 @@ struct extent_buffer *read_node_slot(struct btrfs_fs_info *fs_info,
 
 	if (btrfs_header_level(ret) != level - 1) {
 		error(
-"child eb corrupted: parent bytenr=%llu item=%d parent level=%d child level=%d",
-		      btrfs_header_bytenr(parent), slot,
-		      btrfs_header_level(parent), btrfs_header_level(ret));
+"child eb corrupted: parent bytenr=%llu item=%d parent level=%d child bytenr=%llu child level=%d",
+		      btrfs_header_bytenr(parent), slot, btrfs_header_level(parent),
+		      btrfs_header_bytenr(ret), btrfs_header_level(ret));
 		free_extent_buffer(ret);
 		return ERR_PTR(-EIO);
 	}

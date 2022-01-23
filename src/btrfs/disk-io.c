@@ -371,8 +371,8 @@ struct extent_buffer* read_tree_block(struct btrfs_fs_info *fs_info, u64 bytenr,
 		ret = read_whole_eb(fs_info, eb, mirror_num);
 		if (ret == 0 && csum_tree_block(fs_info, eb, 1) == 0 &&
 		    check_tree_block(fs_info, eb) == 0 &&
-		    verify_parent_transid(eb->tree, eb, parent_transid, ignore)
-		    == 0) {
+		    verify_parent_transid(&fs_info->extent_cache, eb,
+					  parent_transid, ignore) == 0) {
 			if (eb->flags & EXTENT_BAD_TRANSID &&
 			    list_empty(&eb->recow)) {
 				list_add_tail(&eb->recow,
@@ -487,20 +487,40 @@ int write_and_map_eb(struct btrfs_fs_info *fs_info, struct extent_buffer *eb)
 	length = eb->len;
 	ret = btrfs_map_block(fs_info, WRITE, eb->start, &length,
 			      &multi, 0, &raid_map);
+	if (ret < 0) {
+		errno = -ret;
+		error("failed to map bytenr %llu length %u: %m",
+			eb->start, eb->len);
+		goto out;
+	}
 
 	if (raid_map) {
 		ret = write_raid56_with_parity(fs_info, eb, multi,
 					       length, raid_map);
-		BUG_ON(ret);
+		if (ret < 0) {
+			errno = -ret;
+			error(
+		"failed to write raid56 stripe for bytenr %llu length %llu: %m",
+				eb->start, length);
+			goto out;
+		}
 	} else while (dev_nr < multi->num_stripes) {
-		BUG_ON(ret);
 		eb->fd = multi->stripes[dev_nr].dev->fd;
 		eb->dev_bytenr = multi->stripes[dev_nr].physical;
 		multi->stripes[dev_nr].dev->total_ios++;
 		dev_nr++;
 		ret = write_extent_to_disk(eb);
-		BUG_ON(ret);
+		if (ret < 0) {
+			errno = -ret;
+			error(
+"failed to write bytenr %llu length %u devid %llu dev_bytenr %llu: %m",
+				eb->start, eb->len,
+				multi->stripes[dev_nr].dev->devid,
+				eb->dev_bytenr);
+			goto out;
+		}
 	}
+out:
 	kfree(raid_map);
 	kfree(multi);
 	return 0;
@@ -794,15 +814,15 @@ struct btrfs_fs_info *btrfs_new_fs_info(int writable, u64 sb_bytenr)
 
 	extent_io_tree_init(&fs_info->extent_cache);
 	extent_io_tree_init(&fs_info->free_space_cache);
-	extent_io_tree_init(&fs_info->block_group_cache);
 	extent_io_tree_init(&fs_info->pinned_extents);
 	extent_io_tree_init(&fs_info->extent_ins);
+
+	fs_info->block_group_cache_tree = RB_ROOT;
 	fs_info->excluded_extents = NULL;
 
 	fs_info->fs_root_tree = RB_ROOT;
 	cache_tree_init(&fs_info->mapping_tree.cache_tree);
 
-	mutex_init(&fs_info->fs_mutex);
 	INIT_LIST_HEAD(&fs_info->dirty_cowonly_roots);
 	INIT_LIST_HEAD(&fs_info->space_info);
 	INIT_LIST_HEAD(&fs_info->recow_ebs);
@@ -1067,7 +1087,6 @@ void btrfs_cleanup_all_caches(struct btrfs_fs_info *fs_info)
 	free_mapping_cache_tree(&fs_info->mapping_tree.cache_tree);
 	extent_io_tree_cleanup(&fs_info->extent_cache);
 	extent_io_tree_cleanup(&fs_info->free_space_cache);
-	extent_io_tree_cleanup(&fs_info->block_group_cache);
 	extent_io_tree_cleanup(&fs_info->pinned_extents);
 	extent_io_tree_cleanup(&fs_info->extent_ins);
 }
@@ -1105,7 +1124,7 @@ int btrfs_scan_fs_devices(int fd, const char *path,
 	}
 
 	if (!skip_devices && total_devs != 1) {
-		ret = btrfs_scan_devices();
+		ret = btrfs_scan_devices(0);
 		if (ret)
 			return ret;
 	}
@@ -1198,6 +1217,8 @@ static struct btrfs_fs_info *__open_ctree_fd(int fp, const char *path,
 		fs_info->ignore_fsid_mismatch = 1;
 	if (flags & OPEN_CTREE_IGNORE_CHUNK_TREE_ERROR)
 		fs_info->ignore_chunk_tree_error = 1;
+	if (flags & OPEN_CTREE_HIDE_NAMES)
+		fs_info->hide_names = 1;
 
 	if ((flags & OPEN_CTREE_RECOVER_SUPER)
 	     && (flags & OPEN_CTREE_TEMPORARY_SUPER)) {
@@ -1929,7 +1950,8 @@ int btrfs_buffer_uptodate(struct extent_buffer *buf, u64 parent_transid)
 	if (!ret)
 		return ret;
 
-	ret = verify_parent_transid(buf->tree, buf, parent_transid, 1);
+	ret = verify_parent_transid(&buf->fs_info->extent_cache, buf,
+				    parent_transid, 1);
 	return !ret;
 }
 

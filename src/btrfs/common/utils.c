@@ -44,14 +44,14 @@
 
 #include "kerncompat.h"
 #include "kernel-lib/radix-tree.h"
-#include "ctree.h"
-#include "disk-io.h"
-#include "transaction.h"
+#include "kernel-shared/ctree.h"
+#include "kernel-shared/disk-io.h"
+#include "kernel-shared/transaction.h"
 #include "crypto/crc32c.h"
 #include "common/utils.h"
 #include "common/path-utils.h"
 #include "common/device-scan.h"
-#include "volumes.h"
+#include "kernel-shared/volumes.h"
 #include "ioctl.h"
 #include "cmds/commands.h"
 #include "mkfs/common.h"
@@ -184,16 +184,6 @@ int btrfs_open(const char *path, DIR **dirstream, int verbose, int dir_only)
 	struct stat st;
 	int ret;
 
-	if (statfs(path, &stfs) != 0) {
-		error_on(verbose, "cannot access '%s': %m", path);
-		return -1;
-	}
-
-	if (stfs.f_type != BTRFS_SUPER_MAGIC) {
-		error_on(verbose, "not a btrfs filesystem: %s", path);
-		return -2;
-	}
-
 	if (stat(path, &st) != 0) {
 		error_on(verbose, "cannot access '%s': %m", path);
 		return -1;
@@ -202,6 +192,16 @@ int btrfs_open(const char *path, DIR **dirstream, int verbose, int dir_only)
 	if (dir_only && !S_ISDIR(st.st_mode)) {
 		error_on(verbose, "not a directory: %s", path);
 		return -3;
+	}
+
+	if (statfs(path, &stfs) != 0) {
+		error_on(verbose, "cannot access '%s': %m", path);
+		return -1;
+	}
+
+	if (stfs.f_type != BTRFS_SUPER_MAGIC) {
+		error_on(verbose, "not a btrfs filesystem: %s", path);
+		return -2;
 	}
 
 	ret = open_file_or_dir(path, dirstream);
@@ -277,7 +277,7 @@ int check_mounted_where(int fd, const char *file, char *where, int size,
 
 	/* scan other devices */
 	if (is_btrfs && total_devs > 1) {
-		ret = btrfs_scan_devices();
+		ret = btrfs_scan_devices(0);
 		if (ret)
 			return ret;
 	}
@@ -626,7 +626,7 @@ int set_label(const char *btrfs_dev, const char *label)
 
 /*
  * A not-so-good version fls64. No fascinating optimization since
- * no one except parse_size use it
+ * no one except parse_size_from_string uses it
  */
 static int fls64(u64 x)
 {
@@ -638,7 +638,7 @@ static int fls64(u64 x)
 	return 64 - i;
 }
 
-u64 parse_size(const char *s)
+u64 parse_size_from_string(const char *s)
 {
 	char c;
 	char *endptr;
@@ -949,7 +949,7 @@ again:
 		goto again;
 	}
 
-	/* get the lastest max_id to stay consistent with the num_devices */
+	/* Get the latest max_id to stay consistent with the num_devices */
 	if (search_key->nr_items == 0)
 		/*
 		 * last tree_search returns an empty buf, use the devid of
@@ -1097,32 +1097,34 @@ out:
 	return ret;
 }
 
+int get_fsid_fd(int fd, u8 *fsid)
+{
+	int ret;
+	struct btrfs_ioctl_fs_info_args args;
+
+	ret = ioctl(fd, BTRFS_IOC_FS_INFO, &args);
+	if (ret < 0)
+		return -errno;
+
+	memcpy(fsid, args.fsid, BTRFS_FSID_SIZE);
+	return 0;
+}
+
 int get_fsid(const char *path, u8 *fsid, int silent)
 {
 	int ret;
 	int fd;
-	struct btrfs_ioctl_fs_info_args args;
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0) {
-		ret = -errno;
 		if (!silent)
 			error("failed to open %s: %m", path);
-		goto out;
+		return -errno;
 	}
 
-	ret = ioctl(fd, BTRFS_IOC_FS_INFO, &args);
-	if (ret < 0) {
-		ret = -errno;
-		goto out;
-	}
+	ret = get_fsid_fd(fd, fsid);
+	close(fd);
 
-	memcpy(fsid, args.fsid, BTRFS_FSID_SIZE);
-	ret = 0;
-
-out:
-	if (fd != -1)
-		close(fd);
 	return ret;
 }
 
@@ -1242,6 +1244,296 @@ int ask_user(const char *question)
 }
 
 /*
+ * Partial representation of a line in /proc/pid/mountinfo
+ */
+struct mnt_entry {
+	const char *root;
+	const char *path;
+	const char *options1;
+	const char *fstype;
+	const char *device;
+	const char *options2;
+};
+
+/*
+ * Find first occurence of up an option string (as "option=") in @options,
+ * separated by comma. Return allocated string as "option=value"
+ */
+static char *find_option(const char *options, const char *option)
+{
+	char *tmp, *ret;
+
+	tmp = strstr(options, option);
+	if (!tmp)
+		return NULL;
+	ret = strdup(tmp);
+	tmp = ret;
+	while (*tmp && *tmp != ',')
+		tmp++;
+	*tmp = 0;
+	return ret;
+}
+
+/* Match whitespace separator */
+static bool is_sep(char c)
+{
+	return c == ' ' || c == '\t';
+}
+
+/* Advance @line skipping over all non-separator chars */
+static void skip_nonsep(char **line)
+{
+	while (**line && !is_sep(**line))
+		(*line)++;
+}
+
+/* Advance @line skipping over all separator chars, setting them to nul char */
+static void skip_sep(char **line)
+{
+	while (**line && is_sep(**line)) {
+		**line = 0;
+		(*line)++;
+	}
+}
+
+static bool isoctal(char c)
+{
+	return '0' <= c && c <= '7';
+}
+
+/*
+ * Validate complete escape sequence used for mangling special chars in paths,
+ * eg.  \012 == 10 == 0xa == '\n'.
+ * Mandatory format: backslash and 3 octal digits.
+ */
+static bool valid_escape(const char *str)
+{
+	if (*str == 0 || *str != '\\')
+		return false;
+	str++;
+	if (*str == 0 || is_sep(*str) || !isoctal(*str))
+		return false;
+	str++;
+	if (*str == 0 || is_sep(*str) || !isoctal(*str))
+		return false;
+	str++;
+	if (*str == 0 || is_sep(*str) || !isoctal(*str))
+		return false;
+	return true;
+}
+
+/*
+ * Read a path from @line, with potentially mangled special characters.
+ * - the input is changed in-place when unmangling is done
+ * - end of path is a space character (a valid space in the path is mangled)
+ * - line is advanced to the final separator or nul character
+ * - returned path is a valid string terminated by zero or whitespace separator
+ */
+char *read_path(char **line)
+{
+	char *ret = *line;
+	char *out = *line;
+
+	while (**line) {
+		if (is_sep(**line))
+			break;
+		if (valid_escape(*line)) {
+			char c;
+
+			(*line)++;
+			c  = ((*(*line)++) & 0b111) << 6;
+			c |= ((*(*line)++) & 0b111) << 3;
+			c |= ((*(*line)++) & 0b111);
+			*out++ = c;
+		} else {
+			*out++ = *(*line)++;
+		}
+	}
+	/*
+	 * Unmangled characters make the final string shorter, add the null
+	 * terminator.  Otherwise keep the line at the space separator so
+	 * followup parsing can continue.
+	 */
+	if (out < *line)
+		*out = 0;
+	return ret;
+}
+
+/*
+ * Parse a line from /proc/pid/mountinfo
+ * Example:
+
+272 265 0:49 /subvol /mnt/path rw,noatime shared:145 - btrfs /dev/sda1 rw,subvolid=5598,subvol=/subvol
+0   1   2    3      4          5          6          7 8     9         10
+
+ * Fields related to paths and options are parsed, @line is changed in place,
+ * separators are replaced by nul char, paths could be unmangled.
+ */
+static void parse_mntinfo_line(char *line, struct mnt_entry *ent)
+{
+	/* Skip 0 */
+	skip_nonsep(&line);
+	skip_sep(&line);
+	/* Skip 1 */
+	skip_nonsep(&line);
+	skip_sep(&line);
+	/* Skip 2 */
+	skip_nonsep(&line);
+	skip_sep(&line);
+	/* Read 3 */
+	ent->root = read_path(&line);
+	skip_sep(&line);
+	/* Read 4 */
+	ent->path = read_path(&line);
+	skip_sep(&line);
+	/* Read 5 */
+	ent->options1 = line;
+	skip_nonsep(&line);
+	skip_sep(&line);
+	/* Skip 6 */
+	skip_nonsep(&line);
+	skip_sep(&line);
+	/* Skip 7 */
+	skip_nonsep(&line);
+	skip_sep(&line);
+	/* Read 8 */
+	ent->fstype = line;
+	skip_nonsep(&line);
+	skip_sep(&line);
+	/* Read 9 */
+	ent->device = read_path(&line);
+	skip_sep(&line);
+	/* Read 10 */
+	ent->options2 = line;
+	skip_nonsep(&line);
+	skip_sep(&line);
+}
+
+/*
+ * Compare the subvolume passed with the pathname of the directory mounted in
+ * btrfs. The pathname inside btrfs is different from getmnt and friends, since
+ * it can detect bind mounts to content from the inside of the original mount.
+ *
+ * Example:
+ *   # mount -o subvol=/vol /dev/sda2 /mnt
+ *   # mount --bind /mnt/dir2 /othermnt
+ *
+ *   # mounts
+ *   ...
+ *   /dev/sda2 on /mnt type btrfs (ro,relatime,ssd,space_cache,subvolid=256,subvol=/vol)
+ *   /dev/sda2 on /othermnt type btrfs (ro,relatime,ssd,space_cache,subvolid=256,subvol=/vol)
+ *
+ *   # cat /proc/self/mountinfo
+ *
+ *   38 30 0:32 /vol /mnt ro,relatime - btrfs /dev/sda2 ro,ssd,space_cache,subvolid=256,subvol=/vol
+ *   37 29 0:32 /vol/dir2 /othermnt ro,relatime - btrfs /dev/sda2 ro,ssd,space_cache,subvolid=256,subvol=/vol
+ *
+ * If we try to find a mount point only using subvol and subvolid from mount
+ * options we would get mislead to belive that /othermnt has the same content
+ * as /mnt.
+ *
+ * But, using mountinfo, we have the pathaname _inside_ the filesystem, so we
+ * can filter out the mount points with bind mounts which have different content
+ * from the original mounts, in this case the mount point with id 37.
+ */
+int find_mount_fsroot(const char *subvol, const char *subvolid, char **mount)
+{
+	FILE *mnt;
+	char *buf = NULL;
+	int bs = 4096;
+	int line = 0;
+	int ret = 0;
+	bool found = false;
+
+	mnt = fopen("/proc/self/mountinfo", "r");
+	if (!mnt)
+		return -1;
+
+	buf = malloc(bs);
+	if (!buf) {
+		ret = -ENOMEM;
+		goto out;
+	}
+
+	do {
+		int ch;
+
+		ch = fgetc(mnt);
+		if (ch == -1)
+			break;
+
+		if (ch == '\n') {
+			struct mnt_entry ent;
+			char *opt;
+			const char *value;
+
+			buf[line] = 0;
+			parse_mntinfo_line(buf, &ent);
+
+			/* Skip unrelated mounts */
+			if (strcmp(ent.fstype, "btrfs") != 0)
+				goto nextline;
+			if (strlen(ent.root) != strlen(subvol))
+				goto nextline;
+			if (strcmp(ent.root, subvol) != 0)
+				goto nextline;
+
+			/*
+			 * Match subvolume by id found in mountinfo and
+			 * requested by the caller
+			 */
+			opt = find_option(ent.options2, "subvolid=");
+			if (!opt)
+				goto nextline;
+			value = opt + strlen("subvolid=");
+			if (strcmp(value, subvolid) != 0) {
+				free(opt);
+				goto nextline;
+			}
+			free(opt);
+
+			/*
+			 * First match is in most cases the original mount, not
+			 * a bind mount. In case there are no further bind
+			 * mounts, return what we found in @mount.  Any
+			 * following mount that matches by path and subvolume
+			 * id is a bind mount and we return the original mount.
+			 */
+			if (found)
+				goto out;
+			found = true;
+			*mount = strdup(ent.path);
+			ret = 0;
+			goto nextline;
+		}
+		/*
+		 * Grow buffer if needed, there are 3 paths up to PATH_MAX and
+		 * mount options are limited by page size. Often the overall
+		 * line length does not exceed 256.
+		 */
+		if (line >= bs) {
+			char *tmp;
+
+			bs += 4096;
+			tmp = realloc(buf, bs);
+			if (!tmp) {
+				ret = -ENOMEM;
+				goto out;
+			}
+			buf = tmp;
+		}
+		buf[line++] = ch;
+		continue;
+nextline:
+		line = 0;
+	} while (1);
+out:
+	free(buf);
+	fclose(mnt);
+	return ret;
+}
+
+/*
  * return 0 if a btrfs mount point is found
  * return 1 if a mount point is found but not btrfs
  * return <0 if something goes wrong
@@ -1267,9 +1559,8 @@ int find_mount_root(const char *path, char **mount_root)
 		return -errno;
 
 	while ((ent = getmntent(mnttab))) {
-		len = strlen(ent->mnt_dir);
-		if (strncmp(ent->mnt_dir, path, len) == 0) {
-			/* match found and use the latest match */
+		if (path_is_in_dir(ent->mnt_dir, path)) {
+			len = strlen(ent->mnt_dir);
 			if (longest_matchlen <= len) {
 				free(longest_match);
 				longest_matchlen = len;
@@ -1679,6 +1970,20 @@ u8 rand_u8(void)
 void btrfs_config_init(void)
 {
 	bconf.output_format = CMD_FORMAT_TEXT;
+	bconf.verbose = BTRFS_BCONF_UNSET;
+}
+
+void bconf_be_verbose(void)
+{
+	if (bconf.verbose == BTRFS_BCONF_UNSET)
+		bconf.verbose = 1;
+	else
+		bconf.verbose++;
+}
+
+void bconf_be_quiet(void)
+{
+	bconf.verbose = BTRFS_BCONF_QUIET;
 }
 
 /* Returns total size of main memory in bytes, -1UL if error. */
@@ -1709,4 +2014,323 @@ void print_all_devices(struct list_head *devices)
 	list_for_each_entry(dev, devices, dev_list)
 		print_device_info(dev, "\t");
 	printf("\n");
+}
+
+static int bit_count(u64 x)
+{
+	int ret = 0;
+
+	while (x) {
+		if (x & 1)
+			ret++;
+		x >>= 1;
+	}
+	return ret;
+}
+
+static char *sprint_profiles(u64 profiles)
+{
+	int i;
+	int maxlen = 1;
+	char *ptr;
+
+	if (bit_count(profiles) <= 1)
+		return NULL;
+
+	for (i = 0; i < BTRFS_NR_RAID_TYPES; i++)
+		maxlen += strlen(btrfs_raid_array[i].raid_name) + 2;
+
+	ptr = calloc(1, maxlen);
+	if (!ptr)
+		return NULL;
+
+	if (profiles & BTRFS_AVAIL_ALLOC_BIT_SINGLE)
+		strcat(ptr, btrfs_raid_array[BTRFS_RAID_SINGLE].raid_name);
+
+	for (i = 0; i < BTRFS_NR_RAID_TYPES; i++) {
+		if (!(btrfs_raid_array[i].bg_flag & profiles))
+			continue;
+
+		if (ptr[0])
+			strcat(ptr, ", ");
+		strcat(ptr, btrfs_raid_array[i].raid_name);
+	}
+
+	return ptr;
+}
+
+static int btrfs_get_string_for_multiple_profiles(int fd, char **data_ret,
+		char **metadata_ret, char **mixed_ret, char **system_ret,
+		char **types_ret)
+{
+	int ret;
+	int i;
+	struct btrfs_ioctl_space_args *sargs;
+	u64 data_profiles = 0;
+	u64 metadata_profiles = 0;
+	u64 system_profiles = 0;
+	u64 mixed_profiles = 0;
+	const u64 mixed_profile_fl = BTRFS_BLOCK_GROUP_METADATA |
+		BTRFS_BLOCK_GROUP_DATA;
+
+	ret = get_df(fd, &sargs);
+	if (ret < 0)
+		return -1;
+
+	for (i = 0; i < sargs->total_spaces; i++) {
+		u64 flags = sargs->spaces[i].flags;
+
+		if (!(flags & BTRFS_BLOCK_GROUP_PROFILE_MASK))
+			flags |= BTRFS_AVAIL_ALLOC_BIT_SINGLE;
+
+		if ((flags & mixed_profile_fl) == mixed_profile_fl)
+			mixed_profiles |= flags;
+		else if (flags & BTRFS_BLOCK_GROUP_DATA)
+			data_profiles |= flags;
+		else if (flags & BTRFS_BLOCK_GROUP_METADATA)
+			metadata_profiles |= flags;
+		else if (flags & BTRFS_BLOCK_GROUP_SYSTEM)
+			system_profiles |= flags;
+	}
+	free(sargs);
+
+	data_profiles &= BTRFS_EXTENDED_PROFILE_MASK;
+	system_profiles &= BTRFS_EXTENDED_PROFILE_MASK;
+	mixed_profiles &= BTRFS_EXTENDED_PROFILE_MASK;
+	metadata_profiles &= BTRFS_EXTENDED_PROFILE_MASK;
+
+	*data_ret = sprint_profiles(data_profiles);
+	*metadata_ret = sprint_profiles(metadata_profiles);
+	*mixed_ret = sprint_profiles(mixed_profiles);
+	*system_ret = sprint_profiles(system_profiles);
+
+	if (types_ret) {
+		*types_ret = calloc(1, 64);
+		if (!*types_ret)
+			goto out;
+		if (*data_ret)
+			strcat(*types_ret, "data");
+		if (*metadata_ret) {
+			if ((*types_ret)[0])
+				strcat(*types_ret, ", ");
+			strcat(*types_ret, "metadata");
+		}
+		if (*mixed_ret) {
+			if ((*types_ret)[0])
+				strcat(*types_ret, ", ");
+			strcat(*types_ret, "data+metadata");
+		}
+		if (*system_ret) {
+			if ((*types_ret)[0])
+				strcat(*types_ret, ", ");
+			strcat(*types_ret, "system");
+		}
+	}
+
+out:
+	return *data_ret || *metadata_ret || *mixed_ret || *system_ret;
+}
+
+/*
+ * Return string containing coma separated list of block group types that
+ * contain multiple profiles. The return value must be freed by the caller.
+ */
+char *btrfs_test_for_multiple_profiles(int fd)
+{
+	char *data, *metadata, *system, *mixed, *types;
+
+	btrfs_get_string_for_multiple_profiles(fd, &data, &metadata, &mixed,
+			&system, &types);
+	free(data);
+	free(metadata);
+	free(mixed);
+	free(system);
+
+	return types;
+}
+
+int btrfs_warn_multiple_profiles(int fd)
+{
+	int ret;
+	char *data_prof, *mixed_prof, *metadata_prof, *system_prof;
+
+	ret = btrfs_get_string_for_multiple_profiles(fd, &data_prof,
+			&metadata_prof, &mixed_prof, &system_prof, NULL);
+
+	if (ret != 1)
+		return ret;
+
+	fprintf(stderr,
+		"WARNING: Multiple block group profiles detected, see 'man btrfs(5)'.\n");
+	if (data_prof)
+		fprintf(stderr, "WARNING:   Data: %s\n", data_prof);
+
+	if (metadata_prof)
+		fprintf(stderr, "WARNING:   Metadata: %s\n", metadata_prof);
+
+	if (mixed_prof)
+		fprintf(stderr, "WARNING:   Data+Metadata: %s\n", mixed_prof);
+
+	if (system_prof)
+		fprintf(stderr, "WARNING:   System: %s\n", system_prof);
+
+	free(data_prof);
+	free(metadata_prof);
+	free(mixed_prof);
+	free(system_prof);
+
+	return 1;
+}
+
+/*
+ * Open a file in fsid directory in sysfs and return the file descriptor or
+ * error
+ */
+int sysfs_open_fsid_file(int fd, const char *filename)
+{
+	u8 fsid[BTRFS_UUID_SIZE];
+	char fsid_str[BTRFS_UUID_UNPARSED_SIZE];
+	char sysfs_file[PATH_MAX];
+	int ret;
+
+	ret = get_fsid_fd(fd, fsid);
+	if (ret < 0)
+		return ret;
+	uuid_unparse(fsid, fsid_str);
+
+	ret = path_cat3_out(sysfs_file, "/sys/fs/btrfs", fsid_str, filename);
+	if (ret < 0)
+		return ret;
+
+	return open(sysfs_file, O_RDONLY);
+}
+
+/*
+ * Read up to @size bytes to @buf from @fd
+ */
+int sysfs_read_file(int fd, char *buf, size_t size)
+{
+	lseek(fd, 0, SEEK_SET);
+	memset(buf, 0, size);
+	return read(fd, buf, size);
+}
+
+static const char exclop_def[][16] = {
+	[BTRFS_EXCLOP_NONE]		"none",
+	[BTRFS_EXCLOP_BALANCE]		"balance",
+	[BTRFS_EXCLOP_DEV_ADD]		"device add",
+	[BTRFS_EXCLOP_DEV_REMOVE]	"device remove",
+	[BTRFS_EXCLOP_DEV_REPLACE]	"device replace",
+	[BTRFS_EXCLOP_RESIZE]		"resize",
+	[BTRFS_EXCLOP_SWAP_ACTIVATE]	"swap activate",
+};
+
+/*
+ * Read currently running exclusive operation from sysfs. If this is not
+ * available, return BTRFS_EXCLOP_UNKNOWN
+ */
+int get_fs_exclop(int fd)
+{
+	int sysfs_fd;
+	char buf[32];
+	int ret;
+	int i;
+
+	sysfs_fd = sysfs_open_fsid_file(fd, "exclusive_operation");
+	if (sysfs_fd < 0)
+		return BTRFS_EXCLOP_UNKNOWN;
+
+	memset(buf, 0, sizeof(buf));
+	ret = sysfs_read_file(sysfs_fd, buf, sizeof(buf));
+	close(sysfs_fd);
+	if (ret <= 0)
+		return BTRFS_EXCLOP_UNKNOWN;
+
+	i = strlen(buf) - 1;
+	while (i > 0 && isspace(buf[i])) i--;
+	if (i > 0)
+		buf[i + 1] = 0;
+	for (i = 0; i < ARRAY_SIZE(exclop_def); i++) {
+		if (strcmp(exclop_def[i], buf) == 0)
+			return i;
+	}
+
+	return BTRFS_EXCLOP_UNKNOWN;
+}
+
+const char *get_fs_exclop_name(int op)
+{
+	if (0 <= op && op <= ARRAY_SIZE(exclop_def))
+		return exclop_def[op];
+	return "UNKNOWN";
+}
+
+/*
+ * Check if there's another exclusive operation running and either return error
+ * or wait until there's none in case @enqueue is true. The timeout between
+ * checks is 1 minute as we get notification on the sysfs file when the
+ * operation finishes.
+ *
+ * Return:
+ * 0  - caller can continue, nothing running or the status is not available
+ * 1  - another operation running
+ * <0 - there was another error
+ */
+int check_running_fs_exclop(int fd, enum exclusive_operation start, bool enqueue)
+{
+	int sysfs_fd;
+	int exclop;
+	int ret;
+
+	sysfs_fd = sysfs_open_fsid_file(fd, "exclusive_operation");
+	if (sysfs_fd < 0) {
+		if (errno == ENOENT)
+			return 0;
+		return -errno;
+	}
+
+	exclop = get_fs_exclop(fd);
+	if (exclop <= 0) {
+		ret = 0;
+		goto out;
+	}
+
+	if (!enqueue) {
+		error(
+	"unable to start %s, another exclusive operation '%s' in progress",
+			get_fs_exclop_name(start),
+			get_fs_exclop_name(exclop));
+		ret = 1;
+		goto out;
+	}
+
+	while (exclop > 0) {
+		fd_set fds;
+		struct timeval tv = { .tv_sec = 60, .tv_usec = 0 };
+
+		FD_ZERO(&fds);
+		FD_SET(sysfs_fd, &fds);
+
+		ret = select(sysfs_fd + 1, NULL, NULL, &fds, &tv);
+		if (ret < 0) {
+			ret = -errno;
+			break;
+		}
+		if (ret > 0) {
+			/*
+			 * Notified before the timeout, check again before
+			 * returning. In case there are more operations
+			 * waiting, we want to reduce the chances to race so
+			 * reuse the remaining time to randomize the order.
+			 */
+			tv.tv_sec /= 2;
+			ret = select(sysfs_fd + 1, NULL, NULL, &fds, &tv);
+			exclop = get_fs_exclop(fd);
+			continue;
+		}
+	}
+out:
+	close(sysfs_fd);
+
+	return ret;
 }

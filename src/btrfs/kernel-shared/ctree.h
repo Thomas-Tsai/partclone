@@ -25,8 +25,8 @@
 #include "kernel-lib/list.h"
 #include "kerncompat.h"
 #include "kernel-lib/radix-tree.h"
-#include "extent-cache.h"
-#include "extent_io.h"
+#include "common/extent-cache.h"
+#include "kernel-shared/extent_io.h"
 #include "ioctl.h"
 #include "kernel-lib/sizes.h"
 #include "crypto/crc32c.h"
@@ -1201,8 +1201,7 @@ struct btrfs_fs_info {
 
 	int transaction_aborted;
 
-	int (*free_extent_hook)(struct btrfs_fs_info *fs_info,
-				u64 bytenr, u64 num_bytes, u64 parent,
+	int (*free_extent_hook)(u64 bytenr, u64 num_bytes, u64 parent,
 				u64 root_objectid, u64 owner, u64 offset,
 				int refs_to_drop);
 	struct cache_tree *fsck_extent_cache;
@@ -2760,11 +2759,11 @@ struct btrfs_dir_item *btrfs_lookup_dir_item(struct btrfs_trans_handle *trans,
 					     struct btrfs_path *path, u64 dir,
 					     const char *name, int name_len,
 					     int mod);
-struct btrfs_dir_item *btrfs_lookup_dir_index(struct btrfs_trans_handle *trans,
-					      struct btrfs_root *root,
-					      struct btrfs_path *path, u64 dir,
-					      const char *name, int name_len,
-					      u64 index, int mod);
+struct btrfs_dir_item *btrfs_lookup_dir_index_item(struct btrfs_trans_handle *trans,
+					struct btrfs_root *root,
+					struct btrfs_path *path, u64 dir,
+					u64 objectid, const char *name, int name_len,
+					int mod);
 int btrfs_delete_one_dir_name(struct btrfs_trans_handle *trans,
 			      struct btrfs_root *root,
 			      struct btrfs_path *path,
