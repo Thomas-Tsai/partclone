@@ -65,3 +65,6 @@ struct HFSPlusVolumeHeader {
 
 };
 typedef struct HFSPlusVolumeHeader HFSPlusVolumeHeader;
+
+// Bytes from start of the volume to the header
+#define HFSHeaderOffset (2 * PART_SECTOR_SIZE)

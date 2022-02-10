@@ -65,7 +65,7 @@ static void fs_open(char* device){
     int HFS_Clean = 0;
 
     ret = open(device, O_RDONLY);
-    if(lseek(ret, 1024, SEEK_SET) != 1024)
+    if(lseek(ret, HFSHeaderOffset, SEEK_SET) != HFSHeaderOffset)
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: device %s seek fail\n", __FILE__, device);
 	
     buffer = (char*)malloc(sizeof(HFSPlusVolumeHeader));
@@ -106,6 +106,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     int IsUsed = 0;
     UInt8 *extent_bitmap;
+    UInt32 block_size = 0;
     UInt32 bused = 0, bfree = 0, mused = 0;
     UInt32 block = 0, extent_block = 0, tb = 0;
     int allocation_exten = 0;
@@ -117,6 +118,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     fs_open(device);
     tb = be32toh(sb.totalBlocks);
+    block_size = be32toh(sb.blockSize);
 
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
@@ -125,9 +127,9 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     pc_init_bitmap(bitmap, 0xFF, tb);
 
     for (allocation_exten = 0; allocation_exten <= 7; allocation_exten++){
-        allocation_start_block = 4096*be32toh(sb.allocationFile.extents[allocation_exten].startBlock);
+        allocation_start_block = block_size*be32toh(sb.allocationFile.extents[allocation_exten].startBlock);
 
-        allocation_block_size = 4096*be32toh(sb.allocationFile.extents[allocation_exten].blockCount);
+        allocation_block_size = block_size*be32toh(sb.allocationFile.extents[allocation_exten].blockCount);
         log_mesg(2, 0, 0, 2, "%s: tb = %lu\n", __FILE__, tb);
         log_mesg(2, 0, 0, 2, "%s: extent_block = %lu\n", __FILE__, extent_block);
         log_mesg(2, 0, 0, 2, "%s: allocation_exten = %i\n", __FILE__, allocation_exten);
