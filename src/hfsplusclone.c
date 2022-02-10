@@ -110,9 +110,6 @@ static void open_wrapped_volume(char *device, short *signature, char *buffer) {
         if (embed_size != hfsp_size)
             log_mesg(0, 1, 1, fs_opt.debug, "%s: HFS_Plus embedded volume size %lu doesn't match wrapper embed size %lu.\n", __FILE__, hfsp_size, embed_size);
     }
-
-    // TODO: Actually support this!
-    log_mesg(0, 1, 1, fs_opt.debug, "%s: Wrapped HFS+ not yet supported!\n", __FILE__);
 }
 
 /// open device
