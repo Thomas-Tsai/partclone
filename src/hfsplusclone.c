@@ -175,25 +175,27 @@ static void fs_close(){
 }
 
 // Set/clear multiple bits, for when a single HFS+ block corresponds to multiple partclone blocks
-static void pc_set_bit_many(UInt32 block, unsigned long* bitmap, UInt32 total_block, int bits_per_block) {
+static void pc_set_bit_many(UInt32 block_offset, UInt32 block, unsigned long* bitmap, UInt32 total_block, int bits_per_block) {
     int i;
     // This should never overflow:
     // On a regular HFS+ volume, bits_per_block will be one.
     // On a wrapped volume, the HFS wrapper is limited to 2 TB.
-    unsigned long int start = block * bits_per_block;
+    unsigned long int start = (block_offset + block) * bits_per_block;
     for (i = 0; i < bits_per_block; i++) {
         pc_set_bit(start + i, bitmap, total_block);
     }
 }
-static void pc_clear_bit_many(UInt32 block, unsigned long* bitmap, UInt32 total_block, int bits_per_block) {
+static void pc_clear_bit_many(UInt32 block_offset, UInt32 block, unsigned long* bitmap, UInt32 total_block, int bits_per_block) {
     int i;
-    unsigned long int start = block * bits_per_block;
+    unsigned long int start = (block_offset + block) * bits_per_block;
     for (i = 0; i < bits_per_block; i++) {
         pc_clear_bit(start + i, bitmap, total_block);
     }
 }
 
-void read_allocation_file(file_system_info *fs_info, unsigned long *bitmap, progress_bar *prog, int bits_per_block) {
+// Device should already be open, bitmap allocated, and progress_bar initialized
+// block_offset = how many HFS+ blocks from the start of the device does the HFS+ volume start
+void read_allocation_file(file_system_info *fs_info, unsigned long *bitmap, progress_bar *prog, UInt32 block_offset, int bits_per_block) {
 
     int IsUsed = 0;
     UInt8 *extent_bitmap;
@@ -201,11 +203,12 @@ void read_allocation_file(file_system_info *fs_info, unsigned long *bitmap, prog
     UInt32 bused = 0, bfree = 0, mused = 0;
     UInt32 block = 0, extent_block = 0, tb = 0;
     int allocation_exten = 0;
-    UInt64 allocation_start_block;
+    UInt64 allocation_start_block, byte_offset, allocation_block_physical;
     UInt32 allocation_block_size;
 
     tb = be32toh(sb.totalBlocks);
     block_size = be32toh(sb.blockSize);
+    byte_offset = (UInt64)block_offset * block_size;
 
     for (allocation_exten = 0; allocation_exten <= 7; allocation_exten++){
         allocation_start_block = block_size*be32toh(sb.allocationFile.extents[allocation_exten].startBlock);
@@ -221,8 +224,9 @@ void read_allocation_file(file_system_info *fs_info, unsigned long *bitmap, prog
             continue;
         }
 
-        if(lseek(ret, allocation_start_block, SEEK_SET) != allocation_start_block)
-	     log_mesg(0, 1, 1, fs_opt.debug, "%s: start_block %i seek fail\n", __FILE__, allocation_start_block);
+        allocation_block_physical = byte_offset + allocation_start_block;
+        if(lseek(ret, allocation_block_physical, SEEK_SET) != allocation_block_physical)
+	     log_mesg(0, 1, 1, fs_opt.debug, "%s: start_block %i seek fail\n", __FILE__, allocation_block_physical);
         extent_bitmap = (UInt8*)malloc(allocation_block_size);
         if(read(ret, extent_bitmap, allocation_block_size) != allocation_block_size)
 	    log_mesg(0, 0, 1, fs_opt.debug, "%s: read hfsp bitmap fail\n", __FILE__);
@@ -230,11 +234,11 @@ void read_allocation_file(file_system_info *fs_info, unsigned long *bitmap, prog
             IsUsed = IsAllocationBlockUsed(extent_block, extent_bitmap);
             if (IsUsed){
                 bused++;
-                pc_set_bit_many(block, bitmap, fs_info->totalblock, bits_per_block);
+                pc_set_bit_many(block_offset, block, bitmap, fs_info->totalblock, bits_per_block);
                 log_mesg(3, 0, 0, fs_opt.debug, "%s: used block= %i\n", __FILE__, block);
             } else {
                 bfree++;
-                pc_clear_bit_many(block, bitmap, fs_info->totalblock, bits_per_block);
+                pc_clear_bit_many(block_offset, block, bitmap, fs_info->totalblock, bits_per_block);
                 log_mesg(3, 0, 0, fs_opt.debug, "%s: free block= %i\n", __FILE__, block);
             }
             block++;
@@ -255,7 +259,8 @@ void read_allocation_file(file_system_info *fs_info, unsigned long *bitmap, prog
 
 void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui) {
     int bits_per_block = 1;
-    UInt32 allocation_blocks = 0;
+    UInt64 embed_offset = 0;
+    UInt32 allocation_blocks = 0, block_size = 0, block_offset = 0;
     int progress_start = 0, progress_bit_size = 1;
 
     fs_open(device);
@@ -268,10 +273,14 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     pc_init_bitmap(bitmap, 0xFF, fs_info.totalblock);
 
     if (hsb.signature != 0) {
-        bits_per_block = be32toh(sb.blockSize) / fs_info.block_size;
+        embed_offset = hfs_embed_offset();
+        block_size = be32toh(sb.blockSize);
+        block_offset = embed_offset / block_size;
+          
+        bits_per_block = block_size / fs_info.block_size;
     }
 
-    read_allocation_file(&fs_info, bitmap, &prog, bits_per_block);
+    read_allocation_file(&fs_info, bitmap, &prog, block_offset, bits_per_block);
 
     fs_close();
     /// update progress
