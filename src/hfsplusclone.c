@@ -32,25 +32,6 @@
 struct HFSPlusVolumeHeader sb;
 int ret;
 
-static short reverseShort(short s){
-    unsigned char c1, c2;
-
-    c1 = s & 255;
-    c2 = (s >> 8) & 255;
-
-    return (c1 << 8)+c2;
-}
-
-static int reverseInt(int i){
-    unsigned char c1, c2, c3, c4;
-    c1 = i & 255;
-    c2 = (i >> 8) & 255;
-    c3 = (i >> 16)& 255;
-    c4 = (i >> 24)& 255;
-
-    return ((int)c1<<24)+((int)c2<<16)+((int)c3<<8)+c4;
-}
-
 static int IsAllocationBlockUsed(UInt32 thisAllocationBlock, UInt8* allocationFileContents)
 {
     UInt8 thisByte;
@@ -65,12 +46,12 @@ static void print_fork_data(HFSPlusForkData* fork){
 
     HFSPlusExtentDescriptor* exten;
     log_mesg(2, 0, 0, fs_opt.debug, "%s: logicalSize: %#lx\n", __FILE__, fork->logicalSize);
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: clumpSize: %i\n", __FILE__, reverseInt(fork->clumpSize));
-    log_mesg(2, 0, 0, fs_opt.debug, "%s: totalBlocks: %i\n", __FILE__, reverseInt(fork->totalBlocks));
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: clumpSize: %i\n", __FILE__, be32toh(fork->clumpSize));
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: totalBlocks: %i\n", __FILE__, be32toh(fork->totalBlocks));
     for (i = 0; i < 8; i++ ){
         exten = &fork->extents[i];
-        log_mesg(2, 0, 0, fs_opt.debug, "%s: \texten %i startBlock: %i\n", __FILE__, i, reverseInt(exten->startBlock));
-        log_mesg(2, 0, 0, fs_opt.debug, "%s: \texten %i blockCount: %i\n", __FILE__, i, reverseInt(fork->extents[i].blockCount));
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: \texten %i startBlock: %i\n", __FILE__, i, be32toh(exten->startBlock));
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: \texten %i blockCount: %i\n", __FILE__, i, be32toh(fork->extents[i].blockCount));
 
     }
 }
@@ -94,13 +75,13 @@ static void fs_open(char* device){
 
     HFS_Signature[0] = (char)sb.signature;
     HFS_Signature[1] = (char)(sb.signature>>8);
-    HFS_Version = (short)reverseShort(sb.version);
-    HFS_Clean = (reverseInt(sb.attributes)>>8) & 1;
+    HFS_Version = (short)be16toh(sb.version);
+    HFS_Clean = (be32toh(sb.attributes)>>8) & 1;
 
     log_mesg(3, 0, 0, fs_opt.debug, "%s: Signature=%c%c\n", __FILE__, HFS_Signature[0], HFS_Signature[1]);
     log_mesg(3, 0, 0, fs_opt.debug, "%s: Version=%i\n", __FILE__, HFS_Version);
     log_mesg(3, 0, 0, fs_opt.debug, "%s: Attr-Unmounted=%i(1 is clean, 0 is dirty)\n", __FILE__, HFS_Clean);
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: Attr-Inconsistent=%i\n", __FILE__, (reverseInt(sb.attributes)>>11) & 1);
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: Attr-Inconsistent=%i\n", __FILE__, (be32toh(sb.attributes)>>11) & 1);
 
     if(fs_opt.ignore_fschk){
         log_mesg(1, 0, 0, fs_opt.debug, "%s: Ignore filesystem check\n", __FILE__);
@@ -135,7 +116,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
 
     fs_open(device);
-    tb = reverseInt(sb.totalBlocks);
+    tb = be32toh(sb.totalBlocks);
 
     /// init progress
     progress_bar   prog;	/// progress_bar structure defined in progress.h
@@ -144,9 +125,9 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     pc_init_bitmap(bitmap, 0xFF, tb);
 
     for (allocation_exten = 0; allocation_exten <= 7; allocation_exten++){
-        allocation_start_block = 4096*reverseInt(sb.allocationFile.extents[allocation_exten].startBlock);
+        allocation_start_block = 4096*be32toh(sb.allocationFile.extents[allocation_exten].startBlock);
 
-        allocation_block_size = 4096*reverseInt(sb.allocationFile.extents[allocation_exten].blockCount);
+        allocation_block_size = 4096*be32toh(sb.allocationFile.extents[allocation_exten].blockCount);
         log_mesg(2, 0, 0, 2, "%s: tb = %lu\n", __FILE__, tb);
         log_mesg(2, 0, 0, 2, "%s: extent_block = %lu\n", __FILE__, extent_block);
         log_mesg(2, 0, 0, 2, "%s: allocation_exten = %i\n", __FILE__, allocation_exten);
@@ -184,7 +165,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
         log_mesg(2, 0, 0, 2, "%s: bfree:%i\n", __FILE__, bfree);
         log_mesg(2, 0, 0, 2, "%s: bused:%i\n", __FILE__, bused);
     }
-    mused = (reverseInt(sb.totalBlocks) - reverseInt(sb.freeBlocks));
+    mused = (be32toh(sb.totalBlocks) - be32toh(sb.freeBlocks));
     if(bused != mused)
         log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap count error, used:%lu, mbitmap:%lu\n", __FILE__, bused, mused);
 
@@ -198,13 +179,13 @@ void read_super_blocks(char* device, file_system_info* fs_info)
 
     fs_open(device);
     strncpy(fs_info->fs, hfsplus_MAGIC, FS_MAGIC_SIZE);
-    fs_info->block_size  = reverseInt(sb.blockSize);
-    fs_info->totalblock  = reverseInt(sb.totalBlocks);
-    fs_info->usedblocks  = reverseInt(sb.totalBlocks) - reverseInt(sb.freeBlocks);
+    fs_info->block_size  = be32toh(sb.blockSize);
+    fs_info->totalblock  = be32toh(sb.totalBlocks);
+    fs_info->usedblocks  = be32toh(sb.totalBlocks) - be32toh(sb.freeBlocks);
     fs_info->device_size = fs_info->block_size * fs_info->totalblock;
-    log_mesg(2, 0, 0, 2, "%s: blockSize:%i\n", __FILE__, reverseInt(sb.blockSize));
-    log_mesg(2, 0, 0, 2, "%s: totalBlocks:%i\n", __FILE__, reverseInt(sb.totalBlocks));
-    log_mesg(2, 0, 0, 2, "%s: freeBlocks:%i\n", __FILE__, reverseInt(sb.freeBlocks));
+    log_mesg(2, 0, 0, 2, "%s: blockSize:%i\n", __FILE__, be32toh(sb.blockSize));
+    log_mesg(2, 0, 0, 2, "%s: totalBlocks:%i\n", __FILE__, be32toh(sb.totalBlocks));
+    log_mesg(2, 0, 0, 2, "%s: freeBlocks:%i\n", __FILE__, be32toh(sb.freeBlocks));
     print_fork_data(&sb.allocationFile);
     print_fork_data(&sb.extentsFile);
     print_fork_data(&sb.catalogFile);
