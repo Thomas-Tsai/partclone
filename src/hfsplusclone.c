@@ -31,6 +31,7 @@
 
 struct HFSPlusVolumeHeader sb;
 static struct HFSVolumeHeader hsb;
+static UInt64 partition_size;
 int ret;
 
 static int IsAllocationBlockUsed(UInt32 thisAllocationBlock, UInt8* allocationFileContents)
@@ -72,6 +73,11 @@ static void open_wrapped_volume(char *device, short *signature, char *buffer) {
     int hfsp_block_size, wrapper_block_size;
     UInt64 embed_offset, hfsp_sb_offset;
     UInt64 embed_size, hfsp_size;
+
+    // HFS volumes allow arbitrary space between the last allocation block and the alternate superblock
+    // at the end of the volume. So we can't just calculate the size, we need to check the physical
+    // device size.
+    partition_size = get_partition_size(&ret);
 
     memcpy(&hsb, &sb, sizeof(HFSVolumeHeader)); // HFS header is always smaller, so just copy it
     wrapper_signature = be16toh(hsb.embedSignature);
@@ -116,6 +122,9 @@ static void fs_open(char* device){
     short HFS_Version;
     short HFS_Signature;
     int HFS_Clean = 0;
+
+    // Clear the HFS header. If we later see it's been populated, we'll know we're using a wrapped volume.
+    memset(&hsb, 0, sizeof(HFSVolumeHeader));
 
     ret = open(device, O_RDONLY);
     if(lseek(ret, HFSHeaderOffset, SEEK_SET) != HFSHeaderOffset)
@@ -244,13 +253,23 @@ void read_super_blocks(char* device, file_system_info* fs_info)
 
     fs_open(device);
     strncpy(fs_info->fs, hfsplus_MAGIC, FS_MAGIC_SIZE);
-    fs_info->block_size  = be32toh(sb.blockSize);
-    fs_info->totalblock  = be32toh(sb.totalBlocks);
-    fs_info->usedblocks  = be32toh(sb.totalBlocks) - be32toh(sb.freeBlocks);
-    fs_info->device_size = fs_info->block_size * fs_info->totalblock;
-    log_mesg(2, 0, 0, 2, "%s: blockSize:%i\n", __FILE__, be32toh(sb.blockSize));
-    log_mesg(2, 0, 0, 2, "%s: totalBlocks:%i\n", __FILE__, be32toh(sb.totalBlocks));
-    log_mesg(2, 0, 0, 2, "%s: freeBlocks:%i\n", __FILE__, be32toh(sb.freeBlocks));
+    if (hsb.signature != 0) {
+        // HFS wrapper volumes are not necessarily a multiple of any block size, because of the
+        // arbitrary space before the alternate superblock.
+        // So use small sectors sizes for these volumes.
+        fs_info->block_size = PART_SECTOR_SIZE;
+        fs_info->device_size = partition_size;
+        fs_info->totalblock = fs_info->device_size / fs_info->block_size;
+        fs_info->usedblocks = fs_info->totalblock - be32toh(sb.freeBlocks) * (be32toh(sb.blockSize) / PART_SECTOR_SIZE);
+    } else {
+        fs_info->block_size  = be32toh(sb.blockSize);
+        fs_info->totalblock  = be32toh(sb.totalBlocks);
+        fs_info->usedblocks  = be32toh(sb.totalBlocks) - be32toh(sb.freeBlocks);
+        fs_info->device_size = fs_info->block_size * fs_info->totalblock;
+    }
+    log_mesg(2, 0, 0, 2, "%s: blockSize:%i\n", __FILE__, fs_info->block_size);
+    log_mesg(2, 0, 0, 2, "%s: totalBlocks:%i\n", __FILE__, fs_info->totalblock);
+    log_mesg(2, 0, 0, 2, "%s: freeBlocks:%i\n", __FILE__, fs_info->totalblock - fs_info->usedblocks);
     print_fork_data(&sb.allocationFile);
     print_fork_data(&sb.extentsFile);
     print_fork_data(&sb.catalogFile);
