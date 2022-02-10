@@ -258,8 +258,9 @@ void read_allocation_file(file_system_info *fs_info, unsigned long *bitmap, prog
 }
 
 void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui) {
+    int i = 0;
     int bits_per_block = 1;
-    UInt64 embed_offset = 0;
+    UInt64 embed_offset = 0, embed_end = 0;
     UInt32 allocation_blocks = 0, block_size = 0, block_offset = 0;
     int progress_start = 0, progress_bit_size = 1;
 
@@ -276,8 +277,15 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
         embed_offset = hfs_embed_offset();
         block_size = be32toh(sb.blockSize);
         block_offset = embed_offset / block_size;
+        embed_end = embed_offset + (UInt64)be32toh(hsb.allocationBlockSize) * (UInt16)be16toh(hsb.allocationBlockCount);
           
         bits_per_block = block_size / fs_info.block_size;
+
+        // Initialize the bitmap with wrapper blocks (start + end)
+        for (i = 0; i < embed_offset / fs_info.block_size; i++)
+            pc_set_bit(i, bitmap, fs_info.totalblock);
+        for (i = embed_end; i < fs_info.totalblock; i++)
+            pc_set_bit(i, bitmap, fs_info.totalblock);
     }
 
     read_allocation_file(&fs_info, bitmap, &prog, block_offset, bits_per_block);
