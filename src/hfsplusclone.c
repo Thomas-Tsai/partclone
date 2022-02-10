@@ -174,7 +174,26 @@ static void fs_close(){
 
 }
 
-void read_allocation_file(file_system_info *fs_info, unsigned long *bitmap, progress_bar *prog) {
+// Set/clear multiple bits, for when a single HFS+ block corresponds to multiple partclone blocks
+static void pc_set_bit_many(UInt32 block, unsigned long* bitmap, UInt32 total_block, int bits_per_block) {
+    int i;
+    // This should never overflow:
+    // On a regular HFS+ volume, bits_per_block will be one.
+    // On a wrapped volume, the HFS wrapper is limited to 2 TB.
+    unsigned long int start = block * bits_per_block;
+    for (i = 0; i < bits_per_block; i++) {
+        pc_set_bit(start + i, bitmap, total_block);
+    }
+}
+static void pc_clear_bit_many(UInt32 block, unsigned long* bitmap, UInt32 total_block, int bits_per_block) {
+    int i;
+    unsigned long int start = block * bits_per_block;
+    for (i = 0; i < bits_per_block; i++) {
+        pc_clear_bit(start + i, bitmap, total_block);
+    }
+}
+
+void read_allocation_file(file_system_info *fs_info, unsigned long *bitmap, progress_bar *prog, int bits_per_block) {
 
     int IsUsed = 0;
     UInt8 *extent_bitmap;
@@ -211,11 +230,11 @@ void read_allocation_file(file_system_info *fs_info, unsigned long *bitmap, prog
             IsUsed = IsAllocationBlockUsed(extent_block, extent_bitmap);
             if (IsUsed){
                 bused++;
-                pc_set_bit(block, bitmap, fs_info->totalblock);
+                pc_set_bit_many(block, bitmap, fs_info->totalblock, bits_per_block);
                 log_mesg(3, 0, 0, fs_opt.debug, "%s: used block= %i\n", __FILE__, block);
             } else {
                 bfree++;
-                pc_clear_bit(block, bitmap, fs_info->totalblock);
+                pc_clear_bit_many(block, bitmap, fs_info->totalblock, bits_per_block);
                 log_mesg(3, 0, 0, fs_opt.debug, "%s: free block= %i\n", __FILE__, block);
             }
             block++;
@@ -235,17 +254,24 @@ void read_allocation_file(file_system_info *fs_info, unsigned long *bitmap, prog
 }
 
 void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui) {
+    int bits_per_block = 1;
+    UInt32 allocation_blocks = 0;
     int progress_start = 0, progress_bit_size = 1;
 
     fs_open(device);
 
     /// init progress
+    allocation_blocks = be32toh(sb.totalBlocks);
     progress_bar   prog;	/// progress_bar structure defined in progress.h
-    progress_init(&prog, progress_start, fs_info.totalblock, fs_info.totalblock, BITMAP, progress_bit_size);
+    progress_init(&prog, progress_start, allocation_blocks, allocation_blocks, BITMAP, progress_bit_size);
 
     pc_init_bitmap(bitmap, 0xFF, fs_info.totalblock);
 
-    read_allocation_file(&fs_info, bitmap, &prog);
+    if (hsb.signature != 0) {
+        bits_per_block = be32toh(sb.blockSize) / fs_info.block_size;
+    }
+
+    read_allocation_file(&fs_info, bitmap, &prog, bits_per_block);
 
     fs_close();
     /// update progress
