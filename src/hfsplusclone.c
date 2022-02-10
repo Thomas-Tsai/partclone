@@ -30,6 +30,7 @@
 #include "fs_common.h"
 
 struct HFSPlusVolumeHeader sb;
+static struct HFSVolumeHeader hsb;
 int ret;
 
 static int IsAllocationBlockUsed(UInt32 thisAllocationBlock, UInt8* allocationFileContents)
@@ -56,6 +57,58 @@ static void print_fork_data(HFSPlusForkData* fork){
     }
 }
 
+// Find the offset of the embedded HFS+ volume inside an HFS wrapper
+static UInt64 hfs_embed_offset() {
+    int wrapper_block_size;
+
+    wrapper_block_size = be32toh(hsb.allocationBlockSize);
+    return (UInt64)be16toh(hsb.firstAllocationBlock) * PART_SECTOR_SIZE +
+        be16toh(hsb.embedExtent.startBlock) * wrapper_block_size;
+}
+
+// Try to use this device as an HFS+ volume embedded in an HFS wrapper
+static void open_wrapped_volume(char *device, short *signature, char *buffer) {
+    short wrapper_signature;
+    int hfsp_block_size, wrapper_block_size;
+    UInt64 embed_offset, hfsp_sb_offset;
+    UInt64 embed_size, hfsp_size;
+
+    memcpy(&hsb, &sb, sizeof(HFSVolumeHeader)); // HFS header is always smaller, so just copy it
+    wrapper_signature = be16toh(hsb.embedSignature);
+    if (wrapper_signature != HFSPlusSignature) // Make sure embedSignature is right, otherwise this isn't HFS+ at all
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: HFS_Plus volume is really just HFS, can't clone that.\n", __FILE__);
+
+    // Find the embedded volume, and copy its superblock into sb
+    embed_offset = hfs_embed_offset();
+    hfsp_sb_offset = embed_offset + HFSHeaderOffset;
+    if (lseek(ret, hfsp_sb_offset, SEEK_SET) != hfsp_sb_offset)
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: failed seeking to embedded HFS Plus superblock at offset %lu on device %s.\n", __FILE__, hfsp_sb_offset, device);
+    if (read(ret, buffer, sizeof(HFSPlusVolumeHeader)) != sizeof(HFSPlusVolumeHeader))
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: read embedded HFSPlusVolumeHeader fail.\n", __FILE__);
+    memcpy(&sb, buffer, sizeof(HFSPlusVolumeHeader));
+    *signature = be16toh(sb.signature);
+
+    if (*signature == HFSPlusSignature) { // If this fails, fs_open will soon error because of the bad signature
+        log_mesg(0, 0, 0, fs_opt.debug, "%s: HFS_Plus embedded volume found at offset %lu.\n", __FILE__, embed_offset);
+
+        // Do some sanity checks
+        hfsp_block_size = be32toh(sb.blockSize);
+        wrapper_block_size = be32toh(hsb.allocationBlockSize);
+        if (wrapper_block_size % hfsp_block_size != 0)
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: HFS_Plus wrapper block size %u is not a multiple of block size %u.\n", __FILE__, wrapper_block_size, hfsp_block_size);
+        if (embed_offset % hfsp_block_size != 0)
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: HFS_Plus embedded volume offset %lu is not a multiple of block size %u.\n", __FILE__, embed_offset, hfsp_block_size);
+
+        embed_size = (UInt64)wrapper_block_size * (UInt16)be16toh(hsb.embedExtent.blockCount);
+        hfsp_size = (UInt64)hfsp_block_size * be32toh(sb.totalBlocks);
+        if (embed_size != hfsp_size)
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: HFS_Plus embedded volume size %lu doesn't match wrapper embed size %lu.\n", __FILE__, hfsp_size, embed_size);
+    }
+
+    // TODO: Actually support this!
+    log_mesg(0, 1, 1, fs_opt.debug, "%s: Wrapped HFS+ not yet supported!\n", __FILE__);
+}
+
 /// open device
 static void fs_open(char* device){
 
@@ -74,13 +127,18 @@ static void fs_open(char* device){
     memcpy(&sb, buffer, sizeof(HFSPlusVolumeHeader));
 
     HFS_Signature = be16toh(sb.signature);
-    HFS_Version = (short)be16toh(sb.version);
-    HFS_Clean = (be32toh(sb.attributes)>>8) & 1;
+    
+    if(HFS_Signature == HFSSignature) {
+        open_wrapped_volume(device, &HFS_Signature, buffer);
+    }
 
     if(HFS_Signature != HFSPlusSignature && HFS_Signature != HFSXSignature){
         log_mesg(0, 1, 1, fs_opt.debug, "%s: HFS_Plus incorrect signature '%c%c'\n", __FILE__,
             (char)(HFS_Signature >> 8), (char)HFS_Signature);
     }
+
+    HFS_Version = (short)be16toh(sb.version);
+    HFS_Clean = (be32toh(sb.attributes)>>8) & 1;
 
     log_mesg(3, 0, 0, fs_opt.debug, "%s: Signature=%c%c\n", __FILE__,
         (char)(HFS_Signature >> 8), (char)HFS_Signature);
