@@ -293,7 +293,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
       <term><option>-D</option></term> 
       <term><option>--domain</option></term>
       <listitem>
-      <para>Create GNU Ddrescue domain log file from source device</para>
+      <para>Create GNU Ddrescue domain log file from source device. This is a human readable file in which + marks used block areas and ? marks free areas.</para>
       </listitem>
       </varlistentry>
       <varlistentry>
