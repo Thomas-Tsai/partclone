@@ -45,8 +45,13 @@ git commit
 git push --set-upstream origin docs-typo-normanly
 ```
 
-Derive `.8` files. The makefile configures a specific stylesheet to be used in the conversion that
-may not be on your installation. Try a close match:
+Derive `.8` files.
+You may have to install `docbook` and `docbook-xsl-stylesheets`.
+(TODO: What minimum version is required?)
+(TODO: Is `xmltoman` or `doxygen2man` needed?)
+The file `Makefile.am` configures a specific stylesheet to be used in the conversion that
+may not be on your installation. Try a close match before manually installing the exact
+version of the `partclone` developers, e.g.:
 ```
 xsltproc --nonet /usr/share/xml/docbook/stylesheet/nwalsh/1.79.2/manpages/docbook.xsl partclone.xml
 for I in chkimg dd imager restore ; do xsltproc --nonet /usr/share/xml/docbook/stylesheet/nwalsh/1.79.2/manpages/docbook.xsl partclone.$I.xml ; done
