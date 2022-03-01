@@ -200,7 +200,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>-s <replaceable>FILE</replaceable></option></term>
         <term><option>--source <replaceable>FILE</replaceable></option></term>
         <listitem>
-          <para>Source FILE. The FILE could be a image file(made by partclone) or device depend on your action. Normanly, backup source is device, restore source is image file.</para>
+          <para>Source FILE. The FILE could be a image file(made by partclone) or device depend on your action. Normally, backup source is device, restore source is image file.</para>
           <para>Receving data from pipe line is supported ONLY for restoring, just ignore -s option or use '-' means receive data from stdin.</para>
         </listitem>
       </varlistentry>
@@ -208,7 +208,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>-o <replaceable>FILE</replaceable></option></term>
         <term><option>--output <replaceable>FILE</replaceable></option></term>
         <listitem>
-          <para>Output FILE. The FILE could be a image file(partclone will generate) or device depend on your action. Normanly, backup output to image file and restore output to device.</para>
+          <para>Output FILE. The FILE could be a image file(partclone will generate) or device depend on your action. Normally, backup output to image file and restore output to device.</para>
 	  <para>Sending data to pipe line is also supported ONLY for back-up, just ignore -o option or use '-' means send data to stdout.</para>
         </listitem>
       </varlistentry>
