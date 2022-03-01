@@ -46,7 +46,7 @@ git push --set-upstream origin docs-typo-normanly
 ```
 
 Derive `.8` files.
-You may have to install `docbook` and `docbook-xsl-stylesheets`.
+You may have to install `libxslt-tools`, `docbook` and `docbook-xsl-stylesheets`.
 (TODO: What minimum version is required?)
 (TODO: Is `xmltoman` or `doxygen2man` needed?)
 The file `Makefile.am` configures a specific stylesheet to be used in the conversion that
