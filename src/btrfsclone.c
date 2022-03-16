@@ -344,9 +344,17 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     dev_size = fs_info.device_size;
     block_size  = btrfs_super_nodesize(info->super_copy);
     u64 bsize = (u64)block_size;
+    u64 sb_mirror_offset = 0;
+    int sb_mirror = 0;
 
     set_bitmap(bitmap, 0, BTRFS_SUPER_INFO_OFFSET); // some data like mbr maybe in
     set_bitmap(bitmap, BTRFS_SUPER_INFO_OFFSET, block_size);
+    for (sb_mirror = 0; sb_mirror <= BTRFS_SUPER_MIRROR_MAX; sb_mirror++){
+        sb_mirror_offset = btrfs_sb_offset(sb_mirror);
+        log_mesg(1, 0, 0, fs_opt.debug, "%s: sb mirror %i: %X\n", __FILE__, sb_mirror, sb_mirror_offset);
+        set_bitmap(bitmap, sb_mirror_offset, block_size);
+    } 
+
     check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->extent_root->root_item), &bsize, 0);
     check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->csum_root->root_item), &bsize, 0);
     //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->quota_root->root_item), &block_size);
