@@ -51,6 +51,9 @@ static void set_bitmap(unsigned long* bitmap, uint64_t pos, uint64_t length){
     if (pos > dev_size) {
 	log_mesg(1, 0, 0, fs_opt.debug, "%s: offset(%llu) larger than device size(%llu), skip it.\n", __FILE__,  pos, dev_size);
 	return;
+    } 
+    if ((pos+length) > dev_size){
+        length = dev_size-pos;
     }
     pos_block = pos/block_size;
     block_end = (pos+length)/block_size;
