@@ -1485,10 +1485,10 @@ int check_mount(const char* device, char* mount_p){
 		return -1;
 	}
 
-	if (!realpath(device, real_file)) {
-		free(real_fsname); real_fsname = NULL;
-        if (real_file){ free(real_file); real_file = NULL;}
-		return -1;
+	if (realpath(device, real_file) == NULL) {
+	    free(real_fsname); real_fsname = NULL;
+            if (real_file){ free(real_file); real_file = NULL;}
+	    return -1;
 	}
 
 	if ((f = setmntent(MOUNTED, "r")) == 0) {
@@ -1622,7 +1622,7 @@ int open_target(char* target, cmd_opt* opt) {
 		mp = malloc(PATH_MAX + 1);
 		if (!mp)
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
-		if (check_mount(target, mp)) {
+		if (check_mount(target, mp) == 1) {
 			log_mesg(0, 0, 1, debug, "device (%s) is mounted at %s\n", target, mp);
 			free(mp); mp = NULL;
 			log_mesg(0, 1, 1, debug, "error exit\n");
@@ -1635,7 +1635,11 @@ int open_target(char* target, cmd_opt* opt) {
 		/// check block device
 		stat(target, &st_dev);
 		if (!S_ISBLK(st_dev.st_mode)) {
-			log_mesg(1, 0, 1, debug, "Warning, did you restore to non-block device(%s)?\n", target);
+                    if ((opt->dd) && (!opt->overwrite)){
+                        log_mesg(1, 0, 1, debug, "Warning, device(%s) not exist?! Use option --overwrite if you want to CREATE special file\n", target);
+			log_mesg(0, 1, 1, debug, "error exit\n");
+                    }
+                    log_mesg(1, 0, 1, debug, "Warning, you are doing restore to non-block device(%s)?\n", target);
 			flags |= O_CREAT;
 			if (!opt->overwrite)
 				flags |= O_EXCL;
