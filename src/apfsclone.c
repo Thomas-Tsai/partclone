@@ -29,13 +29,81 @@
 #include "progress.h"
 #include "fs_common.h"
 
+static void *get_spaceman_buf(int fd, const struct nx_superblock_t *nxsb)
+{
+    uint32_t block_size = nxsb->nx_block_size;
+    uint64_t base = nxsb->nx_xp_desc_base;
+    uint32_t blocks = nxsb->nx_xp_desc_blocks;
+    int found_nxsb = 0;
+    checkpoint_map_phys_t *cpm = NULL;
+    struct spaceman_phys_t *ret = NULL;
+    obj_phys_t *obj;
+    const uint32_t type_checkpoint_map =
+	(OBJ_PHYSICAL | OBJECT_TYPE_CHECKPOINT_MAP);
+    const uint32_t type_spaceman = (OBJ_EPHEMERAL | OBJECT_TYPE_SPACEMAN);
+    uint32_t i;
+
+    if (base >> 63 || blocks >> 31)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: B-tree checkpoint descriptor area not supported\n", __FILE__);
+    obj = malloc(block_size);
+    if (!obj)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: malloc error %s\n", __FILE__, strerror(errno));
+    for (; blocks > 0; base++, blocks--) {
+	if (pread(fd, obj, block_size, base * block_size) != block_size)
+	    log_mesg(0, 1, 1, fs_opt.debug, "%s: pread error %s\n", __FILE__, strerror(errno));
+	if (obj->o_type == nxsb->nx_o.o_type) {
+	    /* Sanity check: *nxsb has a copy of latest nx_superblock
+	     * if the filesystem is unmounted cleanly. */
+	    if (obj->o_xid < nxsb->nx_o.o_xid)
+		continue;
+	    if (obj->o_xid > nxsb->nx_o.o_xid)
+		log_mesg(0, 1, 1, fs_opt.debug, "%s: newer nx_superblock found in descriptor\n", __FILE__);
+	    found_nxsb = 1;
+	}
+	if (obj->o_type == type_checkpoint_map) {
+	    /* Find latest checkpoint_map_phys_t */
+	    if (!cpm || cpm->cpm_o.o_xid < obj->o_xid) {
+		if (!cpm)
+		    cpm = malloc(block_size);
+		if (!cpm)
+		    log_mesg(0, 1, 1, fs_opt.debug, "%s: malloc error %s\n", __FILE__, strerror(errno));
+		memcpy(cpm, obj, block_size);
+	    }
+	}
+    }
+    free(obj);
+
+    if (!found_nxsb)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: nx_superblock not found in descriptor\n", __FILE__);
+    if (!cpm)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: checkpoint_map_phys not found in descriptor\n", __FILE__);
+    if (!(cpm->cpm_flags & CHECKPOINT_MAP_LAST))
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: multiple checkpoint_map_phys not supported\n", __FILE__);
+    for (i = 0; i < cpm->cpm_count; i++) {
+	if (cpm->cpm_map[i].cpm_oid == nxsb->nx_spaceman_oid &&
+	    cpm->cpm_map[i].cpm_type == type_spaceman) {
+	    ret = malloc(cpm->cpm_map[i].cpm_size);
+	    if (!ret)
+		log_mesg(0, 1, 1, fs_opt.debug, "%s: malloc error %s\n", __FILE__, strerror(errno));
+	    if (pread(fd, ret, cpm->cpm_map[i].cpm_size,
+		      cpm->cpm_map[i].cpm_paddr * block_size) !=
+		cpm->cpm_map[i].cpm_size)
+		log_mesg(0, 1, 1, fs_opt.debug, "%s: pread error %s\n", __FILE__, strerror(errno));
+	    break;
+	}
+    }
+    free(cpm);
+    if (!ret)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: spaceman not found\n", __FILE__);
+    return ret;
+}
+
 int APFSDEV;
 struct nx_superblock_t nxsb;
 
 /// get_apfs_free_count
 static uint64_t get_apfs_free_count(){
 
-    int block_size = 4096;
     size_t size = 0;
 
     struct spaceman_phys_t spaceman;
@@ -44,14 +112,12 @@ static uint64_t get_apfs_free_count(){
     int sd = 0;
     int cnt = 0;
     int total_cnt = 0;
-    uint64_t read_size = 0;
     uint64_t free_count = 0;
     uint64_t total_free_count = 0;
 
-    spaceman_buf = (char *)malloc(block_size*nxsb.nx_xp_data_len);
-    memset(spaceman_buf, 0, block_size*nxsb.nx_xp_data_len); // not sure what is real size
-    read_size = pread(APFSDEV, spaceman_buf,  block_size*nxsb.nx_xp_data_len, nxsb.nx_xp_data_base*block_size);
+    spaceman_buf = get_spaceman_buf(APFSDEV, &nxsb);
     memcpy(&spaceman, spaceman_buf, sizeof(spaceman));
+    free(spaceman_buf);
     log_mesg(2, 0, 0, fs_opt.debug, "%s: sm_block_size %x\n", __FILE__, spaceman.sm_block_size);
     log_mesg(2, 0, 0, fs_opt.debug, "%s: blocks_per_chunk %x\n", __FILE__, spaceman.sm_blocks_per_chunk);
     log_mesg(2, 0 ,0, fs_opt.debug, "%s: sd count=%i\n", __FILE__, sd);
@@ -109,7 +175,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     int start = 0;
     int bit_size = 1;
 
-    uint32_t block_size = 4096;
+    uint32_t block_size;
     size_t size = 0;
 
     struct spaceman_phys_t spaceman;
@@ -149,9 +215,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
         pc_set_bit(block, bitmap, fs_info.totalblock);
     }
 
-    spaceman_buf = (char *)malloc(block_size);
-    memset(spaceman_buf, 0, block_size);
-    read_size = pread(APFSDEV, spaceman_buf, block_size, nxsb.nx_xp_data_base*block_size);
+    spaceman_buf = get_spaceman_buf(APFSDEV, &nxsb);
     memcpy(&spaceman, spaceman_buf, sizeof(spaceman));
 
     block_size = nxsb.nx_block_size;

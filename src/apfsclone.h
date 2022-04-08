@@ -385,3 +385,23 @@ struct chunk_info_block_t {
 };
 
 
+struct checkpoint_mapping {
+	le_uint32_t cpm_type;
+	le_uint32_t cpm_subtype;
+	le_uint32_t cpm_size;
+	le_uint32_t cpm_pad;
+	le_oid_t cpm_fs_oid;
+	le_oid_t cpm_oid;
+	le_oid_t cpm_paddr;
+};
+typedef struct checkpoint_mapping checkpoint_mapping_t;
+
+struct checkpoint_map_phys {
+	obj_phys_t cpm_o;
+	le_uint32_t cpm_flags;
+	le_uint32_t cpm_count;
+	checkpoint_mapping_t cpm_map[];
+};
+typedef struct checkpoint_map_phys checkpoint_map_phys_t;
+
+const uint32_t CHECKPOINT_MAP_LAST = 0x00000001;
