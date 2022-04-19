@@ -98,6 +98,8 @@ int main(int argc, char **argv) {
 	file_system_info fs_info;   /// description of the file system
 	image_options    img_opt;
 
+	int target_stdout = 0;
+
 	init_fs_info(&fs_info);
 	init_image_options(&img_opt);
 
@@ -170,6 +172,9 @@ int main(int argc, char **argv) {
 		log_mesg(0, 1, 1, debug, "Error exit\n");
 	    }
 	}
+	if (strcmp(target, "-") == 0) {
+		target_stdout = 1;
+	}
 #else
 	dfw = -1;
 #endif
@@ -222,7 +227,7 @@ int main(int argc, char **argv) {
 		update_used_blocks_count(&fs_info, bitmap);
 
 		/* skip check free space while torrent_only on */
-		if ((opt.check) && (opt.torrent_only == 0)) {
+		if ((opt.check) && (opt.torrent_only == 0) && (!target_stdout)) {
 
 			unsigned long long needed_space = 0;
 
@@ -272,7 +277,9 @@ int main(int argc, char **argv) {
 
 #ifndef CHKIMG
 		/// check the dest partition size.
-		if (opt.restore_raw_file)
+		if (target_stdout)
+			;
+		else if (opt.restore_raw_file)
 			check_free_space(target, fs_info.device_size);
 		else if ((opt.check) && (opt.blockfile == 0))
 			check_size(&dfw, fs_info.device_size);
@@ -312,7 +319,7 @@ int main(int argc, char **argv) {
 		read_bitmap(source, fs_info, bitmap, pui);
 
 		/// check the dest partition size.
-		if (opt.dd && opt.check) {
+		if (opt.dd && opt.check && !target_stdout) {
 		    if (!opt.restore_raw_file)
 			check_size(&dfw, fs_info.device_size);
 		    else
@@ -327,6 +334,9 @@ int main(int argc, char **argv) {
 		    fs_info.device_size = get_partition_size(&dfr);
 		    read_super_blocks(source, &fs_info);
 		}else{
+		    if (target_stdout) {
+			log_mesg(0, 1, 1, debug, "%s, %i, stdout is not supported\n", __func__, __LINE__);
+		    }
 		    if (stat(target, &st_dev) != -1) {
 		        if (S_ISBLK(st_dev.st_mode)) 
 			    fs_info.device_size = get_partition_size(&dfw);
@@ -357,7 +367,7 @@ int main(int argc, char **argv) {
 
 		/// check the dest partition size.
 		/* skip check free space while torrent_only on */
-		if ((opt.check) && (opt.torrent_only == 0)) {
+		if ((opt.check) && (opt.torrent_only == 0) && (!target_stdout)) {
 		    struct stat target_stat;
 		    if ((stat(opt.target, &target_stat) != -1) && (strcmp(opt.target, "-") != 0)) {
 			if (S_ISBLK(target_stat.st_mode)) 
@@ -620,6 +630,7 @@ int main(int argc, char **argv) {
 		unsigned int blocks_in_cs, buffer_size, read_offset;
 		unsigned char checksum[cs_size];
 		char *read_buffer, *write_buffer;
+		char *empty_buffer = NULL;
 		unsigned long long blocks_used_fix = 0, test_block = 0;
 
 		// SHA1 for torrent info
@@ -652,10 +663,18 @@ int main(int argc, char **argv) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
 
+		if (target_stdout) {
+			empty_buffer = malloc(block_size);
+			if (empty_buffer == NULL) {
+				log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
+			}
+			memset(empty_buffer, 0, block_size);
+		}
+
 #ifndef CHKIMG
 		/// seek to the first
 		if (opt.blockfile == 0) {
-		    if (lseek(dfw, opt.offset, SEEK_SET) == (off_t)-1){
+		    if (skip_bytes(&dfw, empty_buffer, block_size, opt.offset, &opt) != opt.offset){
 			log_mesg(0, 1, 1, debug, "target seek ERROR:%s\n", strerror(errno));
 		    }
 		}
@@ -682,7 +701,7 @@ int main(int argc, char **argv) {
 		block_id = 0;
 		do {
 			unsigned int i;
-			unsigned long long blocks_written, bytes_skip;
+			unsigned long long blocks_written, blocks_skip;
 			unsigned int read_size;
 			// max chunk to read using one read(2) syscall
 			unsigned int blocks_read = copied + buffer_capacity < blocks_used ?
@@ -772,19 +791,22 @@ int main(int argc, char **argv) {
 				unsigned int blocks_write = 0;
 
 				/// count bytes to skip
-				for (bytes_skip = 0;
-				     block_id < blocks_total &&
-				     !pc_test_bit(block_id, bitmap, fs_info.totalblock);
-				     block_id++, bytes_skip += block_size);
+				for (blocks_skip = 0;
+				     block_id + blocks_skip < blocks_total &&
+				     !pc_test_bit(block_id + blocks_skip, bitmap, fs_info.totalblock);
+				     blocks_skip++);
 
 #ifndef CHKIMG
 				/// skip empty blocks
 				if (blocks_write == 0) {
-				    if (opt.blockfile == 0 && bytes_skip > 0 && lseek(dfw, (off_t)bytes_skip, SEEK_CUR) == (off_t)-1) {
+				    if (opt.blockfile == 0 && blocks_skip > 0 && skip_blocks(&dfw, empty_buffer, block_size, blocks_skip, &opt, &block_id) < 0) {
 					log_mesg(0, 1, 1, debug, "target seek ERROR:%s\n", strerror(errno));
 				    }
+				    blocks_skip = 0;
 				}
 #endif
+				if (blocks_skip > 0)
+				    block_id += blocks_skip;
 
 				/// blocks to write
 				for (blocks_write = 0;
@@ -842,6 +864,15 @@ int main(int argc, char **argv) {
 
 		free(write_buffer);
 		free(read_buffer);
+		if (empty_buffer) {
+		    if (block_id < blocks_total && skip_blocks(&dfw, empty_buffer, block_size, blocks_total - block_id, &opt, &block_id) < 0) {
+			log_mesg(0, 0, 1, debug, "target seek ERROR:%s\n", strerror(errno));
+		    }
+		    if (block_id * block_size < fs_info.device_size && skip_bytes(&dfw, empty_buffer, block_size, fs_info.device_size - block_id * block_size, &opt) != fs_info.device_size - block_id * block_size) {
+			log_mesg(0, 0, 1, debug, "target seek ERROR:%s\n", strerror(errno));
+		    }
+		    free(empty_buffer);
+		}
 
 #ifndef CHKIMG
 		/// restore_raw_file option
@@ -856,6 +887,7 @@ int main(int argc, char **argv) {
 	} else if (opt.dd) {
 
 		char *buffer;
+		char *empty_buffer = NULL;
 		int block_size = fs_info.block_size;
 		unsigned long long blocks_total = fs_info.totalblock;
 		int buffer_capacity = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
@@ -865,10 +897,21 @@ int main(int argc, char **argv) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
 
+		if (target_stdout) {
+			empty_buffer = malloc(block_size);
+			if (empty_buffer == NULL) {
+				log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
+			}
+			memset(empty_buffer, 0, block_size);
+		}
+
 		block_id = 0;
 
 		if (lseek(dfr, 0, SEEK_SET) == (off_t)-1)
 			log_mesg(0, 1, 1, debug, "source seek ERROR:%d\n", strerror(errno));
+		if (skip_bytes(&dfw, empty_buffer, block_size, opt.offset, &opt) != opt.offset) {
+			log_mesg(0, 1, 1, debug, "target seek ERROR:%s\n", strerror(errno));
+		}
 
 		log_mesg(0, 0, 0, debug, "Total block %llu\n", blocks_total);
 
@@ -888,8 +931,11 @@ int main(int argc, char **argv) {
 			if (block_id + blocks_skip == blocks_total)
 				break;
 
-			if (blocks_skip)
-				block_id += blocks_skip;
+			if (blocks_skip) {
+				if (skip_blocks(&dfw, empty_buffer, block_size, blocks_skip, &opt, &block_id) < 0) {
+					log_mesg(0, 1, 1, debug, "target seek ERROR:%s\n", strerror(errno));
+				}
+			}
 
 			/// read chunk from source
 			for (blocks_read = 0;
@@ -903,8 +949,6 @@ int main(int argc, char **argv) {
 			offset = (off_t)(block_id * block_size);
 			if (lseek(dfr, offset, SEEK_SET) == (off_t)-1)
 				log_mesg(0, 1, 1, debug, "source seek ERROR:%s\n", strerror(errno));
-			if (lseek(dfw, offset + opt.offset, SEEK_SET) == (off_t)-1)
-				log_mesg(0, 1, 1, debug, "target seek ERROR:%s\n", strerror(errno));
 
 			r_size = read_all(&dfr, buffer, blocks_read * block_size, &opt);
 			if (r_size != (int)(blocks_read * block_size)) {
@@ -944,6 +988,15 @@ int main(int argc, char **argv) {
 		} while (1);
 
 		free(buffer);
+		if (empty_buffer) {
+			if (block_id < blocks_total && skip_blocks(&dfw, empty_buffer, block_size, blocks_total - block_id, &opt, &block_id) < 0) {
+				log_mesg(0, 0, 1, debug, "write empty ERROR:%s\n", strerror(errno));
+			}
+			if (block_id * block_size < fs_info.device_size && skip_bytes(&dfw, empty_buffer, block_size, fs_info.device_size - block_id * block_size, &opt) != fs_info.device_size - block_id * block_size) {
+				log_mesg(0, 0, 1, debug, "write empty ERROR:%s\n", strerror(errno));
+			}
+			free(empty_buffer);
+		}
 
 		/// restore_raw_file option
 		if (opt.restore_raw_file && !pc_test_bit(blocks_total - 1, bitmap, fs_info.totalblock)) {

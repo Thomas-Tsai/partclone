@@ -611,15 +611,6 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		}
 
 	}
-
-#ifndef CHKIMG
-	if (opt->restore) {
-		if ((!strcmp(opt->target, "-")) || (!opt->target)) {
-			fprintf(stderr, "Partclone can't restore to stdout.\nFor help,type: %s -h\n", get_exec_name());
-			exit(0);
-		}
-	}
-#endif
 }
 
 /**
@@ -1616,6 +1607,9 @@ int open_target(char* target, cmd_opt* opt) {
 				log_mesg(0, 0, 1, debug, "open target fail %s: %s (%i)\n", target, strerror(errno), errno);
 			}
 		}
+	} else if (((opt->restore) || (opt->dd)) && (opt->blockfile == 0) && strcmp(target, "-") == 0) {
+	    if ((ret = fileno(stdout)) == -1)
+		log_mesg(0, 1, 1, debug, "clone: open %s(stdout) error\n", target);
 	} else if (((opt->restore) || (opt->dd) || (ddd_block_device == 1)) && (opt->blockfile == 0)) {    /// always is device, restore to device=target
 
 		/// check mounted
@@ -1775,6 +1769,55 @@ void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt) {
 		memset(buff, '?', PART_SECTOR_SIZE);
 		memcpy(buff, badsector_magic, strlen(badsector_magic)+1);
 	}
+}
+
+long long skip_bytes(int *fd, char *empty_buffer, unsigned long long empty_buffer_size, unsigned long long empty_count, cmd_opt *opt) {
+	long long completed = 0;
+	int w_size;
+	if (empty_count == 0)
+		return 0;
+	if (empty_buffer == NULL) {
+		if (lseek(*fd, empty_count, SEEK_CUR) == (off_t)-1)
+			return -1;
+		return empty_count;
+	}
+	while (empty_buffer_size < empty_count - completed) {
+		w_size = write_all(fd, empty_buffer, empty_buffer_size, opt);
+		if (w_size < 0)
+			return w_size;
+		completed += w_size;
+		if (w_size != empty_buffer_size)
+			return completed;
+	}
+	w_size = write_all(fd, empty_buffer, empty_count - completed, opt);
+	if (w_size < 0)
+		return w_size;
+	completed += w_size;
+	return completed;
+}
+
+int skip_blocks(int *fd, char *empty_buffer, unsigned long long empty_buffer_size, unsigned long long empty_count, cmd_opt *opt, unsigned long long *block_id) {
+	int w_size;
+	if (empty_count == 0)
+		return 0;
+	if (empty_buffer == NULL) {
+		if (lseek(*fd, empty_count * empty_buffer_size, SEEK_CUR) ==
+		    (off_t)-1)
+			return -1;
+		if (block_id)
+			*block_id += empty_count;
+		return 0;
+	}
+	for (unsigned long long i = 0; i < empty_count; i++) {
+		w_size = write_all(fd, empty_buffer, empty_buffer_size, opt);
+		if (w_size < 0)
+			return w_size;
+		if (w_size != empty_buffer_size)
+			return -1;
+		if (block_id)
+			++*block_id;
+	}
+	return 0;
 }
 
 /// print options to log file
