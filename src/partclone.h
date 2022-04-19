@@ -286,6 +286,8 @@ extern void close_log();
 extern int io_all(int *fd, char *buffer, unsigned long long count, int do_write, cmd_opt *opt);
 extern void sync_data(int fd, cmd_opt* opt);
 extern void rescue_sector(int *fd, unsigned long long pos, char *buff, cmd_opt *opt);
+extern long long skip_bytes(int *fd, char *empty_buffer, unsigned long long empty_buffer_size, unsigned long long empty_count, cmd_opt *opt);
+extern int skip_blocks(int *fd, char *empty_buffer, unsigned long long empty_buffer_size, unsigned long long empty_count, cmd_opt *opt, unsigned long long *block_id);
 
 extern unsigned long long cnv_blocks_to_bytes(unsigned long long block_offset, unsigned int block_count, unsigned int block_size, const image_options* img_opt);
 extern unsigned long long get_bitmap_size_on_disk(const file_system_info* fs_info, const image_options* img_opt, cmd_opt* opt);
