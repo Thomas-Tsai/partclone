@@ -1797,6 +1797,7 @@ long long skip_bytes(int *fd, char *empty_buffer, unsigned long long empty_buffe
 }
 
 int skip_blocks(int *fd, char *empty_buffer, unsigned long long empty_buffer_size, unsigned long long empty_count, cmd_opt *opt, unsigned long long *block_id) {
+	unsigned long long i;
 	int w_size;
 	if (empty_count == 0)
 		return 0;
@@ -1808,7 +1809,7 @@ int skip_blocks(int *fd, char *empty_buffer, unsigned long long empty_buffer_siz
 			*block_id += empty_count;
 		return 0;
 	}
-	for (unsigned long long i = 0; i < empty_count; i++) {
+	for (i = 0; i < empty_count; i++) {
 		w_size = write_all(fd, empty_buffer, empty_buffer_size, opt);
 		if (w_size < 0)
 			return w_size;
