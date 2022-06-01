@@ -78,14 +78,14 @@ if ENABLE_HFSP
 sbin_PROGRAMS += partclone.hfsp
 partclone_hfsp_SOURCES=$(main_files) hfsplusclone.c hfsplusclone.h
 partclone_hfsp_CFLAGS=-DHFSPLUS
-partclone_hfsp_LDADD=${LDADD_static}
+partclone_hfsp_LDADD=-lcrypto ${LDADD_static}
 endif
 
 if ENABLE_APFS
 sbin_PROGRAMS += partclone.apfs
 partclone_apfs_SOURCES=$(main_files) apfsclone.c apfsclone.h
 partclone_apfs_CFLAGS=-DAPFS
-partclone_apfs_LDADD=${LDADD_static}
+partclone_apfs_LDADD=-lcrypto ${LDADD_static}
 endif
 
 
@@ -100,7 +100,7 @@ if ENABLE_EXFAT
 sbin_PROGRAMS += partclone.exfat
 partclone_exfat_SOURCES=$(main_files) exfatclone.c exfatclone.h $(EXFATFS_SOURCE)
 partclone_exfat_CFLAGS=-DEXFAT -D_GNU_SOURCE -std=c99
-partclone_exfat_LDADD=${LDADD_static}
+partclone_exfat_LDADD=-lcrypto ${LDADD_static}
 endif
 
 if ENABLE_F2FS
@@ -121,7 +121,7 @@ if ENABLE_FAT
 sbin_PROGRAMS += partclone.fat
 partclone_fat_SOURCES=$(main_files) fatclone.c fatclone.h
 partclone_fat_CFLAGS=-DFAT
-partclone_fat_LDADD=${LDADD_static}
+partclone_fat_LDADD=-lcrypto ${LDADD_static}
 endif
 
 sbin_PROGRAMS += partclone.ntfsfixboot
@@ -182,7 +182,7 @@ if ENABLE_MINIX
 sbin_PROGRAMS += partclone.minix
 partclone_minix_SOURCES=$(main_files) minixclone.c minixclone.h
 partclone_minix_CFLAGS=-DMINIX
-partclone_minix_LDADD=${LDADD_static}
+partclone_minix_LDADD=-lcrypto ${LDADD_static}
 endif
 
 if ENABLE_FUSE
