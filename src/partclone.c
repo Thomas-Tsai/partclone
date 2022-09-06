@@ -13,8 +13,12 @@
 
 
 #include <config.h>
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+#ifndef _LARGEFILE64_SOURCE
 #define _LARGEFILE64_SOURCE
+#endif
 #include <features.h>
 #include <fcntl.h>
 #include <unistd.h>
