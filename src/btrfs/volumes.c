@@ -2491,7 +2491,7 @@ u64 btrfs_stripe_length(struct btrfs_fs_info *fs_info,
 			struct extent_buffer *leaf,
 			struct btrfs_chunk *chunk)
 {
-	u64 stripe_len;
+	u64 stripe_len = 0;
 	u64 chunk_len;
 	u32 num_stripes = btrfs_chunk_num_stripes(leaf, chunk);
 	u64 profile = btrfs_chunk_type(leaf, chunk) &

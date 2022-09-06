@@ -3030,7 +3030,7 @@ int btrfs_del_items(struct btrfs_trans_handle *trans, struct btrfs_root *root,
  */
 int btrfs_prev_leaf(struct btrfs_root *root, struct btrfs_path *path)
 {
-	int slot;
+	int slot = 0;
 	int level = 1;
 	struct extent_buffer *c;
 	struct extent_buffer *next = NULL;
