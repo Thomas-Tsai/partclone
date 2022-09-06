@@ -92,7 +92,7 @@ endif
 if ENABLE_XFS
 sbin_PROGRAMS += partclone.xfs
 partclone_xfs_SOURCES=$(main_files) xfsclone.c xfsclone.h $(XFS_SOURCE)
-partclone_xfs_CFLAGS=-Ixfs/include -Ixfs/libxfs/ -Ixfs/include/xfs/ -DXFS -D_GNU_SOURCE -DNDEBUG  $(UUID_CFLAGS) 
+partclone_xfs_CFLAGS=-I$(srcdir)/xfs/include -I$(srcdir)/xfs/libxfs/ -I$(srcdir)/xfs/include/xfs/ -DXFS -D_GNU_SOURCE -DNDEBUG  $(UUID_CFLAGS) 
 partclone_xfs_LDADD=-lrt -lpthread -luuid -lcrypto ${LDADD_static}
 endif
 
@@ -174,7 +174,7 @@ endif
 if ENABLE_BTRFS
 sbin_PROGRAMS += partclone.btrfs
 partclone_btrfs_SOURCES=$(main_files) btrfsclone.c btrfsclone.h $(BTRFS_SOURCE)
-partclone_btrfs_CFLAGS=-DBTRFS -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -D_GNU_SOURCE -DCRYPTOPROVIDER_BUILTIN=1 -Ibtrfs -Ibtrfs/libbtrfsutil
+partclone_btrfs_CFLAGS=-DBTRFS -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -D_GNU_SOURCE -DCRYPTOPROVIDER_BUILTIN=1 -I$(srcdir)/btrfs -I$(srcdir)/btrfs/libbtrfsutil
 partclone_btrfs_LDADD=-luuid -lblkid -lcrypto ${LDADD_static}
 endif
 
