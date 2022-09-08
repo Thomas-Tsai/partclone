@@ -1285,8 +1285,8 @@ int btrfs_lookup_extent_info(struct btrfs_trans_handle *trans,
 	struct extent_buffer *l;
 	struct btrfs_extent_item *item;
 	u32 item_size;
-	u64 num_refs;
-	u64 extent_flags;
+	u64 num_refs = 0;
+	u64 extent_flags = 0;
 
 	if (metadata && !btrfs_fs_incompat(fs_info, SKINNY_METADATA)) {
 		offset = fs_info->nodesize;
@@ -3096,7 +3096,7 @@ out:
 
 static u64 get_dev_extent_len(struct map_lookup *map)
 {
-	int div;
+	int div = 1;
 
 	switch (map->type & BTRFS_BLOCK_GROUP_PROFILE_MASK) {
 	case 0: /* Single */
