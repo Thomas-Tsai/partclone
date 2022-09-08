@@ -418,6 +418,7 @@ fi
 ##libcrypto##
 AC_CHECK_LIB(crypto, EVP_MD_CTX_new, [AC_DEFINE([HAVE_EVP_MD_CTX_new],1,[OpenSSL 1.1.0+])])
 AC_CHECK_LIB(crypto, EVP_MD_CTX_create, [AC_DEFINE([HAVE_EVP_MD_CTX_create],1,[OpenSSL 1.0+])])
+AC_CHECK_LIB(crypto, EVP_MD_CTX_reset, [AC_DEFINE([HAVE_EVP_MD_CTX_reset],1,[OpenSSL 1.1.0+])])
 
 ##static linking##
 AC_ARG_ENABLE([static],

@@ -23,7 +23,10 @@
 #include <stdint.h>
 
 /* SHA1 for torrent info */
-#if defined(HAVE_EVP_MD_CTX_new) || defined(HAVE_EVP_MD_CTX_create)
+#if (defined(HAVE_EVP_MD_CTX_new) || defined(HAVE_EVP_MD_CTX_create)) && defined(HAVE_EVP_MD_CTX_reset)
+#define HAVE_EVP_MD_CTX_methods
+#endif
+#if defined(HAVE_EVP_MD_CTX_methods)
 #include <openssl/evp.h>
 #else
 #include <openssl/sha.h>
@@ -37,7 +40,7 @@ typedef struct {
 	/* fd for torrent.info. You should close fd yourself */
 	int tinfo;
 	/* remember the length for a piece size */
-#if defined(HAVE_EVP_MD_CTX_new) || defined(HAVE_EVP_MD_CTX_create)
+#if defined(HAVE_EVP_MD_CTX_methods)
 	EVP_MD_CTX *ctx;
 #else
 	SHA_CTX ctx;
