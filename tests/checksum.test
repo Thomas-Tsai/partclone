@@ -1,5 +1,5 @@
 #!/bin/bash
-. _common
+. "$(dirname "$0")"/_common
 
 fs="ext3"
 raw_r="restore.raw"

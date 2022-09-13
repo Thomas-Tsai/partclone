@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-. _common
+. "$(dirname "$0")"/_common
 break_debug=0
 ## file system
 normal_fs="ext2"

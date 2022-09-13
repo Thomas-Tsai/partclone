@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-. _common
+. "$(dirname "$0")"/_common
 
 disk_size=$((512*1024576))
 row_A_file=$0.row_A

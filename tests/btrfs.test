@@ -1,2 +1,2 @@
 #!/bin/bash
-./mini_clone_restore_test -f 115000000 btrfs
+"$(dirname "$0")"/mini_clone_restore_test -f 115000000 btrfs

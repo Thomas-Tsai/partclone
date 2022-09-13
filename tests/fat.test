@@ -1,4 +1,5 @@
 #!/bin/bash
-./mini_clone_restore_test fat12
-./mini_clone_restore_test fat16
-./mini_clone_restore_test fat32
+srcdir="$(dirname "$0")"
+"${srcdir}"/mini_clone_restore_test fat12
+"${srcdir}"/mini_clone_restore_test fat16
+"${srcdir}"/mini_clone_restore_test fat32

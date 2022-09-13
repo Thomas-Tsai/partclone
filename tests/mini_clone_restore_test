@@ -6,7 +6,7 @@ usage(){
     exit 0
 }
 
-. _common
+. "$(dirname "$0")"/_common
 
 ## blocks/checksum to test various patterns
 cs_a=(0   1   1   1   1     1)
