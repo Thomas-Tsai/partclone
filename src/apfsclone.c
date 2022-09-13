@@ -104,14 +104,10 @@ struct nx_superblock_t nxsb;
 /// get_apfs_free_count
 static uint64_t get_apfs_free_count(){
 
-    size_t size = 0;
-
     struct spaceman_phys_t spaceman;
     char *spaceman_buf;
 
     int sd = 0;
-    int cnt = 0;
-    int total_cnt = 0;
     uint64_t free_count = 0;
     uint64_t total_free_count = 0;
 
@@ -176,7 +172,6 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     int bit_size = 1;
 
     uint32_t block_size;
-    size_t size = 0;
 
     struct spaceman_phys_t spaceman;
     char *spaceman_buf;
@@ -195,10 +190,6 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     uint64_t blocks_per_chunk = 0;
 
     int sd = 0;
-    int total_cnt = 0;
-    int ci_bitmap = 0;
-    uint64_t free_count = 0;
-    uint64_t total_free_count = 0;
 
     uint64_t block = 0;
     uint64_t bitmap_block = 0;
@@ -276,7 +267,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
                             read_size = pread(APFSDEV, bitmap_entry_buf, block_size, chunk_info.ci_bitmap_addr*block_size);
     
                             for (block = 0 ; block < chunk_info.ci_block_count; block++){
-                                if (pc_test_bit(block, bitmap_entry_buf, chunk_info.ci_block_count) == 0){
+                                if (pc_test_bit(block, (void *)bitmap_entry_buf, chunk_info.ci_block_count) == 0){
                                     pc_clear_bit(block+chunk_info.ci_addr, bitmap, fs_info.totalblock);
 				    //log_mesg(3, 0, 0, fs_opt.debug, "%s: free block  %lx\n", __FILE__, block+chunk_info.ci_addr);
                                 }
