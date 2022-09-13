@@ -23,6 +23,7 @@ AC_ARG_ENABLE([all],
 )
 AM_CONDITIONAL(ENABLE_ALL, test "$enable_all" = yes)
 if test "$enable_all" = "yes"; then
+enable_fuse="yes"
 enable_xfs="yes"
 enable_extfs="yes"
 enable_reiserfs="yes"
@@ -65,6 +66,24 @@ if test "$enable_fuse" = "yes"; then
 AS_MESSAGE([checking  for FUSE Library and Header files ... ...])
     PKG_CHECK_MODULES([FUSE], [fuse],,exit)
     uuidcfg=`pkg-config --cflags --libs fuse`
+AC_MSG_CHECKING(version of FUSE)
+
+AC_COMPUTE_INT([fuse_version_major], [FUSE_MAJOR_VERSION], [[
+#ifndef _FILE_OFFSET_BITS
+#define _FILE_OFFSET_BITS 64
+#endif
+#include <fuse/fuse.h>
+]],
+    AC_MSG_FAILURE([fuse/fuse.h: could not determine 'FUSE_MAJOR_VERSION' value]))
+AC_COMPUTE_INT([fuse_version_minor], [FUSE_MINOR_VERSION], [[
+#ifndef _FILE_OFFSET_BITS
+#define _FILE_OFFSET_BITS 64
+#endif
+#include <fuse/fuse.h>
+]],
+    AC_MSG_FAILURE([fuse/fuse.h: could not determine 'FUSE_MINOR_VERSION' value]))
+fuse_version="${fuse_version_major}.${fuse_version_minor}"
+AC_MSG_RESULT([$fuse_version])
 fi
 
 AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([*** pthread library (libpthread) not found]))
@@ -463,20 +482,21 @@ AC_OUTPUT
 
 echo ""
 echo "Support File System:"
-echo "ext2/3/4...... $enable_extfs, $extfs_version"
-echo "reiserfs...... $enable_reiserfs, $reiserfs_version"
-echo "reiser4....... $enable_reiser4, $reiser4_version"
-echo "xfs........... $enable_xfs, $xfs_version"
-echo "ntfs.......... $enable_ntfs, $ntfs_version"
-echo "fat12/16/32... $enable_fat, $fat_version"
-echo "exfat......... $enable_exfat, $exfat_version"
-echo "hfs plus...... $enable_hfsp, $hfs_plus_version"
-echo "apfs.......... $enable_apfs, $apfs_version"
-echo "ufs .......... $enable_ufs, $ufs_version"
-echo "vmfs ......... $enable_vmfs, $vmfs_version"
-echo "jfs .......... $enable_jfs, $jfs_version"
-echo "btrfs......... $enable_btrfs, $btrfs_version"
-echo "minix......... $enable_minix, $minix_version"
-echo "f2fs.......... $enable_f2fs, $f2fs_version"
-echo "nilfs2.........$enable_nilfs2, $nilfs2_version"
+echo "fuse.......... ${enable_fuse:-no}, ${fuse_version:-}"
+echo "ext2/3/4...... ${enable_extfs:-no}, ${extfs_version:-}"
+echo "reiserfs...... ${enable_reiserfs:-no}, ${reiserfs_version:-}"
+echo "reiser4....... ${enable_reiser4:-no}, ${reiser4_version:-}"
+echo "xfs........... ${enable_xfs:-no}, ${xfs_version:-}"
+echo "ntfs.......... ${enable_ntfs:-no}, ${ntfs_version:-}"
+echo "fat12/16/32... ${enable_fat:-no}, ${fat_version:-}"
+echo "exfat......... ${enable_exfat:-no}, ${exfat_version:-}"
+echo "hfs plus...... ${enable_hfsp:-no}, ${hfs_plus_version:-}"
+echo "apfs.......... ${enable_apfs:-no}, ${apfs_version:-}"
+echo "ufs .......... ${enable_ufs:-no}, ${ufs_version:-}"
+echo "vmfs ......... ${enable_vmfs:-no}, ${vmfs_version:-}"
+echo "jfs .......... ${enable_jfs:-no}, ${jfs_version:-}"
+echo "btrfs......... ${enable_btrfs:-no}, ${btrfs_version:-}"
+echo "minix......... ${enable_minix:-no}, ${minix_version:-}"
+echo "f2fs.......... ${enable_f2fs:-no}, ${f2fs_version:-}"
+echo "nilfs2.........${enable_nilfs2:-no}, ${nilfs2_version:-}"
 #echo $supported_fs
