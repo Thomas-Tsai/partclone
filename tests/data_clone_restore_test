@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. _common
+. "$(dirname "$0")"/_common
 break_debug=0
 manual_fs=$1
 

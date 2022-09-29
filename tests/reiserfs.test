@@ -1,2 +1,2 @@
 #!/bin/bash
-./mini_clone_restore_test reiserfs
+"$(dirname "$0")"/mini_clone_restore_test reiserfs
