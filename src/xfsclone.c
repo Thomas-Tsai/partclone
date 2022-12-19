@@ -262,7 +262,7 @@ static void fs_open(char* device)
     if ((source_fd = open(device, open_flags)) < 0)  {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't open source partition %s\n", __FILE__, device);
     }else{
-	log_mesg(0, 0, 0, fs_opt.debug, "%s: Open %s successfully", __FILE__, device);
+	log_mesg(0, 0, 0, fs_opt.debug, "%s: Open %s successfully\n", __FILE__, device);
 	}
 
     if (fstat(source_fd, &statbuf) < 0)  {
