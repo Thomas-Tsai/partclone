@@ -28,7 +28,7 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-partclone.dd \- unsupported file system backup utility\&.(like `dd` )
+partclone.dd \- unsupported file system backup utility\&. (like `dd` )
 .SH "SYNOPSIS"
 .HP \w'\fBpartclone\&.dd\fR\ 'u
 \fBpartclone\&.dd\fR {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_raw_file\fR]\ [\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]\ [\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]\ [\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]\ [\fB\-\-ignore_crc\fR]\ [\fB\-X\fR\ |\ \fB\-\-dialog\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR]
@@ -40,21 +40,21 @@ is a part of
 project to clone unsupported file system with dd method\&. It will backup all block from partition\&. Partclone provide utilities to backup used blocks and design for higher compatibility of the file system by using existing library, e\&.g\&. e2fslibs is used to read the used block of ext2 partition\&.
 .PP
 \fBPartclone\fR
-supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX\&. Also support some non\-linux operation system, ex: NTFS and FAT (for Windows), HFS plus(APPLE MAC OS), UFS2(FreeBSD), VMFS(VMWare Vsphere)\&. All partclone utils could be run like partclone\&.xxx is very smiliar fsck or mkfs\&. For example, for backup/restore hfsplus, just run partclone\&.hfsp\&.
+supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX\&. Also support some non\-linux operation system, ex: NTFS and FAT (for Windows), HFS plus (APPLE MAC OS), UFS2 (FreeBSD), VMFS (VMWare Vsphere)\&. All partclone utils could be run like partclone\&.xxx is very smiliar fsck or mkfs\&. For example, for backup/restore hfsplus, just run partclone\&.hfsp\&.
 .SH "OPTIONS"
 .PP
 The program follows the usual GNU command line syntax, with long options starting with two dashes (`\-\*(Aq)\&. A summary of options is included below\&.
 .PP
 \fB\-s \fR\fB\fIFILE\fR\fR, \fB\-\-source \fR\fB\fIFILE\fR\fR
 .RS 4
-Source FILE\&. The FILE could be a image file(made by partclone) or device depend on your action\&. Normally, backup source is device, restore source is image file\&.
+Source FILE\&. The FILE could be a image file (made by partclone) or device depend on your action\&. Normally, backup source is device, restore source is image file\&.
 .sp
 Receving data from pipe line is supported ONLY for restoring, just ignore \-s option or use \*(Aq\-\*(Aq means receive data from stdin\&.
 .RE
 .PP
 \fB\-o \fR\fB\fIFILE\fR\fR, \fB\-\-output \fR\fB\fIFILE\fR\fR
 .RS 4
-Output FILE\&. The FILE could be a image file(partclone will generate) or device depend on your action\&. Normally, backup output to image file and restore output to device\&.
+Output FILE\&. The FILE could be a image file (partclone will generate) or device depend on your action\&. Normally, backup output to image file and restore output to device\&.
 .sp
 Sending data to pipe line is also supported ONLY for back\-up, just ignore \-o option or use \*(Aq\-\*(Aq means send data to stdout\&.
 .RE
@@ -71,7 +71,7 @@ Creating special raw file for loop device\&.
 .PP
 \fB\-L \fR\fB\fIFILE\fR\fR, \fB\-\-logfile \fR\fB\fIFILE\fR\fR
 .RS 4
-put special path to record partclone log information\&.(default /var/log/partclone\&.log)
+put special path to record partclone log information\&. (default /var/log/partclone\&.log)
 .RE
 .PP
 \fB\-R\fR, \fB\-\-rescue\fR

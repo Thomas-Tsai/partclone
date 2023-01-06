@@ -184,7 +184,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
     <title>DESCRIPTION</title>
     <para><command>&dhpackage;</command> is a part of <command>Partclone</command> project to restore all image made from partclone.[fstype] or partclone.dd.
     Partclone provide utilities to backup used blocks and design for higher compatibility of the file system by using existing library, e.g. e2fslibs is used to read the used block of ext2 partition.</para>
-    <para><command>Partclone</command> supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX. Also  support some non-linux operation system, ex: NTFS, FAT, EXFAT(for Windows), HFS plus(APPLE MAC OS), UFS2(FreeBSD), VMFS(VMWare Vsphere). All partclone utils could be run like partclone.xxx is very smiliar fsck or mkfs. For example, for backup/restore hfsplus, just run partclone.hfsp.
+    <para><command>Partclone</command> supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX. Also  support some non-linux operation system, ex: NTFS, FAT, EXFAT (for Windows), HFS plus (APPLE MAC OS), UFS2 (FreeBSD), VMFS (VMWare Vsphere). All partclone utils could be run like partclone.xxx is very smiliar fsck or mkfs. For example, for backup/restore hfsplus, just run partclone.hfsp.
     </para>
      </refsect1>
   <refsect1 id="options">
@@ -200,7 +200,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>-s <replaceable>FILE</replaceable></option></term>
         <term><option>--source <replaceable>FILE</replaceable></option></term>
         <listitem>
-          <para>Source FILE. The FILE could be a image file(made by partclone) or device depend on your action. Normally, backup source is device, restore source is image file.</para>
+          <para>Source FILE. The FILE could be a image file (made by partclone) or device depend on your action. Normally, backup source is device, restore source is image file.</para>
           <para>Receving data from pipe line is supported ONLY for restoring, just ignore -s option or use '-' means receive data from stdin.</para>
         </listitem>
       </varlistentry>
@@ -208,7 +208,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>-o <replaceable>FILE</replaceable></option></term>
         <term><option>--output <replaceable>FILE</replaceable></option></term>
         <listitem>
-          <para>Output FILE. The FILE could be a image file(partclone will generate) or device depend on your action. Normally, backup output to image file and restore output to device.</para>
+          <para>Output FILE. The FILE could be a image file (partclone will generate) or device depend on your action. Normally, backup output to image file and restore output to device.</para>
 	  <para>Sending data to pipe line is also supported ONLY for back-up, just ignore -o option or use '-' means send data to stdout.</para>
         </listitem>
       </varlistentry>
@@ -229,7 +229,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>-L <replaceable>FILE</replaceable></option></term>
         <term><option>--logfile <replaceable>FILE</replaceable></option></term>
         <listitem>
-          <para>put special path to record partclone log information.(default /var/log/partclone.log)</para>
+          <para>put special path to record partclone log information. (default /var/log/partclone.log)</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -341,7 +341,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
  restore /dev/hda1 from hda1.img and display debug information.
   partclone.restore -d -s hda1.img -o /dev/hda1
 
- restore image from clonezilla(split, gzip,) with stdin source 
+ restore image from clonezilla (split, gzip,) with stdin source 
   cat  sda1.ext3-ptcl-img.gz.a*  | gunzip -c | partclone.restore -d -s - -o /dev/sda1
 
  restore  raw  image  from  partclone.dd  
