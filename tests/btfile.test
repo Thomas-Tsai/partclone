@@ -1,0 +1,62 @@
+#!/bin/bash
+set -e
+
+. "$(dirname "$0")"/_common
+fs="ext4"
+ptlfs="../src/partclone.extfs"
+mkfs=$(_findmkfs $fs)
+dd_count=$((normal_size/2))
+echo -e "BT files tests"
+echo -e "====================\n"
+echo -e "\ncreate raw file $raw\n"
+_ptlbreak
+[ -f $raw ] && rm $raw
+echo -e "    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count\n"
+dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
+
+echo -e "\n\nformat $raw as $fs raw partition\n"
+echo -e "    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw\n"
+_ptlbreak
+$mkfs `eval echo "$"mkfs_option_for_$fs""` $raw
+
+echo -e "\nclone $raw to $img\n"
+[ -f $img ] && rm $img
+echo -e "    $ptlfs -d -c -s $raw -O $img -F -L $logfile\n"
+_ptlbreak
+$ptlfs -d -c -s $raw -O $img -F -L $logfile -a 1 -k 17
+_check_return_code
+
+echo -e "\nclone $raw and generate bt info file in ${img}_info/\n"
+[ -f ${img}_info ] && rm ${img}_info
+echo -e "    $ptlfs -d -c -s $raw -O ${img}_info/ -t -F -L $logfile\n"
+_ptlbreak
+$ptlfs -d -c -t -s $raw -O ${img}_info/ -F -L $logfile -a 1 -k 17
+_check_return_code
+
+echo -e "\nclone $raw and generate bt block files in ${img}_files/\n"
+[ -f ${img}_files ] && rm ${img}_files/
+echo -e "    $ptlfs -d -c -s $raw -O ${img}_files/ -T -F -L $logfile\n"
+_ptlbreak
+$ptlfs -d -c -T -s $raw -O ${img}_files/ -F -L $logfile -a 1 -k 17
+_check_return_code
+
+echo -e "\nrestore $img and generate bt info file in ${img}_info_from_img/\n"
+[ -f ${img}_info_from_img ] && rm ${img}_info_from_img
+echo -e "    $ptlfs -d -r -s $img -O ${img}_info_from_img/ -t -F -L $logfile\n"
+_ptlbreak
+$ptlfs -d -r -t -s $img -O ${img}_info_from_img/ -F -L $logfile -a 1 -k 17
+_check_return_code
+
+echo -e "\nclone $raw and generate bt block files in ${img}_files_from_img/\n"
+[ -f ${img}_files_from_img ] && rm ${img}_files_from_img/
+echo -e "    $ptlfs -d -r -s $img -O ${img}_files_from_img/ -T -F -L $logfile\n"
+_ptlbreak
+$ptlfs -d -r -T -s $img -O ${img}_files_from_img/ -F -L $logfile -a 1 -k 17
+_check_return_code
+
+echo -e "\nBT files test ok\n"
+echo -e "\nclear tmp files $img $raw $logfile $md5  ${img}_files_from_img/ ${img}_info_from_img/  ${img}_files/ ${img}_info/ \n"
+_ptlbreak
+rm -rf $img $raw $logfile $md5  ${img}_files_from_img/ ${img}_info_from_img/  ${img}_files/ ${img}_info/ 
+
+
