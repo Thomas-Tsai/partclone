@@ -805,8 +805,9 @@ int main(int argc, char **argv) {
 				if (blocks_write == 0) {
 				    if (opt.blockfile == 0 && blocks_skip > 0 && skip_blocks(&dfw, empty_buffer, block_size, blocks_skip, &opt, &block_id) < 0) {
 					log_mesg(0, 1, 1, debug, "target seek ERROR:%s\n", strerror(errno));
-				    }
-				    blocks_skip = 0;
+				    } else if (opt.blockfile == 1 && blocks_skip > 0) 
+                                        block_id += blocks_skip; 
+                                    blocks_skip = 0;
 				}
 #endif
 				if (blocks_skip > 0)
