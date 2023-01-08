@@ -80,6 +80,9 @@ _test_size(){
 	f2fs)
 	    normal_size=$((1024*128))
 	;;
+	xfs)
+	    normal_size=$((1024*384))
+	;;
     esac
 
     echo $normal_size
