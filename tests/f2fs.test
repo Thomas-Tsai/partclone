@@ -1,2 +1,6 @@
 #!/bin/bash
+# partclone.f2fs supports only little-endian (always fails on s390x)
+le="$(echo -n I | hexdump -o | awk '{ print substr($2, 6, 1); exit}')"
+[[ "${le}" != "0" ]] || exit 77
+
 "$(dirname "$0")"/mini_clone_restore_test f2fs
