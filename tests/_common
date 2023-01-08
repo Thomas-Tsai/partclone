@@ -77,6 +77,9 @@ _test_size(){
 	fat32|fat|vfat)
 	    normal_size=$((1024*128))
 	;;
+	f2fs)
+	    normal_size=$((1024*128))
+	;;
     esac
 
     echo $normal_size
