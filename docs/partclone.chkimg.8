@@ -40,21 +40,21 @@ is a part of
 project to verify image files\&. Partclone provide utilities to backup used blocks and design for higher compatibility of the file system by using existing library, e\&.g\&. e2fslibs is used to read the used block of ext2 partition\&.
 .PP
 \fBPartclone\fR
-supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX\&. Also support some non\-linux operation system, ex: NTFS, FAT, EXFAT(for Windows), HFS plus(APPLE MAC OS), UFS2(FreeBSD), VMFS(VMWare Vsphere)\&. All partclone utils could be run like partclone\&.xxx is very smiliar fsck or mkfs\&. For example, for backup/restore hfsplus, just run partclone\&.hfsp\&.
+supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX\&. Also support some non\-linux operation system, ex: NTFS, FAT, EXFAT (for Windows), HFS plus (APPLE MAC OS), UFS2 (FreeBSD), VMFS (VMWare Vsphere)\&. All partclone utils could be run like partclone\&.xxx is very smiliar fsck or mkfs\&. For example, for backup/restore hfsplus, just run partclone\&.hfsp\&.
 .SH "OPTIONS"
 .PP
 The program follows the usual GNU command line syntax, with long options starting with two dashes (`\-\*(Aq)\&. A summary of options is included below\&.
 .PP
 \fB\-s \fR\fB\fIFILE\fR\fR, \fB\-\-source \fR\fB\fIFILE\fR\fR
 .RS 4
-Source FILE\&. The FILE could be a image file(made by partclone) or device depend on your action\&. Normally, backup source is device, restore source is image file\&.
+Source FILE\&. The FILE could be a image file (made by partclone) or device depend on your action\&. Normally, backup source is device, restore source is image file\&.
 .sp
 Receving data from pipe line is supported ONLY for restoring, just ignore \-s option or use \*(Aq\-\*(Aq means receive data from stdin\&.
 .RE
 .PP
 \fB\-L \fR\fB\fIFILE\fR\fR, \fB\-\-logfile \fR\fB\fIFILE\fR\fR
 .RS 4
-put special path to record partclone log information\&.(default /var/log/partclone\&.log)
+put special path to record partclone log information\&. (default /var/log/partclone\&.log)
 .RE
 .PP
 \fB\-C\fR, \fB\-\-no_check\fR
