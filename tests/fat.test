@@ -1,4 +1,8 @@
 #!/bin/bash
+# src/fatclone.c supports only little-endian (always fails on s390x)
+le="$(echo -n I | hexdump -o | awk '{ print substr($2, 6, 1); exit}')"
+[[ "${le}" != "0" ]] || exit 77
+
 srcdir="$(dirname "$0")"
 "${srcdir}"/mini_clone_restore_test fat12
 "${srcdir}"/mini_clone_restore_test fat16
