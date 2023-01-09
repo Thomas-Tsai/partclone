@@ -12,14 +12,14 @@ case "${hostarch:-}" in
     ############### compiles source file for x86 architectures ##################
     # compile the file fail-mbr.bin
     #echo -n "Compiling: fail-mbr.S -> fail-mbr.o -> "
-    #gcc -Wall -Werror -m32 -nostdlib -static -o fail-mbr.o fail-mbr.S
+    #gcc -Wall -Werror -m32 -nostdlib -static -Wl,--relocatable -o fail-mbr.o fail-mbr.S
 
     #echo -n "fail-mbr.image -> "
-    #gcc -Os -Wall -W -Wshadow -Wpointer-arith -Wmissing-prototypes -Wundef -Wstrict-prototypes -g -falign-jumps=1 -falign-loops=1 -falign-functions=1 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow -fno-dwarf2-cfi-asm -fno-asynchronous-unwind-tables -m32 -fno-stack-protector -mno-stack-arg-probe -Werror -Wno-trampolines -DUSE_ASCII_FAILBACK=1 -DHAVE_UNIFONT_WIDTHSPEC=1  -mrtd -mregparm=3       -fno-builtin   -m32 -Wl,--build-id=none   -nostdlib -Wl,-N,-S -Wl,-N -Wl,-Ttext,0x7C00   -o fail-mbr.image fail-mbr.o
+    #gcc -Os -Wall -W -Wshadow -Wpointer-arith -Wmissing-prototypes -Wundef -Wstrict-prototypes -g -falign-jumps=1 -falign-loops=1 -falign-functions=1 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow -fno-dwarf2-cfi-asm -fno-asynchronous-unwind-tables -m32 -fno-stack-protector -mno-stack-arg-probe -Werror -Wno-trampolines -DUSE_ASCII_FAILBACK=1 -DHAVE_UNIFONT_WIDTHSPEC=1  -mrtd -mregparm=3       -fno-builtin   -m32 -Wl,--build-id=none   -nostdlib -Wl,-N,-S -Wl,-N -Wl,-Ttext,0x7C00   -Wl,--no-dynamic-linker   -o fail-mbr.image fail-mbr.o
 
     #echo "fail-mbr.bin [Done]. "
     gcc -c "${srcdir}/"fail-mbr.S -o fail-mbr.image
-    objcopy  -O binary  --strip-unneeded -R .note -R .comment -R .note.gnu.build-id -R .reginfo -R .rel.dyn fail-mbr.image fail-mbr.bin
+    objcopy  -O binary  --strip-unneeded -R .note -R .comment -R .note.gnu.build-id -R .note.gnu.property -R .reginfo -R .rel.dyn fail-mbr.image fail-mbr.bin
 
     ######################### Checks the build #############################
     # checks that this file does the same than the original fail-mbr
