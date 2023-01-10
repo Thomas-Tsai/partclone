@@ -1,10 +1,10 @@
 #!/bin/bash
 
 break_debug=0
-logfile='test.log'
-img='floppy.img'
-raw='floppy.raw'
-raw_restore='floppy_restore.raw'
+logfile="$$_test.log"
+img="$$_floppy.img"
+raw="$$_floppy.raw"
+raw_restore="$$_floppy_restore.raw"
 dd_bs=1024
 normal_size=$((256*1*256))
 floppy_size=1024
