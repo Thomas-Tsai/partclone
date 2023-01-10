@@ -71,4 +71,22 @@ if ENABLE_NCURSESW
 TESTS += ncursesw.test
 endif
 endif
+
+
+if ENABLE_FEATURE_TEST
+if ENABLE_NCURSESW
+TESTS += ncursesw.test
+endif
+TESTS += btfile.test
+TESTS += info.test
+TESTS += quiet.test
+TESTS += pipe.test
+#TESTS += offset.test 
+TESTS += note.test
+TESTS += imager.test
+TESTS += domain.test
+TESTS += checksum.test
+TESTS += failmbr
+endif
+
 CLEANFILES = floppy*

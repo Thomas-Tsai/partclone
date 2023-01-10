@@ -1,0 +1,28 @@
+name: Manual workflow
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'manually run build test'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: install packages
+      run: | 
+          sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+          sudo apt-get update
+          sudo apt-get build-dep partclone
+          sudo apt-get install f2fs-tools hfsprogs exfatprogs gddrescue
+    - name: automake
+      run: ./autogen
+    - name: configure
+      run: ./configure --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs
+    - name: make
+      run: make
+    - name: makeTest
+      run: make check

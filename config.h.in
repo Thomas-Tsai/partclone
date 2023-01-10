@@ -28,6 +28,9 @@
 /* OpenSSL 1.1.0+ */
 #undef HAVE_EVP_MD_CTX_new
 
+/* OpenSSL 1.1.0+ */
+#undef HAVE_EVP_MD_CTX_reset
+
 /* Define to 1 if you have the <ext2fs/ext2fs.h> header file. */
 #undef HAVE_EXT2FS_EXT2FS_H
 

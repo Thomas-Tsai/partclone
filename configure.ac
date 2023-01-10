@@ -468,6 +468,7 @@ AC_ARG_ENABLE([fs-test],
         [enable file system clone/restore test])
 )
 AM_CONDITIONAL(ENABLE_FS_TEST, test "$enable_fs_test" = yes)
+AM_CONDITIONAL(ENABLE_FEATURE_TEST, test "$enable_feature_test" = yes)
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
