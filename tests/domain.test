@@ -51,5 +51,5 @@ _check_return_code
 echo -e "\nddrescue domain logfile test ok\n"
 echo -e "\nclear tmp files $img $raw $logfile $md5 $ddraw\n"
 _ptlbreak
-#rm -f $img $raw $logfile $md5 $ddraw
+rm -f $img $raw $logfile $md5 $ddraw
 
