@@ -20,7 +20,7 @@ TESTS += reiserfs.test
 endif
 
 #if ENABLE_REISER4
-#TESTS += reiser4.test
+TESTS += reiser4.test
 #endif
 
 if ENABLE_HFSP
@@ -64,7 +64,7 @@ TESTS += exfat.test
 endif
 
 if ENABLE_NILFS2
-TESTS += nilfs2.test
+#TESTS += nilfs2.test
 endif
 
 if ENABLE_NCURSESW

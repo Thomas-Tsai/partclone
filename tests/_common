@@ -27,6 +27,8 @@ mkfs_option_for_btrfs='-f'
 mkfs_option_for_fat12='-F 12'
 mkfs_option_for_fat16='-F 16'
 mkfs_option_for_fat32='-F 32'
+mkfs_option_for_f2fs='-f'
+mkfs_option_for_nilfs2='-f'
 #mkfs_option_for_minix='-3'
 
 ## file system

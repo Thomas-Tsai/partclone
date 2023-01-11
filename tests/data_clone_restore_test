@@ -17,6 +17,14 @@ data_pool="/test/datapool/"
 chfile="/test/checksum.log"
 cchfile="/test/checksum_test.log"
 
+if [ "X$SOURCEPART" != "X" ]; then
+    source_partition=$SOURCEPART
+fi
+
+if [ "X$TARGETPART" != "X" ]; then
+    target_partition=$TARGETPART
+fi
+
 #main
 for fs in $test_fs; do
     echo -e "Advanced $fs test"

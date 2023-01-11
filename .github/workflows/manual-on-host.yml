@@ -1,0 +1,68 @@
+name: Manual workflow on my host
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'manually run build test'
+
+jobs:
+  dataTest:
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v3
+    - name: install packages
+      run: | 
+          sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+          sudo apt-get update
+          sudo apt-get build-dep -y partclone
+          sudo apt-get install -y f2fs-tools hfsprogs exfatprogs gddrescue libfuse-dev
+    - name: automake
+      run: ./autogen
+    - name: configure
+      run: ./configure --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs --enable-nilfs2 --enable-fuse
+    - name: make
+      run: make
+    - name: makeTest
+      run: make check
+    - name: btrfs Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test btrfs && cd ../ && pwd
+    - name: f2fs Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test f2fs && cd ../ && pwd
+    - name: nilfs2 Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test nilfs2 && cd ../ && pwd
+    - name: hfsplus Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test hfsplus && cd ../ && pwd
+    - name: xfs Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test xfs && cd ../ && pwd
+    - name: ext2 Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test ext2 && cd ../ && pwd
+    - name: ext3 Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test ext3 && cd ../ && pwd
+    - name: ext4 Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test ext4 && cd ../ && pwd
+    - name: vfat Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test vfat && cd ../ && pwd
+    - name: exfat Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test exfat && cd ../ && pwd
+    - name: ntfs Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test ntfs && cd ../ && pwd 
+    - name: minix Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test minix && cd ../ && pwd
+    - name: fuse Test
+      if: always()
+      run: cd tests && sudo ./imgfuse.test && cd ../ && pwd
+    - name: offset Test
+      if: always()
+      run: cd tests && sudo ./offset.test && cd ../ && pwd
