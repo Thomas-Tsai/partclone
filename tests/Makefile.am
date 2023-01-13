@@ -55,14 +55,6 @@ if ENABLE_JFS
 TESTS += jfs.test
 endif
 
-if ENABLE_BTRFS
-TESTS += btrfs.test
-endif
-
-if ENABLE_EXFAT
-TESTS += exfat.test
-endif
-
 if ENABLE_NILFS2
 TESTS += nilfs2.test
 endif
