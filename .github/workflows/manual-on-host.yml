@@ -3,10 +3,10 @@ on:
   workflow_dispatch:
     inputs:
       name:
-        description: 'manually run build test'
+        description: 'manually run build and IO test'
 
 jobs:
-  dataTest:
+  build:
     runs-on: self-hosted
     steps:
     - uses: actions/checkout@v3
@@ -15,7 +15,7 @@ jobs:
           sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
           sudo apt-get update
           sudo apt-get build-dep -y partclone
-          sudo apt-get install -y f2fs-tools hfsprogs exfatprogs gddrescue libfuse-dev
+          sudo apt-get install -y f2fs-tools hfsprogs exfatprogs gddrescue libfuse-dev jfsutils reiser4progs hfsprogs hfsplus reiserfsprogs
     - name: automake
       run: ./autogen
     - name: configure
@@ -24,6 +24,21 @@ jobs:
       run: make
     - name: makeTest
       run: make check
+  specialFeatureTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
+    - name: fuse Test
+      if: always()
+      run: cd tests && sudo ./imgfuse.test && cd ../ && pwd
+    - name: offset Test
+      if: always()
+      run: cd tests && sudo ./offset.test && cd ../ && pwd
+  dataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
+    - uses: actions/checkout@v3
     - name: btrfs Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test btrfs && cd ../ && pwd
@@ -60,9 +75,4 @@ jobs:
     - name: minix Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test minix && cd ../ && pwd
-    - name: fuse Test
-      if: always()
-      run: cd tests && sudo ./imgfuse.test && cd ../ && pwd
-    - name: offset Test
-      if: always()
-      run: cd tests && sudo ./offset.test && cd ../ && pwd
+
