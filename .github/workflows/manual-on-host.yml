@@ -38,7 +38,6 @@ jobs:
     runs-on: self-hosted
     needs: build
     steps:
-    - uses: actions/checkout@v3
     - name: btrfs Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test btrfs && cd ../ && pwd
