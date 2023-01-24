@@ -30,9 +30,6 @@
 #include <unistd.h>
 #include <mntent.h>
 #include <ctype.h>
-#include <linux/loop.h>
-#include <linux/major.h>
-#include <linux/kdev_t.h>
 #include <limits.h>
 #include <blkid/blkid.h>
 #include <sys/vfs.h>
@@ -54,6 +51,7 @@
 #include "kernel-shared/volumes.h"
 #include "ioctl.h"
 #include "cmds/commands.h"
+#include "common/open-utils.h"
 #include "mkfs/common.h"
 
 static int rand_seed_initialized = 0;
@@ -61,405 +59,10 @@ static unsigned short rand_seed[3];
 
 struct btrfs_config bconf;
 
-int btrfs_make_root_dir(struct btrfs_trans_handle *trans,
-			struct btrfs_root *root, u64 objectid)
-{
-	int ret;
-	struct btrfs_inode_item inode_item;
-	time_t now = time(NULL);
-
-	memset(&inode_item, 0, sizeof(inode_item));
-	btrfs_set_stack_inode_generation(&inode_item, trans->transid);
-	btrfs_set_stack_inode_size(&inode_item, 0);
-	btrfs_set_stack_inode_nlink(&inode_item, 1);
-	btrfs_set_stack_inode_nbytes(&inode_item, root->fs_info->nodesize);
-	btrfs_set_stack_inode_mode(&inode_item, S_IFDIR | 0755);
-	btrfs_set_stack_timespec_sec(&inode_item.atime, now);
-	btrfs_set_stack_timespec_nsec(&inode_item.atime, 0);
-	btrfs_set_stack_timespec_sec(&inode_item.ctime, now);
-	btrfs_set_stack_timespec_nsec(&inode_item.ctime, 0);
-	btrfs_set_stack_timespec_sec(&inode_item.mtime, now);
-	btrfs_set_stack_timespec_nsec(&inode_item.mtime, 0);
-	btrfs_set_stack_timespec_sec(&inode_item.otime, now);
-	btrfs_set_stack_timespec_nsec(&inode_item.otime, 0);
-
-	if (root->fs_info->tree_root == root)
-		btrfs_set_super_root_dir(root->fs_info->super_copy, objectid);
-
-	ret = btrfs_insert_inode(trans, root, objectid, &inode_item);
-	if (ret)
-		goto error;
-
-	ret = btrfs_insert_inode_ref(trans, root, "..", 2, objectid, objectid, 0);
-	if (ret)
-		goto error;
-
-	btrfs_set_root_dirid(&root->root_item, objectid);
-	ret = 0;
-error:
-	return ret;
-}
-
-/*
- * Find the mount point for a mounted device.
- * On success, returns 0 with mountpoint in *mp.
- * On failure, returns -errno (not mounted yields -EINVAL)
- * Is noisy on failures, expects to be given a mounted device.
- */
-int get_btrfs_mount(const char *dev, char *mp, size_t mp_size)
-{
-	int ret;
-	int fd = -1;
-
-	ret = path_is_block_device(dev);
-	if (ret <= 0) {
-		if (!ret) {
-			error("not a block device: %s", dev);
-			ret = -EINVAL;
-		} else {
-			errno = -ret;
-			error("cannot check %s: %m", dev);
-		}
-		goto out;
-	}
-
-	fd = open(dev, O_RDONLY);
-	if (fd < 0) {
-		ret = -errno;
-		error("cannot open %s: %m", dev);
-		goto out;
-	}
-
-	ret = check_mounted_where(fd, dev, mp, mp_size, NULL, SBREAD_DEFAULT);
-	if (!ret) {
-		ret = -EINVAL;
-	} else { /* mounted, all good */
-		ret = 0;
-	}
-out:
-	if (fd != -1)
-		close(fd);
-	return ret;
-}
-
-/*
- * Given a pathname, return a filehandle to:
- * 	the original pathname or,
- * 	if the pathname is a mounted btrfs device, to its mountpoint.
- *
- * On error, return -1, errno should be set.
- */
-int open_path_or_dev_mnt(const char *path, DIR **dirstream, int verbose)
-{
-	char mp[PATH_MAX];
-	int ret;
-
-	if (path_is_block_device(path)) {
-		ret = get_btrfs_mount(path, mp, sizeof(mp));
-		if (ret < 0) {
-			/* not a mounted btrfs dev */
-			error_on(verbose, "'%s' is not a mounted btrfs device",
-				 path);
-			errno = EINVAL;
-			return -1;
-		}
-		ret = open_file_or_dir(mp, dirstream);
-		error_on(verbose && ret < 0, "can't access '%s': %m",
-			 path);
-	} else {
-		ret = btrfs_open_dir(path, dirstream, 1);
-	}
-
-	return ret;
-}
-
-/*
- * Do the following checks before calling open_file_or_dir():
- * 1: path is in a btrfs filesystem
- * 2: path is a directory if dir_only is 1
- */
-int btrfs_open(const char *path, DIR **dirstream, int verbose, int dir_only)
-{
-	struct statfs stfs;
-	struct stat st;
-	int ret;
-
-	if (stat(path, &st) != 0) {
-		error_on(verbose, "cannot access '%s': %m", path);
-		return -1;
-	}
-
-	if (dir_only && !S_ISDIR(st.st_mode)) {
-		error_on(verbose, "not a directory: %s", path);
-		return -3;
-	}
-
-	if (statfs(path, &stfs) != 0) {
-		error_on(verbose, "cannot access '%s': %m", path);
-		return -1;
-	}
-
-	if (stfs.f_type != BTRFS_SUPER_MAGIC) {
-		error_on(verbose, "not a btrfs filesystem: %s", path);
-		return -2;
-	}
-
-	ret = open_file_or_dir(path, dirstream);
-	if (ret < 0) {
-		error_on(verbose, "cannot access '%s': %m", path);
-	}
-
-	return ret;
-}
-
-int btrfs_open_dir(const char *path, DIR **dirstream, int verbose)
-{
-	return btrfs_open(path, dirstream, verbose, 1);
-}
-
-int btrfs_open_file_or_dir(const char *path, DIR **dirstream, int verbose)
-{
-	return btrfs_open(path, dirstream, verbose, 0);
-}
-
-/* Checks if a file is used (directly or indirectly via a loop device)
- * by a device in fs_devices
- */
-static int blk_file_in_dev_list(struct btrfs_fs_devices* fs_devices,
-		const char* file)
-{
-	int ret;
-	struct btrfs_device *device;
-
-	list_for_each_entry(device, &fs_devices->devices, dev_list) {
-		if((ret = is_same_loop_file(device->name, file)))
-			return ret;
-	}
-
-	return 0;
-}
-
-/*
- * returns 1 if the device was mounted, < 0 on error or 0 if everything
- * is safe to continue.
- */
-int check_mounted(const char* file)
-{
-	int fd;
-	int ret;
-
-	fd = open(file, O_RDONLY);
-	if (fd < 0) {
-		error("mount check: cannot open %s: %m", file);
-		return -errno;
-	}
-
-	ret =  check_mounted_where(fd, file, NULL, 0, NULL, SBREAD_DEFAULT);
-	close(fd);
-
-	return ret;
-}
-
-int check_mounted_where(int fd, const char *file, char *where, int size,
-			struct btrfs_fs_devices **fs_dev_ret, unsigned sbflags)
-{
-	int ret;
-	u64 total_devs = 1;
-	int is_btrfs;
-	struct btrfs_fs_devices *fs_devices_mnt = NULL;
-	FILE *f;
-	struct mntent *mnt;
-
-	/* scan the initial device */
-	ret = btrfs_scan_one_device(fd, file, &fs_devices_mnt,
-		    &total_devs, BTRFS_SUPER_INFO_OFFSET, sbflags);
-	is_btrfs = (ret >= 0);
-
-	/* scan other devices */
-	if (is_btrfs && total_devs > 1) {
-		ret = btrfs_scan_devices(0);
-		if (ret)
-			return ret;
-	}
-
-	/* iterate over the list of currently mounted filesystems */
-	if ((f = setmntent ("/proc/self/mounts", "r")) == NULL)
-		return -errno;
-
-	while ((mnt = getmntent (f)) != NULL) {
-		if(is_btrfs) {
-			if(strcmp(mnt->mnt_type, "btrfs") != 0)
-				continue;
-
-			ret = blk_file_in_dev_list(fs_devices_mnt, mnt->mnt_fsname);
-		} else {
-			/* ignore entries in the mount table that are not
-			   associated with a file*/
-			if((ret = path_is_reg_or_block_device(mnt->mnt_fsname)) < 0)
-				goto out_mntloop_err;
-			else if(!ret)
-				continue;
-
-			ret = is_same_loop_file(file, mnt->mnt_fsname);
-		}
-
-		if(ret < 0)
-			goto out_mntloop_err;
-		else if(ret)
-			break;
-	}
-
-	/* Did we find an entry in mnt table? */
-	if (mnt && size && where) {
-		strncpy(where, mnt->mnt_dir, size);
-		where[size-1] = 0;
-	}
-	if (fs_dev_ret)
-		*fs_dev_ret = fs_devices_mnt;
-
-	ret = (mnt != NULL);
-
-out_mntloop_err:
-	endmntent (f);
-
-	return ret;
-}
-
 struct pending_dir {
 	struct list_head list;
 	char name[PATH_MAX];
 };
-
-/*
- * Note: this function uses a static per-thread buffer. Do not call this
- * function more than 10 times within one argument list!
- */
-const char *pretty_size_mode(u64 size, unsigned mode)
-{
-	static __thread int ps_index = 0;
-	static __thread char ps_array[10][32];
-	char *ret;
-
-	ret = ps_array[ps_index];
-	ps_index++;
-	ps_index %= 10;
-	(void)pretty_size_snprintf(size, ret, 32, mode);
-
-	return ret;
-}
-
-static const char* unit_suffix_binary[] =
-	{ "B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"};
-static const char* unit_suffix_decimal[] =
-	{ "B", "kB", "MB", "GB", "TB", "PB", "EB"};
-
-int pretty_size_snprintf(u64 size, char *str, size_t str_size, unsigned unit_mode)
-{
-	int num_divs;
-	float fraction;
-	u64 base = 0;
-	int mult = 0;
-	const char** suffix = NULL;
-	u64 last_size;
-	int negative;
-
-	if (str_size == 0)
-		return 0;
-
-	negative = !!(unit_mode & UNITS_NEGATIVE);
-	unit_mode &= ~UNITS_NEGATIVE;
-
-	if ((unit_mode & ~UNITS_MODE_MASK) == UNITS_RAW) {
-		if (negative)
-			snprintf(str, str_size, "%lld", size);
-		else
-			snprintf(str, str_size, "%llu", size);
-		return 0;
-	}
-
-	if ((unit_mode & ~UNITS_MODE_MASK) == UNITS_BINARY) {
-		base = 1024;
-		mult = 1024;
-		suffix = unit_suffix_binary;
-	} else if ((unit_mode & ~UNITS_MODE_MASK) == UNITS_DECIMAL) {
-		base = 1000;
-		mult = 1000;
-		suffix = unit_suffix_decimal;
-	}
-
-	/* Unknown mode */
-	if (!base) {
-		fprintf(stderr, "INTERNAL ERROR: unknown unit base, mode %u\n",
-				unit_mode);
-		assert(0);
-		return -1;
-	}
-
-	num_divs = 0;
-	last_size = size;
-	switch (unit_mode & UNITS_MODE_MASK) {
-	case UNITS_TBYTES:
-		base *= mult;
-		num_divs++;
-		/* fallthrough */
-	case UNITS_GBYTES:
-		base *= mult;
-		num_divs++;
-		/* fallthrough */
-	case UNITS_MBYTES:
-		base *= mult;
-		num_divs++;
-		/* fallthrough */
-	case UNITS_KBYTES:
-		num_divs++;
-		break;
-	case UNITS_BYTES:
-		base = 1;
-		num_divs = 0;
-		break;
-	default:
-		if (negative) {
-			s64 ssize = (s64)size;
-			s64 last_ssize = ssize;
-
-			while ((ssize < 0 ? -ssize : ssize) >= mult) {
-				last_ssize = ssize;
-				ssize /= mult;
-				num_divs++;
-			}
-			last_size = (u64)last_ssize;
-		} else {
-			while (size >= mult) {
-				last_size = size;
-				size /= mult;
-				num_divs++;
-			}
-		}
-		/*
-		 * If the value is smaller than base, we didn't do any
-		 * division, in that case, base should be 1, not original
-		 * base, or the unit will be wrong
-		 */
-		if (num_divs == 0)
-			base = 1;
-	}
-
-	if (num_divs >= ARRAY_SIZE(unit_suffix_binary)) {
-		str[0] = '\0';
-		printf("INTERNAL ERROR: unsupported unit suffix, index %d\n",
-				num_divs);
-		assert(0);
-		return -1;
-	}
-
-	if (negative) {
-		fraction = (float)(s64)last_size / base;
-	} else {
-		fraction = (float)last_size / base;
-	}
-
-	return snprintf(str, str_size, "%.2f%s", fraction, suffix[num_divs]);
-}
 
 /*
  * Checks to make sure that the label matches our requirements.
@@ -780,60 +383,6 @@ enum btrfs_csum_type parse_csum_type(const char *s)
 	}
 	/* not reached */
 	return 0;
-}
-
-int open_file_or_dir3(const char *fname, DIR **dirstream, int open_flags)
-{
-	int ret;
-	struct stat st;
-	int fd;
-
-	ret = stat(fname, &st);
-	if (ret < 0) {
-		return -1;
-	}
-	if (S_ISDIR(st.st_mode)) {
-		*dirstream = opendir(fname);
-		if (!*dirstream)
-			return -1;
-		fd = dirfd(*dirstream);
-	} else if (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode)) {
-		fd = open(fname, open_flags);
-	} else {
-		/*
-		 * we set this on purpose, in case the caller output
-		 * strerror(errno) as success
-		 */
-		errno = EINVAL;
-		return -1;
-	}
-	if (fd < 0) {
-		fd = -1;
-		if (*dirstream) {
-			closedir(*dirstream);
-			*dirstream = NULL;
-		}
-	}
-	return fd;
-}
-
-int open_file_or_dir(const char *fname, DIR **dirstream)
-{
-	return open_file_or_dir3(fname, dirstream, O_RDWR);
-}
-
-void close_file_or_dir(int fd, DIR *dirstream)
-{
-	int old_errno;
-
-	old_errno = errno;
-	if (dirstream) {
-		closedir(dirstream);
-	} else if (fd >= 0) {
-		close(fd);
-	}
-
-	errno = old_errno;
 }
 
 int get_device_info(int fd, u64 devid,
@@ -1593,20 +1142,6 @@ int find_mount_root(const char *path, char **mount_root)
 	return ret;
 }
 
-void units_set_mode(unsigned *units, unsigned mode)
-{
-	unsigned base = *units & UNITS_MODE_MASK;
-
-	*units = base | mode;
-}
-
-void units_set_base(unsigned *units, unsigned base)
-{
-	unsigned mode = *units & ~UNITS_MODE_MASK;
-
-	*units = base | mode;
-}
-
 int find_next_key(struct btrfs_path *path, struct btrfs_key *key)
 {
 	int level;
@@ -1709,111 +1244,6 @@ int btrfs_tree_search2_ioctl_supported(int fd)
 	else if (ret == 0)
 		return 1;
 	return ret;
-}
-
-unsigned int get_unit_mode_from_arg(int *argc, char *argv[], int df_mode)
-{
-	unsigned int unit_mode = UNITS_DEFAULT;
-	int arg_i;
-	int arg_end;
-
-	for (arg_i = 0; arg_i < *argc; arg_i++) {
-		if (!strcmp(argv[arg_i], "--"))
-			break;
-
-		if (!strcmp(argv[arg_i], "--raw")) {
-			unit_mode = UNITS_RAW;
-			argv[arg_i] = NULL;
-			continue;
-		}
-		if (!strcmp(argv[arg_i], "--human-readable")) {
-			unit_mode = UNITS_HUMAN_BINARY;
-			argv[arg_i] = NULL;
-			continue;
-		}
-
-		if (!strcmp(argv[arg_i], "--iec")) {
-			units_set_mode(&unit_mode, UNITS_BINARY);
-			argv[arg_i] = NULL;
-			continue;
-		}
-		if (!strcmp(argv[arg_i], "--si")) {
-			units_set_mode(&unit_mode, UNITS_DECIMAL);
-			argv[arg_i] = NULL;
-			continue;
-		}
-
-		if (!strcmp(argv[arg_i], "--kbytes")) {
-			units_set_base(&unit_mode, UNITS_KBYTES);
-			argv[arg_i] = NULL;
-			continue;
-		}
-		if (!strcmp(argv[arg_i], "--mbytes")) {
-			units_set_base(&unit_mode, UNITS_MBYTES);
-			argv[arg_i] = NULL;
-			continue;
-		}
-		if (!strcmp(argv[arg_i], "--gbytes")) {
-			units_set_base(&unit_mode, UNITS_GBYTES);
-			argv[arg_i] = NULL;
-			continue;
-		}
-		if (!strcmp(argv[arg_i], "--tbytes")) {
-			units_set_base(&unit_mode, UNITS_TBYTES);
-			argv[arg_i] = NULL;
-			continue;
-		}
-
-		if (!df_mode)
-			continue;
-
-		if (!strcmp(argv[arg_i], "-b")) {
-			unit_mode = UNITS_RAW;
-			argv[arg_i] = NULL;
-			continue;
-		}
-		if (!strcmp(argv[arg_i], "-h")) {
-			unit_mode = UNITS_HUMAN_BINARY;
-			argv[arg_i] = NULL;
-			continue;
-		}
-		if (!strcmp(argv[arg_i], "-H")) {
-			unit_mode = UNITS_HUMAN_DECIMAL;
-			argv[arg_i] = NULL;
-			continue;
-		}
-		if (!strcmp(argv[arg_i], "-k")) {
-			units_set_base(&unit_mode, UNITS_KBYTES);
-			argv[arg_i] = NULL;
-			continue;
-		}
-		if (!strcmp(argv[arg_i], "-m")) {
-			units_set_base(&unit_mode, UNITS_MBYTES);
-			argv[arg_i] = NULL;
-			continue;
-		}
-		if (!strcmp(argv[arg_i], "-g")) {
-			units_set_base(&unit_mode, UNITS_GBYTES);
-			argv[arg_i] = NULL;
-			continue;
-		}
-		if (!strcmp(argv[arg_i], "-t")) {
-			units_set_base(&unit_mode, UNITS_TBYTES);
-			argv[arg_i] = NULL;
-			continue;
-		}
-	}
-
-	for (arg_i = 0, arg_end = 0; arg_i < *argc; arg_i++) {
-		if (!argv[arg_i])
-			continue;
-		argv[arg_end] = argv[arg_i];
-		arg_end++;
-	}
-
-	*argc = arg_end;
-
-	return unit_mode;
 }
 
 u64 div_factor(u64 num, int factor)
@@ -2206,6 +1636,21 @@ int sysfs_open_fsid_file(int fd, const char *filename)
 }
 
 /*
+ * Open a file in the toplevel sysfs directory and return the file descriptor
+ * or error.
+ */
+int sysfs_open_file(const char *name)
+{
+	char path[PATH_MAX];
+	int ret;
+
+	ret = path_cat_out(path, "/sys/fs/btrfs", name);
+	if (ret < 0)
+		return ret;
+	return open(path, O_RDONLY);
+}
+
+/*
  * Read up to @size bytes to @buf from @fd
  */
 int sysfs_read_file(int fd, char *buf, size_t size)
@@ -2216,13 +1661,13 @@ int sysfs_read_file(int fd, char *buf, size_t size)
 }
 
 static const char exclop_def[][16] = {
-	[BTRFS_EXCLOP_NONE]		"none",
-	[BTRFS_EXCLOP_BALANCE]		"balance",
-	[BTRFS_EXCLOP_DEV_ADD]		"device add",
-	[BTRFS_EXCLOP_DEV_REMOVE]	"device remove",
-	[BTRFS_EXCLOP_DEV_REPLACE]	"device replace",
-	[BTRFS_EXCLOP_RESIZE]		"resize",
-	[BTRFS_EXCLOP_SWAP_ACTIVATE]	"swap activate",
+	[BTRFS_EXCLOP_NONE]		= "none",
+	[BTRFS_EXCLOP_BALANCE]		= "balance",
+	[BTRFS_EXCLOP_DEV_ADD]		= "device add",
+	[BTRFS_EXCLOP_DEV_REMOVE]	= "device remove",
+	[BTRFS_EXCLOP_DEV_REPLACE]	= "device replace",
+	[BTRFS_EXCLOP_RESIZE]		= "resize",
+	[BTRFS_EXCLOP_SWAP_ACTIVATE]	= "swap activate",
 };
 
 /*

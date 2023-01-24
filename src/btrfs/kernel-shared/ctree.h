@@ -495,6 +495,7 @@ struct btrfs_super_block {
 #define BTRFS_FEATURE_INCOMPAT_NO_HOLES		(1ULL << 9)
 #define BTRFS_FEATURE_INCOMPAT_METADATA_UUID    (1ULL << 10)
 #define BTRFS_FEATURE_INCOMPAT_RAID1C34		(1ULL << 11)
+#define BTRFS_FEATURE_INCOMPAT_ZONED		(1ULL << 12)
 
 #define BTRFS_FEATURE_COMPAT_SUPP		0ULL
 
@@ -519,7 +520,8 @@ struct btrfs_super_block {
 	 BTRFS_FEATURE_INCOMPAT_SKINNY_METADATA |	\
 	 BTRFS_FEATURE_INCOMPAT_NO_HOLES |		\
 	 BTRFS_FEATURE_INCOMPAT_RAID1C34 |		\
-	 BTRFS_FEATURE_INCOMPAT_METADATA_UUID)
+	 BTRFS_FEATURE_INCOMPAT_METADATA_UUID |		\
+	 BTRFS_FEATURE_INCOMPAT_ZONED)
 
 /*
  * A leaf is full of items. offset and size tell us where to find
@@ -1132,6 +1134,13 @@ struct btrfs_block_group {
 
 	/* For dirty block groups */
 	struct list_head dirty_list;
+
+	/*
+	 * Allocation offset for the block group to implement sequential
+	 * allocation. This is used only with ZONED mode enabled.
+	 */
+	u64 alloc_offset;
+	u64 write_offset;
 };
 
 struct btrfs_device;
@@ -1211,7 +1220,24 @@ struct btrfs_fs_info {
 	u32 nodesize;
 	u32 sectorsize;
 	u32 stripesize;
+
+	/*
+	 * Zone size > 0 when in ZONED mode, otherwise it's used for a check
+	 * if the mode is enabled
+	 */
+	union {
+		u64 zone_size;
+		u64 zoned;
+	};
+
+	/* Max size to emit ZONE_APPEND write command */
+	u64 max_zone_append_size;
 };
+
+static inline bool btrfs_is_zoned(const struct btrfs_fs_info *fs_info)
+{
+	return fs_info->zoned != 0;
+}
 
 /*
  * in ram representation of the tree.  extent_root is used for all allocations

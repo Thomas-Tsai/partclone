@@ -160,10 +160,15 @@ struct btrfs_root *open_ctree(const char *filename, u64 sb_bytenr,
 			      unsigned flags);
 struct btrfs_root *open_ctree_fd(int fp, const char *path, u64 sb_bytenr,
 				 unsigned flags);
-struct btrfs_fs_info *open_ctree_fs_info(const char *filename,
-					 u64 sb_bytenr, u64 root_tree_bytenr,
-					 u64 chunk_root_bytenr,
-					 unsigned flags);
+struct open_ctree_flags {
+	const char *filename;
+	u64 sb_bytenr;
+	u64 root_tree_bytenr;
+	u64 chunk_tree_bytenr;
+	unsigned flags;
+};
+
+struct btrfs_fs_info *open_ctree_fs_info(struct open_ctree_flags *ocf);
 int close_ctree_fs_info(struct btrfs_fs_info *fs_info);
 static inline int close_ctree(struct btrfs_root *root)
 {
@@ -189,7 +194,8 @@ int btrfs_free_fs_root(struct btrfs_root *root);
 void btrfs_mark_buffer_dirty(struct extent_buffer *buf);
 int btrfs_buffer_uptodate(struct extent_buffer *buf, u64 parent_transid);
 int btrfs_set_buffer_uptodate(struct extent_buffer *buf);
-int btrfs_csum_data(u16 csum_type, const u8 *data, u8 *out, size_t len);
+int btrfs_csum_data(struct btrfs_fs_info *fs_info, u16 csum_type, const u8 *data,
+		    u8 *out, size_t len);
 
 int btrfs_open_device(struct btrfs_device *dev);
 int csum_tree_block_size(struct extent_buffer *buf, u16 csum_sectorsize,

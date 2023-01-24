@@ -23,7 +23,6 @@
 #include <unistd.h>
 #include <errno.h>
 #include <dirent.h>
-#include <linux/limits.h>
 #include <blkid/blkid.h>
 #include <uuid/uuid.h>
 #include "kernel-lib/overflow.h"
@@ -32,9 +31,12 @@
 #include "common/messages.h"
 #include "common/utils.h"
 #include "common/defs.h"
+#include "common/open-utils.h"
+#include "common/units.h"
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/volumes.h"
 #include "kernel-shared/disk-io.h"
+#include "kernel-shared/zoned.h"
 #include "ioctl.h"
 
 static int btrfs_scan_done = 0;
@@ -141,6 +143,7 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 	dev_item = &disk_super->dev_item;
 
 	uuid_generate(device->uuid);
+	device->fs_info = fs_info;
 	device->devid = 0;
 	device->type = 0;
 	device->io_width = io_width;
@@ -188,7 +191,7 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 	btrfs_set_stack_device_bytes_used(dev_item, device->bytes_used);
 	memcpy(&dev_item->uuid, device->uuid, BTRFS_UUID_SIZE);
 
-	ret = pwrite(fd, buf, sectorsize, BTRFS_SUPER_INFO_OFFSET);
+	ret = sbwrite(fd, buf, BTRFS_SUPER_INFO_OFFSET);
 	BUG_ON(ret != sectorsize);
 
 	free(buf);
@@ -197,6 +200,7 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 	return 0;
 
 out:
+	free(device->zone_info);
 	free(device);
 	free(buf);
 	return ret;
@@ -264,7 +268,7 @@ int btrfs_device_already_in_root(struct btrfs_root *root, int fd,
 		ret = -ENOMEM;
 		goto out;
 	}
-	ret = pread(fd, buf, BTRFS_SUPER_INFO_SIZE, super_offset);
+	ret = sbread(fd, buf, super_offset);
 	if (ret != BTRFS_SUPER_INFO_SIZE)
 		goto brelse;
 

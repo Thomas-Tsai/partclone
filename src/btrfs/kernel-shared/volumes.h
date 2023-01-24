@@ -28,6 +28,7 @@ struct btrfs_device {
 	struct list_head dev_list;
 	struct btrfs_root *dev_root;
 	struct btrfs_fs_devices *fs_devices;
+	struct btrfs_fs_info *fs_info;
 
 	u64 total_ios;
 
@@ -43,6 +44,8 @@ struct btrfs_device {
 	u64 super_bytes_used;
 
 	u64 generation;
+
+	struct btrfs_zoned_device_info *zone_info;
 
 	/* the internal btrfs device id */
 	u64 devid;
@@ -69,6 +72,11 @@ struct btrfs_device {
 	u8 uuid[BTRFS_UUID_SIZE];
 };
 
+enum btrfs_chunk_allocation_policy {
+	BTRFS_CHUNK_ALLOC_REGULAR,
+	BTRFS_CHUNK_ALLOC_ZONED,
+};
+
 struct btrfs_fs_devices {
 	u8 fsid[BTRFS_FSID_SIZE]; /* FS specific uuid */
 	u8 metadata_uuid[BTRFS_FSID_SIZE]; /* FS specific uuid */
@@ -87,6 +95,8 @@ struct btrfs_fs_devices {
 
 	int seeding;
 	struct btrfs_fs_devices *seed;
+
+	enum btrfs_chunk_allocation_policy chunk_alloc_policy;
 };
 
 struct btrfs_bio_stripe {
@@ -276,8 +286,8 @@ int btrfs_alloc_chunk(struct btrfs_trans_handle *trans,
 		      u64 *num_bytes, u64 type);
 int btrfs_alloc_data_chunk(struct btrfs_trans_handle *trans,
 			   struct btrfs_fs_info *fs_info, u64 *start, u64 num_bytes);
-int btrfs_open_devices(struct btrfs_fs_devices *fs_devices,
-		       int flags);
+int btrfs_open_devices(struct btrfs_fs_info *fs_info,
+		       struct btrfs_fs_devices *fs_devices, int flags);
 int btrfs_close_devices(struct btrfs_fs_devices *fs_devices);
 void btrfs_close_all_devices(void);
 int btrfs_insert_dev_extent(struct btrfs_trans_handle *trans,

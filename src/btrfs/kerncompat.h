@@ -28,6 +28,7 @@
 #include <assert.h>
 #include <stddef.h>
 #include <linux/types.h>
+#include <linux/kernel.h>
 #include <stdint.h>
 
 #include <features.h>
@@ -74,6 +75,10 @@
 
 #ifndef ULONG_MAX
 #define ULONG_MAX       (~0UL)
+#endif
+
+#ifndef SECTOR_SHIFT
+#define SECTOR_SHIFT	(9)
 #endif
 
 #define __token_glue(a,b,c)	___token_glue(a,b,c)
@@ -162,6 +167,7 @@ typedef long long s64;
 typedef int s32;
 #endif
 
+typedef u64 sector_t;
 
 struct vma_shared { int prio_tree_node; };
 struct vm_area_struct {
@@ -333,7 +339,11 @@ static inline void assert_trace(const char *assertion, const char *filename,
 #endif
 
 #define BUG_ON(c) bugon_trace(#c, __FILE__, __func__, __LINE__, (long)(c))
-#define BUG() BUG_ON(1)
+#define BUG()				\
+do {					\
+	BUG_ON(1);			\
+	__builtin_unreachable();	\
+} while (0)
 #define WARN_ON(c) warning_trace(#c, __FILE__, __func__, __LINE__, (long)(c))
 
 #define container_of(ptr, type, member) ({                      \
@@ -349,10 +359,100 @@ static inline void assert_trace(const char *assertion, const char *filename,
 
 /* Alignment check */
 #define IS_ALIGNED(x, a)                (((x) & ((typeof(x))(a) - 1)) == 0)
+#define ALIGN(x, a)		__ALIGN_KERNEL((x), (a))
 
 static inline int is_power_of_2(unsigned long n)
 {
 	return (n != 0 && ((n & (n - 1)) == 0));
+}
+
+/**
+ * const_ilog2 - log base 2 of 32-bit or a 64-bit constant unsigned value
+ * @n: parameter
+ *
+ * Use this where sparse expects a true constant expression, e.g. for array
+ * indices.
+ */
+#define const_ilog2(n)				\
+(						\
+	__builtin_constant_p(n) ? (		\
+		(n) < 2 ? 0 :			\
+		(n) & (1ULL << 63) ? 63 :	\
+		(n) & (1ULL << 62) ? 62 :	\
+		(n) & (1ULL << 61) ? 61 :	\
+		(n) & (1ULL << 60) ? 60 :	\
+		(n) & (1ULL << 59) ? 59 :	\
+		(n) & (1ULL << 58) ? 58 :	\
+		(n) & (1ULL << 57) ? 57 :	\
+		(n) & (1ULL << 56) ? 56 :	\
+		(n) & (1ULL << 55) ? 55 :	\
+		(n) & (1ULL << 54) ? 54 :	\
+		(n) & (1ULL << 53) ? 53 :	\
+		(n) & (1ULL << 52) ? 52 :	\
+		(n) & (1ULL << 51) ? 51 :	\
+		(n) & (1ULL << 50) ? 50 :	\
+		(n) & (1ULL << 49) ? 49 :	\
+		(n) & (1ULL << 48) ? 48 :	\
+		(n) & (1ULL << 47) ? 47 :	\
+		(n) & (1ULL << 46) ? 46 :	\
+		(n) & (1ULL << 45) ? 45 :	\
+		(n) & (1ULL << 44) ? 44 :	\
+		(n) & (1ULL << 43) ? 43 :	\
+		(n) & (1ULL << 42) ? 42 :	\
+		(n) & (1ULL << 41) ? 41 :	\
+		(n) & (1ULL << 40) ? 40 :	\
+		(n) & (1ULL << 39) ? 39 :	\
+		(n) & (1ULL << 38) ? 38 :	\
+		(n) & (1ULL << 37) ? 37 :	\
+		(n) & (1ULL << 36) ? 36 :	\
+		(n) & (1ULL << 35) ? 35 :	\
+		(n) & (1ULL << 34) ? 34 :	\
+		(n) & (1ULL << 33) ? 33 :	\
+		(n) & (1ULL << 32) ? 32 :	\
+		(n) & (1ULL << 31) ? 31 :	\
+		(n) & (1ULL << 30) ? 30 :	\
+		(n) & (1ULL << 29) ? 29 :	\
+		(n) & (1ULL << 28) ? 28 :	\
+		(n) & (1ULL << 27) ? 27 :	\
+		(n) & (1ULL << 26) ? 26 :	\
+		(n) & (1ULL << 25) ? 25 :	\
+		(n) & (1ULL << 24) ? 24 :	\
+		(n) & (1ULL << 23) ? 23 :	\
+		(n) & (1ULL << 22) ? 22 :	\
+		(n) & (1ULL << 21) ? 21 :	\
+		(n) & (1ULL << 20) ? 20 :	\
+		(n) & (1ULL << 19) ? 19 :	\
+		(n) & (1ULL << 18) ? 18 :	\
+		(n) & (1ULL << 17) ? 17 :	\
+		(n) & (1ULL << 16) ? 16 :	\
+		(n) & (1ULL << 15) ? 15 :	\
+		(n) & (1ULL << 14) ? 14 :	\
+		(n) & (1ULL << 13) ? 13 :	\
+		(n) & (1ULL << 12) ? 12 :	\
+		(n) & (1ULL << 11) ? 11 :	\
+		(n) & (1ULL << 10) ? 10 :	\
+		(n) & (1ULL <<  9) ?  9 :	\
+		(n) & (1ULL <<  8) ?  8 :	\
+		(n) & (1ULL <<  7) ?  7 :	\
+		(n) & (1ULL <<  6) ?  6 :	\
+		(n) & (1ULL <<  5) ?  5 :	\
+		(n) & (1ULL <<  4) ?  4 :	\
+		(n) & (1ULL <<  3) ?  3 :	\
+		(n) & (1ULL <<  2) ?  2 :	\
+		1) :				\
+	-1)
+
+static inline int ilog2(u64 num)
+{
+	int l = 0;
+
+	num >>= 1;
+	while (num) {
+		l++;
+		num >>= 1;
+	}
+
+	return l;
 }
 
 typedef u16 __bitwise __le16;
@@ -361,6 +461,9 @@ typedef u32 __bitwise __le32;
 typedef u32 __bitwise __be32;
 typedef u64 __bitwise __le64;
 typedef u64 __bitwise __be64;
+
+#define U64_MAX			UINT64_MAX
+#define U32_MAX			UINT32_MAX
 
 /* Macros to generate set/get funcs for the struct fields
  * assume there is a lefoo_to_cpu for every type, so lets make a simple
