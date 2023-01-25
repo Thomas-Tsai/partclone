@@ -140,7 +140,8 @@ int csum_bitmap(unsigned long* bitmap, struct btrfs_root *root){
 
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s: csum_bitmap\n", __FILE__);
-    root = root->fs_info->csum_root;
+    //root = root->fs_info->_csum_root;
+    root = btrfs_csum_root(root->fs_info, 0);
 
     key.objectid = BTRFS_EXTENT_CSUM_OBJECTID;
     key.type = BTRFS_EXTENT_CSUM_KEY;
@@ -343,6 +344,8 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     struct btrfs_key found_key;
     struct extent_buffer *leaf;
     struct btrfs_root_item ri;
+    struct btrfs_root *csum_root;
+    struct btrfs_root *extent_root;
     int slot;
 
     total_block = fs_info.totalblock;
@@ -362,8 +365,10 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
         set_bitmap(bitmap, sb_mirror_offset, block_size);
     } 
 
-    check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->extent_root->root_item), &bsize, 0);
-    check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->csum_root->root_item), &bsize, 0);
+    csum_root = btrfs_csum_root(info, 0);
+    extent_root = btrfs_extent_root(info, 0);
+    check_extent_bitmap(bitmap, btrfs_root_bytenr(&extent_root->root_item), &bsize, 0);
+    check_extent_bitmap(bitmap, btrfs_root_bytenr(&csum_root->root_item), &bsize, 0);
     //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->quota_root->root_item), &block_size);
     check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->dev_root->root_item), &bsize, 0);
     //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->tree_root->root_item), &block_size);
