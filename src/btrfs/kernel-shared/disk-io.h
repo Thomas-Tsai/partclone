@@ -23,9 +23,6 @@
 #include "kernel-shared/ctree.h"
 #include "kernel-lib/sizes.h"
 
-#define BTRFS_SUPER_INFO_OFFSET SZ_64K
-#define BTRFS_SUPER_INFO_SIZE 4096
-
 #define BTRFS_SUPER_MIRROR_MAX	 3
 #define BTRFS_SUPER_MIRROR_SHIFT 12
 
@@ -88,6 +85,12 @@ enum btrfs_open_ctree_flags {
 
 	/* For print-tree, print HIDDEN instead of filenames/xattrs/refs */
 	OPEN_CTREE_HIDE_NAMES = (1U << 14),
+
+	/*
+	 * Allow certain commands like check/restore to ignore transid
+	 * mismatch.
+	 */
+	OPEN_CTREE_ALLOW_TRANSID_MISMATCH = (1U << 15),
 };
 
 /*

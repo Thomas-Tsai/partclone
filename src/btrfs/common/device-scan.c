@@ -14,6 +14,10 @@
  * Boston, MA 021110-1307, USA.
  */
 
+#ifdef STATIC_BUILD
+#undef HAVE_LIBUDEV
+#endif
+
 #include "kerncompat.h"
 #include <sys/ioctl.h>
 #include <stdlib.h>
@@ -25,6 +29,11 @@
 #include <dirent.h>
 #include <blkid/blkid.h>
 #include <uuid/uuid.h>
+#include <sys/sysmacros.h>
+#ifdef HAVE_LIBUDEV
+#include <sys/stat.h>
+#include <libudev.h>
+#endif
 #include "kernel-lib/overflow.h"
 #include "common/path-utils.h"
 #include "common/device-scan.h"
@@ -81,7 +90,8 @@ int check_arg_type(const char *input)
 	return BTRFS_ARG_UNKNOWN;
 }
 
-int test_uuid_unique(char *fs_uuid)
+/* Check if the UUID (as string) appears among devices cached by blkid */
+int test_uuid_unique(const char *uuid_str)
 {
 	int unique = 1;
 	blkid_dev_iterate iter = NULL;
@@ -89,12 +99,12 @@ int test_uuid_unique(char *fs_uuid)
 	blkid_cache cache = NULL;
 
 	if (blkid_get_cache(&cache, NULL) < 0) {
-		printf("ERROR: lblkid cache get failed\n");
+		error("blkid cache open failed, cannot check uuid uniqueness");
 		return 1;
 	}
 	blkid_probe_all(cache);
 	iter = blkid_dev_iterate_begin(cache);
-	blkid_dev_set_search(iter, "UUID", fs_uuid);
+	blkid_dev_set_search(iter, "UUID", uuid_str);
 
 	while (blkid_dev_next(iter, &dev) == 0) {
 		dev = blkid_verify(cache, dev);
@@ -192,8 +202,8 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 	memcpy(&dev_item->uuid, device->uuid, BTRFS_UUID_SIZE);
 
 	ret = sbwrite(fd, buf, BTRFS_SUPER_INFO_OFFSET);
-	BUG_ON(ret != sectorsize);
-
+	/* Ensure super block was written to the device */
+	BUG_ON(ret != BTRFS_SUPER_INFO_SIZE);
 	free(buf);
 	list_add(&device->dev_list, &fs_info->fs_devices->devices);
 	device->fs_devices = fs_info->fs_devices;
@@ -259,34 +269,25 @@ int btrfs_register_all_devices(void)
 int btrfs_device_already_in_root(struct btrfs_root *root, int fd,
 				 int super_offset)
 {
-	struct btrfs_super_block *disk_super;
-	char *buf;
+	struct btrfs_super_block disk_super;
 	int ret = 0;
 
-	buf = malloc(BTRFS_SUPER_INFO_SIZE);
-	if (!buf) {
-		ret = -ENOMEM;
-		goto out;
-	}
-	ret = sbread(fd, buf, super_offset);
+	ret = sbread(fd, &disk_super, super_offset);
 	if (ret != BTRFS_SUPER_INFO_SIZE)
-		goto brelse;
+		goto out;
 
 	ret = 0;
-	disk_super = (struct btrfs_super_block *)buf;
 	/*
 	 * Accept devices from the same filesystem, allow partially created
 	 * structures.
 	 */
-	if (btrfs_super_magic(disk_super) != BTRFS_MAGIC &&
-			btrfs_super_magic(disk_super) != BTRFS_MAGIC_TEMPORARY)
-		goto brelse;
+	if (btrfs_super_magic(&disk_super) != BTRFS_MAGIC &&
+			btrfs_super_magic(&disk_super) != BTRFS_MAGIC_TEMPORARY)
+		goto out;
 
-	if (!memcmp(disk_super->fsid, root->fs_info->super_copy->fsid,
+	if (!memcmp(disk_super.fsid, root->fs_info->super_copy->fsid,
 		    BTRFS_FSID_SIZE))
 		ret = 1;
-brelse:
-	free(buf);
 out:
 	return ret;
 }
@@ -364,6 +365,73 @@ void free_seen_fsid(struct seen_fsid *seen_fsid_hash[])
 	}
 }
 
+#ifdef STATIC_BUILD
+static bool is_multipath_path_device(dev_t device)
+{
+	FILE *file;
+	char *line = NULL;
+	size_t len = 0;
+	ssize_t nread;
+	bool ret = false;
+	int ret2;
+	char path[PATH_MAX];
+
+	ret2 = snprintf(path, sizeof(path), "/run/udev/data/b%u:%u", major(device),
+			minor(device));
+
+	if (ret2 < 0)
+		return false;
+
+	file = fopen(path, "r");
+	if (file == NULL)
+		return false;
+
+	while ((nread = getline(&line, &len, file)) != -1) {
+		if (strstr(line, "DM_MULTIPATH_DEVICE_PATH=1")) {
+			ret = true;
+			break;
+		}
+	}
+
+	if (line)
+		free(line);
+
+	fclose(file);
+
+	return ret;
+}
+#elif defined(HAVE_LIBUDEV)
+static bool is_multipath_path_device(dev_t device)
+{
+	struct udev *udev = NULL;
+	struct udev_device *dev = NULL;
+	const char *val;
+	bool ret = false;
+
+	udev = udev_new();
+	if (!udev)
+		goto out;
+
+	dev = udev_device_new_from_devnum(udev, 'b', device);
+	if (!dev)
+		goto out;
+
+	val = udev_device_get_property_value(dev, "DM_MULTIPATH_DEVICE_PATH");
+	if (val && atoi(val) > 0)
+		ret = true;
+out:
+	udev_device_unref(dev);
+	udev_unref(udev);
+
+	return ret;
+}
+#else
+static bool is_multipath_path_device(dev_t device)
+{
+	return false;
+}
+#endif
+
 int btrfs_scan_devices(int verbose)
 {
 	int fd = -1;
@@ -388,11 +456,19 @@ int btrfs_scan_devices(int verbose)
 	iter = blkid_dev_iterate_begin(cache);
 	blkid_dev_set_search(iter, "TYPE", "btrfs");
 	while (blkid_dev_next(iter, &dev) == 0) {
+		struct stat dev_stat;
+
 		dev = blkid_verify(cache, dev);
 		if (!dev)
 			continue;
 		/* if we are here its definitely a btrfs disk*/
 		strncpy_null(path, blkid_dev_devname(dev));
+
+		if (stat(path, &dev_stat) < 0)
+			continue;
+
+		if (is_multipath_path_device(dev_stat.st_rdev))
+			continue;
 
 		fd = open(path, O_RDONLY);
 		if (fd < 0) {

@@ -48,6 +48,7 @@
 #include "common/utils.h"
 #include "common/path-utils.h"
 #include "common/device-scan.h"
+#include "common/parse-utils.h"
 #include "kernel-shared/volumes.h"
 #include "ioctl.h"
 #include "cmds/commands.h"
@@ -227,120 +228,22 @@ int set_label(const char *btrfs_dev, const char *label)
 	return ret;
 }
 
-/*
- * A not-so-good version fls64. No fascinating optimization since
- * no one except parse_size_from_string uses it
- */
-static int fls64(u64 x)
+u64 parse_qgroupid_or_path(const char *p)
 {
-	int i;
-
-	for (i = 0; i <64; i++)
-		if (x << i & (1ULL << 63))
-			return 64 - i;
-	return 64 - i;
-}
-
-u64 parse_size_from_string(const char *s)
-{
-	char c;
-	char *endptr;
-	u64 mult = 1;
-	u64 ret;
-
-	if (!s) {
-		error("size value is empty");
-		exit(1);
-	}
-	if (s[0] == '-') {
-		error("size value '%s' is less equal than 0", s);
-		exit(1);
-	}
-	ret = strtoull(s, &endptr, 10);
-	if (endptr == s) {
-		error("size value '%s' is invalid", s);
-		exit(1);
-	}
-	if (endptr[0] && endptr[1]) {
-		error("illegal suffix contains character '%c' in wrong position",
-			endptr[1]);
-		exit(1);
-	}
-	/*
-	 * strtoll returns LLONG_MAX when overflow, if this happens,
-	 * need to call strtoull to get the real size
-	 */
-	if (errno == ERANGE && ret == ULLONG_MAX) {
-		error("size value '%s' is too large for u64", s);
-		exit(1);
-	}
-	if (endptr[0]) {
-		c = tolower(endptr[0]);
-		switch (c) {
-		case 'e':
-			mult *= 1024;
-			/* fallthrough */
-		case 'p':
-			mult *= 1024;
-			/* fallthrough */
-		case 't':
-			mult *= 1024;
-			/* fallthrough */
-		case 'g':
-			mult *= 1024;
-			/* fallthrough */
-		case 'm':
-			mult *= 1024;
-			/* fallthrough */
-		case 'k':
-			mult *= 1024;
-			/* fallthrough */
-		case 'b':
-			break;
-		default:
-			error("unknown size descriptor '%c'", c);
-			exit(1);
-		}
-	}
-	/* Check whether ret * mult overflow */
-	if (fls64(ret) + fls64(mult) - 1 > 64) {
-		error("size value '%s' is too large for u64", s);
-		exit(1);
-	}
-	ret *= mult;
-	return ret;
-}
-
-u64 parse_qgroupid(const char *p)
-{
-	char *s = strchr(p, '/');
-	const char *ptr_src_end = p + strlen(p);
-	char *ptr_parse_end = NULL;
 	enum btrfs_util_error err;
-	u64 level;
 	u64 id;
+	u64 qgroupid;
 	int fd;
 	int ret = 0;
 
 	if (p[0] == '/')
 		goto path;
 
-	/* Numeric format like '0/257' is the primary case */
-	if (!s) {
-		id = strtoull(p, &ptr_parse_end, 10);
-		if (ptr_parse_end != ptr_src_end)
-			goto path;
-		return id;
-	}
-	level = strtoull(p, &ptr_parse_end, 10);
-	if (ptr_parse_end != s)
-		goto path;
+	ret = parse_qgroupid(p, &qgroupid);
+	if (ret < 0)
+		goto err;
 
-	id = strtoull(s + 1, &ptr_parse_end, 10);
-	if (ptr_parse_end != ptr_src_end)
-		goto  path;
-
-	return (level << BTRFS_QGROUP_LEVEL_SHIFT) | id;
+	return qgroupid;
 
 path:
 	/* Path format like subv at 'my_subvol' is the fallback case */
@@ -365,24 +268,20 @@ err:
 	exit(-1);
 }
 
-enum btrfs_csum_type parse_csum_type(const char *s)
+void btrfs_format_csum(u16 csum_type, const u8 *data, char *output)
 {
-	if (strcasecmp(s, "crc32c") == 0) {
-		return BTRFS_CSUM_TYPE_CRC32;
-	} else if (strcasecmp(s, "xxhash64") == 0 ||
-		   strcasecmp(s, "xxhash") == 0) {
-		return BTRFS_CSUM_TYPE_XXHASH;
-	} else if (strcasecmp(s, "sha256") == 0) {
-		return BTRFS_CSUM_TYPE_SHA256;
-	} else if (strcasecmp(s, "blake2b") == 0 ||
-		   strcasecmp(s, "blake2") == 0) {
-		return BTRFS_CSUM_TYPE_BLAKE2;
-	} else {
-		error("unknown csum type %s", s);
-		exit(1);
+	int i;
+	int cur = 0;
+	const int csum_size = btrfs_csum_type_size(csum_type);
+
+	output[0] = '\0';
+	snprintf(output, BTRFS_CSUM_STRING_LEN, "0x");
+	cur += strlen("0x");
+	for (i = 0; i < csum_size; i++) {
+		snprintf(output + cur, BTRFS_CSUM_STRING_LEN - cur, "%02x",
+			 data[i]);
+		cur += 2;
 	}
-	/* not reached */
-	return 0;
 }
 
 int get_device_info(int fd, u64 devid,
@@ -539,8 +438,7 @@ int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 	memset(fi_args, 0, sizeof(*fi_args));
 
 	if (path_is_block_device(path) == 1) {
-		struct btrfs_super_block *disk_super;
-		char buf[BTRFS_SUPER_INFO_SIZE];
+		struct btrfs_super_block disk_super;
 
 		/* Ensure it's mounted, then set path to the mountpoint */
 		fd = open(path, O_RDONLY);
@@ -561,14 +459,13 @@ int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 		/* Only fill in this one device */
 		fi_args->num_devices = 1;
 
-		disk_super = (struct btrfs_super_block *)buf;
-		ret = btrfs_read_dev_super(fd, disk_super,
+		ret = btrfs_read_dev_super(fd, &disk_super,
 					   BTRFS_SUPER_INFO_OFFSET, 0);
 		if (ret < 0) {
 			ret = -EIO;
 			goto out;
 		}
-		last_devid = btrfs_stack_device_id(&disk_super->dev_item);
+		last_devid = btrfs_stack_device_id(&disk_super.dev_item);
 		fi_args->max_id = last_devid;
 
 		memcpy(fi_args->fsid, fs_devices_mnt->fsid, BTRFS_FSID_SIZE);
@@ -677,49 +574,13 @@ int get_fsid(const char *path, u8 *fsid, int silent)
 	return ret;
 }
 
-static int group_profile_devs_min(u64 flag)
-{
-	switch (flag & BTRFS_BLOCK_GROUP_PROFILE_MASK) {
-	case 0: /* single */
-	case BTRFS_BLOCK_GROUP_DUP:
-		return 1;
-	case BTRFS_BLOCK_GROUP_RAID0:
-	case BTRFS_BLOCK_GROUP_RAID1:
-	case BTRFS_BLOCK_GROUP_RAID5:
-		return 2;
-	case BTRFS_BLOCK_GROUP_RAID6:
-	case BTRFS_BLOCK_GROUP_RAID1C3:
-		return 3;
-	case BTRFS_BLOCK_GROUP_RAID10:
-	case BTRFS_BLOCK_GROUP_RAID1C4:
-		return 4;
-	default:
-		return -1;
-	}
-}
-
 int test_num_disk_vs_raid(u64 metadata_profile, u64 data_profile,
 	u64 dev_cnt, int mixed, int ssd)
 {
-	u64 allowed = 0;
+	u64 allowed;
 	u64 profile = metadata_profile | data_profile;
 
-	switch (dev_cnt) {
-	default:
-	case 4:
-		allowed |= BTRFS_BLOCK_GROUP_RAID10;
-		allowed |= BTRFS_BLOCK_GROUP_RAID10 | BTRFS_BLOCK_GROUP_RAID1C4;
-		/* fallthrough */
-	case 3:
-		allowed |= BTRFS_BLOCK_GROUP_RAID6 | BTRFS_BLOCK_GROUP_RAID1C3;
-		/* fallthrough */
-	case 2:
-		allowed |= BTRFS_BLOCK_GROUP_RAID0 | BTRFS_BLOCK_GROUP_RAID1 |
-			BTRFS_BLOCK_GROUP_RAID5;
-		/* fallthrough */
-	case 1:
-		allowed |= BTRFS_BLOCK_GROUP_DUP;
-	}
+	allowed = btrfs_bg_flags_for_device_num(dev_cnt);
 
 	if (dev_cnt > 1 && profile & BTRFS_BLOCK_GROUP_DUP) {
 		warning("DUP is not recommended on filesystem with multiple devices");
@@ -729,7 +590,7 @@ int test_num_disk_vs_raid(u64 metadata_profile, u64 data_profile,
 			"ERROR: unable to create FS with metadata profile %s "
 			"(have %llu devices but %d devices are required)\n",
 			btrfs_group_profile_str(metadata_profile), dev_cnt,
-			group_profile_devs_min(metadata_profile));
+			btrfs_bg_type_to_devs_min(metadata_profile));
 		return 1;
 	}
 	if (data_profile & ~allowed) {
@@ -737,7 +598,7 @@ int test_num_disk_vs_raid(u64 metadata_profile, u64 data_profile,
 			"ERROR: unable to create FS with data profile %s "
 			"(have %llu devices but %d devices are required)\n",
 			btrfs_group_profile_str(data_profile), dev_cnt,
-			group_profile_devs_min(data_profile));
+			btrfs_bg_type_to_devs_min(data_profile));
 		return 1;
 	}
 
@@ -751,27 +612,6 @@ int test_num_disk_vs_raid(u64 metadata_profile, u64 data_profile,
 		   "DUP may not actually lead to 2 copies on the device, see manual page");
 
 	return 0;
-}
-
-int group_profile_max_safe_loss(u64 flags)
-{
-	switch (flags & BTRFS_BLOCK_GROUP_PROFILE_MASK) {
-	case 0: /* single */
-	case BTRFS_BLOCK_GROUP_DUP:
-	case BTRFS_BLOCK_GROUP_RAID0:
-		return 0;
-	case BTRFS_BLOCK_GROUP_RAID1:
-	case BTRFS_BLOCK_GROUP_RAID5:
-	case BTRFS_BLOCK_GROUP_RAID10:
-		return 1;
-	case BTRFS_BLOCK_GROUP_RAID6:
-	case BTRFS_BLOCK_GROUP_RAID1C3:
-		return 2;
-	case BTRFS_BLOCK_GROUP_RAID1C4:
-		return 3;
-	default:
-		return -1;
-	}
 }
 
 /*
@@ -1186,64 +1026,14 @@ const char* btrfs_group_type_str(u64 flag)
 
 const char* btrfs_group_profile_str(u64 flag)
 {
-	switch (flag & BTRFS_BLOCK_GROUP_PROFILE_MASK) {
-	case 0:
-		return "single";
-	case BTRFS_BLOCK_GROUP_RAID0:
-		return "RAID0";
-	case BTRFS_BLOCK_GROUP_RAID1:
-		return "RAID1";
-	case BTRFS_BLOCK_GROUP_RAID1C3:
-		return "RAID1C3";
-	case BTRFS_BLOCK_GROUP_RAID1C4:
-		return "RAID1C4";
-	case BTRFS_BLOCK_GROUP_RAID5:
-		return "RAID5";
-	case BTRFS_BLOCK_GROUP_RAID6:
-		return "RAID6";
-	case BTRFS_BLOCK_GROUP_DUP:
-		return "DUP";
-	case BTRFS_BLOCK_GROUP_RAID10:
-		return "RAID10";
-	default:
-		return "unknown";
-	}
-}
-/*
- * Check if the BTRFS_IOC_TREE_SEARCH_V2 ioctl is supported on a given
- * filesystem, opened at fd
- */
-int btrfs_tree_search2_ioctl_supported(int fd)
-{
-	struct btrfs_ioctl_search_args_v2 *args2;
-	struct btrfs_ioctl_search_key *sk;
-	int args2_size = 1024;
-	char args2_buf[args2_size];
-	int ret;
+	int index;
 
-	args2 = (struct btrfs_ioctl_search_args_v2 *)args2_buf;
-	sk = &(args2->key);
+	flag &= ~(BTRFS_BLOCK_GROUP_TYPE_MASK | BTRFS_BLOCK_GROUP_RESERVED);
+	if (flag & ~BTRFS_BLOCK_GROUP_PROFILE_MASK)
+		return "UNKNOWN";
 
-	/*
-	 * Search for the extent tree item in the root tree.
-	 */
-	sk->tree_id = BTRFS_ROOT_TREE_OBJECTID;
-	sk->min_objectid = BTRFS_EXTENT_TREE_OBJECTID;
-	sk->max_objectid = BTRFS_EXTENT_TREE_OBJECTID;
-	sk->min_type = BTRFS_ROOT_ITEM_KEY;
-	sk->max_type = BTRFS_ROOT_ITEM_KEY;
-	sk->min_offset = 0;
-	sk->max_offset = (u64)-1;
-	sk->min_transid = 0;
-	sk->max_transid = (u64)-1;
-	sk->nr_items = 1;
-	args2->buf_size = args2_size - sizeof(struct btrfs_ioctl_search_args_v2);
-	ret = ioctl(fd, BTRFS_IOC_TREE_SEARCH_V2, args2);
-	if (ret == -EOPNOTSUPP)
-		return 0;
-	else if (ret == 0)
-		return 1;
-	return ret;
+	index = btrfs_bg_flags_to_raid_index(flag);
+	return btrfs_raid_array[index].upper_name;
 }
 
 u64 div_factor(u64 num, int factor)
@@ -1468,14 +1258,14 @@ static char *sprint_profiles(u64 profiles)
 		return NULL;
 
 	for (i = 0; i < BTRFS_NR_RAID_TYPES; i++)
-		maxlen += strlen(btrfs_raid_array[i].raid_name) + 2;
+		maxlen += strlen(btrfs_raid_array[i].lower_name) + 2;
 
 	ptr = calloc(1, maxlen);
 	if (!ptr)
 		return NULL;
 
 	if (profiles & BTRFS_AVAIL_ALLOC_BIT_SINGLE)
-		strcat(ptr, btrfs_raid_array[BTRFS_RAID_SINGLE].raid_name);
+		strcat(ptr, btrfs_raid_array[BTRFS_RAID_SINGLE].lower_name);
 
 	for (i = 0; i < BTRFS_NR_RAID_TYPES; i++) {
 		if (!(btrfs_raid_array[i].bg_flag & profiles))
@@ -1483,7 +1273,7 @@ static char *sprint_profiles(u64 profiles)
 
 		if (ptr[0])
 			strcat(ptr, ", ");
-		strcat(ptr, btrfs_raid_array[i].raid_name);
+		strcat(ptr, btrfs_raid_array[i].lower_name);
 	}
 
 	return ptr;
@@ -1651,6 +1441,30 @@ int sysfs_open_file(const char *name)
 }
 
 /*
+ * Open a directory by name in fsid directory in sysfs and return the file
+ * descriptor or error, filedescriptor suitable for fdreaddir. The @dirname
+ * must be a directory name.
+ */
+int sysfs_open_fsid_dir(int fd, const char *dirname)
+{
+	u8 fsid[BTRFS_UUID_SIZE];
+	char fsid_str[BTRFS_UUID_UNPARSED_SIZE];
+	char sysfs_file[PATH_MAX];
+	int ret;
+
+	ret = get_fsid_fd(fd, fsid);
+	if (ret < 0)
+		return ret;
+	uuid_unparse(fsid, fsid_str);
+
+	ret = path_cat3_out(sysfs_file, "/sys/fs/btrfs", fsid_str, dirname);
+	if (ret < 0)
+		return ret;
+
+	return open(sysfs_file, O_DIRECTORY | O_RDONLY);
+}
+
+/*
  * Read up to @size bytes to @buf from @fd
  */
 int sysfs_read_file(int fd, char *buf, size_t size)
@@ -1771,11 +1585,69 @@ int check_running_fs_exclop(int fd, enum exclusive_operation start, bool enqueue
 			tv.tv_sec /= 2;
 			ret = select(sysfs_fd + 1, NULL, NULL, &fds, &tv);
 			exclop = get_fs_exclop(fd);
-			continue;
+			if (exclop <= 0)
+				ret = 0;
 		}
 	}
 out:
 	close(sysfs_fd);
 
 	return ret;
+}
+
+/*
+ * This function should be only used when parsing command arg, it won't return
+ * error to its caller and rather exit directly just like usage().
+ */
+u64 arg_strtou64(const char *str)
+{
+	u64 value;
+	char *ptr_parse_end = NULL;
+
+	value = strtoull(str, &ptr_parse_end, 0);
+	if (ptr_parse_end && *ptr_parse_end != '\0') {
+		fprintf(stderr, "ERROR: %s is not a valid numeric value.\n",
+			str);
+		exit(1);
+	}
+
+	/*
+	 * if we pass a negative number to strtoull, it will return an
+	 * unexpected number to us, so let's do the check ourselves.
+	 */
+	if (str[0] == '-') {
+		fprintf(stderr, "ERROR: %s: negative value is invalid.\n",
+			str);
+		exit(1);
+	}
+	if (value == ULLONG_MAX) {
+		fprintf(stderr, "ERROR: %s is too large.\n", str);
+		exit(1);
+	}
+	return value;
+}
+
+/*
+ * For a given:
+ * - file or directory return the containing tree root id
+ * - subvolume return its own tree id
+ * - BTRFS_EMPTY_SUBVOL_DIR_OBJECTID (directory with ino == 2) the result is
+ *   undefined and function returns -1
+ */
+int lookup_path_rootid(int fd, u64 *rootid)
+{
+	struct btrfs_ioctl_ino_lookup_args args;
+	int ret;
+
+	memset(&args, 0, sizeof(args));
+	args.treeid = 0;
+	args.objectid = BTRFS_FIRST_FREE_OBJECTID;
+
+	ret = ioctl(fd, BTRFS_IOC_INO_LOOKUP, &args);
+	if (ret < 0)
+		return -errno;
+
+	*rootid = args.treeid;
+
+	return 0;
 }

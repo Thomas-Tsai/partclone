@@ -33,7 +33,6 @@
  */
 #define BTRFS_MKFS_DEFAULT_DATA_ONE_DEVICE	0	/* SINGLE */
 #define BTRFS_MKFS_DEFAULT_META_ONE_DEVICE	BTRFS_BLOCK_GROUP_DUP
-#define BTRFS_MKFS_DEFAULT_META_ONE_DEVICE_SSD	0	/* SINGLE */
 
 #define BTRFS_MKFS_DEFAULT_DATA_MULTI_DEVICE	0	/* SINGLE */
 #define BTRFS_MKFS_DEFAULT_META_MULTI_DEVICE	BTRFS_BLOCK_GROUP_RAID1
@@ -45,14 +44,29 @@ struct btrfs_root;
  * Tree root blocks created during mkfs
  */
 enum btrfs_mkfs_block {
-	MKFS_SUPER_BLOCK = 0,
 	MKFS_ROOT_TREE,
 	MKFS_EXTENT_TREE,
 	MKFS_CHUNK_TREE,
 	MKFS_DEV_TREE,
 	MKFS_FS_TREE,
 	MKFS_CSUM_TREE,
+	MKFS_FREE_SPACE_TREE,
 	MKFS_BLOCK_COUNT
+};
+
+static const enum btrfs_mkfs_block extent_tree_v1_blocks[] = {
+	MKFS_ROOT_TREE,
+	MKFS_EXTENT_TREE,
+	MKFS_CHUNK_TREE,
+	MKFS_DEV_TREE,
+	MKFS_FS_TREE,
+	MKFS_CSUM_TREE,
+
+	/*
+	 * Since the free space tree is optional with v1 it must always be last
+	 * in this array.
+	 */
+	MKFS_FREE_SPACE_TREE,
 };
 
 struct btrfs_mkfs_config {
@@ -64,6 +78,8 @@ struct btrfs_mkfs_config {
 	u32 stripesize;
 	/* Bitfield of incompat features, BTRFS_FEATURE_INCOMPAT_* */
 	u64 features;
+	/* Bitfield of BTRFS_RUNTIME_FEATURE_* */
+	u64 runtime_features;
 	/* Size of the filesystem in bytes */
 	u64 num_bytes;
 	/* checksum algorithm to use */

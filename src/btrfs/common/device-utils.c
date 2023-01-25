@@ -17,17 +17,22 @@
 #include <sys/ioctl.h>
 #include <sys/mount.h>
 #include <sys/statfs.h>
+#include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <dirent.h>
 #include <blkid/blkid.h>
 #include <linux/limits.h>
+#include <linux/fs.h>
+#include <limits.h>
 #include "kernel-lib/sizes.h"
 #include "kernel-shared/disk-io.h"
 #include "kernel-shared/zoned.h"
 #include "common/device-utils.h"
+#include "common/path-utils.h"
 #include "common/internal.h"
 #include "common/messages.h"
 #include "common/utils.h"
@@ -47,6 +52,25 @@ static int discard_range(int fd, u64 start, u64 len)
 	if (ioctl(fd, BLKDISCARD, &range) < 0)
 		return errno;
 	return 0;
+}
+
+static int discard_supported(const char *device)
+{
+	int ret;
+	char buf[128] = {};
+
+	ret = device_get_queue_param(device, "discard_granularity", buf, sizeof(buf));
+	if (ret == 0) {
+		pr_verbose(3, "cannot read discard_granularity for %s\n", device);
+		return 0;
+	} else {
+		if (buf[0] == '0' && buf[1] == 0) {
+			pr_verbose(3, "%s: discard_granularity %s\n", device, buf);
+			return 0;
+		}
+	}
+
+	return 1;
 }
 
 /*
@@ -72,7 +96,7 @@ int device_discard_blocks(int fd, u64 start, u64 len)
 /*
  * Write zeros to the given range [start, start + len)
  */
-int device_zero_blocks(int fd, off_t start, size_t len)
+int device_zero_blocks(int fd, off_t start, size_t len, bool direct)
 {
 	char *buf = malloc(len);
 	int ret = 0;
@@ -81,7 +105,7 @@ int device_zero_blocks(int fd, off_t start, size_t len)
 	if (!buf)
 		return -ENOMEM;
 	memset(buf, 0, len);
-	written = pwrite(fd, buf, len, start);
+	written = btrfs_pwrite(fd, buf, len, start, direct);
 	if (written != len)
 		ret = -EIO;
 	free(buf);
@@ -111,7 +135,7 @@ static int zero_dev_clamped(int fd, struct btrfs_zoned_device_info *zinfo,
 	if (zinfo && zinfo->model == ZONED_HOST_MANAGED)
 		return zero_zone_blocks(fd, zinfo, start, end - start);
 
-	return device_zero_blocks(fd, start, end - start);
+	return device_zero_blocks(fd, start, end - start, false);
 }
 
 /*
@@ -153,8 +177,10 @@ static int btrfs_wipe_existing_sb(int fd, struct btrfs_zoned_device_info *zinfo)
 		len = sizeof(buf);
 
 	if (!zone_is_sequential(zinfo, offset)) {
+		const bool direct = zinfo && zinfo->model == ZONED_HOST_MANAGED;
+
 		memset(buf, 0, len);
-		ret = pwrite(fd, buf, len, offset);
+		ret = btrfs_pwrite(fd, buf, len, offset, direct);
 		if (ret < 0) {
 			error("cannot wipe existing superblock: %m");
 			ret = -1;
@@ -216,18 +242,21 @@ int btrfs_prepare_device(int fd, const char *file, u64 *block_count_ret,
 			      file);
 			return 1;
 		}
-		if (opflags & PREP_DEVICE_VERBOSE)
-			printf("Resetting device zones %s (%u zones) ...\n",
-			       file, zinfo->nr_zones);
-		/*
-		 * We cannot ignore zone reset errors for a zoned block
-		 * device as this could result in the inability to write to
-		 * non-empty sequential zones of the device.
-		 */
-		if (btrfs_reset_all_zones(fd, zinfo)) {
-			error("zoned: failed to reset device '%s' zones: %m",
-			      file);
-			goto err;
+
+		if (!zinfo->emulated) {
+			if (opflags & PREP_DEVICE_VERBOSE)
+				printf("Resetting device zones %s (%u zones) ...\n",
+				       file, zinfo->nr_zones);
+			/*
+			 * We cannot ignore zone reset errors for a zoned block
+			 * device as this could result in the inability to write
+			 * to non-empty sequential zones of the device.
+			 */
+			if (btrfs_reset_all_zones(fd, zinfo)) {
+				error("zoned: failed to reset device '%s' zones: %m",
+				      file);
+				goto err;
+			}
 		}
 	} else if (opflags & PREP_DEVICE_DISCARD) {
 		/*
@@ -235,7 +264,7 @@ int btrfs_prepare_device(int fd, const char *file, u64 *block_count_ret,
 		 * is not necessary for the mkfs functionality but just an
 		 * optimization.
 		 */
-		if (discard_range(fd, 0, 0) == 0) {
+		if (discard_supported(file)) {
 			if (opflags & PREP_DEVICE_VERBOSE)
 				printf("Performing full device TRIM %s (%s) ...\n",
 						file, pretty_size(block_count));
@@ -300,13 +329,50 @@ u64 device_get_partition_size_fd(int fd)
 	return result;
 }
 
+u64 device_get_partition_size_sysfs(const char *dev)
+{
+	int ret;
+	char path[PATH_MAX] = {};
+	char sysfs[PATH_MAX] = {};
+	char sizebuf[128] = {};
+	char *name = NULL;
+	int sysfd;
+	unsigned long long size = 0;
+
+	name = realpath(dev, path);
+	if (!name)
+		return 0;
+	name = basename(path);
+
+	ret = path_cat3_out(sysfs, "/sys/class/block", name, "size");
+	if (ret < 0)
+		return 0;
+	sysfd = open(sysfs, O_RDONLY);
+	if (sysfd < 0)
+		return 0;
+	ret = sysfs_read_file(sysfd, sizebuf, sizeof(sizebuf));
+	if (ret < 0) {
+		close(sysfd);
+		return 0;
+	}
+	errno = 0;
+	size = strtoull(sizebuf, NULL, 10);
+	if (size == ULLONG_MAX && errno == ERANGE) {
+		close(sysfd);
+		return 0;
+	}
+	close(sysfd);
+	return size;
+}
+
 u64 device_get_partition_size(const char *dev)
 {
 	u64 result;
 	int fd = open(dev, O_RDONLY);
 
 	if (fd < 0)
-		return 0;
+		return device_get_partition_size_sysfs(dev);
+
 	if (ioctl(fd, BLKGETSIZE64, &result) < 0) {
 		close(fd);
 		return 0;
@@ -391,4 +457,124 @@ u64 device_get_zone_unusable(int fd, u64 flags)
 	close(sys_fd);
 
 	return unusable;
+}
+
+/*
+ * Read information about zone size of the given device (short @name) from a
+ * given filesystem fd
+ */
+u64 device_get_zone_size(int fd, const char *name)
+{
+	DIR *dir;
+	struct dirent *de;
+	int sysfs_fd;
+	u64 ret = 0;
+
+	sysfs_fd = sysfs_open_fsid_dir(fd, "devices");
+	if (sysfs_fd < 0)
+		return 0;
+
+	dir = fdopendir(sysfs_fd);
+	if (!dir) {
+		ret = 0;
+		goto out;
+	}
+	while (1) {
+		int queue_fd;
+		char queue[PATH_MAX];
+		char buf[128] = {0};
+
+		de = readdir(dir);
+		if (!de) {
+			ret = 0;
+			break;
+		}
+
+		if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0)
+			continue;
+		if (strcmp(name, de->d_name) != 0)
+			continue;
+
+		path_cat3_out(queue, "devices", de->d_name, "queue/chunk_sectors");
+		/* /sys/fs/btrfs/FSID/devices/NAME/queue/chunk_sectors */
+		queue_fd = sysfs_open_fsid_file(fd, queue);
+		if (queue_fd < 0) {
+			ret = 0;
+			break;
+		}
+		sysfs_read_file(queue_fd, buf, sizeof(buf));
+		ret = atoll(buf);
+		close(queue_fd);
+		break;
+	}
+	closedir(dir);
+
+out:
+	close(sysfs_fd);
+	return ret;
+}
+
+ssize_t btrfs_direct_pio(int rw, int fd, void *buf, size_t count, off_t offset)
+{
+	int alignment;
+	size_t iosize;
+	void *bounce_buf = NULL;
+	struct stat stat_buf;
+	unsigned long req;
+	int ret;
+	ssize_t ret_rw;
+
+	ASSERT(rw == READ || rw == WRITE);
+
+	if (fstat(fd, &stat_buf) == -1) {
+		error("fstat failed: %m");
+		return 0;
+	}
+
+	if ((stat_buf.st_mode & S_IFMT) == S_IFBLK)
+		req = BLKSSZGET;
+	else
+		req = FIGETBSZ;
+
+	if (ioctl(fd, req, &alignment)) {
+		error("failed to get block size: %m");
+		return 0;
+	}
+
+	if (IS_ALIGNED((size_t)buf, alignment) && IS_ALIGNED(count, alignment)) {
+		if (rw == WRITE)
+			return pwrite(fd, buf, count, offset);
+		else
+			return pread(fd, buf, count, offset);
+	}
+
+	/* Cannot do anything if the write size is not aligned */
+	if (rw == WRITE && !IS_ALIGNED(count, alignment)) {
+		error("%zu is not aligned to %d", count, alignment);
+		return 0;
+	}
+
+	iosize = round_up(count, alignment);
+
+	ret = posix_memalign(&bounce_buf, alignment, iosize);
+	if (ret) {
+		error("failed to allocate bounce buffer: %m");
+		errno = ret;
+		return 0;
+	}
+
+	if (rw == WRITE) {
+		ASSERT(iosize == count);
+		memcpy(bounce_buf, buf, count);
+		ret_rw = pwrite(fd, bounce_buf, iosize, offset);
+	} else {
+		ret_rw = pread(fd, bounce_buf, iosize, offset);
+		if (ret_rw >= count) {
+			ret_rw = count;
+			memcpy(buf, bounce_buf, count);
+		}
+	}
+
+	free(bounce_buf);
+	return ret_rw;
 }

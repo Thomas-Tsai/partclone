@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2007 Oracle.  All rights reserved.
  *
@@ -16,6 +15,7 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 021110-1307, USA.
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -29,6 +29,7 @@
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/volumes.h"
 #include "common/utils.h"
+#include "common/device-utils.h"
 #include "common/internal.h"
 
 void extent_io_tree_init(struct extent_io_tree *tree)
@@ -792,7 +793,8 @@ int read_extent_from_disk(struct extent_buffer *eb,
 			  unsigned long offset, unsigned long len)
 {
 	int ret;
-	ret = pread(eb->fd, eb->data + offset, len, eb->dev_bytenr);
+	ret = btrfs_pread(eb->fd, eb->data + offset, len, eb->dev_bytenr,
+			  eb->fs_info->zoned);
 	if (ret < 0) {
 		ret = -errno;
 		goto out;
@@ -809,7 +811,8 @@ out:
 int write_extent_to_disk(struct extent_buffer *eb)
 {
 	int ret;
-	ret = pwrite(eb->fd, eb->data, eb->len, eb->dev_bytenr);
+	ret = btrfs_pwrite(eb->fd, eb->data, eb->len, eb->dev_bytenr,
+			   eb->fs_info->zoned);
 	if (ret < 0)
 		goto out;
 	if (ret != eb->len) {
@@ -836,7 +839,7 @@ int read_data_from_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 		ret = btrfs_map_block(info, READ, offset, &read_len, &multi,
 				      mirror, NULL);
 		if (ret) {
-			fprintf(stderr, "Couldn't map the block %Lu\n",
+			fprintf(stderr, "Couldn't map the block %llu\n",
 				offset);
 			return -EIO;
 		}
@@ -848,17 +851,17 @@ int read_data_from_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 			return -EIO;
 		}
 
-		ret = pread(device->fd, buf + total_read, read_len,
-			    multi->stripes[0].physical);
+		ret = btrfs_pread(device->fd, buf + total_read, read_len,
+				  multi->stripes[0].physical, info->zoned);
 		kfree(multi);
 		if (ret < 0) {
-			fprintf(stderr, "Error reading %Lu, %d\n", offset,
+			fprintf(stderr, "Error reading %llu, %d\n", offset,
 				ret);
 			return ret;
 		}
 		if (ret != read_len) {
-			fprintf(stderr, "Short read for %Lu, read %d, "
-				"read_len %Lu\n", offset, ret, read_len);
+			fprintf(stderr, "Short read for %llu, read %d, "
+				"read_len %llu\n", offset, ret, read_len);
 			return -EIO;
 		}
 
@@ -890,7 +893,7 @@ int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 		ret = btrfs_map_block(info, WRITE, offset, &this_len, &multi,
 				      mirror, &raid_map);
 		if (ret) {
-			fprintf(stderr, "Couldn't map the block %Lu\n",
+			fprintf(stderr, "Couldn't map the block %llu\n",
 				offset);
 			return -EIO;
 		}
@@ -932,7 +935,8 @@ int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 			this_len = min(this_len, bytes_left);
 			dev_nr++;
 
-			ret = pwrite(device->fd, buf + total_write, this_len, dev_bytenr);
+			ret = btrfs_pwrite(device->fd, buf + total_write,
+					   this_len, dev_bytenr, info->zoned);
 			if (ret != this_len) {
 				if (ret < 0) {
 					fprintf(stderr, "Error writing to "

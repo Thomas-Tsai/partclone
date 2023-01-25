@@ -22,9 +22,9 @@
 #include <getopt.h>
 #include <uuid/uuid.h>
 
-#include "btrfs/ctree.h"
-#include "btrfs/volumes.h"
-#include "btrfs/disk-io.h"
+#include "btrfs/kernel-shared/ctree.h"
+#include "btrfs/kernel-shared/volumes.h"
+#include "btrfs/kernel-shared/disk-io.h"
 #include "btrfs/common/utils.h"
 #include "btrfs/version.h"
 
@@ -297,14 +297,18 @@ static void fs_open(char* device){
     struct cache_tree root_cache;
     //struct btrfs_fs_info *info;
     u64 bytenr = 0;
-    enum btrfs_open_ctree_flags ctree_flags = OPEN_CTREE_PARTIAL;
-
 
     log_mesg(0, 0, 0, fs_opt.debug, "\n%s: btrfs library version = %s\n", __FILE__, BTRFS_BUILD_VERSION);
 
     radix_tree_init();
     cache_tree_init(&root_cache);
-    info = open_ctree_fs_info(device, bytenr, 0, 0, ctree_flags);
+    struct open_ctree_flags ocf = { 0 };
+
+    ocf.filename = device;
+    ocf.sb_bytenr = bytenr;
+    ocf.root_tree_bytenr = 0;
+    ocf.flags = OPEN_CTREE_PARTIAL;
+    info = open_ctree_fs_info(&ocf);
 
     if (!info) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't open file system\n", __FILE__);

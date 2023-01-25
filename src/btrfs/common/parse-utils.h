@@ -14,16 +14,22 @@
  * Boston, MA 021110-1307, USA.
  */
 
-#ifndef CRYPTO_HASH_H
-#define CRYPTO_HASH_H
+#ifndef __PARSE_UTILS_H__
+#define __PARSE_UTILS_H__
 
-#include "../kerncompat.h"
+#include "kerncompat.h"
+#include "kernel-shared/ctree.h"
 
-#define CRYPTO_HASH_SIZE_MAX	32
+u64 parse_size_from_string(const char *s);
+enum btrfs_csum_type parse_csum_type(const char *s);
 
-int hash_crc32c(const u8 *buf, size_t length, u8 *out);
-int hash_xxhash(const u8 *buf, size_t length, u8 *out);
-int hash_sha256(const u8 *buf, size_t length, u8 *out);
-int hash_blake2b(const u8 *buf, size_t length, u8 *out);
+int parse_u64(const char *str, u64 *result);
+int parse_range_u32(const char *range, u32 *start, u32 *end);
+int parse_range(const char *range, u64 *start, u64 *end);
+int parse_range_strict(const char *range, u64 *start, u64 *end);
+int parse_bg_profile(const char *profile, u64 *flags);
+int parse_compress_type(const char *type);
+int parse_qgroupid(const char *str, u64 *qgroupid);
+int fls64(u64 x);
 
 #endif

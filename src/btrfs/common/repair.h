@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2012 Oracle.  All rights reserved.
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
  * License v2 as published by the Free Software Foundation.
@@ -14,16 +16,21 @@
  * Boston, MA 021110-1307, USA.
  */
 
-#ifndef CRYPTO_HASH_H
-#define CRYPTO_HASH_H
+#ifndef __BTRFS_REPAIR_H__
+#define __BTRFS_REPAIR_H__
 
-#include "../kerncompat.h"
+#include "kernel-shared/ctree.h"
 
-#define CRYPTO_HASH_SIZE_MAX	32
+extern int repair; /* repair mode */
 
-int hash_crc32c(const u8 *buf, size_t length, u8 *out);
-int hash_xxhash(const u8 *buf, size_t length, u8 *out);
-int hash_sha256(const u8 *buf, size_t length, u8 *out);
-int hash_blake2b(const u8 *buf, size_t length, u8 *out);
+struct btrfs_corrupt_block {
+	struct cache_extent cache;
+	struct btrfs_key key;
+	int level;
+};
+
+int btrfs_add_corrupt_extent_record(struct btrfs_fs_info *info,
+				    struct btrfs_key *first_key,
+				    u64 start, u64 len, int level);
 
 #endif

@@ -15,10 +15,11 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 021110-1307, USA.
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "kerncompat.h"
-#include "extent-cache.h"
+#include "common/extent-cache.h"
 #include "common/rbtree-utils.h"
 
 struct cache_extent_search_range {

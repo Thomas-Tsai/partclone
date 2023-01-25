@@ -16,6 +16,7 @@
 
 #include "kerncompat.h"
 #include <sys/utsname.h>
+#include <sys/ioctl.h>
 #include <linux/version.h>
 #include <unistd.h>
 #include "common/fsfeatures.h"
@@ -27,8 +28,15 @@
  *
  * Only used in make_btrfs_v2().
  */
-#define VERSION_TO_STRING3(a,b,c)	#a "." #b "." #c, KERNEL_VERSION(a,b,c)
-#define VERSION_TO_STRING2(a,b)		#a "." #b, KERNEL_VERSION(a,b,0)
+#define VERSION_TO_STRING3(name, a,b,c)				\
+	.name ## _str = #a "." #b "." #c,			\
+	.name ## _ver = KERNEL_VERSION(a,b,c)
+#define VERSION_TO_STRING2(name, a,b)				\
+	.name ## _str = #a "." #b,				\
+	.name ## _ver = KERNEL_VERSION(a,b,0)
+#define VERSION_NULL(name)					\
+	.name ## _str = NULL,					\
+	.name ## _ver = 0
 
 enum feature_source {
 	FS_FEATURES,
@@ -64,66 +72,106 @@ struct btrfs_feature {
 };
 
 static const struct btrfs_feature mkfs_features[] = {
-	{ "mixed-bg", BTRFS_FEATURE_INCOMPAT_MIXED_GROUPS,
-		"mixed_groups",
-		VERSION_TO_STRING3(2,6,37),
-		VERSION_TO_STRING3(2,6,37),
-		NULL, 0,
-		"mixed data and metadata block groups" },
-	{ "extref", BTRFS_FEATURE_INCOMPAT_EXTENDED_IREF,
-		"extended_iref",
-		VERSION_TO_STRING2(3,7),
-		VERSION_TO_STRING2(3,12),
-		VERSION_TO_STRING2(3,12),
-		"increased hardlink limit per file to 65536" },
-	{ "raid56", BTRFS_FEATURE_INCOMPAT_RAID56,
-		"raid56",
-		VERSION_TO_STRING2(3,9),
-		NULL, 0,
-		NULL, 0,
-		"raid56 extended format" },
-	{ "skinny-metadata", BTRFS_FEATURE_INCOMPAT_SKINNY_METADATA,
-		"skinny_metadata",
-		VERSION_TO_STRING2(3,10),
-		VERSION_TO_STRING2(3,18),
-		VERSION_TO_STRING2(3,18),
-		"reduced-size metadata extent refs" },
-	{ "no-holes", BTRFS_FEATURE_INCOMPAT_NO_HOLES,
-		"no_holes",
-		VERSION_TO_STRING2(3,14),
-		VERSION_TO_STRING2(4,0),
-		NULL, 0,
-		"no explicit hole extents for files" },
-	{ "raid1c34", BTRFS_FEATURE_INCOMPAT_RAID1C34,
-		"raid1c34",
-		VERSION_TO_STRING2(5,5),
-		NULL, 0,
-		NULL, 0,
-		"RAID1 with 3 or 4 copies" },
+	{
+		.name		= "mixed-bg",
+		.flag		= BTRFS_FEATURE_INCOMPAT_MIXED_GROUPS,
+		.sysfs_name	= "mixed_groups",
+		VERSION_TO_STRING3(compat, 2,6,37),
+		VERSION_TO_STRING3(safe, 2,6,37),
+		VERSION_NULL(default),
+		.desc		= "mixed data and metadata block groups"
+	}, {
+		.name		= "extref",
+		.flag		= BTRFS_FEATURE_INCOMPAT_EXTENDED_IREF,
+		.sysfs_name	= "extended_iref",
+		VERSION_TO_STRING2(compat, 3,7),
+		VERSION_TO_STRING2(safe, 3,12),
+		VERSION_TO_STRING2(default, 3,12),
+		.desc		= "increased hardlink limit per file to 65536"
+	}, {
+		.name		= "raid56",
+		.flag		= BTRFS_FEATURE_INCOMPAT_RAID56,
+		.sysfs_name	= "raid56",
+		VERSION_TO_STRING2(compat, 3,9),
+		VERSION_NULL(safe),
+		VERSION_NULL(default),
+		.desc		= "raid56 extended format"
+	}, {
+		.name		= "skinny-metadata",
+		.flag		= BTRFS_FEATURE_INCOMPAT_SKINNY_METADATA,
+		.sysfs_name	= "skinny_metadata",
+		VERSION_TO_STRING2(compat, 3,10),
+		VERSION_TO_STRING2(safe, 3,18),
+		VERSION_TO_STRING2(default, 3,18),
+		.desc		= "reduced-size metadata extent refs"
+	}, {
+		.name		= "no-holes",
+		.flag		= BTRFS_FEATURE_INCOMPAT_NO_HOLES,
+		.sysfs_name	= "no_holes",
+		VERSION_TO_STRING2(compat, 3,14),
+		VERSION_TO_STRING2(safe, 4,0),
+		VERSION_TO_STRING2(default, 5,15),
+		.desc		= "no explicit hole extents for files"
+	}, {
+		.name		= "raid1c34",
+		.flag		= BTRFS_FEATURE_INCOMPAT_RAID1C34,
+		.sysfs_name	= "raid1c34",
+		VERSION_TO_STRING2(compat, 5,5),
+		VERSION_NULL(safe),
+		VERSION_NULL(default),
+		.desc		= "RAID1 with 3 or 4 copies"
+	},
 #ifdef BTRFS_ZONED
-	{ "zoned", BTRFS_FEATURE_INCOMPAT_ZONED,
-		"zoned",
-		VERSION_TO_STRING2(5,12),
-		NULL, 0,
-		NULL, 0,
-		"support zoned devices" },
+	{
+		.name		= "zoned",
+		.flag		= BTRFS_FEATURE_INCOMPAT_ZONED,
+		.sysfs_name	= "zoned",
+		VERSION_TO_STRING2(compat, 5,12),
+		VERSION_NULL(safe),
+		VERSION_NULL(default),
+		.desc		= "support zoned devices"
+	},
 #endif
 	/* Keep this one last */
-	{ "list-all", BTRFS_FEATURE_LIST_ALL, NULL }
+	{
+		.name = "list-all",
+		.flag = BTRFS_FEATURE_LIST_ALL,
+		.sysfs_name = NULL,
+		VERSION_NULL(compat),
+		VERSION_NULL(safe),
+		VERSION_NULL(default),
+		.desc = NULL
+	}
 };
 
 static const struct btrfs_feature runtime_features[] = {
-	{ "quota", BTRFS_RUNTIME_FEATURE_QUOTA, NULL,
-		VERSION_TO_STRING2(3, 4), NULL, 0, NULL, 0,
-		"quota support (qgroups)" },
-	{ "free-space-tree", BTRFS_RUNTIME_FEATURE_FREE_SPACE_TREE,
-		"free_space_tree",
-		VERSION_TO_STRING2(4, 5),
-		VERSION_TO_STRING2(4, 9),
-		NULL, 0,
-		"free space tree (space_cache=v2)" },
+	{
+		.name		= "quota",
+		.flag		= BTRFS_RUNTIME_FEATURE_QUOTA,
+		.sysfs_name	= NULL,
+		VERSION_TO_STRING2(compat, 3,4),
+		VERSION_NULL(safe),
+		VERSION_NULL(default),
+		.desc		= "quota support (qgroups)"
+	}, {
+		.name		= "free-space-tree",
+		.flag		= BTRFS_RUNTIME_FEATURE_FREE_SPACE_TREE,
+		.sysfs_name = "free_space_tree",
+		VERSION_TO_STRING2(compat, 4,5),
+		VERSION_TO_STRING2(safe, 4,9),
+		VERSION_TO_STRING2(default, 5,15),
+		.desc		= "free space tree (space_cache=v2)"
+	},
 	/* Keep this one last */
-	{ "list-all", BTRFS_FEATURE_LIST_ALL, NULL }
+	{
+		.name = "list-all",
+		.flag = BTRFS_FEATURE_LIST_ALL,
+		.sysfs_name = NULL,
+		VERSION_NULL(compat),
+		VERSION_NULL(safe),
+		VERSION_NULL(default),
+		.desc = NULL
+	}
 };
 
 static size_t get_feature_array_size(enum feature_source source)
@@ -425,3 +473,41 @@ int btrfs_check_nodesize(u32 nodesize, u32 sectorsize, u64 features)
 	}
 	return 0;
 }
+
+/*
+ * Check if the BTRFS_IOC_TREE_SEARCH_V2 ioctl is supported on a given
+ * filesystem, opened at fd
+ */
+int btrfs_tree_search2_ioctl_supported(int fd)
+{
+	struct btrfs_ioctl_search_args_v2 *args2;
+	struct btrfs_ioctl_search_key *sk;
+	int args2_size = 1024;
+	char args2_buf[args2_size];
+	int ret;
+
+	args2 = (struct btrfs_ioctl_search_args_v2 *)args2_buf;
+	sk = &(args2->key);
+
+	/*
+	 * Search for the extent tree item in the root tree.
+	 */
+	sk->tree_id = BTRFS_ROOT_TREE_OBJECTID;
+	sk->min_objectid = BTRFS_EXTENT_TREE_OBJECTID;
+	sk->max_objectid = BTRFS_EXTENT_TREE_OBJECTID;
+	sk->min_type = BTRFS_ROOT_ITEM_KEY;
+	sk->max_type = BTRFS_ROOT_ITEM_KEY;
+	sk->min_offset = 0;
+	sk->max_offset = (u64)-1;
+	sk->min_transid = 0;
+	sk->max_transid = (u64)-1;
+	sk->nr_items = 1;
+	args2->buf_size = args2_size - sizeof(struct btrfs_ioctl_search_args_v2);
+	ret = ioctl(fd, BTRFS_IOC_TREE_SEARCH_V2, args2);
+	if (ret == -EOPNOTSUPP)
+		return 0;
+	else if (ret == 0)
+		return 1;
+	return ret;
+}
+

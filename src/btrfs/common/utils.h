@@ -25,7 +25,6 @@
 #include <stdarg.h>
 #include "common/defs.h"
 #include "common/internal.h"
-#include "btrfs-list.h"
 #include "kernel-lib/sizes.h"
 #include "common/messages.h"
 #include "ioctl.h"
@@ -42,9 +41,10 @@ enum exclusive_operation {
 	BTRFS_EXCLOP_UNKNOWN = -1,
 };
 
-enum btrfs_csum_type parse_csum_type(const char *s);
-u64 parse_size_from_string(const char *s);
-u64 parse_qgroupid(const char *p);
+/* 2 for "0x", 2 for each byte, plus nul */
+#define BTRFS_CSUM_STRING_LEN		(2 + 2 * BTRFS_CSUM_SIZE + 1)
+void btrfs_format_csum(u16 csum_type, const u8 *data, char *output);
+u64 parse_qgroupid_or_path(const char *p);
 u64 arg_strtou64(const char *str);
 int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 		struct btrfs_ioctl_dev_info_args **di_ret);
@@ -60,7 +60,6 @@ int set_label(const char *btrfs_dev, const char *label);
 int check_arg_type(const char *input);
 int get_label_mounted(const char *mount_path, char *labelp);
 int get_label_unmounted(const char *dev, char *label);
-int group_profile_max_safe_loss(u64 flags);
 int csum_tree_block(struct btrfs_fs_info *root, struct extent_buffer *buf,
 		    int verify);
 int ask_user(const char *question);
@@ -70,7 +69,6 @@ int find_mount_root(const char *path, char **mount_root);
 int get_device_info(int fd, u64 devid,
 		struct btrfs_ioctl_dev_info_args *di_args);
 int get_df(int fd, struct btrfs_ioctl_space_args **sargs_ret);
-int test_uuid_unique(char *fs_uuid);
 
 const char *subvol_strip_mountpoint(const char *mnt, const char *full_path);
 int find_next_key(struct btrfs_path *path, struct btrfs_key *key);
@@ -79,8 +77,6 @@ const char* btrfs_group_profile_str(u64 flag);
 
 int count_digits(u64 num);
 u64 div_factor(u64 num, int factor);
-
-int btrfs_tree_search2_ioctl_supported(int fd);
 
 int string_is_numerical(const char *str);
 int prefixcmp(const char *str, const char *prefix);
@@ -128,5 +124,6 @@ int btrfs_warn_multiple_profiles(int fd);
 int sysfs_open_file(const char *name);
 int sysfs_open_fsid_file(int fd, const char *filename);
 int sysfs_read_file(int fd, char *buf, size_t size);
+int sysfs_open_fsid_dir(int fd, const char *dirname);
 
 #endif

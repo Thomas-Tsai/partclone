@@ -49,15 +49,17 @@ BUILD_ASSERT(sizeof(struct btrfs_ioctl_vol_args) == 4096);
 
 #define BTRFS_DEVICE_PATH_NAME_MAX 1024
 
-#define BTRFS_SUBVOL_CREATE_ASYNC	(1ULL << 0)
+/*
+ * Obsolete since 5.15, functionality removed in kernel 5.7:
+ * BTRFS_SUBVOL_CREATE_ASYNC		(1ULL << 0)
+ */
 #define BTRFS_SUBVOL_RDONLY		(1ULL << 1)
 #define BTRFS_SUBVOL_QGROUP_INHERIT	(1ULL << 2)
 #define BTRFS_DEVICE_SPEC_BY_ID		(1ULL << 3)
 #define BTRFS_SUBVOL_SPEC_BY_ID		(1ULL << 4)
 
 #define BTRFS_VOL_ARG_V2_FLAGS_SUPPORTED		\
-			(BTRFS_SUBVOL_CREATE_ASYNC |	\
-			BTRFS_SUBVOL_RDONLY |		\
+			(BTRFS_SUBVOL_RDONLY |		\
 			BTRFS_SUBVOL_QGROUP_INHERIT |	\
 			BTRFS_DEVICE_SPEC_BY_ID |	\
 			BTRFS_SUBVOL_SPEC_BY_ID)
@@ -803,7 +805,7 @@ static inline char *btrfs_err_str(enum btrfs_err_code err_code)
 		case BTRFS_ERROR_DEV_RAID1C4_MIN_NOT_MET:
 			return "unable to go below four devices on raid1c4";
 		case BTRFS_ERROR_DEV_RAID10_MIN_NOT_MET:
-			return "unable to go below four devices on raid10";
+			return "unable to go below four/two devices on raid10";
 		case BTRFS_ERROR_DEV_RAID5_MIN_NOT_MET:
 			return "unable to go below two devices on raid5";
 		case BTRFS_ERROR_DEV_RAID6_MIN_NOT_MET:
@@ -832,12 +834,12 @@ static inline char *btrfs_err_str(enum btrfs_err_code err_code)
 				   struct btrfs_ioctl_vol_args)
 #define BTRFS_IOC_FORGET_DEV _IOW(BTRFS_IOCTL_MAGIC, 5, \
 				   struct btrfs_ioctl_vol_args)
-/* trans start and trans end are dangerous, and only for
- * use by applications that know how to avoid the
- * resulting deadlocks
+/*
+ * Removed in kernel since 4.17:
+ * BTRFS_IOC_TRANS_START	_IO(BTRFS_IOCTL_MAGIC, 6)
+ * BTRFS_IOC_TRANS_END		_IO(BTRFS_IOCTL_MAGIC, 7)
  */
-#define BTRFS_IOC_TRANS_START  _IO(BTRFS_IOCTL_MAGIC, 6)
-#define BTRFS_IOC_TRANS_END    _IO(BTRFS_IOCTL_MAGIC, 7)
+
 #define BTRFS_IOC_SYNC         _IO(BTRFS_IOCTL_MAGIC, 8)
 
 #define BTRFS_IOC_CLONE        _IOW(BTRFS_IOCTL_MAGIC, 9, int)

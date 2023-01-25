@@ -15,10 +15,12 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 021110-1307, USA.
  */
+
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/disk-io.h"
 #include "kernel-shared/transaction.h"
 #include "kernel-shared/print-tree.h"
+#include "crypto/crc32c.h"
 #include "common/repair.h"
 #include "common/internal.h"
 #include "common/messages.h"
@@ -69,6 +71,19 @@ size_t btrfs_super_num_csums(void)
 u16 btrfs_csum_type_size(u16 csum_type)
 {
 	return btrfs_csums[csum_type].size;
+}
+
+u64 btrfs_name_hash(const char *name, int len)
+{
+	return crc32c((u32)~1, name, len);
+}
+
+/*
+ * Figure the key offset of an extended inode ref
+ */
+u64 btrfs_extref_hash(u64 parent_objectid, const char *name, int len)
+{
+	return (u64)crc32c(parent_objectid, name, len);
 }
 
 inline void btrfs_init_path(struct btrfs_path *p)
@@ -222,11 +237,16 @@ int btrfs_create_root(struct btrfs_trans_handle *trans,
 	}
 	new_root->node = node;
 
+	memset_extent_buffer(node, 0, 0, sizeof(struct btrfs_header));
+	btrfs_set_header_bytenr(node, node->start);
 	btrfs_set_header_generation(node, trans->transid);
 	btrfs_set_header_backref_rev(node, BTRFS_MIXED_BACKREF_REV);
-	btrfs_clear_header_flag(node,
-			BTRFS_HEADER_FLAG_RELOC | BTRFS_HEADER_FLAG_WRITTEN);
 	btrfs_set_header_owner(node, objectid);
+	write_extent_buffer(node, fs_info->fs_devices->metadata_uuid,
+			    btrfs_header_fsid(), BTRFS_FSID_SIZE);
+	write_extent_buffer(node, fs_info->chunk_tree_uuid,
+			    btrfs_header_chunk_tree_uuid(node),
+			    BTRFS_UUID_SIZE);
 	btrfs_set_header_nritems(node, 0);
 	btrfs_set_header_level(node, 0);
 	ret = btrfs_inc_ref(trans, new_root, node, 0);
@@ -501,7 +521,7 @@ int btrfs_cow_block(struct btrfs_trans_handle *trans,
 	int ret;
 	/*
 	if (trans->transaction != root->fs_info->running_transaction) {
-		printk(KERN_CRIT "trans %Lu running %Lu\n", trans->transid,
+		printk(KERN_CRIT "trans %llu running %llu\n", trans->transid,
 		       root->fs_info->running_transaction->transid);
 		WARN_ON(1);
 	}
@@ -557,147 +577,209 @@ static int btrfs_comp_keys(struct btrfs_disk_key *disk,
  * this returns the address of the start of the last item,
  * which is the stop of the leaf data stack
  */
-static inline unsigned int leaf_data_end(const struct btrfs_fs_info *fs_info,
-					 const struct extent_buffer *leaf)
+static inline unsigned int leaf_data_end(const struct extent_buffer *leaf)
 {
 	u32 nr = btrfs_header_nritems(leaf);
 	if (nr == 0)
-		return BTRFS_LEAF_DATA_SIZE(fs_info);
+		return BTRFS_LEAF_DATA_SIZE(leaf->fs_info);
 	return btrfs_item_offset_nr(leaf, nr - 1);
+}
+
+static void generic_err(const struct extent_buffer *buf, int slot,
+			const char *fmt, ...)
+{
+	va_list args;
+
+	fprintf(stderr, "corrupt %s: root=%lld block=%llu slot=%d, ",
+		btrfs_header_level(buf) == 0 ? "leaf": "node",
+		btrfs_header_owner(buf), btrfs_header_bytenr(buf), slot);
+	va_start(args, fmt);
+	vfprintf(stderr, fmt, args);
+	va_end(args);
+	fprintf(stderr, "\n");
 }
 
 enum btrfs_tree_block_status
 btrfs_check_node(struct btrfs_fs_info *fs_info,
-		 struct btrfs_disk_key *parent_key, struct extent_buffer *buf)
+		 struct btrfs_key *parent_key, struct extent_buffer *node)
 {
-	int i;
-	struct btrfs_key cpukey;
-	struct btrfs_disk_key key;
-	u32 nritems = btrfs_header_nritems(buf);
+	unsigned long nr = btrfs_header_nritems(node);
+	struct btrfs_key key, next_key;
+	int slot;
+	int level = btrfs_header_level(node);
+	u64 bytenr;
 	enum btrfs_tree_block_status ret = BTRFS_TREE_BLOCK_INVALID_NRITEMS;
 
-	if (nritems == 0 || nritems > BTRFS_NODEPTRS_PER_BLOCK(fs_info))
+	if (level <= 0 || level >= BTRFS_MAX_LEVEL) {
+		generic_err(node, 0,
+			"invalid level for node, have %d expect [1, %d]",
+			level, BTRFS_MAX_LEVEL - 1);
+		ret = BTRFS_TREE_BLOCK_INVALID_LEVEL;
 		goto fail;
-
-	ret = BTRFS_TREE_BLOCK_INVALID_PARENT_KEY;
-	if (parent_key && parent_key->type) {
-		btrfs_node_key(buf, &key, 0);
-		if (memcmp(parent_key, &key, sizeof(key)))
-			goto fail;
 	}
-	ret = BTRFS_TREE_BLOCK_BAD_KEY_ORDER;
-	for (i = 0; nritems > 1 && i < nritems - 2; i++) {
-		btrfs_node_key(buf, &key, i);
-		btrfs_node_key_to_cpu(buf, &cpukey, i + 1);
-		if (btrfs_comp_keys(&key, &cpukey) >= 0)
+	if (nr == 0 || nr > BTRFS_NODEPTRS_PER_BLOCK(fs_info)) {
+		generic_err(node, 0,
+"corrupt node: root=%llu block=%llu, nritems too %s, have %lu expect range [1,%u]",
+			   btrfs_header_owner(node), node->start,
+			   nr == 0 ? "small" : "large", nr,
+			   BTRFS_NODEPTRS_PER_BLOCK(fs_info));
+		ret = BTRFS_TREE_BLOCK_INVALID_NRITEMS;
+		goto fail;
+	}
+
+	for (slot = 0; slot < nr - 1; slot++) {
+		bytenr = btrfs_node_blockptr(node, slot);
+		btrfs_node_key_to_cpu(node, &key, slot);
+		btrfs_node_key_to_cpu(node, &next_key, slot + 1);
+
+		if (!bytenr) {
+			generic_err(node, slot,
+				"invalid NULL node pointer");
+			ret = BTRFS_TREE_BLOCK_INVALID_BLOCKPTR;
 			goto fail;
+		}
+		if (!IS_ALIGNED(bytenr, fs_info->sectorsize)) {
+			generic_err(node, slot,
+			"unaligned pointer, have %llu should be aligned to %u",
+				bytenr, fs_info->sectorsize);
+			ret = BTRFS_TREE_BLOCK_INVALID_BLOCKPTR;
+			goto fail;
+		}
+
+		if (btrfs_comp_cpu_keys(&key, &next_key) >= 0) {
+			generic_err(node, slot,
+	"bad key order, current (%llu %u %llu) next (%llu %u %llu)",
+				key.objectid, key.type, key.offset,
+				next_key.objectid, next_key.type,
+				next_key.offset);
+			ret = BTRFS_TREE_BLOCK_BAD_KEY_ORDER;
+			goto fail;
+		}
 	}
 	return BTRFS_TREE_BLOCK_CLEAN;
 fail:
-	if (btrfs_header_owner(buf) == BTRFS_EXTENT_TREE_OBJECTID) {
+	if (btrfs_header_owner(node) == BTRFS_EXTENT_TREE_OBJECTID) {
 		if (parent_key)
-			btrfs_disk_key_to_cpu(&cpukey, parent_key);
+			memcpy(&key, parent_key, sizeof(struct btrfs_key));
 		else
-			btrfs_node_key_to_cpu(buf, &cpukey, 0);
-		btrfs_add_corrupt_extent_record(fs_info, &cpukey,
-						buf->start, buf->len,
-						btrfs_header_level(buf));
+			btrfs_node_key_to_cpu(node, &key, 0);
+		btrfs_add_corrupt_extent_record(fs_info, &key,
+						node->start, node->len,
+						btrfs_header_level(node));
 	}
 	return ret;
 }
 
 enum btrfs_tree_block_status
 btrfs_check_leaf(struct btrfs_fs_info *fs_info,
-		 struct btrfs_disk_key *parent_key, struct extent_buffer *buf)
+		 struct btrfs_key *parent_key, struct extent_buffer *leaf)
 {
-	int i;
-	struct btrfs_key cpukey;
-	struct btrfs_disk_key key;
-	u32 nritems = btrfs_header_nritems(buf);
-	enum btrfs_tree_block_status ret = BTRFS_TREE_BLOCK_INVALID_NRITEMS;
+	/* No valid key type is 0, so all key should be larger than this key */
+	struct btrfs_key prev_key = {0, 0, 0};
+	struct btrfs_key key;
+	u32 nritems = btrfs_header_nritems(leaf);
+	int slot;
+	int ret;
 
-	if (nritems * sizeof(struct btrfs_item) > buf->len)  {
-		fprintf(stderr, "invalid number of items %llu\n",
-			(unsigned long long)buf->start);
-		goto fail;
-	}
-
-	if (btrfs_header_level(buf) != 0) {
+	if (btrfs_header_level(leaf) != 0) {
+		generic_err(leaf, 0,
+			"invalid level for leaf, have %d expect 0",
+			btrfs_header_level(leaf));
 		ret = BTRFS_TREE_BLOCK_INVALID_LEVEL;
-		fprintf(stderr, "leaf is not a leaf %llu\n",
-		       (unsigned long long)btrfs_header_bytenr(buf));
-		goto fail;
-	}
-	if (btrfs_leaf_free_space(buf) < 0) {
-		ret = BTRFS_TREE_BLOCK_INVALID_FREE_SPACE;
-		fprintf(stderr, "leaf free space incorrect %llu %d\n",
-			(unsigned long long)btrfs_header_bytenr(buf),
-			btrfs_leaf_free_space(buf));
 		goto fail;
 	}
 
 	if (nritems == 0)
-		return BTRFS_TREE_BLOCK_CLEAN;
+		return 0;
 
-	btrfs_item_key(buf, &key, 0);
-	if (parent_key && parent_key->type &&
-	    memcmp(parent_key, &key, sizeof(key))) {
-		ret = BTRFS_TREE_BLOCK_INVALID_PARENT_KEY;
-		fprintf(stderr, "leaf parent key incorrect %llu\n",
-		       (unsigned long long)btrfs_header_bytenr(buf));
-		goto fail;
-	}
-	for (i = 0; nritems > 1 && i < nritems - 1; i++) {
-		btrfs_item_key(buf, &key, i);
-		btrfs_item_key_to_cpu(buf, &cpukey, i + 1);
-		if (btrfs_comp_keys(&key, &cpukey) >= 0) {
+	/*
+	 * Check the following things to make sure this is a good leaf, and
+	 * leaf users won't need to bother with similar sanity checks:
+	 *
+	 * 1) key ordering
+	 * 2) item offset and size
+	 *    No overlap, no hole, all inside the leaf.
+	 * 3) item content
+	 *    If possible, do comprehensive sanity check.
+	 *    NOTE: All checks must only rely on the item data itself.
+	 */
+	for (slot = 0; slot < nritems; slot++) {
+		u32 item_end_expected;
+
+		btrfs_item_key_to_cpu(leaf, &key, slot);
+
+		/* Make sure the keys are in the right order */
+		if (btrfs_comp_cpu_keys(&prev_key, &key) >= 0) {
+			generic_err(leaf, slot,
+	"bad key order, prev (%llu %u %llu) current (%llu %u %llu)",
+				prev_key.objectid, prev_key.type,
+				prev_key.offset, key.objectid, key.type,
+				key.offset);
 			ret = BTRFS_TREE_BLOCK_BAD_KEY_ORDER;
-			fprintf(stderr, "bad key ordering %d %d\n", i, i+1);
 			goto fail;
 		}
-		if (btrfs_item_offset_nr(buf, i) !=
-			btrfs_item_end_nr(buf, i + 1)) {
-			ret = BTRFS_TREE_BLOCK_INVALID_OFFSETS;
-			fprintf(stderr, "incorrect offsets %u %u\n",
-				btrfs_item_offset_nr(buf, i),
-				btrfs_item_end_nr(buf, i + 1));
-			goto fail;
-		}
-		if (i == 0 && btrfs_item_end_nr(buf, i) !=
-		    BTRFS_LEAF_DATA_SIZE(fs_info)) {
-			ret = BTRFS_TREE_BLOCK_INVALID_OFFSETS;
-			fprintf(stderr, "bad item end %u wanted %u\n",
-				btrfs_item_end_nr(buf, i),
-				(unsigned)BTRFS_LEAF_DATA_SIZE(fs_info));
-			goto fail;
-		}
-	}
 
-	for (i = 0; i < nritems; i++) {
-		if (btrfs_item_end_nr(buf, i) >
-				BTRFS_LEAF_DATA_SIZE(fs_info)) {
-			btrfs_item_key(buf, &key, 0);
-			btrfs_print_key(&key);
-			fflush(stdout);
+		/*
+		 * Make sure the offset and ends are right, remember that the
+		 * item data starts at the end of the leaf and grows towards the
+		 * front.
+		 */
+		if (slot == 0)
+			item_end_expected = BTRFS_LEAF_DATA_SIZE(fs_info);
+		else
+			item_end_expected = btrfs_item_offset_nr(leaf,
+								 slot - 1);
+		if (btrfs_item_end_nr(leaf, slot) != item_end_expected) {
+			generic_err(leaf, slot,
+				"unexpected item end, have %u expect %u",
+				btrfs_item_end_nr(leaf, slot),
+				item_end_expected);
 			ret = BTRFS_TREE_BLOCK_INVALID_OFFSETS;
-			fprintf(stderr, "slot end outside of leaf %llu > %llu\n",
-				(unsigned long long)btrfs_item_end_nr(buf, i),
-				(unsigned long long)BTRFS_LEAF_DATA_SIZE(
-					fs_info));
 			goto fail;
 		}
+
+		/*
+		 * Check to make sure that we don't point outside of the leaf,
+		 * just in case all the items are consistent to each other, but
+		 * all point outside of the leaf.
+		 */
+		if (btrfs_item_end_nr(leaf, slot) >
+		    BTRFS_LEAF_DATA_SIZE(fs_info)) {
+			generic_err(leaf, slot,
+			"slot end outside of leaf, have %u expect range [0, %u]",
+				btrfs_item_end_nr(leaf, slot),
+				BTRFS_LEAF_DATA_SIZE(fs_info));
+			ret = BTRFS_TREE_BLOCK_INVALID_OFFSETS;
+			goto fail;
+		}
+
+		/* Also check if the item pointer overlaps with btrfs item. */
+		if (btrfs_item_ptr_offset(leaf, slot) <
+		    btrfs_item_nr_offset(slot) + sizeof(struct btrfs_item)) {
+			generic_err(leaf, slot,
+		"slot overlaps with its data, item end %lu data start %lu",
+				btrfs_item_nr_offset(slot) +
+				sizeof(struct btrfs_item),
+				btrfs_item_ptr_offset(leaf, slot));
+			ret = BTRFS_TREE_BLOCK_INVALID_OFFSETS;
+			goto fail;
+		}
+
+		prev_key.objectid = key.objectid;
+		prev_key.type = key.type;
+		prev_key.offset = key.offset;
 	}
 
 	return BTRFS_TREE_BLOCK_CLEAN;
 fail:
-	if (btrfs_header_owner(buf) == BTRFS_EXTENT_TREE_OBJECTID) {
+	if (btrfs_header_owner(leaf) == BTRFS_EXTENT_TREE_OBJECTID) {
 		if (parent_key)
-			btrfs_disk_key_to_cpu(&cpukey, parent_key);
+			memcpy(&key, parent_key, sizeof(struct btrfs_key));
 		else
-			btrfs_item_key_to_cpu(buf, &cpukey, 0);
+			btrfs_item_key_to_cpu(leaf, &key, 0);
 
-		btrfs_add_corrupt_extent_record(fs_info, &cpukey,
-						buf->start, buf->len, 0);
+		btrfs_add_corrupt_extent_record(fs_info, &key,
+						leaf->start, leaf->len, 0);
 	}
 	return ret;
 }
@@ -705,22 +787,21 @@ fail:
 static int noinline check_block(struct btrfs_fs_info *fs_info,
 				struct btrfs_path *path, int level)
 {
-	struct btrfs_disk_key key;
-	struct btrfs_disk_key *key_ptr = NULL;
-	struct extent_buffer *parent;
+	struct btrfs_key key;
+	struct btrfs_key *parent_key_ptr = NULL;
 	enum btrfs_tree_block_status ret;
 
 	if (path->skip_check_block)
 		return 0;
 	if (path->nodes[level + 1]) {
-		parent = path->nodes[level + 1];
-		btrfs_node_key(parent, &key, path->slots[level + 1]);
-		key_ptr = &key;
+		btrfs_node_key_to_cpu(path->nodes[level + 1], &key,
+				     path->slots[level + 1]);
+		parent_key_ptr = &key;
 	}
 	if (level == 0)
-		ret = btrfs_check_leaf(fs_info, key_ptr, path->nodes[0]);
+		ret = btrfs_check_leaf(fs_info, parent_key_ptr, path->nodes[0]);
 	else
-		ret = btrfs_check_node(fs_info, key_ptr, path->nodes[level]);
+		ret = btrfs_check_node(fs_info, parent_key_ptr, path->nodes[level]);
 	if (ret == BTRFS_TREE_BLOCK_CLEAN)
 		return 0;
 	return -EIO;
@@ -1437,8 +1518,8 @@ again:
  * fixing up pointers when a given leaf/node is not in slot 0 of the
  * higher levels
  */
-void btrfs_fixup_low_keys(struct btrfs_root *root, struct btrfs_path *path,
-			  struct btrfs_disk_key *key, int level)
+void btrfs_fixup_low_keys( struct btrfs_path *path, struct btrfs_disk_key *key,
+		int level)
 {
 	int i;
 	struct extent_buffer *t;
@@ -1485,7 +1566,7 @@ int btrfs_set_item_key_safe(struct btrfs_root *root, struct btrfs_path *path,
 	btrfs_set_item_key(eb, &disk_key, slot);
 	btrfs_mark_buffer_dirty(eb);
 	if (slot == 0)
-		btrfs_fixup_low_keys(root, path, &disk_key, 1);
+		btrfs_fixup_low_keys(path, &disk_key, 1);
 	return 0;
 }
 
@@ -1508,7 +1589,7 @@ void btrfs_set_item_key_unsafe(struct btrfs_root *root,
 	btrfs_set_item_key(eb, &disk_key, slot);
 	btrfs_mark_buffer_dirty(eb);
 	if (slot == 0)
-		btrfs_fixup_low_keys(root, path, &disk_key, 1);
+		btrfs_fixup_low_keys(path, &disk_key, 1);
 }
 
 /*
@@ -1980,10 +2061,10 @@ static int push_leaf_right(struct btrfs_trans_handle *trans, struct btrfs_root
 	right_nritems = btrfs_header_nritems(right);
 
 	push_space = btrfs_item_end_nr(left, left_nritems - push_items);
-	push_space -= leaf_data_end(fs_info, left);
+	push_space -= leaf_data_end(left);
 
 	/* make room in the right data area */
-	data_end = leaf_data_end(fs_info, right);
+	data_end = leaf_data_end(right);
 	memmove_extent_buffer(right,
 			      btrfs_leaf_data(right) + data_end - push_space,
 			      btrfs_leaf_data(right) + data_end,
@@ -1992,8 +2073,7 @@ static int push_leaf_right(struct btrfs_trans_handle *trans, struct btrfs_root
 	/* copy from the left data area */
 	copy_extent_buffer(right, left, btrfs_leaf_data(right) +
 		     BTRFS_LEAF_DATA_SIZE(root->fs_info) - push_space,
-		     btrfs_leaf_data(left) + leaf_data_end(fs_info, left),
-		     push_space);
+		     btrfs_leaf_data(left) + leaf_data_end(left), push_space);
 
 	memmove_extent_buffer(right, btrfs_item_nr_offset(push_items),
 			      btrfs_item_nr_offset(0),
@@ -2130,7 +2210,7 @@ static int push_leaf_left(struct btrfs_trans_handle *trans, struct btrfs_root
 		     btrfs_item_offset_nr(right, push_items -1);
 
 	copy_extent_buffer(left, right, btrfs_leaf_data(left) +
-		     leaf_data_end(fs_info, left) - push_space,
+		     leaf_data_end(left) - push_space,
 		     btrfs_leaf_data(right) +
 		     btrfs_item_offset_nr(right, push_items - 1),
 		     push_space);
@@ -2157,13 +2237,12 @@ static int push_leaf_left(struct btrfs_trans_handle *trans, struct btrfs_root
 
 	if (push_items < right_nritems) {
 		push_space = btrfs_item_offset_nr(right, push_items - 1) -
-						  leaf_data_end(fs_info, right);
+						  leaf_data_end(right);
 		memmove_extent_buffer(right, btrfs_leaf_data(right) +
 				      BTRFS_LEAF_DATA_SIZE(root->fs_info) -
 				      push_space,
 				      btrfs_leaf_data(right) +
-				      leaf_data_end(fs_info, right),
-				      push_space);
+				      leaf_data_end(right), push_space);
 
 		memmove_extent_buffer(right, btrfs_item_nr_offset(0),
 			      btrfs_item_nr_offset(push_items),
@@ -2184,7 +2263,7 @@ static int push_leaf_left(struct btrfs_trans_handle *trans, struct btrfs_root
 		btrfs_mark_buffer_dirty(right);
 
 	btrfs_item_key(right, &disk_key, 0);
-	btrfs_fixup_low_keys(root, path, &disk_key, 1);
+	btrfs_fixup_low_keys(path, &disk_key, 1);
 
 	/* then fixup the leaf pointer in the path */
 	if (path->slots[0] < push_items) {
@@ -2222,8 +2301,7 @@ static noinline int copy_for_split(struct btrfs_trans_handle *trans,
 
 	nritems = nritems - mid;
 	btrfs_set_header_nritems(right, nritems);
-	data_copy_size = btrfs_item_end_nr(l, mid) -
-		leaf_data_end(root->fs_info, l);
+	data_copy_size = btrfs_item_end_nr(l, mid) - leaf_data_end(l);
 
 	copy_extent_buffer(right, l, btrfs_item_nr_offset(0),
 			   btrfs_item_nr_offset(mid),
@@ -2231,9 +2309,8 @@ static noinline int copy_for_split(struct btrfs_trans_handle *trans,
 
 	copy_extent_buffer(right, l,
 		     btrfs_leaf_data(right) +
-		     BTRFS_LEAF_DATA_SIZE(root->fs_info) -
-		     data_copy_size, btrfs_leaf_data(l) +
-		     leaf_data_end(root->fs_info, l), data_copy_size);
+		     BTRFS_LEAF_DATA_SIZE(root->fs_info) - data_copy_size,
+			 btrfs_leaf_data(l) + leaf_data_end(l), data_copy_size);
 
 	rt_data_off = BTRFS_LEAF_DATA_SIZE(root->fs_info) -
 		      btrfs_item_end_nr(l, mid);
@@ -2415,10 +2492,8 @@ again:
 			free_extent_buffer(path->nodes[0]);
 			path->nodes[0] = right;
 			path->slots[0] = 0;
-			if (path->slots[1] == 0) {
-				btrfs_fixup_low_keys(root, path,
-						     &disk_key, 1);
-			}
+			if (path->slots[1] == 0)
+				btrfs_fixup_low_keys(path, &disk_key, 1);
 		}
 		btrfs_mark_buffer_dirty(right);
 		return ret;
@@ -2545,15 +2620,14 @@ split:
 
 	ret = 0;
 	if (btrfs_leaf_free_space(leaf) < 0) {
-		btrfs_print_leaf(leaf);
+		btrfs_print_leaf(leaf, BTRFS_PRINT_TREE_DEFAULT);
 		BUG();
 	}
 	kfree(buf);
 	return ret;
 }
 
-int btrfs_truncate_item(struct btrfs_root *root, struct btrfs_path *path,
-			u32 new_size, int from_end)
+int btrfs_truncate_item(struct btrfs_path *path, u32 new_size, int from_end)
 {
 	int ret = 0;
 	int slot;
@@ -2574,7 +2648,7 @@ int btrfs_truncate_item(struct btrfs_root *root, struct btrfs_path *path,
 		return 0;
 
 	nritems = btrfs_header_nritems(leaf);
-	data_end = leaf_data_end(root->fs_info, leaf);
+	data_end = leaf_data_end(leaf);
 
 	old_data_start = btrfs_item_offset_nr(leaf, slot);
 
@@ -2632,7 +2706,7 @@ int btrfs_truncate_item(struct btrfs_root *root, struct btrfs_path *path,
 		btrfs_set_disk_key_offset(&disk_key, offset + size_diff);
 		btrfs_set_item_key(leaf, &disk_key, slot);
 		if (slot == 0)
-			btrfs_fixup_low_keys(root, path, &disk_key, 1);
+			btrfs_fixup_low_keys(path, &disk_key, 1);
 	}
 
 	item = btrfs_item_nr(slot);
@@ -2641,7 +2715,7 @@ int btrfs_truncate_item(struct btrfs_root *root, struct btrfs_path *path,
 
 	ret = 0;
 	if (btrfs_leaf_free_space(leaf) < 0) {
-		btrfs_print_leaf(leaf);
+		btrfs_print_leaf(leaf, BTRFS_PRINT_TREE_DEFAULT);
 		BUG();
 	}
 	return ret;
@@ -2663,10 +2737,10 @@ int btrfs_extend_item(struct btrfs_root *root, struct btrfs_path *path,
 	leaf = path->nodes[0];
 
 	nritems = btrfs_header_nritems(leaf);
-	data_end = leaf_data_end(root->fs_info, leaf);
+	data_end = leaf_data_end(leaf);
 
 	if (btrfs_leaf_free_space(leaf) < data_size) {
-		btrfs_print_leaf(leaf);
+		btrfs_print_leaf(leaf, BTRFS_PRINT_TREE_DEFAULT);
 		BUG();
 	}
 	slot = path->slots[0];
@@ -2674,7 +2748,7 @@ int btrfs_extend_item(struct btrfs_root *root, struct btrfs_path *path,
 
 	BUG_ON(slot < 0);
 	if (slot >= nritems) {
-		btrfs_print_leaf(leaf);
+		btrfs_print_leaf(leaf, BTRFS_PRINT_TREE_DEFAULT);
 		printk("slot %d too large, nritems %u\n", slot, nritems);
 		BUG_ON(1);
 	}
@@ -2703,7 +2777,7 @@ int btrfs_extend_item(struct btrfs_root *root, struct btrfs_path *path,
 
 	ret = 0;
 	if (btrfs_leaf_free_space(leaf) < 0) {
-		btrfs_print_leaf(leaf);
+		btrfs_print_leaf(leaf, BTRFS_PRINT_TREE_DEFAULT);
 		BUG();
 	}
 	return ret;
@@ -2749,10 +2823,10 @@ int btrfs_insert_empty_items(struct btrfs_trans_handle *trans,
 	leaf = path->nodes[0];
 
 	nritems = btrfs_header_nritems(leaf);
-	data_end = leaf_data_end(root->fs_info, leaf);
+	data_end = leaf_data_end(leaf);
 
 	if (btrfs_leaf_free_space(leaf) < total_size) {
-		btrfs_print_leaf(leaf);
+		btrfs_print_leaf(leaf, BTRFS_PRINT_TREE_DEFAULT);
 		printk("not enough freespace need %u have %d\n",
 		       total_size, btrfs_leaf_free_space(leaf));
 		BUG();
@@ -2765,7 +2839,7 @@ int btrfs_insert_empty_items(struct btrfs_trans_handle *trans,
 		unsigned int old_data = btrfs_item_end_nr(leaf, slot);
 
 		if (old_data < data_end) {
-			btrfs_print_leaf(leaf);
+			btrfs_print_leaf(leaf, BTRFS_PRINT_TREE_DEFAULT);
 			printk("slot %d old_data %u data_end %u\n",
 			       slot, old_data, data_end);
 			BUG_ON(1);
@@ -2809,11 +2883,11 @@ int btrfs_insert_empty_items(struct btrfs_trans_handle *trans,
 	ret = 0;
 	if (slot == 0) {
 		btrfs_cpu_key_to_disk(&disk_key, cpu_key);
-		btrfs_fixup_low_keys(root, path, &disk_key, 1);
+		btrfs_fixup_low_keys(path, &disk_key, 1);
 	}
 
 	if (btrfs_leaf_free_space(leaf) < 0) {
-		btrfs_print_leaf(leaf);
+		btrfs_print_leaf(leaf, BTRFS_PRINT_TREE_DEFAULT);
 		BUG();
 	}
 
@@ -2882,7 +2956,7 @@ int btrfs_del_ptr(struct btrfs_root *root, struct btrfs_path *path,
 		struct btrfs_disk_key disk_key;
 
 		btrfs_node_key(parent, &disk_key, 0);
-		btrfs_fixup_low_keys(root, path, &disk_key, level + 1);
+		btrfs_fixup_low_keys(path, &disk_key, level + 1);
 	}
 	btrfs_mark_buffer_dirty(parent);
 	return ret;
@@ -2942,7 +3016,7 @@ int btrfs_del_items(struct btrfs_trans_handle *trans, struct btrfs_root *root,
 	nritems = btrfs_header_nritems(leaf);
 
 	if (slot + nr != nritems) {
-		int data_end = leaf_data_end(root->fs_info, leaf);
+		int data_end = leaf_data_end(leaf);
 
 		memmove_extent_buffer(leaf, btrfs_leaf_data(leaf) +
 			      data_end + dsize,
@@ -2982,7 +3056,7 @@ int btrfs_del_items(struct btrfs_trans_handle *trans, struct btrfs_root *root,
 			struct btrfs_disk_key disk_key;
 
 			btrfs_item_key(leaf, &disk_key, 0);
-			btrfs_fixup_low_keys(root, path, &disk_key, 1);
+			btrfs_fixup_low_keys(path, &disk_key, 1);
 		}
 
 		/* delete the leaf if it is mostly empty */
@@ -3125,6 +3199,13 @@ int btrfs_next_sibling_tree_block(struct btrfs_fs_info *fs_info,
 		free_extent_buffer(c);
 		path->nodes[level] = next;
 		path->slots[level] = 0;
+		/*
+		 * Fsck will happily load corrupt blocks in order to fix them,
+		 * so we need an extra check just to make sure this block isn't
+		 * marked uptodate but invalid.
+		 */
+		if (check_block(fs_info, path, level))
+			return -EIO;
 		if (level == path->lowest_level)
 			break;
 		if (path->reada)

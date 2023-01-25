@@ -16,12 +16,12 @@
  * Boston, MA 021110-1307, USA.
  */
 
-#include "ctree.h"
-#include "disk-io.h"
-#include "free-space-cache.h"
+#include "kernel-shared/ctree.h"
+#include "kernel-shared/disk-io.h"
+#include "kernel-shared/free-space-cache.h"
 #include "kernel-shared/free-space-tree.h"
-#include "volumes.h"
-#include "transaction.h"
+#include "kernel-shared/volumes.h"
+#include "kernel-shared/transaction.h"
 #include "kernel-lib/bitops.h"
 #include "common/internal.h"
 
@@ -986,6 +986,31 @@ out:
 	return ret;
 }
 
+int add_block_group_free_space(struct btrfs_trans_handle *trans,
+			       struct btrfs_block_group *block_group)
+{
+	struct btrfs_path *path;
+	int ret;
+
+	if (!btrfs_fs_compat_ro(trans->fs_info, FREE_SPACE_TREE))
+		return 0;
+
+	path = btrfs_alloc_path();
+	if (!path)
+		return -ENOMEM;
+
+	ret = add_new_free_space_info(trans, block_group, path);
+	if (ret)
+		goto out;
+	ret = __add_to_free_space_tree(trans, block_group, path,
+				       block_group->start, block_group->length);
+out:
+	btrfs_free_path(path);
+	if (ret)
+		btrfs_abort_transaction(trans, ret);
+	return ret;
+}
+
 int populate_free_space_tree(struct btrfs_trans_handle *trans,
 			     struct btrfs_block_group *block_group)
 {
@@ -1433,6 +1458,7 @@ int btrfs_create_free_space_tree(struct btrfs_fs_info *fs_info)
 		goto abort;
 	}
 	fs_info->free_space_root = free_space_root;
+	add_root_to_dirty_list(free_space_root);
 
 	do {
 		block_group = btrfs_lookup_first_block_group(fs_info, start);
@@ -1446,6 +1472,7 @@ int btrfs_create_free_space_tree(struct btrfs_fs_info *fs_info)
 
 	btrfs_set_fs_compat_ro(fs_info, FREE_SPACE_TREE);
 	btrfs_set_fs_compat_ro(fs_info, FREE_SPACE_TREE_VALID);
+	btrfs_set_super_cache_generation(fs_info->super_copy, 0);
 
 	ret = btrfs_commit_transaction(trans, tree_root);
 	if (ret)

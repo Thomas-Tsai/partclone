@@ -22,7 +22,11 @@
 #define BTRFS_MKFS_DEFAULT_NODE_SIZE SZ_16K
 #define BTRFS_MKFS_DEFAULT_FEATURES 				\
 		(BTRFS_FEATURE_INCOMPAT_EXTENDED_IREF		\
+		| BTRFS_FEATURE_INCOMPAT_NO_HOLES		\
 		| BTRFS_FEATURE_INCOMPAT_SKINNY_METADATA)
+
+#define BTRFS_MKFS_DEFAULT_RUNTIME_FEATURES			\
+	(BTRFS_RUNTIME_FEATURE_FREE_SPACE_TREE)
 
 /*
  * Avoid multi-device features (RAID56), mixed block groups, and zoned mode
@@ -35,8 +39,7 @@
 	| BTRFS_FEATURE_INCOMPAT_BIG_METADATA			\
 	| BTRFS_FEATURE_INCOMPAT_EXTENDED_IREF			\
 	| BTRFS_FEATURE_INCOMPAT_SKINNY_METADATA		\
-	| BTRFS_FEATURE_INCOMPAT_NO_HOLES			\
-	| BTRFS_FEATURE_INCOMPAT_ZONED)
+	| BTRFS_FEATURE_INCOMPAT_NO_HOLES)
 
 #define BTRFS_FEATURE_LIST_ALL		(1ULL << 63)
 
@@ -55,5 +58,6 @@ void print_kernel_version(FILE *stream, u32 version);
 u32 get_running_kernel_version(void);
 int btrfs_check_nodesize(u32 nodesize, u32 sectorsize, u64 features);
 int btrfs_check_sectorsize(u32 sectorsize);
+int btrfs_tree_search2_ioctl_supported(int fd);
 
 #endif

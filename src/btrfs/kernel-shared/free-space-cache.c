@@ -17,11 +17,11 @@
  */
 
 #include "kerncompat.h"
-#include "ctree.h"
-#include "free-space-cache.h"
-#include "transaction.h"
-#include "disk-io.h"
-#include "extent_io.h"
+#include "kernel-shared/ctree.h"
+#include "kernel-shared/free-space-cache.h"
+#include "kernel-shared/transaction.h"
+#include "kernel-shared/disk-io.h"
+#include "kernel-shared/extent_io.h"
 #include "crypto/crc32c.h"
 #include "kernel-lib/bitops.h"
 #include "common/internal.h"
@@ -112,7 +112,7 @@ static int io_ctl_prepare_pages(struct io_ctl *io_ctl, struct btrfs_root *root,
 	if (ret) {
 		fprintf(stderr,
 		       "Couldn't find file extent item for free space inode"
-		       " %Lu\n", ino);
+		       " %llu\n", ino);
 		btrfs_release_path(path);
 		return -EINVAL;
 	}
@@ -183,7 +183,7 @@ static int io_ctl_check_generation(struct io_ctl *io_ctl, u64 generation)
 	gen = io_ctl->cur;
 	if (le64_to_cpu(*gen) != generation) {
 		printk("btrfs: space cache generation "
-		       "(%Lu) does not match inode (%Lu)\n", *gen,
+		       "(%llu) does not match inode (%llu)\n", *gen,
 		       generation);
 		io_ctl_unmap_page(io_ctl);
 		return -EIO;
@@ -895,10 +895,10 @@ next:
 	}
 }
 
-int btrfs_clear_free_space_cache(struct btrfs_fs_info *fs_info,
+int btrfs_clear_free_space_cache(struct btrfs_trans_handle *trans,
 				 struct btrfs_block_group *bg)
 {
-	struct btrfs_trans_handle *trans;
+	struct btrfs_fs_info *fs_info = trans->fs_info;
 	struct btrfs_root *tree_root = fs_info->tree_root;
 	struct btrfs_path path;
 	struct btrfs_key key;
@@ -908,10 +908,6 @@ int btrfs_clear_free_space_cache(struct btrfs_fs_info *fs_info,
 	u64 ino;
 	int slot;
 	int ret;
-
-	trans = btrfs_start_transaction(tree_root, 1);
-	if (IS_ERR(trans))
-		return PTR_ERR(trans);
 
 	btrfs_init_path(&path);
 
@@ -1016,7 +1012,5 @@ int btrfs_clear_free_space_cache(struct btrfs_fs_info *fs_info,
 	}
 out:
 	btrfs_release_path(&path);
-	if (!ret)
-		btrfs_commit_transaction(trans, tree_root);
 	return ret;
 }

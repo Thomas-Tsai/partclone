@@ -24,21 +24,15 @@
 #if BTRFS_FLAT_INCLUDES
 #include "kernel-lib/list.h"
 #include "kerncompat.h"
-#include "kernel-lib/radix-tree.h"
 #include "common/extent-cache.h"
 #include "kernel-shared/extent_io.h"
 #include "ioctl.h"
-#include "kernel-lib/sizes.h"
-#include "crypto/crc32c.h"
 #else
 #include <btrfs/list.h>
 #include <btrfs/kerncompat.h>
-#include <btrfs/radix-tree.h>
 #include <btrfs/extent-cache.h>
 #include <btrfs/extent_io.h>
 #include <btrfs/ioctl.h>
-#include <btrfs/sizes.h>
-#include <btrfs/crc32c.h>
 #endif /* BTRFS_FLAT_INCLUDES */
 
 struct btrfs_root;
@@ -360,7 +354,11 @@ struct btrfs_header {
 	u8 level;
 } __attribute__ ((__packed__));
 
-#define __BTRFS_LEAF_DATA_SIZE(bs) ((bs) - sizeof(struct btrfs_header))
+static inline u32 __BTRFS_LEAF_DATA_SIZE(u32 nodesize)
+{
+	return nodesize - sizeof(struct btrfs_header);
+}
+
 #define BTRFS_LEAF_DATA_SIZE(fs_info) \
 				(__BTRFS_LEAF_DATA_SIZE(fs_info->nodesize))
 
@@ -412,6 +410,9 @@ struct btrfs_root_backup {
 	u8 unused_8[10];
 } __attribute__ ((__packed__));
 
+#define BTRFS_SUPER_INFO_OFFSET			(65536)
+#define BTRFS_SUPER_INFO_SIZE			(4096)
+
 /*
  * the super block basically lists the main trees of the FS
  * it currently lacks any block count etc etc
@@ -462,7 +463,10 @@ struct btrfs_super_block {
 	__le64 reserved[28];
 	u8 sys_chunk_array[BTRFS_SYSTEM_CHUNK_ARRAY_SIZE];
 	struct btrfs_root_backup super_roots[BTRFS_NUM_BACKUP_ROOTS];
+	/* Padded to 4096 bytes */
+	u8 padding[565];
 } __attribute__ ((__packed__));
+BUILD_ASSERT(sizeof(struct btrfs_super_block) == BTRFS_SUPER_INFO_SIZE);
 
 /*
  * Compat flags that we support.  If any incompat flags are set other than the
@@ -496,6 +500,7 @@ struct btrfs_super_block {
 #define BTRFS_FEATURE_INCOMPAT_METADATA_UUID    (1ULL << 10)
 #define BTRFS_FEATURE_INCOMPAT_RAID1C34		(1ULL << 11)
 #define BTRFS_FEATURE_INCOMPAT_ZONED		(1ULL << 12)
+#define BTRFS_FEATURE_INCOMPAT_EXTENT_TREE_V2	(1ULL << 13)
 
 #define BTRFS_FEATURE_COMPAT_SUPP		0ULL
 
@@ -606,7 +611,7 @@ struct btrfs_extent_item_v0 {
 #define BTRFS_MAX_EXTENT_ITEM_SIZE(r) \
 			((BTRFS_LEAF_DATA_SIZE(r->fs_info) >> 4) - \
 					sizeof(struct btrfs_item))
-#define BTRFS_MAX_EXTENT_SIZE		SZ_128M
+#define BTRFS_MAX_EXTENT_SIZE		128UL * 1024 * 1024
 
 #define BTRFS_EXTENT_FLAG_DATA		(1ULL << 0)
 #define BTRFS_EXTENT_FLAG_TREE_BLOCK	(1ULL << 1)
@@ -697,6 +702,7 @@ enum btrfs_tree_block_status {
 	BTRFS_TREE_BLOCK_INVALID_LEVEL,
 	BTRFS_TREE_BLOCK_INVALID_FREE_SPACE,
 	BTRFS_TREE_BLOCK_INVALID_OFFSETS,
+	BTRFS_TREE_BLOCK_INVALID_BLOCKPTR,
 };
 
 struct btrfs_inode_item {
@@ -962,7 +968,7 @@ struct btrfs_csum_item {
  *  - the first 64k blank is useful for some boot loader/manager
  *  - the first 1M could be scratched by buggy partitioner or somesuch
  */
-#define BTRFS_BLOCK_RESERVED_1M_FOR_SUPER	((u64)SZ_1M)
+#define BTRFS_BLOCK_RESERVED_1M_FOR_SUPER	((u64)1 * 1024 * 1024)
 
 /* tag for the radix tree of block groups in ram */
 #define BTRFS_BLOCK_GROUP_DATA		(1ULL << 0)
@@ -976,7 +982,8 @@ struct btrfs_csum_item {
 #define BTRFS_BLOCK_GROUP_RAID6    	(1ULL << 8)
 #define BTRFS_BLOCK_GROUP_RAID1C3    	(1ULL << 9)
 #define BTRFS_BLOCK_GROUP_RAID1C4    	(1ULL << 10)
-#define BTRFS_BLOCK_GROUP_RESERVED	BTRFS_AVAIL_ALLOC_BIT_SINGLE
+#define BTRFS_BLOCK_GROUP_RESERVED	(BTRFS_AVAIL_ALLOC_BIT_SINGLE | \
+					 BTRFS_SPACE_INFO_GLOBAL_RSV)
 
 enum btrfs_raid_types {
 	BTRFS_RAID_RAID10,
@@ -1003,6 +1010,13 @@ enum btrfs_raid_types {
 					 BTRFS_BLOCK_GROUP_RAID1C4 | \
 					 BTRFS_BLOCK_GROUP_DUP |     \
 					 BTRFS_BLOCK_GROUP_RAID10)
+
+#define BTRFS_BLOCK_GROUP_RAID56_MASK	(BTRFS_BLOCK_GROUP_RAID5 |	\
+                                         BTRFS_BLOCK_GROUP_RAID6)
+
+#define BTRFS_BLOCK_GROUP_RAID1_MASK    (BTRFS_BLOCK_GROUP_RAID1 |	\
+                                         BTRFS_BLOCK_GROUP_RAID1C3 |	\
+                                         BTRFS_BLOCK_GROUP_RAID1C4)
 
 /* used in struct btrfs_balance_args fields */
 #define BTRFS_AVAIL_ALLOC_BIT_SINGLE	(1ULL << 48)
@@ -1207,6 +1221,7 @@ struct btrfs_fs_info {
 	unsigned int avoid_sys_chunk_alloc:1;
 	unsigned int finalize_on_close:1;
 	unsigned int hide_names:1;
+	unsigned int allow_transid_mismatch:1;
 
 	int transaction_aborted;
 
@@ -1220,6 +1235,8 @@ struct btrfs_fs_info {
 	u32 nodesize;
 	u32 sectorsize;
 	u32 stripesize;
+	u16 csum_type;
+	u16 csum_size;
 
 	/*
 	 * Zone size > 0 when in ZONED mode, otherwise it's used for a check
@@ -1229,9 +1246,6 @@ struct btrfs_fs_info {
 		u64 zone_size;
 		u64 zoned;
 	};
-
-	/* Max size to emit ZONE_APPEND write command */
-	u64 max_zone_append_size;
 };
 
 static inline bool btrfs_is_zoned(const struct btrfs_fs_info *fs_info)
@@ -2539,19 +2553,8 @@ static inline int __btrfs_fs_compat_ro(struct btrfs_fs_info *fs_info, u64 flag)
 	((unsigned long)(btrfs_leaf_data(leaf) + \
 	btrfs_item_offset_nr(leaf, slot)))
 
-static inline u64 btrfs_name_hash(const char *name, int len)
-{
-	return crc32c((u32)~1, name, len);
-}
-
-/*
- * Figure the key offset of an extended inode ref
- */
-static inline u64 btrfs_extref_hash(u64 parent_objectid, const char *name,
-				    int len)
-{
-	return (u64)btrfs_crc32c(parent_objectid, name, len);
-}
+u64 btrfs_name_hash(const char *name, int len);
+u64 btrfs_extref_hash(u64 parent_objectid, const char *name, int len);
 
 /* extent-tree.c */
 int btrfs_reserve_extent(struct btrfs_trans_handle *trans,
@@ -2637,10 +2640,10 @@ int btrfs_del_ptr(struct btrfs_root *root, struct btrfs_path *path,
 		int level, int slot);
 enum btrfs_tree_block_status
 btrfs_check_node(struct btrfs_fs_info *fs_info,
-		 struct btrfs_disk_key *parent_key, struct extent_buffer *buf);
+		 struct btrfs_key *parent_key, struct extent_buffer *buf);
 enum btrfs_tree_block_status
 btrfs_check_leaf(struct btrfs_fs_info *fs_info,
-		 struct btrfs_disk_key *parent_key, struct extent_buffer *buf);
+		 struct btrfs_key *parent_key, struct extent_buffer *buf);
 void reada_for_search(struct btrfs_fs_info *fs_info, struct btrfs_path *path,
 		      int level, int slot, u64 objectid);
 struct extent_buffer *read_node_slot(struct btrfs_fs_info *fs_info,
@@ -2670,8 +2673,7 @@ int btrfs_create_root(struct btrfs_trans_handle *trans,
 		      struct btrfs_fs_info *fs_info, u64 objectid);
 int btrfs_extend_item(struct btrfs_root *root, struct btrfs_path *path,
 		u32 data_size);
-int btrfs_truncate_item(struct btrfs_root *root, struct btrfs_path *path,
-			u32 new_size, int from_end);
+int btrfs_truncate_item(struct btrfs_path *path, u32 new_size, int from_end);
 int btrfs_split_item(struct btrfs_trans_handle *trans,
 		     struct btrfs_root *root,
 		     struct btrfs_path *path,
@@ -2740,15 +2742,24 @@ static inline int btrfs_next_item(struct btrfs_root *root,
 				  struct btrfs_path *p)
 {
 	++p->slots[0];
-	if (p->slots[0] >= btrfs_header_nritems(p->nodes[0]))
-		return btrfs_next_leaf(root, p);
+	if (p->slots[0] >= btrfs_header_nritems(p->nodes[0])) {
+		int ret;
+		ret = btrfs_next_leaf(root, p);
+		/*
+		 * Revert the increased slot, or the path may point to
+		 * an invalid item.
+		 */
+		if (ret)
+			p->slots[0]--;
+		return ret;
+	}
 	return 0;
 }
 
 int btrfs_prev_leaf(struct btrfs_root *root, struct btrfs_path *path);
 int btrfs_leaf_free_space(struct extent_buffer *leaf);
-void btrfs_fixup_low_keys(struct btrfs_root *root, struct btrfs_path *path,
-			  struct btrfs_disk_key *key, int level);
+void btrfs_fixup_low_keys(struct btrfs_path *path, struct btrfs_disk_key *key,
+		int level);
 int btrfs_set_item_key_safe(struct btrfs_root *root, struct btrfs_path *path,
 			    struct btrfs_key *new_key);
 void btrfs_set_item_key_unsafe(struct btrfs_root *root,
@@ -2859,6 +2870,8 @@ int btrfs_lookup_uuid_received_subvol_item(int fd, const u8 *uuid,
 /* uuid-tree.c, interface for unmounte filesystem */
 int btrfs_uuid_tree_add(struct btrfs_trans_handle *trans, u8 *uuid, u8 type,
 			u64 subvol_id_cpu);
+int btrfs_uuid_tree_remove(struct btrfs_trans_handle *trans, u8 *uuid, u8 type,
+			   u64 subid);
 
 static inline int is_fstree(u64 rootid)
 {

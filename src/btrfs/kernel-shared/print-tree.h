@@ -19,20 +19,22 @@
 #ifndef __PRINT_TREE_H__
 #define __PRINT_TREE_H__
 
-void btrfs_print_leaf(struct extent_buffer *l);
+enum {
+	/* Depth-first search, nodes and leaves can be interleaved */
+	BTRFS_PRINT_TREE_DFS		= (1 << 0),
+	/* Breadth-first search, first nodes, then leaves */
+	BTRFS_PRINT_TREE_BFS		= (1 << 1),
+	/* Follow to child nodes */
+	BTRFS_PRINT_TREE_FOLLOW		= (1 << 2),
+	/* Print checksum of node/leaf */
+	BTRFS_PRINT_TREE_CSUM_HEADERS	= (1 << 3),
+	/* Print checksums in checksum items */
+	BTRFS_PRINT_TREE_CSUM_ITEMS	= (1 << 4),
+	BTRFS_PRINT_TREE_DEFAULT = BTRFS_PRINT_TREE_BFS,
+};
 
-/*
- * Print a tree block (applies to both node and leaf).
- *
- * @eb:		Tree block
- * @follow:	Set true to print all its children.
- * @traverse:	The traverse order. Support DFS and BFS.
- *		Will fallback to DFS for unknown order.
- */
-#define BTRFS_PRINT_TREE_DFS		0
-#define BTRFS_PRINT_TREE_BFS		1
-#define BTRFS_PRINT_TREE_DEFAULT	BTRFS_PRINT_TREE_BFS
-void btrfs_print_tree(struct extent_buffer *eb, bool follow, int traverse);
+void btrfs_print_tree(struct extent_buffer *eb, unsigned int mode);
+void btrfs_print_leaf(struct extent_buffer *eb, unsigned int mode);
 
 void btrfs_print_key(struct btrfs_disk_key *disk_key);
 void print_chunk_item(struct extent_buffer *eb, struct btrfs_chunk *chunk);
@@ -40,4 +42,5 @@ void print_extent_item(struct extent_buffer *eb, int slot, int metadata);
 void print_objectid(FILE *stream, u64 objectid, u8 type);
 void print_key_type(FILE *stream, u64 objectid, u8 type);
 void btrfs_print_superblock(struct btrfs_super_block *sb, int full);
+
 #endif

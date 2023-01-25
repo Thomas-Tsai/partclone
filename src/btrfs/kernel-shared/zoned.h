@@ -1,4 +1,19 @@
 /* SPDX-License-Identifier: GPL-2.0 */
+/*
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public
+ * License v2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
+ */
 
 #ifndef __BTRFS_ZONED_H__
 #define __BTRFS_ZONED_H__
@@ -36,9 +51,9 @@ enum btrfs_zoned_model {
 struct btrfs_zoned_device_info {
 	enum btrfs_zoned_model	model;
 	u64			zone_size;
-	u64		        max_zone_append_size;
 	u32			nr_zones;
 	struct blk_zone		*zones;
+	bool			emulated;
 };
 
 enum btrfs_zoned_model zoned_model(const char *file);
@@ -51,11 +66,29 @@ int btrfs_check_zoned_mode(struct btrfs_fs_info *fs_info);
 #ifdef BTRFS_ZONED
 size_t btrfs_sb_io(int fd, void *buf, off_t offset, int rw);
 
+/*
+ * Read BTRFS_SUPER_INFO_SIZE bytes from fd to buf
+ *
+ * @fd		fd of the device to be read from
+ * @buf:	buffer contains a super block
+ * @offset:	offset of the superblock
+ *
+ * Return count of bytes successfully read.
+ */
 static inline size_t sbread(int fd, void *buf, off_t offset)
 {
 	return btrfs_sb_io(fd, buf, offset, READ);
 }
 
+/*
+ * Write BTRFS_SUPER_INFO_SIZE bytes from buf to fd
+ *
+ * @fd		fd of the device to be written to
+ * @buf:	buffer contains a super block
+ * @offset:	offset of the superblock
+ *
+ * Return count of bytes successfully written.
+ */
 static inline size_t sbwrite(int fd, void *buf, off_t offset)
 {
 	return btrfs_sb_io(fd, buf, offset, WRITE);

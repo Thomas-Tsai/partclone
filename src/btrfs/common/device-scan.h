@@ -1,3 +1,19 @@
+/*
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public
+ * License v2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 021110-1307, USA.
+ */
+
 #ifndef __DEVICE_SCAN_H__
 #define __DEVICE_SCAN_H__
 
@@ -43,5 +59,6 @@ int is_seen_fsid(u8 *fsid, struct seen_fsid *seen_fsid_hash[]);
 int add_seen_fsid(u8 *fsid, struct seen_fsid *seen_fsid_hash[],
 		int fd, DIR *dirstream);
 void free_seen_fsid(struct seen_fsid *seen_fsid_hash[]);
+int test_uuid_unique(const char *uuid_str);
 
 #endif
