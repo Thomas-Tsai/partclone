@@ -91,6 +91,13 @@ enum btrfs_open_ctree_flags {
 	 * mismatch.
 	 */
 	OPEN_CTREE_ALLOW_TRANSID_MISMATCH = (1U << 15),
+
+	/*
+	 * Do not check checksums at all for data and metadata, eg. when the
+	 * superblock type of checksum does not match the actual checksum items
+	 * stored in the csum tree during conversion.
+	 */
+	OPEN_CTREE_SKIP_CSUM_CHECK	= (1U << 16),
 };
 
 /*
@@ -134,8 +141,6 @@ int read_whole_eb(struct btrfs_fs_info *info, struct extent_buffer *eb, int mirr
 struct extent_buffer* read_tree_block(struct btrfs_fs_info *fs_info, u64 bytenr,
 		u64 parent_transid);
 
-int read_extent_data(struct btrfs_fs_info *fs_info, char *data, u64 logical,
-		     u64 *len, int mirror);
 void readahead_tree_block(struct btrfs_fs_info *fs_info, u64 bytenr,
 			  u64 parent_transid);
 struct extent_buffer* btrfs_find_create_tree_block(
@@ -213,12 +218,26 @@ int write_and_map_eb(struct btrfs_fs_info *fs_info, struct extent_buffer *eb);
 int btrfs_fs_roots_compare_roots(struct rb_node *node1, struct rb_node *node2);
 struct btrfs_root *btrfs_create_tree(struct btrfs_trans_handle *trans,
 				     struct btrfs_fs_info *fs_info,
-				     u64 objectid);
+				     struct btrfs_key *key);
+int btrfs_delete_and_free_root(struct btrfs_trans_handle *trans,
+			       struct btrfs_root *root);
 struct btrfs_root *btrfs_csum_root(struct btrfs_fs_info *fs_info, u64 bytenr);
 struct btrfs_root *btrfs_extent_root(struct btrfs_fs_info *fs_inf, u64 bytenr);
-struct btrfs_root *btrfs_block_group_root(struct btrfs_fs_info *fs_info);
 struct btrfs_root *btrfs_global_root(struct btrfs_fs_info *fs_info,
 				     struct btrfs_key *key);
+u64 btrfs_global_root_id(struct btrfs_fs_info *fs_info, u64 bytenr);
 int btrfs_global_root_insert(struct btrfs_fs_info *fs_info,
 			     struct btrfs_root *root);
+int btrfs_find_and_setup_root(struct btrfs_root *tree_root,
+			      struct btrfs_fs_info *fs_info,
+			      u64 objectid, struct btrfs_root *root);
+
+static inline struct btrfs_root *btrfs_block_group_root(
+						struct btrfs_fs_info *fs_info)
+{
+	if (btrfs_fs_compat_ro(fs_info, BLOCK_GROUP_TREE))
+		return fs_info->block_group_root;
+	return btrfs_extent_root(fs_info, 0);
+}
+
 #endif

@@ -19,15 +19,9 @@
 #ifndef __BTRFS_EXTENT_IO_H__
 #define __BTRFS_EXTENT_IO_H__
 
-#if BTRFS_FLAT_INCLUDES
 #include "kerncompat.h"
 #include "common/extent-cache.h"
 #include "kernel-lib/list.h"
-#else
-#include <btrfs/kerncompat.h>
-#include <btrfs/extent-cache.h>
-#include <btrfs/list.h>
-#endif /* BTRFS_FLAT_INCLUDES */
 
 #define EXTENT_DIRTY		(1U << 0)
 #define EXTENT_WRITEBACK	(1U << 1)
@@ -88,13 +82,11 @@ struct extent_state {
 struct extent_buffer {
 	struct cache_extent cache_node;
 	u64 start;
-	u64 dev_bytenr;
 	struct list_head lru;
 	struct list_head recow;
 	u32 len;
 	int refs;
 	u32 flags;
-	int fd;
 	struct btrfs_fs_info *fs_info;
 	char data[] __attribute__((aligned(8)));
 };
@@ -105,8 +97,6 @@ static inline void extent_buffer_get(struct extent_buffer *eb)
 }
 
 void extent_io_tree_init(struct extent_io_tree *tree);
-void extent_io_tree_init_cache_max(struct extent_io_tree *tree,
-				   u64 max_cache_size);
 void extent_io_tree_cleanup(struct extent_io_tree *tree);
 int set_extent_bits(struct extent_io_tree *tree, u64 start, u64 end, int bits);
 int clear_extent_bits(struct extent_io_tree *tree, u64 start, u64 end, int bits);
@@ -150,9 +140,6 @@ struct extent_buffer *alloc_dummy_extent_buffer(struct btrfs_fs_info *fs_info,
 						u64 bytenr, u32 blocksize);
 void free_extent_buffer(struct extent_buffer *eb);
 void free_extent_buffer_nocache(struct extent_buffer *eb);
-int read_extent_from_disk(struct extent_buffer *eb,
-			  unsigned long offset, unsigned long len);
-int write_extent_to_disk(struct extent_buffer *eb);
 int memcmp_extent_buffer(const struct extent_buffer *eb, const void *ptrv,
 			 unsigned long start, unsigned long len);
 void read_extent_buffer(const struct extent_buffer *eb, void *dst,
@@ -170,10 +157,10 @@ int extent_buffer_test_bit(struct extent_buffer *eb, unsigned long start,
 			   unsigned long nr);
 int set_extent_buffer_dirty(struct extent_buffer *eb);
 int clear_extent_buffer_dirty(struct extent_buffer *eb);
-int read_data_from_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
-			u64 bytes, int mirror);
+int read_data_from_disk(struct btrfs_fs_info *info, void *buf, u64 logical,
+			u64 *len, int mirror);
 int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
-		       u64 bytes, int mirror);
+		       u64 bytes);
 void extent_buffer_bitmap_clear(struct extent_buffer *eb, unsigned long start,
                                 unsigned long pos, unsigned long len);
 void extent_buffer_bitmap_set(struct extent_buffer *eb, unsigned long start,

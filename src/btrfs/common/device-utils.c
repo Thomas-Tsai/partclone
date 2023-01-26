@@ -15,21 +15,25 @@
  */
 
 #include <sys/ioctl.h>
-#include <sys/mount.h>
-#include <sys/statfs.h>
+#include <sys/stat.h>
 #include <sys/types.h>
+#include <linux/limits.h>
+#ifdef BTRFS_ZONED
+#include <linux/blkzoned.h>
+#endif
+#include <linux/fs.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <errno.h>
 #include <blkid/blkid.h>
-#include <linux/limits.h>
-#include <linux/fs.h>
-#include <limits.h>
 #include "kernel-lib/sizes.h"
 #include "kernel-shared/disk-io.h"
+#include "kernel-shared/ctree.h"
 #include "kernel-shared/zoned.h"
 #include "common/device-utils.h"
 #include "common/path-utils.h"
@@ -227,7 +231,7 @@ int btrfs_prepare_device(int fd, const char *file, u64 *block_count_ret,
 		return 1;
 	}
 
-	block_count = btrfs_device_size(fd, &st);
+	block_count = device_get_partition_size_fd_stat(fd, &st);
 	if (block_count == 0) {
 		error("unable to determine size of %s", file);
 		return 1;
@@ -301,18 +305,17 @@ err:
 	return 1;
 }
 
-u64 btrfs_device_size(int fd, struct stat *st)
+u64 device_get_partition_size_fd_stat(int fd, const struct stat *st)
 {
 	u64 size;
-	if (S_ISREG(st->st_mode)) {
+
+	if (S_ISREG(st->st_mode))
 		return st->st_size;
-	}
-	if (!S_ISBLK(st->st_mode)) {
+	if (!S_ISBLK(st->st_mode))
 		return 0;
-	}
-	if (ioctl(fd, BLKGETSIZE64, &size) >= 0) {
+	if (ioctl(fd, BLKGETSIZE64, &size) >= 0)
 		return size;
-	}
+
 	return 0;
 }
 
@@ -514,6 +517,18 @@ out:
 	return ret;
 }
 
+int device_get_rotational(const char *file)
+{
+	char rotational;
+	int ret;
+
+	ret = device_get_queue_param(file, "rotational", &rotational, 1);
+	if (ret < 1)
+		return 0;
+
+	return (rotational == '0');
+}
+
 ssize_t btrfs_direct_pio(int rw, int fd, void *buf, size_t count, off_t offset)
 {
 	int alignment;
@@ -558,7 +573,7 @@ ssize_t btrfs_direct_pio(int rw, int fd, void *buf, size_t count, off_t offset)
 
 	ret = posix_memalign(&bounce_buf, alignment, iosize);
 	if (ret) {
-		error("failed to allocate bounce buffer: %m");
+		error_msg(ERROR_MSG_MEMORY, "bounce buffer");
 		errno = ret;
 		return 0;
 	}

@@ -19,6 +19,11 @@
 #ifndef __KERNCOMPAT_H__
 #define __KERNCOMPAT_H__
 
+#ifndef __SANE_USERSPACE_TYPES__
+/* For PPC64 to get LL64 types */
+#define __SANE_USERSPACE_TYPES__
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -30,7 +35,7 @@
 #include <linux/types.h>
 #include <linux/const.h>
 #include <stdint.h>
-
+#include <stdbool.h>
 #include <features.h>
 
 /*
@@ -134,7 +139,9 @@ static inline void bugon_trace(const char *assertion, const char *filename,
 #define __bitwise__ __attribute__((bitwise))
 #else
 #define __force
+#ifndef __bitwise__
 #define __bitwise__
+#endif
 #endif
 
 #ifndef __CHECKER__
@@ -359,7 +366,14 @@ do {					\
 
 /* Alignment check */
 #define IS_ALIGNED(x, a)                (((x) & ((typeof(x))(a) - 1)) == 0)
-#define ALIGN(x, a)		__ALIGN_KERNEL((x), (a))
+
+/*
+ * Alignment, copied and renamed from /usr/include/linux/const.h to work around
+ * issues caused by moving the definition in 5.12
+ */
+#define __ALIGN_KERNEL__(x, a)		__ALIGN_KERNEL_MASK__(x, (typeof(x))(a) - 1)
+#define __ALIGN_KERNEL_MASK__(x, mask)	(((x) + (mask)) & ~(mask))
+#define ALIGN(x, a)		__ALIGN_KERNEL__((x), (a))
 
 static inline int is_power_of_2(unsigned long n)
 {
@@ -518,5 +532,22 @@ struct __una_u64 { __le64 x; } __attribute__((__packed__));
 #ifndef noinline
 #define noinline
 #endif
+
+/*
+ * Note: simplified versions of READ_ONCE and WRITE_ONCE for source
+ * compatibility only, not usable for lock-less implementation like in kernel.
+ *
+ * Changed:
+ * - __unqual_scalar_typeof: volatile cast to typeof()
+ * - compiletime_assert_rwonce_type: no word size compatibility checks
+ * - no const volatile cast
+ */
+
+#define READ_ONCE(x)		(x)
+
+#define WRITE_ONCE(x, val)						\
+do {									\
+	(x) = (val);							\
+} while (0)
 
 #endif

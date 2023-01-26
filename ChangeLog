@@ -1,4 +1,515 @@
+2023-01-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update bytrfs to v5.15
+
+2023-01-24  Thomas Tsai  <thomas@nchc.org.tw>
+
+	upgrade btrfs to v5.12
+
+2023-01-13  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #217 from nchcdev/master
+	Create manual-on-host.yml
+
+	add reiser4progs for test
+
+	Create manual-on-host.yml update tests for nilfs2 update tests for offset and fueimage
+
+	Merge pull request #216 from robert-scheck/tests-twice
+	Don't target Btrfs and exFAT tests twice
+
+2023-01-13  Robert Scheck  <robert@fedoraproject.org>
+
+	Don't target Btrfs and exFAT tests twice
+
+2023-01-11  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #215 from robert-scheck/reflect-release
+	Reflect partclone 0.3.22 release in configure.ac
+
+2023-01-11  Robert Scheck  <robert@fedoraproject.org>
+
+	Reflect partclone 0.3.22 release in configure.ac
+
+2023-01-10  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #214 from SamsonovAnton/parallel_tests
+	Support parallel unit-testing
+
+2023-01-10  Anton Samsonov  <Anton.V.Samsonov@mcst.ru>
+
+	Support parallel unit-testing
+
+2023-01-10  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #213 from nchcdev/master
+	create github actions for build test
+
+2023-01-10  Thomas Tsai  <thomas@nchc.org.tw>
+
+	create github actions for build test
+
+2023-01-09  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #211 from robert-scheck/binutils-gas-x86-used-note
+	fail-mbr: Remove binutils section .note.gnu.build-id using objcopy
+
+2023-01-09  Robert Scheck  <robert@fedoraproject.org>
+
+	fail-mbr: Remove binutils section .note.gnu.build-id using objcopy
+	GNU Binutils 2.36 configures with --enable-x86-used-note by default for
+	Linux/x86. This adds the new section .note.gnu.build-id, which needs to
+	be removed.
+
+	When building fail-mbr.o with current binutils, ld links the file into
+	an executable format. However this is not accepted by current binutils
+	for building fail-mbr.image; thus it requires -Wl,--relocatable for the
+	former and -Wl,--no-dynamic-linker for the latter.
+
+	See also:
+	- https://sourceware.org/pipermail/binutils/2021-January/115071.html
+	- https://sourceware.org/bugzilla/show_bug.cgi?id=26223
+	- https://sourceware.org/bugzilla/show_bug.cgi?id=27753
+	- https://lists.denx.de/pipermail/u-boot/2021-June/452303.html
+
+2023-01-09  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #207 from robert-scheck/tests-xfs-size
+	Increase XFS default test image size to 300+ MB
+
+2023-01-08  Robert Scheck  <robert@fedoraproject.org>
+
+	Increase XFS default test image size to 300+ MB
+
+2023-01-08  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #209 from robert-scheck/tests-f2fs-size
+	Increase F2FS default test size to 100+ MB
+
+	Merge pull request #210 from robert-scheck/tests-f2fs-endian
+	Skip F2FS tests on big-endian architectures
+
+	Merge pull request #205 from robert-scheck/tests-fat-endian
+	Skip FAT tests on big-endian architectures
+
+	Merge pull request #204 from robert-scheck/space-opening-parenthesis
+	Add missing space before opening parenthesis
+
+2023-01-08  Robert Scheck  <robert@fedoraproject.org>
+
+	Skip F2FS tests on big-endian architectures
+	Otherwise partclone.f2fs fails on s390x like this:
+	> $ partclone.f2fs -d -c -s floppy.raw -O floppy.img -F -L test.log -a 1 -k 17
+	> Segmentation fault      (core dumped)
+
+	Increase F2FS default test size to 100+ MB
+
+	Skip FAT tests on big-endian architectures
+	Otherwise src/fatclone.c fails on s390x like this:
+	> get_fat_type, 66, ERROR: data_size count error
+	> get_fat_type, 70, ERROR: clusters count error
+
+2023-01-07  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #203 from TMR5454/master
+	fix log message to add new line after "Open devicefile successfully"
+
+2023-01-06  Robert Scheck  <robert@fedoraproject.org>
+
+	Add missing space before opening parenthesis
+	When writing in English (not a programming language or math), the rule
+	is: put a space before the opening parenthesis.
+
+2023-01-06  YUCHIN TSAI (Thomas)  <tlinux.tsai@gmail.com>
+
+	add basic test script for BT files
+
+	update btfiles loop issue
+
+2022-12-19  Tamura Dai  <kirinode0@gmail.com>
+
+	fix log message to add new line after "Open devicefile successfully"
+
+2022-10-08  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #201 from robert-scheck/typo
+	Fix typos
+
+2022-10-07  Robert Scheck  <robert@fedoraproject.org>
+
+	Fix typos
+
+2022-09-29  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #198 from SamsonovAnton/out-of-tree_tests
+	Support unit-testing in out-of-tree builds
+
+2022-09-26  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #197 from SamsonovAnton/fix_MBR_build
+	Fix MBR builds for x86, non-x86 and out-of-tree
+
+2022-09-13  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #196 from SamsonovAnton/autoconf_fuse_version
+	Detect FUSE version and explicitly print “yes” or “no” regarding filesystem support
+
+	Merge pull request #195 from SamsonovAnton/prevent_compiler_warnings_in_apfsclone
+	Remove unused variables to silence compiler warnings
+
+2022-09-13  Anton Samsonov  <Anton.V.Samsonov@mcst.ru>
+
+	Support unit-testing in out-of-tree builds
+
+	Fix MBR builds for x86, non-x86 and out-of-tree
+
+	Detect FUSE version and clearly print FS support
+
+2022-09-12  Anton Samsonov  <Anton.V.Samsonov@mcst.ru>
+
+	Remove unused vars to silence compiler warnings
+
+2022-09-08  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #192 from SamsonovAnton/check_for_EVP_MD_CTX_reset
+	Check for EVP_MD_CTX_reset
+
+	Merge pull request #194 from SamsonovAnton/prevent_compiler_warnings
+	Avoid uninitialized variables to prevent compiler warnings
+
+	Merge pull request #193 from SamsonovAnton/out-of-tree_build_BTRFS_XFS
+	Support out-of-tree builds for BTRFS and XFS
+
+2022-09-06  Anton Samsonov  <Anton.V.Samsonov@mcst.ru>
+
+	Initialize variables to silence compiler warnings
+
+	Support out-of-tree builds for BTRFS and XFS
+
+	Check for EVP_MD_CTX_reset
+
+2022-09-06  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #191 from SamsonovAnton/check_argc_in_fuseimg
+	Check argument count in partclone.imgfuse
+
+	Merge pull request #190 from SamsonovAnton/support_FUSE_v2
+	Support FUSE 2.x API
+
+	Merge pull request #189 from SamsonovAnton/fix_define_GNU_SOURCE
+	Avoid redefining _GNU_SOURCE, _LARGEFILE64_SOURCE
+
+2022-09-06  Anton Samsonov  <Anton.V.Samsonov@mcst.ru>
+
+	Check argument count in partclone.imgfuse
+
+	Support FUSE 2.x API
+
+	Avoid redefining _GNU_SOURCE, _LARGEFILE64_SOURCE
+
+2022-06-01  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix crypto link error
+
+2022-05-31  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #186 from Xeonacid/update-autotools-build-file
+	update autotools build files
+
+2022-05-28  Xeonacid  <h.dwwwwww@gmail.com>
+
+	update autotools build files
+	Generated using "autoreconf -fi" to support new arch.
+
+2022-04-29  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #184 from robert-scheck/c99
+	Change C99 for loop init to C89 for compatibility
+
+2022-04-29  Robert Scheck  <robert@fedoraproject.org>
+
+	Change C99 for loop init to C89 for compatibility
+
+2022-04-28  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update makefile for static build
+
+2022-04-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.3.20
+
+2022-04-19  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #183 from hdkigelcojp/stdout-support
+	stdout support.  With this patch, stdout is supported by writing zeros instead of lseek() only if stdout is specified as output.
+
+2022-04-19  Hideki EIRAKU  <hdk@igel.co.jp>
+
+	stdout support
+	Previously lseek() was always used for an output device file when
+	restoring or copying device-to-device.  With this patch, stdout is
+	supported by writing zeros instead of lseek() only if stdout is
+	specified as output.
+
+2022-04-15  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #182 from hdkigelcojp/fix-apfs
+	fix apfs support
+
+2022-04-12  Hideki EIRAKU  <hdk@igel.co.jp>
+
+	fix apfs support
+	Previously space manager was read from checkpoint data area.
+	According to Apple File System Reference, finding space manager from
+	a checkpoint map is needed.
+
+2022-04-07  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+	fix issue #173: Random garbage is printed with -O /dev/does-not-exist
+
+2022-04-05  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Update README.md
+
+2022-03-18  Thomas-Tsai  <tlinux.tsai@gmail.com>
+
+	fix  btrfs device check issue & ready to release 0.3.19
+
+2022-03-16  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add btrfs mirror super blocks
+
+2022-03-02  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #179 from jowagner/howto-contrib-docs
+	How to contribute docs: readme
+
+	Merge pull request #178 from jowagner/docs-typo-normanly2
+	Docs typo "normanly"
+
+2022-03-01  Joachim Wagner  <jowagner@users.noreply.github.com>
+
+	add libxslt-tools to list of needed packages
+
+	packages that may be needed
+
+	How to fix a typo in the docs
+
+	sync'd .8 with .xml of recent commit
+
+	fix typo, issue https://github.com/Thomas-Tsai/partclone/issues/170
+
+2022-02-24  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #175 from jowagner/domain-file-doc
+	Domain file doc
+
+	Merge pull request #172 from vasi/vasi-hfs-wrapper-clean
+	Support HFS+ wrapper volumes
+
+2022-02-24  Joachim Wagner  <jowagner@users.noreply.github.com>
+
+	`.8` for domain map file description update in `.xml`
+
+	Explain domain mapfile, https://github.com/Thomas-Tsai/partclone/issues/174
+
+2022-02-10  Dave Vasilevsky  <dave@vasilevsky.ca>
+
+	hfsplus: Support HFS wrapper volumes
+	Now that we have all the pieces ready, we can finally support wrappers.
+
+	hfsplus: Mark HFS wrapper as used in the bitmap
+	The HFS wrapper data, that's outside the embedded HFS+ volume, is small and
+	important to keep.
+
+	hfsplus: Allow read_allocation_file to take an offset
+	This lets us read the allocation file of an embedded HFS+ volume inside
+	an HFS wrapper, which is no longer at the start of a partition.
+
+	hfsplus: Allow setting multiple bits in bitmap per HFS+ block
+	When we have an HFS wrapper, we'll need smaller blocks, so multiple
+	partclone-blocks may be in each HFS+ block.
+
+	hfsplus: Factor out read_allocation_file
+	We will want to be able to read the bitmap not just from the start of the
+	volume, but from an embedded location. Work towards making that possible.
+
+	hfsplus: Support HFS wrappers in read_super_blocks
+	Unfortunately, this starts to make our code more complex. HFS wrappers may have
+	extra space before the alternate superblock at the end of the volume, and there's
+	no way to predict how much. So for HFS wrappers:
+
+	1. We need to check the physical device size, instead of calculating the volume size
+	2. We need to use single-sector blocks, rather than the HFS+ block size (typically 4096)
+
+	hfsplus: Parse HFS wrapper volumes
+	For now, just parse the header, check if it makes sense, and then error unconditionally.
+	Soon, we'll have proper support.
+
+	hfsplus: Add structures for HFS+ wrapper volumes
+
+	hfsplus: Check for correct magic number
+	Don't just try to clone something, if we're not sure what it is!
+
+	hfsplus: Get rid of some magic numbers in code
+	The size of a block is variable, and the offset to the volume header is a constant
+
+	hfsplus: Use proper endian-swapping functions
+	These should work regardless of the host's endianness
+
+2022-01-23  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update btrfs to 5.11
+
+2022-01-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+	update apfs
+
+2022-01-14  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #169 from jwilk-forks/spelling
+	Fix typo
+
+2022-01-14  Jakub Wilk  <jwilk@jwilk.net>
+
+	Fix typo
+
+2021-11-12  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #166 from zboszor/use-evp-api
+	Fix using EVP OpenSSL API
+
+2021-11-06  Zoltán Böszörményi  <zboszor@gmail.com>
+
+	Fix using EVP OpenSSL API
+	torrent_helper.h didn't have #include <config.h> so
+	the settings didn't actually take effect so the direct SHA1 API
+	was still in use.
+
+	Also fix copy&paste errors that didn't turn up in the build
+	but after adding #include <config.h> to torrent_helper.h they did.
+
+2021-11-06  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #165 from zboszor/use-evp-api
+	Use EVP OpenSSL API
+
+2021-11-03  Zoltán Böszörményi  <zboszor@gmail.com>
+
+	Use EVP OpenSSL API
+	OpenSSL 3.0 deprecated the direct / individual crypto API variants
+	so they produce deprecation warnings now. OpenSSL also allows hiding
+	deprecated APIs so in this configuration partclone can't be built.
+
+2021-10-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	apply suggestoin about wprintw and autoupdate from Geroges
+
+2021-09-24  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #164 from tjjh89017/more_torrent_info
+	WIP: Add block_size and blocks_total in torrent.info to provide partition info
+
+2021-09-24  Date Huang  <tjjh89017@hotmail.com>
+
+	Add block_size and blocks_total in torrent.info to provide partition info
+
+2021-06-14  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #162 from mjoerg/master
+	doc: fix typo for logfile argument
+
+2021-06-12  Martin Joerg  <martin.joerg@gmail.com>
+
+	doc: fix typo for logfile argument
+
+2021-03-03  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #157 from pfrouleau/document_partclone_image_formats
+	doc: document the image formats
+
+2021-03-03  Patrick Rouleau  <prouleau72@gmail.com>
+
+	doc: document the image formats
+
+2021-02-17  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Update README.md
+
+2021-01-06  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #152 from robert-scheck/c99-for-loop
+	Change C99 for loop init to C89 for compatibility
+
+2020-12-31  Robert Scheck  <robert@fedoraproject.org>
+
+	Change C99 for loop init to C89 for compatibility
+
+2020-11-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	* try to fix ignore_crc not working properly in partclone 3.12. * issue is 2.8 image restored by 3.X with ignore_crc and get fail. reference https://github.com/Sebastian-Roth/partclone/commit/80ca94dccadbc4998b80f3eabe8c84bdc638c7b5
+
+2020-10-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add float check
+
+	fix progress issue
+
+2020-10-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	set version to 0.3.16
+
+	merge
+
+2020-10-26  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #151 from boretom/to-btrfs-progs-5.4.1
+	Update to btrfs-progs 5.4.1
+
+2020-10-26  Thomas Kupper  <thomas.kupper@gmail.com>
+
+	Update to btrfs-progs 5.4.1
+	Also:
+	- Update toolbox script to use rsync for btrfs-prog code sync. This since it involves subdirectories
+	- Update .gitignore to include APFS binary `src\partclone.apfs`
+	- Set file size for btrfs test since it failed because of a minimal size necessary
+
+2020-10-25  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update btrfs to 4.12
+
+	try to update to btrfs 4.10
+
+	try to update btrfs to 4.8
+
+2020-07-24  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #148 from justforlxz/master
+	fix: crash when backing up swap partition
+
+2020-07-24  Zhang, DingYuan  <justforlxz@gmail.com>
+
+	fix: crash when backing up swap partition
+	args: -s /dev/nvme0n1p5 -o - -c -z 1048576 -L /var/log/partclone.log
+
+	/dev/nvme0n1p5 is the swap partition, I noticed that in the calculate_speed function of progress.c, percent = prog->unit * copied; percent is NaN, prog->unit is Inf, so the next judgment was not successfully modified percent, which caused the retained to be the wrong value, and the strftime function crashed.
+
+2020-07-13  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #147 from zboszor/ignore-free-space-check-with-compression
+	Ignore free space check if compression is enabled.
+
+2020-07-10  Zoltán Böszörményi  <zboszor@pr.hu>
+
+	Ignore free space check if compression is enabled.
+
 2020-07-05  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.3.15
 
 	release 0.3.14
 

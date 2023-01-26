@@ -17,6 +17,11 @@
 #ifndef __BTRFS_MESSAGES_H__
 #define __BTRFS_MESSAGES_H__
 
+#include "kerncompat.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+
 #ifdef DEBUG_VERBOSE_ERROR
 #define	PRINT_VERBOSE_ERROR	fprintf(stderr, "%s:%d:", __FILE__, __LINE__)
 #else
@@ -95,14 +100,49 @@ int __btrfs_warning_on(int condition, const char *fmt, ...);
 __attribute__ ((format (printf, 2, 3)))
 int __btrfs_error_on(int condition, const char *fmt, ...);
 
+__attribute__ ((format (printf, 1, 2)))
+void internal_error(const char *fmt, ...);
+
 /*
  * Level of messages that must be printed by default (in case the verbosity
  * options haven't been set by the user) due to backward compatibility reasons
  * where applications may expect the output.
  */
-#define	MUST_LOG						-1
+#define LOG_ALWAYS						(-1)
+/*
+ * Default level for any messages that should be printed by default, a one line
+ * summary or with more details. Applications should not rely on such messages.
+ */
+#define LOG_DEFAULT						(1)
+/*
+ * Information about the ongoing actions, high level description
+ */
+#define LOG_INFO						(2)
+/*
+ * Verbose description and individual steps of the previous level
+ */
+#define LOG_VERBOSE						(3)
+/*
+ * Anything that should not be normally printed but can be useful for debugging
+ */
+#define LOG_DEBUG						(4)
 
 __attribute__ ((format (printf, 2, 3)))
 void pr_verbose(int level, const char *fmt, ...);
+
+__attribute__ ((format (printf, 2, 3)))
+void pr_stderr(int level, const char *fmt, ...);
+
+/*
+ * Commonly used errors
+ */
+enum common_error {
+	ERROR_MSG_MEMORY,
+	ERROR_MSG_START_TRANS,
+	ERROR_MSG_COMMIT_TRANS,
+};
+
+__attribute__ ((format (printf, 2, 3)))
+void error_msg(enum common_error error, const char *msg, ...);
 
 #endif

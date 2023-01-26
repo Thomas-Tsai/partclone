@@ -17,10 +17,10 @@
 #ifndef __DEVICE_UTILS_H__
 #define __DEVICE_UTILS_H__
 
+#include "kerncompat.h"
+#include <sys/stat.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include "kerncompat.h"
-#include "sys/stat.h"
 
 /*
  * Options for btrfs_prepare_device
@@ -40,13 +40,14 @@ int device_discard_blocks(int fd, u64 start, u64 len);
 int device_zero_blocks(int fd, off_t start, size_t len, const bool direct);
 u64 device_get_partition_size(const char *dev);
 u64 device_get_partition_size_fd(int fd);
+u64 device_get_partition_size_fd_stat(int fd, const struct stat *st);
 int device_get_queue_param(const char *file, const char *param, char *buf, size_t len);
 u64 device_get_zone_unusable(int fd, u64 flags);
 u64 device_get_zone_size(int fd, const char *name);
+int device_get_rotational(const char *file);
 /*
  * Updates to devices with btrfs-specific changs
  */
-u64 btrfs_device_size(int fd, struct stat *st);
 int btrfs_prepare_device(int fd, const char *file, u64 *block_count_ret,
 		u64 max_block_count, unsigned opflags);
 ssize_t btrfs_direct_pio(int rw, int fd, void *buf, size_t count, off_t offset);

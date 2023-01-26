@@ -94,7 +94,6 @@ struct btrfs_fs_devices {
 	struct list_head devices;
 	struct list_head list;
 
-	int seeding;
 	struct btrfs_fs_devices *seed;
 
 	enum btrfs_chunk_allocation_policy chunk_alloc_policy;
@@ -106,6 +105,7 @@ struct btrfs_bio_stripe {
 };
 
 struct btrfs_multi_bio {
+	u64 type;
 	int error;
 	int num_stripes;
 	struct btrfs_bio_stripe stripes[];

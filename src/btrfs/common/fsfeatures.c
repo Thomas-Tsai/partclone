@@ -19,9 +19,17 @@
 #include <sys/ioctl.h>
 #include <linux/version.h>
 #include <unistd.h>
-#include "common/fsfeatures.h"
+#include <errno.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include "kernel-lib/sizes.h"
 #include "kernel-shared/ctree.h"
+#include "common/fsfeatures.h"
+#include "common/string-utils.h"
 #include "common/utils.h"
+#include "common/messages.h"
+#include "ioctl.h"
 
 /*
  * Insert a root item for temporary tree root
@@ -48,7 +56,17 @@ enum feature_source {
  */
 struct btrfs_feature {
 	const char *name;
-	u64 flag;
+
+	/*
+	 * At least one of the bit must be set in the following *_flag member.
+	 *
+	 * For features like list-all and quota which don't have any
+	 * incompat/compat_ro bit set, it go to runtime_flag.
+	 */
+	u64 incompat_flag;
+	u64 compat_ro_flag;
+	u64 runtime_flag;
+
 	const char *sysfs_name;
 	/*
 	 * Compatibility with kernel of given version. Filesystem can be
@@ -74,15 +92,27 @@ struct btrfs_feature {
 static const struct btrfs_feature mkfs_features[] = {
 	{
 		.name		= "mixed-bg",
-		.flag		= BTRFS_FEATURE_INCOMPAT_MIXED_GROUPS,
+		.incompat_flag	= BTRFS_FEATURE_INCOMPAT_MIXED_GROUPS,
 		.sysfs_name	= "mixed_groups",
 		VERSION_TO_STRING3(compat, 2,6,37),
 		VERSION_TO_STRING3(safe, 2,6,37),
 		VERSION_NULL(default),
 		.desc		= "mixed data and metadata block groups"
-	}, {
+	},
+#if EXPERIMENTAL
+	{
+		.name		= "quota",
+		.runtime_flag	= BTRFS_FEATURE_RUNTIME_QUOTA,
+		.sysfs_name	= NULL,
+		VERSION_TO_STRING2(compat, 3,4),
+		VERSION_NULL(safe),
+		VERSION_NULL(default),
+		.desc		= "quota support (qgroups)"
+	},
+#endif
+	{
 		.name		= "extref",
-		.flag		= BTRFS_FEATURE_INCOMPAT_EXTENDED_IREF,
+		.incompat_flag	= BTRFS_FEATURE_INCOMPAT_EXTENDED_IREF,
 		.sysfs_name	= "extended_iref",
 		VERSION_TO_STRING2(compat, 3,7),
 		VERSION_TO_STRING2(safe, 3,12),
@@ -90,7 +120,7 @@ static const struct btrfs_feature mkfs_features[] = {
 		.desc		= "increased hardlink limit per file to 65536"
 	}, {
 		.name		= "raid56",
-		.flag		= BTRFS_FEATURE_INCOMPAT_RAID56,
+		.incompat_flag	= BTRFS_FEATURE_INCOMPAT_RAID56,
 		.sysfs_name	= "raid56",
 		VERSION_TO_STRING2(compat, 3,9),
 		VERSION_NULL(safe),
@@ -98,7 +128,7 @@ static const struct btrfs_feature mkfs_features[] = {
 		.desc		= "raid56 extended format"
 	}, {
 		.name		= "skinny-metadata",
-		.flag		= BTRFS_FEATURE_INCOMPAT_SKINNY_METADATA,
+		.incompat_flag	= BTRFS_FEATURE_INCOMPAT_SKINNY_METADATA,
 		.sysfs_name	= "skinny_metadata",
 		VERSION_TO_STRING2(compat, 3,10),
 		VERSION_TO_STRING2(safe, 3,18),
@@ -106,15 +136,28 @@ static const struct btrfs_feature mkfs_features[] = {
 		.desc		= "reduced-size metadata extent refs"
 	}, {
 		.name		= "no-holes",
-		.flag		= BTRFS_FEATURE_INCOMPAT_NO_HOLES,
+		.incompat_flag	= BTRFS_FEATURE_INCOMPAT_NO_HOLES,
 		.sysfs_name	= "no_holes",
 		VERSION_TO_STRING2(compat, 3,14),
 		VERSION_TO_STRING2(safe, 4,0),
 		VERSION_TO_STRING2(default, 5,15),
 		.desc		= "no explicit hole extents for files"
-	}, {
+	},
+#if EXPERIMENTAL
+	{
+		.name		= "free-space-tree",
+		.compat_ro_flag	= BTRFS_FEATURE_COMPAT_RO_FREE_SPACE_TREE |
+				  BTRFS_FEATURE_COMPAT_RO_FREE_SPACE_TREE_VALID,
+		.sysfs_name = "free_space_tree",
+		VERSION_TO_STRING2(compat, 4,5),
+		VERSION_TO_STRING2(safe, 4,9),
+		VERSION_TO_STRING2(default, 5,15),
+		.desc		= "free space tree (space_cache=v2)"
+	},
+#endif
+	{
 		.name		= "raid1c34",
-		.flag		= BTRFS_FEATURE_INCOMPAT_RAID1C34,
+		.incompat_flag	= BTRFS_FEATURE_INCOMPAT_RAID1C34,
 		.sysfs_name	= "raid1c34",
 		VERSION_TO_STRING2(compat, 5,5),
 		VERSION_NULL(safe),
@@ -124,7 +167,7 @@ static const struct btrfs_feature mkfs_features[] = {
 #ifdef BTRFS_ZONED
 	{
 		.name		= "zoned",
-		.flag		= BTRFS_FEATURE_INCOMPAT_ZONED,
+		.incompat_flag	= BTRFS_FEATURE_INCOMPAT_ZONED,
 		.sysfs_name	= "zoned",
 		VERSION_TO_STRING2(compat, 5,12),
 		VERSION_NULL(safe),
@@ -134,8 +177,19 @@ static const struct btrfs_feature mkfs_features[] = {
 #endif
 #if EXPERIMENTAL
 	{
+		.name		= "block-group-tree",
+		.compat_ro_flag	= BTRFS_FEATURE_COMPAT_RO_BLOCK_GROUP_TREE,
+		.sysfs_name	= "block_group_tree",
+		VERSION_TO_STRING2(compat, 6,1),
+		VERSION_NULL(safe),
+		VERSION_NULL(default),
+		.desc		= "block group tree to reduce mount time"
+	},
+#endif
+#if EXPERIMENTAL
+	{
 		.name		= "extent-tree-v2",
-		.flag		= BTRFS_FEATURE_INCOMPAT_EXTENT_TREE_V2,
+		.incompat_flag	= BTRFS_FEATURE_INCOMPAT_EXTENT_TREE_V2,
 		.sysfs_name	= "extent_tree_v2",
 		VERSION_TO_STRING2(compat, 5,15),
 		VERSION_NULL(safe),
@@ -145,20 +199,20 @@ static const struct btrfs_feature mkfs_features[] = {
 #endif
 	/* Keep this one last */
 	{
-		.name = "list-all",
-		.flag = BTRFS_FEATURE_LIST_ALL,
-		.sysfs_name = NULL,
+		.name		= "list-all",
+		.runtime_flag	= BTRFS_FEATURE_RUNTIME_LIST_ALL,
+		.sysfs_name	= NULL,
 		VERSION_NULL(compat),
 		VERSION_NULL(safe),
 		VERSION_NULL(default),
-		.desc = NULL
+		.desc		= NULL
 	}
 };
 
 static const struct btrfs_feature runtime_features[] = {
 	{
 		.name		= "quota",
-		.flag		= BTRFS_RUNTIME_FEATURE_QUOTA,
+		.runtime_flag	= BTRFS_FEATURE_RUNTIME_QUOTA,
 		.sysfs_name	= NULL,
 		VERSION_TO_STRING2(compat, 3,4),
 		VERSION_NULL(safe),
@@ -166,24 +220,62 @@ static const struct btrfs_feature runtime_features[] = {
 		.desc		= "quota support (qgroups)"
 	}, {
 		.name		= "free-space-tree",
-		.flag		= BTRFS_RUNTIME_FEATURE_FREE_SPACE_TREE,
-		.sysfs_name = "free_space_tree",
+		.compat_ro_flag	= BTRFS_FEATURE_COMPAT_RO_FREE_SPACE_TREE |
+				  BTRFS_FEATURE_COMPAT_RO_FREE_SPACE_TREE_VALID,
+		.sysfs_name	= "free_space_tree",
 		VERSION_TO_STRING2(compat, 4,5),
 		VERSION_TO_STRING2(safe, 4,9),
 		VERSION_TO_STRING2(default, 5,15),
 		.desc		= "free space tree (space_cache=v2)"
 	},
+#if EXPERIMENTAL
+	{
+		.name		= "block-group-tree",
+		.compat_ro_flag	= BTRFS_FEATURE_COMPAT_RO_BLOCK_GROUP_TREE,
+		.sysfs_name	= "block_group_tree",
+		VERSION_TO_STRING2(compat, 6,1),
+		VERSION_NULL(safe),
+		VERSION_NULL(default),
+		.desc		= "block group tree to reduce mount time"
+	},
+#endif
 	/* Keep this one last */
 	{
-		.name = "list-all",
-		.flag = BTRFS_FEATURE_LIST_ALL,
-		.sysfs_name = NULL,
+		.name		= "list-all",
+		.runtime_flag	= BTRFS_FEATURE_RUNTIME_LIST_ALL,
+		.sysfs_name	= NULL,
 		VERSION_NULL(compat),
 		VERSION_NULL(safe),
 		VERSION_NULL(default),
-		.desc = NULL
+		.desc		= NULL
 	}
 };
+
+/*
+ * This is a sanity check to make sure BTRFS_FEATURE_STRING_BUF_SIZE is large
+ * enough to contain all strings.
+ *
+ * All callers using btrfs_parse_*_features_to_string() should call this first.
+ */
+void btrfs_assert_feature_buf_size(void)
+{
+	int total_size = 0;
+	int i;
+
+	/*
+	 * This is a little over-calculated, as we include ", list-all".
+	 * But 10 extra bytes should not be a big deal.
+	 */
+	for (i = 0; i < ARRAY_SIZE(mkfs_features); i++)
+		/* The extra 2 bytes are for the ", " prefix. */
+		total_size += strlen(mkfs_features[i].name) + 2;
+	BUG_ON(BTRFS_FEATURE_STRING_BUF_SIZE < total_size);
+
+	total_size = 0;
+	for (i = 0; i < ARRAY_SIZE(runtime_features); i++)
+		total_size += strlen(runtime_features[i].name) + 2;
+	BUG_ON(BTRFS_FEATURE_STRING_BUF_SIZE < total_size);
+}
 
 static size_t get_feature_array_size(enum feature_source source)
 {
@@ -203,7 +295,8 @@ static const struct btrfs_feature *get_feature(int i, enum feature_source source
 	return NULL;
 }
 
-static int parse_one_fs_feature(const char *name, u64 *flags,
+static int parse_one_fs_feature(const char *name,
+				struct btrfs_mkfs_features *features,
 				enum feature_source source)
 {
 	const int array_size = get_feature_array_size(source);
@@ -214,10 +307,14 @@ static int parse_one_fs_feature(const char *name, u64 *flags,
 		const struct btrfs_feature *feat = get_feature(i, source);
 
 		if (name[0] == '^' && !strcmp(feat->name, name + 1)) {
-			*flags &= ~feat->flag;
+			features->compat_ro_flags &= ~feat->compat_ro_flag;
+			features->incompat_flags &= ~feat->incompat_flag;
+			features->runtime_flags &= ~feat->runtime_flag;
 			found = 1;
 		} else if (!strcmp(feat->name, name)) {
-			*flags |= feat->flag;
+			features->compat_ro_flags |= feat->compat_ro_flag;
+			features->incompat_flags |= feat->incompat_flag;
+			features->runtime_flags |= feat->runtime_flag;
 			found = 1;
 		}
 	}
@@ -225,7 +322,8 @@ static int parse_one_fs_feature(const char *name, u64 *flags,
 	return !found;
 }
 
-static void parse_features_to_string(char *buf, u64 flags,
+static void parse_features_to_string(char *buf,
+				     const struct btrfs_mkfs_features *features,
 				     enum feature_source source)
 {
 	const int array_size = get_feature_array_size(source);
@@ -236,7 +334,9 @@ static void parse_features_to_string(char *buf, u64 flags,
 	for (i = 0; i < array_size; i++) {
 		const struct btrfs_feature *feat = get_feature(i, source);
 
-		if (flags & feat->flag) {
+		if (features->compat_ro_flags & feat->compat_ro_flag ||
+		    features->incompat_flags & feat->incompat_flag ||
+		    features->runtime_flags & feat->runtime_flag) {
 			if (*buf)
 				strcat(buf, ", ");
 			strcat(buf, feat->name);
@@ -244,17 +344,20 @@ static void parse_features_to_string(char *buf, u64 flags,
 	}
 }
 
-void btrfs_parse_fs_features_to_string(char *buf, u64 flags)
+void btrfs_parse_fs_features_to_string(char *buf,
+		const struct btrfs_mkfs_features *features)
 {
-	parse_features_to_string(buf, flags, FS_FEATURES);
+	parse_features_to_string(buf, features, FS_FEATURES);
 }
 
-void btrfs_parse_runtime_features_to_string(char *buf, u64 flags)
+void btrfs_parse_runtime_features_to_string(char *buf,
+		const struct btrfs_mkfs_features *features)
 {
-	parse_features_to_string(buf, flags, RUNTIME_FEATURES);
+	parse_features_to_string(buf, features, RUNTIME_FEATURES);
 }
 
-static void process_features(u64 flags, enum feature_source source)
+static void process_features(struct btrfs_mkfs_features *features,
+			     enum feature_source source)
 {
 	const int array_size = get_feature_array_size(source);
 	int i;
@@ -262,24 +365,28 @@ static void process_features(u64 flags, enum feature_source source)
 	for (i = 0; i < array_size; i++) {
 		const struct btrfs_feature *feat = get_feature(i, source);
 
-		if (flags & feat->flag && feat->name && feat->desc) {
+		if ((features->compat_ro_flags & feat->compat_ro_flag ||
+		     features->incompat_flags & feat->incompat_flag ||
+		     features->runtime_flags & feat->runtime_flag) &&
+		    feat->name && feat->desc) {
 			printf("Turning ON incompat feature '%s': %s\n",
 				feat->name, feat->desc);
 		}
 	}
 }
 
-void btrfs_process_fs_features(u64 flags)
+void btrfs_process_fs_features(struct btrfs_mkfs_features *features)
 {
-	process_features(flags, FS_FEATURES);
+	process_features(features, FS_FEATURES);
 }
 
-void btrfs_process_runtime_features(u64 flags)
+void btrfs_process_runtime_features(struct btrfs_mkfs_features *features)
 {
-	process_features(flags, RUNTIME_FEATURES);
+	process_features(features, RUNTIME_FEATURES);
 }
 
-static void list_all_features(u64 mask_disallowed, enum feature_source source)
+static void list_all_features(const struct btrfs_mkfs_features *allowed,
+			      enum feature_source source)
 {
 	const int array_size = get_feature_array_size(source);
 	int i;
@@ -295,36 +402,48 @@ static void list_all_features(u64 mask_disallowed, enum feature_source source)
 	fprintf(stderr, "%s features available:\n", prefix);
 	for (i = 0; i < array_size - 1; i++) {
 		const struct btrfs_feature *feat = get_feature(i, source);
+		const char *sep = "";
 
-		if (feat->flag & mask_disallowed)
+		/* The feature is not in the allowed one, skip it. */
+		if (allowed &&
+		    !(feat->compat_ro_flag & allowed->compat_ro_flags ||
+		      feat->incompat_flag & allowed->incompat_flags ||
+		      feat->runtime_flag & allowed->runtime_flags))
 			continue;
-		fprintf(stderr, "%-20s- %s (0x%llx", feat->name, feat->desc,
-				feat->flag);
-		if (feat->compat_ver)
-			fprintf(stderr, ", compat=%s", feat->compat_str);
-		if (feat->safe_ver)
-			fprintf(stderr, ", safe=%s", feat->safe_str);
+
+		fprintf(stderr, "%-20s- %s (", feat->name, feat->desc);
+		if (feat->compat_ver) {
+			fprintf(stderr, "compat=%s", feat->compat_str);
+			sep = ", ";
+		}
+		if (feat->safe_ver) {
+			fprintf(stderr, "%ssafe=%s", sep, feat->safe_str);
+			sep = ", ";
+		}
 		if (feat->default_ver)
-			fprintf(stderr, ", default=%s", feat->default_str);
+			fprintf(stderr, "%sdefault=%s", sep, feat->default_str);
 		fprintf(stderr, ")\n");
 	}
 }
 
-void btrfs_list_all_fs_features(u64 mask_disallowed)
+/* @allowed can be null, then all features will be listed. */
+void btrfs_list_all_fs_features(const struct btrfs_mkfs_features *allowed)
 {
-	list_all_features(mask_disallowed, FS_FEATURES);
+	list_all_features(allowed, FS_FEATURES);
 }
 
-void btrfs_list_all_runtime_features(u64 mask_disallowed)
+/* @allowed can be null, then all runtime features will be listed. */
+void btrfs_list_all_runtime_features(const struct btrfs_mkfs_features *allowed)
 {
-	list_all_features(mask_disallowed, RUNTIME_FEATURES);
+	list_all_features(allowed, RUNTIME_FEATURES);
 }
 
 /*
  * Return NULL if all features were parsed fine, otherwise return the name of
  * the first unparsed.
  */
-static char *parse_features(char *namelist, u64 *flags,
+static char *parse_features(char *namelist,
+			    struct btrfs_mkfs_features *features,
 			    enum feature_source source)
 {
 	char *this_char;
@@ -333,21 +452,23 @@ static char *parse_features(char *namelist, u64 *flags,
 	for (this_char = strtok_r(namelist, ",", &save_ptr);
 	     this_char != NULL;
 	     this_char = strtok_r(NULL, ",", &save_ptr)) {
-		if (parse_one_fs_feature(this_char, flags, source))
+		if (parse_one_fs_feature(this_char, features, source))
 			return this_char;
 	}
 
 	return NULL;
 }
 
-char *btrfs_parse_fs_features(char *namelist, u64 *flags)
+char *btrfs_parse_fs_features(char *namelist,
+		struct btrfs_mkfs_features *features)
 {
-	return parse_features(namelist, flags, FS_FEATURES);
+	return parse_features(namelist, features, FS_FEATURES);
 }
 
-char *btrfs_parse_runtime_features(char *namelist, u64 *flags)
+char *btrfs_parse_runtime_features(char *namelist,
+		struct btrfs_mkfs_features *features)
 {
-	return parse_features(namelist, flags, RUNTIME_FEATURES);
+	return parse_features(namelist, features, RUNTIME_FEATURES);
 }
 
 void print_kernel_version(FILE *stream, u32 version)
@@ -461,7 +582,8 @@ int btrfs_check_sectorsize(u32 sectorsize)
 	return 0;
 }
 
-int btrfs_check_nodesize(u32 nodesize, u32 sectorsize, u64 features)
+int btrfs_check_nodesize(u32 nodesize, u32 sectorsize,
+			 struct btrfs_mkfs_features *features)
 {
 	if (nodesize < sectorsize) {
 		error("illegal nodesize %u (smaller than %u)",
@@ -475,13 +597,24 @@ int btrfs_check_nodesize(u32 nodesize, u32 sectorsize, u64 features)
 		error("illegal nodesize %u (not aligned to %u)",
 			nodesize, sectorsize);
 		return -1;
-	} else if (features & BTRFS_FEATURE_INCOMPAT_MIXED_GROUPS &&
+	} else if (features->incompat_flags &
+		   BTRFS_FEATURE_INCOMPAT_MIXED_GROUPS &&
 		   nodesize != sectorsize) {
 		error(
 		"illegal nodesize %u (not equal to %u for mixed block group)",
 			nodesize, sectorsize);
 		return -1;
 	}
+	return 0;
+}
+
+int btrfs_check_features(const struct btrfs_mkfs_features *features,
+			 const struct btrfs_mkfs_features *allowed)
+{
+	if (features->compat_ro_flags & ~allowed->compat_ro_flags ||
+	    features->incompat_flags & ~allowed->incompat_flags ||
+	    features->runtime_flags & ~allowed->runtime_flags)
+		return -EINVAL;
 	return 0;
 }
 

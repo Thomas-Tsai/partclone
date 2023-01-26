@@ -19,9 +19,15 @@
 #ifndef __BTRFS_REPAIR_H__
 #define __BTRFS_REPAIR_H__
 
+#include "kerncompat.h"
 #include "kernel-shared/ctree.h"
+#include "common/extent-cache.h"
 
-extern int repair; /* repair mode */
+struct btrfs_trans_handle;
+struct extent_io_tree;
+
+/* Repair mode */
+extern int opt_check_repair;
 
 struct btrfs_corrupt_block {
 	struct cache_extent cache;

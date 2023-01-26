@@ -19,20 +19,22 @@
 #ifndef __BTRFS_UTILS_H__
 #define __BTRFS_UTILS_H__
 
-#include <sys/stat.h>
-#include "kernel-shared/ctree.h"
-#include <dirent.h>
+#include "kerncompat.h"
 #include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include "kernel-lib/sizes.h"
+#include "kernel-shared/ctree.h"
 #include "common/defs.h"
 #include "common/internal.h"
-#include "kernel-lib/sizes.h"
 #include "common/messages.h"
-#include "ioctl.h"
 #include "common/fsfeatures.h"
+#include "ioctl.h"
 
 enum exclusive_operation {
 	BTRFS_EXCLOP_NONE,
 	BTRFS_EXCLOP_BALANCE,
+	BTRFS_EXCLOP_BALANCE_PAUSED,
 	BTRFS_EXCLOP_DEV_ADD,
 	BTRFS_EXCLOP_DEV_REMOVE,
 	BTRFS_EXCLOP_DEV_REPLACE,
@@ -44,8 +46,6 @@ enum exclusive_operation {
 /* 2 for "0x", 2 for each byte, plus nul */
 #define BTRFS_CSUM_STRING_LEN		(2 + 2 * BTRFS_CSUM_SIZE + 1)
 void btrfs_format_csum(u16 csum_type, const u8 *data, char *output);
-u64 parse_qgroupid_or_path(const char *p);
-u64 arg_strtou64(const char *str);
 int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 		struct btrfs_ioctl_dev_info_args **di_ret);
 int get_fsid(const char *path, u8 *fsid, int silent);
@@ -54,14 +54,7 @@ int get_fs_exclop(int fd);
 int check_running_fs_exclop(int fd, enum exclusive_operation start, bool enqueue);
 const char *get_fs_exclop_name(int op);
 
-int get_label(const char *btrfs_dev, char *label);
-int set_label(const char *btrfs_dev, const char *label);
-
 int check_arg_type(const char *input);
-int get_label_mounted(const char *mount_path, char *labelp);
-int get_label_unmounted(const char *dev, char *label);
-int csum_tree_block(struct btrfs_fs_info *root, struct extent_buffer *buf,
-		    int verify);
 int ask_user(const char *question);
 int lookup_path_rootid(int fd, u64 *rootid);
 int find_mount_fsroot(const char *subvol, const char *subvolid, char **mount);
@@ -77,9 +70,6 @@ const char* btrfs_group_profile_str(u64 flag);
 
 int count_digits(u64 num);
 u64 div_factor(u64 num, int factor);
-
-int string_is_numerical(const char *str);
-int prefixcmp(const char *str, const char *prefix);
 
 unsigned long total_memory(void);
 
@@ -120,6 +110,7 @@ void init_rand_seed(u64 seed);
 
 char *btrfs_test_for_multiple_profiles(int fd);
 int btrfs_warn_multiple_profiles(int fd);
+void btrfs_warn_experimental(const char *str);
 
 int sysfs_open_file(const char *name);
 int sysfs_open_fsid_file(int fd, const char *filename);

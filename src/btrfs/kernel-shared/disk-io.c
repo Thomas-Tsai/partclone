@@ -24,7 +24,6 @@
 #include <unistd.h>
 #include <uuid/uuid.h>
 #include "kerncompat.h"
-#include "kernel-lib/radix-tree.h"
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/disk-io.h"
 #include "kernel-shared/volumes.h"
@@ -174,7 +173,9 @@ static int __csum_tree_block_size(struct extent_buffer *buf, u16 csum_size,
 			result, len);
 
 	if (verify) {
-		if (memcmp_extent_buffer(buf, result, 0, csum_size)) {
+		if (buf->fs_info && buf->fs_info->skip_csum_check) {
+			/* printf("skip csum check for block %llu\n", buf->start); */
+		} else if (memcmp_extent_buffer(buf, result, 0, csum_size)) {
 			if (!silent) {
 				char found[BTRFS_CSUM_STRING_LEN];
 				char wanted[BTRFS_CSUM_STRING_LEN];
@@ -206,11 +207,17 @@ int verify_tree_block_csum_silent(struct extent_buffer *buf, u16 csum_size,
 	return __csum_tree_block_size(buf, csum_size, 1, 1, csum_type);
 }
 
-int csum_tree_block(struct btrfs_fs_info *fs_info,
-		    struct extent_buffer *buf, int verify)
+static int csum_tree_block(struct btrfs_fs_info *fs_info,
+			   struct extent_buffer *buf, int verify)
 {
 	u16 csum_size = fs_info->csum_size;
 	u16 csum_type = fs_info->csum_type;
+
+	if (fs_info->force_csum_type != -1) {
+		/* printf("CSUM TREE: offset %llu\n", buf->start); */
+		csum_type = fs_info->force_csum_type;
+		csum_size = btrfs_csum_type_size(csum_type);
+	}
 
 	if (verify && fs_info->suppress_check_block_errors)
 		return verify_tree_block_csum_silent(buf, csum_size, csum_type);
@@ -283,59 +290,48 @@ out:
 
 }
 
+static int read_on_restore(struct extent_buffer *eb)
+{
+	struct btrfs_fs_info *fs_info = eb->fs_info;
+	struct btrfs_device *device;
+	int ret;
+
+	/*
+	 * For on_restoring mode, there should be only one device, and logical
+	 * address is mapped 1:1 to device physical offset.
+	 */
+	list_for_each_entry(device, &fs_info->fs_devices->devices, dev_list) {
+		if (device->devid == 1)
+			break;
+	}
+	device->total_ios++;
+
+	ret = btrfs_pread(device->fd, eb->data, eb->len, eb->start,
+			  eb->fs_info->zoned);
+	if (ret != eb->len)
+		ret = -EIO;
+	else
+		ret = 0;
+	return ret;
+}
 
 int read_whole_eb(struct btrfs_fs_info *info, struct extent_buffer *eb, int mirror)
 {
 	unsigned long offset = 0;
-	struct btrfs_multi_bio *multi = NULL;
-	struct btrfs_device *device;
 	int ret = 0;
-	u64 read_len;
 	unsigned long bytes_left = eb->len;
 
 	while (bytes_left) {
-		read_len = bytes_left;
-		device = NULL;
+		u64 read_len = bytes_left;
 
-		if (!info->on_restoring &&
-		    eb->start != BTRFS_SUPER_INFO_OFFSET) {
-			ret = btrfs_map_block(info, READ, eb->start + offset,
-					      &read_len, &multi, mirror, NULL);
-			if (ret) {
-				printk("Couldn't map the block %llu\n", eb->start + offset);
-				kfree(multi);
-				return -EIO;
-			}
-			device = multi->stripes[0].dev;
+		if (info->on_restoring)
+			return read_on_restore(eb);
 
-			if (device->fd <= 0) {
-				kfree(multi);
-				return -EIO;
-			}
-
-			eb->fd = device->fd;
-			device->total_ios++;
-			eb->dev_bytenr = multi->stripes[0].physical;
-			kfree(multi);
-			multi = NULL;
-		} else {
-			/* special case for restore metadump */
-			list_for_each_entry(device, &info->fs_devices->devices, dev_list) {
-				if (device->devid == 1)
-					break;
-			}
-
-			eb->fd = device->fd;
-			eb->dev_bytenr = eb->start;
-			device->total_ios++;
-		}
-
-		if (read_len > bytes_left)
-			read_len = bytes_left;
-
-		ret = read_extent_from_disk(eb, offset, read_len);
-		if (ret)
-			return -EIO;
+		ret = read_data_from_disk(info, eb->data + offset,
+					  eb->start + offset, &read_len,
+					  mirror);
+		if (ret < 0)
+			return ret;
 		offset += read_len;
 		bytes_left -= read_len;
 	}
@@ -452,91 +448,25 @@ struct extent_buffer* read_tree_block(struct btrfs_fs_info *fs_info, u64 bytenr,
 	return ERR_PTR(ret);
 }
 
-int read_extent_data(struct btrfs_fs_info *fs_info, char *data, u64 logical,
-		     u64 *len, int mirror)
-{
-	u64 offset = 0;
-	struct btrfs_multi_bio *multi = NULL;
-	struct btrfs_device *device;
-	int ret = 0;
-	u64 max_len = *len;
-
-	ret = btrfs_map_block(fs_info, READ, logical, len, &multi, mirror,
-			      NULL);
-	if (ret) {
-		fprintf(stderr, "Couldn't map the block %llu\n",
-				logical + offset);
-		goto err;
-	}
-	device = multi->stripes[0].dev;
-
-	if (*len > max_len)
-		*len = max_len;
-	if (device->fd < 0) {
-		ret = -EIO;
-		goto err;
-	}
-
-	ret = btrfs_pread(device->fd, data, *len, multi->stripes[0].physical,
-			  fs_info->zoned);
-	if (ret != *len)
-		ret = -EIO;
-	else
-		ret = 0;
-err:
-	kfree(multi);
-	return ret;
-}
-
 int write_and_map_eb(struct btrfs_fs_info *fs_info, struct extent_buffer *eb)
 {
 	int ret;
-	int dev_nr;
-	u64 length;
 	u64 *raid_map = NULL;
 	struct btrfs_multi_bio *multi = NULL;
 
-	dev_nr = 0;
-	length = eb->len;
-	ret = btrfs_map_block(fs_info, WRITE, eb->start, &length,
-			      &multi, 0, &raid_map);
+	/* write_data_to_disk() will handle all mirrors and RAID56. */
+	ret = write_data_to_disk(fs_info, eb->data, eb->start, eb->len);
 	if (ret < 0) {
 		errno = -ret;
-		error("failed to map bytenr %llu length %u: %m",
+		error("failed to write bytenr %llu length %u: %m",
 			eb->start, eb->len);
 		goto out;
 	}
 
-	if (raid_map) {
-		ret = write_raid56_with_parity(fs_info, eb, multi,
-					       length, raid_map);
-		if (ret < 0) {
-			errno = -ret;
-			error(
-		"failed to write raid56 stripe for bytenr %llu length %llu: %m",
-				eb->start, length);
-			goto out;
-		}
-	} else while (dev_nr < multi->num_stripes) {
-		eb->fd = multi->stripes[dev_nr].dev->fd;
-		eb->dev_bytenr = multi->stripes[dev_nr].physical;
-		multi->stripes[dev_nr].dev->total_ios++;
-		dev_nr++;
-		ret = write_extent_to_disk(eb);
-		if (ret < 0) {
-			errno = -ret;
-			error(
-"failed to write bytenr %llu length %u devid %llu dev_bytenr %llu: %m",
-				eb->start, eb->len,
-				multi->stripes[dev_nr].dev->devid,
-				eb->dev_bytenr);
-			goto out;
-		}
-	}
 out:
 	kfree(raid_map);
 	kfree(multi);
-	return 0;
+	return ret;
 }
 
 int write_tree_block(struct btrfs_trans_handle *trans,
@@ -598,9 +528,9 @@ err:
 	return -EIO;
 }
 
-static int find_and_setup_root(struct btrfs_root *tree_root,
-			       struct btrfs_fs_info *fs_info,
-			       u64 objectid, struct btrfs_root *root)
+int btrfs_find_and_setup_root(struct btrfs_root *tree_root,
+			      struct btrfs_fs_info *fs_info,
+			      u64 objectid, struct btrfs_root *root)
 {
 	int ret;
 
@@ -680,7 +610,7 @@ struct btrfs_root *btrfs_read_fs_root_no_cache(struct btrfs_fs_info *fs_info,
 	if (!root)
 		return ERR_PTR(-ENOMEM);
 	if (location->offset == (u64)-1) {
-		ret = find_and_setup_root(tree_root, fs_info,
+		ret = btrfs_find_and_setup_root(tree_root, fs_info,
 					  location->objectid, root);
 		if (ret) {
 			free(root);
@@ -798,13 +728,33 @@ struct btrfs_root *btrfs_global_root(struct btrfs_fs_info *fs_info,
 	return NULL;
 }
 
+u64 btrfs_global_root_id(struct btrfs_fs_info *fs_info, u64 bytenr)
+{
+	struct btrfs_block_group *block_group;
+	u64 ret = 0;
+
+	if (!btrfs_fs_incompat(fs_info, EXTENT_TREE_V2))
+		return ret;
+
+	/*
+	 * We use this because we won't have this many global roots, and -1 is
+	 * special, so we need something that'll not be found if we have any
+	 * errors from here on.
+	 */
+	ret = BTRFS_LAST_FREE_OBJECTID;
+	block_group = btrfs_lookup_first_block_group(fs_info, bytenr);
+	if (block_group)
+		ret = block_group->global_root_id;
+	return ret;
+}
+
 struct btrfs_root *btrfs_csum_root(struct btrfs_fs_info *fs_info,
 				   u64 bytenr)
 {
 	struct btrfs_key key = {
 		.objectid = BTRFS_CSUM_TREE_OBJECTID,
 		.type = BTRFS_ROOT_ITEM_KEY,
-		.offset = 0,
+		.offset = btrfs_global_root_id(fs_info, bytenr),
 	};
 
 	return btrfs_global_root(fs_info, &key);
@@ -816,7 +766,7 @@ struct btrfs_root *btrfs_extent_root(struct btrfs_fs_info *fs_info,
 	struct btrfs_key key = {
 		.objectid = BTRFS_EXTENT_TREE_OBJECTID,
 		.type = BTRFS_ROOT_ITEM_KEY,
-		.offset = 0,
+		.offset = btrfs_global_root_id(fs_info, bytenr),
 	};
 
 	return btrfs_global_root(fs_info, &key);
@@ -849,6 +799,9 @@ struct btrfs_root *btrfs_read_fs_root(struct btrfs_fs_info *fs_info,
 		root = btrfs_global_root(fs_info, location);
 		return root ? root : ERR_PTR(-ENOENT);
 	}
+	if (location->objectid == BTRFS_BLOCK_GROUP_TREE_OBJECTID)
+		return fs_info->block_group_root ? fs_info->block_group_root :
+						ERR_PTR(-ENOENT);
 
 	BUG_ON(location->objectid == BTRFS_TREE_RELOC_OBJECTID);
 
@@ -887,6 +840,7 @@ void btrfs_free_fs_info(struct btrfs_fs_info *fs_info)
 	free(fs_info->chunk_root);
 	free(fs_info->dev_root);
 	free(fs_info->uuid_root);
+	free(fs_info->block_group_root);
 	free(fs_info->super_copy);
 	free(fs_info->log_root_tree);
 	free(fs_info);
@@ -905,10 +859,12 @@ struct btrfs_fs_info *btrfs_new_fs_info(int writable, u64 sb_bytenr)
 	fs_info->dev_root = calloc(1, sizeof(struct btrfs_root));
 	fs_info->quota_root = calloc(1, sizeof(struct btrfs_root));
 	fs_info->uuid_root = calloc(1, sizeof(struct btrfs_root));
+	fs_info->block_group_root = calloc(1, sizeof(struct btrfs_root));
 	fs_info->super_copy = calloc(1, BTRFS_SUPER_INFO_SIZE);
 
 	if (!fs_info->tree_root || !fs_info->chunk_root || !fs_info->dev_root ||
-	    !fs_info->quota_root || !fs_info->uuid_root || !fs_info->super_copy)
+	    !fs_info->quota_root || !fs_info->uuid_root ||
+	    !fs_info->block_group_root || !fs_info->super_copy)
 		goto free_all;
 
 	extent_io_tree_init(&fs_info->extent_cache);
@@ -933,7 +889,11 @@ struct btrfs_fs_info *btrfs_new_fs_info(int writable, u64 sb_bytenr)
 	fs_info->data_alloc_profile = (u64)-1;
 	fs_info->metadata_alloc_profile = (u64)-1;
 	fs_info->system_alloc_profile = fs_info->metadata_alloc_profile;
+	fs_info->nr_global_roots = 1;
+	fs_info->force_csum_type = -1;
+
 	return fs_info;
+
 free_all:
 	btrfs_free_fs_info(fs_info);
 	return NULL;
@@ -1028,7 +988,7 @@ static int read_root_or_create_block(struct btrfs_fs_info *fs_info,
 static inline bool maybe_load_block_groups(struct btrfs_fs_info *fs_info,
 					   u64 flags)
 {
-	struct btrfs_root *root = btrfs_extent_root(fs_info, 0);
+	struct btrfs_root *root = btrfs_block_group_root(fs_info);
 
 	if (flags & OPEN_CTREE_NO_BLOCK_GROUPS)
 		return false;
@@ -1039,7 +999,6 @@ static inline bool maybe_load_block_groups(struct btrfs_fs_info *fs_info,
 	return false;
 }
 
-
 static int load_global_roots_objectid(struct btrfs_fs_info *fs_info,
 				      struct btrfs_path *path, u64 objectid,
 				      unsigned flags, char *str)
@@ -1047,6 +1006,7 @@ static int load_global_roots_objectid(struct btrfs_fs_info *fs_info,
 	struct btrfs_root *tree_root = fs_info->tree_root;
 	struct btrfs_root *root;
 	int ret;
+	int found = 0;
 	struct btrfs_key key = {
 		.objectid = objectid,
 		.type = BTRFS_ROOT_ITEM_KEY,
@@ -1074,6 +1034,13 @@ static int load_global_roots_objectid(struct btrfs_fs_info *fs_info,
 				      path->slots[0]);
 		if (key.objectid != objectid)
 			break;
+
+		if (key.offset >= fs_info->nr_global_roots) {
+			warning("global root with too large of an offset [%llu %llu]",
+				key.objectid, key.offset);
+			ret = -EINVAL;
+			break;
+		}
 
 		root = calloc(1, sizeof(*root));
 		if (!root) {
@@ -1105,9 +1072,51 @@ static int load_global_roots_objectid(struct btrfs_fs_info *fs_info,
 			break;
 		}
 
+		found++;
 		path->slots[0]++;
 	}
 	btrfs_release_path(path);
+
+	/*
+	 * We didn't find all of our roots, create empty ones if we have PARTIAL
+	 * set.
+	 */
+	if (!ret && found < fs_info->nr_global_roots) {
+		int i;
+
+		if (!(flags & OPEN_CTREE_PARTIAL)) {
+			error("could not setup %s tree", str);
+			return -EIO;
+		}
+
+		warning("could not setup %s tree, skipping it", str);
+		for (i = found; i < fs_info->nr_global_roots; i++) {
+			root = calloc(1, sizeof(*root));
+			if (!root) {
+				ret = -ENOMEM;
+				break;
+			}
+			btrfs_setup_root(root, fs_info, objectid);
+			root->root_key.objectid = objectid;
+			root->root_key.type = BTRFS_ROOT_ITEM_KEY;
+			root->root_key.offset = i;
+			root->track_dirty = 1;
+			root->node = btrfs_find_create_tree_block(fs_info, 0);
+			if (!root->node) {
+				free(root);
+				ret = -ENOMEM;
+				break;
+			}
+			clear_extent_buffer_uptodate(root->node);
+			ret = btrfs_global_root_insert(fs_info, root);
+			if (ret) {
+				free_extent_buffer(root->node);
+				free(root);
+				break;
+			}
+		}
+	}
+
 	return ret;
 }
 
@@ -1130,6 +1139,8 @@ static int load_global_roots(struct btrfs_fs_info *fs_info, unsigned flags)
 					 "csum");
 	if (ret)
 		goto out;
+	if (!btrfs_fs_compat_ro(fs_info, FREE_SPACE_TREE))
+		goto out;
 	ret = load_global_roots_objectid(fs_info, path,
 					 BTRFS_FREE_SPACE_TREE_OBJECTID, flags,
 					 "free space");
@@ -1138,57 +1149,105 @@ out:
 	return ret;
 }
 
-int btrfs_setup_all_roots(struct btrfs_fs_info *fs_info, u64 root_tree_bytenr,
-			  unsigned flags)
+static int load_important_roots(struct btrfs_fs_info *fs_info,
+				u64 root_tree_bytenr, unsigned flags)
 {
 	struct btrfs_super_block *sb = fs_info->super_copy;
+	struct btrfs_root_backup *backup = NULL;
 	struct btrfs_root *root;
-	struct btrfs_key key;
-	u64 generation;
+	u64 bytenr, gen;
 	int level;
+	int index = -1;
 	int ret;
 
-	root = fs_info->tree_root;
-	btrfs_setup_root(root, fs_info, BTRFS_ROOT_TREE_OBJECTID);
-	generation = btrfs_super_generation(sb);
-	level = btrfs_super_root_level(sb);
-
-	if (!root_tree_bytenr && !(flags & OPEN_CTREE_BACKUP_ROOT)) {
-		root_tree_bytenr = btrfs_super_root(sb);
-	} else if (flags & OPEN_CTREE_BACKUP_ROOT) {
-		struct btrfs_root_backup *backup;
-		int index = find_best_backup_root(sb);
+	if (flags & OPEN_CTREE_BACKUP_ROOT) {
+		index = find_best_backup_root(sb);
 		if (index >= BTRFS_NUM_BACKUP_ROOTS) {
 			fprintf(stderr, "Invalid backup root number\n");
 			return -EIO;
 		}
-		backup = fs_info->super_copy->super_roots + index;
-		root_tree_bytenr = btrfs_backup_tree_root(backup);
-		generation = btrfs_backup_tree_root_gen(backup);
-		level = btrfs_backup_tree_root_level(backup);
+		backup = sb->super_roots + index;
 	}
 
-	ret = read_root_node(fs_info, root, root_tree_bytenr, generation,
-			     level);
+	if (!btrfs_fs_compat_ro(fs_info, BLOCK_GROUP_TREE) &&
+	    !(btrfs_super_flags(fs_info->super_copy) &
+	      BTRFS_SUPER_FLAG_CHANGING_BG_TREE)) {
+		free(fs_info->block_group_root);
+		fs_info->block_group_root = NULL;
+		goto tree_root;
+	}
+
+	root = fs_info->block_group_root;
+	btrfs_setup_root(root, fs_info, BTRFS_BLOCK_GROUP_TREE_OBJECTID);
+
+tree_root:
+	if (backup) {
+		bytenr = btrfs_backup_tree_root(backup);
+		gen = btrfs_backup_tree_root_gen(backup);
+		level = btrfs_backup_tree_root_level(backup);
+	} else {
+		if (root_tree_bytenr)
+			bytenr = root_tree_bytenr;
+		else
+			bytenr = btrfs_super_root(sb);
+		gen = btrfs_super_generation(sb);
+		level = btrfs_super_root_level(sb);
+	}
+
+	fs_info->generation = gen;
+	fs_info->last_trans_committed = gen;
+	root = fs_info->tree_root;
+	btrfs_setup_root(root, fs_info, BTRFS_ROOT_TREE_OBJECTID);
+
+	ret = read_root_node(fs_info, root, bytenr, gen, level);
 	if (ret) {
 		fprintf(stderr, "Couldn't read tree root\n");
 		return -EIO;
 	}
 
+	return 0;
+}
+
+int btrfs_setup_all_roots(struct btrfs_fs_info *fs_info, u64 root_tree_bytenr,
+			  unsigned flags)
+{
+	struct btrfs_super_block *sb = fs_info->super_copy;
+	struct btrfs_root *root = fs_info->tree_root;
+	struct btrfs_key key;
+	int ret;
+
+	ret = load_important_roots(fs_info, root_tree_bytenr, flags);
+	if (ret)
+		return ret;
+
 	ret = load_global_roots(fs_info, flags);
 	if (ret)
 		return ret;
 
-	ret = find_and_setup_root(root, fs_info, BTRFS_DEV_TREE_OBJECTID,
-				  fs_info->dev_root);
+	if (btrfs_fs_compat_ro(fs_info, BLOCK_GROUP_TREE) ||
+	    btrfs_super_flags(sb) & BTRFS_SUPER_FLAG_CHANGING_BG_TREE) {
+		ret = btrfs_find_and_setup_root(root, fs_info,
+				BTRFS_BLOCK_GROUP_TREE_OBJECTID,
+				fs_info->block_group_root);
+		if (ret) {
+			error("couldn't load block group tree");
+			return -EIO;
+		}
+		fs_info->block_group_root->track_dirty = 1;
+	}
+
+	ret = btrfs_find_and_setup_root(root, fs_info,
+					BTRFS_DEV_TREE_OBJECTID,
+					fs_info->dev_root);
 	if (ret) {
 		printk("Couldn't setup device tree\n");
 		return -EIO;
 	}
 	fs_info->dev_root->track_dirty = 1;
 
-	ret = find_and_setup_root(root, fs_info, BTRFS_UUID_TREE_OBJECTID,
-				  fs_info->uuid_root);
+	ret = btrfs_find_and_setup_root(root, fs_info,
+					BTRFS_UUID_TREE_OBJECTID,
+					fs_info->uuid_root);
 	if (ret) {
 		free(fs_info->uuid_root);
 		fs_info->uuid_root = NULL;
@@ -1196,8 +1255,9 @@ int btrfs_setup_all_roots(struct btrfs_fs_info *fs_info, u64 root_tree_bytenr,
 		fs_info->uuid_root->track_dirty = 1;
 	}
 
-	ret = find_and_setup_root(root, fs_info, BTRFS_QUOTA_TREE_OBJECTID,
-				  fs_info->quota_root);
+	ret = btrfs_find_and_setup_root(root, fs_info,
+					BTRFS_QUOTA_TREE_OBJECTID,
+					fs_info->quota_root);
 	if (ret) {
 		free(fs_info->quota_root);
 		fs_info->quota_root = NULL;
@@ -1212,8 +1272,6 @@ int btrfs_setup_all_roots(struct btrfs_fs_info *fs_info, u64 root_tree_bytenr,
 			return -EIO;
 	}
 
-	fs_info->generation = generation;
-	fs_info->last_trans_committed = generation;
 	if (maybe_load_block_groups(fs_info, flags)) {
 		ret = btrfs_read_block_groups(fs_info);
 		/*
@@ -1257,6 +1315,8 @@ static void release_global_roots(struct btrfs_fs_info *fs_info)
 void btrfs_release_all_roots(struct btrfs_fs_info *fs_info)
 {
 	release_global_roots(fs_info);
+	if (fs_info->block_group_root)
+		free_extent_buffer(fs_info->block_group_root->node);
 	if (fs_info->quota_root)
 		free_extent_buffer(fs_info->quota_root->node);
 	if (fs_info->dev_root)
@@ -1409,7 +1469,7 @@ static struct btrfs_fs_info *__open_ctree_fd(int fp, struct open_ctree_flags *oc
 
 	fs_info = btrfs_new_fs_info(flags & OPEN_CTREE_WRITES, sb_bytenr);
 	if (!fs_info) {
-		fprintf(stderr, "Failed to allocate memory for fs_info\n");
+		error_msg(ERROR_MSG_MEMORY, "fs_info");
 		return NULL;
 	}
 	if (flags & OPEN_CTREE_RESTORE)
@@ -1418,6 +1478,8 @@ static struct btrfs_fs_info *__open_ctree_fd(int fp, struct open_ctree_flags *oc
 		fs_info->suppress_check_block_errors = 1;
 	if (flags & OPEN_CTREE_IGNORE_FSID_MISMATCH)
 		fs_info->ignore_fsid_mismatch = 1;
+	if (flags & OPEN_CTREE_SKIP_CSUM_CHECK)
+		fs_info->skip_csum_check = 1;
 	if (flags & OPEN_CTREE_IGNORE_CHUNK_TREE_ERROR)
 		fs_info->ignore_chunk_tree_error = 1;
 	if (flags & OPEN_CTREE_HIDE_NAMES)
@@ -1474,6 +1536,8 @@ static struct btrfs_fs_info *__open_ctree_fd(int fp, struct open_ctree_flags *oc
 		goto out_devices;
 	}
 
+	/* CHECK: ignore_csum_mismatch */
+
 	ASSERT(!memcmp(disk_super->fsid, fs_devices->fsid, BTRFS_FSID_SIZE));
 	if (btrfs_fs_incompat(fs_info, METADATA_UUID))
 		ASSERT(!memcmp(disk_super->metadata_uuid,
@@ -1484,10 +1548,15 @@ static struct btrfs_fs_info *__open_ctree_fd(int fp, struct open_ctree_flags *oc
 	fs_info->stripesize = btrfs_super_stripesize(disk_super);
 	fs_info->csum_type = btrfs_super_csum_type(disk_super);
 	fs_info->csum_size = btrfs_super_csum_size(disk_super);
+	fs_info->leaf_data_size = __BTRFS_LEAF_DATA_SIZE(fs_info->nodesize);
 
 	ret = btrfs_check_fs_compatibility(fs_info->super_copy, flags);
 	if (ret)
 		goto out_devices;
+
+	if (btrfs_fs_incompat(fs_info, EXTENT_TREE_V2))
+		fs_info->nr_global_roots =
+			btrfs_super_nr_global_roots(fs_info->super_copy);
 
 	/*
 	 * fs_info->zone_size (and zoned) are not known before reading the
@@ -1721,20 +1790,6 @@ int btrfs_check_super(struct btrfs_super_block *sb, unsigned sbflags)
 		&& (btrfs_super_stripesize(sb) != btrfs_super_sectorsize(sb))) {
 		error("invalid stripesize %u", btrfs_super_stripesize(sb));
 		goto error_out;
-	}
-
-	if (btrfs_super_incompat_flags(sb) & BTRFS_FEATURE_INCOMPAT_EXTENT_TREE_V2) {
-		if (btrfs_super_block_group_root_level(sb) >= BTRFS_MAX_LEVEL) {
-			error("block_group_root level too big: %d >= %d",
-			      btrfs_super_block_group_root_level(sb),
-			      BTRFS_MAX_LEVEL);
-			goto error_out;
-		}
-		if (!IS_ALIGNED(btrfs_super_block_group_root(sb), 4096)) {
-			error("block_group_root block unaligned: %llu",
-			      btrfs_super_block_group_root(sb));
-			goto error_out;
-		}
 	}
 
 	if (btrfs_super_incompat_flags(sb) & BTRFS_FEATURE_INCOMPAT_METADATA_UUID)
@@ -1997,8 +2052,6 @@ static int write_dev_supers(struct btrfs_fs_info *fs_info,
 static void backup_super_roots(struct btrfs_fs_info *info)
 {
 	struct btrfs_root_backup *root_backup;
-	struct btrfs_root *csum_root = btrfs_csum_root(info, 0);
-	struct btrfs_root *extent_root = btrfs_extent_root(info, 0);
 	int next_backup;
 	int last_backup;
 
@@ -2030,11 +2083,6 @@ static void backup_super_roots(struct btrfs_fs_info *info)
 	btrfs_set_backup_chunk_root_level(root_backup,
 			       btrfs_header_level(info->chunk_root->node));
 
-	btrfs_set_backup_extent_root(root_backup, extent_root->node->start);
-	btrfs_set_backup_extent_root_gen(root_backup,
-			       btrfs_header_generation(extent_root->node));
-	btrfs_set_backup_extent_root_level(root_backup,
-			       btrfs_header_level(extent_root->node));
 	/*
 	 * we might commit during log recovery, which happens before we set
 	 * the fs_root.  Make sure it is valid before we fill it in.
@@ -2054,18 +2102,30 @@ static void backup_super_roots(struct btrfs_fs_info *info)
 	btrfs_set_backup_dev_root_level(root_backup,
 				       btrfs_header_level(info->dev_root->node));
 
-	btrfs_set_backup_csum_root(root_backup, csum_root->node->start);
-	btrfs_set_backup_csum_root_gen(root_backup,
-			       btrfs_header_generation(csum_root->node));
-	btrfs_set_backup_csum_root_level(root_backup,
-			       btrfs_header_level(csum_root->node));
-
 	btrfs_set_backup_total_bytes(root_backup,
 			     btrfs_super_total_bytes(info->super_copy));
 	btrfs_set_backup_bytes_used(root_backup,
 			     btrfs_super_bytes_used(info->super_copy));
 	btrfs_set_backup_num_devices(root_backup,
 			     btrfs_super_num_devices(info->super_copy));
+
+	if (!btrfs_fs_incompat(info, EXTENT_TREE_V2)) {
+		struct btrfs_root *extent_root = btrfs_extent_root(info, 0);
+		struct btrfs_root *csum_root = btrfs_csum_root(info, 0);
+
+		btrfs_set_backup_csum_root(root_backup, csum_root->node->start);
+		btrfs_set_backup_csum_root_gen(root_backup,
+				btrfs_header_generation(csum_root->node));
+		btrfs_set_backup_csum_root_level(root_backup,
+				btrfs_header_level(csum_root->node));
+
+		btrfs_set_backup_extent_root(root_backup,
+					     extent_root->node->start);
+		btrfs_set_backup_extent_root_gen(root_backup,
+			btrfs_header_generation(extent_root->node));
+		btrfs_set_backup_extent_root_level(root_backup,
+			btrfs_header_level(extent_root->node));
+	}
 }
 
 int write_all_supers(struct btrfs_fs_info *fs_info)
@@ -2223,27 +2283,49 @@ int btrfs_set_buffer_uptodate(struct extent_buffer *eb)
 	return set_extent_buffer_uptodate(eb);
 }
 
+int btrfs_delete_and_free_root(struct btrfs_trans_handle *trans,
+			       struct btrfs_root *root)
+{
+	struct btrfs_fs_info *fs_info = root->fs_info;
+	struct btrfs_root *tree_root = fs_info->tree_root;
+	int ret;
+
+	ret = btrfs_del_root(trans, tree_root, &root->root_key);
+	if (ret)
+		return ret;
+
+	list_del(&root->dirty_list);
+	ret = clean_tree_block(root->node);
+	if (ret)
+		return ret;
+	ret = btrfs_free_tree_block(trans, root, root->node, 0, 1);
+	if (ret)
+		return ret;
+	rb_erase(&root->rb_node, &fs_info->global_roots_tree);
+	free_extent_buffer(root->node);
+	free_extent_buffer(root->commit_root);
+	kfree(root);
+	return 0;
+}
+
 struct btrfs_root *btrfs_create_tree(struct btrfs_trans_handle *trans,
 				     struct btrfs_fs_info *fs_info,
-				     u64 objectid)
+				     struct btrfs_key *key)
 {
 	struct extent_buffer *leaf;
 	struct btrfs_root *tree_root = fs_info->tree_root;
 	struct btrfs_root *root;
-	struct btrfs_key key;
 	int ret = 0;
 
 	root = kzalloc(sizeof(*root), GFP_KERNEL);
 	if (!root)
 		return ERR_PTR(-ENOMEM);
 
-	btrfs_setup_root(root, fs_info, objectid);
-	root->root_key.objectid = objectid;
-	root->root_key.type = BTRFS_ROOT_ITEM_KEY;
-	root->root_key.offset = 0;
+	btrfs_setup_root(root, fs_info, key->objectid);
+	memcpy(&root->root_key, key, sizeof(struct btrfs_key));
 
-	leaf = btrfs_alloc_free_block(trans, root, fs_info->nodesize, objectid,
-			NULL, 0, 0, 0);
+	leaf = btrfs_alloc_free_block(trans, root, fs_info->nodesize,
+				      root->root_key.objectid, NULL, 0, 0, 0);
 	if (IS_ERR(leaf)) {
 		ret = PTR_ERR(leaf);
 		leaf = NULL;
@@ -2254,7 +2336,7 @@ struct btrfs_root *btrfs_create_tree(struct btrfs_trans_handle *trans,
 	btrfs_set_header_bytenr(leaf, leaf->start);
 	btrfs_set_header_generation(leaf, trans->transid);
 	btrfs_set_header_backref_rev(leaf, BTRFS_MIXED_BACKREF_REV);
-	btrfs_set_header_owner(leaf, objectid);
+	btrfs_set_header_owner(leaf, root->root_key.objectid);
 	root->node = leaf;
 	write_extent_buffer(leaf, fs_info->fs_devices->metadata_uuid,
 			    btrfs_header_fsid(), BTRFS_FSID_SIZE);
@@ -2279,10 +2361,8 @@ struct btrfs_root *btrfs_create_tree(struct btrfs_trans_handle *trans,
 	memset(root->root_item.uuid, 0, BTRFS_UUID_SIZE);
 	root->root_item.drop_level = 0;
 
-	key.objectid = objectid;
-	key.type = BTRFS_ROOT_ITEM_KEY;
-	key.offset = 0;
-	ret = btrfs_insert_root(trans, tree_root, &key, &root->root_item);
+	ret = btrfs_insert_root(trans, tree_root, &root->root_key,
+				&root->root_item);
 	if (ret)
 		goto fail;
 

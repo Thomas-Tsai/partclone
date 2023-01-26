@@ -1,6 +1,4 @@
 /*
- * Copyright (C) 2014 SUSE.  All rights reserved.
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
  * License v2 as published by the Free Software Foundation.
@@ -16,22 +14,15 @@
  * Boston, MA 021110-1307, USA.
  */
 
-#ifndef __BTRFS_QGROUP_VERIFY_H__
-#define __BTRFS_QGROUP_VERIFY_H__
+#ifndef __BTRFS_FILESYSTEM_UTILS_H__
+#define __BTRFS_FILESYSTEM_UTILS_H__
 
 #include "kerncompat.h"
-#include <stdbool.h>
 
-struct btrfs_fs_info;
-
-int qgroup_verify_all(struct btrfs_fs_info *info);
-void report_qgroups(int all);
-int repair_qgroups(struct btrfs_fs_info *info, int *repaired, bool silent);
-
-int print_extent_state(struct btrfs_fs_info *info, u64 subvol);
-
-void free_qgroup_counts(void);
-
-void qgroup_set_item_count_ptr(u64 *item_count_ptr);
+int lookup_path_rootid(int fd, u64 *rootid);
+int get_label(const char *btrfs_dev, char *label);
+int set_label(const char *btrfs_dev, const char *label);
+int get_label_mounted(const char *mount_path, char *labelp);
+int get_label_unmounted(const char *dev, char *label);
 
 #endif

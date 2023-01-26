@@ -26,8 +26,10 @@
 #include "kerncompat.h"
 #include "kernel-shared/extent_io.h"
 #include "kernel-lib/list.h"
+#include "kernel-lib/raid56.h"
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/volumes.h"
+#include "kernel-shared/disk-io.h"
 #include "common/utils.h"
 #include "common/device-utils.h"
 #include "common/internal.h"
@@ -39,13 +41,6 @@ void extent_io_tree_init(struct extent_io_tree *tree)
 	INIT_LIST_HEAD(&tree->lru);
 	tree->cache_size = 0;
 	tree->max_cache_size = (u64)total_memory() / 4;
-}
-
-void extent_io_tree_init_cache_max(struct extent_io_tree *tree,
-				   u64 max_cache_size)
-{
-	extent_io_tree_init(tree);
-	tree->max_cache_size = max_cache_size;
 }
 
 static struct extent_state *alloc_extent_state(void)
@@ -86,6 +81,11 @@ void extent_io_tree_cleanup(struct extent_io_tree *tree)
 	while(!list_empty(&tree->lru)) {
 		eb = list_entry(tree->lru.next, struct extent_buffer, lru);
 		if (eb->refs) {
+			/*
+			 * Reset extent buffer refs to 1, so the
+			 * free_extent_buffer_nocache() can free it for sure.
+			 */
+			eb->refs = 1;
 			fprintf(stderr,
 				"extent buffer leak: start %llu len %u\n",
 				(unsigned long long)eb->start, eb->len);
@@ -615,8 +615,6 @@ static struct extent_buffer *__alloc_extent_buffer(struct btrfs_fs_info *info,
 	eb->len = blocksize;
 	eb->refs = 1;
 	eb->flags = 0;
-	eb->fd = -1;
-	eb->dev_bytenr = (u64)-1;
 	eb->cache_node.start = bytenr;
 	eb->cache_node.size = blocksize;
 	eb->fs_info = info;
@@ -789,92 +787,163 @@ struct extent_buffer *alloc_dummy_extent_buffer(struct btrfs_fs_info *fs_info,
 	return ret;
 }
 
-int read_extent_from_disk(struct extent_buffer *eb,
-			  unsigned long offset, unsigned long len)
+static int read_raid56(struct btrfs_fs_info *fs_info, void *buf, u64 logical,
+		       u64 len, int mirror, struct btrfs_multi_bio *multi,
+		       u64 *raid_map)
 {
+	const int num_stripes = multi->num_stripes;
+	const u64 full_stripe_start = raid_map[0];
+	void **pointers = NULL;
+	int failed_a = -1;
+	int failed_b = -1;
+	int i;
 	int ret;
-	ret = btrfs_pread(eb->fd, eb->data + offset, len, eb->dev_bytenr,
-			  eb->fs_info->zoned);
-	if (ret < 0) {
-		ret = -errno;
+
+	/* Only read repair should go this path */
+	ASSERT(mirror > 1);
+	ASSERT(raid_map);
+
+	/* The read length should be inside one stripe */
+	ASSERT(len <= BTRFS_STRIPE_LEN);
+
+	pointers = calloc(num_stripes, sizeof(void *));
+	if (!pointers) {
+		ret = -ENOMEM;
 		goto out;
 	}
-	if (ret != len) {
-		ret = -EIO;
-		goto out;
+	/* Allocate memory for the full stripe */
+	for (i = 0; i < num_stripes; i++) {
+		pointers[i] = malloc(BTRFS_STRIPE_LEN);
+		if (!pointers[i]) {
+			ret = -ENOMEM;
+			goto out;
+		}
 	}
+
+	/*
+	 * Read the full stripe.
+	 *
+	 * The stripes in @multi is not rotated, thus can be used to read from
+	 * disk directly.
+	 */
+	for (i = 0; i < num_stripes; i++) {
+		ret = btrfs_pread(multi->stripes[i].dev->fd, pointers[i],
+				  BTRFS_STRIPE_LEN, multi->stripes[i].physical,
+				  fs_info->zoned);
+		if (ret < BTRFS_STRIPE_LEN) {
+			ret = -EIO;
+			goto out;
+		}
+	}
+
+	/*
+	 * Get the failed index.
+	 *
+	 * Since we're reading using mirror_num > 1 already, it means the data
+	 * stripe where @logical lies in is definitely corrupted.
+	 */
+	failed_a = (logical - full_stripe_start) / BTRFS_STRIPE_LEN;
+
+	/*
+	 * For RAID6, we don't have good way to exhaust all the combinations,
+	 * so here we can only go through the map to see if we have missing devices.
+	 */
+	if (multi->type & BTRFS_BLOCK_GROUP_RAID6) {
+		for (i = 0; i < num_stripes; i++) {
+			/* Skip failed_a, as it's already marked failed */
+			if (i == failed_a)
+				continue;
+			/* Missing dev */
+			if (multi->stripes[i].dev->fd == -1) {
+				failed_b = i;
+				break;
+			}
+		}
+		/*
+		 * No missing device, we have no better idea, default to P
+		 * corruption
+		 */
+		if (failed_b < 0)
+			failed_b = num_stripes - 2;
+	}
+
+	/* Rebuild the full stripe */
+	ret = raid56_recov(num_stripes, BTRFS_STRIPE_LEN, multi->type,
+			   failed_a, failed_b, pointers);
+	ASSERT(ret == 0);
+
+	/* Now copy the data back to original buf */
+	memcpy(buf, pointers[failed_a] + (logical - full_stripe_start) %
+			BTRFS_STRIPE_LEN, len);
 	ret = 0;
 out:
+	for (i = 0; i < num_stripes; i++)
+		free(pointers[i]);
+	free(pointers);
 	return ret;
 }
 
-int write_extent_to_disk(struct extent_buffer *eb)
-{
-	int ret;
-	ret = btrfs_pwrite(eb->fd, eb->data, eb->len, eb->dev_bytenr,
-			   eb->fs_info->zoned);
-	if (ret < 0)
-		goto out;
-	if (ret != eb->len) {
-		ret = -EIO;
-		goto out;
-	}
-	ret = 0;
-out:
-	return ret;
-}
-
-int read_data_from_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
-			u64 bytes, int mirror)
+int read_data_from_disk(struct btrfs_fs_info *info, void *buf, u64 logical,
+			u64 *len, int mirror)
 {
 	struct btrfs_multi_bio *multi = NULL;
 	struct btrfs_device *device;
-	u64 bytes_left = bytes;
-	u64 read_len;
-	u64 total_read = 0;
+	u64 read_len = *len;
+	u64 *raid_map = NULL;
 	int ret;
 
-	while (bytes_left) {
-		read_len = bytes_left;
-		ret = btrfs_map_block(info, READ, offset, &read_len, &multi,
-				      mirror, NULL);
-		if (ret) {
-			fprintf(stderr, "Couldn't map the block %llu\n",
-				offset);
-			return -EIO;
-		}
-		device = multi->stripes[0].dev;
-
-		read_len = min(bytes_left, read_len);
-		if (device->fd <= 0) {
-			kfree(multi);
-			return -EIO;
-		}
-
-		ret = btrfs_pread(device->fd, buf + total_read, read_len,
-				  multi->stripes[0].physical, info->zoned);
-		kfree(multi);
-		if (ret < 0) {
-			fprintf(stderr, "Error reading %llu, %d\n", offset,
-				ret);
-			return ret;
-		}
-		if (ret != read_len) {
-			fprintf(stderr, "Short read for %llu, read %d, "
-				"read_len %llu\n", offset, ret, read_len);
-			return -EIO;
-		}
-
-		bytes_left -= read_len;
-		offset += read_len;
-		total_read += read_len;
+	ret = btrfs_map_block(info, READ, logical, &read_len, &multi, mirror,
+			      &raid_map);
+	if (ret) {
+		fprintf(stderr, "Couldn't map the block %llu\n", logical);
+		return -EIO;
 	}
+	read_len = min(*len, read_len);
+
+	/* We need to rebuild from P/Q */
+	if (mirror > 1 && multi->type & BTRFS_BLOCK_GROUP_RAID56_MASK) {
+		ret = read_raid56(info, buf, logical, read_len, mirror, multi,
+				  raid_map);
+		free(multi);
+		free(raid_map);
+		*len = read_len;
+		return ret;
+	}
+	free(raid_map);
+	device = multi->stripes[0].dev;
+
+	if (device->fd <= 0) {
+		kfree(multi);
+		return -EIO;
+	}
+
+	ret = btrfs_pread(device->fd, buf, read_len,
+			  multi->stripes[0].physical, info->zoned);
+	kfree(multi);
+	if (ret < 0) {
+		fprintf(stderr, "Error reading %llu, %d\n", logical,
+			ret);
+		return ret;
+	}
+	if (ret != read_len) {
+		fprintf(stderr,
+			"Short read for %llu, read %d, read_len %llu\n",
+			logical, ret, read_len);
+		return -EIO;
+	}
+	*len = read_len;
 
 	return 0;
 }
 
+/*
+ * Write the data in @buf to logical bytenr @offset.
+ *
+ * Such data will be written to all mirrors and RAID56 P/Q will also be
+ * properly handled.
+ */
 int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
-		      u64 bytes, int mirror)
+		       u64 bytes)
 {
 	struct btrfs_multi_bio *multi = NULL;
 	struct btrfs_device *device;
@@ -891,7 +960,7 @@ int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 		dev_nr = 0;
 
 		ret = btrfs_map_block(info, WRITE, offset, &this_len, &multi,
-				      mirror, &raid_map);
+				      0, &raid_map);
 		if (ret) {
 			fprintf(stderr, "Couldn't map the block %llu\n",
 				offset);
@@ -907,7 +976,7 @@ int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 
 			eb = malloc(sizeof(struct extent_buffer) + this_len);
 			if (!eb) {
-				fprintf(stderr, "cannot allocate memory for eb\n");
+				error_msg(ERROR_MSG_MEMORY, "extent buffer");
 				ret = -ENOMEM;
 				goto out;
 			}
@@ -919,7 +988,7 @@ int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 			memcpy(eb->data, buf + total_write, this_len);
 			ret = write_raid56_with_parity(info, eb, multi,
 						       stripe_len, raid_map);
-			BUG_ON(ret);
+			BUG_ON(ret < 0);
 
 			free(eb);
 			kfree(raid_map);
@@ -934,6 +1003,7 @@ int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 			dev_bytenr = multi->stripes[dev_nr].physical;
 			this_len = min(this_len, bytes_left);
 			dev_nr++;
+			device->total_ios++;
 
 			ret = btrfs_pwrite(device->fd, buf + total_write,
 					   this_len, dev_bytenr, info->zoned);
@@ -941,7 +1011,7 @@ int write_data_to_disk(struct btrfs_fs_info *info, void *buf, u64 offset,
 				if (ret < 0) {
 					fprintf(stderr, "Error writing to "
 						"device %d\n", errno);
-					ret = errno;
+					ret = -errno;
 					kfree(multi);
 					return ret;
 				} else {

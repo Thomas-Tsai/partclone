@@ -17,43 +17,28 @@
  * Boston, MA 021110-1307, USA.
  */
 
+#include "kerncompat.h"
+#include <sys/ioctl.h>
+#include <sys/sysinfo.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
-#include <sys/mount.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/sysinfo.h>
-#include <uuid/uuid.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <mntent.h>
 #include <ctype.h>
 #include <limits.h>
-#include <blkid/blkid.h>
-#include <sys/vfs.h>
-#include <sys/statfs.h>
-#include <linux/magic.h>
-#include <getopt.h>
-
-#include <btrfsutil.h>
-
-#include "kerncompat.h"
-#include "kernel-lib/radix-tree.h"
+#include <uuid/uuid.h>
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/disk-io.h"
-#include "kernel-shared/transaction.h"
-#include "crypto/crc32c.h"
+#include "kernel-shared/volumes.h"
 #include "common/utils.h"
 #include "common/path-utils.h"
-#include "common/device-scan.h"
-#include "common/parse-utils.h"
-#include "kernel-shared/volumes.h"
-#include "ioctl.h"
-#include "cmds/commands.h"
 #include "common/open-utils.h"
+#include "common/messages.h"
+#include "cmds/commands.h"
 #include "mkfs/common.h"
+#include "ioctl.h"
 
 static int rand_seed_initialized = 0;
 static unsigned short rand_seed[3];
@@ -64,209 +49,6 @@ struct pending_dir {
 	struct list_head list;
 	char name[PATH_MAX];
 };
-
-/*
- * Checks to make sure that the label matches our requirements.
- * Returns:
-       0    if everything is safe and usable
-      -1    if the label is too long
- */
-static int check_label(const char *input)
-{
-       int len = strlen(input);
-
-       if (len > BTRFS_LABEL_SIZE - 1) {
-		error("label %s is too long (max %d)", input,
-				BTRFS_LABEL_SIZE - 1);
-               return -1;
-       }
-
-       return 0;
-}
-
-static int set_label_unmounted(const char *dev, const char *label)
-{
-	struct btrfs_trans_handle *trans;
-	struct btrfs_root *root;
-	int ret;
-
-	ret = check_mounted(dev);
-	if (ret < 0) {
-	       error("checking mount status of %s failed: %d", dev, ret);
-	       return -1;
-	}
-	if (ret > 0) {
-		error("device %s is mounted, use mount point", dev);
-		return -1;
-	}
-
-	/* Open the super_block at the default location
-	 * and as read-write.
-	 */
-	root = open_ctree(dev, 0, OPEN_CTREE_WRITES);
-	if (!root) /* errors are printed by open_ctree() */
-		return -1;
-
-	trans = btrfs_start_transaction(root, 1);
-	BUG_ON(IS_ERR(trans));
-	__strncpy_null(root->fs_info->super_copy->label, label, BTRFS_LABEL_SIZE - 1);
-
-	btrfs_commit_transaction(trans, root);
-
-	/* Now we close it since we are done. */
-	close_ctree(root);
-	return 0;
-}
-
-static int set_label_mounted(const char *mount_path, const char *labelp)
-{
-	int fd;
-	char label[BTRFS_LABEL_SIZE];
-
-	fd = open(mount_path, O_RDONLY | O_NOATIME);
-	if (fd < 0) {
-		error("unable to access %s: %m", mount_path);
-		return -1;
-	}
-
-	memset(label, 0, sizeof(label));
-	__strncpy_null(label, labelp, BTRFS_LABEL_SIZE - 1);
-	if (ioctl(fd, BTRFS_IOC_SET_FSLABEL, label) < 0) {
-		error("unable to set label of %s: %m", mount_path);
-		close(fd);
-		return -1;
-	}
-
-	close(fd);
-	return 0;
-}
-
-int get_label_unmounted(const char *dev, char *label)
-{
-	struct btrfs_root *root;
-	int ret;
-
-	ret = check_mounted(dev);
-	if (ret < 0) {
-	       error("checking mount status of %s failed: %d", dev, ret);
-	       return -1;
-	}
-
-	/* Open the super_block at the default location
-	 * and as read-only.
-	 */
-	root = open_ctree(dev, 0, 0);
-	if(!root)
-		return -1;
-
-	__strncpy_null(label, root->fs_info->super_copy->label,
-			BTRFS_LABEL_SIZE - 1);
-
-	/* Now we close it since we are done. */
-	close_ctree(root);
-	return 0;
-}
-
-/*
- * If a partition is mounted, try to get the filesystem label via its
- * mounted path rather than device.  Return the corresponding error
- * the user specified the device path.
- */
-int get_label_mounted(const char *mount_path, char *labelp)
-{
-	char label[BTRFS_LABEL_SIZE];
-	int fd;
-	int ret;
-
-	fd = open(mount_path, O_RDONLY | O_NOATIME);
-	if (fd < 0) {
-		error("unable to access %s: %m", mount_path);
-		return -1;
-	}
-
-	memset(label, '\0', sizeof(label));
-	ret = ioctl(fd, BTRFS_IOC_GET_FSLABEL, label);
-	if (ret < 0) {
-		if (errno != ENOTTY)
-			error("unable to get label of %s: %m", mount_path);
-		ret = -errno;
-		close(fd);
-		return ret;
-	}
-
-	__strncpy_null(labelp, label, BTRFS_LABEL_SIZE - 1);
-	close(fd);
-	return 0;
-}
-
-int get_label(const char *btrfs_dev, char *label)
-{
-	int ret;
-
-	ret = path_is_reg_or_block_device(btrfs_dev);
-	if (!ret)
-		ret = get_label_mounted(btrfs_dev, label);
-	else if (ret > 0)
-		ret = get_label_unmounted(btrfs_dev, label);
-
-	return ret;
-}
-
-int set_label(const char *btrfs_dev, const char *label)
-{
-	int ret;
-
-	if (check_label(label))
-		return -1;
-
-	ret = path_is_reg_or_block_device(btrfs_dev);
-	if (!ret)
-		ret = set_label_mounted(btrfs_dev, label);
-	else if (ret > 0)
-		ret = set_label_unmounted(btrfs_dev, label);
-
-	return ret;
-}
-
-u64 parse_qgroupid_or_path(const char *p)
-{
-	enum btrfs_util_error err;
-	u64 id;
-	u64 qgroupid;
-	int fd;
-	int ret = 0;
-
-	if (p[0] == '/')
-		goto path;
-
-	ret = parse_qgroupid(p, &qgroupid);
-	if (ret < 0)
-		goto err;
-
-	return qgroupid;
-
-path:
-	/* Path format like subv at 'my_subvol' is the fallback case */
-	err = btrfs_util_is_subvolume(p);
-	if (err)
-		goto err;
-	fd = open(p, O_RDONLY);
-	if (fd < 0)
-		goto err;
-	ret = lookup_path_rootid(fd, &id);
-	if (ret) {
-		errno = -ret;
-		error("failed to lookup root id: %m");
-	}
-	close(fd);
-	if (ret < 0)
-		goto err;
-	return id;
-
-err:
-	error("invalid qgroupid or subvolume path: %s", p);
-	exit(-1);
-}
 
 void btrfs_format_csum(u16 csum_type, const u8 *data, char *output)
 {
@@ -586,17 +368,15 @@ int test_num_disk_vs_raid(u64 metadata_profile, u64 data_profile,
 		warning("DUP is not recommended on filesystem with multiple devices");
 	}
 	if (metadata_profile & ~allowed) {
-		fprintf(stderr,
-			"ERROR: unable to create FS with metadata profile %s "
-			"(have %llu devices but %d devices are required)\n",
+		error("unable to create FS with metadata profile %s "
+			"(have %llu devices but %d devices are required)",
 			btrfs_group_profile_str(metadata_profile), dev_cnt,
 			btrfs_bg_type_to_devs_min(metadata_profile));
 		return 1;
 	}
 	if (data_profile & ~allowed) {
-		fprintf(stderr,
-			"ERROR: unable to create FS with data profile %s "
-			"(have %llu devices but %d devices are required)\n",
+		error("ERROR: unable to create FS with data profile %s "
+			"(have %llu devices but %d devices are required)",
 			btrfs_group_profile_str(data_profile), dev_cnt,
 			btrfs_bg_type_to_devs_min(data_profile));
 		return 1;
@@ -645,7 +425,7 @@ struct mnt_entry {
 };
 
 /*
- * Find first occurence of up an option string (as "option=") in @options,
+ * Find first occurrence of up an option string (as "option=") in @options,
  * separated by comma. Return allocated string as "option=value"
  */
 static char *find_option(const char *options, const char *option)
@@ -818,7 +598,7 @@ static void parse_mntinfo_line(char *line, struct mnt_entry *ent)
  *   37 29 0:32 /vol/dir2 /othermnt ro,relatime - btrfs /dev/sda2 ro,ssd,space_cache,subvolid=256,subvol=/vol
  *
  * If we try to find a mount point only using subvol and subvolid from mount
- * options we would get mislead to belive that /othermnt has the same content
+ * options we would get mislead to believe that /othermnt has the same content
  * as /mnt.
  *
  * But, using mountinfo, we have the pathaname _inside_ the filesystem, so we
@@ -1060,28 +840,6 @@ int count_digits(u64 num)
 		num /= 10;
 	}
 	return ret;
-}
-
-int string_is_numerical(const char *str)
-{
-	if (!str)
-		return 0;
-	if (!(*str >= '0' && *str <= '9'))
-		return 0;
-	while (*str >= '0' && *str <= '9')
-		str++;
-	if (*str != '\0')
-		return 0;
-	return 1;
-}
-
-int prefixcmp(const char *str, const char *prefix)
-{
-	for (; ; str++, prefix++)
-		if (!*prefix)
-			return 0;
-		else if (*str != *prefix)
-			return (unsigned char)*prefix - (unsigned char)*str;
 }
 
 const char *subvol_strip_mountpoint(const char *mnt, const char *full_path)
@@ -1380,19 +1138,11 @@ int btrfs_warn_multiple_profiles(int fd)
 	if (ret != 1)
 		return ret;
 
-	fprintf(stderr,
-		"WARNING: Multiple block group profiles detected, see 'man btrfs(5)'.\n");
-	if (data_prof)
-		fprintf(stderr, "WARNING:   Data: %s\n", data_prof);
-
-	if (metadata_prof)
-		fprintf(stderr, "WARNING:   Metadata: %s\n", metadata_prof);
-
-	if (mixed_prof)
-		fprintf(stderr, "WARNING:   Data+Metadata: %s\n", mixed_prof);
-
-	if (system_prof)
-		fprintf(stderr, "WARNING:   System: %s\n", system_prof);
+	warning("Multiple block group profiles detected, see 'man btrfs(5)'");
+	warning_on(!!data_prof,     "   Data: %s", data_prof);
+	warning_on(!!metadata_prof, "   Metadata: %s", metadata_prof);
+	warning_on(!!mixed_prof,    "   Data+Metadata: %s", mixed_prof);
+	warning_on(!!system_prof,   "   System: %s", system_prof);
 
 	free(data_prof);
 	free(metadata_prof);
@@ -1400,6 +1150,14 @@ int btrfs_warn_multiple_profiles(int fd)
 	free(system_prof);
 
 	return 1;
+}
+
+void btrfs_warn_experimental(const char *str)
+{
+#if EXPERIMENTAL
+	warning("Experimental build with unstable or unfinished features");
+	warning_on(str != NULL, "%s\n", str);
+#endif
 }
 
 /*
@@ -1477,6 +1235,7 @@ int sysfs_read_file(int fd, char *buf, size_t size)
 static const char exclop_def[][16] = {
 	[BTRFS_EXCLOP_NONE]		= "none",
 	[BTRFS_EXCLOP_BALANCE]		= "balance",
+	[BTRFS_EXCLOP_BALANCE_PAUSED]	= "balance paused",
 	[BTRFS_EXCLOP_DEV_ADD]		= "device add",
 	[BTRFS_EXCLOP_DEV_REMOVE]	= "device remove",
 	[BTRFS_EXCLOP_DEV_REPLACE]	= "device replace",
@@ -1554,6 +1313,15 @@ int check_running_fs_exclop(int fd, enum exclusive_operation start, bool enqueue
 		goto out;
 	}
 
+	/*
+	 * Some combinations are compatible:
+	 * - start device add when balance is paused (kernel 5.17)
+	 */
+	if (start == BTRFS_EXCLOP_DEV_ADD && exclop == BTRFS_EXCLOP_BALANCE_PAUSED) {
+		ret = 0;
+		goto out;
+	}
+
 	if (!enqueue) {
 		error(
 	"unable to start %s, another exclusive operation '%s' in progress",
@@ -1593,61 +1361,4 @@ out:
 	close(sysfs_fd);
 
 	return ret;
-}
-
-/*
- * This function should be only used when parsing command arg, it won't return
- * error to its caller and rather exit directly just like usage().
- */
-u64 arg_strtou64(const char *str)
-{
-	u64 value;
-	char *ptr_parse_end = NULL;
-
-	value = strtoull(str, &ptr_parse_end, 0);
-	if (ptr_parse_end && *ptr_parse_end != '\0') {
-		fprintf(stderr, "ERROR: %s is not a valid numeric value.\n",
-			str);
-		exit(1);
-	}
-
-	/*
-	 * if we pass a negative number to strtoull, it will return an
-	 * unexpected number to us, so let's do the check ourselves.
-	 */
-	if (str[0] == '-') {
-		fprintf(stderr, "ERROR: %s: negative value is invalid.\n",
-			str);
-		exit(1);
-	}
-	if (value == ULLONG_MAX) {
-		fprintf(stderr, "ERROR: %s is too large.\n", str);
-		exit(1);
-	}
-	return value;
-}
-
-/*
- * For a given:
- * - file or directory return the containing tree root id
- * - subvolume return its own tree id
- * - BTRFS_EMPTY_SUBVOL_DIR_OBJECTID (directory with ino == 2) the result is
- *   undefined and function returns -1
- */
-int lookup_path_rootid(int fd, u64 *rootid)
-{
-	struct btrfs_ioctl_ino_lookup_args args;
-	int ret;
-
-	memset(&args, 0, sizeof(args));
-	args.treeid = 0;
-	args.objectid = BTRFS_FIRST_FREE_OBJECTID;
-
-	ret = ioctl(fd, BTRFS_IOC_INO_LOOKUP, &args);
-	if (ret < 0)
-		return -errno;
-
-	*rootid = args.treeid;
-
-	return 0;
 }

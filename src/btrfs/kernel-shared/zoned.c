@@ -33,21 +33,16 @@
 /* Pseudo write pointer value for conventional zone */
 #define WP_CONVENTIONAL			((u64)-2)
 
-/*
- * Location of the first zone of superblock logging zone pairs.
- *
- * - primary superblock:    0B (zone 0)
- * - first copy:          512G (zone starting at that offset)
- * - second copy:           4T (zone starting at that offset)
- */
-#define BTRFS_SB_LOG_PRIMARY_OFFSET	(0ULL)
-#define BTRFS_SB_LOG_FIRST_OFFSET	(512ULL * SZ_1G)
-#define BTRFS_SB_LOG_SECOND_OFFSET	(4096ULL * SZ_1G)
-
-#define BTRFS_SB_LOG_FIRST_SHIFT	const_ilog2(BTRFS_SB_LOG_FIRST_OFFSET)
-#define BTRFS_SB_LOG_SECOND_SHIFT	const_ilog2(BTRFS_SB_LOG_SECOND_OFFSET)
-
 #define EMULATED_ZONE_SIZE		SZ_256M
+
+/*
+ * Minimum / maximum supported zone size. Currently, SMR disks have a zone size
+ * of 256MiB, and we are expecting ZNS drives to be in the 1-4GiB range.  We do
+ * not expect the zone size to become larger than 8GiB or smaller than 4MiB in
+ * the near future.
+ */
+#define BTRFS_MAX_ZONE_SIZE		(8ULL * SZ_1G)
+#define BTRFS_MIN_ZONE_SIZE		(SZ_4M)
 
 static int btrfs_get_dev_zone_info(struct btrfs_device *device);
 
@@ -131,7 +126,7 @@ static int emulate_report_zones(const char *file, int fd, u64 pos,
 		return -EIO;
 	}
 
-	bdev_size = btrfs_device_size(fd, &st) >> SECTOR_SHIFT;
+	bdev_size = device_get_partition_size_fd_stat(fd, &st) >> SECTOR_SHIFT;
 
 	pos >>= SECTOR_SHIFT;
 	for (i = 0; i < nr_zones; i++) {
@@ -220,25 +215,6 @@ static int sb_write_pointer(int fd, struct blk_zone *zones, u64 *wp_ret)
 	return 0;
 }
 
-/*
- * Get the first zone number of the superblock mirror
- */
-static inline u32 sb_zone_number(int shift, int mirror)
-{
-	u64 zone = 0;
-
-	ASSERT(0 <= mirror && mirror < BTRFS_SUPER_MIRROR_MAX);
-	switch (mirror) {
-	case 0: zone = 0; break;
-	case 1: zone = 1ULL << (BTRFS_SB_LOG_FIRST_SHIFT - shift); break;
-	case 2: zone = 1ULL << (BTRFS_SB_LOG_SECOND_SHIFT - shift); break;
-	}
-
-	ASSERT(zone <= U32_MAX);
-
-	return (u32)zone;
-}
-
 int btrfs_reset_dev_zone(int fd, struct blk_zone *zone)
 {
 	struct blk_zone_range range;
@@ -298,7 +274,7 @@ static int report_zones(int fd, const char *file,
 		return -EIO;
 	}
 
-	device_size = btrfs_device_size(fd, &st);
+	device_size = device_get_partition_size_fd_stat(fd, &st);
 	if (device_size == 0) {
 		error("zoned: failed to read size of %s: %m", file);
 		exit(1);
@@ -307,6 +283,17 @@ static int report_zones(int fd, const char *file,
 	/* Allocate the zone information array */
 	zinfo->zone_size = zone_bytes;
 	zinfo->nr_zones = device_size / zone_bytes;
+
+	if (zinfo->zone_size > BTRFS_MAX_ZONE_SIZE) {
+		error("zoned: zone size %llu larger than supported maximum %llu",
+		      zinfo->zone_size, BTRFS_MAX_ZONE_SIZE);
+		exit(1);
+	} else if (zinfo->zone_size < BTRFS_MIN_ZONE_SIZE) {
+		error("zoned: zone size %llu smaller than supported minimum %u",
+		      zinfo->zone_size, BTRFS_MIN_ZONE_SIZE);
+		exit(1);
+	}
+
 	if (device_size & (zone_bytes - 1))
 		zinfo->nr_zones++;
 
@@ -318,7 +305,7 @@ static int report_zones(int fd, const char *file,
 
 	zinfo->zones = calloc(zinfo->nr_zones, sizeof(struct blk_zone));
 	if (!zinfo->zones) {
-		error("zoned: no memory for zone information");
+		error_msg(ERROR_MSG_MEMORY, "zone information");
 		exit(1);
 	}
 
@@ -327,7 +314,7 @@ static int report_zones(int fd, const char *file,
 		   sizeof(struct blk_zone) * BTRFS_REPORT_NR_ZONES;
 	rep = malloc(rep_size);
 	if (!rep) {
-		error("zoned: no memory for zones report");
+		error_msg(ERROR_MSG_MEMORY, "zone report");
 		exit(1);
 	}
 
@@ -499,7 +486,7 @@ size_t btrfs_sb_io(int fd, void *buf, off_t offset, int rw)
 	ASSERT(rw == READ || rw == WRITE);
 
 	if (fstat(fd, &stat_buf) == -1) {
-		error("fstat failed (%s)", strerror(errno));
+		error("fstat failed: %m");
 		exit(1);
 	}
 
@@ -548,7 +535,7 @@ size_t btrfs_sb_io(int fd, void *buf, off_t offset, int rw)
 	rep_size = sizeof(struct blk_zone_report) + sizeof(struct blk_zone) * 2;
 	rep = calloc(1, rep_size);
 	if (!rep) {
-		error("zoned: no memory for zones report");
+		error_msg(ERROR_MSG_MEMORY, "zone report");
 		exit(1);
 	}
 
@@ -602,7 +589,7 @@ size_t btrfs_sb_io(int fd, void *buf, off_t offset, int rw)
 
 	/* Call fsync() to force the write order */
 	if (rw == WRITE && fsync(fd)) {
-		error("failed to synchronize superblock: %s", strerror(errno));
+		error("failed to synchronize superblock: %m");
 		exit(1);
 	}
 
@@ -808,14 +795,20 @@ out:
 	return ret;
 }
 
-static bool profile_supported(u64 flags)
+bool zoned_profile_supported(u64 map_type)
 {
-	flags &= BTRFS_BLOCK_GROUP_PROFILE_MASK;
+	bool data = (map_type & BTRFS_BLOCK_GROUP_DATA);
+	u64 flags = (map_type & BTRFS_BLOCK_GROUP_PROFILE_MASK);
 
 	/* SINGLE */
 	if (flags == 0)
 		return true;
-	/* non-single profiles are not supported yet */
+
+	/* We can support DUP on metadata */
+	if (!data && (flags & BTRFS_BLOCK_GROUP_DUP))
+		return true;
+
+	/* All other profiles are not supported yet */
 	return false;
 }
 
@@ -860,7 +853,7 @@ int btrfs_load_block_group_zone_info(struct btrfs_fs_info *fs_info,
 
 	alloc_offsets = calloc(map->num_stripes, sizeof(*alloc_offsets));
 	if (!alloc_offsets) {
-		error("zoned: failed to allocate alloc_offsets");
+		error_msg(ERROR_MSG_MEMORY, "zone offsets");
 		return -ENOMEM;
 	}
 
@@ -930,7 +923,7 @@ int btrfs_load_block_group_zone_info(struct btrfs_fs_info *fs_info,
 		}
 	}
 
-	if (!profile_supported(map->type)) {
+	if (!zoned_profile_supported(map->type)) {
 		error("zoned: profile %s not yet supported",
 		      btrfs_group_profile_str(map->type));
 		ret = -EINVAL;
@@ -1087,7 +1080,7 @@ int btrfs_get_zone_info(int fd, const char *file,
 #ifdef BTRFS_ZONED
 	zinfo = calloc(1, sizeof(*zinfo));
 	if (!zinfo) {
-		error("zoned: no memory for zone information");
+		error_msg(ERROR_MSG_MEMORY, "zone information");
 		exit(1);
 	}
 
