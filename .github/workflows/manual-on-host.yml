@@ -1,10 +1,9 @@
 name: Manual workflow on my host
 on:
   workflow_dispatch:
-    inputs:
-      name:
-        description: 'manually run build and IO test'
-
+  push:
+    tags:
+      - '*'
 jobs:
   build:
     runs-on: self-hosted
