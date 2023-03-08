@@ -26,7 +26,9 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef MEMTRACE
 #include <mcheck.h>
+#endif
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
