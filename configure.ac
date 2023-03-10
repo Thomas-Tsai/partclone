@@ -439,6 +439,12 @@ AC_CHECK_LIB(crypto, EVP_MD_CTX_new, [AC_DEFINE([HAVE_EVP_MD_CTX_new],1,[OpenSSL
 AC_CHECK_LIB(crypto, EVP_MD_CTX_create, [AC_DEFINE([HAVE_EVP_MD_CTX_create],1,[OpenSSL 1.0+])])
 AC_CHECK_LIB(crypto, EVP_MD_CTX_reset, [AC_DEFINE([HAVE_EVP_MD_CTX_reset],1,[OpenSSL 1.1.0+])])
 
+##libm##
+AC_CHECK_DECLS([isnormal], [], [], [[#include <math.h>]])
+if test "$ac_cv_have_decl_isnormal" = "yes" ; then
+    AC_TRY_LINK([#include <math.h>], [float f = 0.0; return isnormal(f)], [], [LIBS="$LIBS -lm"])
+fi
+
 ##static linking##
 AC_ARG_ENABLE([static],
     AS_HELP_STRING(
