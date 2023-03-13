@@ -79,6 +79,9 @@
 /* Define to 1 if you have the <mqueue.h> header file. */
 #undef HAVE_MQUEUE_H
 
+/* Define to 1 if you have the <mtrace.h> header file. */
+#undef HAVE_MTRACE_H
+
 /* Define to 1 if you have the <ncurses.h> header file. */
 #undef HAVE_NCURSES_H
 

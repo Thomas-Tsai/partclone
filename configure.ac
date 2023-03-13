@@ -457,6 +457,10 @@ AC_ARG_ENABLE([mtrace],
         [--enable-mtrace],
         [enable memory tracing])
 )
+if test "$enable_mtrace" = "yes"; then
+AC_CHECK_HEADERS([mtrace.h], ,
+    AC_MSG_ERROR([*** mtrace header file (mtrace.h) not found]))
+fi
 enable_memtrace=$enable_mtrace
 AM_CONDITIONAL(ENABLE_MEMTRACE, test "$enable_memtrace" = yes)
 
