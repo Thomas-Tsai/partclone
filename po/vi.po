@@ -114,8 +114,8 @@ msgstr "Bắt đầu phục hồi ảnh (%s) vào thiết bị (%s)\n"
 
 #: src/partclone.c:1826
 #, c-format
-msgid "Starting to back up device(%s) to device(%s)\n"
-msgstr "Bắt đầu sao lưu dự phòng thiết bị (%s) vào thiết bị(%s)\n"
+msgid "Starting to back up device(%s) to device (%s)\n"
+msgstr "Bắt đầu sao lưu dự phòng thiết bị (%s) vào thiết bị (%s)\n"
 
 #: src/partclone.c:1828
 #, c-format
@@ -123,9 +123,9 @@ msgid "Starting to map device (%s) to domain log (%s)\n"
 msgstr "Bắt đầu ánh xạ thiết bị (%s) vào nhật ký tên miền (%s)\n"
 
 #: src/partclone.c:1831
-#, fuzzy, c-format
+#, c-format
 msgid "Starting to dd image (%s) to block files (%s)\n"
-msgstr "Bắt đầu phục hồi ảnh (%s) vào thiết bị (%s)\n"
+msgstr "Bắt đầu với hình ảnh dd (%s) để chặn tệp (%s)\n"
 
 #: src/partclone.c:1833
 #, c-format
@@ -133,14 +133,14 @@ msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
 msgstr "Bắt đầu nhân bản thiết bị (%s) thành ảnh (%s)\n"
 
 #: src/partclone.c:1835
-#, fuzzy, c-format
+#, c-format
 msgid "Showing info of image (%s)\n"
-msgstr "Đang kiểm tra ảnh (%s)\n"
+msgstr "Hiển thị thông tin của hình ảnh (%s)\n"
 
 #: src/partclone.c:1856
 #, c-format
 msgid "File system:  %s\n"
-msgstr "Hê thống tập tin:     %s\n"
+msgstr "Hê thống tập tin:  %s\n"
 
 #: src/partclone.c:1859
 #, c-format
@@ -150,7 +150,7 @@ msgstr "Kích thước thiết bị:  %s = %llu Khối\n"
 #: src/partclone.c:1862
 #, c-format
 msgid "Space in use: %s = %llu Blocks\n"
-msgstr "Dung lượng đã dùng:   %s = %llu Khối\n"
+msgstr "Dung lượng đã dùng: %s = %llu Khối\n"
 
 #: src/partclone.c:1865
 #, c-format
@@ -160,57 +160,57 @@ msgstr "Dung lượng còn trống: %s = %llu Khối\n"
 #: src/partclone.c:1867
 #, c-format
 msgid "Block size:   %i Byte\n"
-msgstr "Kích thước khối:      %i Byte\n"
+msgstr "Kích thước khối:   %i Byte\n"
 
 #: src/partclone.c:1880
 #, c-format
 msgid "image format:    %04d\n"
-msgstr ""
+msgstr "định dạng hình ảnh: %04d\n"
 
 #: src/partclone.c:1884 src/partclone.c:1891
 #, c-format
 msgid "created on a:    %s\n"
-msgstr ""
+msgstr "được tạo vào:    %s\n"
 
 #: src/partclone.c:1886 src/partclone.c:1894
 #, c-format
 msgid "with partclone:  %s\n"
-msgstr ""
+msgstr "với partclone:  %s\n"
 
 #: src/partclone.c:1890
 #, c-format
 msgid "%d bits platform"
-msgstr ""
+msgstr "nền tảng %d bit"
 
 #: src/partclone.c:1893
-#, fuzzy, c-format
+#, c-format
 msgid "v%s"
-msgstr "%s"
+msgstr "v%s"
 
 #: src/partclone.c:1897
 #, c-format
 msgid "bitmap mode:     %s\n"
-msgstr ""
+msgstr "chế độ bản đồ bit: %s\n"
 
 #: src/partclone.c:1899
 #, c-format
 msgid "checksum algo:   %s\n"
-msgstr ""
+msgstr "thuật toán tổng kiểm tra: %s\n"
 
 #: src/partclone.c:1903 src/partclone.c:1912
-#, fuzzy, c-format
+#, c-format
 msgid "checksum size:   %s\n"
-msgstr "Kích thước khối:      %i Byte\n"
+msgstr "kích thước tổng kiểm tra: %s\n"
 
 #: src/partclone.c:1905 src/partclone.c:1915
 #, c-format
 msgid "blocks/checksum: %s\n"
-msgstr ""
+msgstr "khối/tổng kiểm tra: %s\n"
 
 #: src/partclone.c:1907 src/partclone.c:1917
 #, c-format
 msgid "reseed checksum: %s\n"
-msgstr ""
+msgstr "tổng kiểm tra đã gieo lại: %s\n"
 
 #: src/partclone.c:1917
 msgid "yes"
@@ -243,5 +243,4 @@ msgstr "Partclone đã nhân bản thành công thiết bị (%s) vào thiết b
 #: src/partclone.c:1938
 #, c-format
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
-msgstr ""
-"Partclone đã ánh xạ thành công thiết bị (%s) vào nhật ký tên miền (%s)\n"
+msgstr "Partclone đã ánh xạ thành công thiết bị (%s) vào nhật ký tên miền (%s)\n"

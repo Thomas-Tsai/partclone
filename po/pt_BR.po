@@ -3,6 +3,7 @@
 # Copyright (C) 2016 thomas@nchc.org.tw
 # This file is distributed under the same license as the Partclone package.
 # Rafael Fontenelle <rafaelff@gnome.org>, 2016.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.3.3\n"
@@ -103,9 +104,9 @@ msgid "Starting to clone device (%s) to image (%s)\n"
 msgstr "Iniciando a clonagem de dispositivo (%s) para imagem (%s)\n"
 
 #: src/partclone.c:1822
-#, fuzzy, c-format
+#, c-format
 msgid "Starting to restore image (%s) to block files (%s)\n"
-msgstr "Iniciando a restauração da imagem (%s) para dispositivo (%s)\n"
+msgstr "Iniciando a restauração da imagem (%s) para bloquear os arquivos (%s)\n"
 
 #: src/partclone.c:1824
 #, c-format
@@ -114,19 +115,18 @@ msgstr "Iniciando a restauração da imagem (%s) para dispositivo (%s)\n"
 
 #: src/partclone.c:1826
 #, c-format
-msgid "Starting to back up device(%s) to device(%s)\n"
+msgid "Starting to back up device(%s) to device (%s)\n"
 msgstr "Iniciando a backup de dispositivo (%s) para dispositivo (%s)\n"
 
 #: src/partclone.c:1828
 #, c-format
 msgid "Starting to map device (%s) to domain log (%s)\n"
-msgstr ""
-"Iniciando a mapeamento de dispositivo (%s) para registro de domínio (%s)\n"
+msgstr "Iniciando a mapeamento de dispositivo (%s) para registro de domínio (%s)\n"
 
 #: src/partclone.c:1831
-#, fuzzy, c-format
+#, c-format
 msgid "Starting to dd image (%s) to block files (%s)\n"
-msgstr "Iniciando a restauração da imagem (%s) para dispositivo (%s)\n"
+msgstr "Iniciando adicionar imagem (%s) para bloquear arquivos (%s)\n"
 
 #: src/partclone.c:1833
 #, c-format
@@ -234,8 +234,7 @@ msgstr "Partclone clonou com sucesso o dispositivo (%s) para a imagem (%s)\n"
 #: src/partclone.c:1934
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
-msgstr ""
-"Partclone restaurou com sucesso a imagem (%s) para o dispositivo (%s)\n"
+msgstr "Partclone restaurou com sucesso a imagem (%s) para o dispositivo (%s)\n"
 
 #: src/partclone.c:1936
 #, c-format

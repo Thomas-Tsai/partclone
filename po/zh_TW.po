@@ -112,7 +112,7 @@ msgstr "開始還原 印象檔 (%s) 到 裝置 (%s)\n"
 
 #: src/partclone.c:1826
 #, c-format
-msgid "Starting to back up device(%s) to device(%s)\n"
+msgid "Starting to back up device(%s) to device (%s)\n"
 msgstr "開始備份 裝置 (%s) 到 裝置 (%s)\n"
 
 #: src/partclone.c:1828
