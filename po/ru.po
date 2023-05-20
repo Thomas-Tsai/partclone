@@ -116,7 +116,7 @@ msgstr "Началось восстановление образа (%s) на у�
 
 #: src/partclone.c:1826
 #, c-format
-msgid "Starting to back up device(%s) to device (%s)\n"
+msgid "Starting to back up device (%s) to device (%s)\n"
 msgstr "Началось копирование устройства (%s) на устройство (%s)\n"
 
 #: src/partclone.c:1828
@@ -187,7 +187,7 @@ msgstr "%d-битная платформа"
 #: src/partclone.c:1893
 #, c-format
 msgid "v%s"
-msgstr "v%s"
+msgstr "в%s"
 
 #: src/partclone.c:1897
 #, c-format
