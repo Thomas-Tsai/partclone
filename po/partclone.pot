@@ -111,7 +111,7 @@ msgstr ""
 
 #: src/partclone.c:1826
 #, c-format
-msgid "Starting to back up device(%s) to device(%s)\n"
+msgid "Starting to back up device (%s) to device (%s)\n"
 msgstr ""
 
 #: src/partclone.c:1828

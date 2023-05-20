@@ -119,7 +119,7 @@ msgstr "Démarrage restauration image (%s) vers périphérique (%s)\n"
 
 #: src/partclone.c:1826
 #, c-format
-msgid "Starting to back up device(%s) to device(%s)\n"
+msgid "Starting to back up device (%s) to device (%s)\n"
 msgstr "Démarrage sauvegarde périphérique (%s) vers périphérique (%s)\n"
 
 #: src/partclone.c:1828

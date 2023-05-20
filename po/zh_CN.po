@@ -110,7 +110,7 @@ msgstr "开始恢复 镜像 (%s) 到 装置 (%s)\n"
 
 #: src/partclone.c:1826
 #, c-format
-msgid "Starting to back up device(%s) to device(%s)\n"
+msgid "Starting to back up device (%s) to device (%s)\n"
 msgstr "开始备份 装置 (%s) 到 装置 (%s)\n"
 
 #: src/partclone.c:1828

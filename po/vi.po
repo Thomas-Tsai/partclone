@@ -114,8 +114,8 @@ msgstr "Bắt đầu phục hồi ảnh (%s) vào thiết bị (%s)\n"
 
 #: src/partclone.c:1826
 #, c-format
-msgid "Starting to back up device(%s) to device(%s)\n"
-msgstr "Bắt đầu sao lưu dự phòng thiết bị (%s) vào thiết bị(%s)\n"
+msgid "Starting to back up device (%s) to device (%s)\n"
+msgstr "Bắt đầu sao lưu dự phòng thiết bị (%s) vào thiết bị (%s)\n"
 
 #: src/partclone.c:1828
 #, c-format
