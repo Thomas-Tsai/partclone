@@ -117,7 +117,7 @@ msgstr "Die Wiederherstellung des Images (%s) auf dem Gerät beginnt (%s)\n"
 
 #: src/partclone.c:1826
 #, c-format
-msgid "Starting to back up device(%s) to device (%s)\n"
+msgid "Starting to back up device (%s) to device (%s)\n"
 msgstr "Die Sicherung von Gerät (%s) auf Gerät beginnt (%s)\n"
 
 #: src/partclone.c:1828
