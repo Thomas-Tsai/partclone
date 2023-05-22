@@ -95,7 +95,7 @@ msgstr "Démarrage audit image (%s)\n"
 #: src/partclone.c:1817
 #, c-format
 msgid "Starting to clone device (%s) to compressed image (%s)\n"
-msgstr "Début du clonage du périphérique (%s) vers l'image compresséeDé (%s)\n"
+msgstr "Début du clonage du périphérique (%s) vers l'image compressée (%s)\n"
 
 #: src/partclone.c:1819
 #, c-format
