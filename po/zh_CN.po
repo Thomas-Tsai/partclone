@@ -64,9 +64,9 @@ msgid "Rate: %6.2f%s/min"
 msgstr "速率：%6.2f%s/min"
 
 #: src/progress.c:254
-#, fuzzy, c-format
+#, c-format
 msgid "Current Block: %llu  Total Block: %llu "
-msgstr "目前块: %lld 全部块 %lld "
+msgstr "當前塊：%llu 總塊：%llu "
 
 #: src/progress.c:285
 #, c-format
@@ -139,19 +139,19 @@ msgid "File system:  %s\n"
 msgstr "文件系统: %s\n"
 
 #: src/partclone.c:1859
-#, fuzzy, c-format
+#, c-format
 msgid "Device size:  %s = %llu Blocks\n"
-msgstr "装置大小: %s = %lld Blocks\n"
+msgstr "装置大小: %s = %llu Blocks\n"
 
 #: src/partclone.c:1862
-#, fuzzy, c-format
+#, c-format
 msgid "Space in use: %s = %llu Blocks\n"
-msgstr "装置使用到空间: %s = %lld Blocks\n"
+msgstr "装置使用到空间: %s = %llu Blocks\n"
 
 #: src/partclone.c:1865
-#, fuzzy, c-format
+#, c-format
 msgid "Free Space:   %s = %llu Blocks\n"
-msgstr "剩余空间: %s = %lld Blocks\n"
+msgstr "剩余空间: %s = %llu Blocks\n"
 
 #: src/partclone.c:1867
 #, c-format
@@ -161,32 +161,32 @@ msgstr "装置块大小: %i Byte\n"
 #: src/partclone.c:1880
 #, c-format
 msgid "image format:    %04d\n"
-msgstr ""
+msgstr "圖像格式:    %04d\n"
 
 #: src/partclone.c:1884 src/partclone.c:1891
 #, c-format
 msgid "created on a:    %s\n"
-msgstr ""
+msgstr "創建於:    %s\n"
 
 #: src/partclone.c:1886 src/partclone.c:1894
 #, c-format
 msgid "with partclone:  %s\n"
-msgstr ""
+msgstr "使用部分克隆:  %s\n"
 
 #: src/partclone.c:1890
 #, c-format
 msgid "%d bits platform"
-msgstr ""
+msgstr "%d 位平台"
 
 #: src/partclone.c:1893
-#, fuzzy, c-format
+#, c-format
 msgid "v%s"
-msgstr "%s"
+msgstr "v%s"
 
 #: src/partclone.c:1897
 #, c-format
 msgid "bitmap mode:     %s\n"
-msgstr ""
+msgstr "位圖模式: %s\n"
 
 #: src/partclone.c:1899
 #, c-format
@@ -194,9 +194,9 @@ msgid "checksum algo:   %s\n"
 msgstr ""
 
 #: src/partclone.c:1903 src/partclone.c:1912
-#, fuzzy, c-format
+#, c-format
 msgid "checksum size:   %s\n"
-msgstr "装置块大小: %i Byte\n"
+msgstr "校驗和大小: %s\n"
 
 #: src/partclone.c:1905 src/partclone.c:1915
 #, c-format

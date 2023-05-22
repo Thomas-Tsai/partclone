@@ -1,14 +1,16 @@
 # Russian translations for Partclone package.
-# Русский перевод доя пакета Partclone.
+# Русский перевод для пакета Partclone.
 # Copyright (C) 2016 thomas@nchc.org.tw
 # This file is distributed under the same license as the Partclone package.
+# Этот файл распространяется под той же лицензией, что и пакет Partclone.
 # Stanislav Bolshakov <bsv999@mail.ru>, 2023.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.3.3\n"
 "Report-Msgid-Bugs-To: thomas@nchc.org.tw\n"
 "POT-Creation-Date: 2020-07-05 14:18+0800\n"
-"PO-Revision-Date: 2016-11-04 17:11-0200\n"
+"PO-Revision-Date: 2023-05-15 18:47+0300\n"
 "Last-Translator: Stanislav Bolshakov <bsv999@mail.ru>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -16,8 +18,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Virtaal 0.7.1\n"
-
+"X-Language: ru_RU\n"
+"X-Source-Language: C\n"
 #: src/progress.c:203
 #, c-format
 msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: %6.2f%%"
@@ -85,22 +87,22 @@ msgstr "Ср.скорость: %6.2f%s/min"
 #: src/partclone.c:1812
 #, c-format
 msgid "Partclone v%s http://partclone.org\n"
-msgstr "Partclone v%s http://partclone.org\n"
+msgstr "Partclone в%s http://partclone.org\n"
 
 #: src/partclone.c:1814
 #, c-format
 msgid "Starting to check image (%s)\n"
-msgstr "Началась проверка образа (%s)\n"
+msgstr "Началась проверка файла образа (%s)\n"
 
 #: src/partclone.c:1817
 #, c-format
 msgid "Starting to clone device (%s) to compressed image (%s)\n"
-msgstr "Началось клонирование устройства (%s) в сжатый образ (%s)\n"
+msgstr "Началось клонирование устройства (%s) в сжатый файл образа (%s)\n"
 
 #: src/partclone.c:1819
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
-msgstr "Началось клонирование устройства (%s) в образ (%s)\n"
+msgstr "Началось клонирование устройства (%s) в файл образа (%s)\n"
 
 #: src/partclone.c:1822
 #, c-format
@@ -125,7 +127,7 @@ msgstr "Началось map устройства (%s) в log домена (%s)\
 #: src/partclone.c:1831
 #, c-format
 msgid "Starting to dd image (%s) to block files (%s)\n"
-msgstr "Началось dd образа (%s) в блочные файлы (%s)\n"
+msgstr "Началось dd-копирование образа (%s) в блочные файлы (%s)\n"
 
 #: src/partclone.c:1833
 #, c-format
@@ -185,12 +187,12 @@ msgstr "%d-битная платформа"
 #: src/partclone.c:1893
 #, c-format
 msgid "v%s"
-msgstr "v%s"
+msgstr "в%s"
 
 #: src/partclone.c:1897
 #, c-format
 msgid "bitmap mode:     %s\n"
-msgstr "modo bitmap:     %s\n"
+msgstr "режим bitmap:     %s\n"
 
 #: src/partclone.c:1899
 #, c-format
@@ -210,7 +212,7 @@ msgstr "блоков/checksum: %s\n"
 #: src/partclone.c:1907 src/partclone.c:1917
 #, c-format
 msgid "reseed checksum: %s\n"
-msgstr "ressemear checksum: %s\n"
+msgstr "повторная checksum: %s\n"
 
 #: src/partclone.c:1917
 msgid "yes"
@@ -228,7 +230,7 @@ msgstr "Partclone успешно проверил образ (%s)\n"
 #: src/partclone.c:1932
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
-msgstr "Partclone успешно клонировал устройство (%s) в образ (%s)\n"
+msgstr "Partclone успешно клонировал устройство (%s) в файл образа (%s)\n"
 
 #: src/partclone.c:1934
 #, c-format
