@@ -1894,7 +1894,7 @@ void print_partclone_info(cmd_opt opt) {
 	else if (opt.info)
 		log_mesg(0, 0, 1, debug, _("Showing info of image (%s)\n"), opt.source);
 	else
-		log_mesg(0, 0, 1, debug, "Unknown mode\n");
+		log_mesg(0, 0, 1, debug, _("Unknown mode\n"));
 	if ( strlen(opt.note) > 0 ){
 	    opt.note[NOTE_SIZE-1] = '\0';
 	    log_mesg(0, 0, 1, debug, "note: %s\n", opt.note);

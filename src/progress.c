@@ -213,7 +213,7 @@ extern void progress_update(struct progress_bar *prog, unsigned long long copied
 	if((prog->flag == IO) || (prog->flag == NO_BLOCK_DETAIL))
 	    fprintf(stderr, _(", %6.2f%s/min,"), prog_stat.speed, prog_stat.speed_unit);
 	if(prog->flag == IO)
-	    fprintf(stderr, "\n\r%80c\rcurrent block: %10Lu, total block: %10Lu, Complete: %6.2f%%%s\r", clear_buf, current, prog->total, prog_stat.total_percent, "\x1b[A");
+	    fprintf(stderr, _("\n\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s\r"), clear_buf, current, prog->total, prog_stat.total_percent, "\x1b[A");
     } else {
 	setlocale(LC_ALL, "");
 	bindtextdomain(PACKAGE, LOCALEDIR);
@@ -223,11 +223,11 @@ extern void progress_update(struct progress_bar *prog, unsigned long long copied
 	if((prog->flag == IO) || (prog->flag == NO_BLOCK_DETAIL))
 	    fprintf(stderr, _(", Rate: %6.2f%s/min,"), prog_stat.speed, prog_stat.speed_unit);
 	if(prog->flag == IO)
-	    fprintf(stderr, "\n\r%80c\rcurrent block: %10Lu, total block: %10Lu, Complete: 100.00%%\r", clear_buf, current, prog->total);
+	    fprintf(stderr, _("\n\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: 100.00%%\r"), clear_buf, current, prog->total);
 
         fprintf(stderr, _("\nTotal Time: %s, "), prog_stat.Eformated);
 	if(prog->flag == IO)
-	    fprintf(stderr, _("Ave. Rate: %6.1f%s/min, "), prog_stat.speed, prog_stat.speed_unit);
+	    fprintf(stderr, _("Ave. Rate: %6.2f%s/min, "), prog_stat.speed, prog_stat.speed_unit);
         fprintf(stderr, _("%s"), "100.00% completed!\n");
     }
 }
@@ -262,24 +262,24 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 	    mvwprintw(p_win, 1, 0, _("Current Block: %llu  Total Block: %llu ") , current, prog->total);
 
 	if (prog->flag == IO)
-	    mvwprintw(p_win, 3, 0, "Data Block Process:");
+	    mvwprintw(p_win, 3, 0, _("Data Block Process:"));
 	else if (prog->flag == BITMAP)
-	    mvwprintw(p_win, 3, 0, "Calculating Bitmap Process:");
+	    mvwprintw(p_win, 3, 0, _("Calculating Bitmap Process:"));
 	wattrset(bar_win, COLOR_PAIR(4));
 	x = snprintf(blockbuf, BUFSIZE, "%.*s",  (unsigned int)(prog_stat.percent*0.5), block);
 	if ( x < 0 )
-	    fprintf(stderr, "ncurses update error\n");
+	    fprintf(stderr, _("ncurses update error\n"));
         mvwprintw(bar_win, 0, 0, "%s", blockbuf);
         wattroff(bar_win, COLOR_PAIR(4));
         mvwprintw(p_win, 4, 52, "%6.2f%%", prog_stat.percent);
 
 	if (prog->flag == IO) {
 	    werase(tbar_win);
-	    mvwprintw(p_win, 6, 0, "Total Block Process:");
+	    mvwprintw(p_win, 6, 0, _("Total Block Process:"));
 	    wattrset(tbar_win, COLOR_PAIR(4));
 	    x = snprintf(blockbuf, BUFSIZE, "%.*s",  (unsigned int)(prog_stat.total_percent*0.5), block);
 	    if ( x < 0 )
-		fprintf(stderr, "ncurses update error\n");
+		fprintf(stderr, _("ncurses update error\n"));
 	    mvwprintw(tbar_win, 0, 0, "%s", blockbuf);
 	    wattroff(tbar_win, COLOR_PAIR(4));
 	    mvwprintw(p_win, 7, 52, "%6.2f%%", prog_stat.total_percent);
@@ -295,9 +295,9 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 	    mvwprintw(p_win, 1, 0, _("Ave. Rate: %6.2f%s/min"), prog_stat.speed, prog_stat.speed_unit);
 
 	if (prog->flag == IO)
-	    mvwprintw(p_win, 3, 0, "Data Block Process:");
+	    mvwprintw(p_win, 3, 0, _("Data Block Process:"));
 	else if (prog->flag == BITMAP)
-	    mvwprintw(p_win, 3, 0, "Calculating Bitmap Process:");
+	    mvwprintw(p_win, 3, 0, _("Calculating Bitmap Process:"));
         wattrset(bar_win, COLOR_PAIR(4));
 	mvwprintw(bar_win, 0, 0, "%50s", " ");
         wattroff(bar_win, COLOR_PAIR(4));
@@ -305,7 +305,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 
 	if (prog->flag == IO) {
 	    werase(tbar_win);
-	    mvwprintw(p_win, 6, 0, "Total Block Process:");
+	    mvwprintw(p_win, 6, 0, _("Total Block Process:"));
 	    wattrset(tbar_win, COLOR_PAIR(4));
 	    mvwprintw(tbar_win, 0, 0, "%50s", " ");
 	    wattroff(tbar_win, COLOR_PAIR(4));
