@@ -13,7 +13,7 @@
 
 #include "torrent_helper.h"
 
-void torrent_init(torrent_generator *torrent, int tinfo)
+void torrent_init(torrent_generator *torrent, FILE *tinfo)
 {
 	torrent->PIECE_SIZE = DEFAULT_PIECE_SIZE;
 	torrent->length = 0;
@@ -37,7 +37,7 @@ void torrent_update(torrent_generator *torrent, void *buffer, size_t length)
 	unsigned long long buffer_remain_length = length;
 	unsigned long long buffer_offset = 0;
 
-	int tinfo = torrent->tinfo;
+	FILE *tinfo = torrent->tinfo;
 	int x = 0;
 
 	while (buffer_remain_length > 0) {
@@ -49,11 +49,11 @@ void torrent_update(torrent_generator *torrent, void *buffer, size_t length)
 #else
 			SHA1_Final(torrent->hash, &torrent->ctx);
 #endif
-			dprintf(tinfo, "sha1: ");
+			fprintf(tinfo, "sha1: ");
 			for (x = 0; x < 20 /* SHA_DIGEST_LENGTH */; x++) {
-				dprintf(tinfo, "%02x", torrent->hash[x]);
+				fprintf(tinfo, "%02x", torrent->hash[x]);
 			}
-			dprintf(tinfo, "\n");
+			fprintf(tinfo, "\n");
 			// start for next piece;
 #if defined(HAVE_EVP_MD_CTX_methods)
 			EVP_MD_CTX_reset(torrent->ctx);
@@ -105,20 +105,20 @@ void torrent_final(torrent_generator *torrent)
 		EVP_DigestFinal(torrent->ctx, torrent->hash, NULL);
 		EVP_MD_CTX_destroy(torrent->ctx);
 #endif
-		dprintf(torrent->tinfo, "sha1: ");
+		fprintf(torrent->tinfo, "sha1: ");
 		for (x = 0; x < 20 /* SHA_DIGEST_LENGTH */; x++) {
-			dprintf(torrent->tinfo, "%02x", torrent->hash[x]);
+			fprintf(torrent->tinfo, "%02x", torrent->hash[x]);
 		}
-		dprintf(torrent->tinfo, "\n");
+		fprintf(torrent->tinfo, "\n");
 	}
 }
 
 void torrent_start_offset(torrent_generator *torrent, unsigned long long offset)
 {
-	dprintf(torrent->tinfo, "offset: %032llx\n", offset);
+	fprintf(torrent->tinfo, "offset: %032llx\n", offset);
 }
 
 void torrent_end_length(torrent_generator *torrent, unsigned long long length)
 {
-	dprintf(torrent->tinfo, "length: %032llx\n", length);
+	fprintf(torrent->tinfo, "length: %032llx\n", length);
 }

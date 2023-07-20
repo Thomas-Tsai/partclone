@@ -439,7 +439,7 @@ int main(int argc, char **argv) {
 		char *read_buffer, *write_buffer;
 
 		// SHA1 for torrent info
-		int tinfo = -1;
+		FILE* tinfo = NULL;
 		torrent_generator torrent;
 
 		blocks_per_cs = img_opt.blocks_per_checksum;
@@ -470,11 +470,11 @@ int main(int argc, char **argv) {
 		if (opt.blockfile == 1) {
 			char torrent_name[PATH_MAX + 1] = {'\0'};
 			sprintf(torrent_name,"%s/torrent.info", target);
-			tinfo = open(torrent_name, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+			tinfo = fopen(torrent_name, "w");
 
 			torrent_init(&torrent, tinfo);
-			dprintf(tinfo, "block_size: %u\n", block_size);
-			dprintf(tinfo, "blocks_total: %llu\n", blocks_total);
+			fprintf(tinfo, "block_size: %u\n", block_size);
+			fprintf(tinfo, "blocks_total: %llu\n", blocks_total);
 		}
 
 		block_id = 0;
@@ -640,7 +640,7 @@ int main(int argc, char **argv) {
 		unsigned long long blocks_used_fix = 0, test_block = 0;
 
 		// SHA1 for torrent info
-		int tinfo = -1;
+		FILE *tinfo = NULL;
 		torrent_generator torrent;
 
 		log_mesg(1, 0, 0, debug, "#\nBuffer capacity = %u, Blocks per cs = %u\n#\n", buffer_capacity, blocks_per_cs);
@@ -697,11 +697,11 @@ int main(int argc, char **argv) {
 		if (opt.blockfile == 1) {
 			char torrent_name[PATH_MAX + 1] = {'\0'};
 			sprintf(torrent_name,"%s/torrent.info", target);
-			tinfo = open(torrent_name, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+			tinfo = fopen(torrent_name, "w");
 
 			torrent_init(&torrent, tinfo);
-			dprintf(tinfo, "block_size: %u\n", block_size);
-			dprintf(tinfo, "blocks_total: %llu\n", blocks_total);
+			fprintf(tinfo, "block_size: %u\n", block_size);
+			fprintf(tinfo, "blocks_total: %llu\n", blocks_total);
 		}
 
 		block_id = 0;
@@ -1053,7 +1053,7 @@ int main(int argc, char **argv) {
 		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 
 		// SHA1 for torrent info
-		int tinfo = -1;
+		FILE *tinfo = NULL;
 		torrent_generator torrent;
 
 		buffer = (char*)malloc(blocks_in_buffer * block_size);
@@ -1067,10 +1067,10 @@ int main(int argc, char **argv) {
 		if (opt.blockfile == 1) {
 			char torrent_name[PATH_MAX + 1] = {'\0'};
 			sprintf(torrent_name,"%s/torrent.info", target);
-			tinfo = open(torrent_name, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+			tinfo = fopen(torrent_name, "w");
 			torrent_init(&torrent, tinfo);
-			dprintf(tinfo, "block_size: %u\n", block_size);
-			dprintf(tinfo, "blocks_total: %llu\n", blocks_total);
+			fprintf(tinfo, "block_size: %u\n", block_size);
+			fprintf(tinfo, "blocks_total: %llu\n", blocks_total);
 		}
 
 		log_mesg(0, 0, 0, debug, "Total block %llu\n", blocks_total);
