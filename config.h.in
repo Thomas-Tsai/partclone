@@ -22,6 +22,10 @@
    */
 #undef HAVE_DCGETTEXT
 
+/* Define to 1 if you have the declaration of `isnormal', and to 0 if you
+   don't. */
+#undef HAVE_DECL_ISNORMAL
+
 /* OpenSSL 1.0+ */
 #undef HAVE_EVP_MD_CTX_create
 

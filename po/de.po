@@ -39,7 +39,7 @@ msgstr "\r%80c\rVerstrichen: %s, Verbleibend: %s, Abgeschlossen: 100.00%%"
 #: src/progress.c:216
 #, c-format
 msgid ", Rate: %6.2f%s/min,"
-msgstr ", Geschwindigkeit: %6,2f%s/min,"
+msgstr ", Geschwindigkeit: %6.2f%s/min,"
 
 #: src/progress.c:220
 #, c-format
