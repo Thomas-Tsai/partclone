@@ -36,6 +36,7 @@
 #include <linux/const.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdarg.h>
 #include <features.h>
 
 /*
@@ -73,10 +74,18 @@
 #define BITS_PER_LONG (__SIZEOF_LONG__ * BITS_PER_BYTE)
 #define __GFP_BITS_SHIFT 20
 #define __GFP_BITS_MASK ((int)((1 << __GFP_BITS_SHIFT) - 1))
+#define __GFP_DMA32 0
+#define __GFP_HIGHMEM 0
 #define GFP_KERNEL 0
 #define GFP_NOFS 0
+#define GFP_NOWAIT 0
+#define GFP_ATOMIC 0
 #define __read_mostly
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+#define _RET_IP_ 0
+#define TASK_UNINTERRUPTIBLE 0
+#define SLAB_MEM_SPREAD 0
+#define ALLOW_ERROR_INJECTION(a, b)
 
 #ifndef ULONG_MAX
 #define ULONG_MAX       (~0UL)
@@ -94,17 +103,17 @@
 #define BUILD_ASSERT(x)
 #endif
 
-#ifndef BTRFS_DISABLE_BACKTRACE
-#define MAX_BACKTRACE	16
 static inline void print_trace(void)
 {
+#ifndef BTRFS_DISABLE_BACKTRACE
+#define MAX_BACKTRACE	16
 	void *array[MAX_BACKTRACE];
 	int size;
 
 	size = backtrace(array, MAX_BACKTRACE);
 	backtrace_symbols_fd(array, size, 2);
-}
 #endif
+}
 
 static inline void warning_trace(const char *assertion, const char *filename,
 			      const char *func, unsigned line, long val)
@@ -114,9 +123,7 @@ static inline void warning_trace(const char *assertion, const char *filename,
 	fprintf(stderr,
 		"%s:%u: %s: Warning: assertion `%s` failed, value %ld\n",
 		filename, line, func, assertion, val);
-#ifndef BTRFS_DISABLE_BACKTRACE
 	print_trace();
-#endif
 }
 
 static inline void bugon_trace(const char *assertion, const char *filename,
@@ -127,9 +134,7 @@ static inline void bugon_trace(const char *assertion, const char *filename,
 	fprintf(stderr,
 		"%s:%u: %s: BUG_ON `%s` triggered, value %ld\n",
 		filename, line, func, assertion, val);
-#ifndef BTRFS_DISABLE_BACKTRACE
 	print_trace();
-#endif
 	abort();
 	exit(1);
 }
@@ -216,9 +221,32 @@ static inline int mutex_is_locked(struct mutex *m)
 	return (m->lock != 1);
 }
 
+static inline void spin_lock_init(spinlock_t *lock)
+{
+	lock->lock = 0;
+}
+
+static inline void spin_lock(spinlock_t *lock)
+{
+	lock->lock++;
+}
+
+static inline void spin_unlock(spinlock_t *lock)
+{
+	lock->lock--;
+}
+
+#define spin_lock_irqsave(_l, _f) do { _f = 0; spin_lock((_l)); } while (0)
+
+static inline void spin_unlock_irqrestore(spinlock_t *lock, unsigned long flags)
+{
+	spin_unlock(lock);
+}
+
 #define cond_resched()		do { } while (0)
 #define preempt_enable()	do { } while (0)
 #define preempt_disable()	do { } while (0)
+#define might_sleep()		do { } while (0)
 
 #define BITOP_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
 #define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
@@ -324,6 +352,12 @@ static inline int IS_ERR_OR_NULL(const void *ptr)
 #define printk(fmt, args...) fprintf(stderr, fmt, ##args)
 #define	KERN_CRIT	""
 #define KERN_ERR	""
+#define KERN_EMERG	""
+#define KERN_ALERT	""
+#define KERN_CRIT	""
+#define KERN_NOTICE	""
+#define KERN_INFO	""
+#define KERN_WARNING	""
 
 /*
  * kmalloc/kfree
@@ -338,26 +372,38 @@ static inline int IS_ERR_OR_NULL(const void *ptr)
 #define kvfree(x) free(x)
 #define memalloc_nofs_save() (0)
 #define memalloc_nofs_restore(x)	((void)(x))
+#define __releases(x)
+#define __acquires(x)
 
-#ifndef BTRFS_DISABLE_BACKTRACE
-static inline void assert_trace(const char *assertion, const char *filename,
-			      const char *func, unsigned line, long val)
+struct kmem_cache {
+	size_t size;
+};
+
+static inline struct kmem_cache *kmem_cache_create(const char *name,
+						   size_t size, unsigned long idk,
+						   unsigned long flags, void *private)
 {
-	if (val)
-		return;
-	fprintf(stderr,
-		"%s:%d: %s: Assertion `%s` failed, value %ld\n",
-		filename, line, func, assertion, val);
-#ifndef BTRFS_DISABLE_BACKTRACE
-	print_trace();
-#endif
-	abort();
-	exit(1);
+	struct kmem_cache *ret = malloc(sizeof(*ret));
+	if (!ret)
+		return ret;
+	ret->size = size;
+	return ret;
 }
-#define	ASSERT(c) assert_trace(#c, __FILE__, __func__, __LINE__, (long)(c))
-#else
-#define ASSERT(c) assert(c)
-#endif
+
+static inline void kmem_cache_destroy(struct kmem_cache *cache)
+{
+	free(cache);
+}
+
+static inline void *kmem_cache_alloc(struct kmem_cache *cache, gfp_t mask)
+{
+	return malloc(cache->size);
+}
+
+static inline void kmem_cache_free(struct kmem_cache *cache, void *ptr)
+{
+	free(ptr);
+}
 
 #define BUG_ON(c) bugon_trace(#c, __FILE__, __func__, __LINE__, (long)(c))
 #define BUG()				\
@@ -365,7 +411,22 @@ do {					\
 	BUG_ON(1);			\
 	__builtin_unreachable();	\
 } while (0)
-#define WARN_ON(c) warning_trace(#c, __FILE__, __func__, __LINE__, (long)(c))
+
+#define WARN_ON(c) ({					\
+	int __ret_warn_on = !!(c);			\
+	warning_trace(#c, __FILE__, __func__, __LINE__,	\
+		      (long)(__ret_warn_on));		\
+	__ret_warn_on;					\
+})
+
+#define WARN(c, msg...) ({				\
+	int __ret_warn_on = !!(c);			\
+	if (__ret_warn_on)				\
+		printf(msg);				\
+	__ret_warn_on;					\
+})
+
+#define IS_ENABLED(c) 0
 
 #define container_of(ptr, type, member) ({                      \
         const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
@@ -521,10 +582,6 @@ struct __una_u16 { __le16 x; } __attribute__((__packed__));
 struct __una_u32 { __le32 x; } __attribute__((__packed__));
 struct __una_u64 { __le64 x; } __attribute__((__packed__));
 
-#define get_unaligned_le8(p) (*((u8 *)(p)))
-#define get_unaligned_8(p) (*((u8 *)(p)))
-#define put_unaligned_le8(val,p) ((*((u8 *)(p))) = (val))
-#define put_unaligned_8(val,p) ((*((u8 *)(p))) = (val))
 #define get_unaligned_le16(p) le16_to_cpu(((const struct __una_u16 *)(p))->x)
 #define get_unaligned_16(p) (((const struct __una_u16 *)(p))->x)
 #define put_unaligned_le16(val,p) (((struct __una_u16 *)(p))->x = cpu_to_le16(val))
@@ -564,25 +621,213 @@ do {									\
 	(x) = (val);							\
 } while (0)
 
+#define smp_rmb() do {} while (0)
+#define smp_mb__before_atomic() do {} while (0)
+#define smp_mb() do {} while (0)
+
+struct percpu_counter {
+	int count;
+};
+
 typedef struct refcount_struct {
 	int refs;
 } refcount_t;
+
+static inline void refcount_set(refcount_t *ref, int val)
+{
+	ref->refs = val;
+}
+
+static inline void refcount_inc(refcount_t *ref)
+{
+	ref->refs++;
+}
+
+static inline void refcount_dec(refcount_t *ref)
+{
+	ref->refs--;
+}
+
+static inline bool refcount_dec_and_test(refcount_t *ref)
+{
+	ref->refs--;
+	return ref->refs == 0;
+}
 
 typedef u32 blk_status_t;
 typedef u32 blk_opf_t;
 typedef int atomic_t;
 
-struct work_struct {
+struct work_struct;
+typedef void (*work_func_t)(struct work_struct *work);
+
+struct workqueue_struct {
 };
 
-typedef struct wait_queue_head_s {
+struct work_struct {
+	work_func_t func;
+};
+
+#define INIT_WORK(_w, _f) do { (_w)->func = (_f); } while (0)
+
+typedef struct wait_queue_head {
 } wait_queue_head_t;
 
-/*
- * __init cannot be defined in kerncompat.h as it's still part of libbtrfs and
- * the macro name is too generic and can break build.
+struct wait_queue_entry {
+};
+
+#define DEFINE_WAIT(name)	struct wait_queue_entry name = {}
+
+struct super_block {
+	char *s_id;
+};
+
+struct va_format {
+	const char *fmt;
+	va_list *va;
+};
+
+struct lock_class_key {
+};
+
 #define __init
-*/
 #define __cold
+#define __user
+#define __pure
+
+#define __printf(a, b)                  __attribute__((__format__(printf, a, b)))
+
+static inline bool sb_rdonly(struct super_block *sb)
+{
+	return false;
+}
+
+#define unlikely(cond) (cond)
+
+static inline void atomic_set(atomic_t *a, int val)
+{
+	*a = val;
+}
+
+static inline int atomic_read(const atomic_t *a)
+{
+	return *a;
+}
+
+static inline void atomic_inc(atomic_t *a)
+{
+	(*a)++;
+}
+
+static inline void atomic_dec(atomic_t *a)
+{
+	(*a)--;
+}
+
+static inline struct workqueue_struct *alloc_workqueue(const char *name,
+						       unsigned long flags,
+						       int max_active, ...)
+{
+	return (struct workqueue_struct *)5;
+}
+
+static inline void destroy_workqueue(struct workqueue_struct *wq)
+{
+}
+
+static inline void flush_workqueue(struct workqueue_struct *wq)
+{
+}
+
+static inline void workqueue_set_max_active(struct workqueue_struct *wq,
+					    int max_active)
+{
+}
+
+static inline void queue_work(struct workqueue_struct *wq, struct work_struct *work)
+{
+}
+
+static inline bool wq_has_sleeper(struct wait_queue_head *wq)
+{
+	return false;
+}
+
+static inline bool waitqueue_active(struct wait_queue_head *wq)
+{
+	return false;
+}
+
+static inline void wake_up(struct wait_queue_head *wq)
+{
+}
+
+static inline void lockdep_set_class(spinlock_t *lock, struct lock_class_key *lclass)
+{
+}
+
+static inline bool cond_resched_lock(spinlock_t *lock)
+{
+	return false;
+}
+
+static inline void init_waitqueue_head(wait_queue_head_t *wqh)
+{
+}
+
+static inline bool need_resched(void)
+{
+	return false;
+}
+
+static inline bool gfpflags_allow_blocking(gfp_t mask)
+{
+	return true;
+}
+
+static inline void prepare_to_wait(wait_queue_head_t *wqh,
+				   struct wait_queue_entry *entry,
+				   unsigned long flags)
+{
+}
+
+static inline void finish_wait(wait_queue_head_t *wqh,
+			       struct wait_queue_entry *entry)
+{
+}
+
+static inline void schedule(void)
+{
+}
+
+/*
+ * Temporary definitions while syncing.
+ */
+struct btrfs_inode;
+struct extent_state;
+
+static inline void btrfs_merge_delalloc_extent(struct btrfs_inode *inode,
+					       struct extent_state *state,
+					       struct extent_state *other)
+{
+}
+
+static inline void btrfs_set_delalloc_extent(struct btrfs_inode *inode,
+					     struct extent_state *state,
+					     u32 bits)
+{
+}
+
+static inline void btrfs_split_delalloc_extent(struct btrfs_inode *inode,
+					       struct extent_state *orig,
+					       u64 split)
+{
+}
+
+static inline void btrfs_clear_delalloc_extent(struct btrfs_inode *inode,
+					       struct extent_state *state,
+					       u32 bits)
+{
+}
 
 #endif

@@ -21,8 +21,8 @@
 #include "kernel-shared/zoned.h"
 #include "common/messages.h"
 
-struct btrfs_trans_handle* btrfs_start_transaction(struct btrfs_root *root,
-		int num_blocks)
+struct btrfs_trans_handle *btrfs_start_transaction(struct btrfs_root *root,
+						   unsigned int num_items)
 {
 	struct btrfs_fs_info *fs_info = root->fs_info;
 	struct btrfs_trans_handle *h;
@@ -47,7 +47,7 @@ struct btrfs_trans_handle* btrfs_start_transaction(struct btrfs_root *root,
 	fs_info->running_transaction = h;
 	fs_info->generation++;
 	h->transid = fs_info->generation;
-	h->blocks_reserved = num_blocks;
+	h->blocks_reserved = num_items;
 	h->reinit_extent_tree = false;
 	h->allocating_chunk = 0;
 	root->last_trans = h->transid;
@@ -142,7 +142,7 @@ int __commit_transaction(struct btrfs_trans_handle *trans,
 	while(1) {
 again:
 		ret = find_first_extent_bit(tree, 0, &start, &end,
-					    EXTENT_DIRTY);
+					    EXTENT_DIRTY, NULL);
 		if (ret)
 			break;
 
@@ -161,7 +161,7 @@ again:
 				goto cleanup;
 			}
 			start += eb->len;
-			clear_extent_buffer_dirty(eb);
+			btrfs_clear_buffer_dirty(eb);
 			free_extent_buffer(eb);
 		}
 	}
@@ -174,7 +174,8 @@ cleanup:
 	while (1) {
 		int find_ret;
 
-		find_ret = find_first_extent_bit(tree, 0, &start, &end, EXTENT_DIRTY);
+		find_ret = find_first_extent_bit(tree, 0, &start, &end,
+						 EXTENT_DIRTY, NULL);
 
 		if (find_ret)
 			break;
@@ -183,7 +184,7 @@ cleanup:
 			eb = find_first_extent_buffer(fs_info, start);
 			BUG_ON(!eb || eb->start != start);
 			start += eb->len;
-			clear_extent_buffer_dirty(eb);
+			btrfs_clear_buffer_dirty(eb);
 			free_extent_buffer(eb);
 		}
 	}

@@ -213,6 +213,7 @@ void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct exte
     int i;
     struct btrfs_disk_key disk_key;
     struct btrfs_file_extent_item *fi;
+    int root_eb_level = btrfs_header_level(eb);
 
     if (!eb)
 	return;
@@ -265,8 +266,8 @@ void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct exte
 	bytenr = (unsigned long long)btrfs_header_bytenr(eb);
 	check_extent_bitmap(bitmap, bytenr, &size, 0);
 	struct extent_buffer *next = read_tree_block(root->fs_info,
-		btrfs_node_blockptr(eb, i),
-		btrfs_node_ptr_generation(eb, i));
+		btrfs_node_blockptr(eb, i), btrfs_header_owner(eb),
+		btrfs_node_ptr_generation(eb, i), root_eb_level, NULL);
 	bytenr = (unsigned long long)btrfs_header_bytenr(next);
 	check_extent_bitmap(bitmap, bytenr, &size, 0);
 	if (!extent_buffer_uptodate(next)) {
@@ -299,13 +300,14 @@ static void fs_open(char* device){
     log_mesg(0, 0, 0, fs_opt.debug, "\n%s: btrfs library version = %s\n", __FILE__, BTRFS_BUILD_VERSION);
 
     cache_tree_init(&root_cache);
-    struct open_ctree_flags ocf = { 0 };
+    struct open_ctree_args oca = { 0 };
 
-    ocf.filename = device;
-    ocf.sb_bytenr = bytenr;
-    ocf.root_tree_bytenr = 0;
-    ocf.flags = OPEN_CTREE_PARTIAL;
-    info = open_ctree_fs_info(&ocf);
+    oca.filename = device;
+    oca.sb_bytenr = bytenr;
+    oca.root_tree_bytenr = 0;
+    oca.chunk_tree_bytenr = 0;
+    oca.flags = OPEN_CTREE_PARTIAL;
+    info = open_ctree_fs_info(&oca);
 
     if (!info) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't open file system\n", __FILE__);
@@ -409,9 +411,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
 	    offset = btrfs_item_ptr_offset(leaf, slot);
 	    read_extent_buffer(leaf, &ri, offset, sizeof(ri));
-	    buf = read_tree_block(tree_root_scan->fs_info,
-		    btrfs_root_bytenr(&ri),
-		    0);
+	    buf = read_tree_block(tree_root_scan->fs_info, btrfs_root_bytenr(&ri), 0, 0, 0, NULL);
 	    if (!extent_buffer_uptodate(buf))
 		goto next;
 	    dump_start_leaf(bitmap, tree_root_scan, buf, 1);

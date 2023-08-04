@@ -50,24 +50,25 @@ int device_get_rotational(const char *file);
  */
 int btrfs_prepare_device(int fd, const char *file, u64 *block_count_ret,
 		u64 max_block_count, unsigned opflags);
-ssize_t btrfs_direct_pio(int rw, int fd, void *buf, size_t count, off_t offset);
+ssize_t btrfs_direct_pread(int fd, void *buf, size_t count, off_t offset);
+ssize_t btrfs_direct_pwrite(int fd, const void *buf, size_t count, off_t offset);
 
 #ifdef BTRFS_ZONED
-static inline ssize_t btrfs_pwrite(int fd, void *buf, size_t count,
+static inline ssize_t btrfs_pwrite(int fd, const void *buf, size_t count,
 				   off_t offset, bool direct)
 {
 	if (!direct)
 		return pwrite(fd, buf, count, offset);
 
-	return btrfs_direct_pio(WRITE, fd, buf, count, offset);
+	return btrfs_direct_pwrite(fd, buf, count, offset);
 }
-static inline ssize_t btrfs_pread(int fd, void *buf, size_t count, off_t offset,
-				  bool direct)
+static inline ssize_t btrfs_pread(int fd, void *buf, size_t count,
+				  off_t offset, bool direct)
 {
 	if (!direct)
 		return pread(fd, buf, count, offset);
 
-	return btrfs_direct_pio(READ, fd, buf, count, offset);
+	return btrfs_direct_pread(fd, buf, count, offset);
 }
 #else
 #define btrfs_pwrite(fd, buf, count, offset, direct) \

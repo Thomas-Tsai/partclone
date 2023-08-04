@@ -27,6 +27,7 @@
 #include "kernel-shared/transaction.h"
 #include "kernel-shared/extent_io.h"
 #include "kernel-shared/disk-io.h"
+#include "kernel-shared/tree-checker.h"
 #include "common/extent-cache.h"
 #include "check/repair.h"
 
@@ -79,13 +80,13 @@ static int traverse_tree_blocks(struct extent_io_tree *tree,
 	 * This can not only avoid forever loop with broken filesystem
 	 * but also give us some speedups.
 	 */
-	if (test_range_bit(tree, eb->start, end - 1, EXTENT_DIRTY, 0))
+	if (test_range_bit(tree, eb->start, end - 1, EXTENT_DIRTY, 0, NULL))
 		return 0;
 
 	if (pin)
 		btrfs_pin_extent(fs_info, eb->start, eb->len);
 	else
-		set_extent_dirty(tree, eb->start, end - 1);
+		set_extent_dirty(tree, eb->start, end - 1, GFP_NOFS);
 
 	nritems = btrfs_header_nritems(eb);
 	for (i = 0; i < nritems; i++) {
@@ -108,7 +109,9 @@ static int traverse_tree_blocks(struct extent_io_tree *tree,
 			 * in, but for now this doesn't actually use the root so
 			 * just pass in extent_root.
 			 */
-			tmp = read_tree_block(fs_info, bytenr, 0);
+			tmp = read_tree_block(fs_info, bytenr, key.objectid, 0,
+					      btrfs_disk_root_level(eb, ri),
+					      NULL);
 			if (!extent_buffer_uptodate(tmp)) {
 				fprintf(stderr, "Error reading root block\n");
 				return -EIO;
@@ -129,11 +132,13 @@ static int traverse_tree_blocks(struct extent_io_tree *tree,
 					btrfs_pin_extent(fs_info, bytenr,
 							 fs_info->nodesize);
 				else
-					set_extent_dirty(tree, bytenr, end);
+					set_extent_dirty(tree, bytenr, end, GFP_NOFS);
 				continue;
 			}
 
-			tmp = read_tree_block(fs_info, bytenr, 0);
+			tmp = read_tree_block(fs_info, bytenr,
+					      btrfs_header_owner(eb), 0,
+					      level - 1, NULL);
 			if (!extent_buffer_uptodate(tmp)) {
 				fprintf(stderr, "Error reading tree block\n");
 				return -EIO;
@@ -211,7 +216,7 @@ static int populate_used_from_extent_root(struct btrfs_root *root,
 				ret = -EINVAL;
 				break;
 			}
-			set_extent_dirty(io_tree, start, end);
+			set_extent_dirty(io_tree, start, end, GFP_NOFS);
 		}
 
 		path.slots[0]++;
@@ -260,7 +265,7 @@ int btrfs_fix_block_accounting(struct btrfs_trans_handle *trans)
 	if (ret)
 		return ret;
 
-	extent_io_tree_init(&used);
+	extent_io_tree_init(fs_info, &used, 0);
 
 	ret = btrfs_mark_used_blocks(fs_info, &used);
 	if (ret)
@@ -282,7 +287,7 @@ int btrfs_fix_block_accounting(struct btrfs_trans_handle *trans)
 	start = 0;
 	while (1) {
 		ret = find_first_extent_bit(&used, 0, &start, &end,
-					    EXTENT_DIRTY);
+					    EXTENT_DIRTY, NULL);
 		if (ret)
 			break;
 
@@ -291,11 +296,39 @@ int btrfs_fix_block_accounting(struct btrfs_trans_handle *trans)
 					       1, 0);
 		if (ret)
 			goto out;
-		clear_extent_dirty(&used, start, end);
+		clear_extent_dirty(&used, start, end, NULL);
 	}
 	btrfs_set_super_bytes_used(fs_info->super_copy, bytes_used);
 	ret = 0;
 out:
-	extent_io_tree_cleanup(&used);
+	extent_io_tree_release(&used);
 	return ret;
+}
+
+enum btrfs_tree_block_status btrfs_check_block_for_repair(struct extent_buffer *eb,
+							  struct btrfs_key *first_key)
+{
+	struct btrfs_fs_info *fs_info = eb->fs_info;
+	enum btrfs_tree_block_status status;
+
+	if (btrfs_is_leaf(eb))
+		status = __btrfs_check_leaf(eb);
+	else
+		status = __btrfs_check_node(eb);
+
+	if (status == BTRFS_TREE_BLOCK_CLEAN)
+		return status;
+
+	if (btrfs_header_owner(eb) == BTRFS_EXTENT_TREE_OBJECTID) {
+		struct btrfs_key key;
+
+		if (first_key)
+			memcpy(&key, first_key, sizeof(struct btrfs_key));
+		else
+			btrfs_node_key_to_cpu(eb, &key, 0);
+		btrfs_add_corrupt_extent_record(fs_info, &key,
+						eb->start, eb->len,
+						btrfs_header_level(eb));
+	}
+	return status;
 }

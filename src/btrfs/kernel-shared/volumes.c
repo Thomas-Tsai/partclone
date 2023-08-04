@@ -23,15 +23,16 @@
 #include <uuid/uuid.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include "kernel-lib/raid56.h"
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/disk-io.h"
 #include "kernel-shared/transaction.h"
 #include "kernel-shared/print-tree.h"
 #include "kernel-shared/volumes.h"
-#include "zoned.h"
+#include "kernel-shared/tree-checker.h"
+#include "kernel-shared/zoned.h"
 #include "common/utils.h"
 #include "common/device-utils.h"
-#include "kernel-lib/raid56.h"
 
 const struct btrfs_raid_attr btrfs_raid_array[BTRFS_NR_RAID_TYPES] = {
 	[BTRFS_RAID_RAID10] = {
@@ -333,11 +334,12 @@ static struct btrfs_fs_devices *find_fsid(u8 *fsid, u8 *metadata_uuid)
 
 static int device_list_add(const char *path,
 			   struct btrfs_super_block *disk_super,
-			   u64 devid, struct btrfs_fs_devices **fs_devices_ret)
+			   struct btrfs_fs_devices **fs_devices_ret)
 {
 	struct btrfs_device *device;
 	struct btrfs_fs_devices *fs_devices;
 	u64 found_transid = btrfs_super_generation(disk_super);
+	u64 devid = btrfs_stack_device_id(&disk_super->dev_item);
 	bool metadata_uuid = (btrfs_super_incompat_flags(disk_super) &
 		BTRFS_FEATURE_INCOMPAT_METADATA_UUID);
 
@@ -544,18 +546,17 @@ int btrfs_scan_one_device(int fd, const char *path,
 {
 	struct btrfs_super_block disk_super;
 	int ret;
-	u64 devid;
 
 	ret = btrfs_read_dev_super(fd, &disk_super, super_offset, sbflags);
 	if (ret < 0)
 		return -EIO;
-	devid = btrfs_stack_device_id(&disk_super.dev_item);
+
 	if (btrfs_super_flags(&disk_super) & BTRFS_SUPER_FLAG_METADUMP)
 		*total_devs = 1;
 	else
 		*total_devs = btrfs_super_num_devices(&disk_super);
 
-	ret = device_list_add(path, &disk_super, devid, fs_devices_ret);
+	ret = device_list_add(path, &disk_super, fs_devices_ret);
 
 	return ret;
 }
@@ -2087,139 +2088,6 @@ static struct btrfs_device *fill_missing_device(u64 devid)
 }
 
 /*
- * slot == -1: SYSTEM chunk
- * return -EIO on error, otherwise return 0
- */
-int btrfs_check_chunk_valid(struct btrfs_fs_info *fs_info,
-			    struct extent_buffer *leaf,
-			    struct btrfs_chunk *chunk,
-			    int slot, u64 logical)
-{
-	u64 length;
-	u64 stripe_len;
-	u16 num_stripes;
-	u16 sub_stripes;
-	u64 type;
-	u32 chunk_ondisk_size;
-	u32 sectorsize = fs_info->sectorsize;
-	int min_devs;
-	int table_sub_stripes;
-
-	/*
-	 * Basic chunk item size check.  Note that btrfs_chunk already contains
-	 * one stripe, so no "==" check.
-	 */
-	if (slot >= 0 &&
-	    btrfs_item_size(leaf, slot) < sizeof(struct btrfs_chunk)) {
-		error("invalid chunk item size, have %u expect [%zu, %u)",
-			btrfs_item_size(leaf, slot),
-			sizeof(struct btrfs_chunk),
-			BTRFS_LEAF_DATA_SIZE(fs_info));
-		return -EUCLEAN;
-	}
-	length = btrfs_chunk_length(leaf, chunk);
-	stripe_len = btrfs_chunk_stripe_len(leaf, chunk);
-	num_stripes = btrfs_chunk_num_stripes(leaf, chunk);
-	sub_stripes = btrfs_chunk_sub_stripes(leaf, chunk);
-	type = btrfs_chunk_type(leaf, chunk);
-
-	if (num_stripes == 0) {
-		error("invalid num_stripes, have %u expect non-zero",
-			num_stripes);
-		return -EUCLEAN;
-	}
-	if (slot >= 0 && btrfs_chunk_item_size(num_stripes) !=
-	    btrfs_item_size(leaf, slot)) {
-		error("invalid chunk item size, have %u expect %lu",
-			btrfs_item_size(leaf, slot),
-			btrfs_chunk_item_size(num_stripes));
-		return -EUCLEAN;
-	}
-
-	/*
-	 * These valid checks may be insufficient to cover every corner cases.
-	 */
-	if (!IS_ALIGNED(logical, sectorsize)) {
-		error("invalid chunk logical %llu",  logical);
-		return -EIO;
-	}
-	if (btrfs_chunk_sector_size(leaf, chunk) != sectorsize) {
-		error("invalid chunk sectorsize %llu",
-		      (unsigned long long)btrfs_chunk_sector_size(leaf, chunk));
-		return -EIO;
-	}
-	if (!length || !IS_ALIGNED(length, sectorsize)) {
-		error("invalid chunk length %llu",  length);
-		return -EIO;
-	}
-	if (stripe_len != BTRFS_STRIPE_LEN) {
-		error("invalid chunk stripe length: %llu", stripe_len);
-		return -EIO;
-	}
-	/* Check on chunk item type */
-	if (slot == -1 && (type & BTRFS_BLOCK_GROUP_SYSTEM) == 0) {
-		error("invalid chunk type %llu", type);
-		return -EIO;
-	}
-	if (type & ~(BTRFS_BLOCK_GROUP_TYPE_MASK |
-		     BTRFS_BLOCK_GROUP_PROFILE_MASK)) {
-		error("unrecognized chunk type: %llu",
-		      ~(BTRFS_BLOCK_GROUP_TYPE_MASK |
-			BTRFS_BLOCK_GROUP_PROFILE_MASK) & type);
-		return -EIO;
-	}
-	if (!(type & BTRFS_BLOCK_GROUP_TYPE_MASK)) {
-		error("missing chunk type flag: %llu", type);
-		return -EIO;
-	}
-	if (!(is_power_of_2(type & BTRFS_BLOCK_GROUP_PROFILE_MASK) ||
-	      (type & BTRFS_BLOCK_GROUP_PROFILE_MASK) == 0)) {
-		error("conflicting chunk type detected: %llu", type);
-		return -EIO;
-	}
-	if ((type & BTRFS_BLOCK_GROUP_PROFILE_MASK) &&
-	    !is_power_of_2(type & BTRFS_BLOCK_GROUP_PROFILE_MASK)) {
-		error("conflicting chunk profile detected: %llu", type);
-		return -EIO;
-	}
-
-	chunk_ondisk_size = btrfs_chunk_item_size(num_stripes);
-	/*
-	 * Btrfs_chunk contains at least one stripe, and for sys_chunk
-	 * it can't exceed the system chunk array size
-	 * For normal chunk, it should match its chunk item size.
-	 */
-	if (num_stripes < 1 ||
-	    (slot == -1 && chunk_ondisk_size > BTRFS_SYSTEM_CHUNK_ARRAY_SIZE) ||
-	    (slot >= 0 && chunk_ondisk_size > btrfs_item_size(leaf, slot))) {
-		error("invalid num_stripes: %u", num_stripes);
-		return -EIO;
-	}
-	/*
-	 * Device number check against profile
-	 */
-	min_devs = btrfs_bg_type_to_devs_min(type);
-	table_sub_stripes = btrfs_bg_type_to_sub_stripes(type);
-	if ((type & BTRFS_BLOCK_GROUP_RAID10 && (sub_stripes != table_sub_stripes ||
-		  !IS_ALIGNED(num_stripes, sub_stripes))) ||
-	    (type & BTRFS_BLOCK_GROUP_RAID1 && num_stripes < min_devs) ||
-	    (type & BTRFS_BLOCK_GROUP_RAID1C3 && num_stripes < min_devs) ||
-	    (type & BTRFS_BLOCK_GROUP_RAID1C4 && num_stripes < min_devs) ||
-	    (type & BTRFS_BLOCK_GROUP_RAID5 && num_stripes < min_devs) ||
-	    (type & BTRFS_BLOCK_GROUP_RAID6 && num_stripes < min_devs) ||
-	    (type & BTRFS_BLOCK_GROUP_DUP && num_stripes > 2) ||
-	    ((type & BTRFS_BLOCK_GROUP_PROFILE_MASK) == 0 &&
-	     num_stripes != 1)) {
-		error("Invalid num_stripes:sub_stripes %u:%u for profile %llu",
-		      num_stripes, sub_stripes,
-		      type & BTRFS_BLOCK_GROUP_PROFILE_MASK);
-		return -EIO;
-	}
-
-	return 0;
-}
-
-/*
  * Slot is used to verify the chunk item is valid
  *
  * For sys chunk in superblock, pass -1 to indicate sys chunk.
@@ -2243,7 +2111,7 @@ static int read_one_chunk(struct btrfs_fs_info *fs_info, struct btrfs_key *key,
 	length = btrfs_chunk_length(leaf, chunk);
 	num_stripes = btrfs_chunk_num_stripes(leaf, chunk);
 	/* Validation check */
-	ret = btrfs_check_chunk_valid(fs_info, leaf, chunk, slot, logical);
+	ret = btrfs_check_chunk_valid(leaf, chunk, logical);
 	if (ret) {
 		error("%s checksums match, but it has an invalid chunk, %s",
 		      (slot == -1) ? "Superblock" : "Metadata",

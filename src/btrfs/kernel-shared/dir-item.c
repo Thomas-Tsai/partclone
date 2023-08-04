@@ -21,6 +21,14 @@
 #include "kernel-shared/disk-io.h"
 #include "kernel-shared/transaction.h"
 
+/*
+ * insert a name into a directory, doing overflow properly if there is a hash
+ * collision.  data_size indicates how big the item inserted should be.  On
+ * success a struct btrfs_dir_item pointer is returned, otherwise it is
+ * an ERR_PTR.
+ *
+ * The name is not copied into the dir item, you have to do that yourself.
+ */
 static struct btrfs_dir_item *insert_with_overflow(struct btrfs_trans_handle
 						   *trans,
 						   struct btrfs_root *root,
@@ -53,6 +61,10 @@ static struct btrfs_dir_item *insert_with_overflow(struct btrfs_trans_handle
 	return (struct btrfs_dir_item *)ptr;
 }
 
+/*
+ * xattrs work a lot like directories, this inserts an xattr item
+ * into the tree
+ */
 int btrfs_insert_xattr_item(struct btrfs_trans_handle *trans,
 			    struct btrfs_root *root, const char *name,
 			    u16 name_len, const void *data, u16 data_len,
@@ -89,7 +101,7 @@ int btrfs_insert_xattr_item(struct btrfs_trans_handle *trans,
 	leaf = path->nodes[0];
 	btrfs_cpu_key_to_disk(&disk_key, &location);
 	btrfs_set_dir_item_key(leaf, dir_item, &disk_key);
-	btrfs_set_dir_type(leaf, dir_item, BTRFS_FT_XATTR);
+	btrfs_set_dir_flags(leaf, dir_item, BTRFS_FT_XATTR);
 	btrfs_set_dir_name_len(leaf, dir_item, name_len);
 	btrfs_set_dir_data_len(leaf, dir_item, data_len);
 	name_ptr = (unsigned long)(dir_item + 1);
@@ -103,6 +115,14 @@ int btrfs_insert_xattr_item(struct btrfs_trans_handle *trans,
 	return ret;
 }
 
+/*
+ * insert a directory item in the tree, doing all the magic for
+ * both indexes. 'dir' indicates which objectid to insert it into,
+ * 'location' is the key to stuff into the directory item, 'type' is the
+ * type of the inode we're pointing to, and 'index' is the sequence number
+ * to use for the second index (if one is created).
+ * Will return 0 or -ENOMEM
+ */
 int btrfs_insert_dir_item(struct btrfs_trans_handle *trans, struct btrfs_root
 			  *root, const char *name, int name_len, u64 dir,
 			  struct btrfs_key *location, u8 type, u64 index)
@@ -141,7 +161,7 @@ int btrfs_insert_dir_item(struct btrfs_trans_handle *trans, struct btrfs_root
 	leaf = path->nodes[0];
 	btrfs_cpu_key_to_disk(&disk_key, location);
 	btrfs_set_dir_item_key(leaf, dir_item, &disk_key);
-	btrfs_set_dir_type(leaf, dir_item, type);
+	btrfs_set_dir_flags(leaf, dir_item, type);
 	btrfs_set_dir_data_len(leaf, dir_item, 0);
 	btrfs_set_dir_name_len(leaf, dir_item, name_len);
 	name_ptr = (unsigned long)(dir_item + 1);
@@ -170,7 +190,7 @@ insert:
 	leaf = path->nodes[0];
 	btrfs_cpu_key_to_disk(&disk_key, location);
 	btrfs_set_dir_item_key(leaf, dir_item, &disk_key);
-	btrfs_set_dir_type(leaf, dir_item, type);
+	btrfs_set_dir_flags(leaf, dir_item, type);
 	btrfs_set_dir_data_len(leaf, dir_item, 0);
 	btrfs_set_dir_name_len(leaf, dir_item, name_len);
 	name_ptr = (unsigned long)(dir_item + 1);
@@ -292,7 +312,7 @@ static int verify_dir_item(struct btrfs_root *root,
 		    struct btrfs_dir_item *dir_item)
 {
 	u16 namelen = BTRFS_NAME_LEN;
-	u8 type = btrfs_dir_type(leaf, dir_item);
+	u8 type = btrfs_dir_ftype(leaf, dir_item);
 
 	if (type == BTRFS_FT_XATTR)
 		namelen = XATTR_NAME_MAX;

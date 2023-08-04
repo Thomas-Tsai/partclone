@@ -29,6 +29,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <uuid/uuid.h>
+#include "kernel-shared/uapi/btrfs.h"
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/disk-io.h"
 #include "kernel-shared/volumes.h"
@@ -38,7 +39,6 @@
 #include "common/messages.h"
 #include "cmds/commands.h"
 #include "mkfs/common.h"
-#include "ioctl.h"
 
 static int rand_seed_initialized = 0;
 static unsigned short rand_seed[3];
@@ -230,7 +230,7 @@ int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 			goto out;
 		}
 		ret = check_mounted_where(fd, path, mp, sizeof(mp),
-					  &fs_devices_mnt, SBREAD_DEFAULT);
+					  &fs_devices_mnt, SBREAD_DEFAULT, false);
 		if (!ret) {
 			ret = -EINVAL;
 			goto out;
@@ -498,7 +498,7 @@ static bool valid_escape(const char *str)
  * - line is advanced to the final separator or nul character
  * - returned path is a valid string terminated by zero or whitespace separator
  */
-char *read_path(char **line)
+static char *read_path(char **line)
 {
 	char *ret = *line;
 	char *out = *line;

@@ -22,6 +22,23 @@
 #include <stdio.h>
 #include <errno.h>
 
+/*
+ * Workaround for custom format %pV that may not be supported on all libcs.
+ */
+#ifdef HAVE_PRINTF_H
+#define DECLARE_PV(name)		struct va_format name
+#define PV_FMT				"%pV"
+#define PV_VAL(va)			&va
+#define PV_ASSIGN(_va, _fmt, _args)	({ _va.fmt = (_fmt); _va.va = &(_args); })
+#include <printf.h>
+#else
+#define PV_WORKAROUND
+#define DECLARE_PV(name)		char name[1024]
+#define PV_FMT				"%s"
+#define PV_VAL(va)			va
+#define PV_ASSIGN(_va, _fmt, _args)	vsnprintf(_va, 1024, _fmt, _args)
+#endif
+
 #ifdef DEBUG_VERBOSE_ERROR
 #define	PRINT_VERBOSE_ERROR	fprintf(stderr, "%s:%d:", __FILE__, __LINE__)
 #else
@@ -40,6 +57,49 @@
 #define DO_ABORT_ON_ERROR	do { } while (0)
 #endif
 
+#ifndef BTRFS_DISABLE_BACKTRACE
+static inline void assert_trace(const char *assertion, const char *filename,
+				const char *func, unsigned line, long val)
+{
+	if (val)
+		return;
+	fprintf(stderr,
+		"%s:%d: %s: Assertion `%s` failed, value %ld\n",
+		filename, line, func, assertion, val);
+#ifndef BTRFS_DISABLE_BACKTRACE
+	print_trace();
+#endif
+	abort();
+	exit(1);
+}
+
+#define	UASSERT(c) assert_trace(#c, __FILE__, __func__, __LINE__, (long)(c))
+#else
+#define UASSERT(c) assert(c)
+#endif
+
+#define PREFIX_ERROR		"ERROR: "
+#define PREFIX_WARNING		"WARNING: "
+
+#define __btrfs_msg(prefix, fmt, ...)					\
+	do {								\
+		fputs((prefix), stderr);				\
+		__btrfs_printf((fmt), ##__VA_ARGS__);			\
+		fputc('\n', stderr);					\
+	} while (0)
+
+#define __btrfs_warning(fmt, ...) \
+	__btrfs_msg(PREFIX_WARNING, fmt, ##__VA_ARGS__)
+
+#define __btrfs_error(fmt, ...) \
+	__btrfs_msg(PREFIX_ERROR, fmt, ##__VA_ARGS__)
+
+#define internal_error(fmt, ...)						\
+	do {									\
+		__btrfs_msg("INTERNAL " PREFIX_ERROR, fmt, ##__VA_ARGS__);	\
+		print_trace();							\
+	} while (0)
+
 #define error(fmt, ...)							\
 	do {								\
 		PRINT_TRACE_ON_ERROR;					\
@@ -50,13 +110,12 @@
 
 #define error_on(cond, fmt, ...)					\
 	do {								\
-		if ((cond))						\
+		if ((cond)) {						\
 			PRINT_TRACE_ON_ERROR;				\
-		if ((cond))						\
 			PRINT_VERBOSE_ERROR;				\
-		__btrfs_error_on((cond), (fmt), ##__VA_ARGS__);		\
-		if ((cond))						\
+			__btrfs_error((fmt), ##__VA_ARGS__);		\
 			DO_ABORT_ON_ERROR;				\
+		}							\
 	} while (0)
 
 #define error_btrfs_util(err)						\
@@ -81,27 +140,18 @@
 
 #define warning_on(cond, fmt, ...)					\
 	do {								\
-		if ((cond))						\
+		if ((cond)) {						\
 			PRINT_TRACE_ON_ERROR;				\
-		if ((cond))						\
 			PRINT_VERBOSE_ERROR;				\
-		__btrfs_warning_on((cond), (fmt), ##__VA_ARGS__);	\
+			__btrfs_warning((fmt), ##__VA_ARGS__);		\
+		}							\
 	} while (0)
 
 __attribute__ ((format (printf, 1, 2)))
-void __btrfs_warning(const char *fmt, ...);
-
-__attribute__ ((format (printf, 1, 2)))
-void __btrfs_error(const char *fmt, ...);
+void __btrfs_printf(const char *fmt, ...);
 
 __attribute__ ((format (printf, 2, 3)))
-int __btrfs_warning_on(int condition, const char *fmt, ...);
-
-__attribute__ ((format (printf, 2, 3)))
-int __btrfs_error_on(int condition, const char *fmt, ...);
-
-__attribute__ ((format (printf, 1, 2)))
-void internal_error(const char *fmt, ...);
+void btrfs_no_printk(const void *fs_info, const char *fmt, ...);
 
 /*
  * Level of messages that must be printed by default (in case the verbosity

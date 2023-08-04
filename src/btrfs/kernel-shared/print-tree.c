@@ -26,12 +26,14 @@
 #include "kernel-shared/print-tree.h"
 #include "kernel-shared/volumes.h"
 #include "kernel-shared/compression.h"
+#include "kernel-shared/accessors.h"
+#include "kernel-shared/file-item.h"
 #include "common/utils.h"
 
 static void print_dir_item_type(struct extent_buffer *eb,
                                 struct btrfs_dir_item *di)
 {
-	u8 type = btrfs_dir_type(eb, di);
+	u8 type = btrfs_dir_ftype(eb, di);
 	static const char* dir_item_str[] = {
 		[BTRFS_FT_REG_FILE]	= "FILE",
 		[BTRFS_FT_DIR] 		= "DIR",
@@ -788,6 +790,9 @@ void print_objectid(FILE *stream, u64 objectid, u8 type)
 	case BTRFS_BLOCK_GROUP_TREE_OBJECTID:
 		fprintf(stream, "BLOCK_GROUP_TREE");
 		break;
+	case BTRFS_CSUM_CHANGE_OBJECTID:
+		fprintf(stream, "CSUM_CHANGE");
+		break;
 	case (u64)-1:
 		fprintf(stream, "-1");
 		break;
@@ -959,15 +964,20 @@ static void print_disk_balance_args(struct btrfs_disk_balance_args *ba)
 static void print_balance_item(struct extent_buffer *eb,
 		struct btrfs_balance_item *bi)
 {
+	struct btrfs_disk_balance_args ba;
+
 	printf("\t\tbalance status flags %llu\n",
-			btrfs_balance_item_flags(eb, bi));
+			btrfs_balance_flags(eb, bi));
 
 	printf("\t\tDATA\n");
-	print_disk_balance_args(btrfs_balance_item_data(eb, bi));
+	btrfs_balance_data(eb, bi, &ba);
+	print_disk_balance_args(&ba);
 	printf("\t\tMETADATA\n");
-	print_disk_balance_args(btrfs_balance_item_meta(eb, bi));
+	btrfs_balance_meta(eb, bi, &ba);
+	print_disk_balance_args(&ba);
 	printf("\t\tSYSTEM\n");
-	print_disk_balance_args(btrfs_balance_item_sys(eb, bi));
+	btrfs_balance_sys(eb, bi, &ba);
+	print_disk_balance_args(&ba);
 }
 
 static void print_dev_stats(struct extent_buffer *eb,
@@ -1089,12 +1099,10 @@ static void print_qgroup_info(struct extent_buffer *eb, int slot)
 		"\t\treferenced %llu referenced_compressed %llu\n"
 		"\t\texclusive %llu exclusive_compressed %llu\n",
 		(unsigned long long)btrfs_qgroup_info_generation(eb, qg_info),
-		(unsigned long long)btrfs_qgroup_info_referenced(eb, qg_info),
-		(unsigned long long)btrfs_qgroup_info_referenced_compressed(eb,
-								       qg_info),
-		(unsigned long long)btrfs_qgroup_info_exclusive(eb, qg_info),
-		(unsigned long long)btrfs_qgroup_info_exclusive_compressed(eb,
-								      qg_info));
+		(unsigned long long)btrfs_qgroup_info_rfer(eb, qg_info),
+		(unsigned long long)btrfs_qgroup_info_rfer_cmpr(eb, qg_info),
+		(unsigned long long)btrfs_qgroup_info_excl(eb, qg_info),
+		(unsigned long long)btrfs_qgroup_info_excl_cmpr(eb, qg_info));
 }
 
 static void print_qgroup_limit(struct extent_buffer *eb, int slot)
@@ -1106,10 +1114,10 @@ static void print_qgroup_limit(struct extent_buffer *eb, int slot)
 		"\t\tmax_referenced %lld max_exclusive %lld\n"
 		"\t\trsv_referenced %lld rsv_exclusive %lld\n",
 		(unsigned long long)btrfs_qgroup_limit_flags(eb, qg_limit),
-		(long long)btrfs_qgroup_limit_max_referenced(eb, qg_limit),
-		(long long)btrfs_qgroup_limit_max_exclusive(eb, qg_limit),
-		(long long)btrfs_qgroup_limit_rsv_referenced(eb, qg_limit),
-		(long long)btrfs_qgroup_limit_rsv_exclusive(eb, qg_limit));
+		(long long)btrfs_qgroup_limit_max_rfer(eb, qg_limit),
+		(long long)btrfs_qgroup_limit_max_excl(eb, qg_limit),
+		(long long)btrfs_qgroup_limit_rsv_rfer(eb, qg_limit),
+		(long long)btrfs_qgroup_limit_rsv_excl(eb, qg_limit));
 }
 
 static void print_persistent_item(struct extent_buffer *eb, void *ptr,
@@ -1137,8 +1145,12 @@ static void print_temporary_item(struct extent_buffer *eb, void *ptr,
 	case BTRFS_BALANCE_OBJECTID:
 		print_balance_item(eb, ptr);
 		break;
-	case BTRFS_CSUM_TREE_TMP_OBJECTID:
-		printf("\t\tcsum tree tmp root %llu\n", offset);
+	case BTRFS_CSUM_CHANGE_OBJECTID:
+		if (offset < btrfs_get_num_csums())
+			printf("\t\ttarget csum type %s (%llu)\n",
+			       btrfs_super_csum_name(offset) ,offset);
+		else
+			printf("\t\tunknown csum type %llu\n", offset);
 		break;
 	default:
 		printf("\t\tunknown temporary item objectid %llu\n", objectid);
@@ -1552,7 +1564,9 @@ static void dfs_print_children(struct extent_buffer *root_eb, unsigned int mode)
 
 	for (i = 0; i < nr; i++) {
 		next = read_tree_block(fs_info, btrfs_node_blockptr(root_eb, i),
-				btrfs_node_ptr_generation(root_eb, i));
+				       btrfs_header_owner(root_eb),
+				       btrfs_node_ptr_generation(root_eb, i),
+				       root_eb_level, NULL);
 		if (!extent_buffer_uptodate(next)) {
 			fprintf(stderr, "failed to read %llu in tree %llu\n",
 				btrfs_node_blockptr(root_eb, i),
@@ -1707,6 +1721,7 @@ static struct readable_flag_entry super_flags_array[] = {
 	DEF_HEADER_FLAG_ENTRY(WRITTEN),
 	DEF_HEADER_FLAG_ENTRY(RELOC),
 	DEF_SUPER_FLAG_ENTRY(CHANGING_FSID),
+	DEF_SUPER_FLAG_ENTRY(CHANGING_FSID_V2),
 	DEF_SUPER_FLAG_ENTRY(SEEDING),
 	DEF_SUPER_FLAG_ENTRY(METADUMP),
 	DEF_SUPER_FLAG_ENTRY(METADUMP_V2)
@@ -1716,6 +1731,7 @@ static const int super_flags_num = ARRAY_SIZE(super_flags_array);
 #define BTRFS_SUPER_FLAG_SUPP	(BTRFS_HEADER_FLAG_WRITTEN |\
 				 BTRFS_HEADER_FLAG_RELOC |\
 				 BTRFS_SUPER_FLAG_CHANGING_FSID |\
+				 BTRFS_SUPER_FLAG_CHANGING_FSID_V2 |\
 				 BTRFS_SUPER_FLAG_SEEDING |\
 				 BTRFS_SUPER_FLAG_METADUMP |\
 				 BTRFS_SUPER_FLAG_METADUMP_V2)

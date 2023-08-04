@@ -19,9 +19,6 @@
 #include "common/messages.h"
 #include "common/utils.h"
 
-#define PREFIX_ERROR		"ERROR: "
-#define PREFIX_WARNING		"WARNING: "
-
 static const char *common_error_string[] = {
 	[ERROR_MSG_MEMORY]	= "not enough memory",
 	[ERROR_MSG_START_TRANS] = "failed to start transaction",
@@ -29,77 +26,59 @@ static const char *common_error_string[] = {
 };
 
 __attribute__ ((format (printf, 1, 2)))
-void __btrfs_warning(const char *fmt, ...)
+void __btrfs_printf(const char *fmt, ...)
 {
 	va_list args;
 
-	fputs(PREFIX_WARNING, stderr);
 	va_start(args, fmt);
 	vfprintf(stderr, fmt, args);
 	va_end(args);
-	fputc('\n', stderr);
 }
 
-__attribute__ ((format (printf, 1, 2)))
-void __btrfs_error(const char *fmt, ...)
-{
-	va_list args;
+#ifndef PV_WORKAROUND
 
-	fputs(PREFIX_ERROR, stderr);
-	va_start(args, fmt);
-	vfprintf(stderr, fmt, args);
-	va_end(args);
-	fputc('\n', stderr);
+static int va_modifier = -1;
+
+static int print_va_format(FILE *stream, const struct printf_info *info,
+			   const void *const *args)
+{
+	const struct va_format *fmt;
+
+	if (!(info->user & va_modifier))
+		return -2;
+
+	fmt = *((const struct va_format **)(args[0]));
+	return vfprintf(stream, fmt->fmt, *(fmt->va));
 }
 
-__attribute__ ((format (printf, 2, 3)))
-int __btrfs_warning_on(int condition, const char *fmt, ...)
+static int print_va_format_arginfo(const struct printf_info *info,
+				   size_t n, int *argtypes, int *size)
 {
-	va_list args;
-
-	if (!condition)
-		return 0;
-
-	fputs(PREFIX_WARNING, stderr);
-	va_start(args, fmt);
-	vfprintf(stderr, fmt, args);
-	va_end(args);
-	fputc('\n', stderr);
-
+	if (n > 0) {
+		argtypes[0] = PA_POINTER;
+		size[0] = sizeof(struct va_format *);
+	}
 	return 1;
 }
-
-__attribute__ ((format (printf, 2, 3)))
-int __btrfs_error_on(int condition, const char *fmt, ...)
-{
-	va_list args;
-
-	if (!condition)
-		return 0;
-
-	fputs(PREFIX_ERROR, stderr);
-	va_start(args, fmt);
-	vfprintf(stderr, fmt, args);
-	va_end(args);
-	fputc('\n', stderr);
-
-	return 1;
-}
-
-__attribute__ ((format (printf, 1, 2)))
-void internal_error(const char *fmt, ...)
-{
-	va_list vargs;
-
-	va_start(vargs, fmt);
-	fputs("INTERNAL " PREFIX_ERROR, stderr);
-	vfprintf(stderr, fmt, vargs);
-	va_end(vargs);
-	fputc('\n', stderr);
-
-#ifndef BTRFS_DISABLE_BACKTRACE
-	print_trace();
 #endif
+
+__attribute__ ((format (printf, 2, 3)))
+void btrfs_no_printk(const void *fs_info, const char *fmt, ...)
+{
+	va_list args;
+
+#ifndef PV_WORKAROUND
+	if (va_modifier == -1) {
+		register_printf_specifier('V', print_va_format,
+					  print_va_format_arginfo);
+		va_modifier = register_printf_modifier(L"p");
+	}
+#endif
+
+	va_start(args, fmt);
+	vfprintf(stderr, fmt, args);
+	va_end(args);
+	fputc('\n', stderr);
 }
 
 static bool should_print(int level)
