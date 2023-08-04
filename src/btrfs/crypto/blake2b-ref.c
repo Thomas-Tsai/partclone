@@ -20,6 +20,8 @@
 #include "blake2.h"
 #include "blake2-impl.h"
 
+#include "common/cpu-utils.h"
+
 static const uint64_t blake2b_IV[8] =
 {
   0x6a09e667f3bcc908ULL, 0xbb67ae8584caa73bULL,
@@ -174,7 +176,7 @@ int blake2b_init_key( blake2b_state *S, size_t outlen, const void *key, size_t k
     G(r,7,v[ 3],v[ 4],v[ 9],v[14]); \
   } while(0)
 
-static void blake2b_compress( blake2b_state *S, const uint8_t block[BLAKE2B_BLOCKBYTES] )
+static void blake2b_compress_ref( blake2b_state *S, const uint8_t block[BLAKE2B_BLOCKBYTES] )
 {
   uint64_t m[16];
   uint64_t v[16];
@@ -217,6 +219,31 @@ static void blake2b_compress( blake2b_state *S, const uint8_t block[BLAKE2B_BLOC
 
 #undef G
 #undef ROUND
+
+void blake2b_compress_sse2( blake2b_state *S, const uint8_t block[BLAKE2B_BLOCKBYTES] );
+void blake2b_compress_sse41( blake2b_state *S, const uint8_t block[BLAKE2B_BLOCKBYTES] );
+void blake2b_compress_avx2( blake2b_state *S, const uint8_t block[BLAKE2B_BLOCKBYTES] );
+
+static void (*blake2b_compress)( blake2b_state *S, const uint8_t block[BLAKE2B_BLOCKBYTES] ) = blake2b_compress_ref;
+
+void blake2_init_accel(void)
+{
+	if (0);
+#if HAVE_AVX2
+	else if (cpu_has_feature(CPU_FLAG_AVX2))
+		blake2b_compress = blake2b_compress_avx2;
+#endif
+#if HAVE_SSE41
+	else if (cpu_has_feature(CPU_FLAG_SSE41))
+		blake2b_compress = blake2b_compress_sse41;
+#endif
+#if HAVE_SSE2
+	else if (cpu_has_feature(CPU_FLAG_SSE2))
+		blake2b_compress = blake2b_compress_sse2;
+#endif
+	else
+		blake2b_compress = blake2b_compress_ref;
+}
 
 int blake2b_update( blake2b_state *S, const void *pin, size_t inlen )
 {

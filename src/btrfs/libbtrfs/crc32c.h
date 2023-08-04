@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2007 Red Hat.  All rights reserved.
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
  * License v2 as published by the Free Software Foundation.
@@ -14,21 +16,14 @@
  * Boston, MA 021110-1307, USA.
  */
 
-#ifndef CRYPTO_HASH_H
-#define CRYPTO_HASH_H
+#ifndef __CRC32C__
+#define __CRC32C__
 
-#include "kerncompat.h"
+#include <inttypes.h>
 
-#define CRYPTO_HASH_SIZE_MAX	32
+uint32_t crc32c_le(uint32_t seed, unsigned char const *data, uint32_t length);
+void crc32c_optimization_init(void);
 
-int hash_crc32c(const u8 *buf, size_t length, u8 *out);
-int hash_xxhash(const u8 *buf, size_t length, u8 *out);
-int hash_sha256(const u8 *buf, size_t length, u8 *out);
-int hash_blake2b(const u8 *buf, size_t length, u8 *out);
-
-void hash_init_accel(void);
-void hash_init_crc32c(void);
-void hash_init_blake2(void);
-void hash_init_sha256(void);
+#define crc32c(seed, data, length) crc32c_le(seed, (unsigned char const *)data, length)
 
 #endif

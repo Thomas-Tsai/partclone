@@ -8,18 +8,12 @@
  *
  */
 
-#include "kerncompat.h"
-#include "crypto/crc32c.h"
 #include <inttypes.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include "crypto/crc32c.h"
+#include "common/cpu-utils.h"
 
-u32 __crc32c_le(u32 crc, unsigned char const *data, size_t length);
-static u32 (*crc_function)(u32 crc, unsigned char const *data, size_t length) = __crc32c_le;
+uint32_t __crc32c_le(uint32_t crc, unsigned char const *data, uint32_t length);
+static uint32_t (*crc_function)(uint32_t crc, unsigned char const *data, uint32_t length) = __crc32c_le;
 
 #ifdef __x86_64__
 
@@ -41,11 +35,8 @@ static u32 (*crc_function)(u32 crc, unsigned char const *data, size_t length) = 
 #define SCALE_F 4
 #endif
 
-static int crc32c_probed = 0;
-static int crc32c_intel_available = 0;
-
 static uint32_t crc32c_intel_le_hw_byte(uint32_t crc, unsigned char const *data,
-					unsigned long length)
+					uint32_t length)
 {
 	while (length--) {
 		__asm__ __volatile__(
@@ -63,7 +54,7 @@ static uint32_t crc32c_intel_le_hw_byte(uint32_t crc, unsigned char const *data,
  * Steps through buffer one byte at at time, calculates reflected 
  * crc using table.
  */
-static uint32_t crc32c_intel(u32 crc, unsigned char const *data, unsigned long length)
+static uint32_t crc32c_intel(uint32_t crc, unsigned char const *data, uint32_t length)
 {
 	unsigned int iquotient = length / SCALE_F;
 	unsigned int iremainder = length % SCALE_F;
@@ -85,45 +76,20 @@ static uint32_t crc32c_intel(u32 crc, unsigned char const *data, unsigned long l
 	return crc;
 }
 
-static void do_cpuid(unsigned int *eax, unsigned int *ebx, unsigned int *ecx,
-		     unsigned int *edx)
+void crc32c_init_accel(void)
 {
-	int id = *eax;
-
-	asm("movl %4, %%eax;"
-	    "cpuid;"
-	    "movl %%eax, %0;"
-	    "movl %%ebx, %1;"
-	    "movl %%ecx, %2;"
-	    "movl %%edx, %3;"
-		: "=r" (*eax), "=r" (*ebx), "=r" (*ecx), "=r" (*edx)
-		: "r" (id)
-		: "eax", "ebx", "ecx", "edx");
-}
-
-static void crc32c_intel_probe(void)
-{
-	if (!crc32c_probed) {
-		unsigned int eax, ebx, ecx, edx;
-
-		eax = 1;
-
-		do_cpuid(&eax, &ebx, &ecx, &edx);
-		crc32c_intel_available = (ecx & (1 << 20)) != 0;
-		crc32c_probed = 1;
-	}
-}
-
-void crc32c_optimization_init(void)
-{
-	crc32c_intel_probe();
-	if (crc32c_intel_available)
+	/* CRC32 is in SSE4.2 */
+	if (cpu_has_feature(CPU_FLAG_SSE42))
 		crc_function = crc32c_intel;
+	else
+		crc_function = __crc32c_le;
 }
+
 #else
 
-void crc32c_optimization_init(void)
+void crc32c_init_accel(void)
 {
+	crc_function = __crc32c_le;
 }
 
 #endif /* __x86_64__ */
@@ -137,7 +103,7 @@ void crc32c_optimization_init(void)
  * reflect output bytes = true
  */
 
-static const u32 crc32c_table[256] = {
+static const uint32_t crc32c_table[256] = {
 	0x00000000L, 0xF26B8303L, 0xE13B70F7L, 0x1350F3F4L,
 	0xC79A971FL, 0x35F1141CL, 0x26A1E7E8L, 0xD4CA64EBL,
 	0x8AD958CFL, 0x78B2DBCCL, 0x6BE22838L, 0x9989AB3BL,
@@ -209,7 +175,7 @@ static const u32 crc32c_table[256] = {
  * crc using table.
  */
 
-u32 __crc32c_le(u32 crc, unsigned char const *data, size_t length)
+uint32_t __crc32c_le(uint32_t crc, unsigned char const *data, uint32_t length)
 {
 	while (length--)
 		crc =
@@ -217,7 +183,7 @@ u32 __crc32c_le(u32 crc, unsigned char const *data, size_t length)
 	return crc;
 }
 
-u32 crc32c_le(u32 crc, unsigned char const *data, size_t length)
+uint32_t crc32c_le(uint32_t crc, unsigned char const *data, uint32_t length)
 {
 	/* Use by-byte access for unaligned buffers */
 	if ((unsigned long)data % sizeof(unsigned long))

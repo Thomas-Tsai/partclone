@@ -796,7 +796,7 @@ void print_objectid(FILE *stream, u64 objectid, u8 type)
 			fprintf(stream, "FIRST_CHUNK_TREE");
 			break;
 		}
-		/* fall-thru */
+		fallthrough;
 	default:
 		fprintf(stream, "%llu", (unsigned long long)objectid);
 	}
@@ -1136,6 +1136,9 @@ static void print_temporary_item(struct extent_buffer *eb, void *ptr,
 	switch (objectid) {
 	case BTRFS_BALANCE_OBJECTID:
 		print_balance_item(eb, ptr);
+		break;
+	case BTRFS_CSUM_TREE_TMP_OBJECTID:
+		printf("\t\tcsum tree tmp root %llu\n", offset);
 		break;
 	default:
 		printf("\t\tunknown temporary item objectid %llu\n", objectid);

@@ -275,6 +275,10 @@ int btrfs_create_root(struct btrfs_trans_handle *trans,
 		}
 		fs_info->block_group_root = new_root;
 		break;
+
+	case BTRFS_CSUM_TREE_TMP_OBJECTID:
+		fs_info->csum_tree_tmp = new_root;
+		break;
 	/*
 	 * Essential trees can't be created by this function, yet.
 	 * As we expect such skeleton exists, or a lot of functions like
@@ -3400,14 +3404,22 @@ int btrfs_uuid_tree_add(struct btrfs_trans_handle *trans, u8 *uuid, u8 type,
 
 	ret = btrfs_insert_empty_item(trans, uuid_root, path, &key,
 				      sizeof(subvol_id_le));
+	if (ret < 0 && ret != -EEXIST) {
+		warning(
+		"inserting uuid item failed (0x%016llx, 0x%016llx) type %u: %d",
+			(unsigned long long)key.objectid,
+			(unsigned long long)key.offset, type, ret);
+		goto out;
+	}
+
 	if (ret >= 0) {
 		/* Add an item for the type for the first time */
 		eb = path->nodes[0];
 		slot = path->slots[0];
 		offset = btrfs_item_ptr_offset(eb, slot);
-	} else if (ret == -EEXIST) {
+	} else {
 		/*
-		 * An item with that type already exists.
+		 * ret == -EEXIST case, An item with that type already exists.
 		 * Extend the item and store the new subvol_id at the end.
 		 */
 		btrfs_extend_item(uuid_root, path, sizeof(subvol_id_le));
@@ -3415,12 +3427,6 @@ int btrfs_uuid_tree_add(struct btrfs_trans_handle *trans, u8 *uuid, u8 type,
 		slot = path->slots[0];
 		offset = btrfs_item_ptr_offset(eb, slot);
 		offset += btrfs_item_size(eb, slot) - sizeof(subvol_id_le);
-	} else if (ret < 0) {
-		warning(
-		"inserting uuid item failed (0x%016llx, 0x%016llx) type %u: %d",
-			(unsigned long long)key.objectid,
-			(unsigned long long)key.offset, type, ret);
-		goto out;
 	}
 
 	ret = 0;
