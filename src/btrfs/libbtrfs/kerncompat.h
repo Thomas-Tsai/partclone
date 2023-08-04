@@ -192,10 +192,6 @@ struct mutex {
 	unsigned long lock;
 };
 
-typedef struct spinlock_struct {
-	unsigned long lock;
-} spinlock_t;
-
 #define mutex_init(m)						\
 do {								\
 	(m)->lock = 1;						\
@@ -553,26 +549,5 @@ struct __una_u64 { __le64 x; } __attribute__((__packed__));
 do {									\
 	(x) = (val);							\
 } while (0)
-
-typedef struct refcount_struct {
-	int refs;
-} refcount_t;
-
-typedef u32 blk_status_t;
-typedef u32 blk_opf_t;
-typedef int atomic_t;
-
-struct work_struct {
-};
-
-typedef struct wait_queue_head_s {
-} wait_queue_head_t;
-
-/*
- * __init cannot be defined in kerncompat.h as it's still part of libbtrfs and
- * the macro name is too generic and can break build.
-#define __init
-*/
-#define __cold
 
 #endif

@@ -136,7 +136,7 @@ int __commit_transaction(struct btrfs_trans_handle *trans,
 	u64 end;
 	struct btrfs_fs_info *fs_info = root->fs_info;
 	struct extent_buffer *eb;
-	struct extent_io_tree *tree = &fs_info->extent_cache;
+	struct extent_io_tree *tree = &fs_info->dirty_buffers;
 	int ret;
 
 	while(1) {
@@ -150,7 +150,7 @@ again:
 			goto again;
 
 		while(start <= end) {
-			eb = find_first_extent_buffer(tree, start);
+			eb = find_first_extent_buffer(fs_info, start);
 			BUG_ON(!eb || eb->start != start);
 			ret = write_tree_block(trans, fs_info, eb);
 			if (ret < 0) {
@@ -180,7 +180,7 @@ cleanup:
 			break;
 
 		while (start <= end) {
-			eb = find_first_extent_buffer(tree, start);
+			eb = find_first_extent_buffer(fs_info, start);
 			BUG_ON(!eb || eb->start != start);
 			start += eb->len;
 			clear_extent_buffer_dirty(eb);

@@ -27,6 +27,7 @@
 #include "kernel-shared/extent_io.h"
 #include "kernel-lib/list.h"
 #include "kernel-lib/raid56.h"
+#include "kernel-lib/bitmap.h"
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/volumes.h"
 #include "kernel-shared/disk-io.h"
@@ -34,13 +35,45 @@
 #include "common/device-utils.h"
 #include "common/internal.h"
 
+static void free_extent_buffer_final(struct extent_buffer *eb);
+
+void extent_buffer_init_cache(struct btrfs_fs_info *fs_info)
+{
+	fs_info->max_cache_size = total_memory() / 4;
+	fs_info->cache_size = 0;
+	INIT_LIST_HEAD(&fs_info->lru);
+}
+
+void extent_buffer_free_cache(struct btrfs_fs_info *fs_info)
+{
+	struct extent_buffer *eb;
+
+	while(!list_empty(&fs_info->lru)) {
+		eb = list_entry(fs_info->lru.next, struct extent_buffer, lru);
+		if (eb->refs) {
+			/*
+			 * Reset extent buffer refs to 1, so the
+			 * free_extent_buffer_nocache() can free it for sure.
+			 */
+			eb->refs = 1;
+			fprintf(stderr,
+				"extent buffer leak: start %llu len %u\n",
+				(unsigned long long)eb->start, eb->len);
+			free_extent_buffer_nocache(eb);
+		} else {
+			free_extent_buffer_final(eb);
+		}
+	}
+
+	free_extent_cache_tree(&fs_info->extent_cache);
+	fs_info->cache_size = 0;
+}
+
 void extent_io_tree_init(struct extent_io_tree *tree)
 {
 	cache_tree_init(&tree->state);
 	cache_tree_init(&tree->cache);
 	INIT_LIST_HEAD(&tree->lru);
-	tree->cache_size = 0;
-	tree->max_cache_size = (u64)total_memory() / 4;
 }
 
 static struct extent_state *alloc_extent_state(void)
@@ -73,7 +106,6 @@ static void free_extent_state_func(struct cache_extent *cache)
 	btrfs_free_extent_state(es);
 }
 
-static void free_extent_buffer_final(struct extent_buffer *eb);
 void extent_io_tree_cleanup(struct extent_io_tree *tree)
 {
 	struct extent_buffer *eb;
@@ -560,48 +592,6 @@ int test_range_bit(struct extent_io_tree *tree, u64 start, u64 end,
 	return bitset;
 }
 
-int set_state_private(struct extent_io_tree *tree, u64 start, u64 private)
-{
-	struct cache_extent *node;
-	struct extent_state *state;
-	int ret = 0;
-
-	node = search_cache_extent(&tree->state, start);
-	if (!node) {
-		ret = -ENOENT;
-		goto out;
-	}
-	state = container_of(node, struct extent_state, cache_node);
-	if (state->start != start) {
-		ret = -ENOENT;
-		goto out;
-	}
-	state->xprivate = private;
-out:
-	return ret;
-}
-
-int get_state_private(struct extent_io_tree *tree, u64 start, u64 *private)
-{
-	struct cache_extent *node;
-	struct extent_state *state;
-	int ret = 0;
-
-	node = search_cache_extent(&tree->state, start);
-	if (!node) {
-		ret = -ENOENT;
-		goto out;
-	}
-	state = container_of(node, struct extent_state, cache_node);
-	if (state->start != start) {
-		ret = -ENOENT;
-		goto out;
-	}
-	*private = state->xprivate;
-out:
-	return ret;
-}
-
 static struct extent_buffer *__alloc_extent_buffer(struct btrfs_fs_info *info,
 						   u64 bytenr, u32 blocksize)
 {
@@ -644,11 +634,9 @@ static void free_extent_buffer_final(struct extent_buffer *eb)
 	BUG_ON(eb->refs);
 	list_del_init(&eb->lru);
 	if (!(eb->flags & EXTENT_BUFFER_DUMMY)) {
-		struct extent_io_tree *tree = &eb->fs_info->extent_cache;
-
-		remove_cache_extent(&tree->cache, &eb->cache_node);
-		BUG_ON(tree->cache_size < eb->len);
-		tree->cache_size -= eb->len;
+		remove_cache_extent(&eb->fs_info->extent_cache, &eb->cache_node);
+		BUG_ON(eb->fs_info->cache_size < eb->len);
+		eb->fs_info->cache_size -= eb->len;
 	}
 	free(eb);
 }
@@ -661,7 +649,7 @@ static void free_extent_buffer_internal(struct extent_buffer *eb, bool free_now)
 	eb->refs--;
 	BUG_ON(eb->refs < 0);
 	if (eb->refs == 0) {
-		if (eb->flags & EXTENT_DIRTY) {
+		if (eb->flags & EXTENT_BUFFER_DIRTY) {
 			warning(
 			"dirty eb leak (aborted trans): start %llu len %u",
 				eb->start, eb->len);
@@ -682,45 +670,45 @@ void free_extent_buffer_nocache(struct extent_buffer *eb)
 	free_extent_buffer_internal(eb, 1);
 }
 
-struct extent_buffer *find_extent_buffer(struct extent_io_tree *tree,
+struct extent_buffer *find_extent_buffer(struct btrfs_fs_info *fs_info,
 					 u64 bytenr, u32 blocksize)
 {
 	struct extent_buffer *eb = NULL;
 	struct cache_extent *cache;
 
-	cache = lookup_cache_extent(&tree->cache, bytenr, blocksize);
+	cache = lookup_cache_extent(&fs_info->extent_cache, bytenr, blocksize);
 	if (cache && cache->start == bytenr &&
 	    cache->size == blocksize) {
 		eb = container_of(cache, struct extent_buffer, cache_node);
-		list_move_tail(&eb->lru, &tree->lru);
+		list_move_tail(&eb->lru, &fs_info->lru);
 		eb->refs++;
 	}
 	return eb;
 }
 
-struct extent_buffer *find_first_extent_buffer(struct extent_io_tree *tree,
+struct extent_buffer *find_first_extent_buffer(struct btrfs_fs_info *fs_info,
 					       u64 start)
 {
 	struct extent_buffer *eb = NULL;
 	struct cache_extent *cache;
 
-	cache = search_cache_extent(&tree->cache, start);
+	cache = search_cache_extent(&fs_info->extent_cache, start);
 	if (cache) {
 		eb = container_of(cache, struct extent_buffer, cache_node);
-		list_move_tail(&eb->lru, &tree->lru);
+		list_move_tail(&eb->lru, &fs_info->lru);
 		eb->refs++;
 	}
 	return eb;
 }
 
-static void trim_extent_buffer_cache(struct extent_io_tree *tree)
+static void trim_extent_buffer_cache(struct btrfs_fs_info *fs_info)
 {
 	struct extent_buffer *eb, *tmp;
 
-	list_for_each_entry_safe(eb, tmp, &tree->lru, lru) {
+	list_for_each_entry_safe(eb, tmp, &fs_info->lru, lru) {
 		if (eb->refs == 0)
 			free_extent_buffer_final(eb);
-		if (tree->cache_size <= ((tree->max_cache_size * 9) / 10))
+		if (fs_info->cache_size <= ((fs_info->max_cache_size * 9) / 10))
 			break;
 	}
 }
@@ -729,14 +717,13 @@ struct extent_buffer *alloc_extent_buffer(struct btrfs_fs_info *fs_info,
 					  u64 bytenr, u32 blocksize)
 {
 	struct extent_buffer *eb;
-	struct extent_io_tree *tree = &fs_info->extent_cache;
 	struct cache_extent *cache;
 
-	cache = lookup_cache_extent(&tree->cache, bytenr, blocksize);
+	cache = lookup_cache_extent(&fs_info->extent_cache, bytenr, blocksize);
 	if (cache && cache->start == bytenr &&
 	    cache->size == blocksize) {
 		eb = container_of(cache, struct extent_buffer, cache_node);
-		list_move_tail(&eb->lru, &tree->lru);
+		list_move_tail(&eb->lru, &fs_info->lru);
 		eb->refs++;
 	} else {
 		int ret;
@@ -749,15 +736,15 @@ struct extent_buffer *alloc_extent_buffer(struct btrfs_fs_info *fs_info,
 		eb = __alloc_extent_buffer(fs_info, bytenr, blocksize);
 		if (!eb)
 			return NULL;
-		ret = insert_cache_extent(&tree->cache, &eb->cache_node);
+		ret = insert_cache_extent(&fs_info->extent_cache, &eb->cache_node);
 		if (ret) {
 			free(eb);
 			return NULL;
 		}
-		list_add_tail(&eb->lru, &tree->lru);
-		tree->cache_size += blocksize;
-		if (tree->cache_size >= tree->max_cache_size)
-			trim_extent_buffer_cache(tree);
+		list_add_tail(&eb->lru, &fs_info->lru);
+		fs_info->cache_size += blocksize;
+		if (fs_info->cache_size >= fs_info->max_cache_size)
+			trim_extent_buffer_cache(fs_info);
 	}
 	return eb;
 }
@@ -791,9 +778,11 @@ static int read_raid56(struct btrfs_fs_info *fs_info, void *buf, u64 logical,
 		       u64 len, int mirror, struct btrfs_multi_bio *multi,
 		       u64 *raid_map)
 {
+	const int tolerance = (multi->type & BTRFS_RAID_RAID6 ? 2 : 1);
 	const int num_stripes = multi->num_stripes;
 	const u64 full_stripe_start = raid_map[0];
 	void **pointers = NULL;
+	unsigned long *failed_stripe_bitmap = NULL;
 	int failed_a = -1;
 	int failed_b = -1;
 	int i;
@@ -820,6 +809,12 @@ static int read_raid56(struct btrfs_fs_info *fs_info, void *buf, u64 logical,
 		}
 	}
 
+	failed_stripe_bitmap = bitmap_zalloc(num_stripes);
+	if (!failed_stripe_bitmap) {
+		ret = -ENOMEM;
+		goto out;
+	}
+
 	/*
 	 * Read the full stripe.
 	 *
@@ -830,10 +825,8 @@ static int read_raid56(struct btrfs_fs_info *fs_info, void *buf, u64 logical,
 		ret = btrfs_pread(multi->stripes[i].dev->fd, pointers[i],
 				  BTRFS_STRIPE_LEN, multi->stripes[i].physical,
 				  fs_info->zoned);
-		if (ret < BTRFS_STRIPE_LEN) {
-			ret = -EIO;
-			goto out;
-		}
+		if (ret < BTRFS_STRIPE_LEN)
+			set_bit(i, failed_stripe_bitmap);
 	}
 
 	/*
@@ -842,29 +835,30 @@ static int read_raid56(struct btrfs_fs_info *fs_info, void *buf, u64 logical,
 	 * Since we're reading using mirror_num > 1 already, it means the data
 	 * stripe where @logical lies in is definitely corrupted.
 	 */
-	failed_a = (logical - full_stripe_start) / BTRFS_STRIPE_LEN;
+	set_bit((logical - full_stripe_start) / BTRFS_STRIPE_LEN, failed_stripe_bitmap);
 
 	/*
 	 * For RAID6, we don't have good way to exhaust all the combinations,
 	 * so here we can only go through the map to see if we have missing devices.
+	 *
+	 * If we only have one failed stripe (marked by above set_bit()), then
+	 * we have no better idea, fallback to use P corruption.
 	 */
-	if (multi->type & BTRFS_BLOCK_GROUP_RAID6) {
-		for (i = 0; i < num_stripes; i++) {
-			/* Skip failed_a, as it's already marked failed */
-			if (i == failed_a)
-				continue;
-			/* Missing dev */
-			if (multi->stripes[i].dev->fd == -1) {
-				failed_b = i;
-				break;
-			}
-		}
-		/*
-		 * No missing device, we have no better idea, default to P
-		 * corruption
-		 */
-		if (failed_b < 0)
-			failed_b = num_stripes - 2;
+	if (multi->type & BTRFS_BLOCK_GROUP_RAID6 &&
+	    bitmap_weight(failed_stripe_bitmap, num_stripes) < 2)
+		set_bit(num_stripes - 2, failed_stripe_bitmap);
+
+	/* Damaged beyond repair already. */
+	if (bitmap_weight(failed_stripe_bitmap, num_stripes) > tolerance) {
+		ret = -EIO;
+		goto out;
+	}
+
+	for_each_set_bit(i, failed_stripe_bitmap, num_stripes) {
+		if (failed_a < 0)
+			failed_a = i;
+		else if (failed_b < 0)
+			failed_b = i;
 	}
 
 	/* Rebuild the full stripe */
@@ -877,6 +871,7 @@ static int read_raid56(struct btrfs_fs_info *fs_info, void *buf, u64 logical,
 			BTRFS_STRIPE_LEN, len);
 	ret = 0;
 out:
+	free(failed_stripe_bitmap);
 	for (i = 0; i < num_stripes; i++)
 		free(pointers[i]);
 	free(pointers);
@@ -1040,9 +1035,9 @@ out:
 
 int set_extent_buffer_dirty(struct extent_buffer *eb)
 {
-	struct extent_io_tree *tree = &eb->fs_info->extent_cache;
-	if (!(eb->flags & EXTENT_DIRTY)) {
-		eb->flags |= EXTENT_DIRTY;
+	struct extent_io_tree *tree = &eb->fs_info->dirty_buffers;
+	if (!(eb->flags & EXTENT_BUFFER_DIRTY)) {
+		eb->flags |= EXTENT_BUFFER_DIRTY;
 		set_extent_dirty(tree, eb->start, eb->start + eb->len - 1);
 		extent_buffer_get(eb);
 	}
@@ -1051,9 +1046,9 @@ int set_extent_buffer_dirty(struct extent_buffer *eb)
 
 int clear_extent_buffer_dirty(struct extent_buffer *eb)
 {
-	struct extent_io_tree *tree = &eb->fs_info->extent_cache;
-	if (eb->flags & EXTENT_DIRTY) {
-		eb->flags &= ~EXTENT_DIRTY;
+	struct extent_io_tree *tree = &eb->fs_info->dirty_buffers;
+	if (eb->flags & EXTENT_BUFFER_DIRTY) {
+		eb->flags &= ~EXTENT_BUFFER_DIRTY;
 		clear_extent_dirty(tree, eb->start, eb->start + eb->len - 1);
 		free_extent_buffer(eb);
 	}
@@ -1072,10 +1067,10 @@ void read_extent_buffer(const struct extent_buffer *eb, void *dst,
 	memcpy(dst, eb->data + start, len);
 }
 
-void write_extent_buffer(struct extent_buffer *eb, const void *src,
+void write_extent_buffer(const struct extent_buffer *eb, const void *src,
 			 unsigned long start, unsigned long len)
 {
-	memcpy(eb->data + start, src, len);
+	memcpy((void *)eb->data + start, src, len);
 }
 
 void copy_extent_buffer(struct extent_buffer *dst, struct extent_buffer *src,

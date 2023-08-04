@@ -26,7 +26,7 @@
 #include "btrfs/kernel-shared/volumes.h"
 #include "btrfs/kernel-shared/disk-io.h"
 #include "btrfs/common/utils.h"
-#include "btrfs/version.h"
+#include "btrfs/libbtrfs/version.h"
 
 
 #include "partclone.h"

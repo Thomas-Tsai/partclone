@@ -24,8 +24,8 @@
 #if BTRFS_FLAT_INCLUDES
 #include "kernel-lib/list.h"
 #include "kernel-lib/rbtree.h"
-#include "kerncompat.h"
-#include "ioctl.h"
+#include "libbtrfs/kerncompat.h"
+#include "libbtrfs/ioctl.h"
 #else
 #include <btrfs/list.h>
 #include <btrfs/rbtree.h>
@@ -1104,7 +1104,7 @@ enum btrfs_raid_types {
 
 #define BTRFS_QGROUP_LEVEL_SHIFT		48
 
-static inline u64 btrfs_qgroup_level(u64 qgroupid)
+static inline __u16 btrfs_qgroup_level(u64 qgroupid)
 {
 	return qgroupid >> BTRFS_QGROUP_LEVEL_SHIFT;
 }
