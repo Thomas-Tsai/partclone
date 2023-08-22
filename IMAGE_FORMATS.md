@@ -68,8 +68,8 @@ The new format also support a few new features and has some flexibility for futu
 |         36 |   16 | File system's type
 |         52 |    8 | File system's total size
 |         60 |    8 | File system's total block count
-|         68 |    8 | File system's used block count
-|         76 |    8 | Bitmap's size, in bytes
+|         68 |    8 | File system's used block count based on super-block
+|         76 |    8 | File system's used block count based on bitmap
 |         84 |    4 | File system's block size
 |         88 |    4 | Size of feature section
 |         92 |    2 | Image version, in binary: 0x0002
