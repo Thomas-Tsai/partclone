@@ -181,10 +181,10 @@ typedef struct
 	unsigned long long totalblock;
 
 	/// Number of blocks in use as reported by the file system
-	unsigned long long usedblocks;
+	unsigned long long superBlockUsedBlocks;
 
 	/// Number of blocks in use in the bitmap
-	unsigned long long used_bitmap;
+	unsigned long long usedblocks;
 
 	/// Number of bytes in each block
 	unsigned int  block_size;

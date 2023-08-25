@@ -1222,7 +1222,7 @@ void update_used_blocks_count(file_system_info* fs_info, unsigned long* bitmap) 
 			++used;
 	}
 
-	fs_info->used_bitmap = used;
+	fs_info->usedblocks = used;
 }
 
 
@@ -1907,7 +1907,7 @@ void print_file_system_info(file_system_info fs_info, cmd_opt opt) {
 	unsigned int     block_s = fs_info.block_size;
 	unsigned long long total = fs_info.totalblock;
 	unsigned long long used  = fs_info.usedblocks;
-	unsigned long long used_bitmap  = fs_info.used_bitmap;
+	unsigned long long superBlockUsedBlocks = fs_info.superBlockUsedBlocks;
 	int debug = opt.debug;
 	char size_str[11];
 
@@ -1926,7 +1926,7 @@ void print_file_system_info(file_system_info fs_info, cmd_opt opt) {
 	log_mesg(0, 0, 1, debug, _("Free Space:   %s = %llu Blocks\n"), size_str, (total-used));
 
 	log_mesg(0, 0, 1, debug, _("Block size:   %i Byte\n"), block_s);
-	log_mesg(2, 0, 1, debug, _("Used Blocks in Bitmap:   %llu Blocks\n"), used_bitmap);
+	log_mesg(2, 0, 1, debug, _("Used Blocks in Super-Block:   %llu Blocks\n"), superBlockUsedBlocks);
 }
 
 /// print image info
