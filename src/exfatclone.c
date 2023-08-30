@@ -87,6 +87,7 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     fs_info->block_size  = EXFAT_SECTOR_SIZE(*sb);
     fs_info->totalblock  = le64_to_cpu(sb->sector_count);
     fs_info->usedblocks  = le64_to_cpu(sb->sector_count) - free_sectors;
+    fs_info->superBlockUsedBlocks = fs_info->usedblocks;
     fs_info->device_size = fs_info->totalblock * fs_info->block_size;
     fs_close();
 }

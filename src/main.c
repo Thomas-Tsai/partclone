@@ -205,7 +205,6 @@ int main(int argc, char **argv) {
 
 		/// get Super Block information from partition
 		read_super_blocks(source, &fs_info);
-		fs_info.superBlockUsedBlocks = fs_info.usedblocks;
 
 		if (img_opt.checksum_mode != CSM_NONE && img_opt.blocks_per_checksum == 0) {
 
@@ -309,7 +308,6 @@ int main(int argc, char **argv) {
 
 		/// get Super Block information from partition
 		read_super_blocks(source, &fs_info);
-		fs_info.superBlockUsedBlocks = fs_info.usedblocks;
 
 		check_mem_size(fs_info, img_opt, opt);
 
@@ -341,7 +339,6 @@ int main(int argc, char **argv) {
 		if (dfr != 0){
 		    fs_info.device_size = get_partition_size(&dfr);
 		    read_super_blocks(source, &fs_info);
-		    fs_info.superBlockUsedBlocks = fs_info.usedblocks;
 		}else{
 		    if (target_stdout) {
 			log_mesg(0, 1, 1, debug, "%s, %i, stdout is not supported\n", __func__, __LINE__);
@@ -355,7 +352,6 @@ int main(int argc, char **argv) {
 			fs_info.device_size = get_free_space(target);
 		    }
 		    read_super_blocks(target, &fs_info);
-		    fs_info.superBlockUsedBlocks = fs_info.usedblocks;
 		}
 		img_opt.checksum_mode = opt.checksum_mode;
 		img_opt.checksum_size = get_checksum_size(opt.checksum_mode, opt.debug);

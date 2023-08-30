@@ -433,12 +433,14 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     fs_info->block_size  = vmfs_fs_get_blocksize(fs);
     fs_info->totalblock  = total;
     fs_info->usedblocks  = alloc;
+    fs_info->superBlockUsedBlocks = fs_info->usedblocks;
     fs_info->device_size = vmfs_fs_get_blocksize(fs) * total;
     total_block = total+100;
     log_mesg(3, 0, 0, fs_opt.debug, "block_size %u\n", fs_info->block_size);
     log_mesg(3, 0, 0, fs_opt.debug, "totalblock %llu\n", fs_info->totalblock);
     log_mesg(3, 0, 0, fs_opt.debug, "device_size %llu\n", fs_info->device_size);
     log_mesg(3, 0, 0, fs_opt.debug, "usedblocks %llu\n", fs_info->usedblocks);
+    log_mesg(3, 0, 0, fs_opt.debug, "superBlockUsedBlocks %llu\n", fs_info->superBlockUsedBlocks);
 
     fs_close();
 }

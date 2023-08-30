@@ -143,6 +143,7 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     fs_info->block_size  = get_ms_blksize(SUPER(fs->master));
     fs_info->totalblock  = reiser4_format_get_len(fs->format);
     fs_info->usedblocks  = reiser4_format_get_len(fs->format) - free_blocks;
+    fs_info->superBlockUsedBlocks = fs_info->usedblocks;
     fs_info->device_size = fs_info->block_size * fs_info->totalblock;
     fs_close();
 }

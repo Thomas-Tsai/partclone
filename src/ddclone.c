@@ -33,5 +33,6 @@ void read_super_blocks(char* device, file_system_info* fs_info)
 	fs_info->device_size = get_partition_size(&src);
 	fs_info->totalblock  = fs_info->device_size / PART_SECTOR_SIZE;
 	fs_info->usedblocks  = fs_info->device_size / PART_SECTOR_SIZE;
+        fs_info->superBlockUsedBlocks = fs_info->usedblocks;
 	close(src);
 }

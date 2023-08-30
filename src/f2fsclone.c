@@ -121,6 +121,7 @@ extern void read_super_blocks(char* device, file_system_info* fs_info)
     fs_info->block_size  = F2FS_BLKSIZE;
     fs_info->totalblock  = sb->block_count;
     fs_info->usedblocks  = (sb->segment_count-cp->free_segment_count)*DEFAULT_BLOCKS_PER_SEGMENT;
+    fs_info->superBlockUsedBlocks = fs_info->usedblocks;
     fs_info->device_size = config.total_sectors*config.sector_size;
     fs_close();
 }

@@ -139,6 +139,7 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     fs_info->block_size  = vmfs_fs_get_blocksize(fs);
     fs_info->totalblock  = total;
     fs_info->usedblocks  = alloc;
+    fs_info->superBlockUsedBlocks = fs_info->usedblocks;
     fs_info->device_size = vmfs_fs_get_blocksize(fs) * total;
     fs_close();
 }

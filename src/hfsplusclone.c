@@ -311,9 +311,11 @@ void read_super_blocks(char* device, file_system_info* fs_info)
         fs_info->usedblocks  = be32toh(sb.totalBlocks) - be32toh(sb.freeBlocks);
         fs_info->device_size = fs_info->block_size * fs_info->totalblock;
     }
-    log_mesg(2, 0, 0, 2, "%s: blockSize:%i\n", __FILE__, fs_info->block_size);
-    log_mesg(2, 0, 0, 2, "%s: totalBlocks:%i\n", __FILE__, fs_info->totalblock);
-    log_mesg(2, 0, 0, 2, "%s: freeBlocks:%i\n", __FILE__, fs_info->totalblock - fs_info->usedblocks);
+    fs_info->superBlockUsedBlocks = fs_info->usedblocks;
+    log_mesg(2, 0, 0, 2, "%s: blockSize:%lli\n", __FILE__, fs_info->block_size);
+    log_mesg(2, 0, 0, 2, "%s: totalBlocks:%lli\n", __FILE__, fs_info->totalblock);
+    log_mesg(2, 0, 0, 2, "%s: freeBlocks:%lli\n", __FILE__, fs_info->totalblock - fs_info->usedblocks);
+    log_mesg(2, 0, 0, 2, "%s: superBlockUsedBlocks:%lli\n", __FILE__, fs_info->superBlockUsedBlocks);
     print_fork_data(&sb.allocationFile);
     print_fork_data(&sb.extentsFile);
     print_fork_data(&sb.catalogFile);

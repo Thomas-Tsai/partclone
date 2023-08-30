@@ -111,6 +111,7 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     fs_info->block_size  = fs->super->s_v1.sb_block_size;
     fs_info->totalblock  = fs->super->s_v1.sb_block_count;
     fs_info->usedblocks  = fs->super->s_v1.sb_block_count - fs->super->s_v1.sb_free_blocks;
+    fs_info->superBlockUsedBlocks = fs_info->usedblocks;
     fs_info->device_size = fs_info->block_size * fs_info->totalblock;
     fs_close();
 }

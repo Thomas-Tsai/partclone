@@ -209,6 +209,7 @@ void read_super_blocks(char* device, file_system_info* fs_info) {
     fs_info->block_size  = get_block_size();
     fs_info->totalblock  = get_nzones();
     fs_info->usedblocks  = count_used_block();
+    fs_info->superBlockUsedBlocks = fs_info->usedblocks;
     fs_info->device_size = fs_info->totalblock * fs_info->block_size;
     fs_close();
 }

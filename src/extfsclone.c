@@ -238,10 +238,12 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     fs_info->totalblock  = block_count();
     fs_info->usedblocks  = get_used_blocks();
     fs_info->device_size = fs_info->block_size * fs_info->totalblock;
+    fs_info->superBlockUsedBlocks = fs_info->usedblocks;
 
     log_mesg(1, 0, 0, fs_opt.debug, "%s: extfs block_size %i\n", __FILE__,    fs_info->block_size);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: extfs total block %lli\n", __FILE__, fs_info->totalblock);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: extfs used blocks %lli\n", __FILE__, fs_info->usedblocks);
+    log_mesg(1, 0, 0, fs_opt.debug, "%s: extfs superBlock used blocks %lli\n", __FILE__, fs_info->superBlockUsedBlocks);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: extfs device size %lli\n", __FILE__, fs_info->device_size);
 
     fs_close();

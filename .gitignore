@@ -42,6 +42,7 @@ src/partclone.xfs
 src/partclone.minix
 src/partclone.f2fs
 src/partclone.nilfs2
+src/partclone.imgfuse
 src/version.h
 stamp-h1
 *.m4

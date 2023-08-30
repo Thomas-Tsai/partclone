@@ -180,6 +180,7 @@ extern void read_super_blocks(char* device, file_system_info* fs_info)
     fs_info->block_size  = nilfs_get_block_size(nilfs);
     fs_info->totalblock  = sbp->s_dev_size / fs_info->block_size;
     fs_info->usedblocks  = fs_info->totalblock - sbp->s_free_blocks_count;
+    fs_info->superBlockUsedBlocks = fs_info->usedblocks;
     fs_info->device_size = sbp->s_dev_size;
     fs_close();
 }

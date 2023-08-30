@@ -182,6 +182,7 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     strncpy(fs_info->fs, ufs_MAGIC, FS_MAGIC_SIZE);
     fs_info->block_size = afs.fs_fsize;
     fs_info->usedblocks = get_used_block();
+    fs_info->superBlockUsedBlocks = fs_info->usedblocks;
     switch (disk.d_ufs) {
         case 2:
             fs_info->totalblock  = afs.fs_size;
