@@ -120,6 +120,7 @@ struct cmd_opt
     int no_block_detail;
     int restore_raw_file;
     int skip_write_error;
+    int direct_io;
     unsigned int buffer_size;
     off_t offset;
     unsigned long fresh;

@@ -73,6 +73,13 @@ SCREEN *ptclscr;
 int log_y_line = 0;
 #endif
 
+#define OPT_OFFSET_DOMAIN  1000
+#define OPT_DIRECT_IO 1001
+//
+//enum {
+//	OPT_OFFSET_DOMAIN = 1000
+//};
+
 /**
  * return the cpu architecture for which partclone is compiled
  *
@@ -253,6 +260,7 @@ void usage(void) {
 #endif
 #ifndef CHKIMG
 		"    -I,  --ignore_fschk     Ignore filesystem check\n"
+                "         --direct-io        Writing data to TARGET disk or image without cache.\n"
 #endif
 		"    -i,  --ignore_crc       Ignore checksum error\n"
 		"    -F,  --force            Force progress\n"
@@ -300,9 +308,6 @@ int convert_to_checksum_mode(unsigned long mode) {
 	}
 }
 
-enum {
-	OPT_OFFSET_DOMAIN = 1000
-};
 
 const char *exec_name = "unset_name";
 
@@ -347,6 +352,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "force",		no_argument,		NULL,   'F' },
 		{ "no_block_detail",	no_argument,		NULL,   'B' },
 		{ "buffer_size",	required_argument,	NULL,   'z' },
+		{ "direct-io",	        no_argument,	        NULL,   OPT_DIRECT_IO },
 // not RESTORE and not CHKIMG
 #ifndef CHKIMG
 #ifndef RESTORE
@@ -403,6 +409,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	opt->reseed_checksum = 1;
 	opt->blocks_per_checksum = 0;
 	opt->blockfile = 0;
+        opt->direct_io = 0;
 
 
 #ifdef DD
@@ -433,6 +440,9 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 			case 'v':
 				print_version();
 				break;
+                        case OPT_DIRECT_IO:
+                                opt->direct_io = 1;
+                                break;
 			case 'n':
 				memcpy(opt->note, optarg, NOTE_SIZE);
 				break;
@@ -1567,6 +1577,10 @@ int open_target(char* target, cmd_opt* opt) {
 	int flags = O_WRONLY | O_LARGEFILE;
 	struct stat st_dev;
 	int ddd_block_device = -1;
+
+        if (opt->direct_io == 1){
+            flags = flags | O_DIRECT;
+        }
 
 	log_mesg(1, 0, 0, debug, "open target file/device %s\n", target);
 	if (opt->ddd) {
