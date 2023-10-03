@@ -74,7 +74,8 @@ int log_y_line = 0;
 #endif
 
 #define OPT_OFFSET_DOMAIN  1000
-#define OPT_DIRECT_IO 1001
+#define OPT_WRITE_DIRECT_IO 1001
+#define OPT_READ_DIRECT_IO 1002
 //
 //enum {
 //	OPT_OFFSET_DOMAIN = 1000
@@ -260,7 +261,8 @@ void usage(void) {
 #endif
 #ifndef CHKIMG
 		"    -I,  --ignore_fschk     Ignore filesystem check\n"
-                "         --direct-io        Writing data to TARGET disk or image without cache.\n"
+                "         --write-direct-io  Writing data to TARGET partition without cache\n"
+                "         --read-direct-io   Reading data from SOURCE partition without cache\n"
 #endif
 		"    -i,  --ignore_crc       Ignore checksum error\n"
 		"    -F,  --force            Force progress\n"
@@ -352,7 +354,8 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "force",		no_argument,		NULL,   'F' },
 		{ "no_block_detail",	no_argument,		NULL,   'B' },
 		{ "buffer_size",	required_argument,	NULL,   'z' },
-		{ "direct-io",	        no_argument,	        NULL,   OPT_DIRECT_IO },
+		{ "write-direct-io",	no_argument,	        NULL,   OPT_WRITE_DIRECT_IO },
+		{ "read-direct-io",	no_argument,	        NULL,   OPT_READ_DIRECT_IO },
 // not RESTORE and not CHKIMG
 #ifndef CHKIMG
 #ifndef RESTORE
@@ -409,7 +412,8 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	opt->reseed_checksum = 1;
 	opt->blocks_per_checksum = 0;
 	opt->blockfile = 0;
-        opt->direct_io = 0;
+        opt->write_direct_io = 0;
+        opt->read_direct_io = 0;
 
 
 #ifdef DD
@@ -440,8 +444,11 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 			case 'v':
 				print_version();
 				break;
-                        case OPT_DIRECT_IO:
-                                opt->direct_io = 1;
+                        case OPT_WRITE_DIRECT_IO:
+                                opt->write_direct_io = 1;
+                                break;
+                        case OPT_READ_DIRECT_IO:
+                                opt->read_direct_io = 1;
                                 break;
 			case 'n':
 				memcpy(opt->note, optarg, NOTE_SIZE);
@@ -1527,6 +1534,10 @@ int open_source(char* source, cmd_opt* opt) {
 
 	log_mesg(1, 0, 0, debug, "open source file/device %s\n", source);
 
+        if (opt->read_direct_io == 1){
+            flags = flags | O_DIRECT;
+        }
+
 	if (opt->ddd) {
 	    if (stat(source, &st_dev) != -1) {
 		if (S_ISBLK(st_dev.st_mode)) 
@@ -1550,6 +1561,10 @@ int open_source(char* source, cmd_opt* opt) {
 			log_mesg(0, 1, 1, debug, "error exit\n");
 		}
 		if (mp){ free(mp); mp = NULL;}
+
+                if (opt->read_direct_io == 1){
+                    flags = flags | O_DIRECT;
+                }
 
 		if ((ret = open(source, flags, S_IRUSR)) == -1)
 			log_mesg(0, 1, 1, debug, "clone: open %s error\n", source);
@@ -1578,7 +1593,7 @@ int open_target(char* target, cmd_opt* opt) {
 	struct stat st_dev;
 	int ddd_block_device = -1;
 
-        if (opt->direct_io == 1){
+        if (opt->write_direct_io == 1){
             flags = flags | O_DIRECT;
         }
 
@@ -1656,6 +1671,10 @@ int open_target(char* target, cmd_opt* opt) {
 			if (!opt->overwrite)
 				flags |= O_EXCL;
 		}
+
+                if (opt->write_direct_io == 1){
+                    flags = flags | O_DIRECT;
+                }
 
 		if ((ret = open (target, flags, S_IRUSR)) == -1) {
 			if (errno == EEXIST) {

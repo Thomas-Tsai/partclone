@@ -58,6 +58,7 @@
 #define PART_SECTOR_SIZE 512
 #define CRC32_SIZE 4
 #define NOTE_SIZE 128
+#define BSIZE 512
 
 // Reference: ntfsclone.c
 #define KBYTE (1000)
@@ -120,7 +121,8 @@ struct cmd_opt
     int no_block_detail;
     int restore_raw_file;
     int skip_write_error;
-    int direct_io;
+    int write_direct_io;
+    int read_direct_io;
     unsigned int buffer_size;
     off_t offset;
     unsigned long fresh;

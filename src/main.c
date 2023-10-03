@@ -91,6 +91,7 @@ int main(int argc, char **argv) {
 	pthread_t		prog_thread;
 	void			*p_result;
 	struct stat st_dev;
+        int                     ret = 0;
 
 	static const char *const bad_sectors_warning_msg =
 		"*************************************************************************\n"
@@ -436,7 +437,7 @@ int main(int argc, char **argv) {
 		const unsigned int buffer_capacity = opt.buffer_size > block_size ? opt.buffer_size / block_size : 1; // in blocks
 		unsigned char checksum[cs_size];
 		unsigned int blocks_in_cs, blocks_per_cs, write_size;
-		char *read_buffer, *write_buffer;
+		char *read_buffer = NULL, *write_buffer = NULL;
 
 		// SHA1 for torrent info
 		FILE* tinfo = NULL;
@@ -448,10 +449,19 @@ int main(int argc, char **argv) {
 
 		write_size = cnv_blocks_to_bytes(0, buffer_capacity, block_size, &img_opt);
 
-		read_buffer = (char*)malloc(buffer_capacity * block_size);
-		write_buffer = (char*)malloc(write_size + cs_size);
-
-		if (read_buffer == NULL || write_buffer == NULL) {
+                if (opt.read_direct_io == 1){
+                    ret = posix_memalign((void **)&read_buffer, BSIZE, (buffer_capacity * block_size));
+                    if ( ret < 0 ){
+                        log_mesg(0, 1, 1, debug, "%s, %i, memory for read posix_memalign error\n", __func__, __LINE__);
+                    }
+                    memset(read_buffer, 0, (buffer_capacity * block_size));
+                } else {
+                    read_buffer = (char*)malloc(buffer_capacity * block_size);
+                }
+                
+                write_buffer = (char*)malloc(write_size + cs_size);
+		
+                if (read_buffer == NULL || write_buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
 
@@ -635,7 +645,7 @@ int main(int argc, char **argv) {
 		unsigned long long blocks_used = fs_info.usedblocks;
 		unsigned int blocks_in_cs, buffer_size, read_offset;
 		unsigned char checksum[cs_size];
-		char *read_buffer, *write_buffer;
+		char *read_buffer = NULL, *write_buffer = NULL;
 		char *empty_buffer = NULL;
 		unsigned long long blocks_used_fix = 0, test_block = 0;
 
@@ -663,7 +673,6 @@ int main(int argc, char **argv) {
 			read_buffer = (char*)malloc(buffer_size + buffer_capacity * cs_size);
 		}
 		//write_buffer = (char*)malloc(buffer_capacity * block_size);
-		#define BSIZE 512
 		posix_memalign((void**)&write_buffer, BSIZE, buffer_capacity * block_size);
 		if (read_buffer == NULL || write_buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
@@ -893,13 +902,22 @@ int main(int argc, char **argv) {
 
 	} else if (opt.dd) {
 
-		char *buffer;
+		char *buffer = NULL;
 		char *empty_buffer = NULL;
 		int block_size = fs_info.block_size;
 		unsigned long long blocks_total = fs_info.totalblock;
 		int buffer_capacity = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 
-		buffer = (char*)malloc(buffer_capacity * block_size);
+                if ((opt.read_direct_io == 1) || (opt.write_direct_io == 1)){
+                    ret = posix_memalign((void **)&buffer, BSIZE, (buffer_capacity * block_size));
+                    if ( ret < 0 ){
+                        log_mesg(0, 1, 1, debug, "%s, %i, memory for read posix_memalign error\n", __func__, __LINE__);
+                    }
+                    memset(buffer, 0, (buffer_capacity * block_size));
+                } else {
+                    buffer = (char*)malloc(buffer_capacity * block_size);
+                }
+
 		if (buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
@@ -1047,7 +1065,7 @@ int main(int argc, char **argv) {
 		} /// end of for
 	} else if (opt.ddd) {
 
-		char *buffer;
+		char *buffer = NULL;
 		int block_size = fs_info.block_size;
 		unsigned long long blocks_total = fs_info.totalblock;
 		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
@@ -1055,8 +1073,16 @@ int main(int argc, char **argv) {
 		// SHA1 for torrent info
 		FILE *tinfo = NULL;
 		torrent_generator torrent;
+                if ((opt.read_direct_io == 1) || (opt.write_direct_io == 1)){
+                    ret = posix_memalign((void **)&buffer, BSIZE, (blocks_in_buffer * block_size));
+                    if ( ret < 0 ){
+                        log_mesg(0, 1, 1, debug, "%s, %i, memory for read posix_memalign error\n", __func__, __LINE__);
+                    }
+                    memset(buffer, 0, (blocks_in_buffer * block_size));
+                } else {
+                    buffer = (char*)malloc(blocks_in_buffer * block_size);
+                }
 
-		buffer = (char*)malloc(blocks_in_buffer * block_size);
 		if (buffer == NULL) {
 			log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
 		}
