@@ -54,7 +54,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
   <!ENTITY dhsurname   "Tsai">
   <!-- dhusername could also be set to "&dhfirstname; &dhsurname;". -->
   <!ENTITY dhusername  "Yu-Chin Tsai">
-  <!ENTITY dhemail     "thomas@nchc.org.tw">
+  <!ENTITY dhemail     "thomas@clonezilla.org">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1) and
        http://www.tldp.org/HOWTO/Man-Page/q2.html. -->
@@ -150,8 +150,6 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	<group choice="opt">
 	    <arg choice="plain"><option>--restore_raw_file</option></arg>
 	</group>
-      </arg> 	
-      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-z</option></arg>
 	    <arg choice="plain"><option>--buffer_size</option></arg>
@@ -160,8 +158,6 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-N</option></arg>
 	    <arg choice="plain"><option>--ncurses</option></arg>
 	</group>
-      </arg> 	
-      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-q</option></arg>
 	    <arg choice="plain"><option>--quiet</option></arg>
@@ -170,8 +166,6 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-f</option></arg>
 	    <arg choice="plain"><option>--UI-fresh</option></arg>
 	</group>
-      </arg> 	
-      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-F</option></arg>
 	    <arg choice="plain"><option>--force</option></arg>
@@ -180,21 +174,23 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-I</option></arg>
 	    <arg choice="plain"><option>--ignore_fschk</option></arg>
 	</group>
-      </arg> 	
-      <arg choice="opt">
 	<group choice="opt">
-	<arg choice="plain"><option>--ignore_crc</option></arg>
-	</group>
-	<group choice="opt">
-	    <arg choice="plain"><option>-X</option></arg>
-	    <arg choice="plain"><option>--dialog</option></arg>
+	    <arg choice="plain"><option>-i</option></arg>
+	    <arg choice="plain"><option>--ignore_crc</option></arg>
 	</group>
 	<group choice="opt">
 	    <arg choice="plain"><option>-C</option></arg>
 	    <arg choice="plain"><option>--nocheck</option></arg>
 	</group>
-      </arg> 	
-      <arg choice="opt">
+	<group choice="opt">
+	    <arg choice="plain"><option>-R</option></arg>
+	    <arg choice="plain"><option>--rescue</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-L</option></arg>
+	    <arg choice="plain"><option>--logfile</option></arg>
+	</group>
+        <replaceable class="option">logfile</replaceable>
 	<group choice="opt">
 	    <arg choice="plain"><option>-R</option></arg>
 	    <arg choice="plain"><option>--rescue</option></arg>
@@ -204,9 +200,60 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--logfile</option></arg>
 	</group>
 	<replaceable class="option">logfile</replaceable>
-
-	</arg>
-     
+	<group choice="opt">
+	    <arg choice="plain"><option>-X</option></arg>
+	    <arg choice="plain"><option>--compresscmd</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-D</option></arg>
+	    <arg choice="plain"><option>--domain</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>--offset_domain</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-aX</option></arg>
+	    <arg choice="plain"><option>--checksum-mode=X</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-kX</option></arg>
+	    <arg choice="plain"><option>--blocks-per-checksum=X</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-K</option></arg>
+	    <arg choice="plain"><option>--no-reseed</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-w</option></arg>
+	    <arg choice="plain"><option>--skip_write_error</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-E</option></arg>
+	    <arg choice="plain"><option>--offset=X</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-T</option></arg>
+	    <arg choice="plain"><option>--btfiles</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-t</option></arg>
+	    <arg choice="plain"><option>--btfiles_torrent</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-n</option></arg>
+	    <arg choice="plain"><option>--note</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-B</option></arg>
+	    <arg choice="plain"><option>--no_block_detail</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>--write-direct-io</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>--read-direct-io</option></arg>
+	</group>
+    </arg>
     </cmdsynopsis>
   </refsynopsisdiv>
   <refsect1 id="description">
@@ -220,20 +267,21 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
        File System             partclone.[fstype]
 
        btrfs                   partclone.btrfs
-       ext2, ext3, ext4        partclone.[ext2|ext3|ext4]
+       ext2, ext3, ext4        partclone.[ext2 | ext3 | ext4]
        reiserfs 3.5            partclone.reiserfs
        reiser 4                partclone.reiser4
        xfs                     partclone.xfs
        ufs | ufs2              partclone.ufs
        jfs                     partclone.jfs
-       hfs plusfs              partclone.[hfs+|hfsplus]
-       vmfs                    partclone.vmfs
+       hfs plusfs              partclone.[hfs+ | hfsplus]
+       vmfs                    partclone.[vmfs | vmfs5]
        ntfs                    partclone.ntfs
-       fat12, fat16, fat32     partclone.[fat12|fat16|fat32]
+       fat12, fat16, fat32     partclone.[fat12 | fat16 | fat32]
        exfat                   partclone.exfat
        minix                   partclone.minix
        f2fs                    partclone.f2fs
        nilfs2                  partclone.nilfs2
+       apfs                    partclone.apfs
     </screen>
   </refsect1>
   <refsect1 id="options">
@@ -337,13 +385,6 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         </listitem>
       </varlistentry>
        <varlistentry>
-        <term><option>-X</option></term>
-        <term><option>--dialog</option></term>
-        <listitem>
-          <para>Output message as Dialog Format.</para>
-        </listitem>
-      </varlistentry>
-       <varlistentry>
         <term><option>-I</option></term>
         <term><option>--ignore_fschk</option></term>
         <listitem>
@@ -351,6 +392,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         </listitem>
       </varlistentry>
        <varlistentry>
+        <term><option>-i</option></term>
         <term><option>--ignore_crc</option></term>
         <listitem>
           <para>Ignore crc check error.</para>
@@ -391,6 +433,86 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
           <para>Set the debug level [1|2|3]</para>
         </listitem>
       </varlistentry>
+
+      <varlistentry>
+        <term><option>-x</option></term>
+        <term><option>--compresscmd CMD</option></term>
+        <listitem>
+          <para>Start CMD as an output pipe to compress the cloned image</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-aX</option></term>
+        <term><option>--checksum-mode=X</option></term>
+        <listitem>
+          <para>Checksum formula to use to add error detection</para>
+          <para>where X:</para>
+          <para>0: No checksum (no slowdown, smallest image)</para>
+          <para>1: CRC32 (Fast to compute, basic detection)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-kX</option></term>
+        <term><option>--blocks-per-checksum=X</option></term>
+        <listitem>
+          <para>Write one checksum for every X blocks</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-w</option></term>
+        <term><option>--skip_write_error</option></term>
+        <listitem>
+          <para>Continue restore while write errors</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--write-direct-io</option></term>
+        <listitem>
+          <para>Writing data to TARGET partition without cache</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--read-direct-io</option></term>
+        <listitem>
+          <para>Reading data from SOURCE partition without cache</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-B</option></term>
+        <term><option>--no_block_detail</option></term>
+        <listitem>
+          <para>Show progress message without block detail</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-E</option></term>
+        <term><option>--offset=X</option></term>
+        <listitem>
+          <para>Add offset X (bytes) to OUTPUT</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-T</option></term>
+        <term><option>--btfiles</option></term>
+        <listitem>
+          <para>Restore block as file for ClonezillaBT.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-t</option></term>
+        <term><option>--btfiles_torrent</option></term>
+        <listitem>
+          <para>Restore block as file for ClonezillaBT but only generate torrent.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-n</option></term>
+        <term><option>--note NOTE</option></term>
+        <listitem>
+          <para>Display Message Note (128 words).</para>
+        </listitem>
+      </varlistentry>
+
       <varlistentry>
         <term><option>-h</option></term>
         <term><option>--help</option></term>

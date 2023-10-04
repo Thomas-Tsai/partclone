@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: PARTCLONE
-.\"    Author: Yu-Chin Tsai <thomas@nchc.org.tw>
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: 01/24/2023
+.\"    Author: Yu-Chin Tsai <thomas@clonezilla.org>
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 10/04/2023
 .\"    Manual: Partclone User Manual
 .\"    Source: partclone
 .\"  Language: English
 .\"
-.TH "PARTCLONE" "8" "01/24/2023" "partclone" "Partclone User Manual"
+.TH "PARTCLONE" "8" "10/04/2023" "partclone" "Partclone User Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,7 +31,7 @@
 partclone \- The utility for clone and restore a partition\&.
 .SH "SYNOPSIS"
 .HP \w'\fBpartclone\&.[fstype]\fR\ 'u
-\fBpartclone\&.[fstype]\fR {[\fB\-c\fR\ |\ \fB\-\-clone\fR]\ [\fB\-r\fR\ |\ \fB\-\-restore\fR]\ [\fB\-b\fR\ |\ \fB\-\-dev\-to\-dev\fR]} {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_raw_file\fR]] [[\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]] [[\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]] [[\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]] [[\fB\-\-ignore_crc\fR]\ [\fB\-X\fR\ |\ \fB\-\-dialog\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]] [[\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR]
+\fBpartclone\&.[fstype]\fR {[\fB\-c\fR\ |\ \fB\-\-clone\fR]\ [\fB\-r\fR\ |\ \fB\-\-restore\fR]\ [\fB\-b\fR\ |\ \fB\-\-dev\-to\-dev\fR]} {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_raw_file\fR]\ [\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]\ [\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]\ [\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]\ [\fB\-i\fR\ |\ \fB\-\-ignore_crc\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR\ [\fB\-X\fR\ |\ \fB\-\-compresscmd\fR]\ [\fB\-D\fR\ |\ \fB\-\-domain\fR]\ [\fB\-\-offset_domain\fR]\ [\fB\-aX\fR\ |\ \fB\-\-checksum\-mode=X\fR]\ [\fB\-kX\fR\ |\ \fB\-\-blocks\-per\-checksum=X\fR]\ [\fB\-K\fR\ |\ \fB\-\-no\-reseed\fR]\ [\fB\-w\fR\ |\ \fB\-\-skip_write_error\fR]\ [\fB\-E\fR\ |\ \fB\-\-offset=X\fR]\ [\fB\-T\fR\ |\ \fB\-\-btfiles\fR]\ [\fB\-t\fR\ |\ \fB\-\-btfiles_torrent\fR]\ [\fB\-n\fR\ |\ \fB\-\-note\fR]\ [\fB\-B\fR\ |\ \fB\-\-no_block_detail\fR]\ [\fB\-\-write\-direct\-io\fR]\ [\fB\-\-read\-direct\-io\fR]]
 .SH "DESCRIPTION"
 .PP
 \fBpartclone\fR\&.[fstype] is a part of
@@ -50,20 +50,21 @@ All partclone utils could be run like partclone\&.[fstype] is very smiliar fsck 
        File System             partclone\&.[fstype]
 
        btrfs                   partclone\&.btrfs
-       ext2, ext3, ext4        partclone\&.[ext2|ext3|ext4]
+       ext2, ext3, ext4        partclone\&.[ext2 | ext3 | ext4]
        reiserfs 3\&.5            partclone\&.reiserfs
        reiser 4                partclone\&.reiser4
        xfs                     partclone\&.xfs
        ufs | ufs2              partclone\&.ufs
        jfs                     partclone\&.jfs
-       hfs plusfs              partclone\&.[hfs+|hfsplus]
-       vmfs                    partclone\&.vmfs
+       hfs plusfs              partclone\&.[hfs+ | hfsplus]
+       vmfs                    partclone\&.[vmfs | vmfs5]
        ntfs                    partclone\&.ntfs
-       fat12, fat16, fat32     partclone\&.[fat12|fat16|fat32]
+       fat12, fat16, fat32     partclone\&.[fat12 | fat16 | fat32]
        exfat                   partclone\&.exfat
        minix                   partclone\&.minix
        f2fs                    partclone\&.f2fs
        nilfs2                  partclone\&.nilfs2
+       apfs                    partclone\&.apfs
     
 .fi
 .if n \{\
@@ -142,17 +143,12 @@ Don\*(Aqt check device size and free space\&.
 Using Ncurses Text User Interface\&.
 .RE
 .PP
-\fB\-X\fR, \fB\-\-dialog\fR
-.RS 4
-Output message as Dialog Format\&.
-.RE
-.PP
 \fB\-I\fR, \fB\-\-ignore_fschk\fR
 .RS 4
 Ignore filesystem check\&.
 .RE
 .PP
-\fB\-\-ignore_crc\fR
+\fB\-i\fR, \fB\-\-ignore_crc\fR
 .RS 4
 Ignore crc check error\&.
 .RE
@@ -180,6 +176,67 @@ Disable progress message\&.
 \fB\-d\fR\fB\fIlevel\fR\fR, \fB\-\-debug \fR\fB\fIlevel\fR\fR
 .RS 4
 Set the debug level [1|2|3]
+.RE
+.PP
+\fB\-x\fR, \fB\-\-compresscmd CMD\fR
+.RS 4
+Start CMD as an output pipe to compress the cloned image
+.RE
+.PP
+\fB\-aX\fR, \fB\-\-checksum\-mode=X\fR
+.RS 4
+Checksum formula to use to add error detection
+.sp
+where X:
+.sp
+0: No checksum (no slowdown, smallest image)
+.sp
+1: CRC32 (Fast to compute, basic detection)
+.RE
+.PP
+\fB\-kX\fR, \fB\-\-blocks\-per\-checksum=X\fR
+.RS 4
+Write one checksum for every X blocks
+.RE
+.PP
+\fB\-w\fR, \fB\-\-skip_write_error\fR
+.RS 4
+Continue restore while write errors
+.RE
+.PP
+\fB\-\-write\-direct\-io\fR
+.RS 4
+Writing data to TARGET partition without cache
+.RE
+.PP
+\fB\-\-read\-direct\-io\fR
+.RS 4
+Reading data from SOURCE partition without cache
+.RE
+.PP
+\fB\-B\fR, \fB\-\-no_block_detail\fR
+.RS 4
+Show progress message without block detail
+.RE
+.PP
+\fB\-E\fR, \fB\-\-offset=X\fR
+.RS 4
+Add offset X (bytes) to OUTPUT
+.RE
+.PP
+\fB\-T\fR, \fB\-\-btfiles\fR
+.RS 4
+Restore block as file for ClonezillaBT\&.
+.RE
+.PP
+\fB\-t\fR, \fB\-\-btfiles_torrent\fR
+.RS 4
+Restore block as file for ClonezillaBT but only generate torrent\&.
+.RE
+.PP
+\fB\-n\fR, \fB\-\-note NOTE\fR
+.RS 4
+Display Message Note (128 words)\&.
 .RE
 .PP
 \fB\-h\fR, \fB\-\-help\fR
@@ -245,7 +302,7 @@ T}
 .sp
 .SH "BUGS"
 .PP
-Report bugs to thomas@nchc\&.org\&.tw or
+Report bugs to thomas@clonezilla\&.org or
 \m[blue]\fB\%http://partclone.org\fR\m[]\&.
 .PP
 You can get support at http://partclone\&.org
@@ -258,7 +315,7 @@ You can get support at http://partclone\&.org
 \fBpartclone.info\fR(8)
 .SH "AUTHOR"
 .PP
-\fBYu\-Chin Tsai\fR <\&thomas@nchc\&.org\&.tw\&>
+\fBYu\-Chin Tsai\fR <\&thomas@clonezilla\&.org\&>
 .RS 4
 .RE
 .SH "COPYRIGHT"
