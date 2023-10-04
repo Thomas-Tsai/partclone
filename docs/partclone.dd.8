@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: PARTCLONE.DD
 .\"    Author: Yu-Chin Tsai <thomas@nchc.org.tw>
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: 01/24/2023
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 10/04/2023
 .\"    Manual: Partclone User Manual
 .\"    Source: partclone.dd
 .\"  Language: English
 .\"
-.TH "PARTCLONE\&.DD" "8" "01/24/2023" "partclone.dd" "Partclone User Manual"
+.TH "PARTCLONE\&.DD" "8" "10/04/2023" "partclone.dd" "Partclone User Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,7 +31,7 @@
 partclone.dd \- unsupported file system backup utility\&.(like `dd` )
 .SH "SYNOPSIS"
 .HP \w'\fBpartclone\&.dd\fR\ 'u
-\fBpartclone\&.dd\fR {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_raw_file\fR]\ [\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]\ [\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]\ [\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]\ [\fB\-\-ignore_crc\fR]\ [\fB\-X\fR\ |\ \fB\-\-dialog\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR]
+\fBpartclone\&.dd\fR {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_raw_file\fR]\ [\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]\ [\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]\ [\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR\ [\fB\-D\fR\ |\ \fB\-\-domain\fR]\ [\fB\-\-offset_domain\fR]\ [\fB\-w\fR\ |\ \fB\-\-skip_write_error\fR]\ [\fB\-E\fR\ |\ \fB\-\-offset=X\fR]\ [\fB\-T\fR\ |\ \fB\-\-btfiles\fR]\ [\fB\-t\fR\ |\ \fB\-\-btfiles_torrent\fR]\ [\fB\-B\fR\ |\ \fB\-\-no_block_detail\fR]\ [\fB\-\-write\-direct\-io\fR]\ [\fB\-\-read\-direct\-io\fR]]
 .SH "DESCRIPTION"
 .PP
 \fBpartclone\&.dd\fR
@@ -64,6 +64,16 @@ Sending data to pipe line is also supported ONLY for back\-up, just ignore \-o o
 Overwrite FILE, overwriting if exists\&.
 .RE
 .PP
+\fB\-D\fR, \fB\-\-domain\fR
+.RS 4
+Create GNU Ddrescue domain log file from source device\&. This is a human readable file in which + marks used block areas and ? marks free areas\&.
+.RE
+.PP
+\fB\-\-offset_domain=X\fR
+.RS 4
+Add X (in bytes) to all positions reported in the domain log file
+.RE
+.PP
 \fB\-\-restore_raw_file\fR
 .RS 4
 Creating special raw file for loop device\&.
@@ -89,21 +99,6 @@ Don\*(Aqt check device size and free space\&.
 Using Ncurses Text User Interface\&.
 .RE
 .PP
-\fB\-X\fR, \fB\-\-dialog\fR
-.RS 4
-Output message as Dialog Format\&.
-.RE
-.PP
-\fB\-I\fR, \fB\-\-ignore_fschk\fR
-.RS 4
-Ignore filesystem check\&.
-.RE
-.PP
-\fB\-\-ignore_crc\fR
-.RS 4
-Ignore crc check error\&.
-.RE
-.PP
 \fB\-F\fR, \fB\-\-force\fR
 .RS 4
 Force progress\&.
@@ -127,6 +122,41 @@ Disable progress message\&.
 \fB\-d\fR\fB\fIlevel\fR\fR, \fB\-\-debug \fR\fB\fIlevel\fR\fR
 .RS 4
 Set the debug level [1|2|3]
+.RE
+.PP
+\fB\-w\fR, \fB\-\-skip_write_error\fR
+.RS 4
+Continue restore while write errors
+.RE
+.PP
+\fB\-\-write\-direct\-io\fR
+.RS 4
+Writing data to TARGET partition without cache
+.RE
+.PP
+\fB\-\-read\-direct\-io\fR
+.RS 4
+Reading data from SOURCE partition without cache
+.RE
+.PP
+\fB\-B\fR, \fB\-\-no_block_detail\fR
+.RS 4
+Show progress message without block detail
+.RE
+.PP
+\fB\-E\fR, \fB\-\-offset=X\fR
+.RS 4
+Add offset X (bytes) to OUTPUT
+.RE
+.PP
+\fB\-T\fR, \fB\-\-btfiles\fR
+.RS 4
+Restore block as file for ClonezillaBT\&.
+.RE
+.PP
+\fB\-t\fR, \fB\-\-btfiles_torrent\fR
+.RS 4
+Restore block as file for ClonezillaBT but only generate torrent\&.
 .RE
 .PP
 \fB\-h\fR, \fB\-\-help\fR

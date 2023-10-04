@@ -79,8 +79,6 @@ if ENABLE_MINIX
 man_MANS += partclone.minix.8
 endif
 
-partclone.imager.8: partclone.imager.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.imager.xml)
 partclone.dd.8: partclone.dd.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.dd.xml)
 partclone.chkimg.8: partclone.chkimg.xml

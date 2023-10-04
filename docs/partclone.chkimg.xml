@@ -131,12 +131,16 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	<arg choice="plain"><option>--ignore_crc</option></arg>
 	</group>
 	<group choice="opt">
-	    <arg choice="plain"><option>-X</option></arg>
-	    <arg choice="plain"><option>--dialog</option></arg>
-	</group>
-	<group choice="opt">
 	    <arg choice="plain"><option>-C</option></arg>
 	    <arg choice="plain"><option>--no_check</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-B</option></arg>
+	    <arg choice="plain"><option>--no_block_detail</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-z</option></arg>
+	    <arg choice="plain"><option>--buffer_size</option></arg>
 	</group>
 	<group choice="opt">
 	    <arg choice="plain"><option>-L</option></arg>

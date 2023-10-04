@@ -159,10 +159,6 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	<arg choice="plain"><option>--ignore_crc</option></arg>
 	</group>
 	<group choice="opt">
-	    <arg choice="plain"><option>-X</option></arg>
-	    <arg choice="plain"><option>--dialog</option></arg>
-	</group>
-	<group choice="opt">
 	    <arg choice="plain"><option>-C</option></arg>
 	    <arg choice="plain"><option>--nocheck</option></arg>
 	</group>
@@ -175,7 +171,33 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--logfile</option></arg>
 	</group>
 	<replaceable class="option">logfile</replaceable>
-
+	<group choice="opt">
+	    <arg choice="plain"><option>-w</option></arg>
+	    <arg choice="plain"><option>--skip_write_error</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>--write-direct-io</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-w</option></arg>
+	    <arg choice="plain"><option>--skip_write_error</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-E</option></arg>
+	    <arg choice="plain"><option>--offset=X</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-T</option></arg>
+	    <arg choice="plain"><option>--btfiles</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-t</option></arg>
+	    <arg choice="plain"><option>--btfiles_torrent</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-B</option></arg>
+	    <arg choice="plain"><option>--no_block_detail</option></arg>
+	</group>
 	</arg>
      
     </cmdsynopsis>

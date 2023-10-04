@@ -152,17 +152,6 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--force</option></arg>
 	</group>
 	<group choice="opt">
-	    <arg choice="plain"><option>-I</option></arg>
-	    <arg choice="plain"><option>--ignore_fschk</option></arg>
-	</group>
-	<group choice="opt">
-	<arg choice="plain"><option>--ignore_crc</option></arg>
-	</group>
-	<group choice="opt">
-	    <arg choice="plain"><option>-X</option></arg>
-	    <arg choice="plain"><option>--dialog</option></arg>
-	</group>
-	<group choice="opt">
 	    <arg choice="plain"><option>-C</option></arg>
 	    <arg choice="plain"><option>--nocheck</option></arg>
 	</group>
@@ -175,6 +164,39 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--logfile</option></arg>
 	</group>
 	<replaceable class="option">logfile</replaceable>
+	<group choice="opt">
+	    <arg choice="plain"><option>-D</option></arg>
+	    <arg choice="plain"><option>--domain</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>--offset_domain</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-w</option></arg>
+	    <arg choice="plain"><option>--skip_write_error</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-E</option></arg>
+	    <arg choice="plain"><option>--offset=X</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-T</option></arg>
+	    <arg choice="plain"><option>--btfiles</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-t</option></arg>
+	    <arg choice="plain"><option>--btfiles_torrent</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-B</option></arg>
+	    <arg choice="plain"><option>--no_block_detail</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>--write-direct-io</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>--read-direct-io</option></arg>
+	</group>
 
 	</arg>
      
@@ -220,6 +242,19 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         </listitem>
       </varlistentry>
       <varlistentry>
+      <term><option>-D</option></term> 
+      <term><option>--domain</option></term>
+      <listitem>
+      <para>Create GNU Ddrescue domain log file from source device. This is a human readable file in which + marks used block areas and ? marks free areas.</para>
+      </listitem>
+      </varlistentry>
+      <varlistentry>
+      <term><option>--offset_domain=X</option></term>
+      <listitem>
+      <para>Add X (in bytes) to all positions reported in the domain log file</para>
+      </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>--restore_raw_file</option></term>
         <listitem>
           <para>Creating special raw file for loop device.</para>
@@ -251,26 +286,6 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>--ncurses</option></term>
         <listitem>
           <para>Using Ncurses Text User Interface.</para>
-        </listitem>
-      </varlistentry>
-       <varlistentry>
-        <term><option>-X</option></term>
-        <term><option>--dialog</option></term>
-        <listitem>
-          <para>Output message as Dialog Format.</para>
-        </listitem>
-      </varlistentry>
-       <varlistentry>
-        <term><option>-I</option></term>
-        <term><option>--ignore_fschk</option></term>
-        <listitem>
-          <para>Ignore filesystem check.</para>
-        </listitem>
-      </varlistentry>
-       <varlistentry>
-        <term><option>--ignore_crc</option></term>
-        <listitem>
-          <para>Ignore crc check error.</para>
         </listitem>
       </varlistentry>
        <varlistentry>
@@ -306,6 +321,53 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>--debug <replaceable>level</replaceable></option></term>
         <listitem>
           <para>Set the debug level [1|2|3]</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-w</option></term>
+        <term><option>--skip_write_error</option></term>
+        <listitem>
+          <para>Continue restore while write errors</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--write-direct-io</option></term>
+        <listitem>
+          <para>Writing data to TARGET partition without cache</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--read-direct-io</option></term>
+        <listitem>
+          <para>Reading data from SOURCE partition without cache</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-B</option></term>
+        <term><option>--no_block_detail</option></term>
+        <listitem>
+          <para>Show progress message without block detail</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-E</option></term>
+        <term><option>--offset=X</option></term>
+        <listitem>
+          <para>Add offset X (bytes) to OUTPUT</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-T</option></term>
+        <term><option>--btfiles</option></term>
+        <listitem>
+          <para>Restore block as file for ClonezillaBT.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-t</option></term>
+        <term><option>--btfiles_torrent</option></term>
+        <listitem>
+          <para>Restore block as file for ClonezillaBT but only generate torrent.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
