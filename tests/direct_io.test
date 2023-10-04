@@ -1,0 +1,57 @@
+#!/bin/bash
+set -e
+. "$(dirname "$0")"/_common
+
+disk_size=$((512*1024576))
+row_A_file=$0.row_A
+row_B_file=$0.row_B
+ptlfs=$(_ptlname "extfs")
+[ -f $img ] && rm $img
+_check_root
+
+echo -e "partclone direct io option test"
+echo -e "===========================\n"
+echo -e "\ncreate two row file and setup as loop device\n"
+dd if=/dev/zero of=$row_A_file count=1 bs=$disk_size
+dd if=/dev/zero of=$row_B_file count=1 bs=$disk_size
+part_loop_device=$(losetup -f)
+losetup $part_loop_device $row_A_file
+part2_loop_device=$(losetup -f)
+losetup $part2_loop_device $row_B_file
+sleep 2
+
+echo -e "\nformet loop device $part_loop_device\n"
+mkfs.ext3 $part_loop_device
+_ptlbreak
+echo -e "\n clone $part_loop_device to $part2_loop_device with direct io option\n"
+
+echo -e "\n    $ptlfs -d -b -s $part_loop_device -o $part2_loop_device --write-direct-io\n"
+$ptlfs -d -b -s $part_loop_device -o $part2_loop_device --write-direct-io
+_check_return_code
+echo -e "\n    $ptlfs -d -b -s $part_loop_device -o $part2_loop_device --read-direct-io\n"
+$ptlfs -d -b -s $part_loop_device -o $part2_loop_device --read-direct-io
+_check_return_code
+echo -e "\n    $ptlfs -d -b -s $part_loop_device -o $part2_loop_device --read-direct-io --write-direct-io\n"
+$ptlfs -d -b -s $part_loop_device -o $part2_loop_device --read-direct-io --write-direct-io
+_check_return_code
+
+echo -e "\n    $ptlfs -d -c -s $part_loop_device -o $img --read-direct-io\n"
+$ptlfs -d -c -s $part_loop_device -o $img --read-direct-io
+_check_return_code
+echo -e "\n    $ptlfs -d -r -s $img -o $part2_loop_device --write-direct-io\n"
+$ptlfs -d -r -s $img  -o $part2_loop_device --write-direct-io
+_check_return_code
+
+ptlfs="../src/partclone.dd"
+echo -e "\n    $ptlfs -d -s $part_loop_device -o $part2_loop_device --read-direct-io --write-direct-io\n"
+$ptlfs -d -s $part_loop_device -o $part2_loop_device --read-direct-io --write-direct-io
+_check_return_code
+
+losetup -d $part_loop_device
+losetup -d $part2_loop_device
+
+set -e
+echo -e "\nremove row file\n"
+rm -f $row_A_file $row_B_file 
+
+echo -e "\nDirect IO test ok\n"
