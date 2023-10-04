@@ -1,4 +1,50 @@
+2023-10-04  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	merge partclone.imager.xml to partclone.xml
+
+	update doc for partclone.8
+
+	add direct test
+
+	add time and avg.time in log file
+
+2023-10-03  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	add direct io for read/write to/from device
+
+2023-09-25  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	add direct-io option and set version 0.3.26
+
+2023-08-30  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update superBlockUsedBlocks for all xxxclone
+
+2023-08-25  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #236 from joergmlpts/master
+	report used blocks and free space based on bitmap
+
+2023-08-24  joergmlpts  <joergmlpts@gmail.com>
+
+	report used blocks and free space based on bitmap
+
+2023-08-23  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #235 from joergmlpts/master
+	correction for item at offset 76
+
+2023-08-23  joergmlpts  <joergmlpts@gmail.com>
+
+	correction for item at offset 76
+
+2023-08-22  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	show used blocks in bitmap with -d2 option
+
 2023-08-04  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	release 0.3.25
 
 	update btrfs to v6.3.3
 
