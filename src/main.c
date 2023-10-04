@@ -37,6 +37,7 @@
 #include <assert.h>
 #include <dirent.h>
 #include <limits.h>
+#include <time.h>
 
 // SHA1 for torrent info
 #include "torrent_helper.h"
@@ -92,6 +93,7 @@ int main(int argc, char **argv) {
 	void			*p_result;
 	struct stat st_dev;
         int                     ret = 0;
+        time_t                  now = time(&now);
 
 	static const char *const bad_sectors_warning_msg =
 		"*************************************************************************\n"
@@ -127,6 +129,9 @@ int main(int argc, char **argv) {
 
 	//if(opt.debug)
 	open_log(opt.logfile);
+
+        struct tm *ptm = gmtime(&now);
+        log_mesg(1, 0, 0, debug, "Partclone log start at UTC %s", asctime(ptm));
 
 	/**
 	 * using Text User Interface
@@ -1240,6 +1245,9 @@ int main(int argc, char **argv) {
 #else
 	printf("Checked successfully.\n");
 #endif
+        now = time(&now);
+        ptm = gmtime(&now);
+        log_mesg(1, 0, 0, debug, "Partclone log finish at UTC %s", asctime(ptm));
 	if (opt.debug)
 		close_log();
 #ifdef MEMTRACE

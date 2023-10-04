@@ -33,6 +33,8 @@ int color_support = 1;
 int BUFSIZE = 50;
 #endif
 
+#define PUI_DEBUG 1
+
 int PUI;
 unsigned long RES=0;
 
@@ -67,6 +69,7 @@ extern void progress_init(struct progress_bar *prog, int start, unsigned long lo
 /// open progress interface
 extern int open_pui(int pui, unsigned long res){
     int tui = 0;
+    log_mesg(1, 0, 0, PUI_DEBUG, "Opening User Interface mode.\n");
     if (pui == NCURSES){
         tui = open_ncurses();
         if (tui == 0){
@@ -229,6 +232,8 @@ extern void progress_update(struct progress_bar *prog, unsigned long long copied
 	if(prog->flag == IO)
 	    fprintf(stderr, _("Ave. Rate: %6.2f%s/min, "), prog_stat.speed, prog_stat.speed_unit);
         fprintf(stderr, _("%s"), "100.00% completed!\n");
+
+        log_mesg(1, 0, 0, PUI_DEBUG, "Total Time: %s, Ave. Rate: %6.2f%s/min, %s\n", prog_stat.Eformated, prog_stat.speed, prog_stat.speed_unit, "100.00% completed!");
     }
 }
 
@@ -316,6 +321,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
         wrefresh(bar_win);
         wrefresh(tbar_win);
         refresh();
+        log_mesg(1, 0, 0, PUI_DEBUG, "Total Time: %s, Ave. Rate: %6.2f%s/min, %s\n", prog_stat.Eformated, prog_stat.speed, prog_stat.speed_unit, "100.00% completed!");
 	sleep(1);
     }
 
