@@ -194,7 +194,8 @@ partclone_imgfuse_LDADD+=-ldl -lcrypto ${LDADD_static}
 endif
 endif
 
-
+compconfdir=$(sysconfdir)/bash_completion.d
+compconf_DATA = partclone-prompt
 
 # Extra
 install-exec-hook:
@@ -224,6 +225,7 @@ if ENABLE_VMFS
 endif
 
 uninstall-local:
+	$(RM) -f $(compconfdir)/bash_completion.d/partclone-prompt
 if ENABLE_EXTFS
 	$(RM) -f $(sbindir)/partclone.ext4dev
 	$(RM) -f $(sbindir)/partclone.ext4
@@ -247,5 +249,6 @@ endif
 if ENABLE_VMFS
 	$(RM) -f $(sbindir)/partclone.VMFS_volume_member
 endif
+
 
 FORCE:
