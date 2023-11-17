@@ -16,11 +16,15 @@
  * Boston, MA 021110-1307, USA.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <uuid/uuid.h>
-#include <ctype.h>
 #include "kerncompat.h"
+#include <stdio.h>
+#include <ctype.h>
+#include <errno.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <string.h>
+#include <time.h>
+#include <uuid/uuid.h>
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/disk-io.h"
 #include "kernel-shared/print-tree.h"
@@ -28,7 +32,10 @@
 #include "kernel-shared/compression.h"
 #include "kernel-shared/accessors.h"
 #include "kernel-shared/file-item.h"
-#include "common/utils.h"
+#include "kernel-shared/tree-checker.h"
+#include "common/defs.h"
+#include "common/internal.h"
+#include "common/messages.h"
 
 static void print_dir_item_type(struct extent_buffer *eb,
                                 struct btrfs_dir_item *di)
@@ -480,34 +487,43 @@ void print_extent_item(struct extent_buffer *eb, int slot, int metadata)
 	ptr = (unsigned long)iref;
 	end = (unsigned long)ei + item_size;
 	while (ptr < end) {
+		u64 seq;
+
 		iref = (struct btrfs_extent_inline_ref *)ptr;
 		type = btrfs_extent_inline_ref_type(eb, iref);
 		offset = btrfs_extent_inline_ref_offset(eb, iref);
+		seq = offset;
 		switch (type) {
 		case BTRFS_TREE_BLOCK_REF_KEY:
-			printf("\t\ttree block backref root ");
+			printf("\t\t(%u 0x%llx) tree block backref root ", type, seq);
 			print_objectid(stdout, offset, 0);
 			printf("\n");
 			break;
 		case BTRFS_SHARED_BLOCK_REF_KEY:
-			printf("\t\tshared block backref parent %llu\n",
-			       (unsigned long long)offset);
+			printf("\t\t(%u 0x%llx) shared block backref parent %llu\n",
+			       type, seq, offset);
 			break;
 		case BTRFS_EXTENT_DATA_REF_KEY:
 			dref = (struct btrfs_extent_data_ref *)(&iref->offset);
-			printf("\t\textent data backref root ");
-			print_objectid(stdout,
-		(unsigned long long)btrfs_extent_data_ref_root(eb, dref), 0);
+			seq = hash_extent_data_ref(
+					btrfs_extent_data_ref_root(eb, dref),
+					btrfs_extent_data_ref_objectid(eb, dref),
+					btrfs_extent_data_ref_offset(eb, dref));
+			printf("\t\t(%u 0x%llx) extent data backref root ", type, seq);
+			print_objectid(stdout, btrfs_extent_data_ref_root(eb, dref), 0);
 			printf(" objectid %llu offset %llu count %u\n",
-			       (unsigned long long)btrfs_extent_data_ref_objectid(eb, dref),
+			       btrfs_extent_data_ref_objectid(eb, dref),
 			       btrfs_extent_data_ref_offset(eb, dref),
 			       btrfs_extent_data_ref_count(eb, dref));
 			break;
 		case BTRFS_SHARED_DATA_REF_KEY:
 			sref = (struct btrfs_shared_data_ref *)(iref + 1);
-			printf("\t\tshared data backref parent %llu count %u\n",
-			       (unsigned long long)offset,
-			       btrfs_shared_data_ref_count(eb, sref));
+			printf("\t\t(%u 0x%llx) shared data backref parent %llu count %u\n",
+			       type, seq, offset, btrfs_shared_data_ref_count(eb, sref));
+			break;
+		case BTRFS_EXTENT_OWNER_REF_KEY:
+			printf("\t\(%u 0x%llx) textent owner root %llu\n",
+			       type, seq, offset);
 			break;
 		default:
 			return;
@@ -637,6 +653,48 @@ static void print_free_space_header(struct extent_buffer *leaf, int slot)
 	       (unsigned long long)btrfs_free_space_bitmaps(leaf, header));
 }
 
+struct raid_encoding_map {
+	u8 encoding;
+	char name[16];
+};
+
+static const struct raid_encoding_map raid_map[] = {
+	{ BTRFS_STRIPE_DUP,	"DUP" },
+	{ BTRFS_STRIPE_RAID0,	"RAID0" },
+	{ BTRFS_STRIPE_RAID1,	"RAID1" },
+	{ BTRFS_STRIPE_RAID1C3,	"RAID1C3" },
+	{ BTRFS_STRIPE_RAID1C4, "RAID1C4" },
+	{ BTRFS_STRIPE_RAID5,	"RAID5" },
+	{ BTRFS_STRIPE_RAID6,	"RAID6" },
+	{ BTRFS_STRIPE_RAID10,	"RAID10" }
+};
+
+static const char *stripe_encoding_name(u8 encoding)
+{
+	for (int i = 0; i < ARRAY_SIZE(raid_map); i++) {
+		if (raid_map[i].encoding == encoding)
+			return raid_map[i].name;
+	}
+
+	return "UNKNOWN";
+}
+
+static void print_raid_stripe_key(struct extent_buffer *eb,
+				  u32 item_size, struct btrfs_stripe_extent *stripe)
+{
+	int num_stripes;
+	u8 encoding = btrfs_stripe_extent_encoding(eb, stripe);
+
+	num_stripes = (item_size - offsetof(struct btrfs_stripe_extent, strides)) /
+		      sizeof(struct btrfs_raid_stride);
+
+	printf("\t\t\tencoding: %s\n", stripe_encoding_name(encoding));
+	for (int i = 0; i < num_stripes; i++)
+		printf("\t\t\tstripe %d devid %llu physical %llu\n", i,
+		       (unsigned long long)btrfs_raid_stride_devid_nr(eb, stripe, i),
+		       (unsigned long long)btrfs_raid_stride_offset_nr(eb, stripe, i));
+}
+
 void print_key_type(FILE *stream, u64 objectid, u8 type)
 {
 	static const char* key_to_str[256] = {
@@ -661,6 +719,7 @@ void print_key_type(FILE *stream, u64 objectid, u8 type)
 		[BTRFS_EXTENT_DATA_REF_KEY]	= "EXTENT_DATA_REF",
 		[BTRFS_SHARED_DATA_REF_KEY]	= "SHARED_DATA_REF",
 		[BTRFS_EXTENT_REF_V0_KEY]	= "EXTENT_REF_V0",
+		[BTRFS_EXTENT_OWNER_REF_KEY]	= "EXTENT_OWNER_REF",
 		[BTRFS_CSUM_ITEM_KEY]		= "CSUM_ITEM",
 		[BTRFS_EXTENT_CSUM_KEY]		= "EXTENT_CSUM",
 		[BTRFS_EXTENT_DATA_KEY]		= "EXTENT_DATA",
@@ -681,6 +740,7 @@ void print_key_type(FILE *stream, u64 objectid, u8 type)
 		[BTRFS_PERSISTENT_ITEM_KEY]	= "PERSISTENT_ITEM",
 		[BTRFS_UUID_KEY_SUBVOL]		= "UUID_KEY_SUBVOL",
 		[BTRFS_UUID_KEY_RECEIVED_SUBVOL] = "UUID_KEY_RECEIVED_SUBVOL",
+		[BTRFS_RAID_STRIPE_KEY]		= "RAID_STRIPE",
 	};
 
 	if (type == 0 && objectid == BTRFS_FREE_SPACE_OBJECTID) {
@@ -792,6 +852,9 @@ void print_objectid(FILE *stream, u64 objectid, u8 type)
 		break;
 	case BTRFS_CSUM_CHANGE_OBJECTID:
 		fprintf(stream, "CSUM_CHANGE");
+		break;
+	case  BTRFS_RAID_STRIPE_TREE_OBJECTID:
+		fprintf(stream, "RAID_STRIPE_TREE");
 		break;
 	case (u64)-1:
 		fprintf(stream, "-1");
@@ -1042,6 +1105,17 @@ static void print_shared_data_ref(struct extent_buffer *eb, int slot)
 		btrfs_shared_data_ref_count(eb, sref));
 }
 
+static void print_extent_owner_ref(struct extent_buffer *eb, int slot)
+{
+	struct btrfs_extent_owner_ref *oref;
+	u64 root_id;
+
+	oref = btrfs_item_ptr(eb, slot, struct btrfs_extent_owner_ref);
+	root_id = btrfs_extent_owner_ref_root_id(eb, oref);
+
+	printf("\t\textent owner root %llu\n", root_id);
+}
+
 static void print_free_space_info(struct extent_buffer *eb, int slot)
 {
 	struct btrfs_free_space_info *free_info;
@@ -1083,11 +1157,16 @@ static void print_qgroup_status(struct extent_buffer *eb, int slot)
 	memset(flags_str, 0, sizeof(flags_str));
 	qgroup_flags_to_str(btrfs_qgroup_status_flags(eb, qg_status),
 					flags_str);
-	printf("\t\tversion %llu generation %llu flags %s scan %llu\n",
+	printf("\t\tversion %llu generation %llu flags %s scan %llu",
 		(unsigned long long)btrfs_qgroup_status_version(eb, qg_status),
 		(unsigned long long)btrfs_qgroup_status_generation(eb, qg_status),
 		flags_str,
 		(unsigned long long)btrfs_qgroup_status_rescan(eb, qg_status));
+	if (btrfs_fs_incompat(eb->fs_info, SIMPLE_QUOTA))
+		printf(" enable_gen %llu\n",
+			   (unsigned long long)btrfs_qgroup_status_enable_gen(eb, qg_status));
+	else
+		printf("\n");
 }
 
 static void print_qgroup_info(struct extent_buffer *eb, int slot)
@@ -1264,12 +1343,12 @@ static void print_header_info(struct extent_buffer *eb, unsigned int mode)
 	printf("\n");
 	if (fs_info && (mode & BTRFS_PRINT_TREE_CSUM_HEADERS)) {
 		char *tmp = csum_str;
-		u8 *csum = (u8 *)(eb->data + offsetof(struct btrfs_header, csum));
+		u8 *tree_csum = (u8 *)(eb->data + offsetof(struct btrfs_header, csum));
 
 		strcpy(csum_str, " csum 0x");
 		tmp = csum_str + strlen(csum_str);
 		for (i = 0; i < csum_size; i++) {
-			sprintf(tmp, "%02x", csum[i]);
+			sprintf(tmp, "%02x", tree_csum[i]);
 			tmp++;
 			tmp++;
 		}
@@ -1301,7 +1380,7 @@ static void print_header_info(struct extent_buffer *eb, unsigned int mode)
 	fflush(stdout);
 }
 
-void btrfs_print_leaf(struct extent_buffer *eb, unsigned int mode)
+void __btrfs_print_leaf(struct extent_buffer *eb, unsigned int mode)
 {
 	struct btrfs_disk_key disk_key;
 	u32 leaf_data_size = BTRFS_LEAF_DATA_SIZE(eb->fs_info);
@@ -1407,6 +1486,9 @@ void btrfs_print_leaf(struct extent_buffer *eb, unsigned int mode)
 		case BTRFS_SHARED_DATA_REF_KEY:
 			print_shared_data_ref(eb, i);
 			break;
+		case BTRFS_EXTENT_OWNER_REF_KEY:
+			print_extent_owner_ref(eb, i);
+			break;
 		case BTRFS_EXTENT_REF_V0_KEY:
 			printf("\t\textent ref v0 (deprecated)\n");
 			break;
@@ -1469,6 +1551,9 @@ void btrfs_print_leaf(struct extent_buffer *eb, unsigned int mode)
 		case BTRFS_TEMPORARY_ITEM_KEY:
 			print_temporary_item(eb, ptr, objectid, offset);
 			break;
+		case BTRFS_RAID_STRIPE_KEY:
+			print_raid_stripe_key(eb, item_size, ptr);
+			break;
 		};
 		fflush(stdout);
 	}
@@ -1494,7 +1579,7 @@ static int search_leftmost_tree_block(struct btrfs_fs_info *fs_info,
 		struct extent_buffer *eb;
 
 		path->slots[i] = 0;
-		eb = read_node_slot(fs_info, path->nodes[i], 0);
+		eb = btrfs_read_node_slot(path->nodes[i], 0);
 		if (!extent_buffer_uptodate(eb)) {
 			ret = -EIO;
 			goto out;
@@ -1505,10 +1590,61 @@ out:
 	return ret;
 }
 
+/*
+ * Walk up the tree as far as necessary to find the next sibling tree block.
+ * More generic version of btrfs_next_leaf(), as it could find sibling nodes if
+ * @path->lowest_level is not 0.
+ *
+ * Returns 0 if it found something or 1 if there are no greater leaves.
+ * Returns < 0 on io errors.
+ */
+static int next_sibling_tree_block(struct btrfs_fs_info *fs_info,
+				   struct btrfs_path *path)
+{
+	int slot;
+	int level = path->lowest_level + 1;
+	struct extent_buffer *eb;
+	struct extent_buffer *next = NULL;
+
+	BUG_ON(path->lowest_level + 1 >= BTRFS_MAX_LEVEL);
+	do {
+		if (!path->nodes[level])
+			return 1;
+
+		slot = path->slots[level] + 1;
+		eb = path->nodes[level];
+		if (slot >= btrfs_header_nritems(eb)) {
+			level++;
+			if (level == BTRFS_MAX_LEVEL)
+				return 1;
+			continue;
+		}
+
+		next = btrfs_read_node_slot(eb, slot);
+		if (!extent_buffer_uptodate(next))
+			return -EIO;
+		break;
+	} while (level < BTRFS_MAX_LEVEL);
+	path->slots[level] = slot;
+	while(1) {
+		level--;
+		eb = path->nodes[level];
+		free_extent_buffer(eb);
+		path->nodes[level] = next;
+		path->slots[level] = 0;
+		if (level == path->lowest_level)
+			break;
+		next = btrfs_read_node_slot(next, 0);
+		if (!extent_buffer_uptodate(next))
+			return -EIO;
+	}
+	return 0;
+}
+
 static void bfs_print_children(struct extent_buffer *root_eb, unsigned int mode)
 {
 	struct btrfs_fs_info *fs_info = root_eb->fs_info;
-	struct btrfs_path path;
+	struct btrfs_path path = { 0 };
 	int root_level = btrfs_header_level(root_eb);
 	int cur_level;
 	int ret;
@@ -1520,7 +1656,6 @@ static void bfs_print_children(struct extent_buffer *root_eb, unsigned int mode)
 	mode |= BTRFS_PRINT_TREE_BFS;
 	mode &= ~(BTRFS_PRINT_TREE_DFS);
 
-	btrfs_init_path(&path);
 	/* For path */
 	extent_buffer_get(root_eb);
 	path.nodes[root_level] = root_eb;
@@ -1536,7 +1671,7 @@ static void bfs_print_children(struct extent_buffer *root_eb, unsigned int mode)
 		/* Print all sibling tree blocks */
 		while (1) {
 			btrfs_print_tree(path.nodes[cur_level], mode);
-			ret = btrfs_next_sibling_tree_block(fs_info, &path);
+			ret = next_sibling_tree_block(fs_info, &path);
 			if (ret < 0)
 				goto out;
 			if (ret > 0) {
@@ -1563,10 +1698,13 @@ static void dfs_print_children(struct extent_buffer *root_eb, unsigned int mode)
 	mode &= ~(BTRFS_PRINT_TREE_BFS);
 
 	for (i = 0; i < nr; i++) {
+		struct btrfs_tree_parent_check check = {
+			.owner_root = btrfs_header_owner(root_eb),
+			.transid = btrfs_node_ptr_generation(root_eb, i),
+			.level = root_eb_level,
+		};
 		next = read_tree_block(fs_info, btrfs_node_blockptr(root_eb, i),
-				       btrfs_header_owner(root_eb),
-				       btrfs_node_ptr_generation(root_eb, i),
-				       root_eb_level, NULL);
+				       &check);
 		if (!extent_buffer_uptodate(next)) {
 			fprintf(stderr, "failed to read %llu in tree %llu\n",
 				btrfs_node_blockptr(root_eb, i),
@@ -1614,7 +1752,7 @@ void btrfs_print_tree(struct extent_buffer *eb, unsigned int mode)
 
 	nr = btrfs_header_nritems(eb);
 	if (btrfs_is_leaf(eb)) {
-		btrfs_print_leaf(eb, mode);
+		__btrfs_print_leaf(eb, mode);
 		return;
 	}
 	/* We are crossing eb boundary, this node must be corrupted */
@@ -1708,6 +1846,8 @@ static struct readable_flag_entry incompat_flags_array[] = {
 	DEF_INCOMPAT_FLAG_ENTRY(RAID1C34),
 	DEF_INCOMPAT_FLAG_ENTRY(ZONED),
 	DEF_INCOMPAT_FLAG_ENTRY(EXTENT_TREE_V2),
+	DEF_INCOMPAT_FLAG_ENTRY(RAID_STRIPE_TREE),
+	DEF_INCOMPAT_FLAG_ENTRY(SIMPLE_QUOTA),
 };
 static const int incompat_flags_num = sizeof(incompat_flags_array) /
 				      sizeof(struct readable_flag_entry);
@@ -2005,12 +2145,8 @@ void btrfs_print_superblock(struct btrfs_super_block *sb, int full)
 
 	uuid_unparse(sb->fsid, buf);
 	printf("fsid\t\t\t%s\n", buf);
-	if (metadata_uuid_present) {
-		uuid_unparse(sb->metadata_uuid, buf);
-		printf("metadata_uuid\t\t%s\n", buf);
-	} else {
-		printf("metadata_uuid\t\t%s\n", buf);
-	}
+	uuid_unparse(sb->metadata_uuid, buf);
+	printf("metadata_uuid\t\t%s\n", buf);
 
 	printf("label\t\t\t");
 	s = sb->label;

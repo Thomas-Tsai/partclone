@@ -20,11 +20,16 @@
 #define __BTRFS_REPAIR_H__
 
 #include "kerncompat.h"
-#include "kernel-shared/ctree.h"
+#include "kernel-shared/tree-checker.h"
+#include "kernel-shared/uapi/btrfs_tree.h"
 #include "common/extent-cache.h"
 
 struct btrfs_trans_handle;
+struct btrfs_fs_info;
+struct btrfs_path;
+struct btrfs_root;
 struct extent_io_tree;
+struct extent_buffer;
 
 /* Repair mode */
 extern int opt_check_repair;
@@ -45,5 +50,9 @@ int btrfs_mark_used_blocks(struct btrfs_fs_info *fs_info,
 			   struct extent_io_tree *tree);
 enum btrfs_tree_block_status btrfs_check_block_for_repair(struct extent_buffer *eb,
 							  struct btrfs_key *first_key);
+void btrfs_set_item_key_unsafe(struct btrfs_root *root, struct btrfs_path *path,
+			       struct btrfs_key *new_key);
+void btrfs_fixup_low_keys(struct btrfs_path *path, struct btrfs_disk_key *key,
+			  int level);
 
 #endif

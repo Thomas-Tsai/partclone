@@ -9,13 +9,23 @@
  */
 
 #include <inttypes.h>
+#include <stdio.h>
 #include "crypto/crc32c.h"
 #include "common/cpu-utils.h"
 
-uint32_t __crc32c_le(uint32_t crc, unsigned char const *data, uint32_t length);
-static uint32_t (*crc_function)(uint32_t crc, unsigned char const *data, uint32_t length) = __crc32c_le;
+static uint32_t crc32c_ref(uint32_t crc, unsigned char const *data, uint32_t length);
+static uint32_t (*crc32c_impl)(uint32_t crc, unsigned char const *data, uint32_t length) = crc32c_ref;
 
 #ifdef __x86_64__
+
+#ifdef __GLIBC__
+
+/* asmlinkage */ unsigned int crc_pcl(const unsigned char *buffer, int len, unsigned int crc_init);
+static unsigned int crc32c_pcl(uint32_t crc, unsigned char const *data, uint32_t len) {
+	return crc_pcl(data, len, crc);
+}
+
+#endif
 
 /*
  * Based on a posting to lkml by Austin Zhang <austin.zhang@intel.com>
@@ -51,10 +61,11 @@ static uint32_t crc32c_intel_le_hw_byte(uint32_t crc, unsigned char const *data,
 }
 
 /*
- * Steps through buffer one byte at at time, calculates reflected 
- * crc using table.
+ * Accelerated implementation using SSE 4.2 extension for instruction crc32c.
+ * Steps through buffer one byte at at time, calculates reflected crc using
+ * table.
  */
-static uint32_t crc32c_intel(uint32_t crc, unsigned char const *data, uint32_t length)
+static uint32_t crc32c_sse42(uint32_t crc, unsigned char const *data, uint32_t length)
 {
 	unsigned int iquotient = length / SCALE_F;
 	unsigned int iremainder = length % SCALE_F;
@@ -78,18 +89,30 @@ static uint32_t crc32c_intel(uint32_t crc, unsigned char const *data, uint32_t l
 
 void crc32c_init_accel(void)
 {
-	/* CRC32 is in SSE4.2 */
-	if (cpu_has_feature(CPU_FLAG_SSE42))
-		crc_function = crc32c_intel;
-	else
-		crc_function = __crc32c_le;
+	/*
+	 * Musl reports a problem with linkage, use the old implementation for
+	 * now.
+	 */
+	if (0) {
+#ifdef __GLIBC__
+	} else if (cpu_has_feature(CPU_FLAG_PCLMUL)) {
+		/* printf("CRC32C: pcl\n"); */
+		crc32c_impl = crc32c_pcl;
+#endif
+	} else if (cpu_has_feature(CPU_FLAG_SSE42)) {
+		/* printf("CRC32c: intel\n"); */
+		crc32c_impl = crc32c_sse42;
+	} else {
+		/* printf("CRC32c: fallback\n"); */
+		crc32c_impl = crc32c_ref;
+	}
 }
 
 #else
 
 void crc32c_init_accel(void)
 {
-	crc_function = __crc32c_le;
+	crc32c_impl = crc32c_ref;
 }
 
 #endif /* __x86_64__ */
@@ -171,11 +194,10 @@ static const uint32_t crc32c_table[256] = {
 };
 
 /*
- * Steps through buffer one byte at at time, calculates reflected 
- * crc using table.
+ * Fallback implementatin. Step through buffer one byte at at time, calculates
+ * reflected crc using table, can accept an unaligned buffer.
  */
-
-uint32_t __crc32c_le(uint32_t crc, unsigned char const *data, uint32_t length)
+static uint32_t crc32c_ref(uint32_t crc, unsigned char const *data, uint32_t length)
 {
 	while (length--)
 		crc =
@@ -187,7 +209,7 @@ uint32_t crc32c_le(uint32_t crc, unsigned char const *data, uint32_t length)
 {
 	/* Use by-byte access for unaligned buffers */
 	if ((unsigned long)data % sizeof(unsigned long))
-		return __crc32c_le(crc, data, length);
+		return crc32c_ref(crc, data, length);
 
-	return crc_function(crc, data, length);
+	return crc32c_impl(crc, data, length);
 }

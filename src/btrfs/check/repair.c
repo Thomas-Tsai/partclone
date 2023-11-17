@@ -16,6 +16,7 @@
  * Boston, MA 021110-1307, USA.
  */
 
+#include "kerncompat.h"
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -23,6 +24,8 @@
 #include <string.h>
 #include "kernel-lib/list.h"
 #include "kernel-lib/rbtree.h"
+#include "kernel-shared/accessors.h"
+#include "kernel-shared/extent-io-tree.h"
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/transaction.h"
 #include "kernel-shared/extent_io.h"
@@ -32,6 +35,48 @@
 #include "check/repair.h"
 
 int opt_check_repair = 0;
+
+/*
+ * Adjust the pointers going up the tree, starting at level making sure the
+ * right key of each node is points to 'key'.  This is used after shifting
+ * pointers to the left, so it stops fixing up pointers when a given leaf/node
+ * is not in slot 0 of the higher levels.
+ */
+void btrfs_fixup_low_keys(struct btrfs_path *path, struct btrfs_disk_key *key,
+			  int level)
+{
+	for (int i = level; i < BTRFS_MAX_LEVEL; i++) {
+		int slot = path->slots[i];
+
+		if (!path->nodes[i])
+			break;
+		btrfs_set_node_key(path->nodes[i], key, slot);
+		btrfs_mark_buffer_dirty(path->nodes[i]);
+		if (slot != 0)
+			break;
+	}
+}
+
+/*
+ * Update an item key without the safety checks.  This is meant to be called by
+ * fsck only.
+ */
+void btrfs_set_item_key_unsafe(struct btrfs_root *root, struct btrfs_path *path,
+			       struct btrfs_key *new_key)
+{
+	struct btrfs_disk_key disk_key;
+	struct extent_buffer *eb;
+	int slot;
+
+	eb = path->nodes[0];
+	slot = path->slots[0];
+
+	btrfs_cpu_key_to_disk(&disk_key, new_key);
+	btrfs_set_item_key(eb, &disk_key, slot);
+	btrfs_mark_buffer_dirty(eb);
+	if (slot == 0)
+		btrfs_fixup_low_keys(path, &disk_key, 1);
+}
 
 int btrfs_add_corrupt_extent_record(struct btrfs_fs_info *info,
 				    struct btrfs_key *first_key,
@@ -90,6 +135,8 @@ static int traverse_tree_blocks(struct extent_io_tree *tree,
 
 	nritems = btrfs_header_nritems(eb);
 	for (i = 0; i < nritems; i++) {
+		struct btrfs_tree_parent_check check = { 0 };
+
 		if (level == 0) {
 			bool is_extent_root;
 			btrfs_item_key_to_cpu(eb, &key, i);
@@ -103,15 +150,16 @@ static int traverse_tree_blocks(struct extent_io_tree *tree,
 			ri = btrfs_item_ptr(eb, i, struct btrfs_root_item);
 			bytenr = btrfs_disk_root_bytenr(eb, ri);
 
+			check.owner_root = key.objectid;
+			check.level = btrfs_disk_root_level(eb, ri);
+
 			/*
 			 * If at any point we start needing the real root we
 			 * will have to build a stump root for the root we are
 			 * in, but for now this doesn't actually use the root so
 			 * just pass in extent_root.
 			 */
-			tmp = read_tree_block(fs_info, bytenr, key.objectid, 0,
-					      btrfs_disk_root_level(eb, ri),
-					      NULL);
+			tmp = read_tree_block(fs_info, bytenr, &check);
 			if (!extent_buffer_uptodate(tmp)) {
 				fprintf(stderr, "Error reading root block\n");
 				return -EIO;
@@ -121,10 +169,10 @@ static int traverse_tree_blocks(struct extent_io_tree *tree,
 			if (ret)
 				return ret;
 		} else {
-			u64 end;
+			u64 child_end;
 
 			bytenr = btrfs_node_blockptr(eb, i);
-			end = bytenr + fs_info->nodesize - 1;
+			child_end = bytenr + fs_info->nodesize - 1;
 
 			/* If we aren't the tree root don't read the block */
 			if (level == 1 && !tree_root) {
@@ -132,13 +180,15 @@ static int traverse_tree_blocks(struct extent_io_tree *tree,
 					btrfs_pin_extent(fs_info, bytenr,
 							 fs_info->nodesize);
 				else
-					set_extent_dirty(tree, bytenr, end, GFP_NOFS);
+					set_extent_dirty(tree, bytenr,
+							 child_end, GFP_NOFS);
 				continue;
 			}
 
-			tmp = read_tree_block(fs_info, bytenr,
-					      btrfs_header_owner(eb), 0,
-					      level - 1, NULL);
+			check.owner_root = btrfs_header_owner(eb);
+			check.level = level - 1;
+
+			tmp = read_tree_block(fs_info, bytenr, &check);
 			if (!extent_buffer_uptodate(tmp)) {
 				fprintf(stderr, "Error reading tree block\n");
 				return -EIO;
@@ -172,12 +222,11 @@ static int populate_used_from_extent_root(struct btrfs_root *root,
 {
 	struct btrfs_fs_info *fs_info = root->fs_info;
 	struct extent_buffer *leaf;
-	struct btrfs_path path;
+	struct btrfs_path path = { 0 };
 	struct btrfs_key key;
 	int slot;
 	int ret;
 
-	btrfs_init_path(&path);
 	key.offset = 0;
 	key.objectid = 0;
 	key.type = BTRFS_EXTENT_ITEM_KEY;

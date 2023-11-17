@@ -20,16 +20,13 @@
 #define __BTRFS_UTILS_H__
 
 #include "kerncompat.h"
-#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "kernel-lib/sizes.h"
-#include "kernel-shared/uapi/btrfs.h"
-#include "kernel-shared/ctree.h"
-#include "common/defs.h"
-#include "common/internal.h"
-#include "common/messages.h"
+#include "kernel-lib/list.h"
+#include "kernel-shared/volumes.h"
 #include "common/fsfeatures.h"
+
+struct list_head;
 
 enum exclusive_operation {
 	BTRFS_EXCLOP_NONE,
@@ -59,8 +56,6 @@ int ask_user(const char *question);
 int lookup_path_rootid(int fd, u64 *rootid);
 int find_mount_fsroot(const char *subvol, const char *subvolid, char **mount);
 int find_mount_root(const char *path, char **mount_root);
-int get_device_info(int fd, u64 devid,
-		struct btrfs_ioctl_dev_info_args *di_args);
 int get_df(int fd, struct btrfs_ioctl_space_args **sargs_ret);
 
 const char *subvol_strip_mountpoint(const char *mnt, const char *full_path);
@@ -92,12 +87,26 @@ struct btrfs_config {
 	 *   > 0: verbose level
 	 */
 	int verbose;
+	/* Command line request to skip any modification actions. */
+	int dry_run;
+	struct list_head params;
 };
 extern struct btrfs_config bconf;
+
+struct config_param {
+	struct list_head list;
+	const char *key;
+	const char *value;
+};
 
 void btrfs_config_init(void);
 void bconf_be_verbose(void);
 void bconf_be_quiet(void);
+void bconf_add_param(const char *key, const char *value);
+void bconf_save_param(const char *str);
+void bconf_set_dry_run(void);
+bool bconf_is_dry_run(void);
+const char *bconf_param_value(const char *key);
 
 /* Pseudo random number generator wrappers */
 int rand_int(void);
@@ -111,11 +120,6 @@ void init_rand_seed(u64 seed);
 char *btrfs_test_for_multiple_profiles(int fd);
 int btrfs_warn_multiple_profiles(int fd);
 void btrfs_warn_experimental(const char *str);
-
-int sysfs_open_file(const char *name);
-int sysfs_open_fsid_file(int fd, const char *filename);
-int sysfs_read_file(int fd, char *buf, size_t size);
-int sysfs_open_fsid_dir(int fd, const char *dirname);
 
 /* An error code to error string mapping for the kernel error codes */
 static inline char *btrfs_err_str(enum btrfs_err_code err_code)

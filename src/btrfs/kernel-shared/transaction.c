@@ -15,29 +15,82 @@
  */
 
 #include "kerncompat.h"
+#include <stdlib.h>
+#include "kernel-lib/rbtree.h"
+#include "kernel-lib/bitops.h"
 #include "kernel-shared/disk-io.h"
 #include "kernel-shared/transaction.h"
 #include "kernel-shared/delayed-ref.h"
 #include "kernel-shared/zoned.h"
+#include "kernel-shared/accessors.h"
+#include "kernel-shared/ctree.h"
+#include "kernel-shared/extent_io.h"
+#include "kernel-shared/locking.h"
+#include "kernel-shared/uapi/btrfs_tree.h"
 #include "common/messages.h"
 
-struct btrfs_trans_handle *btrfs_start_transaction(struct btrfs_root *root,
-						   unsigned int num_items)
+/*
+ * The metadata reservation code is completely different from the kernel:
+ *
+ * - No need to support reclaim
+ * - No support for transaction join
+ *
+ * This is due to the fact that btrfs-progs is only single threaded, thus it
+ * always starts a transaction, does some tree operations, and commits the
+ * transaction.
+ *
+ * So here we only need to make sure we have enough metadata space, and there
+ * will be no metadata over-commit (allowing extra metadata operations as long
+ * as there is unallocated space).
+ *
+ * The only extra step we can really do to increase metadata space is to allocate
+ * new metadata chunks.
+ */
+
+static unsigned int calc_insert_metadata_size(const struct btrfs_fs_info *fs_info,
+					      unsigned int num_items)
+{
+	return fs_info->nodesize * BTRFS_MAX_LEVEL * num_items * 2;
+}
+
+static bool meta_has_enough_space(struct btrfs_fs_info *fs_info,
+				  u64 profile, unsigned int size)
+{
+	struct btrfs_space_info *sinfo;
+
+	profile &= BTRFS_BLOCK_GROUP_TYPE_MASK;
+
+	/*
+	 * The fs is temporary (still during mkfs), do not check free space
+	 * as we don't have all meta/sys chunks setup.
+	 */
+	if (btrfs_super_magic(fs_info->super_copy) != BTRFS_MAGIC)
+		return true;
+
+	/*
+	 * The fs is under extent tree rebuilding, do not do any free space check
+	 * as they are not reliable.
+	 */
+	if (fs_info->rebuilding_extent_tree)
+		return true;
+
+	sinfo = btrfs_find_space_info(fs_info, profile);
+	if (!sinfo) {
+		error("unable to find block group for profile 0x%llx", profile);
+		return false;
+	}
+
+	if (sinfo->bytes_used + sinfo->bytes_pinned + sinfo->bytes_reserved +
+	    size < sinfo->total_bytes)
+		return true;
+	return false;
+}
+
+static struct btrfs_trans_handle *alloc_trans_handle(struct btrfs_root *root,
+						     unsigned int num_items)
 {
 	struct btrfs_fs_info *fs_info = root->fs_info;
 	struct btrfs_trans_handle *h;
-
-	if (fs_info->transaction_aborted)
-		return ERR_PTR(-EROFS);
-
-	if (root->commit_root) {
-		error("commit_root already set when starting transaction");
-		return ERR_PTR(-EINVAL);
-	}
-	if (fs_info->running_transaction) {
-		error("attempt to start transaction over already running one");
-		return ERR_PTR(-EINVAL);
-	}
 
 	h = kzalloc(sizeof(*h), GFP_NOFS);
 	if (!h)
@@ -55,6 +108,89 @@ struct btrfs_trans_handle *btrfs_start_transaction(struct btrfs_root *root,
 	extent_buffer_get(root->node);
 	INIT_LIST_HEAD(&h->dirty_bgs);
 
+	return h;
+}
+
+struct btrfs_trans_handle *btrfs_start_transaction(struct btrfs_root *root,
+						   unsigned int num_items)
+{
+	struct btrfs_fs_info *fs_info = root->fs_info;
+	struct btrfs_trans_handle *h;
+	unsigned int rsv_bytes;
+	bool need_retry = false;
+	u64 profile;
+
+	if (root->root_key.objectid == BTRFS_CHUNK_TREE_OBJECTID)
+		profile = BTRFS_BLOCK_GROUP_SYSTEM |
+			  (fs_info->avail_system_alloc_bits &
+			   fs_info->system_alloc_profile);
+	else
+		profile = BTRFS_BLOCK_GROUP_METADATA |
+			  (fs_info->avail_metadata_alloc_bits &
+			   fs_info->metadata_alloc_profile);
+
+	if (fs_info->transaction_aborted)
+		return ERR_PTR(-EROFS);
+
+	if (root->commit_root) {
+		error("commit_root already set when starting transaction");
+		return ERR_PTR(-EINVAL);
+	}
+	if (fs_info->running_transaction) {
+		error("attempt to start transaction over already running one");
+		return ERR_PTR(-EINVAL);
+	}
+
+	/*
+	 * For those call sites, they are mostly delete items, in that case
+	 * just change it to 1.
+	 */
+	if (num_items == 0)
+		num_items = 1;
+
+	rsv_bytes = calc_insert_metadata_size(fs_info, num_items);
+
+	/*
+	 * We should not have so many items that it's larger than one metadata
+	 * chunk.
+	 */
+	if (rsv_bytes > SZ_1G) {
+		error("too much metadata space required: num_items %u reserved bytes %u",
+		      num_items, rsv_bytes);
+		return ERR_PTR(-EINVAL);
+	}
+
+	if (!meta_has_enough_space(fs_info, profile, rsv_bytes))
+		need_retry = true;
+
+	h = alloc_trans_handle(root, num_items);
+	if (IS_ERR(h))
+		return ERR_PTR(PTR_ERR(h));
+
+	if (need_retry) {
+		int ret;
+
+		ret = btrfs_try_chunk_alloc(h, fs_info, rsv_bytes, profile);
+		if (ret < 0) {
+			btrfs_abort_transaction(h, ret);
+			errno = -ret;
+			error("failed to allocate new chunk: %m");
+			return ERR_PTR(ret);
+		}
+		ret = btrfs_commit_transaction(h, root);
+		if (ret < 0) {
+			errno = -ret;
+			error("failed to commit transaction for the new chunk: %m");
+			return ERR_PTR(ret);
+		}
+		if (!meta_has_enough_space(fs_info, profile, rsv_bytes)) {
+			errno = -ENOSPC;
+			error("failed to start transaction: %m");
+			return ERR_PTR(-ENOSPC);
+		}
+
+		h = alloc_trans_handle(root, num_items);
+	}
 	return h;
 }
 
@@ -99,7 +235,8 @@ int commit_tree_roots(struct btrfs_trans_handle *trans,
 
 	eb = fs_info->tree_root->node;
 	extent_buffer_get(eb);
-	ret = btrfs_cow_block(trans, fs_info->tree_root, eb, NULL, 0, &eb);
+	ret = btrfs_cow_block(trans, fs_info->tree_root, eb, NULL, 0, &eb,
+			      BTRFS_NESTING_NORMAL);
 	free_extent_buffer(eb);
 	if (ret)
 		return ret;
@@ -119,6 +256,7 @@ int commit_tree_roots(struct btrfs_trans_handle *trans,
 		next = fs_info->dirty_cowonly_roots.next;
 		list_del_init(next);
 		root = list_entry(next, struct btrfs_root, dirty_list);
+		clear_bit(BTRFS_ROOT_DIRTY, &root->state);
 		ret = update_cowonly_root(trans, root);
 		free_extent_buffer(root->commit_root);
 		root->commit_root = NULL;
@@ -127,6 +265,25 @@ int commit_tree_roots(struct btrfs_trans_handle *trans,
 	}
 
 	return 0;
+}
+
+static void clean_dirty_buffers(struct btrfs_trans_handle *trans)
+{
+	struct btrfs_fs_info *fs_info = trans->fs_info;
+	struct extent_io_tree *tree = &fs_info->dirty_buffers;
+	struct extent_buffer *eb;
+	u64 start, end;
+
+	while (find_first_extent_bit(tree, 0, &start, &end, EXTENT_DIRTY,
+				     NULL) == 0) {
+		while (start <= end) {
+			eb = find_first_extent_buffer(fs_info, start);
+			BUG_ON(!eb || eb->start != start);
+			start += eb->len;
+			btrfs_clear_buffer_dirty(trans, eb);
+			free_extent_buffer(eb);
+		}
+	}
 }
 
 int __commit_transaction(struct btrfs_trans_handle *trans,
@@ -161,7 +318,7 @@ again:
 				goto cleanup;
 			}
 			start += eb->len;
-			btrfs_clear_buffer_dirty(eb);
+			btrfs_clear_buffer_dirty(trans, eb);
 			free_extent_buffer(eb);
 		}
 	}
@@ -171,23 +328,7 @@ cleanup:
 	 * Mark all remaining dirty ebs clean, as they have no chance to be written
 	 * back anymore.
 	 */
-	while (1) {
-		int find_ret;
-
-		find_ret = find_first_extent_bit(tree, 0, &start, &end,
-						 EXTENT_DIRTY, NULL);
-
-		if (find_ret)
-			break;
-
-		while (start <= end) {
-			eb = find_first_extent_buffer(fs_info, start);
-			BUG_ON(!eb || eb->start != start);
-			start += eb->len;
-			btrfs_clear_buffer_dirty(eb);
-			free_extent_buffer(eb);
-		}
-	}
+	clean_dirty_buffers(trans);
 	return ret;
 }
 
@@ -199,8 +340,11 @@ int btrfs_commit_transaction(struct btrfs_trans_handle *trans,
 	struct btrfs_fs_info *fs_info = root->fs_info;
 	struct btrfs_space_info *sinfo;
 
-	if (trans->fs_info->transaction_aborted)
-		return -EROFS;
+	if (trans->fs_info->transaction_aborted) {
+		ret = -EROFS;
+		goto error;
+	}
+
 	/*
 	 * Flush all accumulated delayed refs so that root-tree updates are
 	 * consistent
@@ -274,8 +418,9 @@ commit_tree:
 	return ret;
 error:
 	btrfs_abort_transaction(trans, ret);
+	clean_dirty_buffers(trans);
 	btrfs_destroy_delayed_refs(trans);
-	free(trans);
+	kfree(trans);
 	return ret;
 }
 

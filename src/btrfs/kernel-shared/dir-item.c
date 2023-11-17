@@ -16,10 +16,19 @@
  * Boston, MA 021110-1307, USA.
  */
 
+#include "kerncompat.h"
 #include <linux/limits.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include "kernel-lib/bitops.h"
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/disk-io.h"
-#include "kernel-shared/transaction.h"
+#include "kernel-shared/accessors.h"
+#include "kernel-shared/extent_io.h"
+#include "kernel-shared/uapi/btrfs_tree.h"
+
+struct btrfs_trans_handle;
 
 /*
  * insert a name into a directory, doing overflow properly if there is a hash
@@ -48,8 +57,8 @@ static struct btrfs_dir_item *insert_with_overflow(struct btrfs_trans_handle
 		di = btrfs_match_dir_item_name(root, path, name, name_len);
 		if (di)
 			return ERR_PTR(-EEXIST);
-		ret = btrfs_extend_item(root, path, data_size);
-		WARN_ON(ret > 0);
+		btrfs_extend_item(path, data_size);
+		ret = 0;
 	}
 	if (ret < 0)
 		return ERR_PTR(ret);

@@ -5,10 +5,11 @@
  */
 
 #include "kerncompat.h"
+#include <stddef.h>
 #include "kernel-lib/bitops.h"
 #include "kernel-lib/trace.h"
 #include "kernel-shared/async-thread.h"
-#include "kernel-shared/ctree.h"
+#include "common/internal.h"
 
 enum {
 	WORK_DONE_BIT,
@@ -158,7 +159,7 @@ static inline void thresh_exec_hook(struct btrfs_workqueue *wq)
 		new_current_active++;
 	if (pending < wq->thresh / 2)
 		new_current_active--;
-	new_current_active = clamp_val(new_current_active, 1, wq->limit_active);
+	new_current_active = clamp(new_current_active, 1, wq->limit_active);
 	if (new_current_active != wq->current_active)  {
 		need_change = 1;
 		wq->current_active = new_current_active;

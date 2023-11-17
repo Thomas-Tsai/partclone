@@ -15,14 +15,26 @@
  * Boston, MA 021110-1307, USA.
  */
 
+#include "kerncompat.h"
 #include <sys/ioctl.h>
+#include <sys/stat.h>
 #include <unistd.h>
-
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
 #include "kernel-lib/list.h"
 #include "kernel-shared/volumes.h"
 #include "kernel-shared/zoned.h"
+#include "kernel-shared/accessors.h"
+#include "kernel-shared/ctree.h"
+#include "kernel-shared/extent_io.h"
+#include "kernel-shared/uapi/btrfs.h"
+#include "kernel-shared/uapi/btrfs_tree.h"
 #include "common/utils.h"
 #include "common/device-utils.h"
+#include "common/extent-cache.h"
+#include "common/internal.h"
+#include "common/parse-utils.h"
 #include "common/messages.h"
 #include "mkfs/common.h"
 
@@ -33,7 +45,9 @@
 /* Pseudo write pointer value for conventional zone */
 #define WP_CONVENTIONAL			((u64)-2)
 
-#define EMULATED_ZONE_SIZE		SZ_256M
+#define DEFAULT_EMULATED_ZONE_SIZE		SZ_256M
+
+static u64 emulated_zone_size = DEFAULT_EMULATED_ZONE_SIZE;
 
 /*
  * Minimum / maximum supported zone size. Currently, SMR disks have a zone size
@@ -82,8 +96,22 @@ u64 zone_size(const char *file)
 	int ret;
 
 	/* Zoned emulation on regular device */
-	if (zoned_model(file) == ZONED_NONE)
-		return EMULATED_ZONE_SIZE;
+	if (zoned_model(file) == ZONED_NONE) {
+		const char *tmp;
+		u64 size = DEFAULT_EMULATED_ZONE_SIZE;
+
+		tmp = bconf_param_value("zone-size");
+		if (tmp) {
+			size = parse_size_from_string(tmp);
+			if (!is_power_of_2(size) || size < BTRFS_MIN_ZONE_SIZE ||
+			    size > BTRFS_MAX_ZONE_SIZE) {
+				error("invalid emulated zone size %llu", size);
+				exit(1);
+			}
+		}
+		emulated_zone_size = size;
+		return emulated_zone_size;
+	}
 
 	ret = device_get_queue_param(file, "chunk_sectors", chunk, sizeof(chunk));
 	if (ret <= 0)
@@ -114,7 +142,7 @@ static u64 max_zone_append_size(const char *file)
 static int emulate_report_zones(const char *file, int fd, u64 pos,
 				struct blk_zone *zones, unsigned int nr_zones)
 {
-	const sector_t zone_sectors = EMULATED_ZONE_SIZE >> SECTOR_SHIFT;
+	const sector_t zone_sectors = emulated_zone_size >> SECTOR_SHIFT;
 	struct stat st;
 	sector_t bdev_size;
 	unsigned int i;
@@ -312,7 +340,7 @@ static int report_zones(int fd, const char *file,
 	/* Allocate a zone report */
 	rep_size = sizeof(struct blk_zone_report) +
 		   sizeof(struct blk_zone) * BTRFS_REPORT_NR_ZONES;
-	rep = malloc(rep_size);
+	rep = kmalloc(rep_size, GFP_KERNEL);
 	if (!rep) {
 		error_msg(ERROR_MSG_MEMORY, "zone report");
 		exit(1);
@@ -358,7 +386,7 @@ static int report_zones(int fd, const char *file,
 			 zone[rep->nr_zones - 1].len;
 	}
 
-	free(rep);
+	kfree(rep);
 
 	return 0;
 }
@@ -467,6 +495,21 @@ static int sb_log_location(int fd, struct blk_zone *zones, int rw, u64 *bytenr_r
 	return 0;
 }
 
+static u32 sb_bytenr_to_sb_zone(u64 bytenr, int zone_size_shift)
+{
+	int mirror = -1;
+
+	for (int i = 0; i < BTRFS_SUPER_MIRROR_MAX; i++) {
+		if (bytenr == btrfs_sb_offset(i)) {
+			mirror = i;
+			break;
+		}
+	}
+	ASSERT(mirror != -1);
+
+	return sb_zone_number(zone_size_shift, mirror);
+}
+
 size_t btrfs_sb_io(int fd, void *buf, off_t offset, int rw)
 {
 	size_t count = BTRFS_SUPER_INFO_SIZE;
@@ -478,8 +521,6 @@ size_t btrfs_sb_io(int fd, void *buf, off_t offset, int rw)
 	u32 zone_num;
 	u32 zone_size_sector;
 	size_t rep_size;
-	int mirror = -1;
-	int i;
 	int ret;
 	size_t ret_sz;
 
@@ -521,16 +562,7 @@ size_t btrfs_sb_io(int fd, void *buf, off_t offset, int rw)
 
 	ASSERT(IS_ALIGNED(zone_size_sector, sb_size_sector));
 
-	for (i = 0; i < BTRFS_SUPER_MIRROR_MAX; i++) {
-		if (offset == btrfs_sb_offset(i)) {
-			mirror = i;
-			break;
-		}
-	}
-	ASSERT(mirror != -1);
-
-	zone_num = sb_zone_number(ilog2(zone_size_sector) + SECTOR_SHIFT,
-				  mirror);
+	zone_num = sb_bytenr_to_sb_zone(offset, ilog2(zone_size_sector) + SECTOR_SHIFT);
 
 	rep_size = sizeof(struct blk_zone_report) + sizeof(struct blk_zone) * 2;
 	rep = calloc(1, rep_size);
@@ -560,14 +592,14 @@ size_t btrfs_sb_io(int fd, void *buf, off_t offset, int rw)
 			return (rw == WRITE ? count : 0);
 		error("zoned: failed to read zone info of %u and %u: %m",
 		      zone_num, zone_num + 1);
-		free(rep);
+		kfree(rep);
 		return 0;
 	}
 
 	zones = (struct blk_zone *)(rep + 1);
 
 	ret = sb_log_location(fd, zones, rw, &mapped);
-	free(rep);
+	kfree(rep);
 	/*
 	 * Special case: no superblock found in the zones. This case happens
 	 * when initializing a file-system.
@@ -737,7 +769,7 @@ out:
 	return ret;
 }
 
-bool zoned_profile_supported(u64 map_type)
+bool zoned_profile_supported(u64 map_type, bool rst)
 {
 	bool data = (map_type & BTRFS_BLOCK_GROUP_DATA);
 	u64 flags = (map_type & BTRFS_BLOCK_GROUP_PROFILE_MASK);
@@ -746,9 +778,32 @@ bool zoned_profile_supported(u64 map_type)
 	if (flags == 0)
 		return true;
 
-	/* We can support DUP on metadata */
-	if (!data && (flags & BTRFS_BLOCK_GROUP_DUP))
-		return true;
+	if (data) {
+		if ((flags & BTRFS_BLOCK_GROUP_DUP) && rst)
+			return true;
+		/* Data RAID1 needs a raid-stripe-tree. */
+		if ((flags & BTRFS_BLOCK_GROUP_RAID1_MASK) && rst)
+			return true;
+		/* Data RAID0 needs a raid-stripe-tree. */
+		if ((flags & BTRFS_BLOCK_GROUP_RAID0) && rst)
+			return true;
+		/* Data RAID10 needs a raid-stripe-tree. */
+		if ((flags & BTRFS_BLOCK_GROUP_RAID10) && rst)
+			return true;
+	} else {
+		/* We can support DUP on metadata/system. */
+		if (flags & BTRFS_BLOCK_GROUP_DUP)
+			return true;
+		/* We can support RAID1 on metadata/system. */
+		if (flags & BTRFS_BLOCK_GROUP_RAID1_MASK)
+			return true;
+		/* We can support RAID0 on metadata/system. */
+		if (flags & BTRFS_BLOCK_GROUP_RAID0)
+			return true;
+		/* We can support RAID10 on metadata/system. */
+		if (flags & BTRFS_BLOCK_GROUP_RAID10)
+			return true;
+	}
 
 	/* All other profiles are not supported yet */
 	return false;
@@ -863,7 +918,7 @@ int btrfs_load_block_group_zone_info(struct btrfs_fs_info *fs_info,
 		}
 	}
 
-	if (!zoned_profile_supported(map->type)) {
+	if (!zoned_profile_supported(map->type, !!fs_info->stripe_root)) {
 		error("zoned: profile %s not yet supported",
 		      btrfs_group_profile_str(map->type));
 		ret = -EINVAL;
@@ -883,7 +938,7 @@ out:
 	if (!ret)
 		cache->write_offset = cache->alloc_offset;
 
-	free(alloc_offsets);
+	kfree(alloc_offsets);
 	return ret;
 }
 
@@ -959,6 +1014,14 @@ int btrfs_wipe_temporary_sb(struct btrfs_fs_devices *fs_devices)
 	}
 
 	return ret;
+}
+
+bool btrfs_sb_zone_exists(struct btrfs_device *device, u64 bytenr)
+{
+	u32 zone_num = sb_bytenr_to_sb_zone(bytenr,
+					    ilog2(device->zone_info->zone_size));
+
+	return zone_num + 1 <= device->zone_info->nr_zones - 1;
 }
 
 #endif

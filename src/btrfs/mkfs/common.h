@@ -25,7 +25,7 @@
 #include "kerncompat.h"
 #include <stdbool.h>
 #include "kernel-lib/sizes.h"
-#include "kernel-shared/ctree.h"
+#include "kernel-shared/uapi/btrfs_tree.h"
 #include "common/defs.h"
 #include "common/fsfeatures.h"
 
@@ -90,7 +90,12 @@ struct btrfs_mkfs_config {
 
 	/* Logical addresses of superblock [0] and other tree roots */
 	u64 blocks[MKFS_BLOCK_COUNT + 1];
+
+	/* btrfs_super_block filesystem uuid */
 	char fs_uuid[BTRFS_UUID_UNPARSED_SIZE];
+
+	/* Set the given uuid to super block device_item. */
+	char dev_uuid[BTRFS_UUID_UNPARSED_SIZE];
 	char chunk_uuid[BTRFS_UUID_UNPARSED_SIZE];
 
 	/* Superblock offset after make_btrfs */
@@ -106,7 +111,7 @@ int test_minimum_size(const char *file, u64 min_dev_size);
 int is_vol_small(const char *file);
 int test_num_disk_vs_raid(u64 metadata_profile, u64 data_profile,
 	u64 dev_cnt, int mixed, int ssd);
-int test_status_for_mkfs(const char *file, bool force_overwrite);
-int test_dev_for_mkfs(const char *file, int force_overwrite);
+bool test_status_for_mkfs(const char *file, bool force_overwrite);
+bool test_dev_for_mkfs(const char *file, int force_overwrite);
 
 #endif

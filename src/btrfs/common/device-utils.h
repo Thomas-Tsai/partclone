@@ -18,9 +18,12 @@
 #define __DEVICE_UTILS_H__
 
 #include "kerncompat.h"
-#include <sys/stat.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include "kernel-lib/bitops.h"
+
+struct btrfs_ioctl_dev_info_args;
+struct stat;
 
 /*
  * Options for btrfs_prepare_device
@@ -45,6 +48,7 @@ int device_get_queue_param(const char *file, const char *param, char *buf, size_
 u64 device_get_zone_unusable(int fd, u64 flags);
 u64 device_get_zone_size(int fd, const char *name);
 int device_get_rotational(const char *file);
+int device_get_info(int fd, u64 devid, struct btrfs_ioctl_dev_info_args *di_args);
 /*
  * Updates to devices with btrfs-specific changs
  */

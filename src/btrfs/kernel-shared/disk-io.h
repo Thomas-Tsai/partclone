@@ -20,8 +20,19 @@
 #define __BTRFS_DISK_IO_H__
 
 #include "kerncompat.h"
-#include "kernel-shared/ctree.h"
+#include <stddef.h>
+#include "kernel-lib/bitops.h"
 #include "kernel-lib/sizes.h"
+#include "kernel-shared/ctree.h"
+#include "kernel-shared/uapi/btrfs.h"
+
+struct btrfs_tree_parent_check;
+struct btrfs_fs_devices;
+struct btrfs_key;
+struct btrfs_super_block;
+struct btrfs_trans_handle;
+struct extent_buffer;
+struct rb_node;
 
 #define BTRFS_SUPER_MIRROR_MAX	 3
 #define BTRFS_SUPER_MIRROR_SHIFT 12
@@ -104,6 +115,11 @@ enum btrfs_open_ctree_flags {
 	 * specific checks and only do the superficial checks.
 	 */
 	OPEN_CTREE_SKIP_LEAF_ITEM_CHECKS	= (1U << 17),
+
+	/*
+	 * Use the superblock of the latest device for the transaction commit.
+	 */
+	OPEN_CTREE_USE_LATEST_BDEV		= (1U << 18),
 };
 
 /*
@@ -145,8 +161,7 @@ struct btrfs_device;
 
 int read_whole_eb(struct btrfs_fs_info *info, struct extent_buffer *eb, int mirror);
 struct extent_buffer *read_tree_block(struct btrfs_fs_info *fs_info, u64 bytenr,
-				      u64 owner_root, u64 parent_transid,
-				      int level, struct btrfs_key *first_key);
+				      struct btrfs_tree_parent_check *check);
 
 void readahead_tree_block(struct btrfs_fs_info *fs_info, u64 bytenr,
 			  u64 parent_transid);
@@ -238,8 +253,8 @@ int btrfs_global_root_insert(struct btrfs_fs_info *fs_info,
 int btrfs_find_and_setup_root(struct btrfs_root *tree_root,
 			      struct btrfs_fs_info *fs_info,
 			      u64 objectid, struct btrfs_root *root);
-int btrfs_read_extent_buffer(struct extent_buffer *eb, u64 parent_transid,
-			     int level, struct btrfs_key *first_key);
+int btrfs_read_extent_buffer(struct extent_buffer *eb,
+			     struct btrfs_tree_parent_check *check);
 
 static inline struct btrfs_root *btrfs_block_group_root(
 						struct btrfs_fs_info *fs_info)

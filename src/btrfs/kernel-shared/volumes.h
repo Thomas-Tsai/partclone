@@ -20,8 +20,15 @@
 #define __BTRFS_VOLUMES_H__
 
 #include "kerncompat.h"
-#include "kernel-shared/ctree.h"
+#include <stdbool.h>
 #include "kernel-lib/sizes.h"
+#include "kernel-shared/ctree.h"
+#include "kernel-shared/uapi/btrfs.h"
+#include "kernel-shared/uapi/btrfs_tree.h"
+#include "common/extent-cache.h"
+
+struct btrfs_trans_handle;
+struct extent_buffer;
 
 #define BTRFS_STRIPE_LEN	SZ_64K
 #define BTRFS_STRIPE_LEN_SHIFT	(16)
@@ -85,19 +92,27 @@ struct btrfs_fs_devices {
 
 	/* the device with this id has the most recent copy of the super */
 	u64 latest_devid;
-	u64 latest_trans;
+	u64 latest_generation;
 	u64 lowest_devid;
 
+	u64 num_devices;
+	u64 missing_devices;
 	u64 total_rw_bytes;
 
+	u64 total_devices;
 	int latest_bdev;
 	int lowest_bdev;
 	struct list_head devices;
-	struct list_head list;
+	struct list_head fs_list;
 
 	struct btrfs_fs_devices *seed;
 
 	enum btrfs_chunk_allocation_policy chunk_alloc_policy;
+
+	bool changing_fsid;
+	bool active_metadata_uuid;
+	/* Super block data may be temporarily inconsistent (e.g. a differnt fsid). */
+	bool inconsistent_super;
 };
 
 struct btrfs_bio_stripe {

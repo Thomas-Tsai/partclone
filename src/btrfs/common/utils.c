@@ -19,7 +19,12 @@
 
 #include "kerncompat.h"
 #include <sys/ioctl.h>
+#include <sys/time.h>
 #include <sys/sysinfo.h>
+#include <sys/select.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,14 +33,17 @@
 #include <mntent.h>
 #include <ctype.h>
 #include <limits.h>
-#include <uuid/uuid.h>
-#include "kernel-shared/uapi/btrfs.h"
+#include <strings.h>
+#include "kernel-lib/list.h"
+#include "kernel-shared/accessors.h"
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/disk-io.h"
 #include "kernel-shared/volumes.h"
 #include "common/utils.h"
+#include "common/device-utils.h"
 #include "common/path-utils.h"
 #include "common/open-utils.h"
+#include "common/sysfs-utils.h"
 #include "common/messages.h"
 #include "cmds/commands.h"
 #include "mkfs/common.h"
@@ -64,18 +72,6 @@ void btrfs_format_csum(u16 csum_type, const u8 *data, char *output)
 			 data[i]);
 		cur += 2;
 	}
-}
-
-int get_device_info(int fd, u64 devid,
-		struct btrfs_ioctl_dev_info_args *di_args)
-{
-	int ret;
-
-	di_args->devid = devid;
-	memset(&di_args->uuid, '\0', sizeof(di_args->uuid));
-
-	ret = ioctl(fd, BTRFS_IOC_DEV_INFO, di_args);
-	return ret < 0 ? -errno : 0;
 }
 
 int get_df(int fd, struct btrfs_ioctl_space_args **sargs_ret)
@@ -280,7 +276,7 @@ int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 		 * search_chunk_tree_for_fs_info() will lacks the devid 0
 		 * so manual probe for it here.
 		 */
-		ret = get_device_info(fd, 0, &tmp);
+		ret = device_get_info(fd, 0, &tmp);
 		if (!ret) {
 			fi_args->num_devices++;
 			ndevs++;
@@ -303,7 +299,7 @@ int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 		memcpy(di_args, &tmp, sizeof(tmp));
 	for (; last_devid <= fi_args->max_id && ndevs < fi_args->num_devices;
 	     last_devid++) {
-		ret = get_device_info(fd, last_devid, &di_args[ndevs]);
+		ret = device_get_info(fd, last_devid, &di_args[ndevs]);
 		if (ret == -ENODEV)
 			continue;
 		if (ret)
@@ -342,8 +338,23 @@ int get_fsid(const char *path, u8 *fsid, int silent)
 {
 	int ret;
 	int fd;
+	int flags = O_RDONLY;
+	struct stat st;
 
-	fd = open(path, O_RDONLY);
+	ret = stat(path, &st);
+	if (ret < 0) {
+		if (!silent)
+			error("failed to stat %s: %m", path);
+		return -errno;
+	}
+	/*
+	 * Open in non-blocking mode in case that path is a fifo or a special
+	 * character device where opening gets stuck (but is interruptible).
+	 */
+	if ((st.st_mode & S_IFMT) == S_IFCHR || (st.st_mode & S_IFMT) == S_IFIFO)
+		flags |= O_NONBLOCK;
+
+	fd = open(path, flags);
 	if (fd < 0) {
 		if (!silent)
 			error("failed to open %s: %m", path);
@@ -949,6 +960,7 @@ void btrfs_config_init(void)
 {
 	bconf.output_format = CMD_FORMAT_TEXT;
 	bconf.verbose = BTRFS_BCONF_UNSET;
+	INIT_LIST_HEAD(&bconf.params);
 }
 
 void bconf_be_verbose(void)
@@ -962,6 +974,57 @@ void bconf_be_verbose(void)
 void bconf_be_quiet(void)
 {
 	bconf.verbose = BTRFS_BCONF_QUIET;
+}
+
+void bconf_add_param(const char *key, const char *value)
+{
+	struct config_param *param;
+
+	param = calloc(1, sizeof(*param));
+	if (!param)
+		return;
+	param->key = strdup(key);
+	if (value)
+		param->value = strdup(value);
+	list_add(&param->list, &bconf.params);
+}
+
+const char *bconf_param_value(const char *key)
+{
+	struct config_param *param;
+
+	list_for_each_entry(param, &bconf.params, list) {
+		if (strcmp(key, param->key) == 0)
+			return param->value;
+	}
+	return NULL;
+}
+
+void bconf_save_param(const char *str)
+{
+	char *tmp;
+
+	tmp = strchr(str, '=');
+	if (!tmp) {
+		bconf_add_param(str, NULL);
+		printf("Global param: %s\n", str);
+	} else {
+		*tmp = 0;
+		bconf_add_param(str, tmp + 1);
+		printf("Global param: %s=%s\n", str, tmp + 1);
+		*tmp = '=';
+	}
+}
+
+void bconf_set_dry_run(void)
+{
+	pr_verbose(LOG_INFO, "Dry-run requested\n");
+	bconf.dry_run = 1;
+}
+
+bool bconf_is_dry_run(void)
+{
+	return bconf.dry_run == 1;
 }
 
 /* Returns total size of main memory in bytes, -1UL if error. */
@@ -1158,78 +1221,6 @@ void btrfs_warn_experimental(const char *str)
 	warning("Experimental build with unstable or unfinished features");
 	warning_on(str != NULL, "%s\n", str);
 #endif
-}
-
-/*
- * Open a file in fsid directory in sysfs and return the file descriptor or
- * error
- */
-int sysfs_open_fsid_file(int fd, const char *filename)
-{
-	u8 fsid[BTRFS_UUID_SIZE];
-	char fsid_str[BTRFS_UUID_UNPARSED_SIZE];
-	char sysfs_file[PATH_MAX];
-	int ret;
-
-	ret = get_fsid_fd(fd, fsid);
-	if (ret < 0)
-		return ret;
-	uuid_unparse(fsid, fsid_str);
-
-	ret = path_cat3_out(sysfs_file, "/sys/fs/btrfs", fsid_str, filename);
-	if (ret < 0)
-		return ret;
-
-	return open(sysfs_file, O_RDONLY);
-}
-
-/*
- * Open a file in the toplevel sysfs directory and return the file descriptor
- * or error.
- */
-int sysfs_open_file(const char *name)
-{
-	char path[PATH_MAX];
-	int ret;
-
-	ret = path_cat_out(path, "/sys/fs/btrfs", name);
-	if (ret < 0)
-		return ret;
-	return open(path, O_RDONLY);
-}
-
-/*
- * Open a directory by name in fsid directory in sysfs and return the file
- * descriptor or error, filedescriptor suitable for fdreaddir. The @dirname
- * must be a directory name.
- */
-int sysfs_open_fsid_dir(int fd, const char *dirname)
-{
-	u8 fsid[BTRFS_UUID_SIZE];
-	char fsid_str[BTRFS_UUID_UNPARSED_SIZE];
-	char sysfs_file[PATH_MAX];
-	int ret;
-
-	ret = get_fsid_fd(fd, fsid);
-	if (ret < 0)
-		return ret;
-	uuid_unparse(fsid, fsid_str);
-
-	ret = path_cat3_out(sysfs_file, "/sys/fs/btrfs", fsid_str, dirname);
-	if (ret < 0)
-		return ret;
-
-	return open(sysfs_file, O_DIRECTORY | O_RDONLY);
-}
-
-/*
- * Read up to @size bytes to @buf from @fd
- */
-int sysfs_read_file(int fd, char *buf, size_t size)
-{
-	lseek(fd, 0, SEEK_SET);
-	memset(buf, 0, size);
-	return read(fd, buf, size);
 }
 
 static const char exclop_def[][16] = {

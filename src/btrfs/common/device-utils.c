@@ -35,11 +35,13 @@
 #include "kernel-shared/disk-io.h"
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/zoned.h"
+#include "kernel-shared/uapi/btrfs.h"
+#include "kernel-shared/uapi/btrfs_tree.h"
 #include "common/device-utils.h"
+#include "common/sysfs-utils.h"
 #include "common/path-utils.h"
 #include "common/internal.h"
 #include "common/messages.h"
-#include "common/utils.h"
 #include "common/units.h"
 
 #ifndef BLKDISCARD
@@ -527,6 +529,17 @@ int device_get_rotational(const char *file)
 		return 0;
 
 	return (rotational == '0');
+}
+
+int device_get_info(int fd, u64 devid, struct btrfs_ioctl_dev_info_args *di_args)
+{
+	int ret;
+
+	di_args->devid = devid;
+	memset(&di_args->uuid, 0, sizeof(di_args->uuid));
+	ret = ioctl(fd, BTRFS_IOC_DEV_INFO, di_args);
+
+	return ret < 0 ? -errno : 0;
 }
 
 ssize_t btrfs_direct_pread(int fd, void *buf, size_t count, off_t offset)

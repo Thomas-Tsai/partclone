@@ -25,6 +25,7 @@
 #include "btrfs/kernel-shared/ctree.h"
 #include "btrfs/kernel-shared/volumes.h"
 #include "btrfs/kernel-shared/disk-io.h"
+#include "kernel-shared/tree-checker.h"
 #include "btrfs/common/utils.h"
 #include "btrfs/libbtrfs/version.h"
 
@@ -36,7 +37,7 @@
 
 struct btrfs_fs_info *info;
 struct btrfs_root *root;
-struct btrfs_path path;
+struct btrfs_path path = { 0 };
 int block_size = 0;
 uint64_t dev_size = 0;
 unsigned long long total_block = 0;
@@ -137,7 +138,6 @@ int csum_bitmap(unsigned long* bitmap, struct btrfs_root *root){
     u64 data_len;
     unsigned long leaf_offset;
 
-
     log_mesg(2, 0, 0, fs_opt.debug, "%s: csum_bitmap\n", __FILE__);
     //root = root->fs_info->_csum_root;
     root = btrfs_csum_root(root->fs_info, 0);
@@ -145,8 +145,6 @@ int csum_bitmap(unsigned long* bitmap, struct btrfs_root *root){
     key.objectid = BTRFS_EXTENT_CSUM_OBJECTID;
     key.type = BTRFS_EXTENT_CSUM_KEY;
     key.offset = 0;
-
-    btrfs_init_path(&path);
 
     ret = btrfs_search_slot(NULL, root, &key, &path, 0, 0);
     if (ret < 0) {
@@ -265,9 +263,13 @@ void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct exte
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: follow %i\n", __FILE__, follow);
 	bytenr = (unsigned long long)btrfs_header_bytenr(eb);
 	check_extent_bitmap(bitmap, bytenr, &size, 0);
+        struct btrfs_tree_parent_check check = {
+            .owner_root = btrfs_header_owner(eb),
+            .transid = btrfs_node_ptr_generation(eb, i),
+            .level = btrfs_header_level(eb),
+        };
 	struct extent_buffer *next = read_tree_block(root->fs_info,
-		btrfs_node_blockptr(eb, i), btrfs_header_owner(eb),
-		btrfs_node_ptr_generation(eb, i), root_eb_level, NULL);
+		btrfs_node_blockptr(eb, i),  &check);
 	bytenr = (unsigned long long)btrfs_header_bytenr(next);
 	check_extent_bitmap(bitmap, bytenr, &size, 0);
 	if (!extent_buffer_uptodate(next)) {
@@ -385,7 +387,6 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     }
     tree_root_scan = info->tree_root;
 
-    btrfs_init_path(&path);
     if (!extent_buffer_uptodate(tree_root_scan->node))
 	goto no_node;
 
@@ -408,10 +409,11 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	if (found_key.type == BTRFS_ROOT_ITEM_KEY) {
 	    unsigned long offset;
 	    struct extent_buffer *buf;
+            struct btrfs_tree_parent_check check = { 0 };
 
 	    offset = btrfs_item_ptr_offset(leaf, slot);
 	    read_extent_buffer(leaf, &ri, offset, sizeof(ri));
-	    buf = read_tree_block(tree_root_scan->fs_info, btrfs_root_bytenr(&ri), 0, 0, 0, NULL);
+	    buf = read_tree_block(tree_root_scan->fs_info, btrfs_root_bytenr(&ri), &check);
 	    if (!extent_buffer_uptodate(buf))
 		goto next;
 	    dump_start_leaf(bitmap, tree_root_scan, buf, 1);

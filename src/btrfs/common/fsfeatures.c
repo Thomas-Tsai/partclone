@@ -25,10 +25,11 @@
 #include <string.h>
 #include "kernel-lib/sizes.h"
 #include "kernel-shared/uapi/btrfs.h"
+#include "kernel-shared/uapi/btrfs_tree.h"
 #include "kernel-shared/ctree.h"
 #include "common/fsfeatures.h"
 #include "common/string-utils.h"
-#include "common/utils.h"
+#include "common/sysfs-utils.h"
 #include "common/messages.h"
 
 /*
@@ -45,6 +46,17 @@
 #define VERSION_NULL(name)					\
 	.name ## _str = NULL,					\
 	.name ## _ver = 0
+
+/*
+ * For feature names that are only an alias we don't need to duplicate
+ * versions.
+ *
+ * When compat_str is NULL, the feature descriptor is an alias.
+ */
+#define VERSION_ALIAS						\
+		VERSION_NULL(compat),				\
+		VERSION_NULL(safe),				\
+		VERSION_NULL(default)
 
 enum feature_source {
 	FS_FEATURES,
@@ -89,6 +101,9 @@ struct btrfs_feature {
 	const char *desc;
 };
 
+/*
+ * Keep the list sorted by compat version.
+ */
 static const struct btrfs_feature mkfs_features[] = {
 	{
 		.name		= "mixed-bg",
@@ -142,6 +157,14 @@ static const struct btrfs_feature mkfs_features[] = {
 		.desc		= "no explicit hole extents for files"
 	},
 	{
+		.name		= "fst",
+		.compat_ro_flag	= BTRFS_FEATURE_COMPAT_RO_FREE_SPACE_TREE |
+				  BTRFS_FEATURE_COMPAT_RO_FREE_SPACE_TREE_VALID,
+		.sysfs_name = "free_space_tree",
+		VERSION_ALIAS,
+		.desc		= "free-space-tree alias"
+	},
+	{
 		.name		= "free-space-tree",
 		.compat_ro_flag	= BTRFS_FEATURE_COMPAT_RO_FREE_SPACE_TREE |
 				  BTRFS_FEATURE_COMPAT_RO_FREE_SPACE_TREE_VALID,
@@ -171,15 +194,6 @@ static const struct btrfs_feature mkfs_features[] = {
 		.desc		= "support zoned devices"
 	},
 #endif
-	{
-		.name		= "block-group-tree",
-		.compat_ro_flag	= BTRFS_FEATURE_COMPAT_RO_BLOCK_GROUP_TREE,
-		.sysfs_name	= "block_group_tree",
-		VERSION_TO_STRING2(compat, 6,1),
-		VERSION_NULL(safe),
-		VERSION_NULL(default),
-		.desc		= "block group tree to reduce mount time"
-	},
 #if EXPERIMENTAL
 	{
 		.name		= "extent-tree-v2",
@@ -191,6 +205,47 @@ static const struct btrfs_feature mkfs_features[] = {
 		.desc		= "new extent tree format"
 	},
 #endif
+	{
+		.name		= "bgt",
+		.compat_ro_flag	= BTRFS_FEATURE_COMPAT_RO_BLOCK_GROUP_TREE,
+		.sysfs_name	= "block_group_tree",
+		VERSION_ALIAS,
+		.desc		= "block-group-tree alias"
+	},
+	{
+		.name		= "block-group-tree",
+		.compat_ro_flag	= BTRFS_FEATURE_COMPAT_RO_BLOCK_GROUP_TREE,
+		.sysfs_name	= "block_group_tree",
+		VERSION_TO_STRING2(compat, 6,1),
+		VERSION_NULL(safe),
+		VERSION_NULL(default),
+		.desc		= "block group tree to reduce mount time"
+	},
+	{
+		.name		= "rst",
+		.incompat_flag	= BTRFS_FEATURE_INCOMPAT_RAID_STRIPE_TREE,
+		.sysfs_name	= "raid_stripe_tree",
+		VERSION_ALIAS,
+		.desc		= "raid-stripe-tree alias"
+	},
+	{
+		.name		= "raid-stripe-tree",
+		.incompat_flag	= BTRFS_FEATURE_INCOMPAT_RAID_STRIPE_TREE,
+		.sysfs_name	= "raid_stripe_tree",
+		VERSION_TO_STRING2(compat, 6,7),
+		VERSION_NULL(safe),
+		VERSION_NULL(default),
+		.desc		= "raid stripe tree"
+	},
+	{
+		.name		= "squota",
+		.incompat_flag	= BTRFS_FEATURE_INCOMPAT_SIMPLE_QUOTA,
+		.sysfs_name	= "simple_quota",
+		VERSION_TO_STRING2(compat, 6,7),
+		VERSION_NULL(safe),
+		VERSION_NULL(default),
+		.desc		= "squota support (simple accounting qgroups)"
+	},
 	/* Keep this one last */
 	{
 		.name		= "list-all",
@@ -233,6 +288,11 @@ static const struct btrfs_feature runtime_features[] = {
 		.desc		= NULL
 	}
 };
+
+static bool feature_name_is_alias(const struct btrfs_feature *feature)
+{
+	return feature->compat_str == NULL;
+}
 
 /*
  * This is a sanity check to make sure BTRFS_FEATURE_STRING_BUF_SIZE is large
@@ -317,6 +377,9 @@ static void parse_features_to_string(char *buf,
 	for (i = 0; i < array_size; i++) {
 		const struct btrfs_feature *feat = get_feature(i, source);
 
+		if (feature_name_is_alias(feat))
+			continue;
+
 		if (features->compat_ro_flags & feat->compat_ro_flag ||
 		    features->incompat_flags & feat->incompat_flag ||
 		    features->runtime_flags & feat->runtime_flag) {
@@ -394,7 +457,12 @@ static void list_all_features(const struct btrfs_mkfs_features *allowed,
 		      feat->runtime_flag & allowed->runtime_flags))
 			continue;
 
-		fprintf(stderr, "%-20s- %s (", feat->name, feat->desc);
+		fprintf(stderr, "%-20s- %s", feat->name, feat->desc);
+		if (feature_name_is_alias(feat)) {
+			fprintf(stderr, "\n");
+			continue;
+		}
+		fprintf(stderr, " (");
 		if (feat->compat_ver) {
 			fprintf(stderr, "compat=%s", feat->compat_str);
 			sep = ", ";

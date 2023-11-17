@@ -16,15 +16,15 @@
  * Boston, MA 021110-1307, USA.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "kerncompat.h"
+#include <stdio.h>
+#include <errno.h>
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/disk-io.h"
 #include "kernel-shared/transaction.h"
-#include "kernel-shared/print-tree.h"
 #include "kernel-shared/file-item.h"
-#include "crypto/crc32c.h"
+#include "kernel-shared/extent_io.h"
+#include "kernel-shared/uapi/btrfs.h"
 #include "common/internal.h"
 
 #define MAX_CSUM_ITEMS(r, size) ((((BTRFS_LEAF_DATA_SIZE(r->fs_info) - \
@@ -257,8 +257,10 @@ int btrfs_csum_file_block(struct btrfs_trans_handle *trans, u64 logical,
 	 * enough yet to put our csum in.  Grow it
 	 */
 	btrfs_release_path(path);
+	path->search_for_extension = 1;
 	ret = btrfs_search_slot(trans, root, &file_key, path,
 				csum_size, 1);
+	path->search_for_extension = 0;
 	if (ret < 0)
 		goto fail;
 	if (ret == 0) {
@@ -282,8 +284,7 @@ int btrfs_csum_file_block(struct btrfs_trans_handle *trans, u64 logical,
 		diff = diff - btrfs_item_size(leaf, path->slots[0]);
 		if (diff != csum_size)
 			goto insert;
-		ret = btrfs_extend_item(root, path, diff);
-		BUG_ON(ret);
+		btrfs_extend_item(path, diff);
 		goto csum;
 	}
 
@@ -346,7 +347,6 @@ static noinline int truncate_one_csum(struct btrfs_root *root,
 	u64 csum_end;
 	u64 end_byte = bytenr + len;
 	u32 blocksize = root->fs_info->sectorsize;
-	int ret;
 
 	leaf = path->nodes[0];
 	csum_end = btrfs_item_size(leaf, path->slots[0]) / csum_size;
@@ -362,8 +362,7 @@ static noinline int truncate_one_csum(struct btrfs_root *root,
 		 */
 		u32 new_size = (bytenr - key->offset) / blocksize;
 		new_size *= csum_size;
-		ret = btrfs_truncate_item(path, new_size, 1);
-		BUG_ON(ret);
+		btrfs_truncate_item(path, new_size, 1);
 	} else if (key->offset >= bytenr && csum_end > end_byte &&
 		   end_byte > key->offset) {
 		/*
@@ -375,12 +374,10 @@ static noinline int truncate_one_csum(struct btrfs_root *root,
 		u32 new_size = (csum_end - end_byte) / blocksize;
 		new_size *= csum_size;
 
-		ret = btrfs_truncate_item(path, new_size, 0);
-		BUG_ON(ret);
+		btrfs_truncate_item(path, new_size, 0);
 
 		key->offset = end_byte;
-		ret = btrfs_set_item_key_safe(root, path, key);
-		BUG_ON(ret);
+		btrfs_set_item_key_safe(root->fs_info, path, key);
 	} else {
 		BUG();
 	}

@@ -17,19 +17,24 @@
 
 #include "kerncompat.h"
 #include <sys/stat.h>
-#include <linux/types.h>
 #include <linux/limits.h>
+#include <errno.h>
+#include <limits.h>
+#include <stdarg.h>
 #include "kernel-lib/overflow.h"
 #include "kernel-lib/bitops.h"
+#include "kernel-lib/sizes.h"
 #include "kernel-shared/messages.h"
 #include "kernel-shared/ctree.h"
 #include "kernel-shared/tree-checker.h"
-#include "kernel-shared/disk-io.h"
 #include "kernel-shared/compression.h"
 #include "kernel-shared/volumes.h"
 #include "kernel-shared/misc.h"
 #include "kernel-shared/accessors.h"
 #include "kernel-shared/file-item.h"
+#include "kernel-shared/extent_io.h"
+#include "kernel-shared/uapi/btrfs.h"
+#include "kernel-shared/uapi/btrfs_tree.h"
 #include "common/internal.h"
 
 /*
@@ -1476,6 +1481,9 @@ static int check_extent_item(struct extent_buffer *leaf,
 				return -EUCLEAN;
 			}
 			inline_refs += btrfs_shared_data_ref_count(leaf, sref);
+			break;
+		case BTRFS_EXTENT_OWNER_REF_KEY:
+			/* Root id could be verified as well. */
 			break;
 		default:
 			extent_err(leaf, slot, "unknown inline ref type: %u",

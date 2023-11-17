@@ -73,6 +73,9 @@
 /* Holds the block group items for extent tree v2. */
 #define BTRFS_BLOCK_GROUP_TREE_OBJECTID 11ULL
 
+/* Holds raid stripe entries */
+#define BTRFS_RAID_STRIPE_TREE_OBJECTID 12ULL
+
 /* device stats in the device tree */
 #define BTRFS_DEV_STATS_OBJECTID 0ULL
 
@@ -216,6 +219,9 @@
  * the length, so we save the level in key->offset instead of the length.
  */
 #define BTRFS_METADATA_ITEM_KEY	169
+
+/* Extent owner, used by squota. */
+#define BTRFS_EXTENT_OWNER_REF_KEY	172
 
 #define BTRFS_TREE_BLOCK_REF_KEY	176
 
@@ -699,6 +705,30 @@ struct btrfs_super_block {
 	__u8 padding[565];
 } __attribute__ ((__packed__));
 
+struct btrfs_raid_stride {
+	/* btrfs device-id this raid extent lives on */
+	__le64 devid;
+	/* offset from  the devextent start */
+	__le64 offset;
+} __attribute__ ((__packed__));
+
+/* The stripe_extent::encoding, 1:1 mapping of enum btrfs_raid_types */
+#define BTRFS_STRIPE_RAID0	1
+#define BTRFS_STRIPE_RAID1	2
+#define BTRFS_STRIPE_DUP	3
+#define BTRFS_STRIPE_RAID10	4
+#define BTRFS_STRIPE_RAID5	5
+#define BTRFS_STRIPE_RAID6	6
+#define BTRFS_STRIPE_RAID1C3	7
+#define BTRFS_STRIPE_RAID1C4	8
+
+struct btrfs_stripe_extent {
+	u8 encoding;
+	u8 reserved[7];
+	/* Array of raid strides this stripe is comprised of. */
+	struct btrfs_raid_stride strides;
+} __attribute__ ((__packed__));
+
 #define BTRFS_FREE_SPACE_EXTENT	1
 #define BTRFS_FREE_SPACE_BITMAP	2
 
@@ -781,6 +811,11 @@ struct btrfs_extent_data_ref {
 
 struct btrfs_shared_data_ref {
 	__le32 count;
+} __attribute__ ((__packed__));
+
+/* Extent owner, used by squota. */
+struct btrfs_extent_owner_ref {
+	__le64 root_id;
 } __attribute__ ((__packed__));
 
 struct btrfs_extent_inline_ref {
@@ -1200,9 +1235,17 @@ static inline __u16 btrfs_qgroup_level(__u64 qgroupid)
  */
 #define BTRFS_QGROUP_STATUS_FLAG_INCONSISTENT	(1ULL << 2)
 
+/*
+ * Whether or not this filesystem is using simple quotas.  Not exactly the
+ * incompat bit, because we support using simple quotas, disabling it, then
+ * going back to full qgroup quotas.
+ */
+#define BTRFS_QGROUP_STATUS_FLAG_SIMPLE_MODE	(1ULL << 3)
+
 #define BTRFS_QGROUP_STATUS_FLAGS_MASK	(BTRFS_QGROUP_STATUS_FLAG_ON |		\
 					 BTRFS_QGROUP_STATUS_FLAG_RESCAN |	\
-					 BTRFS_QGROUP_STATUS_FLAG_INCONSISTENT)
+					 BTRFS_QGROUP_STATUS_FLAG_INCONSISTENT |	\
+					 BTRFS_QGROUP_STATUS_FLAG_SIMPLE_MODE)
 
 #define BTRFS_QGROUP_STATUS_VERSION        1
 
@@ -1224,6 +1267,12 @@ struct btrfs_qgroup_status_item {
 	 * of the scan. It contains a logical address
 	 */
 	__le64 rescan;
+
+	/*
+	 * (Added in 6.7.) Used by simple quotas to ignore old extent
+	 * deletions. Present when incompat flag SIMPLE_QUOTA is set.
+	 */
+	__le64 enable_gen;
 } __attribute__ ((__packed__));
 
 struct btrfs_qgroup_info_item {
