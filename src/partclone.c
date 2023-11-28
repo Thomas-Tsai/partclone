@@ -836,7 +836,7 @@ void open_log(char* source) {
 	msg = fopen(source,"w");
 	if (msg == NULL) {
 		fprintf(stderr, "open logfile %s error\n", source);
-		exit(0);
+		exit(1);
 	}
 }
 
