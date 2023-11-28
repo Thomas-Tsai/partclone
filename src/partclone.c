@@ -279,7 +279,7 @@ void usage(void) {
 		"    -v,  --version          Display partclone version\n"
 		"    -h,  --help             Display this help\n"
 		, get_exec_name(), VERSION, get_exec_name(), DEFAULT_BUFFER_SIZE);
-	exit(0);
+	exit(1);
 }
 
 void print_version(void){
@@ -584,22 +584,22 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 
 	if ((!opt->target) && (!opt->source)) {
 		fprintf(stderr, "There is no image name. Use --help get more info.\n");
-		exit(0);
+		exit(1);
 	}
 
 	if (opt->buffer_size < 512) {
 		fprintf(stderr, "Too small or bad buffer size. Use --help get more info.\n");
-		exit(0);
+		exit(1);
 	}
 
 	if (opt->offset < 0) {
 		fprintf(stderr, "Too small or bad offset. Use --help get more info.\n");
-		exit(0);
+		exit(1);
 	}
 
 	if (opt->offset_domain < 0) {
 		fprintf(stderr, "Too small or bad offset of domain file. Use --help get more info.\n");
-		exit(0);
+		exit(1);
 	}
 
 	if (!opt->target)
@@ -613,7 +613,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 			fprintf(stderr, "Partclone can't %s from stdin.\nFor help, type: %s -h\n",
 				opt->clone ? "clone" : "make domain log",
 				get_exec_name());
-			exit(0);
+			exit(1);
 		}
 	}
 
@@ -622,13 +622,13 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		if (opt->blocks_per_checksum > 0) {
 			fprintf(stderr, "No checksum mode specified with blocks_per_checksum\n"
 				"Use --help to get more info.\n");
-			exit(0);
+			exit(1);
 		}
 
 		if (!opt->reseed_checksum) {
 			fprintf(stderr, "No checksum mode specified with reseed_checksum\n"
 				"Use --help to get more info.\n");
-			exit(0);
+			exit(1);
 		}
 
 	}
