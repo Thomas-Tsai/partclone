@@ -173,3 +173,14 @@ _convert_to_bytes(){
     esac
     echo $bytes
 }
+
+_configure_feature(){
+    feature=$1
+    feature_test=$(cat ../config.log | grep '$ ./configure' | grep $feature)
+    if [[ "X$feature_test" != "X" ]]; then
+        #feature enabled
+        echo 1
+        return
+    fi
+    echo 0
+}

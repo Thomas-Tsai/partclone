@@ -21,6 +21,10 @@ echo -e "    $ptlfs -d -s $raw -O $img -F -L $logfile -n note test\n"
 _ptlbreak
 $ptlfs -d -s $raw -O $img -F -L $logfile -n "note test"
 _check_return_code
-$ptlfs -d -N -s $raw -O $img -F -L $logfile -n "note test"
-_check_return_code
+
+enable_ncursesw=$(_configure_feature ncursesw)
+if [[ $enable_ncursesw == 1 ]]; then
+    $ptlfs -d -N -s $raw -O $img -F -L $logfile -n "note test"
+    _check_return_code
+fi
 echo "note test ok"
