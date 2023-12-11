@@ -1013,7 +1013,9 @@ void write_image_desc(int* ret, file_system_info fs_info, image_options img_opt,
 
 void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_opt, unsigned long* bitmap, cmd_opt* opt) {
 
-	int i, debug = opt->debug;
+	// DSR int i, debug = opt->debug;
+	int debug = opt->debug;
+	long i;
 
 	switch(img_opt.bitmap_mode) {
 
@@ -1021,7 +1023,6 @@ void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_op
 	{
 		if (write_all(ret, (char*)bitmap, BITS_TO_BYTES(fs_info.totalblock), opt) == -1)
 			log_mesg(0, 1, 1, debug, "write bitmap to image error: %s\n", strerror(errno));
-
 		break;
 	}
 
@@ -1046,6 +1047,7 @@ void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_op
 	case BM_NONE:
 	{
 		// All blocks MUST be present
+
 		if (fs_info.usedblocks != fs_info.totalblock)
 			log_mesg(0, 1, 1, debug, "ERROR: used blocks count does not match total blocks count\n");
 		break;
@@ -1075,7 +1077,6 @@ void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_op
 
 			if (write_all(ret, (char*)&crc, sizeof(crc), opt) != sizeof(crc))
 				log_mesg(0, 1, 1, debug, "write bitmap to image error: %s\n", strerror(errno));
-
 			break;
 		}
 
@@ -1232,7 +1233,7 @@ unsigned long get_checksum_count(unsigned long long block_count, const image_opt
 void update_used_blocks_count(file_system_info* fs_info, unsigned long* bitmap) {
 
 	unsigned long long used = 0;
-	unsigned int i;
+	unsigned long i;
 
 	for(i = 0; i < fs_info->totalblock; ++i) {
 		if (pc_test_bit(i, bitmap, fs_info->totalblock))
