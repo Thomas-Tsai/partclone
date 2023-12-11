@@ -178,7 +178,7 @@ int main(int argc, char **argv){
     unsigned long int block = 0;
 
     unsigned long long used = 0;
-    unsigned int i;
+    unsigned long long i;
 
     for(i = 0; i < block; ++i) {
 	if (pc_test_bit(i, bitmap, fs_info.totalblock))

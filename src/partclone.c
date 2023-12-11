@@ -1015,7 +1015,7 @@ void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_op
 
 	// DSR int i, debug = opt->debug;
 	int debug = opt->debug;
-	long i;
+	unsigned long long i;
 
 	switch(img_opt.bitmap_mode) {
 
@@ -1233,7 +1233,7 @@ unsigned long get_checksum_count(unsigned long long block_count, const image_opt
 void update_used_blocks_count(file_system_info* fs_info, unsigned long* bitmap) {
 
 	unsigned long long used = 0;
-	unsigned long i;
+	unsigned long long i;
 
 	for(i = 0; i < fs_info->totalblock; ++i) {
 		if (pc_test_bit(i, bitmap, fs_info->totalblock))

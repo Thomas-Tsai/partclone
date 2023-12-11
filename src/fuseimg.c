@@ -64,7 +64,7 @@ unsigned long pathtoblock(const char *path)
 size_t get_file_size(unsigned long block)
 {
     unsigned long copied = 0;
-    unsigned long block_id =0;
+    unsigned long long block_id =0;
     unsigned long nx_current = 0;
     for (block_id = block; block_id <= fs_info.totalblock; block_id++) {
 	if (block_id < fs_info.totalblock) {
@@ -84,7 +84,7 @@ size_t get_file_size(unsigned long block)
 size_t read_block_data(unsigned long block, char *buf, size_t size, off_t offset)
 {
     unsigned long long used = 0;
-    unsigned int i;
+    unsigned long long i;
     unsigned long int seek_crc_size = 0;
     off_t bseek = 0;
     size_t x = 0;
