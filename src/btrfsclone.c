@@ -79,6 +79,7 @@ int check_extent_bitmap(unsigned long* bitmap, u64 bytenr, u64 *num_bytes, int t
     u64 maxlen;
 
 
+    log_mesg(3, 0, 0, fs_opt.debug, "%s: check_extent_bitmap bytenr %llu and size %llu\n", __FILE__, bytenr, *num_bytes);
     if (*num_bytes % root->fs_info->sectorsize)
 	return -EINVAL;
 
