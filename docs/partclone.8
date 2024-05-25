@@ -2,12 +2,12 @@
 .\"     Title: PARTCLONE
 .\"    Author: Yu-Chin Tsai <thomas@clonezilla.org>
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 10/04/2023
+.\"      Date: 05/25/2024
 .\"    Manual: Partclone User Manual
 .\"    Source: partclone
 .\"  Language: English
 .\"
-.TH "PARTCLONE" "8" "10/04/2023" "partclone" "Partclone User Manual"
+.TH "PARTCLONE" "8" "05/25/2024" "partclone" "Partclone User Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -92,6 +92,11 @@ Sending data to pipe line is also supported ONLY for back\-up, just ignore \-o o
 \fB\-O \fR\fB\fIFILE\fR\fR, \fB\-\-overwrite \fR\fB\fIFILE\fR\fR
 .RS 4
 Overwrite FILE, overwriting if exists\&.
+.RE
+.PP
+\fB\-W \fR\fB\fIFILE\fR\fR, \fB\-\-restore_raw_file \fR\fB\fIFILE\fR\fR
+.RS 4
+create special raw file for loop device\&.
 .RE
 .PP
 \fB\-c\fR, \fB\-\-clone\fR

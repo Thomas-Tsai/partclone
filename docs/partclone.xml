@@ -318,6 +318,12 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>-W <replaceable>FILE</replaceable></option></term>
+        <term><option>--restore_raw_file <replaceable>FILE</replaceable></option></term>
+        <listitem>
+          <para>create special raw file for loop device.</para>
+        </listitem>
+      </varlistentry>      <varlistentry>
         <term><option>-c</option></term>
         <term><option>--clone</option></term>
         <listitem>
