@@ -37,6 +37,8 @@ msgid ""
 "\n"
 "\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s\r"
 msgstr ""
+"\n"
+"\r%80c\rТекущий блок: %10Lu, Всего блоков: %10Lu, Выполнено: %6.2f%%%s\r"
 
 #: src/progress.c:225
 #, c-format
@@ -54,6 +56,8 @@ msgid ""
 "\n"
 "\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: 100.00%%\r"
 msgstr ""
+"\n"
+"\r%80c\rТекущий блок: %10Lu, Всего блоков: %10Lu, Выполнено: 100.00%%\r"
 
 #: src/progress.c:231
 #, c-format
@@ -87,24 +91,24 @@ msgstr "Скорость: %6.2f%s/мин"
 #: src/progress.c:267
 #, c-format
 msgid "Current Block: %llu  Total Block: %llu "
-msgstr "Текущий блок: %llu    Всего блоков: %llu "
+msgstr "Текущий блок: %llu  Всего блоков: %llu "
 
 #: src/progress.c:270 src/progress.c:303
 msgid "Data Block Process:"
-msgstr ""
+msgstr "Процесс блоков данных:"
 
 #: src/progress.c:272 src/progress.c:305
 msgid "Calculating Bitmap Process:"
-msgstr ""
+msgstr "Расчёт процесса Bitmap:"
 
 #: src/progress.c:276 src/progress.c:287
 #, c-format
 msgid "ncurses update error\n"
-msgstr ""
+msgstr "Ошибка обновления ncurses\n"
 
 #: src/progress.c:283 src/progress.c:313
 msgid "Total Block Process:"
-msgstr ""
+msgstr "Процесс всех блоков:"
 
 #: src/progress.c:298
 #, c-format
@@ -173,7 +177,7 @@ msgstr "Показ информации о образе (%s)\n"
 
 #: src/partclone.c:1930
 msgid "Unknown mode\n"
-msgstr ""
+msgstr "Неизвестный режим\n"
 
 #: src/partclone.c:1950
 #, c-format
@@ -203,7 +207,7 @@ msgstr "Размер блока:    %i Байт\n"
 #: src/partclone.c:1962
 #, fuzzy, c-format
 msgid "Used Blocks in Super-Block:   %llu Blocks\n"
-msgstr "Использовано: %s = %llu блоков\n"
+msgstr "Использовано Блоков в Супер-Блоке: %s = %llu блоков\n"
 
 #: src/partclone.c:1975
 #, c-format
