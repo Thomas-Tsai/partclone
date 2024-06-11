@@ -36,43 +36,87 @@ jobs:
     - name: direct io Test
       if: always()
       run: cd tests && sudo ./direct_io.test && cd ../ && pwd
-  dataIOTest:
+  BTRFSDataIOTest:
     runs-on: self-hosted
     needs: build
     steps:
     - name: btrfs Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test btrfs && cd ../ && pwd
+  F2FSDataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
     - name: f2fs Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test f2fs && cd ../ && pwd
+  NILFSDataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
     - name: nilfs2 Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test nilfs2 && cd ../ && pwd
+  HFSPDataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
     - name: hfsplus Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test hfsplus && cd ../ && pwd
+  XFSDataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
     - name: xfs Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test xfs && cd ../ && pwd
+  EXT2DataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
     - name: ext2 Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test ext2 && cd ../ && pwd
+  EXT3DataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
     - name: ext3 Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test ext3 && cd ../ && pwd
+  EXT4DataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
     - name: ext4 Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test ext4 && cd ../ && pwd
+  VFATDataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
     - name: vfat Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test vfat && cd ../ && pwd
+  EXFATDataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
     - name: exfat Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test exfat && cd ../ && pwd
+  NTFSDataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
     - name: ntfs Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test ntfs && cd ../ && pwd 
+  MINIXDataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
     - name: minix Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test minix && cd ../ && pwd
