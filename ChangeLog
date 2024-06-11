@@ -1,4 +1,44 @@
+2024-06-11  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update  btrfs to 6.8.1
+
+2024-05-25  Yu-Chin Tsai  <tlinux.tsai@gmail.com>
+
+	update docs
+
+2024-03-25  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	add btrfs more  detail logs
+
+2023-12-11  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	find more incompatable types
+
+	Accept the patch to fix incompatible function argument types from David Restall.
+
+2023-11-29  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix test
+
+2023-11-28  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix more exit 0
+
+	fix #241. return 0 in case of error
+
+2023-11-17  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	upgrade btrfs to v6.6.2
+
+2023-10-22  Yu-Chin Tsai  <tlinux.tsai@gmail.com>
+
+	update automake for bash completion
+
+	add bash completion script
+
 2023-10-04  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update log, po, docs and set version 0.3.27 update configure.ac
 
 	merge partclone.imager.xml to partclone.xml
 

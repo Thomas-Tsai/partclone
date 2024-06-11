@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 ##  toolbox for the Partclone
 ##  initial copied from VLC
@@ -22,9 +22,66 @@ recognized flags are:
   --update-po             update translation files
   --update-log            update Changelog files from git
   --update-btrfs          update source of btrfs
+    eg:
+    ./toolbox --update-btrfs /tmp/partclone /tmp/btrfs-progs v6.8
   --update-version        generate src/version.h
 EOF
   exit 1
+}
+
+##
+## update btrfs
+##
+
+btrfs_update(){
+    partcloneGitRepo=$1
+    btrfsprogsGitRepo=$2
+    tag=$3
+    echo $@ $tag $partcloneGitRepo $btrfsprogsGitRepo
+    
+    pushd $partcloneGitRepo/src/
+        btrfs_files=$(find btrfs -name "*.h" -o -name "*.c")
+    popd
+    echo $btrfs_files
+    
+    pushd $btrfsprogsGitRepo
+    
+        git checkout -b $tag $tag
+        ./autogen.sh
+        ./configure --disable-documentation 
+        make
+    
+        cat libbtrfs/version.h
+    
+        set -e
+        for source_file in $btrfs_files; do 
+            echo $source_file
+            btrfs_file=$(echo $source_file | sed s/^btrfs//)
+            source_file_path=$(echo "$partcloneGitRepo/src/$source_file" | sed "s#//#/#g")
+            btrfs_file_path=$(echo "$btrfsprogsGitRepo/$btrfs_file" | sed "s#//#/#g")
+    
+            if test -f "$btrfs_file_path"; then
+                source_md5=$(md5sum -z $source_file_path |sed 's/ .*//')
+                btrfs_md5=$(md5sum -z $btrfs_file_path |sed 's/ .*//')
+    
+                if [ "X$source_md5" != "X$btrfs_md5" ]; then
+                    echo "cp $btrfs_file_path $source_file_path"
+                    cp $btrfs_file_path $source_file_path
+                else
+                    echo "keep $source_file"
+                fi
+                echo "MD5: $source_md5 : $btrfs_md5"
+            else
+                echo "######"
+                echo "can't find $source_file in $btrfs_file_path"
+                echo "manually merge file!"
+                find $btrfsprogsGitRepo -name `basename $source_file`
+                echo "######"
+            fi
+    
+        done
+    
+    popd
 }
 
 ###
@@ -74,13 +131,13 @@ fi
 ##
 ##  Update the source of btrfs
 ##
+
 if test "${action}" = "btrfs"
 then
-   BTRFS_SOURCE_TXT="btrfs_source.txt"
-
-    echo "rsync -av --files-from=$BTRFS_SOURCE_TXT ../btrfs-progs/ ./src/btrfs/"
-
+    echo "btrfs sync parameters $@"
+    btrfs_update $@
 fi
+
 ##
 ## update Changelog from SVN
 ##
