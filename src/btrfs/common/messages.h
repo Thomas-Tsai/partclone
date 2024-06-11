@@ -190,6 +190,9 @@ enum common_error {
 	ERROR_MSG_MEMORY,
 	ERROR_MSG_START_TRANS,
 	ERROR_MSG_COMMIT_TRANS,
+	ERROR_MSG_UNEXPECTED,
+	ERROR_MSG_READ,
+	ERROR_MSG_WRITE,
 };
 
 __attribute__ ((format (printf, 2, 3)))

@@ -673,28 +673,28 @@ insert:
 	return root;
 }
 
-static int btrfs_global_roots_compare_keys(struct rb_node *node,
-					   void *data)
+static int btrfs_global_roots_compare_keys(const struct rb_node *node,
+					   const void *data)
 {
-	struct btrfs_key *key = (struct btrfs_key *)data;
-	struct btrfs_root *root;
+	const struct btrfs_key *key = (struct btrfs_key *)data;
+	const struct btrfs_root *root;
 
 	root = rb_entry(node, struct btrfs_root, rb_node);
 	return btrfs_comp_cpu_keys(key, &root->root_key);
 }
 
-static int btrfs_global_roots_compare(struct rb_node *node1,
-				      struct rb_node *node2)
+static int btrfs_global_roots_compare(const struct rb_node *node1,
+				      const struct rb_node *node2)
 {
-	struct btrfs_root *root = rb_entry(node2, struct btrfs_root, rb_node);
+	const struct btrfs_root *root = rb_entry(node2, struct btrfs_root, rb_node);
 	return btrfs_global_roots_compare_keys(node1, &root->root_key);
 }
 
-static int btrfs_fs_roots_compare_objectids(struct rb_node *node,
-					    void *data)
+static int btrfs_fs_roots_compare_objectids(const struct rb_node *node,
+					    const void *data)
 {
-	u64 objectid = *((u64 *)data);
-	struct btrfs_root *root;
+	u64 objectid = *((const u64 *)data);
+	const struct btrfs_root *root;
 
 	root = rb_entry(node, struct btrfs_root, rb_node);
 	if (objectid > root->objectid)
@@ -705,12 +705,12 @@ static int btrfs_fs_roots_compare_objectids(struct rb_node *node,
 		return 0;
 }
 
-int btrfs_fs_roots_compare_roots(struct rb_node *node1, struct rb_node *node2)
+int btrfs_fs_roots_compare_roots(const struct rb_node *node1, const struct rb_node *node2)
 {
-	struct btrfs_root *root;
+	const struct btrfs_root *root;
 
 	root = rb_entry(node2, struct btrfs_root, rb_node);
-	return btrfs_fs_roots_compare_objectids(node1, (void *)&root->objectid);
+	return btrfs_fs_roots_compare_objectids(node1, &root->objectid);
 }
 
 int btrfs_global_root_insert(struct btrfs_fs_info *fs_info,
@@ -913,6 +913,7 @@ struct btrfs_fs_info *btrfs_new_fs_info(int writable, u64 sb_bytenr)
 	fs_info->metadata_alloc_profile = (u64)-1;
 	fs_info->system_alloc_profile = fs_info->metadata_alloc_profile;
 	fs_info->nr_global_roots = 1;
+	fs_info->initial_fd = -1;
 
 	return fs_info;
 
@@ -1690,7 +1691,10 @@ struct btrfs_fs_info *open_ctree_fs_info(struct open_ctree_args *oca)
 		return NULL;
 	}
 	info = __open_ctree_fd(fp, oca);
-	close(fp);
+	if (info)
+		info->initial_fd = fp;
+	else
+		close(fp);
 	return info;
 }
 
@@ -2297,6 +2301,8 @@ skip_commit:
 
 	btrfs_release_all_roots(fs_info);
 	ret = btrfs_close_devices(fs_info->fs_devices);
+	if (fs_info->initial_fd >= 0)
+		close(fs_info->initial_fd);
 	btrfs_cleanup_all_caches(fs_info);
 	btrfs_free_fs_info(fs_info);
 	if (!err)

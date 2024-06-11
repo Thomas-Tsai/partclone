@@ -31,14 +31,31 @@
 #include "common/messages.h"
 #include "common/utils.h"
 
+/*
+ * Parse a string to u64.
+ *
+ * Return 0 if there is a valid numeric string and result would be stored in
+ * @result.
+ * Return -EINVAL if the string is not valid (no numeric string at all, or
+ * has any tailing characters, or a negative value).
+ * Return -ERANGE if the value is too large for u64.
+ */
 int parse_u64(const char *str, u64 *result)
 {
 	char *endptr;
 	u64 val;
 
+	/*
+	 * Although strtoull accepts a negative number and converts it u64, we
+	 * don't really want to utilize this as the helper is meant for u64 only.
+	 */
+	if (str[0] == '-')
+		return -EINVAL;
 	val = strtoull(str, &endptr, 10);
 	if (*endptr)
-		return 1;
+		return -EINVAL;
+	if (val == ULLONG_MAX && errno == ERANGE)
+		return -ERANGE;
 
 	*result = val;
 	return 0;
@@ -143,39 +160,45 @@ int parse_range_strict(const char *range, u64 *start, u64 *end)
 	return 1;
 }
 
-u64 parse_size_from_string(const char *s)
+/*
+ * Parse a string to u64, with support for size suffixes.
+ *
+ * The suffixes are all 1024 based, and is case-insensitive.
+ * The supported ones are "KMGPTE", with one extra suffix "B" supported.
+ * "B" just means byte, thus it won't change the value.
+ *
+ * After one or less suffix, there should be no extra character other than
+ * a tailing NUL.
+ *
+ * Return 0 if there is a valid numeric string and result would be stored in
+ * @result.
+ * Return -EINVAL if the string is not valid (no numeric string at all, has any
+ * tailing characters, or a negative value).
+ * Return -ERANGE if the value is too large for u64.
+ */
+int parse_u64_with_suffix(const char *s, u64 *value_ret)
 {
 	char c;
 	char *endptr;
 	u64 mult = 1;
-	u64 ret;
+	u64 value;
 
-	if (!s) {
-		error("size value is empty");
-		exit(1);
-	}
-	if (s[0] == '-') {
-		error("size value '%s' is less equal than 0", s);
-		exit(1);
-	}
-	ret = strtoull(s, &endptr, 10);
-	if (endptr == s) {
-		error("size value '%s' is invalid", s);
-		exit(1);
-	}
-	if (endptr[0] && endptr[1]) {
-		error("illegal suffix contains character '%c' in wrong position",
-			endptr[1]);
-		exit(1);
-	}
+	if (!s)
+		return -EINVAL;
+	if (s[0] == '-')
+		return -EINVAL;
+
+	errno = 0;
+	value = strtoull(s, &endptr, 10);
+	if (endptr == s)
+		return -EINVAL;
+
 	/*
 	 * strtoll returns LLONG_MAX when overflow, if this happens,
 	 * need to call strtoull to get the real size
 	 */
-	if (errno == ERANGE && ret == ULLONG_MAX) {
-		error("size value '%s' is too large for u64", s);
-		exit(1);
-	}
+	if (errno == ERANGE && value == ULLONG_MAX)
+		return -ERANGE;
 	if (endptr[0]) {
 		c = tolower(endptr[0]);
 		switch (c) {
@@ -200,17 +223,21 @@ u64 parse_size_from_string(const char *s)
 		case 'b':
 			break;
 		default:
-			error("unknown size descriptor '%c'", c);
-			exit(1);
+			return -EINVAL;
 		}
+		endptr++;
 	}
+	/* Tailing character check. */
+	if (endptr[0] != '\0')
+		return -EINVAL;
 	/* Check whether ret * mult overflow */
-	if (fls64(ret) + fls64(mult) - 1 > 64) {
+	if (fls64(value) + fls64(mult) - 1 > 64) {
 		error("size value '%s' is too large for u64", s);
 		exit(1);
 	}
-	ret *= mult;
-	return ret;
+	value *= mult;
+	*value_ret = value;
+	return 0;
 }
 
 enum btrfs_csum_type parse_csum_type(const char *s)

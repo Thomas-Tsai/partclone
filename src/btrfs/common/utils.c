@@ -45,6 +45,7 @@
 #include "common/open-utils.h"
 #include "common/sysfs-utils.h"
 #include "common/messages.h"
+#include "common/tree-search.h"
 #include "cmds/commands.h"
 #include "mkfs/common.h"
 
@@ -120,11 +121,10 @@ int get_df(int fd, struct btrfs_ioctl_space_args **sargs_ret)
 }
 
 
-static u64 find_max_device_id(struct btrfs_ioctl_search_args *search_args,
-			      int nr_items)
+static u64 find_max_device_id(struct btrfs_tree_search_args *args, int nr_items)
 {
 	struct btrfs_dev_item *dev_item;
-	char *buf = search_args->buf;
+	char *buf = btrfs_tree_search_data(args, 0);
 
 	buf += (nr_items - 1) * (sizeof(struct btrfs_ioctl_search_header)
 				       + sizeof(struct btrfs_dev_item));
@@ -141,8 +141,8 @@ static int search_chunk_tree_for_fs_info(int fd,
 	int ret;
 	int max_items;
 	u64 start_devid = 1;
-	struct btrfs_ioctl_search_args search_args;
-	struct btrfs_ioctl_search_key *search_key = &search_args.key;
+	struct btrfs_tree_search_args args;
+	struct btrfs_ioctl_search_key *sk;
 
 	fi_args->num_devices = 0;
 
@@ -150,41 +150,41 @@ static int search_chunk_tree_for_fs_info(int fd,
 	       / (sizeof(struct btrfs_ioctl_search_header)
 			       + sizeof(struct btrfs_dev_item));
 
-	search_key->tree_id = BTRFS_CHUNK_TREE_OBJECTID;
-	search_key->min_objectid = BTRFS_DEV_ITEMS_OBJECTID;
-	search_key->max_objectid = BTRFS_DEV_ITEMS_OBJECTID;
-	search_key->min_type = BTRFS_DEV_ITEM_KEY;
-	search_key->max_type = BTRFS_DEV_ITEM_KEY;
-	search_key->min_transid = 0;
-	search_key->max_transid = (u64)-1;
-	search_key->nr_items = max_items;
-	search_key->max_offset = (u64)-1;
+	memset(&args, 0, sizeof(args));
+	sk = btrfs_tree_search_sk(&args);
+	sk->tree_id = BTRFS_CHUNK_TREE_OBJECTID;
+	sk->min_objectid = BTRFS_DEV_ITEMS_OBJECTID;
+	sk->min_type = BTRFS_DEV_ITEM_KEY;
+	sk->max_objectid = BTRFS_DEV_ITEMS_OBJECTID;
+	sk->max_type = BTRFS_DEV_ITEM_KEY;
+	sk->min_transid = 0;
+	sk->max_transid = (u64)-1;
+	sk->nr_items = max_items;
+	sk->max_offset = (u64)-1;
 
 again:
-	search_key->min_offset = start_devid;
+	sk->min_offset = start_devid;
 
-	ret = ioctl(fd, BTRFS_IOC_TREE_SEARCH, &search_args);
+	ret = btrfs_tree_search_ioctl(fd, &args);
 	if (ret < 0)
 		return -errno;
 
-	fi_args->num_devices += (u64)search_key->nr_items;
+	fi_args->num_devices += (u64)sk->nr_items;
 
-	if (search_key->nr_items == max_items) {
-		start_devid = find_max_device_id(&search_args,
-					search_key->nr_items) + 1;
+	if (sk->nr_items == max_items) {
+		start_devid = find_max_device_id(&args, sk->nr_items) + 1;
 		goto again;
 	}
 
 	/* Get the latest max_id to stay consistent with the num_devices */
-	if (search_key->nr_items == 0)
+	if (sk->nr_items == 0)
 		/*
 		 * last tree_search returns an empty buf, use the devid of
 		 * the last dev_item of the previous tree_search
 		 */
 		fi_args->max_id = start_devid - 1;
 	else
-		fi_args->max_id = find_max_device_id(&search_args,
-						search_key->nr_items);
+		fi_args->max_id = find_max_device_id(&args, sk->nr_items);
 
 	return 0;
 }
@@ -211,7 +211,6 @@ int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 	struct btrfs_ioctl_dev_info_args *di_args;
 	struct btrfs_ioctl_dev_info_args tmp;
 	char mp[PATH_MAX];
-	DIR *dirstream = NULL;
 
 	memset(fi_args, 0, sizeof(*fi_args));
 
@@ -251,9 +250,9 @@ int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 	}
 
 	/* at this point path must not be for a block device */
-	fd = open_file_or_dir(path, &dirstream);
+	fd = btrfs_open_file_or_dir(path);
 	if (fd < 0) {
-		ret = -errno;
+		ret = fd;
 		goto out;
 	}
 
@@ -317,7 +316,7 @@ int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 	}
 
 out:
-	close_file_or_dir(fd, dirstream);
+	close(fd);
 	return ret;
 }
 
@@ -956,6 +955,25 @@ u8 rand_u8(void)
 	return (u8)(rand_u32());
 }
 
+/*
+ * Parse a boolean value from an environment variable.
+ *
+ * As long as the environment variable is not set to "0", "n" or "\0",
+ * it would return true.
+ */
+bool get_env_bool(const char *env_name)
+{
+	char *env_value_str;
+
+	env_value_str = getenv(env_name);
+	if (!env_value_str)
+		return false;
+	if (env_value_str[0] == '0' || env_value_str[0] == 'n' ||
+	    env_value_str[0] == 0)
+		return false;
+	return true;
+}
+
 void btrfs_config_init(void)
 {
 	bconf.output_format = CMD_FORMAT_TEXT;
@@ -1178,7 +1196,11 @@ out:
  */
 char *btrfs_test_for_multiple_profiles(int fd)
 {
-	char *data, *metadata, *system, *mixed, *types;
+	char *data = NULL;
+	char *metadata = NULL;
+	char *system = NULL;
+	char *mixed = NULL;
+	char *types = NULL;
 
 	btrfs_get_string_for_multiple_profiles(fd, &data, &metadata, &mixed,
 			&system, &types);
@@ -1293,9 +1315,9 @@ int check_running_fs_exclop(int fd, enum exclusive_operation start, bool enqueue
 
 	sysfs_fd = sysfs_open_fsid_file(fd, "exclusive_operation");
 	if (sysfs_fd < 0) {
-		if (errno == ENOENT)
+		if (sysfs_fd == -ENOENT)
 			return 0;
-		return -errno;
+		return sysfs_fd;
 	}
 
 	exclop = get_fs_exclop(fd);
@@ -1320,34 +1342,58 @@ int check_running_fs_exclop(int fd, enum exclusive_operation start, bool enqueue
 			get_fs_exclop_name(exclop));
 		ret = 1;
 		goto out;
+	} else {
+		pr_verbose(LOG_DEFAULT, "Waiting for another exclusive operation '%s' to finish ...",
+			get_fs_exclop_name(exclop));
+		fflush(stdout);
 	}
 
+	/*
+	 * The sysfs file descriptor needs to be reopened and all data read
+	 * before each select().
+	 */
 	while (exclop > 0) {
 		fd_set fds;
 		struct timeval tv = { .tv_sec = 60, .tv_usec = 0 };
+		char tmp[1024];
 
+		close(sysfs_fd);
+		sysfs_fd = sysfs_open_fsid_file(fd, "exclusive_operation");
+		if (sysfs_fd < 0)
+			return sysfs_fd;
 		FD_ZERO(&fds);
 		FD_SET(sysfs_fd, &fds);
 
+		ret = read(sysfs_fd, tmp, sizeof(tmp));
 		ret = select(sysfs_fd + 1, NULL, NULL, &fds, &tv);
 		if (ret < 0) {
 			ret = -errno;
 			break;
 		}
 		if (ret > 0) {
+			close(sysfs_fd);
+			sysfs_fd = sysfs_open_fsid_file(fd, "exclusive_operation");
+			if (sysfs_fd < 0)
+				return sysfs_fd;
+
+			FD_ZERO(&fds);
+			FD_SET(sysfs_fd, &fds);
+
+			ret = read(sysfs_fd, tmp, sizeof(tmp));
 			/*
 			 * Notified before the timeout, check again before
 			 * returning. In case there are more operations
 			 * waiting, we want to reduce the chances to race so
 			 * reuse the remaining time to randomize the order.
 			 */
-			tv.tv_sec /= 2;
+			tv.tv_sec = (tv.tv_sec % 10) + 1;
 			ret = select(sysfs_fd + 1, NULL, NULL, &fds, &tv);
 			exclop = get_fs_exclop(fd);
 			if (exclop <= 0)
 				ret = 0;
 		}
 	}
+	pr_verbose(LOG_DEFAULT, " done\n");
 out:
 	close(sysfs_fd);
 

@@ -27,16 +27,18 @@
 #include "kernel-shared/uapi/btrfs.h"
 #include "kernel-shared/uapi/btrfs_tree.h"
 #include "kernel-shared/ctree.h"
+#include "kernel-shared/messages.h"
 #include "kernel-shared/transaction.h"
 #include "common/messages.h"
 #include "common/utils.h"
 
-void btrfs_uuid_to_key(const u8 *uuid, struct btrfs_key *key)
+void btrfs_uuid_to_key(const u8 *uuid, u8 type, struct btrfs_key *key)
 {
 	u64 tmp;
 
 	tmp = get_unaligned_le64(uuid);
 	put_unaligned_64(tmp, &key->objectid);
+	key->type = type;
 	tmp = get_unaligned_le64(uuid + sizeof(u64));
 	put_unaligned_64(tmp, &key->offset);
 }
@@ -56,16 +58,15 @@ static int btrfs_uuid_tree_lookup_any(int fd, const u8 *uuid, u8 type,
 	__le64 lesubid;
 	struct btrfs_key key;
 
-	key.type = type;
-	btrfs_uuid_to_key(uuid, &key);
+	btrfs_uuid_to_key(uuid, type, &key);
 
 	memset(&search_arg, 0, sizeof(search_arg));
 	search_arg.key.tree_id = BTRFS_UUID_TREE_OBJECTID;
 	search_arg.key.min_objectid = key.objectid;
-	search_arg.key.max_objectid = key.objectid;
 	search_arg.key.min_type = type;
-	search_arg.key.max_type = type;
 	search_arg.key.min_offset = key.offset;
+	search_arg.key.max_objectid = key.objectid;
+	search_arg.key.max_type = type;
 	search_arg.key.max_offset = key.offset;
 	search_arg.key.max_transid = (u64)-1;
 	search_arg.key.nr_items = 1;
@@ -117,7 +118,7 @@ int btrfs_lookup_uuid_received_subvol_item(int fd, const u8 *uuid,
 }
 
 int btrfs_uuid_tree_remove(struct btrfs_trans_handle *trans, u8 *uuid, u8 type,
-		u64 subid)
+			u64 subid)
 {
 	struct btrfs_fs_info *fs_info = trans->fs_info;
 	struct btrfs_root *uuid_root = fs_info->uuid_root;
@@ -137,8 +138,7 @@ int btrfs_uuid_tree_remove(struct btrfs_trans_handle *trans, u8 *uuid, u8 type,
 		goto out;
 	}
 
-	btrfs_uuid_to_key(uuid, &key);
-	key.type = type;
+	btrfs_uuid_to_key(uuid, type, &key);
 
 	path = btrfs_alloc_path();
 	if (!path) {
@@ -148,7 +148,8 @@ int btrfs_uuid_tree_remove(struct btrfs_trans_handle *trans, u8 *uuid, u8 type,
 
 	ret = btrfs_search_slot(trans, uuid_root, &key, path, -1, 1);
 	if (ret < 0) {
-		warning("error %d while searching for uuid item!", ret);
+		btrfs_warn(fs_info, "error %d while searching for uuid item!",
+			   ret);
 		goto out;
 	}
 	if (ret > 0) {
@@ -161,7 +162,8 @@ int btrfs_uuid_tree_remove(struct btrfs_trans_handle *trans, u8 *uuid, u8 type,
 	offset = btrfs_item_ptr_offset(eb, slot);
 	item_size = btrfs_item_size(eb, slot);
 	if (!IS_ALIGNED(item_size, sizeof(u64))) {
-		warning("uuid item with illegal size %u!", item_size);
+		btrfs_warn(fs_info, "uuid item with illegal size %lu!",
+			   (unsigned long)item_size);
 		ret = -ENOENT;
 		goto out;
 	}

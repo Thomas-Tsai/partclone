@@ -128,19 +128,19 @@ enum btrfs_open_ctree_flags {
 enum btrfs_read_sb_flags {
 	SBREAD_DEFAULT		= 0,
 	/* Reading superblock during recovery */
-	SBREAD_RECOVER		= (1 << 0),
+	SBREAD_RECOVER		= (1U << 0),
 
 	/*
 	 * Read superblock with the fake signature, cannot be used with
 	 * SBREAD_RECOVER
 	 */
-	SBREAD_TEMPORARY = (1 << 1),
+	SBREAD_TEMPORARY	= (1U << 1),
 
 	/*
 	 * Equivalent of OPEN_CTREE_IGNORE_FSID_MISMATCH, allow to read
 	 * superblock that has mismatched sb::fsid and sb::dev_item.fsid
 	 */
-	SBREAD_IGNORE_FSID_MISMATCH = (1 << 2),
+	SBREAD_IGNORE_FSID_MISMATCH = (1U << 2),
 };
 
 /*
@@ -237,7 +237,7 @@ int btrfs_read_buffer(struct extent_buffer *buf, u64 parent_transid);
 int write_tree_block(struct btrfs_trans_handle *trans,
 		     struct btrfs_fs_info *fs_info,
 		     struct extent_buffer *eb);
-int btrfs_fs_roots_compare_roots(struct rb_node *node1, struct rb_node *node2);
+int btrfs_fs_roots_compare_roots(const struct rb_node *node1, const struct rb_node *node2);
 struct btrfs_root *btrfs_create_tree(struct btrfs_trans_handle *trans,
 				     struct btrfs_fs_info *fs_info,
 				     struct btrfs_key *key);

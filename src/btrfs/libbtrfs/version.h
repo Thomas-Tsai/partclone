@@ -9,6 +9,6 @@
                             BTRFS_LIB_MINOR * 100 + \
                             BTRFS_LIB_PATCHLEVEL )
 
-#define BTRFS_BUILD_VERSION "Btrfs v6.6.2"
+#define BTRFS_BUILD_VERSION "Btrfs v6.8.1"
 
 #endif

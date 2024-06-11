@@ -20,6 +20,7 @@
 #include <limits.h>
 #include "common/string-utils.h"
 #include "common/messages.h"
+#include "common/parse-utils.h"
 
 int string_is_numerical(const char *str)
 {
@@ -50,26 +51,38 @@ int string_has_prefix(const char *str, const char *prefix)
 u64 arg_strtou64(const char *str)
 {
 	u64 value;
-	char *ptr_parse_end = NULL;
+	int ret;
 
-	value = strtoull(str, &ptr_parse_end, 0);
-	if (ptr_parse_end && *ptr_parse_end != '\0') {
-		error("%s is not a valid numeric value", str);
-		exit(1);
-	}
-
-	/*
-	 * if we pass a negative number to strtoull, it will return an
-	 * unexpected number to us, so let's do the check ourselves.
-	 */
-	if (str[0] == '-') {
-		error("%s: negative value is invalid", str);
-		exit(1);
-	}
-	if (value == ULLONG_MAX) {
+	ret = parse_u64(str, &value);
+	if (ret == -ERANGE) {
 		error("%s is too large", str);
+		exit(1);
+	} else if (ret == -EINVAL) {
+		if (str[0] == '-')
+			error("%s: negative value is invalid", str);
+		else
+			error("%s is not a valid numeric value", str);
 		exit(1);
 	}
 	return value;
 }
 
+u64 arg_strtou64_with_suffix(const char *str)
+{
+	u64 value;
+	int ret;
+
+	ret = parse_u64_with_suffix(str, &value);
+	if (ret == -ERANGE) {
+		error("%s is too large", str);
+		exit(1);
+	} else if (ret == -EINVAL) {
+		error("%s is not a valid numeric value with supported size suffixes", str);
+		exit(1);
+	} else if (ret < 0) {
+		errno = -ret;
+		error("failed to parse string '%s': %m", str);
+		exit(1);
+	}
+	return value;
+}

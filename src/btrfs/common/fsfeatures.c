@@ -31,6 +31,7 @@
 #include "common/string-utils.h"
 #include "common/sysfs-utils.h"
 #include "common/messages.h"
+#include "common/tree-search.h"
 
 /*
  * Insert a root item for temporary tree root
@@ -121,7 +122,7 @@ static const struct btrfs_feature mkfs_features[] = {
 		VERSION_TO_STRING2(compat, 3,4),
 		VERSION_NULL(safe),
 		VERSION_NULL(default),
-		.desc		= "quota support (qgroups)"
+		.desc		= "hierarchical quota group support (qgroups)"
 	},
 	{
 		.name		= "extref",
@@ -172,7 +173,7 @@ static const struct btrfs_feature mkfs_features[] = {
 		VERSION_TO_STRING2(compat, 4,5),
 		VERSION_TO_STRING2(safe, 4,9),
 		VERSION_TO_STRING2(default, 5,15),
-		.desc		= "free space tree (space_cache=v2)"
+		.desc		= "free space tree, improved space tracking (space_cache=v2)"
 	},
 	{
 		.name		= "raid1c34",
@@ -191,7 +192,7 @@ static const struct btrfs_feature mkfs_features[] = {
 		VERSION_TO_STRING2(compat, 5,12),
 		VERSION_NULL(safe),
 		VERSION_NULL(default),
-		.desc		= "support zoned devices"
+		.desc		= "support zoned (SMR/ZBC/ZNS) devices"
 	},
 #endif
 #if EXPERIMENTAL
@@ -219,7 +220,7 @@ static const struct btrfs_feature mkfs_features[] = {
 		VERSION_TO_STRING2(compat, 6,1),
 		VERSION_NULL(safe),
 		VERSION_NULL(default),
-		.desc		= "block group tree to reduce mount time"
+		.desc		= "block group tree, more efficient block group tracking to reduce mount time"
 	},
 	{
 		.name		= "rst",
@@ -235,7 +236,7 @@ static const struct btrfs_feature mkfs_features[] = {
 		VERSION_TO_STRING2(compat, 6,7),
 		VERSION_NULL(safe),
 		VERSION_NULL(default),
-		.desc		= "raid stripe tree"
+		.desc		= "raid stripe tree, enhanced file extent tracking"
 	},
 	{
 		.name		= "squota",
@@ -312,12 +313,21 @@ void btrfs_assert_feature_buf_size(void)
 	for (i = 0; i < ARRAY_SIZE(mkfs_features); i++)
 		/* The extra 2 bytes are for the ", " prefix. */
 		total_size += strlen(mkfs_features[i].name) + 2;
-	BUG_ON(BTRFS_FEATURE_STRING_BUF_SIZE < total_size);
+
+	if (BTRFS_FEATURE_STRING_BUF_SIZE < total_size) {
+		internal_error("string buffer for freature list too small: want %d\n",
+			       total_size);
+		abort();
+	}
 
 	total_size = 0;
 	for (i = 0; i < ARRAY_SIZE(runtime_features); i++)
 		total_size += strlen(runtime_features[i].name) + 2;
-	BUG_ON(BTRFS_FEATURE_STRING_BUF_SIZE < total_size);
+	if (BTRFS_FEATURE_STRING_BUF_SIZE < total_size) {
+		internal_error("string buffer for freature list too small: want %d\n",
+			       total_size);
+		abort();
+	}
 }
 
 static size_t get_feature_array_size(enum feature_source source)
@@ -628,8 +638,10 @@ int btrfs_check_sectorsize(u32 sectorsize)
 
 	if (!sectorsize_checked)
 		warning(
-"the filesystem may not be mountable, sectorsize %u doesn't match page size %u",
-			sectorsize, page_size);
+"sectorsize %u does not match host CPU page size %u, with kernels 6.x and up\n"
+"\t the 4KiB sectorsize is supported on all architectures but other combinations\n"
+"\t may fail the filesystem mount, use \"--sectorsize %u\" to override that\n",
+			sectorsize, page_size, page_size);
 	return 0;
 }
 
@@ -669,6 +681,35 @@ int btrfs_check_features(const struct btrfs_mkfs_features *features,
 	return 0;
 }
 
+static bool tree_search_v2_supported = false;
+static bool tree_search_v2_initialized = false;
+
+/*
+ * Call the highest supported TREE_SEARCH ioctl version, autodetect support.
+ */
+int btrfs_tree_search_ioctl(int fd, struct btrfs_tree_search_args *sa)
+{
+	/* On first use check the supported status and save it. */
+	if (!tree_search_v2_initialized) {
+#if 0
+		/*
+		 * Keep using v1 until v2 is fully tested, in some cases it
+		 * does not return properly formatted results in the buffer.
+		 */
+		if (btrfs_tree_search2_ioctl_supported(fd) == 1)
+			tree_search_v2_supported = true;
+#endif
+		tree_search_v2_initialized = true;
+	}
+	sa->use_v2 = tree_search_v2_supported;
+
+	if (sa->use_v2) {
+		sa->args2.buf_size = BTRFS_TREE_SEARCH_V2_BUF_SIZE;
+		return ioctl(fd, BTRFS_IOC_TREE_SEARCH_V2, &sa->args2);
+	}
+	return ioctl(fd, BTRFS_IOC_TREE_SEARCH, &sa->args1);
+}
+
 /*
  * Check if the BTRFS_IOC_TREE_SEARCH_V2 ioctl is supported on a given
  * filesystem, opened at fd
@@ -689,10 +730,10 @@ int btrfs_tree_search2_ioctl_supported(int fd)
 	 */
 	sk->tree_id = BTRFS_ROOT_TREE_OBJECTID;
 	sk->min_objectid = BTRFS_EXTENT_TREE_OBJECTID;
-	sk->max_objectid = BTRFS_EXTENT_TREE_OBJECTID;
 	sk->min_type = BTRFS_ROOT_ITEM_KEY;
-	sk->max_type = BTRFS_ROOT_ITEM_KEY;
 	sk->min_offset = 0;
+	sk->max_objectid = BTRFS_EXTENT_TREE_OBJECTID;
+	sk->max_type = BTRFS_ROOT_ITEM_KEY;
 	sk->max_offset = (u64)-1;
 	sk->min_transid = 0;
 	sk->max_transid = (u64)-1;

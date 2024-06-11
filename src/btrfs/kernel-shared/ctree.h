@@ -404,6 +404,15 @@ struct btrfs_fs_info {
 	u32 sectorsize;
 	u32 stripesize;
 	u32 leaf_data_size;
+
+	/*
+	 * For open_ctree_fs_info() to hold the initial fd until close.
+	 *
+	 * For writeable open_ctree_fs_info() call, we should not close
+	 * the fd until the fs_info is properly closed, or it will trigger
+	 * udev scan while our fs is not properly initialized.
+	 */
+	int initial_fd;
 	u16 csum_type;
 	u16 csum_size;
 
@@ -1210,7 +1219,7 @@ static inline int is_fstree(u64 rootid)
 	return 0;
 }
 
-void btrfs_uuid_to_key(const u8 *uuid, struct btrfs_key *key);
+void btrfs_uuid_to_key(const u8 *uuid, u8 type, struct btrfs_key *key);
 
 /* inode.c */
 int check_dir_conflict(struct btrfs_root *root, char *name, int namelen,

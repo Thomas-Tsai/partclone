@@ -232,9 +232,9 @@ noinline void btrfs_release_path(struct btrfs_path *p)
  * cause could be a bug, eg. due to ENOSPC, and not for common errors that are
  * caused by external factors.
  */
-bool __cold abort_should_print_stack(int errno)
+bool __cold abort_should_print_stack(int error)
 {
-	switch (errno) {
+	switch (error) {
 	case -EIO:
 	case -EROFS:
 	case -ENOMEM:
@@ -1250,8 +1250,8 @@ int btrfs_find_item(struct btrfs_root *fs_root, struct btrfs_path *found_path,
 	struct extent_buffer *eb;
 	struct btrfs_path *path;
 
-	key.type = key_type;
 	key.objectid = iobjectid;
+	key.type = key_type;
 	key.offset = ioff;
 
 	if (found_path == NULL) {

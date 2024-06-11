@@ -144,10 +144,9 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 	device_total_bytes = (device_total_bytes / sectorsize) * sectorsize;
 
 	device = calloc(1, sizeof(*device));
-	if (!device) {
-		ret = -ENOMEM;
-		goto out;
-	}
+	if (!device)
+		return -ENOMEM;
+
 	buf = calloc(1, sectorsize);
 	if (!buf) {
 		ret = -ENOMEM;
@@ -208,7 +207,11 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 
 	ret = sbwrite(fd, buf, BTRFS_SUPER_INFO_OFFSET);
 	/* Ensure super block was written to the device */
-	BUG_ON(ret != BTRFS_SUPER_INFO_SIZE);
+	if (ret != BTRFS_SUPER_INFO_SIZE) {
+		error_msg(ERROR_MSG_WRITE, "superblock when adding device: %m");
+		ret = -EIO;
+		goto out;
+	}
 	free(buf);
 	list_add(&device->dev_list, &fs_info->fs_devices->devices);
 	device->fs_devices = fs_info->fs_devices;
@@ -313,8 +316,7 @@ int is_seen_fsid(u8 *fsid, struct seen_fsid *seen_fsid_hash[])
 	return 0;
 }
 
-int add_seen_fsid(u8 *fsid, struct seen_fsid *seen_fsid_hash[],
-		int fd, DIR *dirstream)
+int add_seen_fsid(u8 *fsid, struct seen_fsid *seen_fsid_hash[], int fd)
 {
 	u8 hash = fsid[0];
 	int slot = hash % SEEN_FSID_HASH_SIZE;
@@ -342,7 +344,6 @@ insert:
 	alloc->next = NULL;
 	memcpy(alloc->fsid, fsid, BTRFS_FSID_SIZE);
 	alloc->fd = fd;
-	alloc->dirstream = dirstream;
 
 	if (seen)
 		seen->next = alloc;
@@ -362,7 +363,7 @@ void free_seen_fsid(struct seen_fsid *seen_fsid_hash[])
 		seen = seen_fsid_hash[slot];
 		while (seen) {
 			next = seen->next;
-			close_file_or_dir(seen->fd, seen->dirstream);
+			close(seen->fd);
 			free(seen);
 			seen = next;
 		}
