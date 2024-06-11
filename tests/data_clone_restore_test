@@ -26,6 +26,12 @@ if [ "X$TARGETPART" != "X" ]; then
 fi
 
 #main
+
+# clean partition
+
+dd if=/dev/zero of=$source_partition bs=1M count=4096
+dd if=/dev/zero of=$target_partition bs=1M count=4096
+
 for fs in $test_fs; do
     echo -e "Advanced $fs test"
     echo -e "==========================\n"
