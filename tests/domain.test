@@ -38,10 +38,10 @@ _ptlbreak
 echo -e "    dd if=/dev/zero of=$ddraw bs=$dd_bs count=$dd_count\n"
 dd if=/dev/zero of=$ddraw bs=$dd_bs count=$dd_count
 
-echo -e "\nddrescue from $raw to $ddraw with option --domain-logfile=$img \n"
-echo -e "   ddrescue --domain-logfile=$img $raw $ddraw \n"
+echo -e "\nddrescue from $raw to $ddraw with option --domain-mapfil=$img \n"
+echo -e "   ddrescue --domain-mapfile=$img $raw $ddraw \n"
 _ptlbreak
-ddrescue --domain-logfile=$img $raw $ddraw
+ddrescue --domain-mapfile=$img $raw $ddraw
 _check_return_code
 
 _ptlbreak
