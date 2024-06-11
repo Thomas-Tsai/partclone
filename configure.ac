@@ -1,4 +1,4 @@
-AC_INIT([Partclone],[0.3.27],[thomas@clonezilla.org])
+AC_INIT([Partclone],[0.3.28],[thomas@clonezilla.org])
 AM_INIT_AUTOMAKE([-Wall foreign])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
