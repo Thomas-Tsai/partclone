@@ -398,6 +398,11 @@ AC_MSG_ERROR([*** btrfs depend library (libblkid-dev) header not found]))
 supported_fs=$supported_fs" btrfs"
 btrfs_version="unknown"
 fi
+
+#condition for CPU target
+AC_CANONICAL_TARGET
+AM_CONDITIONAL([X64], [test "$target_cpu" = x86_64])
+
 #end of check btrfs
 
 ##minix##
