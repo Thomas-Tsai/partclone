@@ -198,7 +198,7 @@ partclone_imgfuse_LDADD+=-ldl -lcrypto ${LDADD_static}
 endif
 endif
 
-compconfdir=$(sysconfdir)/bash_completion.d
+compconfdir=@bashcompletiondir@
 compconf_DATA = partclone-prompt
 
 # Extra
