@@ -422,6 +422,7 @@ int main(int argc, char **argv) {
 	else
 		flag = IO;
 	progress_init(&prog, start, stop, fs_info.totalblock, flag, fs_info.block_size);
+        prog.binary_prefix = opt.binary_prefix; 
 	copied = 0;				/// initial number is 0
 
 	/**

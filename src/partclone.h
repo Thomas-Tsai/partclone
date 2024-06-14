@@ -123,6 +123,7 @@ struct cmd_opt
     int skip_write_error;
     int write_direct_io;
     int read_direct_io;
+    int binary_prefix;
     unsigned int buffer_size;
     off_t offset;
     unsigned long fresh;

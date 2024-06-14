@@ -34,6 +34,7 @@ struct progress_bar {
         float total_unit;
 	int pui;
 	int flag;
+        int binary_prefix;
 };
 typedef struct progress_bar progress_bar;
 

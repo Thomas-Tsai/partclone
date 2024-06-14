@@ -248,6 +248,9 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--no_block_detail</option></arg>
 	</group>
 	<group choice="opt">
+	    <arg choice="plain"><option>--binary-prefix</option></arg>
+	</group>
+	<group choice="opt">
 	    <arg choice="plain"><option>--write-direct-io</option></arg>
 	</group>
 	<group choice="opt">
@@ -489,6 +492,11 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>--no_block_detail</option></term>
         <listitem>
           <para>Show progress message without block detail</para>
+        </listitem>
+      </varlistentry>      <varlistentry>
+        <term><option>--binary-prefix</option></term>
+        <listitem>
+          <para>Show progress with bit size</para>
         </listitem>
       </varlistentry>
       <varlistentry>

@@ -2,12 +2,12 @@
 .\"     Title: PARTCLONE
 .\"    Author: Yu-Chin Tsai <thomas@clonezilla.org>
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 05/25/2024
+.\"      Date: 06/14/2024
 .\"    Manual: Partclone User Manual
 .\"    Source: partclone
 .\"  Language: English
 .\"
-.TH "PARTCLONE" "8" "05/25/2024" "partclone" "Partclone User Manual"
+.TH "PARTCLONE" "8" "06/14/2024" "partclone" "Partclone User Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,7 +31,7 @@
 partclone \- The utility for clone and restore a partition\&.
 .SH "SYNOPSIS"
 .HP \w'\fBpartclone\&.[fstype]\fR\ 'u
-\fBpartclone\&.[fstype]\fR {[\fB\-c\fR\ |\ \fB\-\-clone\fR]\ [\fB\-r\fR\ |\ \fB\-\-restore\fR]\ [\fB\-b\fR\ |\ \fB\-\-dev\-to\-dev\fR]} {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_raw_file\fR]\ [\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]\ [\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]\ [\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]\ [\fB\-i\fR\ |\ \fB\-\-ignore_crc\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR\ [\fB\-X\fR\ |\ \fB\-\-compresscmd\fR]\ [\fB\-D\fR\ |\ \fB\-\-domain\fR]\ [\fB\-\-offset_domain\fR]\ [\fB\-aX\fR\ |\ \fB\-\-checksum\-mode=X\fR]\ [\fB\-kX\fR\ |\ \fB\-\-blocks\-per\-checksum=X\fR]\ [\fB\-K\fR\ |\ \fB\-\-no\-reseed\fR]\ [\fB\-w\fR\ |\ \fB\-\-skip_write_error\fR]\ [\fB\-E\fR\ |\ \fB\-\-offset=X\fR]\ [\fB\-T\fR\ |\ \fB\-\-btfiles\fR]\ [\fB\-t\fR\ |\ \fB\-\-btfiles_torrent\fR]\ [\fB\-n\fR\ |\ \fB\-\-note\fR]\ [\fB\-B\fR\ |\ \fB\-\-no_block_detail\fR]\ [\fB\-\-write\-direct\-io\fR]\ [\fB\-\-read\-direct\-io\fR]]
+\fBpartclone\&.[fstype]\fR {[\fB\-c\fR\ |\ \fB\-\-clone\fR]\ [\fB\-r\fR\ |\ \fB\-\-restore\fR]\ [\fB\-b\fR\ |\ \fB\-\-dev\-to\-dev\fR]} {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_raw_file\fR]\ [\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]\ [\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]\ [\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]\ [\fB\-i\fR\ |\ \fB\-\-ignore_crc\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR\ [\fB\-X\fR\ |\ \fB\-\-compresscmd\fR]\ [\fB\-D\fR\ |\ \fB\-\-domain\fR]\ [\fB\-\-offset_domain\fR]\ [\fB\-aX\fR\ |\ \fB\-\-checksum\-mode=X\fR]\ [\fB\-kX\fR\ |\ \fB\-\-blocks\-per\-checksum=X\fR]\ [\fB\-K\fR\ |\ \fB\-\-no\-reseed\fR]\ [\fB\-w\fR\ |\ \fB\-\-skip_write_error\fR]\ [\fB\-E\fR\ |\ \fB\-\-offset=X\fR]\ [\fB\-T\fR\ |\ \fB\-\-btfiles\fR]\ [\fB\-t\fR\ |\ \fB\-\-btfiles_torrent\fR]\ [\fB\-n\fR\ |\ \fB\-\-note\fR]\ [\fB\-B\fR\ |\ \fB\-\-no_block_detail\fR]\ [\fB\-\-binary\-prefix\fR]\ [\fB\-\-write\-direct\-io\fR]\ [\fB\-\-read\-direct\-io\fR]]
 .SH "DESCRIPTION"
 .PP
 \fBpartclone\fR\&.[fstype] is a part of
@@ -223,6 +223,11 @@ Reading data from SOURCE partition without cache
 \fB\-B\fR, \fB\-\-no_block_detail\fR
 .RS 4
 Show progress message without block detail
+.RE
+.PP
+\fB\-\-binary\-prefix\fR
+.RS 4
+Show progress with bit size
 .RE
 .PP
 \fB\-E\fR, \fB\-\-offset=X\fR

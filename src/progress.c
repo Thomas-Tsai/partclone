@@ -45,6 +45,7 @@ extern void progress_init(struct progress_bar *prog, int start, unsigned long lo
     prog->start = start;
     prog->stop = stop;
     prog->total = total;
+    prog->binary_prefix = 0;
 
     prog->unit = 100.0 / (stop - start);
     prog->total_unit = 100.0 / (total - start);
@@ -116,10 +117,14 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long copied
     char Rformated[12], Eformated[12];
     char speed_unit[] = "    ";
     struct tm *Rtm, *Etm;
-    uint64_t gbyte=1000000000.0;
-    uint64_t mbyte=1000000;
-    uint64_t kbyte=1000;
+    uint64_t gibyte = pow(2,30);
+    uint64_t mibyte = pow(2,20);
+    uint64_t kibyte = pow(2,10);
+    uint64_t gbyte = 1000000000.0;
+    uint64_t mbyte = 1000000;
+    uint64_t kbyte = 1000;
     int spflen = 0;
+    int prefered_bits_size = prog->binary_prefix;
 
     percent  = prog->unit * copied;
     if (percent <= 0)
@@ -134,24 +139,46 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long copied
     speedps  = prog->block_size * copied / elapsed;
     speed = speedps * 60.0;
 
-    prog_stat->percent   = percent;
+    prog_stat->percent = percent;
+    if ( prefered_bits_size ){
 
-    if (speed >= gbyte){
-	dspeed = (double)speed / (double)gbyte;
-	strncpy(speed_unit, "GB", 3);
-	strncpy(prog_stat->speed_unit, speed_unit, 3);
-    }else if (speed >= mbyte){
-	dspeed = (double)speed / (double)mbyte;
-	strncpy(speed_unit, "MB", 3);
-	strncpy(prog_stat->speed_unit, speed_unit, 3);
-    }else if (speed >= kbyte){
-	dspeed = (double)speed / (double)kbyte;
-	strncpy(speed_unit, "KB", 3);
-	strncpy(prog_stat->speed_unit, speed_unit, 3);
-    }else{
-	dspeed = speed;
-	strncpy(speed_unit, "byte", 5);
-	strncpy(prog_stat->speed_unit, speed_unit, 5);
+        if (speed >= gibyte){
+            dspeed = (double)speed / (double)gibyte;
+            strncpy(speed_unit, "GiB", 3);
+            strncpy(prog_stat->speed_unit, speed_unit, 3);
+        }else if (speed >= mibyte){
+            dspeed = (double)speed / (double)mibyte;
+            strncpy(speed_unit, "MiB", 3);
+            strncpy(prog_stat->speed_unit, speed_unit, 3);
+        }else if (speed >= kbyte){
+            dspeed = (double)speed / (double)kibyte;
+            strncpy(speed_unit, "KiB", 3);
+            strncpy(prog_stat->speed_unit, speed_unit, 3);
+        }else{
+            dspeed = speed;
+            strncpy(speed_unit, "byte", 5);
+            strncpy(prog_stat->speed_unit, speed_unit, 5);
+        }
+
+    } else {
+
+        if (speed >= gbyte){
+            dspeed = (double)speed / (double)gbyte;
+            strncpy(speed_unit, "GB", 3);
+            strncpy(prog_stat->speed_unit, speed_unit, 3);
+        }else if (speed >= mbyte){
+            dspeed = (double)speed / (double)mbyte;
+            strncpy(speed_unit, "MB", 3);
+            strncpy(prog_stat->speed_unit, speed_unit, 3);
+        }else if (speed >= kbyte){
+            dspeed = (double)speed / (double)kbyte;
+            strncpy(speed_unit, "KB", 3);
+            strncpy(prog_stat->speed_unit, speed_unit, 3);
+        }else{
+            dspeed = speed;
+            strncpy(speed_unit, "byte", 5);
+            strncpy(prog_stat->speed_unit, speed_unit, 5);
+        }
     }
 
     prog_stat->total_percent = prog->total_unit * current;
