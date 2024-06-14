@@ -485,6 +485,11 @@ AC_ARG_ENABLE([fs-test],
 AM_CONDITIONAL(ENABLE_FS_TEST, test "$enable_fs_test" = yes)
 AM_CONDITIONAL(ENABLE_FEATURE_TEST, test "$enable_feature_test" = yes)
 
+##bash-completion
+PKG_CHECK_VAR([bashcompletiondir], [bash-completion], [completionsdir], [],
+    [bashcompletiondir="${sysconfdir}/bash_completion.d"])
+AC_SUBST(bashcompletiondir)
+
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 	Makefile
