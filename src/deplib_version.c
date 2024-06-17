@@ -58,7 +58,9 @@ int libvmfs_version(){
     version = "0.2.5";
 #endif
     printf("%s\n", version);
+    return 0;
 #endif
+    return 1;
 }
 
 int libntfs_version(){
