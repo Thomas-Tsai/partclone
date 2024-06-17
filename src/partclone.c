@@ -1695,9 +1695,8 @@ int open_target(char* target, cmd_opt* opt) {
 
 	    if ((stat(target, &st_dev) == -1) || (opt->overwrite)){
 		remove_directory(target);
-		mkdir(target, 0700);
-		if ( opendir (target) == NULL) {
-		    log_mesg(0, 0, 1, debug, "%s,%s,%i: open %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
+		if (mkdir(target, 0700) == -1) {
+		    log_mesg(0, 0, 1, debug, "%s,%s,%i: mkdir %s error(%i)\n", __FILE__, __func__, __LINE__, target, errno);
 		}
 		ret = 0;
 	    } else if (opt->torrent_only == 0) {
