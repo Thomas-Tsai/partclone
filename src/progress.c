@@ -46,6 +46,8 @@ extern void progress_init(struct progress_bar *prog, int start, unsigned long lo
     prog->stop = stop;
     prog->total = total;
     prog->binary_prefix = 0;
+    prog->prog_second = 0;
+    strncpy(prog->time_unit, "min", 4);
 
     prog->unit = 100.0 / (stop - start);
     prog->total_unit = 100.0 / (total - start);
@@ -95,10 +97,10 @@ extern void close_pui(int pui){
 
 extern void update_pui(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done){
 
+
     if (done != 1) {
 	if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && copied != 0)
 	    return;
-
     }
     if (prog->pui == NCURSES)
         Ncurses_progress_update(prog, copied, current, done);
@@ -137,7 +139,10 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long copied
 	elapsed = 1;
 
     speedps  = prog->block_size * copied / elapsed;
-    speed = speedps * 60.0;
+    if (prog->prog_second)
+        speed = speedps;
+    else
+        speed = speedps * 60.0;
 
     prog_stat->percent = percent;
     if ( prefered_bits_size ){
@@ -241,7 +246,7 @@ extern void progress_update(struct progress_bar *prog, unsigned long long copied
 	fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed: %6.2f%%"), clear_buf, prog_stat.Eformated, prog_stat.Rformated, prog_stat.percent);
 
 	if((prog->flag == IO) || (prog->flag == NO_BLOCK_DETAIL))
-	    fprintf(stderr, _(", %6.2f%s/min,"), prog_stat.speed, prog_stat.speed_unit);
+	    fprintf(stderr, _(", %6.2f%s/%s,"), prog_stat.speed, prog_stat.speed_unit, prog->time_unit);
 	if(prog->flag == IO)
 	    fprintf(stderr, _("\n\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s\r"), clear_buf, current, prog->total, prog_stat.total_percent, "\x1b[A");
     } else {
@@ -251,16 +256,16 @@ extern void progress_update(struct progress_bar *prog, unsigned long long copied
 
 	fprintf(stderr, _("\r%80c\rElapsed: %s, Remaining: %s, Completed: 100.00%%"), clear_buf, prog_stat.Eformated, prog_stat.Rformated);
 	if((prog->flag == IO) || (prog->flag == NO_BLOCK_DETAIL))
-	    fprintf(stderr, _(", Rate: %6.2f%s/min,"), prog_stat.speed, prog_stat.speed_unit);
+	    fprintf(stderr, _(", Rate: %6.2f%s/%s,"), prog_stat.speed, prog_stat.speed_unit, prog->time_unit);
 	if(prog->flag == IO)
 	    fprintf(stderr, _("\n\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: 100.00%%\r"), clear_buf, current, prog->total);
 
         fprintf(stderr, _("\nTotal Time: %s, "), prog_stat.Eformated);
 	if(prog->flag == IO)
-	    fprintf(stderr, _("Ave. Rate: %6.2f%s/min, "), prog_stat.speed, prog_stat.speed_unit);
+	    fprintf(stderr, _("Ave. Rate: %6.2f%s/%s, "), prog_stat.speed, prog_stat.speed_unit, prog->time_unit);
         fprintf(stderr, _("%s"), "100.00% completed!\n");
 
-        log_mesg(1, 0, 0, PUI_DEBUG, "Total Time: %s, Ave. Rate: %6.2f%s/min, %s\n", prog_stat.Eformated, prog_stat.speed, prog_stat.speed_unit, "100.00% completed!");
+        log_mesg(1, 0, 0, PUI_DEBUG, "Total Time: %s, Ave. Rate: %6.2f%s/%s, %s\n", prog_stat.Eformated, prog_stat.speed, prog_stat.speed_unit, prog->time_unit, "100.00% completed!");
     }
 }
 
@@ -289,7 +294,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
 
         mvwprintw(p_win, 0, 0, _("Elapsed: %s Remaining: %s ") , prog_stat.Eformated, prog_stat.Rformated);
 	if((prog->flag == IO) || (prog->flag == NO_BLOCK_DETAIL))
-	    mvwprintw(p_win, 0, 40, _("Rate: %6.2f%s/min"), prog_stat.speed, prog_stat.speed_unit);
+	    mvwprintw(p_win, 0, 40, _("Rate: %6.2f%s/%s"), prog_stat.speed, prog_stat.speed_unit, prog->time_unit);
 	if (prog->flag == IO)
 	    mvwprintw(p_win, 1, 0, _("Current Block: %llu  Total Block: %llu ") , current, prog->total);
 
@@ -324,7 +329,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
     } else {
         mvwprintw(p_win, 0, 0, _("Total Time: %s Remaining: %s "), prog_stat.Eformated, prog_stat.Rformated);
 	if((prog->flag == IO) || (prog->flag == NO_BLOCK_DETAIL))
-	    mvwprintw(p_win, 1, 0, _("Ave. Rate: %6.2f%s/min"), prog_stat.speed, prog_stat.speed_unit);
+	    mvwprintw(p_win, 1, 0, _("Ave. Rate: %6.2f%s/%s"), prog_stat.speed, prog_stat.speed_unit, prog->time_unit);
 
 	if (prog->flag == IO)
 	    mvwprintw(p_win, 3, 0, _("Data Block Process:"));
@@ -348,7 +353,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
         wrefresh(bar_win);
         wrefresh(tbar_win);
         refresh();
-        log_mesg(1, 0, 0, PUI_DEBUG, "Total Time: %s, Ave. Rate: %6.2f%s/min, %s\n", prog_stat.Eformated, prog_stat.speed, prog_stat.speed_unit, "100.00% completed!");
+        log_mesg(1, 0, 0, PUI_DEBUG, "Total Time: %s, Ave. Rate: %6.2f%s/%s, %s\n", prog_stat.Eformated, prog_stat.speed, prog_stat.speed_unit, prog->time_unit, "100.00% completed!");
 	sleep(1);
     }
 

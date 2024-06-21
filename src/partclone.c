@@ -77,6 +77,7 @@ int log_y_line = 0;
 #define OPT_WRITE_DIRECT_IO 1001
 #define OPT_READ_DIRECT_IO 1002
 #define OPT_BINARY_PREFIX 1003
+#define OPT_PROG_SEC 1004
 //
 //enum {
 //	OPT_OFFSET_DOMAIN = 1000
@@ -269,7 +270,8 @@ void usage(void) {
 		"    -F,  --force            Force progress\n"
 		"    -f,  --UI-fresh         Fresh times of progress\n"
 		"    -B,  --no_block_detail  Show progress message without block detail\n"
-		"         --binary-prefix    Show progress with bit size(MiB, GiB...)\n"
+		"         --binary-prefix    Show progress with bit size (default is MB, GB...)\n"
+		"         --prog-second      Show progress with second (default is minute)\n"
 		"    -z,  --buffer_size SIZE Read/write buffer size (default: %d)\n"
 #ifndef CHKIMG
 		"    -q,  --quiet            Disable progress message\n"
@@ -357,6 +359,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "no_block_detail",	no_argument,		NULL,   'B' },
 		{ "buffer_size",	required_argument,	NULL,   'z' },
 		{ "binary-prefix",      no_argument,	        NULL,   OPT_BINARY_PREFIX },
+		{ "prog-second",        no_argument,	        NULL,   OPT_PROG_SEC },
 		{ "write-direct-io",	no_argument,	        NULL,   OPT_WRITE_DIRECT_IO },
 		{ "read-direct-io",	no_argument,	        NULL,   OPT_READ_DIRECT_IO },
 // not RESTORE and not CHKIMG
@@ -418,6 +421,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
         opt->write_direct_io = 0;
         opt->read_direct_io = 0;
         opt->binary_prefix = 0;
+        opt->prog_second = 0;
 
 
 #ifdef DD
@@ -448,6 +452,9 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 			case 'v':
 				print_version();
 				break;
+                        case OPT_PROG_SEC:
+                                opt->prog_second = 1;
+                                break;
                         case OPT_BINARY_PREFIX:
                                 opt->binary_prefix = 1;
                                 break;
@@ -1909,7 +1916,7 @@ void print_partclone_info(cmd_opt opt) {
 	setlocale(LC_ALL, "");
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
-	log_mesg(0, 0, 1, debug, _("Partclone v%s (%s) http://partclone.org\n"), VERSION, git_version);
+	log_mesg(0, 0, 1, debug, _("Partclone v%s http://partclone.org\n"), VERSION);
 	if (opt.chkimg)
 		log_mesg(0, 0, 1, debug, _("Starting to check image (%s)\n"), opt.source);	
 	else if (opt.clone) {

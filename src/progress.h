@@ -35,6 +35,8 @@ struct progress_bar {
 	int pui;
 	int flag;
         int binary_prefix;
+        int prog_second;
+        char time_unit[4];
 };
 typedef struct progress_bar progress_bar;
 
@@ -45,7 +47,6 @@ struct prog_stat_t{
     float total_percent;
     float speed;
     char speed_unit[5];
-    
 };
 typedef struct prog_stat_t prog_stat_t;
 
