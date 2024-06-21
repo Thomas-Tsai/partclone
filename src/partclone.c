@@ -327,8 +327,9 @@ static void save_program_name(const char* argv0) {
 	const char* last_slash = strrchr(argv0, '/');
 
 	if (last_slash != 0) {
-
 		exec_name = last_slash + 1;
+	} else {
+		exec_name = argv0;
 	}
 }
 
