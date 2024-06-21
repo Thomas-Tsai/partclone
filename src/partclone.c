@@ -239,9 +239,10 @@ void usage(void) {
 #ifndef RESTORE
 #ifndef DD
 		"    -c,  --clone            Save to the special image format\n"
-		"    -x,  --compresscmd CMD  Start CMD as an output pipe to compress the cloned image\n"
 		"    -r,  --restore          Restore from the special image format\n"
 		"    -b,  --dev-to-dev       Local device to device copy mode\n"
+		"    -x,  --compresscmd CMD  Start CMD as an output pipe to compress the cloned image\n"
+		"    -n,  --note NOTE        Display Message Note (128 words)\n"
 #endif
 		"    -D,  --domain           Create ddrescue domain log from source device\n"
 		"         --offset_domain=X  Add offset X (bytes) to domain log values\n"
@@ -271,7 +272,7 @@ void usage(void) {
 		"    -f,  --UI-fresh         Fresh times of progress\n"
 		"    -B,  --no_block_detail  Show progress message without block detail\n"
 		"         --binary-prefix    Show progress with bit size (default is MB, GB...)\n"
-		"         --prog-second      Show progress with second (default is minute)\n"
+		"         --prog-second      Show progress in seconds (default is minute)\n"
 		"    -z,  --buffer_size SIZE Read/write buffer size (default: %d)\n"
 #ifndef CHKIMG
 		"    -q,  --quiet            Disable progress message\n"
@@ -279,7 +280,6 @@ void usage(void) {
 		"    -T,  --btfiles          Restore block as file for ClonezillaBT\n"
 		"    -t,  --btfiles_torrent  Restore block as file for ClonezillaBT but only generate torrent\n"
 #endif
-		"    -n,  --note NOTE        Display Message Note (128 words)\n"
 		"    -v,  --version          Display partclone version\n"
 		"    -h,  --help             Display this help\n"
 		, get_exec_name(), VERSION, get_exec_name(), DEFAULT_BUFFER_SIZE);

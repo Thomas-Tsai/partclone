@@ -2,12 +2,12 @@
 .\"     Title: PARTCLONE.DD
 .\"    Author: Yu-Chin Tsai <thomas@clonezilla.org>
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 10/04/2023
+.\"      Date: 06/21/2024
 .\"    Manual: Partclone User Manual
 .\"    Source: partclone.dd
 .\"  Language: English
 .\"
-.TH "PARTCLONE\&.DD" "8" "10/04/2023" "partclone.dd" "Partclone User Manual"
+.TH "PARTCLONE\&.DD" "8" "06/21/2024" "partclone.dd" "Partclone User Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,7 +31,7 @@
 partclone.dd \- unsupported file system backup utility\&.(like `dd` )
 .SH "SYNOPSIS"
 .HP \w'\fBpartclone\&.dd\fR\ 'u
-\fBpartclone\&.dd\fR {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_raw_file\fR]\ [\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]\ [\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]\ [\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR\ [\fB\-D\fR\ |\ \fB\-\-domain\fR]\ [\fB\-\-offset_domain\fR]\ [\fB\-w\fR\ |\ \fB\-\-skip_write_error\fR]\ [\fB\-E\fR\ |\ \fB\-\-offset=X\fR]\ [\fB\-T\fR\ |\ \fB\-\-btfiles\fR]\ [\fB\-t\fR\ |\ \fB\-\-btfiles_torrent\fR]\ [\fB\-B\fR\ |\ \fB\-\-no_block_detail\fR]\ [\fB\-\-write\-direct\-io\fR]\ [\fB\-\-read\-direct\-io\fR]]
+\fBpartclone\&.dd\fR {[\fB\-s\fR\ |\ \fB\-\-source\fR]\ \fIsource\fR} {[[\fB\-o\fR\ |\ \fB\-\-output\fR]\ [\fB\-O\fR\ |\ \fB\-\-overwrite\fR]]\ \fItarget\fR} [[\fB\-dX\fR\ |\ \fB\-\-debug=X\fR]\ [\fB\-\-restore_raw_file\fR]\ [\fB\-z\fR\ |\ \fB\-\-buffer_size\fR]\ [\fB\-N\fR\ |\ \fB\-\-ncurses\fR]\ [\fB\-q\fR\ |\ \fB\-\-quiet\fR]\ [\fB\-f\fR\ |\ \fB\-\-UI\-fresh\fR]\ [\fB\-F\fR\ |\ \fB\-\-force\fR]\ [\fB\-I\fR\ |\ \fB\-\-ignore_fschk\fR]\ [\fB\-i\fR\ |\ \fB\-\-ignore_crc\fR]\ [\fB\-C\fR\ |\ \fB\-\-nocheck\fR]\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR\ [\fB\-R\fR\ |\ \fB\-\-rescue\fR]\ [\fB\-L\fR\ |\ \fB\-\-logfile\fR]\ \fIlogfile\fR\ [\fB\-D\fR\ |\ \fB\-\-domain\fR]\ [\fB\-\-offset_domain\fR]\ [\fB\-aX\fR\ |\ \fB\-\-checksum\-mode=X\fR]\ [\fB\-kX\fR\ |\ \fB\-\-blocks\-per\-checksum=X\fR]\ [\fB\-K\fR\ |\ \fB\-\-no\-reseed\fR]\ [\fB\-w\fR\ |\ \fB\-\-skip_write_error\fR]\ [\fB\-E\fR\ |\ \fB\-\-offset=X\fR]\ [\fB\-T\fR\ |\ \fB\-\-btfiles\fR]\ [\fB\-t\fR\ |\ \fB\-\-btfiles_torrent\fR]\ [\fB\-B\fR\ |\ \fB\-\-no_block_detail\fR]\ [\fB\-\-binary\-prefix\fR]\ [\fB\-\-prog\-second\fR]\ [\fB\-\-write\-direct\-io\fR]\ [\fB\-\-read\-direct\-io\fR]]
 .SH "DESCRIPTION"
 .PP
 \fBpartclone\&.dd\fR
@@ -47,14 +47,14 @@ The program follows the usual GNU command line syntax, with long options startin
 .PP
 \fB\-s \fR\fB\fIFILE\fR\fR, \fB\-\-source \fR\fB\fIFILE\fR\fR
 .RS 4
-Source FILE\&. The FILE could be a image file(made by partclone) or device depend on your action\&. Normally, backup source is device, restore source is image file\&.
+Source FILE\&. The FILE could be a image file (made by partclone) or device depend on your action\&. Normally, backup source is device, restore source is image file\&.
 .sp
 Receving data from pipe line is supported ONLY for restoring, just ignore \-s option or use \*(Aq\-\*(Aq means receive data from stdin\&.
 .RE
 .PP
 \fB\-o \fR\fB\fIFILE\fR\fR, \fB\-\-output \fR\fB\fIFILE\fR\fR
 .RS 4
-Output FILE\&. The FILE could be a image file(partclone will generate) or device depend on your action\&. Normally, backup output to image file and restore output to device\&.
+Output FILE\&. The FILE could be a image file (partclone will generate) or device depend on your action\&. Normally, backup output to image file and restore output to device\&.
 .sp
 Sending data to pipe line is also supported ONLY for back\-up, just ignore \-o option or use \*(Aq\-\*(Aq means send data to stdout\&.
 .RE
@@ -62,6 +62,11 @@ Sending data to pipe line is also supported ONLY for back\-up, just ignore \-o o
 \fB\-O \fR\fB\fIFILE\fR\fR, \fB\-\-overwrite \fR\fB\fIFILE\fR\fR
 .RS 4
 Overwrite FILE, overwriting if exists\&.
+.RE
+.PP
+\fB\-W \fR\fB\fIFILE\fR\fR, \fB\-\-restore_raw_file \fR\fB\fIFILE\fR\fR
+.RS 4
+create special raw file for loop device\&.
 .RE
 .PP
 \fB\-D\fR, \fB\-\-domain\fR
@@ -81,7 +86,7 @@ Creating special raw file for loop device\&.
 .PP
 \fB\-L \fR\fB\fIFILE\fR\fR, \fB\-\-logfile \fR\fB\fIFILE\fR\fR
 .RS 4
-put special path to record partclone log information\&.(default /var/log/partclone\&.log)
+put special path to record partclone log information\&. (default /var/log/partclone\&.log)
 .RE
 .PP
 \fB\-R\fR, \fB\-\-rescue\fR
@@ -97,6 +102,16 @@ Don\*(Aqt check device size and free space\&.
 \fB\-N\fR, \fB\-\-ncurses\fR
 .RS 4
 Using Ncurses Text User Interface\&.
+.RE
+.PP
+\fB\-I\fR, \fB\-\-ignore_fschk\fR
+.RS 4
+Ignore filesystem check\&.
+.RE
+.PP
+\fB\-i\fR, \fB\-\-ignore_crc\fR
+.RS 4
+Ignore crc check error\&.
 .RE
 .PP
 \fB\-F\fR, \fB\-\-force\fR
@@ -124,6 +139,22 @@ Disable progress message\&.
 Set the debug level [1|2|3]
 .RE
 .PP
+\fB\-aX\fR, \fB\-\-checksum\-mode=X\fR
+.RS 4
+Checksum formula to use to add error detection
+.sp
+where X:
+.sp
+0: No checksum (no slowdown, smallest image)
+.sp
+1: CRC32 (Fast to compute, basic detection)
+.RE
+.PP
+\fB\-kX\fR, \fB\-\-blocks\-per\-checksum=X\fR
+.RS 4
+Write one checksum for every X blocks
+.RE
+.PP
 \fB\-w\fR, \fB\-\-skip_write_error\fR
 .RS 4
 Continue restore while write errors
@@ -142,6 +173,16 @@ Reading data from SOURCE partition without cache
 \fB\-B\fR, \fB\-\-no_block_detail\fR
 .RS 4
 Show progress message without block detail
+.RE
+.PP
+\fB\-\-binary\-prefix\fR
+.RS 4
+Show progress with bit size (default is MB, GB\&.\&.\&.)
+.RE
+.PP
+\fB\-\-prog\-second\fR
+.RS 4
+Show progress in seconds (default is minute)
 .RE
 .PP
 \fB\-E\fR, \fB\-\-offset=X\fR

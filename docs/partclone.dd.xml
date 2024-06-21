@@ -11,11 +11,16 @@
           /usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl \
           manpage.xml'
 
+# comment by thomas
+install 'docbook-xsl' to access style
+
 A manual page <package>.<section> will be generated. You may view the
 manual page with: nroff -man <package>.<section> | less'. A typical entry
 in a Makefile or Makefile.am is:
 
 DB2MAN = /usr/share/sgml/docbookstylesheet/xsl/docbook-xsl/manpages/docbook.xsl
+or
+DB2MAN = /usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
 XP     = xsltproc -''-nonet -''-param man.charmap.use.subset "0"
 
 manpage.1: manpage.xml
@@ -152,9 +157,26 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--force</option></arg>
 	</group>
 	<group choice="opt">
+	    <arg choice="plain"><option>-I</option></arg>
+	    <arg choice="plain"><option>--ignore_fschk</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-i</option></arg>
+	    <arg choice="plain"><option>--ignore_crc</option></arg>
+	</group>
+	<group choice="opt">
 	    <arg choice="plain"><option>-C</option></arg>
 	    <arg choice="plain"><option>--nocheck</option></arg>
 	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-R</option></arg>
+	    <arg choice="plain"><option>--rescue</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-L</option></arg>
+	    <arg choice="plain"><option>--logfile</option></arg>
+	</group>
+        <replaceable class="option">logfile</replaceable>
 	<group choice="opt">
 	    <arg choice="plain"><option>-R</option></arg>
 	    <arg choice="plain"><option>--rescue</option></arg>
@@ -170,6 +192,18 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	</group>
 	<group choice="opt">
 	    <arg choice="plain"><option>--offset_domain</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-aX</option></arg>
+	    <arg choice="plain"><option>--checksum-mode=X</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-kX</option></arg>
+	    <arg choice="plain"><option>--blocks-per-checksum=X</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-K</option></arg>
+	    <arg choice="plain"><option>--no-reseed</option></arg>
 	</group>
 	<group choice="opt">
 	    <arg choice="plain"><option>-w</option></arg>
@@ -192,14 +226,18 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--no_block_detail</option></arg>
 	</group>
 	<group choice="opt">
+	    <arg choice="plain"><option>--binary-prefix</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>--prog-second</option></arg>
+	</group>
+	<group choice="opt">
 	    <arg choice="plain"><option>--write-direct-io</option></arg>
 	</group>
 	<group choice="opt">
 	    <arg choice="plain"><option>--read-direct-io</option></arg>
 	</group>
-
-	</arg>
-     
+    </arg>
     </cmdsynopsis>
   </refsynopsisdiv>
   <refsect1 id="description">
@@ -222,7 +260,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>-s <replaceable>FILE</replaceable></option></term>
         <term><option>--source <replaceable>FILE</replaceable></option></term>
         <listitem>
-          <para>Source FILE. The FILE could be a image file(made by partclone) or device depend on your action. Normally, backup source is device, restore source is image file.</para>
+          <para>Source FILE. The FILE could be a image file (made by partclone) or device depend on your action. Normally, backup source is device, restore source is image file.</para>
           <para>Receving data from pipe line is supported ONLY for restoring, just ignore -s option or use '-' means receive data from stdin.</para>
         </listitem>
       </varlistentry>
@@ -230,7 +268,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>-o <replaceable>FILE</replaceable></option></term>
         <term><option>--output <replaceable>FILE</replaceable></option></term>
         <listitem>
-          <para>Output FILE. The FILE could be a image file(partclone will generate) or device depend on your action. Normally, backup output to image file and restore output to device.</para>
+          <para>Output FILE. The FILE could be a image file (partclone will generate) or device depend on your action. Normally, backup output to image file and restore output to device.</para>
 	  <para>Sending data to pipe line is also supported ONLY for back-up, just ignore -o option or use '-' means send data to stdout.</para>
         </listitem>
       </varlistentry>
@@ -239,6 +277,13 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>--overwrite <replaceable>FILE</replaceable></option></term>
         <listitem>
           <para>Overwrite FILE, overwriting if exists.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-W <replaceable>FILE</replaceable></option></term>
+        <term><option>--restore_raw_file <replaceable>FILE</replaceable></option></term>
+        <listitem>
+          <para>create special raw file for loop device.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -264,7 +309,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>-L <replaceable>FILE</replaceable></option></term>
         <term><option>--logfile <replaceable>FILE</replaceable></option></term>
         <listitem>
-          <para>put special path to record partclone log information.(default /var/log/partclone.log)</para>
+          <para>put special path to record partclone log information. (default /var/log/partclone.log)</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -286,6 +331,20 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>--ncurses</option></term>
         <listitem>
           <para>Using Ncurses Text User Interface.</para>
+        </listitem>
+      </varlistentry>
+       <varlistentry>
+        <term><option>-I</option></term>
+        <term><option>--ignore_fschk</option></term>
+        <listitem>
+          <para>Ignore filesystem check.</para>
+        </listitem>
+      </varlistentry>
+       <varlistentry>
+        <term><option>-i</option></term>
+        <term><option>--ignore_crc</option></term>
+        <listitem>
+          <para>Ignore crc check error.</para>
         </listitem>
       </varlistentry>
        <varlistentry>
@@ -324,6 +383,23 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>-aX</option></term>
+        <term><option>--checksum-mode=X</option></term>
+        <listitem>
+          <para>Checksum formula to use to add error detection</para>
+          <para>where X:</para>
+          <para>0: No checksum (no slowdown, smallest image)</para>
+          <para>1: CRC32 (Fast to compute, basic detection)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-kX</option></term>
+        <term><option>--blocks-per-checksum=X</option></term>
+        <listitem>
+          <para>Write one checksum for every X blocks</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>-w</option></term>
         <term><option>--skip_write_error</option></term>
         <listitem>
@@ -348,8 +424,19 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <listitem>
           <para>Show progress message without block detail</para>
         </listitem>
+      </varlistentry>      
+      <varlistentry>
+        <term><option>--binary-prefix</option></term>
+        <listitem>
+          <para>Show progress with bit size (default is MB, GB...)</para>
+        </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--prog-second</option></term>
+        <listitem>
+          <para>Show progress in seconds (default is minute)</para>
+        </listitem>
+      </varlistentry>      <varlistentry>
         <term><option>-E</option></term>
         <term><option>--offset=X</option></term>
         <listitem>

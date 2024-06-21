@@ -251,6 +251,9 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--binary-prefix</option></arg>
 	</group>
 	<group choice="opt">
+	    <arg choice="plain"><option>--prog-second</option></arg>
+	</group>
+	<group choice="opt">
 	    <arg choice="plain"><option>--write-direct-io</option></arg>
 	</group>
 	<group choice="opt">
@@ -493,13 +496,19 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <listitem>
           <para>Show progress message without block detail</para>
         </listitem>
-      </varlistentry>      <varlistentry>
+      </varlistentry>      
+      <varlistentry>
         <term><option>--binary-prefix</option></term>
         <listitem>
-          <para>Show progress with bit size</para>
+          <para>Show progress with bit size (default is MB, GB...)</para>
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--prog-second</option></term>
+        <listitem>
+          <para>Show progress in seconds (default is minute)</para>
+        </listitem>
+      </varlistentry>      <varlistentry>
         <term><option>-E</option></term>
         <term><option>--offset=X</option></term>
         <listitem>

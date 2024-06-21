@@ -1,6 +1,48 @@
+2024-06-21  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #54 from pfrouleau/review/include_NTFS_backup_boot_sector_in_the_image
+	Include the NTFS Boot Record backup in the cloned image
+
+	Merge pull request #55 from pfrouleau/fix/get_exec_name
+	Fix get_exec_name(): when partclone in installed, there is no '/' in argv0
+
+	update git version generate by describe
+
+	add option prog_second to display in seconds
+
+2024-06-17  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #249 from TMR5454/vmfs
+	Add missing return in libvmfs_version().
+
+	Merge pull request #248 from TMR5454/master
+	Fix tiny resource leak.
+
+2024-06-17  Tamura Dai  <kirinode0@gmail.com>
+
+	Add missing return in libvmfs_version().
+	libvmfs_version() return without int value.
+
+	Add missing return in libvmfs_version().
+	libvmfs_version() return without int value.
+
+	Fix tiny resource leak.
+
 2024-06-14  Thomas Tsai  <tlinux.tsai@gmail.com>
 
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+	update log and release 0.3.29
+
+	Merge pull request #247 from robert-scheck/bash-completion
+	Prefer bash-completion directory from pkg-config
+
 	add option --binary-prefix to display bit size in progress bar
+
+2024-06-14  Robert Scheck  <robert@fedoraproject.org>
+
+	Prefer bash-completion directory from pkg-config...
+	...with backwards compatibility for pkg-config < 0.28
 
 2024-06-13  Thomas Tsai  <tlinux.tsai@gmail.com>
 
@@ -696,6 +738,20 @@
 2021-02-17  Thomas Tsai  <tlinux.tsai@gmail.com>
 
 	Update README.md
+
+2021-02-12  Patrick Rouleau  <pfrouleau@gmail.com>
+
+	Fix get_exec_name(): when partclone is installed, there is no '/' in argv0
+	I forgot to test the case where partclone can be found through PATH and
+	in that case argv[0] does not contains a slash.
+
+	Include the NTFS Boot Record backup in the cloned image
+	NTFS stores a copy of its Boot Record after the end of the volume, which is
+	1 block smaller than the partition. This commit updates the NTFS's totalblock
+	to include that block.
+
+	With this change, the md5sum of the restored floppy.raw is identical to
+	the md5sum of the cloned one.
 
 2021-01-06  Thomas Tsai  <tlinux.tsai@gmail.com>
 
