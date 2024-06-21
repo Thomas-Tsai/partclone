@@ -167,8 +167,7 @@ then
   scriptdir=`dirname "$0"`
   file="$scriptdir/src/version.h"
   GIT_REPOSITORY=`git remote -v | grep partclone`
-  GIT_REVISION=`git log -1 | grep ^commit | sed 's/commit //'`
-  #GIT_REVISION_UPSTREAM=`git log master -1 | grep commit | sed 's/commit //'`
+  GIT_REVISION=`git describe --abbrev=7 --dirty --always --tags`
   git_ver="none"
 
   if [ "${GIT_REPOSITORY}" = "" ];
@@ -195,7 +194,7 @@ cat > ${file}.tmp << EOF
  * WHETHER THEY ARE BUILT BY OTHERS OR DURING DEVELOPMENT OR FOR THE
  * OFFICIAL PARTCLONE RELEASES.
  */
-#define git_version  "${git_ver:0:7}"
+#define git_version  "${git_ver}"
 
 EOF
   # Do not modify the version file if the content did not change
