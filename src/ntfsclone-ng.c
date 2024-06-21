@@ -278,6 +278,10 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     }
 
+    // Include the potential Boot Record copy located after the end of the NTFS volume
+    pc_set_bit(fs_info.totalblock - 1, bitmap, fs_info.totalblock);
+    used_block++;
+
     /// update progress
     update_pui(&prog, 1, 1, 1);
 
@@ -315,6 +319,14 @@ void read_super_blocks(char* device, file_system_info* fs_info)
 #endif
     fs_info->device_size = ntfs_device_size_get(ntfs->dev, 1);
     fs_close();
+
+    if (fs_info->device_size > (fs_info->totalblock * fs_info->block_size)) {
+
+        // There is a copy of the Boot Record after the end of the NTFS volume.
+        // See http://thestarman.pcministry.com/asm/mbr/NTFSBR.htm#BSback
+        fs_info->totalblock += 1;
+        fs_info->usedblocks += 1;
+    }
 
     log_mesg(3, 0, 0, fs_opt.debug, "%s: hdr - usedblocks:\t: %llu\n", __FILE__, fs_info->usedblocks);
     log_mesg(3, 0, 0, fs_opt.debug, "%s: hdr - totalblocks:\t: %llu\n", __FILE__, fs_info->totalblock);
