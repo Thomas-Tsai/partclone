@@ -167,7 +167,7 @@ then
   scriptdir=`dirname "$0"`
   file="$scriptdir/src/version.h"
   GIT_REPOSITORY=`git remote -v | grep partclone`
-  GIT_REVISION=`git describe --abbrev=7 --dirty --always --tags`
+  GIT_REVISION=`git describe --abbrev=7 --always --tags`
   git_ver="none"
 
   if [ "${GIT_REPOSITORY}" = "" ];
