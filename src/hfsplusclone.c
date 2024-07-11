@@ -132,15 +132,17 @@ static void fs_open(char* device){
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: read HFSPlusVolumeHeader fail\n", __FILE__);
     memcpy(&sb, buffer, sizeof(HFSPlusVolumeHeader));
 
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: HFS_Plus signature original endian %x \n", __FILE__, HFS_Signature);
     HFS_Signature = be16toh(sb.signature);
     
     if(HFS_Signature == HFSSignature) {
         open_wrapped_volume(device, &HFS_Signature, buffer);
     }
 
+    log_mesg(2, 0, 0, fs_opt.debug, "%s: HFS_Plus signature %x \n", __FILE__, HFS_Signature);
+
     if(HFS_Signature != HFSPlusSignature && HFS_Signature != HFSXSignature){
-        log_mesg(0, 1, 1, fs_opt.debug, "%s: HFS_Plus incorrect signature '%c%c'\n", __FILE__,
-            (char)(HFS_Signature >> 8), (char)HFS_Signature);
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: HFS_Plus incorrect signature %x'\n", __FILE__, HFS_Signature);
     }
 
     HFS_Version = (short)be16toh(sb.version);
