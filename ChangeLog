@@ -1,4 +1,20 @@
+2024-07-15  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	fix  read error: Success issue, revert ntfsclone
+
+2024-07-11  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	add hfs plus Signature log test
+
 2024-06-21  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update configure.ac and set version 0.3.31; release 0.3.31
+
+	update action for docker build
+
+	release 0.3.30
+
+	update log and docs
 
 	Merge pull request #54 from pfrouleau/review/include_NTFS_backup_boot_sector_in_the_image
 	Include the NTFS Boot Record backup in the cloned image
