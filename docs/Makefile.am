@@ -11,6 +11,10 @@ man_MANS += partclone.ext4.8
 man_MANS += partclone.ext4dev.8
 endif
 
+if ENABLE_APFS
+man_MANS += partclone.apfs.8
+endif
+
 if ENABLE_REISERFS
 man_MANS += partclone.reiserfs.8
 endif
