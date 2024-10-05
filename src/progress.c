@@ -16,8 +16,8 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <math.h>
-#include <float.h>
 #include "config.h"
 #include "progress.h"
 #include "gettext.h"
@@ -119,12 +119,12 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long copied
     char Rformated[12], Eformated[12];
     char speed_unit[] = "    ";
     struct tm *Rtm, *Etm;
-    uint64_t gibyte = pow(2,30);
-    uint64_t mibyte = pow(2,20);
-    uint64_t kibyte = pow(2,10);
-    uint64_t gbyte = 1000000000.0;
-    uint64_t mbyte = 1000000;
-    uint64_t kbyte = 1000;
+    uint64_t gibyte = UINT64_C(1) << 30;
+    uint64_t mibyte = UINT64_C(1) << 20;
+    uint64_t kibyte = UINT64_C(1) << 10;
+    uint64_t gbyte = UINT64_C(1000000000);
+    uint64_t mbyte = UINT64_C(1000000);
+    uint64_t kbyte = UINT64_C(1000);
     int spflen = 0;
     int prefered_bits_size = prog->binary_prefix;
 
