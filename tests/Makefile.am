@@ -19,9 +19,9 @@ if ENABLE_REISERFS
 TESTS += reiserfs.test
 endif
 
-#if ENABLE_REISER4
+if ENABLE_REISER4
 TESTS += reiser4.test
-#endif
+endif
 
 if ENABLE_HFSP
 TESTS += hfsplus.test
