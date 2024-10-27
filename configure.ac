@@ -290,6 +290,7 @@ if test "$enable_ntfs" = "yes"; then
     #check library of some filesystems
     dnl Check for NTFS-3g
     AS_MESSAGE([checking  for NTFS-3g Library and Header files ... ...])
+    AC_CHECK_HEADERS([sys/time.h sys/stat.h time.h])
     AC_CHECK_HEADERS([ntfs-3g/misc.h], ntfs_3g_h=1,
     AC_MSG_WARN([*** NTFS(libntfs-3g-dev) header not found]))
     AC_CHECK_LIB([ntfs-3g], [ntfs_mount], ntfs_3g_l=1,
