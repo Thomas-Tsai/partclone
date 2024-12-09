@@ -14,7 +14,7 @@ XFS_SOURCE=xfs/libxfs/cache.c xfs/libxfs/crc32.c xfs/libxfs/defer_item.c xfs/lib
 
 EXFATFS_SOURCE=exfat/cluster.c exfat/utf.c exfat/utils.c exfat/lookup.c exfat/io.c exfat/log.c exfat/node.c exfat/mount.c exfat/time.c
 
-F2FS_SOURCE=f2fs/fsck.c f2fs/libf2fs.c f2fs/fsck.h f2fs/mount.c f2fs/f2fs_fs.h f2fs/list.h f2fs/f2fs.h
+F2FS_SOURCE=f2fs/fsck.c f2fs/fsck.h f2fs/f2fs.h f2fs/mount.c f2fs/mkquota.c f2fs/quotaio.c f2fs/dump.c f2fs/dir.c f2fs/quotaio_v2.c f2fs/node.c f2fs/segment.c f2fs/xattr.c  f2fs/dict.c f2fs/quotaio_tree.c
 
 if ENABLE_STATIC
 AM_LDFLAGS=-static
@@ -110,8 +110,8 @@ endif
 if ENABLE_F2FS
 sbin_PROGRAMS += partclone.f2fs
 partclone_f2fs_SOURCES=$(main_files) f2fsclone.c f2fsclone.h $(F2FS_SOURCE)
-partclone_f2fs_CFLAGS=-DF2FS
-partclone_f2fs_LDADD=-luuid -lcrypto ${LDADD_static}
+partclone_f2fs_CFLAGS=-DF2FS -If2fs/
+partclone_f2fs_LDADD=-luuid -lcrypto -lf2fs ${LDADD_static}
 endif
 
 if ENABLE_NILFS2
