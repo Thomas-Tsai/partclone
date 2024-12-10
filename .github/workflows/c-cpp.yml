@@ -17,6 +17,7 @@ jobs:
     - name: install packages
       run: | 
           sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+          sudo sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
           sudo apt-get update
           sudo apt-get build-dep partclone
           sudo apt-get install libf2fs-dev
