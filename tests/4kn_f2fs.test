@@ -1,0 +1,5 @@
+#qemu-system-x86_64 -machine q35,accel=kvm -net nic  -net user,hostfwd=::2234-:22   -m 4096  -smp 2  -cpu host  -boot d  -cdrom  /home/thomas/Downloads/clonezilla-live-20240715-noble-amd64.iso -drive file=img.qcow2,format=qcow2,if=none,id=drive-virtio-disk1 -device virtio-blk-pci,drive=drive-virtio-disk1,id=virtio-disk1,logical_block_size=4096,physical_block_size=4096
+#fdisk vda1
+# sudo mkfs.f2fs -f /dev/vda1
+# make sure you get 4k sector size
+# then , test partclone.f2fs

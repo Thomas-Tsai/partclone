@@ -14,6 +14,7 @@ jobs:
           sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
           sudo apt-get update
           sudo apt-get build-dep -y partclone
+          sudo apt-get install libf2fs-dev
           sudo apt-get install -y f2fs-tools hfsprogs exfatprogs gddrescue libfuse-dev jfsutils reiser4progs hfsprogs hfsplus reiserfsprogs
     - name: automake
       run: ./autogen
