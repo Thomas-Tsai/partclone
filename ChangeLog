@@ -1,4 +1,47 @@
+2024-12-10  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	add f2fs 4kn sector size support
+
+2024-12-09  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	upgrade f2fs
+
+2024-10-30  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #253 from chewi/reiser4-test
+	Conditionally run the reiser4 test
+
+2024-10-29  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #254 from chewi/ntfs-headers
+	ntfstime.h uses the time.h, sys/stat.h, sys/time.h headers
+
+2024-10-28  James Le Cuirot  <chewi@gentoo.org>
+
+	ntfstime.h uses the time.h, sys/stat.h, sys/time.h headers
+	Not doing this check can result in an implicit declaration error.
+
+	Conditionally run the reiser4 test
+	The line to add the test was uncommented a while ago, possibly
+	intentionally, but the surrounding lines to make it conditional were
+	not. Disclaimer: I have not actually tried to run the test.
+
+2024-10-07  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #252 from blanktonio/progress_pow
+	Prevent use of run-time floating point math functions for compile-time integer constants
+
+2024-10-05  Anton Samsonov  <Anton.V.Samsonov@mcst.ru>
+
+	Prevent use of run-time FP math functions
+
+2024-07-30  Yu-Chin Tsai  <tlinux.tsai@gmail.com>
+
+	add apfs man pages
+
 2024-07-15  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	release 0.3.32
 
 	fix  read error: Success issue, revert ntfsclone
 
