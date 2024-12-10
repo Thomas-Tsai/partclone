@@ -1,3 +1,4 @@
+AUTOMAKE_OPTIONS = serial-tests
 TESTS =  dd.test
 
 if ENABLE_FS_TEST
