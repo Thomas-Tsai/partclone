@@ -1,4 +1,14 @@
+2024-12-12  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	upgrade f2fs to 1.16
+
 2024-12-10  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	enable serial-tests
+
+	update github action for ubuntu2404
+
+	update ChangeLog, too
 
 	add f2fs 4kn sector size support
 
