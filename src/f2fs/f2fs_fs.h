@@ -263,7 +263,7 @@ static inline uint64_t bswap_64(uint64_t val)
 
 #define MSG(n, fmt, ...)						\
 	do {								\
-		if (c.dbg_lv >= n && !c.layout && !c.show_file_map) {	\
+		if (c.dbg_lv > n && !c.layout && !c.show_file_map) {	\
 			printf(fmt, ##__VA_ARGS__);			\
 		}							\
 	} while (0)
