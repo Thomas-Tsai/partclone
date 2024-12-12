@@ -77,10 +77,16 @@
 #define static_assert _Static_assert
 #endif
 
+#ifdef HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
+#endif
+
+#ifndef fallthrough
 #ifdef __clang__
 #define fallthrough do {} while (0) /* fall through */
 #else
 #define fallthrough __attribute__((__fallthrough__))
+#endif
 #endif
 
 #ifdef _WIN32
@@ -257,7 +263,7 @@ static inline uint64_t bswap_64(uint64_t val)
 
 #define MSG(n, fmt, ...)						\
 	do {								\
-		if (c.dbg_lv > n && !c.layout && !c.show_file_map) {	\
+		if (c.dbg_lv >= n && !c.layout && !c.show_file_map) {	\
 			printf(fmt, ##__VA_ARGS__);			\
 		}							\
 	} while (0)
@@ -343,10 +349,6 @@ static inline uint64_t bswap_64(uint64_t val)
 		snprintf(buf, len, #member)
 
 /* these are defined in kernel */
-#ifndef PAGE_SIZE
-#define PAGE_SIZE		4096
-#endif
-#define PAGE_CACHE_SIZE		4096
 #define BITS_PER_BYTE		8
 #ifndef SECTOR_SHIFT
 #define SECTOR_SHIFT		9
@@ -478,7 +480,6 @@ struct f2fs_configuration {
 	uint64_t wanted_total_sectors;
 	uint64_t wanted_sector_size;
 	uint64_t target_sectors;
-	uint64_t max_size;
 	uint32_t sectors_per_blk;
 	uint32_t blks_per_seg;
 	__u8 init_version[VERSION_LEN + 1];
@@ -507,6 +508,9 @@ struct f2fs_configuration {
 	int force;
 	int defset;
 	int bug_on;
+	int force_stop;
+	int abnormal_stop;
+	int fs_errors;
 	int bug_nat_bits;
 	bool quota_fixed;
 	int alloc_failed;
@@ -756,6 +760,42 @@ struct f2fs_device {
 
 static_assert(sizeof(struct f2fs_device) == 68, "");
 
+/* reason of stop_checkpoint */
+enum stop_cp_reason {
+	STOP_CP_REASON_SHUTDOWN,
+	STOP_CP_REASON_FAULT_INJECT,
+	STOP_CP_REASON_META_PAGE,
+	STOP_CP_REASON_WRITE_FAIL,
+	STOP_CP_REASON_CORRUPTED_SUMMARY,
+	STOP_CP_REASON_UPDATE_INODE,
+	STOP_CP_REASON_FLUSH_FAIL,
+	STOP_CP_REASON_MAX,
+};
+
+#define	MAX_STOP_REASON			32
+
+/* detail reason for EFSCORRUPTED */
+enum f2fs_error {
+	ERROR_CORRUPTED_CLUSTER,
+	ERROR_FAIL_DECOMPRESSION,
+	ERROR_INVALID_BLKADDR,
+	ERROR_CORRUPTED_DIRENT,
+	ERROR_CORRUPTED_INODE,
+	ERROR_INCONSISTENT_SUMMARY,
+	ERROR_INCONSISTENT_FOOTER,
+	ERROR_INCONSISTENT_SUM_TYPE,
+	ERROR_CORRUPTED_JOURNAL,
+	ERROR_INCONSISTENT_NODE_COUNT,
+	ERROR_INCONSISTENT_BLOCK_COUNT,
+	ERROR_INVALID_CURSEG,
+	ERROR_INCONSISTENT_SIT,
+	ERROR_CORRUPTED_VERITY_XATTR,
+	ERROR_CORRUPTED_XATTR,
+	ERROR_MAX,
+};
+
+#define MAX_F2FS_ERRORS			16
+
 struct f2fs_super_block {
 	__le32 magic;			/* Magic Number */
 	__le16 major_ver;		/* Major Version */
@@ -800,7 +840,9 @@ struct f2fs_super_block {
 	__u8 hot_ext_count;		/* # of hot file extension */
 	__le16  s_encoding;		/* Filename charset encoding */
 	__le16  s_encoding_flags;	/* Filename charset encoding flags */
-	__u8 reserved[306];		/* valid reserved region */
+	__u8 s_stop_reason[MAX_STOP_REASON];	/* stop checkpoint reason */
+	__u8 s_errors[MAX_F2FS_ERRORS];		/* reason of image corrupts */
+	__u8 reserved[258];		/* valid reserved region */
 	__le32 crc;			/* checksum of superblock */
 };
 
@@ -943,9 +985,10 @@ static_assert(sizeof(struct f2fs_extent) == 12, "");
 				DEFAULT_INLINE_XATTR_ADDRS -		\
 				F2FS_TOTAL_EXTRA_ATTR_SIZE -		\
 				DEF_INLINE_RESERVED_SIZE))
-#define INLINE_DATA_OFFSET	(PAGE_CACHE_SIZE - sizeof(struct node_footer) \
-				- sizeof(__le32)*(DEF_ADDRS_PER_INODE + 5 - \
-				DEF_INLINE_RESERVED_SIZE))
+#define INLINE_DATA_OFFSET	(F2FS_BLKSIZE -				\
+				sizeof(struct node_footer) -		\
+				sizeof(__le32) * (DEF_ADDRS_PER_INODE +	\
+				5 - DEF_INLINE_RESERVED_SIZE))
 
 #define DEF_DIR_LEVEL		0
 
@@ -1087,7 +1130,7 @@ static_assert(sizeof(struct f2fs_node) == 4096, "");
 /*
  * For NAT entries
  */
-#define NAT_ENTRY_PER_BLOCK (PAGE_CACHE_SIZE / sizeof(struct f2fs_nat_entry))
+#define NAT_ENTRY_PER_BLOCK (F2FS_BLKSIZE / sizeof(struct f2fs_nat_entry))
 #define NAT_BLOCK_OFFSET(start_nid) (start_nid / NAT_ENTRY_PER_BLOCK)
 
 #define DEFAULT_NAT_ENTRY_RATIO		20
@@ -1114,7 +1157,7 @@ static_assert(sizeof(struct f2fs_nat_block) == 4095, "");
  * Not allow to change this.
  */
 #define SIT_VBLOCK_MAP_SIZE 64
-#define SIT_ENTRY_PER_BLOCK (PAGE_CACHE_SIZE / sizeof(struct f2fs_sit_entry))
+#define SIT_ENTRY_PER_BLOCK (F2FS_BLKSIZE / sizeof(struct f2fs_sit_entry))
 
 /*
  * F2FS uses 4 bytes to represent block address. As a result, supported size of
@@ -1125,6 +1168,10 @@ static_assert(sizeof(struct f2fs_nat_block) == 4095, "");
 #define MAX_SIT_BITMAP_SIZE    (SEG_ALIGN(SIZE_ALIGN(F2FS_MAX_SEGMENT, \
 						SIT_ENTRY_PER_BLOCK)) * \
 						c.blks_per_seg / 8)
+#define MAX_CP_PAYLOAD         (SEG_ALIGN(SIZE_ALIGN(UINT32_MAX, NAT_ENTRY_PER_BLOCK)) * \
+						DEFAULT_NAT_ENTRY_RATIO / 100 * \
+						c.blks_per_seg / 8 + \
+						MAX_SIT_BITMAP_SIZE - MAX_BITMAP_SIZE_IN_CKPT)
 
 /*
  * Note that f2fs_sit_entry->vblocks has the following bit-field information.
@@ -1311,7 +1358,7 @@ typedef __le32	f2fs_hash_t;
 #define SIZE_OF_DIR_ENTRY	11	/* by byte */
 #define SIZE_OF_DENTRY_BITMAP	((NR_DENTRY_IN_BLOCK + BITS_PER_BYTE - 1) / \
 					BITS_PER_BYTE)
-#define SIZE_OF_RESERVED	(PAGE_SIZE - ((SIZE_OF_DIR_ENTRY + \
+#define SIZE_OF_RESERVED	(F2FS_BLKSIZE - ((SIZE_OF_DIR_ENTRY + \
 				F2FS_SLOT_LEN) * \
 				NR_DENTRY_IN_BLOCK + SIZE_OF_DENTRY_BITMAP))
 #define MIN_INLINE_DENTRY_SIZE		40	/* just include '.' and '..' entries */
@@ -1335,7 +1382,7 @@ struct f2fs_dentry_block {
 	__u8 filename[NR_DENTRY_IN_BLOCK][F2FS_SLOT_LEN];
 };
 
-static_assert(sizeof(struct f2fs_dentry_block) == 4096, "");
+static_assert(sizeof(struct f2fs_dentry_block) == F2FS_BLKSIZE, "");
 
 /* for inline stuff */
 #define DEF_INLINE_RESERVED_SIZE	1
@@ -1554,9 +1601,11 @@ blk_zone_cond_str(struct blk_zone *blkz)
 
 #endif
 
+struct blk_zone;
+
 extern int f2fs_get_zoned_model(int);
 extern int f2fs_get_zone_blocks(int);
-extern int f2fs_report_zone(int, uint64_t, void *);
+extern int f2fs_report_zone(int, uint64_t, struct blk_zone *);
 typedef int (report_zones_cb_t)(int i, void *, void *);
 extern int f2fs_report_zones(int, report_zones_cb_t *, void *);
 extern int f2fs_check_zones(int);
@@ -1586,10 +1635,13 @@ static inline double get_best_overprovision(struct f2fs_super_block *sb)
 	}
 
 	for (; candidate <= end; candidate += diff) {
-		reserved = (2 * (100 / candidate + 1) + 6) *
+		reserved = (100 / candidate + 1 + NR_CURSEG_TYPE) *
 				round_up(usable_main_segs, get_sb(section_count));
 		ovp = (usable_main_segs - reserved) * candidate / 100;
-		space = usable_main_segs - reserved - ovp;
+		if (ovp < 0)
+			continue;
+		space = usable_main_segs - max(reserved, ovp) -
+					2 * get_sb(segs_per_sec);
 		if (max_space < space) {
 			max_space = space;
 			max_ovp = candidate;

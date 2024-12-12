@@ -21,7 +21,6 @@
 #include <limits.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <arpa/inet.h>
 
 #include "dict.h"
 #include "f2fs_fs.h"
@@ -196,8 +195,6 @@ struct quotafile_ops {
 # endif
 #define __force
 #endif
-
-#define be32_to_cpu(n) ntohl(n)
 
 /* Open existing quotafile of given type (and verify its format) on given
  * filesystem. */

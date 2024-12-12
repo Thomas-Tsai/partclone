@@ -121,7 +121,7 @@ static void write_all_xattrs(struct f2fs_sb_info *sbi,
 	/* write to xattr node block */
 	xattr_addr = (void *)xattr_node;
 	memcpy(xattr_addr, txattr_addr + inline_size,
-			PAGE_SIZE - sizeof(struct node_footer));
+			F2FS_BLKSIZE - sizeof(struct node_footer));
 
 	ret = dev_write_block(xattr_node, blkaddr);
 

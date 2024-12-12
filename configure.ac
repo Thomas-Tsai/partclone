@@ -242,20 +242,9 @@ AC_ARG_ENABLE([f2fs],
 
 AM_CONDITIONAL(ENABLE_F2FS, test "$enable_f2fs" = yes)
 
-if test "$enable_f2fs" = "yes"; then
-#check library of f2fs filesystems
-dnl Check for F2FS
-AS_MESSAGE([checking  for F2FS Library and Header files ... ...])
-AC_CHECK_HEADERS([f2fs-tools/f2fs_fs.h], ,
-  AC_MSG_ERROR([*** F2FS header files (f2fs-tools/f2fs_fs.h) not found])
-)
-AC_CHECK_LIB([f2fs], [f2fs_get_device_info], true,
-    AC_MSG_ERROR([*** f2fs library (libef2fs) not found]))
-
 supported_fs=$supported_fs" f2fs"
-f2fs_version="unknown, suggest 1.15.0"
+f2fs_version="build-in 1.16"
 
-fi
 ##end of check f2fs
 
 ##nilfs2##

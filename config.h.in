@@ -38,9 +38,6 @@
 /* Define to 1 if you have the <ext2fs/ext2fs.h> header file. */
 #undef HAVE_EXT2FS_EXT2FS_H
 
-/* Define to 1 if you have the <f2fs-tools/f2fs_fs.h> header file. */
-#undef HAVE_F2FS_TOOLS_F2FS_FS_H
-
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 

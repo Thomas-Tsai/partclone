@@ -6,7 +6,6 @@
  * Hyojun Kim <hyojun@google.com> - Ported to f2fs-tools
  */
 
-#include "config.h"
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>

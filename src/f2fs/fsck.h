@@ -50,7 +50,7 @@ enum SB_ADDR {
 	SB_MAX_ADDR,
 };
 
-#define SB_MASK(i)	(1 << i)
+#define SB_MASK(i)	(1 << (i))
 #define SB_MASK_ALL	(SB_MASK(SB0_ADDR) | SB_MASK(SB1_ADDR))
 
 /* fsck.c */
@@ -237,6 +237,8 @@ extern void update_data_blkaddr(struct f2fs_sb_info *, nid_t, u16, block_t);
 extern void update_nat_blkaddr(struct f2fs_sb_info *, nid_t, nid_t, block_t);
 
 extern void print_raw_sb_info(struct f2fs_super_block *);
+extern bool is_checkpoint_stop(struct f2fs_super_block *, bool);
+extern bool is_inconsistent_error(struct f2fs_super_block *);
 extern pgoff_t current_nat_addr(struct f2fs_sb_info *, nid_t, int *);
 
 extern u32 get_free_segments(struct f2fs_sb_info *);
@@ -262,6 +264,7 @@ struct dump_option {
 	int start_ssa;
 	int end_ssa;
 	int32_t blk_addr;
+	nid_t scan_nid;
 };
 
 extern void nat_dump(struct f2fs_sb_info *, nid_t, nid_t);
@@ -270,6 +273,7 @@ extern void ssa_dump(struct f2fs_sb_info *, int, int);
 extern int dump_node(struct f2fs_sb_info *, nid_t, int);
 extern int dump_info_from_blkaddr(struct f2fs_sb_info *, u32);
 extern unsigned int start_bidx_of_node(unsigned int, struct f2fs_node *);
+extern void dump_node_scan_disk(struct f2fs_sb_info *sbi, nid_t nid);
 
 
 /* defrag.c */

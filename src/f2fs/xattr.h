@@ -35,7 +35,9 @@ struct f2fs_xattr_entry {
 };
 
 #define FS_ENCRYPTION_CONTEXT_FORMAT_V1 1
+#ifndef FS_KEY_DESCRIPTOR_SIZE
 #define FS_KEY_DESCRIPTOR_SIZE 8
+#endif
 #define FS_KEY_DERIVATION_NONCE_SIZE 16
 
 struct fscrypt_context {
@@ -45,7 +47,9 @@ struct fscrypt_context {
 	u8 flags;
 	u8 master_key_descriptor[FS_KEY_DESCRIPTOR_SIZE];
 	u8 nonce[FS_KEY_DERIVATION_NONCE_SIZE];
-} __attribute__((packed));
+};
+
+static_assert(sizeof(struct fscrypt_context) == 28, "");
 
 #define F2FS_ACL_VERSION	0x0001
 
@@ -128,7 +132,7 @@ static inline int f2fs_acl_count(int size)
 			!IS_XATTR_LAST_ENTRY(entry); \
 			entry = XATTR_NEXT_ENTRY(entry))
 
-#define MIN_OFFSET	XATTR_ALIGN(PAGE_SIZE -			\
+#define MIN_OFFSET	XATTR_ALIGN(F2FS_BLKSIZE -		\
 		sizeof(struct node_footer) - sizeof(__u32))
 
 #define MAX_VALUE_LEN	(MIN_OFFSET -				\

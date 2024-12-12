@@ -706,13 +706,16 @@ void fsck_chk_inode_blk(struct f2fs_sb_info *sbi, u32 nid,
 	int ofs;
 	char *en;
 	u32 namelen;
-	unsigned int idx = 0;
+	unsigned int addrs, idx = 0;
 	unsigned short i_gc_failures;
 	int need_fix = 0;
 	int ret;
 	u32 cluster_size = 1 << node_blk->i.i_log_cluster_size;
 
-	if (!compr_supported && compressed) {
+	if (!compressed)
+		goto check_next;
+
+	if (!compr_supported || (node_blk->i.i_inline & F2FS_INLINE_DATA)) {
 		/*
 		 * The 'compression' flag in i_flags affects the traverse of
 		 * the node tree.  Thus, it must be fixed unconditionally
@@ -727,6 +730,7 @@ void fsck_chk_inode_blk(struct f2fs_sb_info *sbi, u32 nid,
 		}
 		i_flags &= ~F2FS_COMPR_FL;
 	}
+check_next:
 	memset(&child, 0, sizeof(child));
 	child.links = 2;
 	child.p_ino = nid;
@@ -738,8 +742,10 @@ void fsck_chk_inode_blk(struct f2fs_sb_info *sbi, u32 nid,
 
 	if (ftype == F2FS_FT_DIR) {
 		f2fs_set_main_bitmap(sbi, ni->blk_addr, CURSEG_HOT_NODE);
-		memcpy(child.p_name, node_blk->i.i_name,
-					node_blk->i.i_namelen);
+		namelen = le32_to_cpu(node_blk->i.i_namelen);
+		if (namelen > F2FS_NAME_LEN)
+			namelen = F2FS_NAME_LEN;
+		memcpy(child.p_name, node_blk->i.i_name, namelen);
 	} else {
 		if (f2fs_test_main_bitmap(sbi, ni->blk_addr) == 0) {
 			f2fs_set_main_bitmap(sbi, ni->blk_addr,
@@ -926,17 +932,16 @@ void fsck_chk_inode_blk(struct f2fs_sb_info *sbi, u32 nid,
 	}
 
 	/* check data blocks in inode */
+	addrs = ADDRS_PER_INODE(&node_blk->i);
 	if (cur_qtype != -1) {
+		u64 addrs_per_blk = (u64)ADDRS_PER_BLOCK(&node_blk->i);
 		qf_szchk_type[cur_qtype] = QF_SZCHK_REGFILE;
-		qf_maxsize[cur_qtype] = (ADDRS_PER_INODE(&node_blk->i) +
-				2 * ADDRS_PER_BLOCK(&node_blk->i) +
-				2 * ADDRS_PER_BLOCK(&node_blk->i) *
-				NIDS_PER_BLOCK +
-				(u64) ADDRS_PER_BLOCK(&node_blk->i) *
-				NIDS_PER_BLOCK * NIDS_PER_BLOCK) * F2FS_BLKSIZE;
+		qf_maxsize[cur_qtype] = (u64)(addrs + 2 * addrs_per_blk +
+				2 * addrs_per_blk * NIDS_PER_BLOCK +
+				addrs_per_blk * NIDS_PER_BLOCK *
+				NIDS_PER_BLOCK) * F2FS_BLKSIZE;
 	}
-	for (idx = 0; idx < ADDRS_PER_INODE(&node_blk->i);
-						idx++, child.pgofs++) {
+	for (idx = 0; idx < addrs; idx++, child.pgofs++) {
 		block_t blkaddr = le32_to_cpu(node_blk->i.i_addr[ofs + idx]);
 
 		/* check extent info */
@@ -2059,7 +2064,7 @@ int fsck_chk_meta(struct f2fs_sb_info *sbi)
 	unsigned int i;
 
 	/* 1. check sit usage with CP: curseg is lost? */
-	for (i = 0; i < TOTAL_SEGS(sbi); i++) {
+	for (i = 0; i < MAIN_SEGS(sbi); i++) {
 		se = get_seg_entry(sbi, i);
 		if (se->valid_blocks != 0)
 			sit_valid_segs++;
@@ -2457,6 +2462,9 @@ static int check_curseg_write_pointer(struct f2fs_sb_info *sbi, int type)
 	if (i >= MAX_DEVICES)
 		return -EINVAL;
 
+	if (c.devices[i].zoned_model != F2FS_ZONED_HM)
+		return 0;
+
 	/* get write pointer position of the zone the curseg points to */
 	cs_sector = (cs_block - c.devices[i].start_blkaddr)
 		<< log_sectors_per_block;
@@ -2602,7 +2610,7 @@ int check_sit_types(struct f2fs_sb_info *sbi)
 	unsigned int i;
 	int err = 0;
 
-	for (i = 0; i < TOTAL_SEGS(sbi); i++) {
+	for (i = 0; i < MAIN_SEGS(sbi); i++) {
 		struct seg_entry *se;
 
 		se = get_seg_entry(sbi, i);
@@ -3175,6 +3183,7 @@ int fsck_verify(struct f2fs_sb_info *sbi)
 	struct f2fs_fsck *fsck = F2FS_FSCK(sbi);
 	struct hard_link_node *node = NULL;
 	bool verify_failed = false;
+	uint64_t max_blks, data_secs, node_secs, free_blks;
 
 	if (c.show_file_map)
 		return 0;
@@ -3225,10 +3234,16 @@ int fsck_verify(struct f2fs_sb_info *sbi)
 		}
 		c.bug_on = 1;
 	}
-	printf("[FSCK] Max image size: %"PRIu64" MB, Free space: %u MB\n",
-		c.max_size >> 20,
-		(sbi->user_block_count - sbi->total_valid_block_count) >>
-		(20 - F2FS_BLKSIZE_BITS));
+
+	data_secs = round_up(sbi->total_valid_node_count, BLKS_PER_SEC(sbi));
+	node_secs = round_up(sbi->total_valid_block_count -
+				sbi->total_valid_node_count, BLKS_PER_SEC(sbi));
+	free_blks = (sbi->total_sections - data_secs - node_secs) *
+							BLKS_PER_SEC(sbi);
+	max_blks = SM_I(sbi)->main_blkaddr + (data_secs + node_secs) *
+							BLKS_PER_SEC(sbi);
+	printf("[FSCK] Max image size: %"PRIu64" MB, Free space: %"PRIu64" MB\n",
+						max_blks >> 8, free_blks >> 8);
 	printf("[FSCK] Unreachable nat entries                       ");
 	if (nr_unref_nid == 0x0) {
 		printf(" [Ok..] [0x%x]\n", nr_unref_nid);
@@ -3340,6 +3355,7 @@ int fsck_verify(struct f2fs_sb_info *sbi)
 	/* fix global metadata */
 	if (force || (c.fix_on && f2fs_dev_is_writable())) {
 		struct f2fs_checkpoint *cp = F2FS_CKPT(sbi);
+		struct f2fs_super_block *sb = F2FS_RAW_SUPER(sbi);
 
 		if (force || c.bug_on || c.bug_nat_bits || c.quota_fixed) {
 			/* flush nats to write_nit_bits below */
@@ -3355,6 +3371,16 @@ int fsck_verify(struct f2fs_sb_info *sbi)
 			is_set_ckpt_flags(cp, CP_QUOTA_NEED_FSCK_FLAG)) {
 			write_checkpoints(sbi);
 		}
+
+		if (c.abnormal_stop)
+			memset(sb->s_stop_reason, 0, MAX_STOP_REASON);
+
+		if (c.fs_errors)
+			memset(sb->s_errors, 0, MAX_F2FS_ERRORS);
+
+		if (c.abnormal_stop || c.fs_errors)
+			update_superblock(sb, SB_MASK_ALL);
+
 		/* to return FSCK_ERROR_CORRECTED */
 		ret = 0;
 	}

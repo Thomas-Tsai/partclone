@@ -22,9 +22,6 @@
 #endif
 #include <time.h>
 #include <sys/stat.h>
-#ifdef HAVE_SYS_MOUNT_H
-#include <sys/mount.h>
-#endif
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
 #endif
@@ -880,10 +877,12 @@ static int open_check_fs(char *path, int flag)
 	return open(path, O_RDONLY | flag);
 }
 
+#ifdef __linux__
 static int is_power_of_2(unsigned long n)
 {
 	return (n != 0 && ((n & (n - 1)) == 0));
 }
+#endif
 
 int get_device_info(int i)
 {
@@ -896,7 +895,7 @@ int get_device_info(int i)
 #ifdef HDIO_GETGIO
 	struct hd_geometry geom;
 #endif
-#ifdef __linux__
+#if !defined(WITH_ANDROID) && defined(__linux__)
 	sg_io_hdr_t io_hdr;
 	unsigned char reply_buffer[96] = {0};
 	unsigned char model_inq[6] = {MODELINQUIRY};
@@ -998,7 +997,7 @@ int get_device_info(int i)
 #endif
 		}
 
-#ifdef __linux__
+#if !defined(WITH_ANDROID) && defined(__linux__)
 		/* Send INQUIRY command */
 		memset(&io_hdr, 0, sizeof(sg_io_hdr_t));
 		io_hdr.interface_id = 'S';
@@ -1046,12 +1045,9 @@ int get_device_info(int i)
 			return -1;
 		}
 
-		if (!is_power_of_2(dev->zone_size)) {
-			MSG(0, "\tError: zoned: illegal zone size %lu (not a power of 2)\n",
+		if (!is_power_of_2(dev->zone_size))
+			MSG(0, "Info: zoned: zone size %" PRIu64 "u (not a power of 2)\n",
 					dev->zone_size);
-			free(stat_buf);
-			return -1;
-		}
 
 		/*
 		 * Check zone configuration: for the first disk of a
@@ -1065,10 +1061,10 @@ int get_device_info(int i)
 		MSG(0, "Info: Host-%s zoned block device:\n",
 				(dev->zoned_model == F2FS_ZONED_HA) ?
 					"aware" : "managed");
-		MSG(0, "      %u zones, %lu zone size(bytes), %u randomly writeable zones\n",
+		MSG(0, "      %u zones, %" PRIu64 "u zone size(bytes), %u randomly writeable zones\n",
 				dev->nr_zones, dev->zone_size,
 				dev->nr_rnd_zones);
-		MSG(0, "      %lu blocks per zone\n",
+		MSG(0, "      %zu blocks per zone\n",
 				dev->zone_blocks);
 	}
 #endif

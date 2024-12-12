@@ -539,6 +539,39 @@ static bool is_sit_bitmap_set(struct f2fs_sb_info *sbi, u32 blk_addr)
 			(const char *)se->cur_valid_map) != 0;
 }
 
+void dump_node_scan_disk(struct f2fs_sb_info *sbi, nid_t nid)
+{
+	struct f2fs_node *node_blk;
+	pgoff_t blkaddr;
+	int ret;
+	pgoff_t start_blkaddr = SM_I(sbi)->main_blkaddr;
+	pgoff_t end_blkaddr = start_blkaddr +
+		(SM_I(sbi)->main_segments << sbi->log_blocks_per_seg);
+
+	node_blk = calloc(BLOCK_SZ, 1);
+	ASSERT(node_blk);
+	MSG(0, "Info: scan all nid: %u from block_addr [%lu: %lu]\n",
+			nid, start_blkaddr, end_blkaddr);
+
+	for (blkaddr = start_blkaddr; blkaddr < end_blkaddr; blkaddr++) {
+		struct seg_entry *se = get_seg_entry(sbi, GET_SEGNO(sbi, blkaddr));
+		if (se->type < CURSEG_HOT_NODE)
+			continue;
+
+		ret = dev_read_block(node_blk, blkaddr);
+		ASSERT(ret >= 0);
+		if (le32_to_cpu(node_blk->footer.ino) != nid ||
+				le32_to_cpu(node_blk->footer.nid) != nid)
+			continue;
+		MSG(0, "Info: nid: %u, blkaddr: %lu\n", nid, blkaddr);
+		MSG(0, "node_blk.footer.flag [0x%x]\n", le32_to_cpu(node_blk->footer.flag));
+		MSG(0, "node_blk.footer.cp_ver [%x]\n", (u32)(cpver_of_node(node_blk)));
+		print_inode_info(sbi, node_blk, 0);
+	}
+
+	free(node_blk);
+}
+
 int dump_node(struct f2fs_sb_info *sbi, nid_t nid, int force)
 {
 	struct node_info ni;

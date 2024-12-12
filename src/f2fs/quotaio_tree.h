@@ -11,7 +11,7 @@
 #endif
 #include <sys/types.h>
 
-#include <f2fs-tools/f2fs_fs.h>
+#include <f2fs_fs.h>
 
 typedef __u32 qid_t;        /* Type in which we store ids in memory */
 
@@ -33,7 +33,9 @@ struct qt_disk_dqdbheader {
 	__le16 dqdh_entries; /* Number of valid entries in block */
 	__le16 dqdh_pad1;
 	__le32 dqdh_pad2;
-} __attribute__ ((packed));
+};
+
+static_assert(sizeof(struct qt_disk_dqdbheader) == 16, "");
 
 struct dquot;
 struct quota_handle;

@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <libgen.h>
 #include <time.h>
+#include "f2fs/f2fs_fs.h"
 #include "f2fs/fsck.h"
 
 #include "partclone.h"
@@ -36,8 +37,11 @@ static void fs_open(char* device){
     c.ro = 1;
     c.fix_on = 0; 
     c.auto_fix = 0;
-    c.dbg_lv = fs_opt.debug;
-    log_mesg(0, 0, 0, fs_opt.debug, "%s: dbg_lv %i %i\n", __FILE__, c.dbg_lv, fs_opt.debug);
+    if (fs_opt.debug >= 1){
+        c.dbg_lv = fs_opt.debug - 1;
+    } else {
+        c.dbg_lv = fs_opt.debug;
+    }
 
     memset(&gfsck, 0, sizeof(gfsck)); 
     gfsck.sbi.fsck = &gfsck; 

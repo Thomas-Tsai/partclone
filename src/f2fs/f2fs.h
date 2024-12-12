@@ -20,6 +20,8 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
+#include <f2fs_fs.h>
+
 #ifdef HAVE_MNTENT_H
 #include <mntent.h>
 #endif
@@ -34,8 +36,6 @@
 #include <sys/mount.h>
 #endif
 #include <assert.h>
-
-#include "f2fs_fs.h"
 
 #define EXIT_ERR_CODE		(-1)
 #define ver_after(a, b) (typecheck(unsigned long long, a) &&            \
@@ -416,10 +416,13 @@ static inline block_t __start_sum_addr(struct f2fs_sb_info *sbi)
 
 static inline block_t __end_block_addr(struct f2fs_sb_info *sbi)
 {
-	block_t end = SM_I(sbi)->main_blkaddr;
-	return end + le64_to_cpu(F2FS_RAW_SUPER(sbi)->block_count);
+	return SM_I(sbi)->main_blkaddr +
+		(le32_to_cpu(F2FS_RAW_SUPER(sbi)->segment_count_main) <<
+		sbi->log_blocks_per_seg);
 }
 
+#define BLKS_PER_SEC(sbi)						\
+	((sbi)->segs_per_sec * (sbi)->blocks_per_seg)
 #define GET_ZONENO_FROM_SEGNO(sbi, segno)                               \
 	((segno / sbi->segs_per_sec) / sbi->secs_per_zone)
 
@@ -460,6 +463,7 @@ static inline block_t __end_block_addr(struct f2fs_sb_info *sbi)
 #define GET_R2L_SEGNO(sbi, segno)	(segno + FREE_I_START_SEGNO(sbi))
 
 #define MAIN_SEGS(sbi)	(SM_I(sbi)->main_segments)
+#define TOTAL_SEGS(sbi)	(SM_I(sbi)->segment_count)
 #define TOTAL_BLKS(sbi)	(TOTAL_SEGS(sbi) << (sbi)->log_blocks_per_seg)
 #define MAX_BLKADDR(sbi)	(SEG0_BLKADDR(sbi) + TOTAL_BLKS(sbi))
 
@@ -508,7 +512,6 @@ struct fsync_inode_entry {
 	((segno) % sit_i->sents_per_block)
 #define SIT_BLOCK_OFFSET(sit_i, segno)                                  \
 	((segno) / SIT_ENTRY_PER_BLOCK)
-#define TOTAL_SEGS(sbi) (SM_I(sbi)->main_segments)
 
 static inline bool IS_VALID_NID(struct f2fs_sb_info *sbi, u32 nid)
 {
