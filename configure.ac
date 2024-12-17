@@ -450,6 +450,9 @@ if test "$ac_cv_have_decl_isnormal" = "yes" ; then
     AC_TRY_LINK([#include <math.h>], [float f = 0.0; return isnormal(f)], [], [LIBS="$LIBS -lm"])
 fi
 
+##bswap_64()##
+AC_CHECK_HEADERS([byteswap.h])
+
 ##static linking##
 AC_ARG_ENABLE([static],
     AS_HELP_STRING(
