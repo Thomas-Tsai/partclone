@@ -1,5 +1,5 @@
 XSLTPROC=xsltproc
-MAN_STYLESHEET=/usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
+MAN_STYLESHEET=http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl
 
 man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 partclone.restore.8 partclone.8 partclone.imager.8
 
@@ -83,17 +83,14 @@ if ENABLE_MINIX
 man_MANS += partclone.minix.8
 endif
 
-partclone.dd.8: partclone.dd.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.dd.xml)
-partclone.chkimg.8: partclone.chkimg.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.chkimg.xml)
-partclone.info.8: partclone.info.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.info.xml)
-partclone.restore.8: partclone.restore.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.restore.xml)
-partclone.8: partclone.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.xml)
-partclone.ntfsfixboot.8: partclone.ntfsfixboot.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.ntfsfixboot.xml)
-partclone.fstype.8: partclone.fstype.xml
-	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) partclone.fstype.xml)
+man_MANS_corporeal = \
+	partclone.8 \
+	partclone.chkimg.8 \
+	partclone.dd.8 \
+	partclone.fstype.8 \
+	partclone.info.8 \
+	partclone.ntfsfixboot.8 \
+	partclone.restore.8
+
+$(man_MANS_corporeal) : %.8 : %.xml
+	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) $<)
