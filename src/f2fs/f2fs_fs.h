@@ -26,6 +26,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -103,9 +104,6 @@ typedef uint16_t	u16;
 typedef uint8_t		u8;
 typedef u32		block_t;
 typedef u32		nid_t;
-#ifndef bool
-typedef u8		bool;
-#endif
 typedef unsigned long	pgoff_t;
 typedef unsigned short	umode_t;
 
