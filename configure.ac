@@ -87,7 +87,6 @@ AC_MSG_RESULT([$fuse_version])
 fi
 
 AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([*** pthread library (libpthread) not found]))
-AC_PATH_PROG(OBJCOPY, objcopy, ,)
 
 ##ext2/3##
 AC_ARG_ENABLE([extfs],
@@ -451,6 +450,9 @@ if test "$ac_cv_have_decl_isnormal" = "yes" ; then
     AC_TRY_LINK([#include <math.h>], [float f = 0.0; return isnormal(f)], [], [LIBS="$LIBS -lm"])
 fi
 
+##bswap_64()##
+AC_CHECK_HEADERS([byteswap.h])
+
 ##static linking##
 AC_ARG_ENABLE([static],
     AS_HELP_STRING(
@@ -490,6 +492,14 @@ AM_CONDITIONAL(ENABLE_FEATURE_TEST, test "$enable_feature_test" = yes)
 PKG_CHECK_VAR([bashcompletiondir], [bash-completion], [completionsdir], [],
     [bashcompletiondir="${sysconfdir}/bash_completion.d"])
 AC_SUBST(bashcompletiondir)
+
+##fail-mbr
+AC_CHECK_TOOL([OBJCOPY], [objcopy])
+AC_CHECK_TOOL([OBJDUMP], [objdump])
+AM_CONDITIONAL(X86, [case $host_cpu in
+    x86_64|i[0-9]86) true ;;
+    *) false ;;
+esac])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
