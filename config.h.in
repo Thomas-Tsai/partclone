@@ -7,6 +7,9 @@
 /* Define to 1 if you have the <blkid/blkid.h> header file. */
 #undef HAVE_BLKID_BLKID_H
 
+/* Define to 1 if you have the <byteswap.h> header file. */
+#undef HAVE_BYTESWAP_H
+
 /* Define to 1 if you have the MacOS X function CFLocaleCopyCurrent in the
    CoreFoundation framework. */
 #undef HAVE_CFLOCALECOPYCURRENT

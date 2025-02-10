@@ -1,4 +1,4 @@
-AC_INIT([Partclone],[0.3.33],[thomas@clonezilla.org])
+AC_INIT([Partclone],[0.3.34],[thomas@clonezilla.org])
 AM_INIT_AUTOMAKE([-Wall foreign])
 AM_GNU_GETTEXT_VERSION([0.16.1])
 AM_GNU_GETTEXT([external])
@@ -494,6 +494,7 @@ PKG_CHECK_VAR([bashcompletiondir], [bash-completion], [completionsdir], [],
 AC_SUBST(bashcompletiondir)
 
 ##fail-mbr
+AM_CONDITIONAL(ENABLE_FAILMBR, test "$enable_failmbr" = yes)
 AC_CHECK_TOOL([OBJCOPY], [objcopy])
 AC_CHECK_TOOL([OBJDUMP], [objdump])
 AM_CONDITIONAL(X86, [case $host_cpu in

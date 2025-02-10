@@ -1,3 +1,4 @@
+if ENABLE_FAILMBR
 failmbrdir=$(datadir)/@PACKAGE@/
 failmbr_DATA = fail-mbr.bin
 
@@ -36,4 +37,6 @@ else
 fail-mbr.bin: fail-mbr.bin.orig
 	@echo "The architecture is not x86, so the file '$@' is not compiled"
 	cp -vp "$<" "$@"
+endif
+
 endif
