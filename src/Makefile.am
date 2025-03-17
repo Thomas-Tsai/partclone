@@ -178,7 +178,7 @@ endif
 if ENABLE_BTRFS
 sbin_PROGRAMS += partclone.btrfs
 partclone_btrfs_SOURCES=$(main_files) btrfsclone.c btrfsclone.h $(BTRFS_SOURCE)
-partclone_btrfs_CFLAGS=-DBTRFS -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -D_GNU_SOURCE -DCRYPTOPROVIDER_BUILTIN=1 -I$(srcdir)/btrfs -I$(srcdir)/btrfs/include -I$(srcdir)/btrfs/libbtrfsutil 
+partclone_btrfs_CFLAGS=-std=gnu11 -DBTRFS -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -D_GNU_SOURCE -DCRYPTOPROVIDER_BUILTIN=1 -I$(srcdir)/btrfs -I$(srcdir)/btrfs/include -I$(srcdir)/btrfs/libbtrfsutil 
 partclone_btrfs_LDADD=-luuid -lblkid -lcrypto ${LDADD_static}
 endif
 
