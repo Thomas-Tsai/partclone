@@ -36,6 +36,8 @@
 #include "common/defs.h"
 #include "common/internal.h"
 #include "common/messages.h"
+#include "common/string-utils.h"
+#include "uapi/btrfs.h"
 
 static void print_dir_item_type(struct extent_buffer *eb,
                                 struct btrfs_dir_item *di)
@@ -77,6 +79,11 @@ static void print_dir_item(struct extent_buffer *eb, u32 size,
 		printf("\n");
 		name_len = btrfs_dir_name_len(eb, di);
 		data_len = btrfs_dir_data_len(eb, di);
+		if (data_len + name_len + cur > size) {
+			error("invalid length, cur=%u name_len=%u data_len=%u size=%u",
+			      cur, name_len, data_len, size);
+			break;
+		}
 		len = (name_len <= sizeof(namebuf))? name_len: sizeof(namebuf);
 		printf("\t\ttransid %llu data_len %u name_len %u\n",
 				btrfs_dir_transid(eb, di),
@@ -86,7 +93,9 @@ static void print_dir_item(struct extent_buffer *eb, u32 size,
 		} else {
 			read_extent_buffer(eb, namebuf,
 					(unsigned long)(di + 1), len);
-			printf("\t\tname: %.*s\n", len, namebuf);
+			printf("\t\tname: ");
+			string_print_escape_special_len(namebuf, len);
+			printf("\n");
 		}
 
 		if (data_len) {
@@ -97,7 +106,9 @@ static void print_dir_item(struct extent_buffer *eb, u32 size,
 			} else {
 				read_extent_buffer(eb, namebuf,
 					(unsigned long)(di + 1) + name_len, len);
-				printf("\t\tdata %.*s\n", len, namebuf);
+				printf("\t\tdata ");
+				string_print_escape_special_len(namebuf, len);
+				printf("\n");
 			}
 		}
 		len = sizeof(*di) + name_len + data_len;
@@ -130,7 +141,9 @@ static void print_inode_extref_item(struct extent_buffer *eb, u32 size,
 		} else {
 			read_extent_buffer(eb, namebuf,
 					(unsigned long)extref->name, len);
-			printf("name: %.*s\n", len, namebuf);
+			printf("name: ");
+			string_print_escape_special_len(namebuf, len);
+			printf("\n");
 		}
 
 		len = sizeof(*extref) + name_len;
@@ -160,7 +173,9 @@ static void print_inode_ref_item(struct extent_buffer *eb, u32 size,
 		} else {
 			read_extent_buffer(eb, namebuf,
 					(unsigned long)(ref + 1), len);
-			printf("name: %.*s\n", len, namebuf);
+			printf("name: ");
+			string_print_escape_special_len(namebuf, len);
+			printf("\n");
 		}
 		len = sizeof(*ref) + name_len;
 		ref = (struct btrfs_inode_ref *)((char *)ref + len);
@@ -180,7 +195,7 @@ static void bg_flags_to_str(u64 flags, char *ret)
 	ret[0] = '\0';
 	if (flags & BTRFS_BLOCK_GROUP_DATA) {
 		empty = 0;
-		strncpy(ret, "DATA", BG_FLAG_STRING_LEN);
+		strncpy_null(ret, "DATA", BG_FLAG_STRING_LEN);
 	}
 	if (flags & BTRFS_BLOCK_GROUP_METADATA) {
 		if (!empty)
@@ -203,7 +218,7 @@ static void bg_flags_to_str(u64 flags, char *ret)
 		 * Thus here we only fill @profile if it's not single.
 		 */
 		if (strncmp(name, "SINGLE", strlen("SINGLE")) != 0)
-			strncpy(profile, name, BG_FLAG_STRING_LEN);
+			strncpy_null(profile, name, BG_FLAG_STRING_LEN);
 	}
 	if (profile[0]) {
 		strncat(ret, "|", BG_FLAG_STRING_LEN);
@@ -211,19 +226,28 @@ static void bg_flags_to_str(u64 flags, char *ret)
 	}
 }
 
-/* Caller should ensure sizeof(*ret)>= 26 "OFF|SCANNING|INCONSISTENT" */
+/*
+ * Caller should ensure sizeof(*ret) >= 64
+ * "OFF|SCANNING|INCONSISTENT|UNKNOWN(0xffffffffffffffff)"
+ */
 static void qgroup_flags_to_str(u64 flags, char *ret)
 {
 	ret[0] = 0;
+
 	if (flags & BTRFS_QGROUP_STATUS_FLAG_ON)
 		strcpy(ret, "ON");
 	else
 		strcpy(ret, "OFF");
 
+	if (flags & BTRFS_QGROUP_STATUS_FLAG_SIMPLE_MODE)
+		strcat(ret, "|SIMPLE_MODE");
 	if (flags & BTRFS_QGROUP_STATUS_FLAG_RESCAN)
 		strcat(ret, "|SCANNING");
 	if (flags & BTRFS_QGROUP_STATUS_FLAG_INCONSISTENT)
 		strcat(ret, "|INCONSISTENT");
+	if (flags & ~BTRFS_QGROUP_STATUS_FLAGS_MASK)
+		sprintf(ret + strlen(ret), "|UNKNOWN(0x%llx)",
+			flags & ~BTRFS_QGROUP_STATUS_FLAGS_MASK);
 }
 
 void print_chunk_item(struct extent_buffer *eb, struct btrfs_chunk *chunk)
@@ -653,42 +677,11 @@ static void print_free_space_header(struct extent_buffer *leaf, int slot)
 	       (unsigned long long)btrfs_free_space_bitmaps(leaf, header));
 }
 
-struct raid_encoding_map {
-	u8 encoding;
-	char name[16];
-};
-
-static const struct raid_encoding_map raid_map[] = {
-	{ BTRFS_STRIPE_DUP,	"DUP" },
-	{ BTRFS_STRIPE_RAID0,	"RAID0" },
-	{ BTRFS_STRIPE_RAID1,	"RAID1" },
-	{ BTRFS_STRIPE_RAID1C3,	"RAID1C3" },
-	{ BTRFS_STRIPE_RAID1C4, "RAID1C4" },
-	{ BTRFS_STRIPE_RAID5,	"RAID5" },
-	{ BTRFS_STRIPE_RAID6,	"RAID6" },
-	{ BTRFS_STRIPE_RAID10,	"RAID10" }
-};
-
-static const char *stripe_encoding_name(u8 encoding)
-{
-	for (int i = 0; i < ARRAY_SIZE(raid_map); i++) {
-		if (raid_map[i].encoding == encoding)
-			return raid_map[i].name;
-	}
-
-	return "UNKNOWN";
-}
-
 static void print_raid_stripe_key(struct extent_buffer *eb,
 				  u32 item_size, struct btrfs_stripe_extent *stripe)
 {
-	int num_stripes;
-	u8 encoding = btrfs_stripe_extent_encoding(eb, stripe);
+	int num_stripes = item_size / sizeof(struct btrfs_raid_stride);
 
-	num_stripes = (item_size - offsetof(struct btrfs_stripe_extent, strides)) /
-		      sizeof(struct btrfs_raid_stride);
-
-	printf("\t\t\tencoding: %s\n", stripe_encoding_name(encoding));
 	for (int i = 0; i < num_stripes; i++)
 		printf("\t\t\tstripe %d devid %llu physical %llu\n", i,
 		       (unsigned long long)btrfs_raid_stride_devid_nr(eb, stripe, i),
@@ -1380,6 +1373,76 @@ static void print_header_info(struct extent_buffer *eb, unsigned int mode)
 	fflush(stdout);
 }
 
+#define DEV_REPLACE_STRING_LEN				64
+#define CASE_DEV_REPLACE_MODE_ENTRY(dest, name)				\
+	case BTRFS_DEV_REPLACE_ITEM_CONT_READING_FROM_SRCDEV_MODE_##name: \
+		strncpy_null((dest), #name, DEV_REPLACE_STRING_LEN);	\
+		break;
+
+static void replace_mode_to_str(u64 flags, char *ret)
+{
+	ret[0] = 0;
+	switch(flags) {
+	CASE_DEV_REPLACE_MODE_ENTRY(ret, ALWAYS);
+	CASE_DEV_REPLACE_MODE_ENTRY(ret, AVOID);
+	default:
+		snprintf(ret, DEV_REPLACE_STRING_LEN, "unknown(%llu)", flags);
+	}
+}
+#undef DEV_REPLACE_MODE_ENTRY
+
+#define CASE_DEV_REPLACE_STATE_ENTRY(dest, name)			\
+	case BTRFS_IOCTL_DEV_REPLACE_STATE_##name:			\
+		strncpy_null((dest), #name, DEV_REPLACE_STRING_LEN);	\
+		break;
+
+static void replace_state_to_str(u64 flags, char *ret)
+{
+	ret[0] = '\0';
+	switch(flags) {
+	CASE_DEV_REPLACE_STATE_ENTRY(ret, NEVER_STARTED);
+	CASE_DEV_REPLACE_STATE_ENTRY(ret, FINISHED);
+	CASE_DEV_REPLACE_STATE_ENTRY(ret, CANCELED);
+	CASE_DEV_REPLACE_STATE_ENTRY(ret, STARTED);
+	CASE_DEV_REPLACE_STATE_ENTRY(ret, SUSPENDED);
+	default:
+		snprintf(ret, DEV_REPLACE_STRING_LEN, "unknown(%llu)", flags);
+	}
+}
+#undef DEV_REPLACE_STATE_ENTRY
+
+static void print_u64_timespec(u64 timespec, const char *prefix)
+{
+	char time_str[256];
+	struct tm tm;
+	time_t time = timespec;
+
+	localtime_r(&time, &tm);
+	strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", &tm);
+	printf("%s%llu (%s)\n", prefix, timespec, time_str);
+}
+
+static void print_dev_replace_item(struct extent_buffer *eb, struct btrfs_dev_replace_item *ptr)
+{
+	char mode_str[DEV_REPLACE_STRING_LEN] = { 0 };
+	char state_str[DEV_REPLACE_STRING_LEN] = { 0 };
+
+	replace_mode_to_str(btrfs_dev_replace_cont_reading_from_srcdev_mode(eb, ptr),
+			mode_str);
+	replace_state_to_str(btrfs_dev_replace_replace_state(eb, ptr),
+			     state_str);
+	printf("\t\tsrc devid %lld cursor left %llu cursor right %llu mode %s\n",
+		btrfs_dev_replace_src_devid(eb, ptr),
+		btrfs_dev_replace_cursor_left(eb, ptr),
+		btrfs_dev_replace_cursor_right(eb, ptr),
+		mode_str);
+	printf("\t\tstate %s write errors %llu uncorrectable read errors %llu\n",
+		state_str, btrfs_dev_replace_num_write_errors(eb, ptr),
+		btrfs_dev_replace_num_uncorrectable_read_errors(eb, ptr));
+	print_u64_timespec(btrfs_dev_replace_time_started(eb, ptr), "\t\tstart time ");
+	print_u64_timespec(btrfs_dev_replace_time_started(eb, ptr), "\t\tstop time ");
+}
+
 void __btrfs_print_leaf(struct extent_buffer *eb, unsigned int mode)
 {
 	struct btrfs_disk_key disk_key;
@@ -1553,6 +1616,9 @@ void __btrfs_print_leaf(struct extent_buffer *eb, unsigned int mode)
 			break;
 		case BTRFS_RAID_STRIPE_KEY:
 			print_raid_stripe_key(eb, item_size, ptr);
+			break;
+		case BTRFS_DEV_REPLACE_KEY:
+			print_dev_replace_item(eb, ptr);
 			break;
 		};
 		fflush(stdout);
@@ -1862,17 +1928,12 @@ static struct readable_flag_entry super_flags_array[] = {
 	DEF_SUPER_FLAG_ENTRY(CHANGING_FSID_V2),
 	DEF_SUPER_FLAG_ENTRY(SEEDING),
 	DEF_SUPER_FLAG_ENTRY(METADUMP),
-	DEF_SUPER_FLAG_ENTRY(METADUMP_V2)
+	DEF_SUPER_FLAG_ENTRY(METADUMP_V2),
+	DEF_SUPER_FLAG_ENTRY(CHANGING_BG_TREE),
+	DEF_SUPER_FLAG_ENTRY(CHANGING_DATA_CSUM),
+	DEF_SUPER_FLAG_ENTRY(CHANGING_META_CSUM),
 };
 static const int super_flags_num = ARRAY_SIZE(super_flags_array);
-
-#define BTRFS_SUPER_FLAG_SUPP	(BTRFS_HEADER_FLAG_WRITTEN |\
-				 BTRFS_HEADER_FLAG_RELOC |\
-				 BTRFS_SUPER_FLAG_CHANGING_FSID |\
-				 BTRFS_SUPER_FLAG_CHANGING_FSID_V2 |\
-				 BTRFS_SUPER_FLAG_SEEDING |\
-				 BTRFS_SUPER_FLAG_METADUMP |\
-				 BTRFS_SUPER_FLAG_METADUMP_V2)
 
 static void __print_readable_flag(u64 flag, struct readable_flag_entry *array,
 				  int array_size, u64 supported_flags)
@@ -1907,26 +1968,33 @@ static void __print_readable_flag(u64 flag, struct readable_flag_entry *array,
 
 static void print_readable_compat_ro_flag(u64 flag)
 {
-	/*
-	 * We know about the FREE_SPACE_TREE{,_VALID} bits, but we don't
-	 * actually support them yet.
-	 */
+	u64 print_flags = 0;
+
+	for (int i = 0; i < compat_ro_flags_num; i++)
+		print_flags |= compat_ro_flags_array[i].bit;
 	return __print_readable_flag(flag, compat_ro_flags_array,
 				     compat_ro_flags_num,
-				     BTRFS_FEATURE_COMPAT_RO_SUPP);
+				     print_flags);
 }
 
 static void print_readable_incompat_flag(u64 flag)
 {
+	u64 print_flags = 0;
+
+	for (int i = 0; i < incompat_flags_num; i++)
+		print_flags |= incompat_flags_array[i].bit;
 	return __print_readable_flag(flag, incompat_flags_array,
-				     incompat_flags_num,
-				     BTRFS_FEATURE_INCOMPAT_SUPP);
+				     incompat_flags_num, print_flags);
 }
 
 static void print_readable_super_flag(u64 flag)
 {
+	u64 print_flags = 0;
+
+	for (int i = 0; i < super_flags_num; i++)
+		print_flags |= super_flags_array[i].bit;
 	return __print_readable_flag(flag, super_flags_array,
-				     super_flags_num, BTRFS_SUPER_FLAG_SUPP);
+				     super_flags_num, print_flags);
 }
 
 static void print_sys_chunk_array(struct btrfs_super_block *sb)

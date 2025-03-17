@@ -23,15 +23,21 @@
 
 #if BTRFS_FLAT_INCLUDES
 #include "libbtrfs/kerncompat.h"
-#include "kernel-lib/list.h"
-#include "kernel-lib/rbtree.h"
+#include "kernel-lib/rbtree_types.h"
 #include "libbtrfs/ioctl.h"
 #else
 #include <btrfs/kerncompat.h>
-#include <btrfs/list.h>
-#include <btrfs/rbtree.h>
+#include <btrfs/rbtree_types.h>
 #include <btrfs/ioctl.h>
 #endif /* BTRFS_FLAT_INCLUDES */
+
+/*
+ * Stub definition used only for struct declarations, change the name so it
+ * does not clash with a real struct list_head if included.
+ */
+struct list_head_ {
+	struct list_head_ *next, *prev;
+};
 
 struct btrfs_root;
 struct btrfs_trans_handle;
@@ -224,7 +230,7 @@ struct cache_extent {
 struct extent_io_tree {
 	struct cache_tree state;
 	struct cache_tree cache;
-	struct list_head lru;
+	struct list_head_ lru;
 	u64 cache_size;
 	u64 max_cache_size;
 };
@@ -241,8 +247,8 @@ struct extent_state {
 struct extent_buffer {
 	struct cache_extent cache_node;
 	u64 start;
-	struct list_head lru;
-	struct list_head recow;
+	struct list_head_ lru;
+	struct list_head_ recow;
 	u32 len;
 	int refs;
 	u32 flags;
@@ -356,7 +362,6 @@ struct btrfs_free_space_header {
 
 static inline unsigned long btrfs_chunk_item_size(int num_stripes)
 {
-	BUG_ON(num_stripes == 0);
 	return sizeof(struct btrfs_chunk) +
 		sizeof(struct btrfs_stripe) * (num_stripes - 1);
 }
@@ -515,7 +520,6 @@ struct btrfs_super_block {
 	/* Padded to 4096 bytes */
 	u8 padding[565];
 } __attribute__ ((__packed__));
-BUILD_ASSERT(sizeof(struct btrfs_super_block) == BTRFS_SUPER_INFO_SIZE);
 
 /*
  * Compat flags that we support.  If any incompat flags are set other than the
@@ -1195,7 +1199,7 @@ struct btrfs_space_info {
 	 */
 	u64 bytes_reserved;
 	int full;
-	struct list_head list;
+	struct list_head_ list;
 };
 
 struct btrfs_block_group {
@@ -1224,7 +1228,7 @@ struct btrfs_block_group {
 	struct rb_node cache_node;
 
 	/* For dirty block groups */
-	struct list_head dirty_list;
+	struct list_head_ dirty_list;
 
 	/*
 	 * Allocation offset for the block group to implement sequential
@@ -1282,11 +1286,11 @@ struct btrfs_fs_info {
 	u64 total_pinned;
 	u64 nr_global_roots;
 
-	struct list_head dirty_cowonly_roots;
-	struct list_head recow_ebs;
+	struct list_head_ dirty_cowonly_roots;
+	struct list_head_ recow_ebs;
 
 	struct btrfs_fs_devices *fs_devices;
-	struct list_head space_info;
+	struct list_head_ space_info;
 
 	unsigned int system_allocs:1;
 	unsigned int readonly:1;
@@ -1356,10 +1360,10 @@ struct btrfs_root {
 	u32 type;
 	u64 last_inode_alloc;
 
-	struct list_head unaligned_extent_recs;
+	struct list_head_ unaligned_extent_recs;
 
 	/* the dirty list is only used by non-reference counted roots */
-	struct list_head dirty_list;
+	struct list_head_ dirty_list;
 	struct rb_node rb_node;
 };
 
@@ -1375,8 +1379,6 @@ static inline u32 BTRFS_NODEPTRS_PER_BLOCK(const struct btrfs_fs_info *info)
 
 static inline u32 BTRFS_NODEPTRS_PER_EXTENT_BUFFER(const struct extent_buffer *eb)
 {
-	BUG_ON(!eb->fs_info);
-	BUG_ON(eb->fs_info->nodesize != eb->len);
 	return BTRFS_LEAF_DATA_SIZE(eb->fs_info) / sizeof(struct btrfs_key_ptr);
 }
 
@@ -1615,7 +1617,7 @@ void write_extent_buffer(struct extent_buffer *eb, const void *src,
 static inline u##bits btrfs_##name(const struct extent_buffer *eb)	\
 {									\
 	const struct btrfs_header *h = (struct btrfs_header *)eb->data;	\
-	return le##bits##_to_cpu(h->member);				\
+	return get_unaligned_le##bits(&h->member);			\
 }									\
 static inline void btrfs_set_##name(struct extent_buffer *eb,		\
 				    u##bits val)			\
@@ -1643,7 +1645,7 @@ static inline void btrfs_set_##name(struct extent_buffer *eb,		\
 #define BTRFS_SETGET_STACK_FUNCS(name, type, member, bits)		\
 static inline u##bits btrfs_##name(const type *s)			\
 {									\
-	return le##bits##_to_cpu(s->member);				\
+	return get_unaligned_le##bits(&s->member);			\
 }									\
 static inline void btrfs_set_##name(type *s, u##bits val)		\
 {									\
