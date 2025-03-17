@@ -17,8 +17,8 @@
  * along with libbtrfsutil.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BTRFS_UTIL_H
-#define BTRFS_UTIL_H
+#ifndef _LIBBTRFSUTIL_BTRFSUTIL_H_
+#define _LIBBTRFSUTIL_BTRFSUTIL_H_
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -454,7 +454,7 @@ enum btrfs_util_error btrfs_util_subvolume_get_default_fd(int fd, uint64_t *id_r
 LIBBTRFSUTIL_ALIAS(btrfs_util_get_default_subvolume_fd);
 
 /**
- * btrfs_util_set_default_subvolume() - Alias of btrfs_util_set_default_subvolume(), do not use in new code.
+ * btrfs_util_set_default_subvolume() - Alias of btrfs_util_subvolume_set_default(), do not use in new code.
  */
 enum btrfs_util_error btrfs_util_set_default_subvolume(const char *path, uint64_t id);
 
@@ -930,4 +930,4 @@ void btrfs_util_qgroup_inherit_get_groups(const struct btrfs_util_qgroup_inherit
 }
 #endif
 
-#endif /* BTRFS_UTIL_H */
+#endif /* _LIBBTRFSUTIL_BTRFSUTIL_H_ */

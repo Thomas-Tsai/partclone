@@ -16,6 +16,7 @@
  * Boston, MA 021110-1307, USA.
  */
 
+#include "kerncompat.h"
 #include <errno.h>
 #include <string.h>
 #include "kernel-lib/bitops.h"
@@ -79,6 +80,7 @@ static unsigned int leaf_data_end(const struct extent_buffer *leaf)
  * have to adjust any offsets to account for the header in the leaf.  This
  * handles that math to simplify the callers.
  */
+__maybe_unused
 static inline void memmove_leaf_data(struct extent_buffer *leaf,
 				     unsigned long dst_offset,
 				     unsigned long src_offset,
@@ -102,6 +104,7 @@ static inline void memmove_leaf_data(struct extent_buffer *leaf,
  * have to adjust any offsets to account for the header in the leaf.  This
  * handles that math to simplify the callers.
  */
+__maybe_unused
 static inline void copy_leaf_data(struct extent_buffer *dst,
 				  const struct extent_buffer *src,
 				  unsigned long dst_offset,
@@ -122,6 +125,7 @@ static inline void copy_leaf_data(struct extent_buffer *dst,
  * Wrapper around memmove_extent_buffer() that does the math to get the
  * appropriate offsets into the leaf from the item numbers.
  */
+__maybe_unused
 static inline void memmove_leaf_items(struct extent_buffer *leaf,
 				      int dst_item, int src_item, int nr_items)
 {
@@ -142,6 +146,7 @@ static inline void memmove_leaf_items(struct extent_buffer *leaf,
  * Wrapper around copy_extent_buffer() that does the math to get the
  * appropriate offsets into the leaf from the item numbers.
  */
+__maybe_unused
 static inline void copy_leaf_items(struct extent_buffer *dst,
 				   const struct extent_buffer *src,
 				   int dst_item, int src_item, int nr_items)
@@ -2450,7 +2455,7 @@ int btrfs_split_item(struct btrfs_trans_handle *trans,
 	u32 nritems;
 	u32 orig_offset;
 	struct btrfs_disk_key disk_key;
-	char *buf;
+	char *buf = NULL;
 
 	leaf = path->nodes[0];
 	btrfs_item_key_to_cpu(leaf, &orig_key, path->slots[0]);
@@ -2469,11 +2474,13 @@ int btrfs_split_item(struct btrfs_trans_handle *trans,
 	/* if our item isn't there or got smaller, return now */
 	if (ret != 0 || item_size != btrfs_item_size(path->nodes[0],
 							path->slots[0])) {
-		return -EAGAIN;
+		ret = -EAGAIN;
+		goto error;
 	}
 
 	ret = split_leaf(trans, root, &orig_key, path, 0, 0);
-	BUG_ON(ret);
+	if (ret < 0)
+		goto error;
 
 	BUG_ON(btrfs_leaf_free_space(leaf) < sizeof(struct btrfs_item));
 	leaf = path->nodes[0];
@@ -2484,7 +2491,10 @@ split:
 
 
 	buf = kmalloc(item_size, GFP_NOFS);
-	BUG_ON(!buf);
+	if (!buf) {
+		ret = -ENOMEM;
+		goto error;
+	}
 	read_extent_buffer(leaf, buf, btrfs_item_ptr_offset(leaf,
 			    path->slots[0]), item_size);
 	slot = path->slots[0] + 1;
@@ -2529,6 +2539,10 @@ split:
 		BUG();
 	}
 	kfree(buf);
+	return ret;
+error:
+	kfree(buf);
+	btrfs_release_path(path);
 	return ret;
 }
 

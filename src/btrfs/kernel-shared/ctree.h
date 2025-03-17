@@ -23,7 +23,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "kernel-lib/list.h"
-#include "kernel-lib/bitops.h"
 #include "kernel-lib/rbtree_types.h"
 #include "kernel-shared/uapi/btrfs.h"
 #include "kernel-shared/uapi/btrfs_tree.h"
@@ -830,6 +829,16 @@ static inline u64 btrfs_dev_stats_value(const struct extent_buffer *eb,
 			   ((unsigned long)ptr) + (index * sizeof(u64)),
 			   sizeof(val));
 	return val;
+}
+
+static inline void btrfs_set_dev_stats_value(struct extent_buffer *eb,
+					     struct btrfs_dev_stats_item *ptr,
+					     int index, u64 val)
+{
+	write_extent_buffer(eb, &val,
+			    offsetof(struct btrfs_dev_stats_item, values) +
+			     ((unsigned long)ptr) + (index * sizeof(u64)),
+			    sizeof(val));
 }
 
 /* struct btrfs_ioctl_search_header */

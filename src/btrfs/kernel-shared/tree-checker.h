@@ -8,7 +8,6 @@
 
 #include "kerncompat.h"
 #include <stdbool.h>
-#include "kernel-lib/bitops.h"
 #include "kernel-shared/uapi/btrfs_tree.h"
 
 struct extent_buffer;
@@ -54,6 +53,7 @@ enum btrfs_tree_block_status {
 	BTRFS_TREE_BLOCK_INVALID_BLOCKPTR,
 	BTRFS_TREE_BLOCK_INVALID_ITEM,
 	BTRFS_TREE_BLOCK_INVALID_OWNER,
+	BTRFS_TREE_BLOCK_WRITTEN_NOT_SET,
 };
 
 /*

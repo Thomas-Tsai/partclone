@@ -1,19 +1,20 @@
 #ifndef __COMMON_TREE_SEARCH_H__
 #define __COMMON_TREE_SEARCH_H__
 
-#include "kernel-shared/uapi/btrfs_tree.h"
+#include "kerncompat.h"
+#include <stdbool.h>
 #include "kernel-shared/uapi/btrfs.h"
 
 #define BTRFS_TREE_SEARCH_V2_BUF_SIZE		65536
 
 struct btrfs_tree_search_args {
+	bool use_v2;
 	union {
 		struct btrfs_ioctl_search_args args1;
 		struct btrfs_ioctl_search_args_v2 args2;
 		u8 filler[sizeof(struct btrfs_ioctl_search_args_v2) +
 			  BTRFS_TREE_SEARCH_V2_BUF_SIZE];
 	};
-	bool use_v2;
 };
 
 int btrfs_tree_search_ioctl(int fd, struct btrfs_tree_search_args *sa);
