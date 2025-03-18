@@ -493,20 +493,10 @@ PKG_CHECK_VAR([bashcompletiondir], [bash-completion], [completionsdir], [],
     [bashcompletiondir="${sysconfdir}/bash_completion.d"])
 AC_SUBST(bashcompletiondir)
 
-##fail-mbr
-AM_CONDITIONAL(ENABLE_FAILMBR, test "$enable_failmbr" = yes)
-AC_CHECK_TOOL([OBJCOPY], [objcopy])
-AC_CHECK_TOOL([OBJDUMP], [objdump])
-AM_CONDITIONAL(X86, [case $host_cpu in
-    x86_64|i[0-9]86) true ;;
-    *) false ;;
-esac])
-
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
-	fail-mbr/Makefile
 	po/Makefile.in
 	docs/Makefile
 	tests/Makefile
