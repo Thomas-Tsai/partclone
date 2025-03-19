@@ -1,4 +1,65 @@
+2025-03-19  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update progress
+
+2025-03-18  Thomas Tsai  <thomas@nchc.org.tw>
+
+	remove failmbr
+
+	remove failmbr
+
+2025-03-17  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add std=gnu11 for btrfs
+
+	update btrfs to v6.13
+
+	update btrfs to v6.10.1
+
+2025-02-10  Thomas Tsai  <thomas@nchc.org.tw>
+
+	Disable failmbr but keep source code
+
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+	fix #260 for f2fs data types in declaration specifiers
+
+2025-01-03  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #258 from blanktonio/include_f2fs_20250102
+	Fix include path for f2fs
+
+2025-01-03  Anton Samsonov  <Anton.V.Samsonov@mcst.ru>
+
+	Fix include path for f2fs
+
+2024-12-18  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #257 from robert-scheck/byteswap
+	Check for `byteswap.h` existence for `src/f2fs/f2fs_fs.h`
+
+2024-12-18  Robert Scheck  <robert@fedoraproject.org>
+
+	Check for byteswap.h existence for src/f2fs/f2fs_fs.h
+	src/f2fs/f2fs_fs.h uses bswap_64(), which is part of byteswap.h e.g.
+	on glibc-based systems. The src/f2fs/f2fs_fs.h already knows how to
+	handle the existence of byteswap.h, once there is a configure header
+	check for it. Otherwise building on s390x fails like this:
+
+	f2fs/f2fs_fs.h:218:25: error: implicit declaration of function ‘bswap_64’; did you mean ‘bswap_32’? [-Wimplicit-function-declaration]
+
+2024-12-16  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #255 from chewi/fail-mbr-automake
+	Move compile-mbr.sh script into fail-mbr's automake
+
 2024-12-12  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	remove some message from f2fs
+
+	release 0.3.33
+
+	ready to release 0.3.33
 
 	upgrade f2fs to 1.16
 
@@ -15,6 +76,13 @@
 2024-12-09  Thomas Tsai  <tlinux.tsai@gmail.com>
 
 	upgrade f2fs
+
+2024-11-03  James Le Cuirot  <chewi@gentoo.org>
+
+	Move compile-mbr.sh script into fail-mbr's automake
+	Calling bare tools like "gcc" is not best practise, as this will fail
+	when cross-compiling. We also don't need to rely on tools like rpm when
+	the build already knows which CPU we're building for.
 
 2024-10-30  Thomas Tsai  <tlinux.tsai@gmail.com>
 

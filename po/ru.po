@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.3.3\n"
 "Report-Msgid-Bugs-To: thomas@clonezilla.org\n"
-"POT-Creation-Date: 2024-06-21 11:32+0800\n"
+"POT-Creation-Date: 2025-03-19 09:47+0800\n"
 "PO-Revision-Date: 2023-05-15 18:47+0300\n"
 "Last-Translator: Stanislav Bolshakov <bsv999@mail.ru>\n"
 "Language-Team: Russian\n"
@@ -21,17 +21,17 @@ msgstr ""
 "X-Language: ru_RU\n"
 "X-Source-Language: C\n"
 
-#: src/progress.c:246
+#: src/progress.c:238
 #, c-format
 msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: %6.2f%%"
 msgstr "\r%80c\rПрошло: %s, Осталось: %s, Выполнено: %6.2f%%"
 
-#: src/progress.c:249
+#: src/progress.c:241
 #, fuzzy, c-format
 msgid ", %6.2f%s/%s,"
 msgstr ", %6.2f%s/мин,"
 
-#: src/progress.c:251
+#: src/progress.c:243
 #, c-format
 msgid ""
 "\n"
@@ -40,17 +40,17 @@ msgstr ""
 "\n"
 "\r%80c\rТекущий блок: %10Lu, Всего блоков: %10Lu, Выполнено: %6.2f%%%s\r"
 
-#: src/progress.c:257
+#: src/progress.c:249
 #, c-format
 msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: 100.00%%"
 msgstr "\r%80c\rПрошло: %s, Осталось: %s, Выполнено: 100.00%%"
 
-#: src/progress.c:259
+#: src/progress.c:251
 #, fuzzy, c-format
 msgid ", Rate: %6.2f%s/%s,"
 msgstr ", Скорость: %6.2f%s/мин,"
 
-#: src/progress.c:261
+#: src/progress.c:253
 #, c-format
 msgid ""
 "\n"
@@ -59,7 +59,7 @@ msgstr ""
 "\n"
 "\r%80c\rТекущий блок: %10Lu, Всего блоков: %10Lu, Выполнено: 100.00%%\r"
 
-#: src/progress.c:263
+#: src/progress.c:255
 #, c-format
 msgid ""
 "\n"
@@ -68,54 +68,54 @@ msgstr ""
 "\n"
 "Всего времени: %s, "
 
-#: src/progress.c:265
+#: src/progress.c:257
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
 msgstr "Ср.скорость: %6.1f%s/мин, "
 
-#: src/progress.c:266
+#: src/progress.c:258
 #, c-format
 msgid "%s"
 msgstr "%s"
 
-#: src/progress.c:295
+#: src/progress.c:287
 #, c-format
 msgid "Elapsed: %s Remaining: %s "
 msgstr "Прошло: %s Осталось: %s "
 
-#: src/progress.c:297
+#: src/progress.c:289
 #, fuzzy, c-format
 msgid "Rate: %6.2f%s/%s"
 msgstr "Скорость: %6.2f%s/мин"
 
-#: src/progress.c:299
+#: src/progress.c:291
 #, c-format
 msgid "Current Block: %llu  Total Block: %llu "
 msgstr "Текущий блок: %llu  Всего блоков: %llu "
 
-#: src/progress.c:302 src/progress.c:335
+#: src/progress.c:294 src/progress.c:327
 msgid "Data Block Process:"
 msgstr "Процесс блоков данных:"
 
-#: src/progress.c:304 src/progress.c:337
+#: src/progress.c:296 src/progress.c:329
 msgid "Calculating Bitmap Process:"
 msgstr "Расчёт процесса Bitmap:"
 
-#: src/progress.c:308 src/progress.c:319
+#: src/progress.c:300 src/progress.c:311
 #, c-format
 msgid "ncurses update error\n"
 msgstr "Ошибка обновления ncurses\n"
 
-#: src/progress.c:315 src/progress.c:345
+#: src/progress.c:307 src/progress.c:337
 msgid "Total Block Process:"
 msgstr "Процесс всех блоков:"
 
-#: src/progress.c:330
+#: src/progress.c:322
 #, c-format
 msgid "Total Time: %s Remaining: %s "
 msgstr "Всего времени: %s Осталось: %s "
 
-#: src/progress.c:332
+#: src/progress.c:324
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
 msgstr "Ср.скорость: %6.2f%s/min"
