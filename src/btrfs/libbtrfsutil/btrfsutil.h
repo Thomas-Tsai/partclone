@@ -94,7 +94,6 @@ enum btrfs_util_error btrfs_util_sync(const char *path);
 enum btrfs_util_error btrfs_util_fs_sync(const char *path)
 LIBBTRFSUTIL_ALIAS(btrfs_util_sync);
 
-
 /**
  * btrfs_util_sync_fd() - Alias of btrfs_util_fs_sync_fd(), do not use in new code.
  */
@@ -553,7 +552,7 @@ LIBBTRFSUTIL_ALIAS(btrfs_util_create_subvolume_fd);
 #define BTRFS_UTIL_CREATE_SNAPSHOT_MASK		((1U << 2) - 1)
 
 /**
- * btrfs_util_create_snapshot() - Alias of btrfs_util_snapshot_snapshot(), do not use in new code.
+ * btrfs_util_create_snapshot() - Alias of btrfs_util_subvolume_snapshot(), do not use in new code.
  */
 enum btrfs_util_error btrfs_util_create_snapshot(const char *source,
 						 const char *path, int flags,
@@ -878,7 +877,7 @@ enum btrfs_util_error btrfs_util_create_qgroup_inherit(int flags, struct btrfs_u
 
 /**
  * btrfs_util_qgroup_inherit_create() - Create a qgroup inheritance specifier
- * for btrfs_util_create_subvolume() or btrfs_util_create_snapshot().
+ * for btrfs_util_create_subvolume() or btrfs_util_subvolume_snapshot().
  * @flags: Must be zero.
  * @ret: Returned qgroup inheritance specifier.
  *

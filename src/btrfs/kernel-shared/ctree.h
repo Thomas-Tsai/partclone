@@ -63,6 +63,12 @@ static inline u32 __BTRFS_LEAF_DATA_SIZE(u32 nodesize)
 	return nodesize - sizeof(struct btrfs_header);
 }
 
+#if EXPERIMENTAL
+#define BTRFS_MIN_BLOCKSIZE	(SZ_2K)
+#else
+#define BTRFS_MIN_BLOCKSIZE	(SZ_4K)
+#endif
+
 #define BTRFS_LEAF_DATA_SIZE(fs_info) (fs_info->leaf_data_size)
 
 #define BTRFS_SUPER_INFO_OFFSET			(65536)
@@ -285,6 +291,8 @@ struct btrfs_block_group {
 	 */
 	u64 alloc_offset;
 	u64 write_offset;
+	u64 zone_capacity;
+	bool zone_is_active;
 
 	u64 global_root_id;
 };
@@ -367,6 +375,7 @@ struct btrfs_fs_info {
 	unsigned int allow_transid_mismatch:1;
 	unsigned int skip_leaf_item_checks:1;
 	unsigned int rebuilding_extent_tree:1;
+	unsigned int active_zone_tracking:1;
 
 	int transaction_aborted;
 
