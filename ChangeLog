@@ -1,4 +1,12 @@
+2025-03-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	update btrfs to v6.14
+
 2025-03-19  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.3.34
+
+	update log and docs
 
 	update progress
 
