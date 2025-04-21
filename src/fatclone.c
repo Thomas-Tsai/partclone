@@ -226,12 +226,14 @@ int check_fat_status() {
             return fs_error;
     } else if (FS == FAT_12){
         /// FAT[0] contains BPB_Media code
-        /// FAT[1] ???
         rd = read12(&Fat16_Entry);
         log_mesg(2, 0, 0, fs_opt.debug, "%s: Media %x\n", __FILE__, Fat16_Entry);
         if (rd == -1)
             log_mesg(2, 0, 0, fs_opt.debug, "%s: read Fat12_Entry error\n", __FILE__);
+        /// FAT[1] does not store dirty volume flag in FAT12, skip
         rd = read12(&Fat16_Entry);
+        if (rd == -1)
+            log_mesg(2, 0, 0, fs_opt.debug, "%s: read Fat12_Entry error\n", __FILE__);
     } else
         log_mesg(2, 0, 0, fs_opt.debug, "%s: ERR_WRONG_FS\n", __FILE__);
     return fs_good;
@@ -367,12 +369,12 @@ unsigned long long check_fat12_entry(unsigned long* fat_bitmap, unsigned long lo
     rd = read12(&Fat12_Entry);
     if (rd == -1)
         log_mesg(2, 0, 0, fs_opt.debug, "%s: read Fat12_Entry error\n", __FILE__);
-    if (Fat12_Entry  == 0xFF7) { /// bad FAT12 cluster
+    if (Fat12_Entry == 0xFF7) { /// bad FAT12 cluster
         DamagedClusters++;
         log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %llu\n", __FILE__, block);
         for (i=0; i < fat_sb.cluster_size; i++,block++)
             pc_clear_bit(block, fat_bitmap, total_block);
-    } else if (Fat12_Entry == 0x0000){ /// free
+    } else if (Fat12_Entry == 0x000) { /// free
         bfree++;
         for (i=0; i < fat_sb.cluster_size; i++,block++)
             pc_clear_bit(block, fat_bitmap, total_block);
