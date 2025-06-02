@@ -59,7 +59,8 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     pc_init_bitmap(bitmap, 0x00, fs_info.totalblock);
 
     while (exfat_find_used_sectors(&ef, &a, &b) == 0){
-	printf("block %" PRId64 " %" PRId64 " \n", a, b);
+	log_mesg(3, 0, 0, fs_opt.debug, "%s: block %" PRId64 " %" PRId64 " \n", __FILE__, a, b);
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: exfat_mount done\n", __FILE__);
 	for (block = a; block <= b; block++){
 	    pc_set_bit((uint64_t)block, bitmap, fs_info.totalblock);
 	    log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %" PRId64 " \n", __FILE__, block);
