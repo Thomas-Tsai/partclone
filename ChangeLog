@@ -1,4 +1,18 @@
+2025-06-03  Thomas Tsai  <thomas@nchc.org.tw>
+
+	fix issue #272
+
+2025-06-02  Thomas Tsai  <thomas@nchc.org.tw>
+
+	remove printf from exfatclone.c
+
 2025-03-27  Thomas Tsai  <thomas@nchc.org.tw>
+
+	add progress test script
+
+	release 0.3.36
+
+	update log and docs
 
 	update btrfs to v6.14
 
