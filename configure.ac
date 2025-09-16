@@ -63,25 +63,27 @@ AC_ARG_ENABLE([fuse],
 )
 AM_CONDITIONAL(ENABLE_FUSE, test "$enable_fuse" = yes)
 if test "$enable_fuse" = "yes"; then
-AS_MESSAGE([checking  for FUSE Library and Header files ... ...])
-    PKG_CHECK_MODULES([FUSE], [fuse],,exit)
-    uuidcfg=`pkg-config --cflags --libs fuse`
+AS_MESSAGE([checking  for FUSE3 Library and Header files ... ...])
+    PKG_CHECK_MODULES([FUSE], [fuse3],,exit)
+    fusecfg=`pkg-config --cflags --libs fuse3`
 AC_MSG_CHECKING(version of FUSE)
 
 AC_COMPUTE_INT([fuse_version_major], [FUSE_MAJOR_VERSION], [[
+#define FUSE_USE_VERSION 31
 #ifndef _FILE_OFFSET_BITS
 #define _FILE_OFFSET_BITS 64
 #endif
-#include <fuse/fuse.h>
+#include <fuse3/fuse.h>
 ]],
-    AC_MSG_FAILURE([fuse/fuse.h: could not determine 'FUSE_MAJOR_VERSION' value]))
+    AC_MSG_FAILURE([fuse3/fuse.h: could not determine 'FUSE_MAJOR_VERSION' value]))
 AC_COMPUTE_INT([fuse_version_minor], [FUSE_MINOR_VERSION], [[
+#define FUSE_USE_VERSION 31
 #ifndef _FILE_OFFSET_BITS
 #define _FILE_OFFSET_BITS 64
 #endif
-#include <fuse/fuse.h>
+#include <fuse3/fuse.h>
 ]],
-    AC_MSG_FAILURE([fuse/fuse.h: could not determine 'FUSE_MINOR_VERSION' value]))
+    AC_MSG_FAILURE([fuse3/fuse.h: could not determine 'FUSE_MINOR_VERSION' value]))
 fuse_version="${fuse_version_major}.${fuse_version_minor}"
 AC_MSG_RESULT([$fuse_version])
 fi

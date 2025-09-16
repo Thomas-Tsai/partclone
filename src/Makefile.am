@@ -192,7 +192,8 @@ endif
 if ENABLE_FUSE
 sbin_PROGRAMS+=partclone.imgfuse
 partclone_imgfuse_SOURCES=fuseimg.c partclone.c checksum.c partclone.h fs_common.h checksum.h
-partclone_imgfuse_LDADD=-lfuse -lcrypto ${LDADD_static}
+partclone_imgfuse_CFLAGS=$(FUSE_CFLAGS)
+partclone_imgfuse_LDADD=$(FUSE_LIBS) -lcrypto ${LDADD_static}
 if ENABLE_STATIC
 partclone_imgfuse_LDADD+=-ldl -lcrypto ${LDADD_static}
 endif

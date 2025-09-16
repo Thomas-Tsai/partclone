@@ -101,7 +101,7 @@ _findmkfs(){
 
     locate_path=$(type -P locate)
     if [ -n $locate_path ]; then
-        mkfs_path=$($locate_path mkfs.$fs|grep sbin| sort -n -r |head -n 1)
+        mkfs_path=$($locate_path mkfs.$fs|grep sbin| grep -v union| sort -n -r |head -n 1)
     fi
     if [ -z $mkfs_path ]; then
         mkfs_path=$(which mkfs.$fs)

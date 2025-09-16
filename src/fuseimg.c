@@ -24,8 +24,8 @@
 #include <stdarg.h>
 #include <string.h>
 
-#define FUSE_USE_VERSION 26
-#include <fuse.h>
+#define FUSE_USE_VERSION 31
+#include <fuse3/fuse.h>
 #include <errno.h>
 
 #include "partclone.h"
@@ -51,7 +51,7 @@ unsigned long pathtoblock(const char *path)
     unsigned long block = 0;
     int sl = strlen(path);
     strncpy(bb, path+1, sl);
-    bb[sl]='\0';
+    bb[sl] = '\0';
     //block = atoi(bb);
     block = strtoul(bb, NULL, 16);
     block = block / fs_info.block_size;
@@ -64,7 +64,7 @@ unsigned long pathtoblock(const char *path)
 size_t get_file_size(unsigned long block)
 {
     unsigned long copied = 0;
-    unsigned long long block_id =0;
+    unsigned long long block_id = 0;
     unsigned long nx_current = 0;
     for (block_id = block; block_id <= fs_info.totalblock; block_id++) {
 	if (block_id < fs_info.totalblock) {
@@ -168,7 +168,7 @@ size_t read_blocks_data(unsigned long block, char *buf, size_t size, off_t offse
 
 }
 
-void info_options ()
+void info_options (void)
 {
     memset(&opt, 0, sizeof(cmd_opt));
     opt.debug = 0;
@@ -182,21 +182,12 @@ void info_options ()
     opt.source = image_file;
 }
 
-static void *main_init(struct fuse_conn_info *conn
-#if FUSE_MAJOR_VERSION >= 3
-    , struct fuse_config *cfg
-#endif
-)
+
+
+static int getattr_block(const char *path, struct stat *stbuf,
+                         struct fuse_file_info *fi)
 {
-
-    (void) conn;
-    //cfg->kernel_cache = 1;
-    return NULL;
-}
-
-static int getattr_block(const char *path, struct stat *stbuf)
-{
-
+    (void) fi;
     unsigned long block = 0;
     memset(stbuf, 0, sizeof(struct stat));
 
@@ -215,23 +206,25 @@ static int getattr_block(const char *path, struct stat *stbuf)
     //return -ENOENT;
 }
 
-static int readdir_block(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi)
+static int readdir_block(const char *path, void *buf, fuse_fill_dir_t filler,
+                         off_t offset, struct fuse_file_info *fi,
+                         enum fuse_readdir_flags flags)
 {
-
     (void) offset;
     (void) fi;
+    (void) flags;
     char buffer[33];
     int n = 0;
     unsigned long long test_block = 0;
 
-    filler(buf, ".", NULL, 0);
-    filler(buf, "..", NULL, 0);
+    filler(buf, ".", NULL, 0, 0);
+    filler(buf, "..", NULL, 0, 0);
 
     for (test_block = 0; test_block < fs_info.totalblock; ++test_block){
 	if (pc_test_bit(test_block, bitmap, fs_info.totalblock)){
 	    n = sprintf (buffer, "%032llx", test_block*fs_info.block_size);
 	    if (n >0){ 
-		filler(buf, buffer, NULL, 0);
+		filler(buf, buffer, NULL, 0, 0);
 		test_block = test_block + (get_file_size(test_block)/fs_info.block_size);
 	    }
 	}
@@ -288,17 +281,10 @@ static int read_block(const char *path, char *buf, size_t size, off_t offset, st
     return -ENOENT;
 }
 
-static struct fuse_operations ptl_fuse_operations =
-{
-    .init = main_init,
-    .getattr = getattr_block,
-    .open = open_block,
-    .read = read_block,
-    .readdir = readdir_block,
-};
-
 int main(int argc, char *argv[])
 {
+    struct fuse_operations ptl_fuse_operations;
+
     if (argc < 2) {
         info_usage(); // Never returns.
     }
@@ -308,6 +294,12 @@ int main(int argc, char *argv[])
     argc--;
 
     image_head_v2    img_head;
+
+    memset(&ptl_fuse_operations, 0, sizeof(struct fuse_operations));
+    ptl_fuse_operations.getattr = getattr_block;
+    ptl_fuse_operations.open = open_block;
+    ptl_fuse_operations.read = read_block;
+    ptl_fuse_operations.readdir = readdir_block;
 
     memset(&opt, 0, sizeof(cmd_opt));
     info_options();
