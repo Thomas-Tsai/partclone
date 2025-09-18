@@ -31,6 +31,8 @@ struct FatBootSector fat_sb;
 struct FatFsInfo fatfs_info;
 int ret;
 int FS;
+/* Buffered nibble when reading FAT12 entries, otherwise 0xFF */
+uint8_t nibble;
 char *fat_type = "FATXX";
 #define FAT12_THRESHOLD  4085
 #define FAT16_THRESHOLD 65525
@@ -153,6 +155,22 @@ unsigned long long get_cluster_count()
     return cluster_count;
 }
 
+/// read 12-bit value, buffering or consuming buffered nibble
+int read12(uint16_t* out) {
+    uint16_t buffer;
+    int rd;
+    if (nibble == 0xFF) {
+        rd = read(ret, &buffer, 2);
+        nibble = buffer >> 12;
+        *out = buffer & 0xFFF;
+    } else {
+        rd = read(ret, &buffer, 1);
+        *out = (buffer & 0xFF) << 4 | nibble;
+        nibble = 0xFF;
+    }
+    return rd;
+}
+
 /// check fat status
 //return - 0 Filesystem is in valid state.
 //return - 1 Filesystem isn't in valid state.
@@ -208,11 +226,14 @@ int check_fat_status() {
             return fs_error;
     } else if (FS == FAT_12){
         /// FAT[0] contains BPB_Media code
-        rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
+        rd = read12(&Fat16_Entry);
         log_mesg(2, 0, 0, fs_opt.debug, "%s: Media %x\n", __FILE__, Fat16_Entry);
         if (rd == -1)
             log_mesg(2, 0, 0, fs_opt.debug, "%s: read Fat12_Entry error\n", __FILE__);
-        rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
+        /// FAT[1] does not store dirty volume flag in FAT12, skip
+        rd = read12(&Fat16_Entry);
+        if (rd == -1)
+            log_mesg(2, 0, 0, fs_opt.debug, "%s: read Fat12_Entry error\n", __FILE__);
     } else
         log_mesg(2, 0, 0, fs_opt.debug, "%s: ERR_WRONG_FS\n", __FILE__);
     return fs_good;
@@ -253,6 +274,7 @@ static void fs_open(char* device)
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s: open device\n", __FILE__);
     ret = open(device, O_RDONLY);
+    nibble = 0xFF;
 
     buffer = (char*)malloc(sizeof(FatBootSector));
     if(buffer == NULL){
@@ -341,20 +363,18 @@ unsigned long long check_fat16_entry(unsigned long* fat_bitmap, unsigned long lo
 /// check per FAT12 entry
 unsigned long long check_fat12_entry(unsigned long* fat_bitmap, unsigned long long block, unsigned long long* bfree, unsigned long long* bused, unsigned long long* DamagedClusters)
 {
-    uint16_t Fat16_Entry = 0;
     uint16_t Fat12_Entry = 0;
     int rd = 0;
     unsigned long long i = 0;
-    rd = read(ret, &Fat16_Entry, sizeof(Fat16_Entry));
+    rd = read12(&Fat12_Entry);
     if (rd == -1)
         log_mesg(2, 0, 0, fs_opt.debug, "%s: read Fat12_Entry error\n", __FILE__);
-    Fat12_Entry = Fat16_Entry>>4;
-    if (Fat12_Entry  == 0xFF7) { /// bad FAT12 cluster
+    if (Fat12_Entry == 0xFF7) { /// bad FAT12 cluster
         DamagedClusters++;
         log_mesg(2, 0, 0, fs_opt.debug, "%s: bad sec %llu\n", __FILE__, block);
         for (i=0; i < fat_sb.cluster_size; i++,block++)
             pc_clear_bit(block, fat_bitmap, total_block);
-    } else if (Fat12_Entry == 0x0000){ /// free
+    } else if (Fat12_Entry == 0x000) { /// free
         bfree++;
         for (i=0; i < fat_sb.cluster_size; i++,block++)
             pc_clear_bit(block, fat_bitmap, total_block);
