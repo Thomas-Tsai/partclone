@@ -25,6 +25,7 @@
 #include "btrfs/kernel-shared/ctree.h"
 #include "btrfs/kernel-shared/volumes.h"
 #include "btrfs/kernel-shared/disk-io.h"
+#include "btrfs/common/extent-cache.h"
 #include "kernel-shared/tree-checker.h"
 #include "btrfs/common/utils.h"
 #include "btrfs/libbtrfs/version.h"
@@ -70,12 +71,49 @@ static void set_bitmap(unsigned long* bitmap, uint64_t pos, uint64_t length){
 }
 
 
+static int get_num_copies(struct btrfs_fs_info *fs_info, u64 logical, u64 len)
+{
+	struct btrfs_mapping_tree *map_tree = &fs_info->mapping_tree;
+	struct cache_extent *ce;
+	struct map_lookup *map;
+	int ret;
+
+	ce = search_cache_extent(&map_tree->cache_tree, logical);
+	if (!ce) {
+		log_mesg(1, 0, 0, fs_opt.debug, "No mapping for %llu-%llu\n",
+			(unsigned long long)logical,
+			(unsigned long long)logical+len);
+		return 1;
+	}
+	if (ce->start > logical || ce->start + ce->size < logical) {
+		log_mesg(1, 0, 0, fs_opt.debug, "Invalid mapping for %llu-%llu, got \"%llu-%llu\"\n",
+			(unsigned long long)logical,
+			(unsigned long long)logical+len,
+			(unsigned long long)ce->start,
+			(unsigned long long)ce->start + ce->size);
+		return 1;
+	}
+	map = container_of(ce, struct map_lookup, ce);
+
+	if (map->type & (BTRFS_BLOCK_GROUP_DUP | BTRFS_BLOCK_GROUP_RAID1_MASK))
+		ret = map->num_stripes;
+	else if (map->type & BTRFS_BLOCK_GROUP_RAID10)
+		ret = map->sub_stripes;
+	else if (map->type & BTRFS_BLOCK_GROUP_RAID5)
+		ret = 2;
+	else if (map->type & BTRFS_BLOCK_GROUP_RAID6)
+		ret = 3;
+	else
+		ret = 1;
+	return ret;
+}
+
 int check_extent_bitmap(unsigned long* bitmap, u64 bytenr, u64 *num_bytes, int type)
 {
     struct btrfs_multi_bio *multi = NULL;
     int ret = 0;
-    int mirror = 0;
-    //struct btrfs_fs_info *info = root->fs_info;
+    int mirror;
+    int num_copies;
     u64 maxlen;
 
 
@@ -87,21 +125,27 @@ int check_extent_bitmap(unsigned long* bitmap, u64 bytenr, u64 *num_bytes, int t
 	maxlen = *num_bytes;
     }
 
-    ret = btrfs_map_block(info, READ, bytenr, num_bytes,
-	    &multi, mirror, NULL);
-    if (ret) {
-	log_mesg(1, 0, 0, fs_opt.debug, "%s: Couldn't map the block %llu\n", __FILE__, bytenr);
+    num_copies = get_num_copies(info, bytenr, *num_bytes);
+
+    for (mirror = 1; mirror <= num_copies; mirror++) {
+        u64 length = *num_bytes;
+        ret = btrfs_map_block(info, READ, bytenr, &length,
+                &multi, mirror, NULL);
+        if (ret) {
+            log_mesg(1, 0, 0, fs_opt.debug, "%s: Couldn't map the block %llu mirror %d\n", __FILE__, bytenr, mirror);
+            continue;
+        }
+
+        log_mesg(3, 0, 0, fs_opt.debug, "%s: read data from %llu and size %llu\n", __FILE__, multi->stripes[0].physical, length);
+
+        if (type == 1){
+            length = maxlen;
+        }
+
+        set_bitmap(bitmap, multi->stripes[0].physical, length);
+        free(multi);
+        multi = NULL;
     }
-
-    log_mesg(3, 0, 0, fs_opt.debug, "%s: read data from %llu and size %llu\n", __FILE__, multi->stripes[0].physical, *num_bytes);
-    //if (*num_bytes > maxlen)
-//	*num_bytes = maxlen;
-
-    if (type == 1){
-        *num_bytes = maxlen;
-    }
-
-    set_bitmap(bitmap, multi->stripes[0].physical, *num_bytes);
     return 0;
 }
 
