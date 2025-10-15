@@ -1,3 +1,31 @@
+2025-10-14  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	try to fix #270 for btrfs dup issue
+
+2025-09-23  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update btrfs to v6.16
+
+2025-09-18  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #259 from blanktonio/docs_Makefile_20250102
+	Detect DocBook path and generalize doc build rules
+
+	Merge pull request #269 from henryptung/fat12
+	FAT12 entries are 12 bits each, not 16
+
+2025-09-16  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update test and package related files for fuse3
+
+	upgrade fuse library to version 3
+
+2025-06-04  Thomas Tsai  <thomas@nchc.org.tw>
+
+	release 0.3.37
+
+	update log and docs
+
 2025-06-03  Thomas Tsai  <thomas@nchc.org.tw>
 
 	fix issue #272
@@ -5,6 +33,16 @@
 2025-06-02  Thomas Tsai  <thomas@nchc.org.tw>
 
 	remove printf from exfatclone.c
+
+2025-04-22  Henry Tung  <henryptung@gmail.com>
+
+	Minor cleanup
+
+2025-04-21  Henry Tung  <henryptung@gmail.com>
+
+	FAT12 entries are 12 bits each, not 16
+	Fix FAT12 entry parsing to consume 12 bits at a time,
+	using a nibble buffer between reads.
 
 2025-03-27  Thomas Tsai  <thomas@nchc.org.tw>
 
@@ -52,6 +90,12 @@
 	Fix include path for f2fs
 
 2025-01-03  Anton Samsonov  <Anton.V.Samsonov@mcst.ru>
+
+	Detect DocBook path and generalize doc build rules
+	Host-specific location of DocBook stylesheets is determined automatically
+	by translating a generic URI to local path, using offline XML catalog.
+
+	Repeating rules for building man pages are replaced by single pattern rule.
 
 	Fix include path for f2fs
 
