@@ -1,0 +1,17 @@
+    name: Close Stale Issues
+
+    on:
+      schedule:
+        - cron: '0 0 * * *' # Runs daily at midnight UTC
+
+    jobs:
+      stale:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/stale@v9
+            with:
+              stale-issue-message: 'This issue is stale because it has not been updated in a while.'
+              close-issue-message: 'Closing this issue due to inactivity.'
+              days-before-stale: 180 # Number of days before an issue is marked as stale
+              days-before-close: 30 # Number of days after being marked stale before closing
+              exempt-issue-labels: 'keep-open' # Label to exempt issues from being closed
