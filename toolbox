@@ -21,6 +21,7 @@ help()
 recognized flags are:
   --update-po             update translation files
   --update-log            update Changelog files from git
+  --update-contributors   update CONTRIBUTORS files from git
   --update-btrfs          update source of btrfs
     eg:
     ./toolbox --update-btrfs /tmp/partclone /tmp/btrfs-progs v6.8
@@ -38,32 +39,32 @@ btrfs_update(){
     btrfsprogsGitRepo=$2
     tag=$3
     echo $@ $tag $partcloneGitRepo $btrfsprogsGitRepo
-    
+
     pushd $partcloneGitRepo/src/
         btrfs_files=$(find btrfs -name "*.h" -o -name "*.c")
     popd
     echo $btrfs_files
-    
+
     pushd $btrfsprogsGitRepo
-    
+
         git checkout -b $tag $tag
         ./autogen.sh
         ./configure --disable-documentation 
         make
-    
+
         cat libbtrfs/version.h
-    
+
         set -e
         for source_file in $btrfs_files; do 
             echo $source_file
             btrfs_file=$(echo $source_file | sed s/^btrfs//)
             source_file_path=$(echo "$partcloneGitRepo/src/$source_file" | sed "s#//#/#g")
             btrfs_file_path=$(echo "$btrfsprogsGitRepo/$btrfs_file" | sed "s#//#/#g")
-    
+
             if test -f "$btrfs_file_path"; then
                 source_md5=$(md5sum -z $source_file_path |sed 's/ .*//')
                 btrfs_md5=$(md5sum -z $btrfs_file_path |sed 's/ .*//')
-    
+
                 if [ "X$source_md5" != "X$btrfs_md5" ]; then
                     echo "cp $btrfs_file_path $source_file_path"
                     cp $btrfs_file_path $source_file_path
@@ -78,9 +79,9 @@ btrfs_update(){
                 find $btrfsprogsGitRepo -name `basename $source_file`
                 echo "######"
             fi
-    
+
         done
-    
+
     popd
 }
 
@@ -100,6 +101,9 @@ case "$1" in
   --update-btrfs)
     action=btrfs
     ;;
+  --update-contributors)
+    action=contributors
+    ;;
   --update-log)
     action=changelog
     ;;
@@ -115,6 +119,15 @@ case "$1" in
     ;;
 esac
 shift
+
+##
+##  Update CONTRIBUTORS file
+##
+if test "${action}" = "contributors"
+then
+  git shortlog -sn > CONTRIBUTORS
+  exit $?
+fi
 
 ##
 ##  Update the potfiles because no one ever does it
