@@ -13,6 +13,7 @@ We made some utilities:
 * partclone.fat (fat 12, fat 16, fat 32)
 * partclone.ntfs
 * partclone.hfsp
+* partclone.apfs
 * partclone.vmfs(v3 and v5)
 * partclone.ufs
 * partclone.jfs
