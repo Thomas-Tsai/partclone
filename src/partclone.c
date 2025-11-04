@@ -251,6 +251,7 @@ void usage(void) {
 		"                            where X:\n"
 		"                            0: No checksum (no slowdown, smallest image)\n"
 		"                            1: CRC32 (Fast to compute, basic detection)\n"
+		"                            2: XXH64 (Extremely fast, modern detection)\n"
 		"    -kX  --blocks-per-checksum=X\n"
 		"                            Write one checksum for every X blocks\n"
 		"    -K,  --no-reseed        Do not reseed the checksum at each write (TEST)\n"
@@ -301,6 +302,10 @@ int convert_to_checksum_mode(unsigned long mode) {
 
 	case 1:
 		return CSM_CRC32;
+		break;
+
+	case 2:
+		return CSM_XXH64;
 		break;
 
 	// note: we do not allow the user to use CSM_CRC32_0001. That mode exist only

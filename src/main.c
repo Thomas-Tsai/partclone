@@ -553,6 +553,7 @@ int main(int argc, char **argv) {
 					update_checksum(checksum, read_buffer + i * block_size, block_size);
 
 					if (blocks_per_cs > 0 && ++blocks_in_cs == blocks_per_cs) {
+					    finalize_checksum(checksum);
 					    log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
 
 						memcpy(write_buffer + write_offset, checksum, cs_size);
@@ -612,6 +613,7 @@ int main(int argc, char **argv) {
 
 				// Write the checksum for the latest blocks
 				log_mesg(1, 0, 0, debug, "Write the checksum for the latest blocks. size = %i\n", cs_size);
+				finalize_checksum(checksum);
 				log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
 				w_size = write_all(&dfw, (char*)checksum, cs_size, &opt);
 				if (w_size != cs_size)
@@ -780,6 +782,7 @@ int main(int argc, char **argv) {
 
 				    unsigned char checksum_orig[cs_size];
 				    memcpy(checksum_orig, read_buffer + read_offset + block_size, cs_size);
+				    finalize_checksum(checksum);
 				    log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
 				    log_mesg(3, 0, 0, debug, "CRC.orig = %x%x%x%x \n", checksum_orig[0], checksum_orig[1], checksum_orig[2], checksum_orig[3]);
 					if (memcmp(read_buffer + read_offset + block_size, checksum, cs_size)) {
@@ -799,6 +802,7 @@ int main(int argc, char **argv) {
 					(blocks_read % blocks_per_cs)) {
 
 			    log_mesg(1, 0, 0, debug, "check latest chunk's checksum covering %u blocks\n", blocks_in_cs);
+			    finalize_checksum(checksum);
 			    if (memcmp(read_buffer + read_offset, checksum, cs_size)){
 				unsigned char checksum_orig[cs_size];
 				memcpy(checksum_orig, read_buffer + read_offset, cs_size);
