@@ -159,9 +159,9 @@ int main(int argc, char **argv) {
 		log_mesg(1, 0, 0, debug, "UID is root.\n");
 #endif
 
-	/// ignore crc check
+	/// ignore checksum
 	if (opt.ignore_crc)
-		log_mesg(1, 0, 1, debug, "Ignore CRC errors\n");
+		log_mesg(1, 0, 1, debug, "Ignore checksum errors\n");
 
 	/**
 	 * open source and target
@@ -269,6 +269,7 @@ int main(int argc, char **argv) {
 
 		/// get image information from image file
 		load_image_desc(&dfr, &opt, &img_head, &fs_info, &img_opt);
+		opt.checksum_mode = img_opt.checksum_mode;
 		cs_size = img_opt.checksum_size;
 		cs_reseed = img_opt.reseed_checksum;
 
@@ -554,7 +555,9 @@ int main(int argc, char **argv) {
 
 					if (blocks_per_cs > 0 && ++blocks_in_cs == blocks_per_cs) {
 					    finalize_checksum(checksum);
-					    log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
+					    char* checksum_str = format_checksum(checksum, cs_size);
+					    log_mesg(3, 0, 0, debug, "checksum_code = %s \n", checksum_str);
+					    free(checksum_str);
 
 						memcpy(write_buffer + write_offset, checksum, cs_size);
 
@@ -614,7 +617,9 @@ int main(int argc, char **argv) {
 				// Write the checksum for the latest blocks
 				log_mesg(1, 0, 0, debug, "Write the checksum for the latest blocks. size = %i\n", cs_size);
 				finalize_checksum(checksum);
-				log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
+				char* checksum_str = format_checksum(checksum, cs_size);
+				log_mesg(3, 0, 0, debug, "checksum_code = %s \n", checksum_str);
+				free(checksum_str);
 				w_size = write_all(&dfw, (char*)checksum, cs_size, &opt);
 				if (w_size != cs_size)
 					log_mesg(0, 1, 1, debug, "image write ERROR:%s\n", strerror(errno));
@@ -783,10 +788,14 @@ int main(int argc, char **argv) {
 				    unsigned char checksum_orig[cs_size];
 				    memcpy(checksum_orig, read_buffer + read_offset + block_size, cs_size);
 				    finalize_checksum(checksum);
-				    log_mesg(3, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
-				    log_mesg(3, 0, 0, debug, "CRC.orig = %x%x%x%x \n", checksum_orig[0], checksum_orig[1], checksum_orig[2], checksum_orig[3]);
+				    char* checksum_str = format_checksum(checksum, cs_size);
+				    char* checksum_orig_str = format_checksum(checksum_orig, cs_size);
+				    log_mesg(3, 0, 0, debug, "checksum_code = %s \n", checksum_str);
+				    log_mesg(3, 0, 0, debug, "checksum_code.orig = %s \n", checksum_orig_str);
+				    free(checksum_str);
+				    free(checksum_orig_str);
 					if (memcmp(read_buffer + read_offset + block_size, checksum, cs_size)) {
-					    log_mesg(0, 1, 1, debug, "CRC error, block_id=%llu...\n ", block_id + i);
+					    log_mesg(0, 1, 1, debug, "checksum error, block_id=%llu...\n ", block_id + i);
 					}
 
 					read_offset += cs_size;
@@ -806,9 +815,13 @@ int main(int argc, char **argv) {
 			    if (memcmp(read_buffer + read_offset, checksum, cs_size)){
 				unsigned char checksum_orig[cs_size];
 				memcpy(checksum_orig, read_buffer + read_offset, cs_size);
-				log_mesg(1, 0, 0, debug, "CRC = %x%x%x%x \n", checksum[0], checksum[1], checksum[2], checksum[3]);
-				log_mesg(1, 0, 0, debug, "CRC.orig = %x%x%x%x \n", checksum_orig[0], checksum_orig[1], checksum_orig[2], checksum_orig[3]);
-				log_mesg(0, 1, 1, debug, "CRC error, block_id=%llu...\n ", block_id + i);
+				char* checksum_str = format_checksum(checksum, cs_size);
+				char* checksum_orig_str = format_checksum(checksum_orig, cs_size);
+				log_mesg(1, 0, 0, debug, "checksum_code = %s \n", checksum_str);
+				log_mesg(1, 0, 0, debug, "checksum_code.orig = %s \n", checksum_orig_str);
+				free(checksum_str);
+				free(checksum_orig_str);
+				log_mesg(0, 1, 1, debug, "checksum error, block_id=%llu...\n ", block_id + i);
 			    }
 
 			}

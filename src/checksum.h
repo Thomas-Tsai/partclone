@@ -20,5 +20,6 @@ extern void init_checksum(int checksum_mode, unsigned char* seed, int debug);
 extern void update_checksum(unsigned char* checksum, char* buf, int size);
 extern void finalize_checksum(unsigned char* checksum);
 extern void release_checksum();
+char* format_checksum(const unsigned char* data, unsigned int size);
 
 #endif /* CHECKSUM_H_ */

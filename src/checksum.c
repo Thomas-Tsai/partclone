@@ -1,4 +1,7 @@
 #include "checksum.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "partclone.h" // for log_mesg() & cmd_opt
 #include "xxhash.h"
@@ -214,4 +217,22 @@ void release_checksum() {
         XXH64_freeState(xxh64_state);
         xxh64_state = NULL;
     }
+}
+
+char* format_checksum(const unsigned char* data, unsigned int size) {
+    if (data == NULL || size == 0) {
+        return NULL;
+    }
+
+    char* hex_string = (char*)malloc(size * 2 + 1);
+    if (hex_string == NULL) {
+        return NULL;
+    }
+
+    for (unsigned int i = 0; i < size; i++) {
+        sprintf(hex_string + (i * 2), "%02x", data[i]);
+    }
+
+    hex_string[size * 2] = '\0';
+    return hex_string;
 }
