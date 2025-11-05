@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include "partclone.h"
+#include "checksum.h"
 
 /// cmd_opt structure defined in partclone.h
 cmd_opt opt;
@@ -165,5 +166,6 @@ int main(int argc, char **argv){
     close(dfr);     /// close source
     free(bitmap);   /// free bitmap
     close_log();
+    release_checksum();
     return 0;       /// finish
 }

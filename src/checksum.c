@@ -208,3 +208,10 @@ void finalize_checksum(unsigned char* checksum) {
 	}
 
 }
+
+void release_checksum() {
+    if (xxh64_state != NULL) {
+        XXH64_freeState(xxh64_state);
+        xxh64_state = NULL;
+    }
+}
