@@ -678,7 +678,7 @@ int main(int argc, char **argv) {
 		buffer_size = cnv_blocks_to_bytes(0, buffer_capacity, block_size, &img_opt);
 
 		if (img_opt.image_version != 0x0001)
-			read_buffer = (char*)malloc(buffer_size);
+			read_buffer = (char*)malloc(buffer_size + cs_size);
 		else {
 			// Allocate more memory in case the image is affected by the 64 bits bug
 			read_buffer = (char*)malloc(buffer_size + buffer_capacity * cs_size);
@@ -1261,6 +1261,7 @@ int main(int argc, char **argv) {
 #ifdef MEMTRACE
 	muntrace();
 #endif
+	release_checksum();
 	return 0;      /// finish
 }
 

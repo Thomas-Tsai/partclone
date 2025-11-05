@@ -29,8 +29,8 @@ dd if=/dev/zero of=$raw_r bs=$dd_bs count=$dd_count
 
 
 ## blocks/checksum to test various patterns
-cs_a=(0   1     1   1   1      1)
-cs_k=(0   0    17   1  64   3097)
+cs_a=(0   1     1   1   1      1 2 2  2 2  2)
+cs_k=(0   0    17   1  64   3097 0 17 1 64 3097)
 cs_s=${#cs_k[*]}               # array size
 cs_i=0
 
