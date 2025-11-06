@@ -51,6 +51,14 @@ _ptlbreak
 blkid $raw
 _ptlbreak
 
+echo -e "\npartclone.info test\n"
+$ptlinfo -d3 -s $img -L $logfile 2>&1 | grep XXH64
+_check_return_code
+
+echo -e "\npartclone.chkimg test\n"
+$ptlchkimg -s $img -L $logfile
+_check_return_code
+
 echo -e "\nrestore to raw test ok\n"
 echo -e "\nclear tmp files $img $raw $logfile $md5\n"
 _ptlbreak
