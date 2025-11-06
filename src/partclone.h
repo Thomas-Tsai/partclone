@@ -22,6 +22,14 @@
 #include <errno.h>
 #include "bitmap.h"
 
+// SHA1 for torrent info
+#include "torrent_helper.h"
+
+typedef struct {
+	FILE *tinfo;
+	torrent_generator torrent;
+} bt_info_t;
+
 #define IMAGE_MAGIC "partclone-image"
 #define IMAGE_MAGIC_SIZE 15
 #define BIT_MAGIC "BiTmAgIc"
@@ -357,3 +365,10 @@ extern unsigned long long get_partition_size(int* ret);
 
 /// get partition size
 extern int  write_block_file(char* target, char *buf, unsigned long long count, unsigned long long offset, cmd_opt* opt);
+
+extern void init_bt_info(bt_info_t * bt, char *target,
+			 unsigned int block_size,
+			 unsigned long long blocks_total);
+
+extern void update_bt_info(bt_info_t * bt, unsigned long long offset,
+			   char *buffer, unsigned long long length);

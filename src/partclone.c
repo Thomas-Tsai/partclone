@@ -1878,6 +1878,26 @@ int skip_blocks(int *fd, char *empty_buffer, unsigned long long empty_buffer_siz
 	return 0;
 }
 
+void init_bt_info(bt_info_t * bt, char *target,
+			 unsigned int block_size,
+			 unsigned long long blocks_total)
+{
+	char torrent_name[PATH_MAX + 1] = { '\0' };
+	sprintf(torrent_name, "%s/torrent.info", target);
+	bt->tinfo = fopen(torrent_name, "w");
+	torrent_init(&bt->torrent, bt->tinfo);
+	fprintf(bt->tinfo, "block_size: %u\n", block_size);
+	fprintf(bt->tinfo, "blocks_total: %llu\n", blocks_total);
+}
+
+void update_bt_info(bt_info_t * bt, unsigned long long offset,
+			   char *buffer, unsigned long long length)
+{
+	torrent_start_offset(&bt->torrent, offset);
+	torrent_end_length(&bt->torrent, length);
+	torrent_update(&bt->torrent, buffer, length);
+}
+
 /// print options to log file
 void print_opt(cmd_opt opt) {
 	int debug = opt.debug;

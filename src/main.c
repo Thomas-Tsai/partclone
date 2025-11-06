@@ -39,9 +39,6 @@
 #include <limits.h>
 #include <time.h>
 
-// SHA1 for torrent info
-#include "torrent_helper.h"
-
 /**
  * progress.h - only for progress bar
  */
@@ -450,8 +447,7 @@ int main(int argc, char **argv) {
 		char *read_buffer = NULL, *write_buffer = NULL;
 
 		// SHA1 for torrent info
-		FILE* tinfo = NULL;
-		torrent_generator torrent;
+		bt_info_t bt;
 
 		blocks_per_cs = img_opt.blocks_per_checksum;
 
@@ -488,13 +484,7 @@ int main(int argc, char **argv) {
 		init_checksum(img_opt.checksum_mode, checksum, debug);
 
 		if (opt.blockfile == 1) {
-			char torrent_name[PATH_MAX + 1] = {'\0'};
-			sprintf(torrent_name,"%s/torrent.info", target);
-			tinfo = fopen(torrent_name, "w");
-
-			torrent_init(&torrent, tinfo);
-			fprintf(tinfo, "block_size: %u\n", block_size);
-			fprintf(tinfo, "blocks_total: %llu\n", blocks_total);
+			init_bt_info(&bt, target, block_size, blocks_total);
 		}
 
 		block_id = 0;
@@ -573,17 +563,8 @@ int main(int argc, char **argv) {
 
 			/// write buffer to target
 			if (opt.blockfile == 1) {
-				// SHA1 for torrent info
-				// Not always bigger or smaller than 16MB
-
-				// first we write out block_id * block_size for filename
-				// because when calling write_block_file
-				// we will create a new file to describe a continuous block (or buffer is full)
-				// and never write to same file again
-				torrent_start_offset(&torrent, block_id * block_size);
-				torrent_end_length(&torrent, blocks_read * block_size);
-
-				torrent_update(&torrent, read_buffer, blocks_read * block_size);
+				update_bt_info(&bt, block_id * block_size, read_buffer,
+					       blocks_read * block_size);
 
 				if (opt.torrent_only == 1) {
 					w_size = blocks_read * block_size;
@@ -610,7 +591,7 @@ int main(int argc, char **argv) {
 		} while (1);
 
 		if (opt.blockfile == 1) {
-			torrent_final(&torrent);
+			torrent_final(&bt.torrent);
 		} else {
 			if (blocks_in_cs > 0) {
 
@@ -666,8 +647,7 @@ int main(int argc, char **argv) {
 		unsigned long long blocks_used_fix = 0, test_block = 0;
 
 		// SHA1 for torrent info
-		FILE *tinfo = NULL;
-		torrent_generator torrent;
+		bt_info_t bt;
 
 		log_mesg(1, 0, 0, debug, "#\nBuffer capacity = %u, Blocks per cs = %u\n#\n", buffer_capacity, blocks_per_cs);
 
@@ -720,13 +700,7 @@ int main(int argc, char **argv) {
 
 		// init SHA1 for torrent info
 		if (opt.blockfile == 1) {
-			char torrent_name[PATH_MAX + 1] = {'\0'};
-			sprintf(torrent_name,"%s/torrent.info", target);
-			tinfo = fopen(torrent_name, "w");
-
-			torrent_init(&torrent, tinfo);
-			fprintf(tinfo, "block_size: %u\n", block_size);
-			fprintf(tinfo, "blocks_total: %llu\n", blocks_total);
+			init_bt_info(&bt, target, block_size, blocks_total);
 		}
 
 		block_id = 0;
@@ -861,17 +835,13 @@ int main(int argc, char **argv) {
 				// write blocks
 				if (blocks_write > 0) {
 				        if (opt.blockfile == 1){
-					    // SHA1 for torrent info
-					    // Not always bigger or smaller than 16MB
-					    
-					    // first we write out block_id * block_size for filename
-					    // because when calling write_block_file
-					    // we will create a new file to describe a continuous block (or buffer is full)
-					    // and never write to same file again
-					    torrent_start_offset(&torrent, block_id * block_size);
-					    torrent_end_length(&torrent, blocks_write * block_size);
-
-					    torrent_update(&torrent, write_buffer + blocks_written * block_size, blocks_write * block_size);
+					    update_bt_info(&bt,
+							   block_id * block_size,
+							   write_buffer +
+							   blocks_written *
+							   block_size,
+							   blocks_write *
+							   block_size);
 
 					    if (opt.torrent_only == 1) {
 						w_size = blocks_write * block_size;
@@ -901,10 +871,8 @@ int main(int argc, char **argv) {
 
 		// finish SHA1 for torrent info
 		if (opt.blockfile == 1) {
-			torrent_final(&torrent);
+			torrent_final(&bt.torrent);
 		}
-
-		free(write_buffer);
 		free(read_buffer);
 		if (empty_buffer) {
 		    if (block_id < blocks_total && skip_blocks(&dfw, empty_buffer, block_size, blocks_total - block_id, &opt, &block_id) < 0) {
@@ -1097,8 +1065,7 @@ int main(int argc, char **argv) {
 		int blocks_in_buffer = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
 
 		// SHA1 for torrent info
-		FILE *tinfo = NULL;
-		torrent_generator torrent;
+		bt_info_t bt;
                 if ((opt.read_direct_io == 1) || (opt.write_direct_io == 1)){
                     ret = posix_memalign((void **)&buffer, BSIZE, (blocks_in_buffer * block_size));
                     if ( ret < 0 ){
@@ -1117,12 +1084,7 @@ int main(int argc, char **argv) {
 
 		// init SHA1 for torrent info
 		if (opt.blockfile == 1) {
-			char torrent_name[PATH_MAX + 1] = {'\0'};
-			sprintf(torrent_name,"%s/torrent.info", target);
-			tinfo = fopen(torrent_name, "w");
-			torrent_init(&torrent, tinfo);
-			fprintf(tinfo, "block_size: %u\n", block_size);
-			fprintf(tinfo, "blocks_total: %llu\n", blocks_total);
+			init_bt_info(&bt, target, block_size, blocks_total);
 		}
 
 		log_mesg(0, 0, 0, debug, "Total block %llu\n", blocks_total);
@@ -1154,26 +1116,17 @@ int main(int argc, char **argv) {
 						log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
 				} else if (r_size == 0){ // done for ddd
 				    /// write buffer to target
-                                    if (opt.blockfile == 1){
-				        // SHA1 for torrent info
-				        // Not always bigger or smaller than 16MB
-				        
-				        // first we write out block_id * block_size for filename
-				        // because when calling write_block_file
-				        // we will create a new file to describe a continuous block (or buffer is full)
-				        // and never write to same file again
-					torrent_start_offset(&torrent, copied * block_size);
-					torrent_end_length(&torrent, rescue_write_size);
-                                        
-					torrent_update(&torrent, buffer, rescue_write_size);
-
-					if (opt.torrent_only == 1) {
-						w_size = rescue_write_size;
-					} else {
-                                        	w_size = write_block_file(target, buffer, rescue_write_size, copied*block_size, &opt);
-					}
-                                    } else {
-                                        w_size = write_all(&dfw, buffer, rescue_write_size, &opt);
+                                                                        if (opt.blockfile == 1){
+                                    					update_bt_info(&bt,
+                                    						       copied * block_size,
+                                    						       buffer, rescue_write_size);
+                                    
+                                    					if (opt.torrent_only == 1) {
+                                    						w_size = rescue_write_size;
+                                    					} else {
+                                                                            w_size = write_block_file(target, buffer, rescue_write_size, copied*block_size, &opt);
+                                    					}
+                                                                        } else {                                        w_size = write_all(&dfw, buffer, rescue_write_size, &opt);
                                     }
 				    break;
 				} else
@@ -1182,17 +1135,8 @@ int main(int argc, char **argv) {
 
 			/// write buffer to target
 			if (opt.blockfile == 1){
-			    // SHA1 for torrent info
-			    // Not always bigger or smaller than 16MB
-			    
-			    // first we write out block_id * block_size for filename
-			    // because when calling write_block_file
-			    // we will create a new file to describe a continuous block (or buffer is full)
-			    // and never write to same file again
-			    torrent_start_offset(&torrent, copied * block_size);
-			    torrent_end_length(&torrent, blocks_read * block_size);
-
-			    torrent_update(&torrent, buffer, blocks_read * block_size);
+				update_bt_info(&bt, copied * block_size, buffer,
+					       blocks_read * block_size);
 
 			    if (opt.torrent_only == 1) {
 				    w_size = blocks_read * block_size;
@@ -1226,7 +1170,7 @@ int main(int argc, char **argv) {
 
 		// finish SHA1 for torrent info
 		if (opt.blockfile == 1) {
-			torrent_final(&torrent);
+			torrent_final(&bt.torrent);
 		}
 
 		free(buffer);
