@@ -23,7 +23,7 @@ echo -e "\nclone $raw to $img\n"
 [ -f $img ] && rm $img
 echo -e "    $ptlfs -d -N -s $raw -O $img -F -L $logfile\n"
 _ptlbreak
-$ptlfs -d -c -s $raw -O $img -F -L $logfile -a 1 -k 17
+$ptlfs -d -c -s $raw -O $img -F -L $logfile -a 2 -k 17
 _check_return_code
 
 echo -e "\nFUSE mount image\n"

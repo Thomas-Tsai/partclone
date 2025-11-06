@@ -65,19 +65,14 @@ size_t get_file_size(unsigned long block)
 {
     unsigned long copied = 0;
     unsigned long long block_id = 0;
-    unsigned long nx_current = 0;
-    for (block_id = block; block_id <= fs_info.totalblock; block_id++) {
-	if (block_id < fs_info.totalblock) {
-	    nx_current = pc_test_bit(block_id, bitmap, fs_info.totalblock);
-	    if (nx_current)
-		copied++;
-	} else
-	    nx_current = -1;
-	if (!nx_current) {
-	    return (size_t)(copied*fs_info.block_size);
-	}
+    for (block_id = block; block_id < fs_info.totalblock; block_id++) {
+        if (pc_test_bit(block_id, bitmap, fs_info.totalblock)) {
+            copied++;
+        } else {
+            break;
+        }
     }
-    return 0;
+    return (size_t)(copied * fs_info.block_size);
 }
 
 
@@ -213,7 +208,7 @@ static int readdir_block(const char *path, void *buf, fuse_fill_dir_t filler,
     (void) offset;
     (void) fi;
     (void) flags;
-    char buffer[33];
+    char buffer[64];
     int n = 0;
     unsigned long long test_block = 0;
 
