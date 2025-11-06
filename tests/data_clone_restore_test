@@ -86,9 +86,9 @@ for fs in $test_fs; do
     _check_return_code
 
     echo -e "\n__device to image clone__, $source_partition to $target_image\n"
-    echo -e "    $ptlfs -d -c -s $source_partition -O $target_image -L $logfile -a 1 -k 64\n"
+    echo -e "    $ptlfs -d -c -s $source_partition -O $target_image -L $logfile -a 2 -k 64\n"
     _ptlbreak
-    $ptlfs -q -d -c -s $source_partition -O $target_image -L $logfile -a 1 -k 64
+    $ptlfs -q -d -c -s $source_partition -O $target_image -L $logfile -a 2 -k 64
     _check_return_code
 
     echo -e "\n__restore image to device__, $target_image to $target_partition\n"

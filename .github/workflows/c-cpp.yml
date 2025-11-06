@@ -20,7 +20,7 @@ jobs:
           sudo sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
           sudo apt-get update
           sudo apt-get build-dep partclone
-          sudo apt-get install f2fs-tools hfsprogs exfatprogs gddrescue reiser4progs
+          sudo apt-get install f2fs-tools hfsprogs exfatprogs gddrescue reiser4progs libxxhash-dev
     - name: automake
       run: ./autogen
     - name: configure

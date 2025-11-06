@@ -54,6 +54,7 @@ fi
 
 dnl Check for uuid 
 PKG_CHECK_MODULES(UUID, uuid,,exit)
+PKG_CHECK_MODULES([XXHASH], [libxxhash],, [AC_MSG_ERROR([libxxhash not found])])
 uuidcfg=`pkg-config --cflags --libs uuid`
 
 AC_ARG_ENABLE([fuse],

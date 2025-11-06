@@ -74,8 +74,8 @@ The new format also support a few new features and has some flexibility for futu
 |         88 |    4 | Size of feature section
 |         92 |    2 | Image version, in binary: 0x0002
 |         94 |    2 | Number of bits for CPU data: 32, 64, other?
-|         96 |    2 | Checksum mode for the block strip: 0 = None, 1 = CRC32
-|         98 |    2 | Checksum size, in bytes (4 for CRC32)
+|         96 |    2 | Checksum mode for the block strip: 0 = None, 1 = CRC32, 2 = XXH64
+|         98 |    2 | Checksum size, in bytes (4 for CRC32, 8 for XXH64)
 |        100 |    4 | Blocks per checksum, default is 256.
 |        104 |    1 | Reseed checksum: 1 = yes, 0 = no
 |        105 |    1 | Bitmap mode, see bitmap_mode_enum

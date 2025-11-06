@@ -14,7 +14,7 @@ jobs:
           sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
           sudo apt-get update
           sudo apt-get build-dep -y partclone
-          sudo apt-get install -y f2fs-tools hfsprogs exfatprogs gddrescue libfuse3-dev fuse3 jfsutils reiser4progs hfsprogs hfsplus reiserfsprogs
+          sudo apt-get install -y f2fs-tools hfsprogs exfatprogs gddrescue libfuse3-dev fuse3 jfsutils reiser4progs hfsprogs hfsplus reiserfsprogs libxxhash-dev
     - name: automake
       run: ./autogen
     - name: configure

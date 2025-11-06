@@ -42,6 +42,11 @@ extra_fs="vmfs ufs"
 # foramtable file system reiser4 can't mount, ufs read-only
 formatable_fs="$mountable_fs reiser4"
 
+# enable debug break
+if [ "X$BREAK" != "" ]; then
+    break_debug=$BREAK
+fi
+
 _check_root(){
     if [[ $UID -ne 0 ]]; then
 	echo "$0 must be run as root"
@@ -57,7 +62,7 @@ _check_return_code(){
 }
 
 _ptlbreak(){
-    if [[ $break_debug -ne 0 && $- = *"i"* ]];then
+    if [[ $break_debug -ne 0 && -t 0 ]];then
 
 	echo "continue test process(Y/n)? default yes"
 	read con

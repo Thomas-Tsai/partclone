@@ -1,11 +1,16 @@
 #include "checksum.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "partclone.h" // for log_mesg() & cmd_opt
+#include "xxhash.h"
 
 #define CRC32_SEED 0xFFFFFFFF
 
 static uint32_t crc_tab32[256] = { 0 };
 static int cs_mode = CSM_NONE;
+static XXH64_state_t* xxh64_state = NULL;
 
 unsigned get_checksum_size(int checksum_mode, int debug) {
 
@@ -17,6 +22,9 @@ unsigned get_checksum_size(int checksum_mode, int debug) {
 	case CSM_CRC32:
 	case CSM_CRC32_0001:
 		return 4;
+
+	case CSM_XXH64:
+		return sizeof(XXH64_hash_t);
 
 	default:
 		log_mesg(0, 1, 1, debug, "Unknown checksum mode [%d]\n", checksum_mode);
@@ -34,6 +42,9 @@ const char *get_checksum_str(int checksum_mode) {
 
 	case CSM_CRC32:
 		return "CRC32";
+
+	case CSM_XXH64:
+		return "XXH64";
 
 	case CSM_CRC32_0001:
 		return "CRC32_0001";
@@ -80,6 +91,7 @@ void init_crc32(uint32_t* seed) {
  */
 void init_checksum(int checksum_mode, unsigned char* seed, int debug) {
 
+	cs_mode = checksum_mode;
 	switch(checksum_mode) {
 
 	case CSM_CRC32:
@@ -88,6 +100,13 @@ void init_checksum(int checksum_mode, unsigned char* seed, int debug) {
 
 	case CSM_CRC32_0001:
 		init_crc32((uint32_t*)seed);
+		break;
+
+	case CSM_XXH64:
+		if (xxh64_state == NULL) {
+			xxh64_state = XXH64_createState();
+		}
+		XXH64_reset(xxh64_state, 0); // Using 0 as seed
 		break;
 
 	case CSM_NONE:
@@ -99,8 +118,6 @@ void init_checksum(int checksum_mode, unsigned char* seed, int debug) {
 		log_mesg(0, 1, 1, debug, "Unknown checksum mode [%d]\n", checksum_mode);
 		break;
 	}
-
-	cs_mode = checksum_mode;
 }
 
 /// the crc32 function, reference from libcrc.
@@ -156,18 +173,18 @@ static uint32_t crc32_0001(uint32_t seed, void* buffer, int size) {
  */
 void update_checksum(unsigned char* checksum, char* buf, int size) {
 
-	uint32_t* crc;
-
 	switch(cs_mode)
 	{
 	case CSM_CRC32:
-		crc = (uint32_t*)checksum;
-		*crc = crc32(*crc, (unsigned char*)buf, size);
+		*(uint32_t*)checksum = crc32(*(uint32_t*)checksum, (unsigned char*)buf, size);
 		break;
 
 	case CSM_CRC32_0001:
-		crc = (uint32_t*)checksum;
-		*crc = crc32_0001(*crc, (unsigned char*)buf, size);
+		*(uint32_t*)checksum = crc32_0001(*(uint32_t*)checksum, (unsigned char*)buf, size);
+		break;
+
+	case CSM_XXH64:
+		XXH64_update(xxh64_state, buf, size);
 		break;
 
 	case CSM_NONE:
@@ -176,4 +193,46 @@ void update_checksum(unsigned char* checksum, char* buf, int size) {
 		break;
 	}
 
+}
+
+void finalize_checksum(unsigned char* checksum) {
+
+	switch(cs_mode)
+	{
+	case CSM_XXH64:
+		*(XXH64_hash_t*)checksum = XXH64_digest(xxh64_state);
+		break;
+
+	case CSM_CRC32:
+	case CSM_CRC32_0001:
+	case CSM_NONE:
+		// Nothing to do
+		break;
+	}
+
+}
+
+void release_checksum() {
+    if (xxh64_state != NULL) {
+        XXH64_freeState(xxh64_state);
+        xxh64_state = NULL;
+    }
+}
+
+char* format_checksum(const unsigned char* data, unsigned int size) {
+    if (data == NULL || size == 0) {
+        return NULL;
+    }
+
+    char* hex_string = (char*)malloc(size * 2 + 1);
+    if (hex_string == NULL) {
+        return NULL;
+    }
+
+    for (unsigned int i = 0; i < size; i++) {
+        sprintf(hex_string + (i * 2), "%02x", data[i]);
+    }
+
+    hex_string[size * 2] = '\0';
+    return hex_string;
 }
