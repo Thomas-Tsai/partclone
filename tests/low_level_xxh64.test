@@ -1,0 +1,86 @@
+#!/bin/bash
+
+#
+# This script verifies the XXH64 checksum of the first data strip of a
+# partclone image file (format 0002).
+#
+
+set -e
+
+IMAGE_FILE="$1"
+
+if [ -z "$IMAGE_FILE" ]; then
+    echo "Usage: $0 <image_file>"
+    exit 1
+fi
+
+if [ ! -f "$IMAGE_FILE" ]; then
+    echo "Error: File not found: $IMAGE_FILE"
+    exit 1
+fi
+
+# --- Read header parameters ---
+
+# Note: We are assuming little-endian based on our previous analysis.
+# od is used to read the binary data as integers.
+
+block_size=$(od -An -t u4 -j 84 -N 4 "$IMAGE_FILE" | xargs)
+blocks_per_checksum=$(od -An -t u4 -j 100 -N 4 "$IMAGE_FILE" | xargs)
+checksum_size=$(od -An -t u2 -j 98 -N 2 "$IMAGE_FILE" | xargs)
+total_block_count=$(od -An -t u8 -j 60 -N 8 "$IMAGE_FILE" | xargs)
+
+# --- Calculate offsets and sizes ---
+
+header_size=110
+bitmap_size=$(( (total_block_count + 7) / 8 ))
+bitmap_crc_size=4
+data_start_offset=$(( header_size + bitmap_size + bitmap_crc_size ))
+strip_size=$(( block_size * blocks_per_checksum ))
+
+echo "--- Image Parameters ---"
+echo "Block Size: $block_size"
+echo "Blocks per Checksum: $blocks_per_checksum"
+echo "Checksum Size: $checksum_size"
+echo "Total Block Count: $total_block_count"
+echo "Strip Size: $strip_size"
+echo "Data Start Offset: $data_start_offset"
+echo "------------------------"
+
+
+# --- Verify first strip ---
+
+# Read the first byte of the bitmap to check if the first block is present.
+# The bitmap starts at offset 110.
+bitmap_first_byte=$(hexdump -s 110 -n 1 -e '1/1 "%02x"' "$IMAGE_FILE")
+
+# Check if the first bit is set
+if [ $(( (16#$bitmap_first_byte & 1) )) -eq 0 ]; then
+    echo "First block is not present in the image. Skipping checksum verification."
+    exit 0
+fi
+
+echo "First block is present. Proceeding with checksum verification..."
+
+# Calculate the XXH64 checksum of the first data strip
+calculated_checksum=$(dd if="$IMAGE_FILE" bs=1 skip=$data_start_offset count=$strip_size 2>/dev/null | xxhsum -H64 | cut -d' ' -f1)
+
+# Read the stored checksum
+stored_checksum_offset=$(( data_start_offset + strip_size ))
+stored_checksum_hex=$(hexdump -s $stored_checksum_offset -n $checksum_size -e '1/1 "%02x"' "$IMAGE_FILE")
+
+# Reverse the byte order of the stored checksum (little-endian to big-endian)
+stored_checksum_reversed=""
+for (( i=${#stored_checksum_hex}-2; i>=0; i-=2 )); do
+    stored_checksum_reversed="$stored_checksum_reversed${stored_checksum_hex:$i:2}"
+done
+
+echo "Calculated Checksum: $calculated_checksum"
+echo "Stored Checksum    : $stored_checksum_reversed"
+
+if [ "$calculated_checksum" == "$stored_checksum_reversed" ]; then
+    echo "Checksum verification PASSED for the first strip."
+    exit 0
+else
+    echo "Checksum verification FAILED for the first strip."
+    exit 1
+fi

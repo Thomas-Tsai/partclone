@@ -78,6 +78,6 @@ for log in $(ls clone*.log restore*.log); do
 done
 
 echo -e "\nclear tmp files $img $raw $logfile $md5 $raw_r\n"
-#rm -f $img $raw $logfile $md5 $raw_r
+rm -f $img $raw $logfile $md5 $raw_r
 echo -e "\nchecksum test done\n"
 
