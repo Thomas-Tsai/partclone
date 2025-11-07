@@ -929,6 +929,13 @@ void load_image_desc_v1(file_system_info* fs_info, image_options* img_opt,
 	fs_info->totalblock  = fs_info_v1.totalblock;
 	fs_info->usedblocks  = fs_info_v1.usedblocks;
 
+	/* Validate totalblock to prevent BITS_TO_BYTES overflow */
+	if (fs_info->totalblock > ULLONG_MAX - 7) {
+		log_mesg(0, 1, 1, opt->debug,
+			"Invalid image: totalblock value (%llu) would cause integer overflow\n",
+			(unsigned long long)fs_info->totalblock);
+	}
+
 	dev_size = fs_info->totalblock * fs_info->block_size;
 	if (fs_info->device_size != dev_size) {
 
@@ -949,6 +956,13 @@ void load_image_desc_v2(file_system_info* fs_info, image_options* img_opt,
 
 	memcpy(fs_info, &fs_info_v2, sizeof(file_system_info_v2));
 	memcpy(img_opt, &img_opt_v2, sizeof(image_options_v2));
+
+	/* Validate totalblock to prevent BITS_TO_BYTES overflow */
+	if (fs_info->totalblock > ULLONG_MAX - 7) {
+		log_mesg(0, 1, 1, opt->debug,
+			"Invalid image: totalblock value (%llu) would cause integer overflow\n",
+			(unsigned long long)fs_info->totalblock);
+	}
 }
 
 /**
