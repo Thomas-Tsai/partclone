@@ -929,6 +929,13 @@ void load_image_desc_v1(file_system_info* fs_info, image_options* img_opt,
 	fs_info->totalblock  = fs_info_v1.totalblock;
 	fs_info->usedblocks  = fs_info_v1.usedblocks;
 
+	/* Validate totalblock to prevent BITS_TO_BYTES overflow */
+	if (fs_info->totalblock > ULLONG_MAX - 7) {
+		log_mesg(0, 1, 1, opt->debug,
+			"Invalid image: totalblock value (%llu) would cause integer overflow\n",
+			(unsigned long long)fs_info->totalblock);
+	}
+
 	dev_size = fs_info->totalblock * fs_info->block_size;
 	if (fs_info->device_size != dev_size) {
 
@@ -953,6 +960,12 @@ void load_image_desc_v2(file_system_info* fs_info, image_options* img_opt,
 	// Validate blocks_per_checksum to prevent divide-by-zero
 	if (img_opt->checksum_mode != CSM_NONE && img_opt->blocks_per_checksum == 0)
 		log_mesg(0, 1, 1, opt->debug, "Invalid image: blocks_per_checksum cannot be 0 when checksum is enabled\n");
+	/* Validate totalblock to prevent BITS_TO_BYTES overflow */
+	if (fs_info->totalblock > ULLONG_MAX - 7) {
+		log_mesg(0, 1, 1, opt->debug,
+			"Invalid image: totalblock value (%llu) would cause integer overflow\n",
+			(unsigned long long)fs_info->totalblock);
+	}
 }
 
 /**
@@ -1045,8 +1058,8 @@ void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_op
 
 	case BM_BIT:
 	{
-		if (write_all(ret, (char*)bitmap, BITS_TO_BYTES(fs_info.totalblock), opt) == -1)
-			log_mesg(0, 1, 1, debug, "write bitmap to image error: %s\n", strerror(errno));
+		if (write_all(ret, (char*)bitmap, pc_BITS_TO_BYTES(fs_info.totalblock), opt) == -1)
+		    log_mesg(0, 1, 1, debug, "write bitmap to image error: %s\n", strerror(errno));
 		break;
 	}
 
@@ -1097,10 +1110,9 @@ void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_op
 
 			init_crc32(&crc);
 
-			crc = crc32(crc, bitmap, BITS_TO_BYTES(fs_info.totalblock));
-
+			crc = crc32(crc, bitmap, pc_BITS_TO_BYTES(fs_info.totalblock));
 			if (write_all(ret, (char*)&crc, sizeof(crc), opt) != sizeof(crc))
-				log_mesg(0, 1, 1, debug, "write bitmap to image error: %s\n", strerror(errno));
+			    log_mesg(0, 1, 1, debug, "write bitmap to image error: %s\n", strerror(errno));
 			break;
 		}
 
@@ -1275,8 +1287,8 @@ unsigned long long get_bitmap_size_on_disk(const file_system_info* fs_info, cons
 	switch(img_opt->bitmap_mode)
 	{
 	case BM_BIT:
-		size = BITS_TO_BYTES(fs_info->totalblock);
-		break;
+	    size = pc_BITS_TO_BYTES(fs_info->totalblock);
+	    break;
 
 	case BM_BYTE:
 		size = fs_info->totalblock;
@@ -1366,8 +1378,7 @@ void check_free_space(char* path, unsigned long long size) {
 
 void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt) {
 
-	const unsigned long long bitmap_size = BITS_TO_BYTES(fs_info.totalblock);
-
+	const unsigned long long bitmap_size = pc_BITS_TO_BYTES(fs_info.totalblock);
 	const uint32_t blkcs = img_opt.blocks_per_checksum;
 	const uint32_t block_size = fs_info.block_size;
 	const unsigned int buffer_capacity = opt.buffer_size > block_size ? opt.buffer_size / block_size : 1; // in blocks
@@ -1406,8 +1417,7 @@ void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt
 
 void load_image_bitmap_bits(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap) {
 
-	unsigned long long r_size, bitmap_size = BITS_TO_BYTES(fs_info.totalblock);
-	uint32_t r_crc, crc;
+	unsigned long long r_size, bitmap_size = pc_BITS_TO_BYTES(fs_info.totalblock);	uint32_t r_crc, crc;
 
 	r_size = read_all(ret, (char*)bitmap, bitmap_size, &opt);
 	if (r_size != bitmap_size)

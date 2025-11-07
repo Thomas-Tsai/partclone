@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = subdir-objects
 AM_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\" -D_FILE_OFFSET_BITS=64 $(XXHASH_CFLAGS)
-LDADD = $(LIBINTL) torrent_helper.o -lcrypto $(XXHASH_LIBS)
+LDADD = $(LIBINTL) $(XXHASH_LIBS)
 sbin_PROGRAMS=partclone.info partclone.dd partclone.restore partclone.chkimg partclone.imager #partclone.imgfuse #partclone.block
 TOOLBOX = srcdir=$(top_srcdir) builddir=$(top_builddir) $(top_srcdir)/toolbox
 
@@ -38,9 +38,10 @@ endif
 version.h: FORCE
 	$(TOOLBOX) --update-version
 
-main_files=main.c partclone.c progress.c checksum.c torrent_helper.c partclone.h progress.h gettext.h checksum.h torrent_helper.h bitmap.h
+main_files=main.c partclone.c progress.c checksum.c partclone.h progress.h gettext.h checksum.h bitmap.h
 
 partclone_info_SOURCES=info.c partclone.c checksum.c partclone.h fs_common.h checksum.h
+partclone_info_LDADD=torrent_helper.o -lcrypto ${LDADD_static} $(XXHASH_LIBS)
 partclone_restore_SOURCES=$(main_files) ddclone.c ddclone.h
 partclone_restore_CFLAGS=-DRESTORE -DDD
 partclone_restore_LDADD=torrent_helper.o -lcrypto ${LDADD_static} $(XXHASH_LIBS)
@@ -163,7 +164,7 @@ partclone_vmfs5_LDADD=-lvmfs -luuid torrent_helper.o -lcrypto ${LDADD_static} $(
 sbin_PROGRAMS += partclone.fstype
 partclone_fstype_SOURCES=fstype.c
 partclone_fstype_CFLAGS=-DVMFS -D_GNU_SOURCE $(UUID_CFLAGS)
-partclone_fstype_LDADD=-lvmfs -luuid torrent_helper.o -lcrypto ${LDADD_static} $(XXHASH_LIBS) torrent_helper.o
+partclone_fstype_LDADD=-lvmfs -luuid torrent_helper.o -lcrypto ${LDADD_static} $(XXHASH_LIBS)
 
 endif
 
