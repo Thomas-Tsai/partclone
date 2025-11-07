@@ -949,6 +949,10 @@ void load_image_desc_v2(file_system_info* fs_info, image_options* img_opt,
 
 	memcpy(fs_info, &fs_info_v2, sizeof(file_system_info_v2));
 	memcpy(img_opt, &img_opt_v2, sizeof(image_options_v2));
+
+	// Validate blocks_per_checksum to prevent divide-by-zero
+	if (img_opt->checksum_mode != CSM_NONE && img_opt->blocks_per_checksum == 0)
+		log_mesg(0, 1, 1, opt->debug, "Invalid image: blocks_per_checksum cannot be 0 when checksum is enabled\n");
 }
 
 /**
@@ -1373,6 +1377,10 @@ void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt
 	void *test_bitmap, *test_read, *test_write;
 
 	if (img_opt.checksum_mode != CSM_NONE) {
+
+		// Verify blocks_per_checksum is valid
+		if (blkcs == 0)
+			log_mesg(0, 1, 1, opt.debug, "Invalid image: blocks_per_checksum cannot be 0 when checksum is enabled\n");
 
 		unsigned long long cs_in_buffer = buffer_capacity / blkcs;
 
