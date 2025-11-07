@@ -72,7 +72,7 @@ static ssize_t lssu_print_suinfo(struct nilfs *nilfs, __u64 segnum,
 		if (!all && nilfs_suinfo_clean(&suinfos[i]))
 			continue;
 
-			log_mesg(3, 0, 0, fs_opt.debug, "%s: seg %llu, %c %c %c , %i\n",
+		log_mesg(3, 0, 0, fs_opt.debug, "%s: seg %llu, %c %c %c , %i\n",
 			       __FILE__, (unsigned long long)segnum,
 			       nilfs_suinfo_active(&suinfos[i]) ? 'a' : '-',
 			       nilfs_suinfo_dirty(&suinfos[i]) ? 'd' : '-',

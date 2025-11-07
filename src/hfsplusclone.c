@@ -117,7 +117,7 @@ static void fs_open(char* device){
 
     char *buffer;
     short HFS_Version;
-    short HFS_Signature;
+    short HFS_Signature = 0;
     int HFS_Clean = 0;
 
     // Clear the HFS header. If we later see it's been populated, we'll know we're using a wrapped volume.

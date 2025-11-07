@@ -184,41 +184,37 @@ scan_freelist(
 	xfs_agfl_t	*agfl;
 	xfs_agblock_t	bno;
 	unsigned int	i;
-	__be32		*agfl_bno;
+	void		*agfl_bno;
 	struct xfs_buf	*bp;
 	const struct xfs_buf_ops *ops = NULL;
 
 	if (be32_to_cpu(agf->agf_flcount) == 0)
 		return;
-	//push_cur();
-	//set_cur(&typtab[TYP_AGFL], XFS_AG_DADDR(mp, seqno, XFS_AGFL_DADDR(mp)),
-	//			XFS_FSS_TO_BB(mp, 1), DB_RING_IGN, NULL);
-	//agfl = iocur_top->data;
 	bp = libxfs_readbuf(mp->m_ddev_targp, XFS_AG_DADDR(mp, seqno, XFS_AGFL_DADDR(mp)), XFS_FSS_TO_BB(mp, 1), 0, ops);
 	agfl = bp->b_addr;
 	i = be32_to_cpu(agf->agf_flfirst);
 
 	/* open coded XFS_BUF_TO_AGFL_BNO */
-	agfl_bno = xfs_sb_version_hascrc(&mp->m_sb) ? &agfl->agfl_bno[0]
-						   : (__be32 *)agfl;
+	agfl_bno = xfs_sb_version_hascrc(&mp->m_sb) ? (void *)&agfl->agfl_bno[0]
+						   : (void *)agfl;
 
 	/* verify agf values before proceeding */
 	if (be32_to_cpu(agf->agf_flfirst) >= xfs_agfl_size(mp) ||
 	    be32_to_cpu(agf->agf_fllast) >= xfs_agfl_size(mp)) {
 		log_mesg(0, 0, 0, fs_opt.debug, "%s: agf %d freelist blocks bad, skipping freelist scan\n", __FILE__, i);
-		//pop_cur();
 		return;
 	}
 
 	for (;;) {
-		bno = be32_to_cpu(agfl_bno[i]);
+		__be32 temp_bno;
+		memcpy(&temp_bno, (char *)agfl_bno + i * sizeof(__be32), sizeof(temp_bno));
+		bno = be32_to_cpu(temp_bno);
 		addtohist(seqno, bno, 1);
 		if (i == be32_to_cpu(agf->agf_fllast))
 			break;
 		if (++i == xfs_agfl_size(mp))
 			i = 0;
 	}
-	//pop_cur();
 }
 
 

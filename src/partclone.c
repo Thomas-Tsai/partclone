@@ -988,20 +988,23 @@ void load_image_desc(int* ret, cmd_opt* opt, image_head_v2* img_head, file_syste
 	if (memcmp(buf_v2.head.magic, IMAGE_MAGIC, IMAGE_MAGIC_SIZE))
 		log_mesg(0, 1, 1, debug, "This is not partclone image.\n");
 
-    assert(buf_v2.head.version != NULL);
+	assert(buf_v2.head.version != NULL);
 	img_version = atol(buf_v2.head.version);
 
 	switch(img_version) {
 
 	case 0x0001: {
-		const image_desc_v1* buf_v1 = (image_desc_v1*)&buf_v2;
-		image_options_v1 extra;
+		image_desc_v1 buf_v1;
+
+		// copy the first part of the header
+		memcpy(&buf_v1, &buf_v2, sizeof(image_desc_v2));
 
 		// read the extra bytes
-		if (read_all(ret, extra.buff, sizeof(image_desc_v1) - sizeof(image_desc_v2), opt) == -1)
+		char* p = (char*)&buf_v1;
+		if (read_all(ret, p + sizeof(image_desc_v2), sizeof(image_desc_v1) - sizeof(image_desc_v2), opt) == -1)
 			log_mesg(0, 1, 1, debug, "read image_hdr error=%d\n (%s)", r_size, strerror(errno));
 
-		load_image_desc_v1(fs_info, img_opt, buf_v1->head, buf_v1->fs_info, opt);
+		load_image_desc_v1(fs_info, img_opt, buf_v1.head, buf_v1.fs_info, opt);
 		memset(img_head, 0, sizeof(image_head_v2));
 		break;
 	}
