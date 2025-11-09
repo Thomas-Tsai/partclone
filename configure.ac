@@ -52,8 +52,15 @@ if test "x$GCC" = "xyes"; then
   esac
 fi
 
-dnl Check for uuid 
+dnl Check for uuid
 PKG_CHECK_MODULES(UUID, uuid,,exit)
+
+dnl Check for Intel ISA-L (for optimized CRC32)
+PKG_CHECK_MODULES([ISAL], [libisal], [HAVE_ISAL=1], [HAVE_ISAL=0])
+if test "$HAVE_ISAL" = "1"; then
+    AC_DEFINE([HAVE_ISAL], [1], [Intel ISA-L library available])
+fi
+
 PKG_CHECK_MODULES([XXHASH], [libxxhash],, [AC_MSG_ERROR([libxxhash not found])])
 uuidcfg=`pkg-config --cflags --libs uuid`
 
