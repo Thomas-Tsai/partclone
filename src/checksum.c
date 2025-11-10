@@ -6,11 +6,44 @@
 #include "partclone.h" // for log_mesg() & cmd_opt
 #include "xxhash.h"
 
+#ifdef HAVE_ISAL
+#include <isa-l.h>
+#endif
+
 #define CRC32_SEED 0xFFFFFFFF
 
 static uint32_t crc_tab32[256] = { 0 };
 static int cs_mode = CSM_NONE;
 static XXH64_state_t* xxh64_state = NULL;
+
+/**
+ * ISA-L compatible CRC32 wrapper
+ * This function ensures bit-for-bit compatibility with the existing CRC32
+ * by properly handling the seed inversion as per IEEE 802.3 specification
+ */
+static inline uint32_t crc32_isa_compatible(uint32_t seed, void* buffer, long size) {
+#ifdef HAVE_ISAL
+    // ISA-L crc32_gzip_refl expects the seed to be bit-inverted
+    uint32_t ext_seed = ~seed;
+    uint32_t ext_crc = crc32_gzip_refl(ext_seed, (const unsigned char*)buffer, (uint64_t)size);
+    // Return bit-inverted result to match expected output
+    return ~ext_crc;
+#else
+    // Fallback to original implementation
+    unsigned char * buf = (unsigned char *)buffer;
+    const unsigned char * end = buf + size;
+    uint32_t tmp, long_c, crc = seed;
+
+    while (buf != end) {
+        /// update crc
+        long_c = *(buf++);
+        tmp = crc ^ long_c;
+        crc = (crc >> 8) ^ crc_tab32[tmp & 0xff];
+    };
+
+    return crc;
+#endif
+}
 
 unsigned get_checksum_size(int checksum_mode, int debug) {
 
@@ -126,19 +159,7 @@ void init_checksum(int checksum_mode, unsigned char* seed, int debug) {
 /// http://www.lammertbies.nl/comm/info/nl_crc-calculation.html
 /// generate crc32 code
 uint32_t crc32(uint32_t seed, void* buffer, long size) {
-
-	unsigned char * buf = (unsigned char *)buffer;
-	const unsigned char * end = buf + size;
-	uint32_t tmp, long_c, crc = seed;
-
-	while (buf != end) {
-		/// update crc
-		long_c = *(buf++);
-		tmp = crc ^ long_c;
-		crc = (crc >> 8) ^ crc_tab32[tmp & 0xff];
-	};
-
-	return crc;
+    return crc32_isa_compatible(seed, buffer, size);
 }
 
 /**
