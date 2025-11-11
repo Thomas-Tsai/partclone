@@ -256,7 +256,7 @@ void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct exte
     int i;
     struct btrfs_disk_key disk_key;
     struct btrfs_file_extent_item *fi;
-    int root_eb_level = btrfs_header_level(eb);
+
 
     if (!eb)
 	return;

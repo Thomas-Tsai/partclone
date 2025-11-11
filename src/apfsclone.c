@@ -241,6 +241,9 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
                 memset(chunk_info_block_buf, 0,  block_size);
                 memset(&chunk_info_block, 0, sizeof(chunk_info_block));
                 read_size = pread(APFSDEV, chunk_info_block_buf, block_size, addr_data*block_size);
+                if (read_size != block_size) {
+                    log_mesg(0, 1, 1, fs_opt.debug, "%s: pread error reading chunk info block %s\\n", __FILE__, strerror(errno));
+                }
                 memcpy(&chunk_info_block, chunk_info_block_buf, sizeof(chunk_info_block));
                 memcpy(&obj_phys_t, chunk_info_block_buf, sizeof(obj_phys_t));
 
@@ -265,6 +268,9 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
                         
                             memset(bitmap_entry_buf, 0, block_size);
                             read_size = pread(APFSDEV, bitmap_entry_buf, block_size, chunk_info.ci_bitmap_addr*block_size);
+                            if (read_size != block_size) {
+                                log_mesg(0, 1, 1, fs_opt.debug, "%s: pread error reading bitmap entry %s\\n", __FILE__, strerror(errno));
+                            }
     
                             for (block = 0 ; block < chunk_info.ci_block_count; block++){
                                 if (pc_test_bit(block, (void *)bitmap_entry_buf, chunk_info.ci_block_count) == 0){

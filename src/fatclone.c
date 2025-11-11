@@ -279,22 +279,17 @@ static void fs_open(char* device)
     buffer = (char*)malloc(sizeof(FatBootSector));
     if(buffer == NULL){
         log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+    } else {
+        if(read (ret, buffer, sizeof(FatBootSector)) != sizeof(FatBootSector)) {
+            log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
+        } else {
+            memcpy(&fat_sb, buffer, sizeof(FatBootSector));
+        }
+        free(buffer);
     }
-    if(read (ret, buffer, sizeof(FatBootSector)) != sizeof(FatBootSector))
-	log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-    assert(buffer != NULL);
-    memcpy(&fat_sb, buffer, sizeof(FatBootSector));
-    free(buffer);
 
-    buffer = (char*)malloc(sizeof(FatFsInfo));
-    if(buffer == NULL){
-        log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-    }
     if (read(ret, &fatfs_info, sizeof(FatFsInfo)) != sizeof(FatFsInfo))
 	log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
-    assert(buffer != NULL);
-    memcpy(&fatfs_info, buffer, sizeof(FatFsInfo));
-    free(buffer);
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s: open device down\n", __FILE__);
 
