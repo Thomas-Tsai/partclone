@@ -110,16 +110,38 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     int bit_size = 1;
     int B_UN_INIT = 0;
     int ext4_gfree_mismatch = 0;
+    ext2fs_block_bitmap working_bitmap = NULL;
+    int allocated_subcluster = 0;
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s: read_bitmap %p\n", __FILE__, bitmap);
 
     fs_open(device);
-    retval = ext2fs_read_bitmaps(fs); /// open extfs bitmap
-    if (retval)
-	log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't find valid filesystem bitmap.\n", __FILE__);
 
-    block_nbytes = EXT2_BLOCKS_PER_GROUP(fs->super) / 8;
-    if (fs->block_map)
+    // Read bitmaps from disk
+    retval = ext2fs_read_bitmaps(fs);
+    if (retval)
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: Couldn't find valid filesystem bitmap.\n", __FILE__);
+
+#ifndef EXTFS_1_41
+    // e2fsprogs 1.42+: Check for bigalloc filesystems
+    if (fs->cluster_ratio_bits) {
+        // Bigalloc filesystem detected
+        log_mesg(1, 0, 0, fs_opt.debug,
+                 "%s: Bigalloc filesystem detected (cluster_ratio=%d blocks/cluster)\n",
+                 __FILE__, 1 << fs->cluster_ratio_bits);
+        // For bigalloc, use appropriate buffer size (clusters, not blocks)
+        block_nbytes = EXT2_CLUSTERS_PER_GROUP(fs->super) / 8;
+        allocated_subcluster = 1;  // Mark that we're using cluster bitmap
+    } else {
+#endif
+        // Non-bigalloc: use blocks per group
+        block_nbytes = EXT2_BLOCKS_PER_GROUP(fs->super) / 8;
+#ifndef EXTFS_1_41
+    }
+#endif
+
+    working_bitmap = fs->block_map;
+    if (working_bitmap)
 	block_bitmap = malloc(block_nbytes);
 
     /// initial image bitmap as 1 (all block are used)
@@ -141,9 +163,9 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
 	if (block_bitmap) {
 #ifdef EXTFS_1_41
-	    ext2fs_get_block_bitmap_range(fs->block_map, blk_itr, block_nbytes << 3, block_bitmap);
+	    ext2fs_get_block_bitmap_range(working_bitmap, blk_itr, block_nbytes << 3, block_bitmap);
 #else
-	    ext2fs_get_block_bitmap_range2(fs->block_map, blk_itr, block_nbytes << 3, block_bitmap);
+	    ext2fs_get_block_bitmap_range2(working_bitmap, blk_itr, block_nbytes << 3, block_bitmap);
 #endif
 
 	    if (fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM){
@@ -163,7 +185,18 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	    for (block = 0; ((block < fs->super->s_blocks_per_group) && (current_block < (fs_info.totalblock-1))); block++) {
 		current_block = block + blk_itr;
 
+#ifndef EXTFS_1_41
+		// For bigalloc, map block to cluster
+		int bit_to_test = block;
+		if (allocated_subcluster && fs->cluster_ratio_bits) {
+		    // Convert block number to cluster number for bitmap lookup
+		    bit_to_test = block >> fs->cluster_ratio_bits;
+		}
+
+		if (in_use (block_bitmap, bit_to_test)){
+#else
 		if (in_use (block_bitmap, block)){
+#endif
 			pc_set_bit(current_block, bitmap, fs_info.totalblock);
 			log_mesg(3, 0, 0, fs_opt.debug, "%s: used block %llu at group %lu\n", __FILE__, current_block, group);
 		} else {
@@ -172,32 +205,50 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 		    pc_clear_bit(current_block, bitmap, fs_info.totalblock);
 		    log_mesg(3, 0, 0, fs_opt.debug, "%s: free block %llu at group %lu init %i\n", __FILE__, current_block, group, (int)B_UN_INIT);
 		}
-		
+
 		/// update progress
 		update_pui(&prog, current_block, current_block, 0);//keep update
 	    }
 	    blk_itr += fs->super->s_blocks_per_group;
 	}
 	log_mesg(2, 0, 0, fs_opt.debug, "%s: free bitmap (gfree = %lli, bg_blocks_count = %lli)at %lu group.\n", __FILE__, gfree, ext2fs_bg_free_blocks_count(fs, group), group);
-	/// check free blocks in group
-#ifdef EXTFS_1_41
-	if (gfree != fs->group_desc[group].bg_free_blocks_count){	
-#else
-	if (gfree != ext2fs_bg_free_blocks_count(fs, group)){
+
+#ifndef EXTFS_1_41
+	// Skip validation for bigalloc - we count blocks but metadata tracks clusters
+	if (!allocated_subcluster) {
 #endif
-	    if (!B_UN_INIT)
-		log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap error at %lu group.\n", __FILE__, group);
-	    else
-		ext4_gfree_mismatch = 1;
+	    /// check free blocks in group
+#ifdef EXTFS_1_41
+	    if (gfree != fs->group_desc[group].bg_free_blocks_count){
+#else
+	    if (gfree != ext2fs_bg_free_blocks_count(fs, group)){
+#endif
+		if (!B_UN_INIT)
+		    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap error at %lu group.\n", __FILE__, group);
+		else
+		    ext4_gfree_mismatch = 1;
+	    }
+#ifndef EXTFS_1_41
 	}
+#endif
     }
-    /// check all free blocks in partition
-    if (lfree != ext2fs_free_blocks_count(fs->super)) {
-	if ((fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM) && (ext4_gfree_mismatch))
-	    log_mesg(1, 0, 0, fs_opt.debug, "%s: EXT4 bitmap metadata mismatch\n", __FILE__);
-	else
-	    log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, partclone get free:%llu but extfs get %llu.\nPlease run fsck to check and repair the file system\n", __FILE__, lfree, ext2fs_free_blocks_count(fs->super));
+
+#ifndef EXTFS_1_41
+    // Skip validation for bigalloc - we count blocks but metadata tracks clusters
+    if (!allocated_subcluster) {
+#endif
+	/// check all free blocks in partition
+	if (lfree != ext2fs_free_blocks_count(fs->super)) {
+	    if ((fs->super->s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_GDT_CSUM) && (ext4_gfree_mismatch))
+		log_mesg(1, 0, 0, fs_opt.debug, "%s: EXT4 bitmap metadata mismatch\n", __FILE__);
+	    else
+		log_mesg(0, 1, 1, fs_opt.debug, "%s: bitmap free count err, partclone get free:%llu but extfs get %llu.\nPlease run fsck to check and repair the file system\n", __FILE__, lfree, ext2fs_free_blocks_count(fs->super));
+	}
+#ifndef EXTFS_1_41
+    } else {
+	log_mesg(1, 0, 0, fs_opt.debug, "%s: Bigalloc filesystem - skipping free block count validation (counts %llu free blocks)\n", __FILE__, lfree);
     }
+#endif
 
     fs_close();
     /// update progress
