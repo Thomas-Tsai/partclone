@@ -2,7 +2,7 @@ FROM ubuntu:latest
 MAINTAINER Thomas-Tsai <tlinux.tsai@gmail.com>
 RUN sed -i s/archive.ubuntu.com/free.nchc.org.tw/g /etc/apt/sources.list
 RUN apt-get update
-RUN apt-get install -y f2fs-tools hfsprogs exfatprogs gddrescue libfuse-dev jfsutils reiser4progs hfsprogs hfsplus reiserfsprogs btrfs-progs wget gnupg2 git libxxhash-dev
+RUN apt-get install -y f2fs-tools hfsprogs exfatprogs gddrescue libfuse-dev jfsutils reiser4progs hfsprogs hfsplus reiserfsprogs btrfs-progs wget gnupg2 git libxxhash-dev libisal-dev
 RUN echo '# drbl repository' >> /etc/apt/sources.list 
 RUN echo 'deb http://free.nchc.org.tw/drbl-core drbl stable testing unstable dev' >> /etc/apt/sources.list 
 RUN echo 'deb-src http://free.nchc.org.tw/drbl-core drbl stable testing unstable dev' >> /etc/apt/sources.list
