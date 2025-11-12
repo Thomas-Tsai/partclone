@@ -22,12 +22,12 @@ msgstr "经过：%s, 剩余： %s, 完成：%6.2f%%"
 #: src/progress.c:242
 #, fuzzy, c-format
 msgid ", %6.2f%s/%s,"
-msgstr ", %6.2f%s%s,"
+msgstr ", %6.2f%s/%s,"
 
 #: src/progress.c:245
 #, fuzzy, c-format
 msgid "Current block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s"
-msgstr "當前塊：%llu 總塊：%llu "
+msgstr "當前塊：%10Lu, 總塊：%10Lu, 完成：%6.2f%%%s"
 
 #: src/progress.c:253
 #, fuzzy, c-format
@@ -37,12 +37,12 @@ msgstr "经过：%s, 剩余： %s, 完成：100.00%%"
 #: src/progress.c:255
 #, fuzzy, c-format
 msgid ", Rate: %6.2f%s/%s,"
-msgstr ", 速率：%6.2f%s/min"
+msgstr ", 速率：%6.2f%s/%s,"
 
 #: src/progress.c:258
 #, fuzzy, c-format
 msgid "Current block: %10Lu, Total block: %10Lu, Complete: 100.00%%"
-msgstr "當前塊：%llu 總塊：%llu "
+msgstr "當前塊：%10Lu, 總塊：%10Lu, 完成：100.00%%"
 
 #: src/progress.c:261
 #, c-format
@@ -56,7 +56,7 @@ msgstr ""
 #: src/progress.c:263
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
-msgstr "平均速率：%6.1f%s%s, "
+msgstr "平均速率：%6.2f%s/%s, "
 
 #: src/progress.c:264
 #, c-format
@@ -71,7 +71,7 @@ msgstr "经过：%s  剩余： %s "
 #: src/progress.c:295
 #, fuzzy, c-format
 msgid "Rate: %6.2f%s/%s"
-msgstr "速率：%6.2f%s/min"
+msgstr "速率：%6.2f%s/%s"
 
 #: src/progress.c:297
 #, c-format
@@ -103,7 +103,7 @@ msgstr "全部时间：%s 剩余时间: %s "
 #: src/progress.c:330
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
-msgstr "平均速率：%6.2f%s/min"
+msgstr "平均速率：%6.2f%s/%s"
 
 #: src/partclone.c:1966
 #, c-format
@@ -192,7 +192,7 @@ msgstr "装置块大小: %i Byte\n"
 #: src/partclone.c:2023
 #, fuzzy, c-format
 msgid "Used Blocks in Super-Block:   %llu Blocks\n"
-msgstr "装置使用到空间: %s = %llu Blocks\n"
+msgstr "装置使用到空间(super block):   %llu Blocks\n"
 
 #: src/partclone.c:2036
 #, c-format

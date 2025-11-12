@@ -29,7 +29,7 @@ msgstr "Прошло: %s, Осталось: %s, Выполнено: %6.2f%%"
 #: src/progress.c:242
 #, fuzzy, c-format
 msgid ", %6.2f%s/%s,"
-msgstr ", %6.2f%s%s,"
+msgstr ", %6.2f%s/%s,"
 
 #: src/progress.c:245
 #, fuzzy, c-format
@@ -46,7 +46,7 @@ msgstr "Прошло: %s, Осталось: %s, Выполнено: 100.00%%"
 #: src/progress.c:255
 #, fuzzy, c-format
 msgid ", Rate: %6.2f%s/%s,"
-msgstr ", Скорость: %6.2f%s%s,"
+msgstr ", Скорость: %6.2f%s/%s,"
 
 #: src/progress.c:258
 #, fuzzy, c-format
@@ -67,7 +67,7 @@ msgstr ""
 #: src/progress.c:263
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
-msgstr "Ср.скорость: %6.1f%s%s, "
+msgstr "Ср.скорость: %6.1f%s/%s, "
 
 #: src/progress.c:264
 #, c-format
@@ -82,7 +82,7 @@ msgstr "Прошло: %s Осталось: %s "
 #: src/progress.c:295
 #, fuzzy, c-format
 msgid "Rate: %6.2f%s/%s"
-msgstr "Скорость: %6.2f%s/мин"
+msgstr "Скорость: %6.2f%s/%s"
 
 #: src/progress.c:297
 #, c-format
@@ -114,7 +114,7 @@ msgstr "Всего времени: %s Осталось: %s "
 #: src/progress.c:330
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
-msgstr "Ср.скорость: %6.2f%s/min"
+msgstr "Ср.скорость: %6.2f%s/%s"
 
 #: src/partclone.c:1966
 #, c-format
@@ -203,7 +203,7 @@ msgstr "Размер блока:    %i Байт\n"
 #: src/partclone.c:2023
 #, fuzzy, c-format
 msgid "Used Blocks in Super-Block:   %llu Blocks\n"
-msgstr "Использовано Блоков в Супер-Блоке: %s = %llu блоков\n"
+msgstr "Использовано Блоков в Супер-Блоке: %llu блоков\n"
 
 #: src/partclone.c:2036
 #, c-format

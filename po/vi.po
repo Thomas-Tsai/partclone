@@ -26,12 +26,12 @@ msgstr "Đã được: %s, Còn: %s, Đã hoàn tất: %6.2f%%"
 #: src/progress.c:242
 #, fuzzy, c-format
 msgid ", %6.2f%s/%s,"
-msgstr ", %6.2f%s%s,"
+msgstr ", %6.2f%s/%s,"
 
 #: src/progress.c:245
 #, fuzzy, c-format
 msgid "Current block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s"
-msgstr "Khối hiện tại: %llu  Khối tổng: %llu "
+msgstr "Khối hiện tại: %10Lu, Khối tổng: %10Lu, Hoàn thành: %6.2f%%%s"
 
 #: src/progress.c:253
 #, fuzzy, c-format
@@ -41,12 +41,12 @@ msgstr "Đã được: %s, Còn: %s, Đã hoàn tất: 100.00%%"
 #: src/progress.c:255
 #, fuzzy, c-format
 msgid ", Rate: %6.2f%s/%s,"
-msgstr ", Tốc độ: %6.2f%s%s, "
+msgstr ", Tốc độ: %6.2f%s/%s, "
 
 #: src/progress.c:258
 #, fuzzy, c-format
 msgid "Current block: %10Lu, Total block: %10Lu, Complete: 100.00%%"
-msgstr "Khối hiện tại: %llu  Khối tổng: %llu "
+msgstr "Khối hiện tại: %10Lu, Khối tổng: %10Lu, Hoàn thành: 100.00%%"
 
 #: src/progress.c:261
 #, c-format
@@ -60,7 +60,7 @@ msgstr ""
 #: src/progress.c:263
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
-msgstr "Tốc độ tb: %6.1f%s%s, "
+msgstr "Tốc độ tb: %6.1f%s/%s, "
 
 #: src/progress.c:264
 #, c-format
@@ -75,7 +75,7 @@ msgstr "Đã được: %s Còn lại: %s "
 #: src/progress.c:295
 #, fuzzy, c-format
 msgid "Rate: %6.2f%s/%s"
-msgstr "Tốc độ: %6.2f%s/phút"
+msgstr "Tốc độ: %6.2f%s/%s"
 
 #: src/progress.c:297
 #, c-format
@@ -107,7 +107,7 @@ msgstr "Thời gian tổng cộng: %s Còn lại: %s "
 #: src/progress.c:330
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
-msgstr "Tốc độ tb: %6.2f%s%s, "
+msgstr "Tốc độ tb: %6.2f%s/%s, "
 
 #: src/partclone.c:1966
 #, c-format
@@ -196,7 +196,7 @@ msgstr "Kích thước khối:   %i Byte\n"
 #: src/partclone.c:2023
 #, fuzzy, c-format
 msgid "Used Blocks in Super-Block:   %llu Blocks\n"
-msgstr "Dung lượng đã dùng: %s = %llu Khối\n"
+msgstr "Dung lượng đã dùng(super block): %llu Khối\n"
 
 #: src/partclone.c:2036
 #, c-format

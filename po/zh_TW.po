@@ -24,7 +24,7 @@ msgstr "經過：%s, 剩餘： %s, 完成：%6.2f%%"
 #: src/progress.c:242
 #, fuzzy, c-format
 msgid ", %6.2f%s/%s,"
-msgstr ", %6.2f%s%s,"
+msgstr ", %6.2f%s/%s,"
 
 #: src/progress.c:245
 #, fuzzy, c-format
@@ -39,7 +39,7 @@ msgstr "經過：%s, 剩餘： %s, 完成：100.00%%"
 #: src/progress.c:255
 #, fuzzy, c-format
 msgid ", Rate: %6.2f%s/%s,"
-msgstr ", 速率：%6.2f%s/min"
+msgstr ", 速率：%6.2f%s/%s,"
 
 #: src/progress.c:258
 #, fuzzy, c-format
@@ -58,7 +58,7 @@ msgstr ""
 #: src/progress.c:263
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
-msgstr "平均速率：%6.1f%s%s, "
+msgstr "平均速率：%6.2f%s/%s, "
 
 #: src/progress.c:264
 #, c-format
@@ -73,7 +73,7 @@ msgstr "經過：%s  剩餘： %s "
 #: src/progress.c:295
 #, fuzzy, c-format
 msgid "Rate: %6.2f%s/%s"
-msgstr "速率：%6.2f%s/min"
+msgstr "速率：%6.2f%s/%s"
 
 #: src/progress.c:297
 #, fuzzy, c-format
@@ -86,12 +86,12 @@ msgstr "資料區塊處理中:"
 
 #: src/progress.c:302 src/progress.c:335
 msgid "Calculating Bitmap Process:"
-msgstr ""
+msgstr "計算 Bitmap:"
 
 #: src/progress.c:306 src/progress.c:317
 #, c-format
 msgid "ncurses update error\n"
-msgstr ""
+msgstr "incursesw 更新錯誤\n"
 
 #: src/progress.c:313 src/progress.c:343
 msgid "Total Block Process:"
@@ -105,7 +105,7 @@ msgstr "全部時間：%s 剩餘時間: %s "
 #: src/progress.c:330
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
-msgstr "平均速率：%6.2f%s/min"
+msgstr "平均速率：%6.2f%s/%s"
 
 #: src/partclone.c:1966
 #, c-format
@@ -115,27 +115,27 @@ msgstr ""
 #: src/partclone.c:1968
 #, c-format
 msgid "Starting to check image (%s)\n"
-msgstr "開始檢查印象檔 (%s)\n"
+msgstr "開始檢查映像檔 (%s)\n"
 
 #: src/partclone.c:1971
 #, fuzzy, c-format
 msgid "Starting to clone device (%s) to compressed image (%s)\n"
-msgstr "開始備份 裝置 (%s) 到 印象檔 (%s)\n"
+msgstr "開始備份 裝置 (%s) 到 映像檔 (%s)\n"
 
 #: src/partclone.c:1973
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
-msgstr "開始備份 裝置 (%s) 到 印象檔 (%s)\n"
+msgstr "開始備份 裝置 (%s) 到 映像檔 (%s)\n"
 
 #: src/partclone.c:1976
 #, fuzzy, c-format
 msgid "Starting to restore image (%s) to block files (%s)\n"
-msgstr "開始還原 印象檔 (%s) 到 裝置 (%s)\n"
+msgstr "開始還原 映像檔 (%s) 到 裝置 (%s)\n"
 
 #: src/partclone.c:1978
 #, c-format
 msgid "Starting to restore image (%s) to device (%s)\n"
-msgstr "開始還原 印象檔 (%s) 到 裝置 (%s)\n"
+msgstr "開始還原 映像檔 (%s) 到 裝置 (%s)\n"
 
 #: src/partclone.c:1980
 #, c-format
@@ -150,17 +150,17 @@ msgstr "開始輸出 裝置 (%s)區塊 到 資料檔 (%s)\n"
 #: src/partclone.c:1985
 #, fuzzy, c-format
 msgid "Starting to dd image (%s) to block files (%s)\n"
-msgstr "開始還原 印象檔 (%s) 到 裝置 (%s)\n"
+msgstr "開始還原 映像檔 (%s) 到 裝置 (%s)\n"
 
 #: src/partclone.c:1987
 #, fuzzy, c-format
 msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
-msgstr "開始備份 裝置 (%s) 到 印象檔 (%s)\n"
+msgstr "開始備份 裝置 (%s) 到 映像檔 (%s)\n"
 
 #: src/partclone.c:1989
 #, fuzzy, c-format
 msgid "Showing info of image (%s)\n"
-msgstr "開始檢查印象檔 (%s)\n"
+msgstr "開始檢查映像檔 (%s)\n"
 
 #: src/partclone.c:1991
 msgid "Unknown mode\n"
@@ -189,12 +189,12 @@ msgstr "剩餘空間: %s = %llu Blocks\n"
 #: src/partclone.c:2022
 #, c-format
 msgid "Block size:   %i Byte\n"
-msgstr "裝置區塊大小: %i Byte\n"
+msgstr "區塊大小: %i Byte\n"
 
 #: src/partclone.c:2023
 #, fuzzy, c-format
 msgid "Used Blocks in Super-Block:   %llu Blocks\n"
-msgstr "裝置使用到空間: %s = %lld Blocks\n"
+msgstr "裝置使用空間(super block):   %lld Blocks\n"
 
 #: src/partclone.c:2036
 #, c-format
@@ -219,7 +219,7 @@ msgstr ""
 #: src/partclone.c:2049
 #, fuzzy, c-format
 msgid "v%s"
-msgstr "%s"
+msgstr "v%s"
 
 #: src/partclone.c:2053
 #, c-format
@@ -257,17 +257,17 @@ msgstr "否"
 #: src/partclone.c:2086
 #, c-format
 msgid "Partclone successfully checked the image (%s)\n"
-msgstr "檢查印象檔 (%s) 完成\n"
+msgstr "檢查映像檔 (%s) 完成\n"
 
 #: src/partclone.c:2088
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
-msgstr "備份 裝置 (%s) 到 印象檔 (%s) 完成\n"
+msgstr "備份 裝置 (%s) 到 映像檔 (%s) 完成\n"
 
 #: src/partclone.c:2090
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
-msgstr "還原 印象檔 (%s) 到 裝置 (%s) 完成\n"
+msgstr "還原 映像檔 (%s) 到 裝置 (%s) 完成\n"
 
 #: src/partclone.c:2092
 #, c-format

@@ -29,12 +29,12 @@ msgstr "Abgelaufen: %s, Verbleibend: %s, Abgeschlossen: %6.2f%%"
 #: src/progress.c:242
 #, fuzzy, c-format
 msgid ", %6.2f%s/%s,"
-msgstr ", %6.2f%s%s,"
+msgstr ", %6.2f%s/%s,"
 
 #: src/progress.c:245
 #, fuzzy, c-format
 msgid "Current block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s"
-msgstr "Aktueller Block: %llu Gesamtblock: %llu "
+msgstr "Aktueller Block: %10Lu Gesamtblock: %10Lu Abgeschlossen: %6.2f%%%s"
 
 #: src/progress.c:253
 #, fuzzy, c-format
@@ -44,12 +44,12 @@ msgstr "Verstrichen: %s, Verbleibend: %s, Abgeschlossen: 100.00%%"
 #: src/progress.c:255
 #, fuzzy, c-format
 msgid ", Rate: %6.2f%s/%s,"
-msgstr ", Geschwindigkeit: %6.2f%s%s,"
+msgstr ", Geschwindigkeit: %6.2f%s/%s,"
 
 #: src/progress.c:258
 #, fuzzy, c-format
 msgid "Current block: %10Lu, Total block: %10Lu, Complete: 100.00%%"
-msgstr "Aktueller Block: %llu Gesamtblock: %llu "
+msgstr "Aktueller Block: %10Lu Gesamtblock: %10Lu Abgeschlossen: 100.00%%"
 
 #: src/progress.c:261
 #, c-format
@@ -63,7 +63,7 @@ msgstr ""
 #: src/progress.c:263
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
-msgstr "Durchschnittsrate: %6.1f%s%s, "
+msgstr "Durchschnittsrate: %6.2f%s/%s, "
 
 #: src/progress.c:264
 #, c-format
@@ -78,7 +78,7 @@ msgstr "Verstrichen: %s Verbleibend: %s "
 #: src/progress.c:295
 #, fuzzy, c-format
 msgid "Rate: %6.2f%s/%s"
-msgstr "Geschwindigkeit: %6.2f%s/min"
+msgstr "Geschwindigkeit: %6.2f%s/%s"
 
 #: src/progress.c:297
 #, c-format
@@ -110,7 +110,7 @@ msgstr "Gesamtzeit: %s Verbleibend: %s "
 #: src/progress.c:330
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
-msgstr "Durchschnittsrate: %6.2f%s/min"
+msgstr "Durchschnittsrate: %6.2f%s/%s"
 
 #: src/partclone.c:1966
 #, c-format
@@ -201,7 +201,7 @@ msgstr "Block Größe:    %i Byte\n"
 #: src/partclone.c:2023
 #, fuzzy, c-format
 msgid "Used Blocks in Super-Block:   %llu Blocks\n"
-msgstr "Genutzter Raum: %s = %llu Blöcke\n"
+msgstr "Genutzter Raum(super block):   %llu Blöcke\n"
 
 #: src/partclone.c:2036
 #, c-format

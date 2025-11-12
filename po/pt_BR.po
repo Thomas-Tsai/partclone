@@ -27,12 +27,12 @@ msgstr "Passado: %s, Restante: %s, Concluído: %6.2f%%"
 #: src/progress.c:242
 #, fuzzy, c-format
 msgid ", %6.2f%s/%s,"
-msgstr ", %6.2f%s%s,"
+msgstr ", %6.2f%s/%s,"
 
 #: src/progress.c:245
 #, fuzzy, c-format
 msgid "Current block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s"
-msgstr "Bloco atual: %llu    Blocos totais: %llu "
+msgstr "Bloco atual: %10Lu, Blocos totais: %10Lu, Completo: %6.2f%%%s"
 
 #: src/progress.c:253
 #, fuzzy, c-format
@@ -42,12 +42,12 @@ msgstr "Passado: %s, Restante: %s, Concluído: 100.00%%"
 #: src/progress.c:255
 #, fuzzy, c-format
 msgid ", Rate: %6.2f%s/%s,"
-msgstr ", Taxa: %6.2f%s%s,"
+msgstr ", Taxa: %6.2f%s/%s,"
 
 #: src/progress.c:258
 #, fuzzy, c-format
 msgid "Current block: %10Lu, Total block: %10Lu, Complete: 100.00%%"
-msgstr "Bloco atual: %llu    Blocos totais: %llu "
+msgstr "Bloco atual: %10Lu, Blocos totais: %10Lu, Completo: 100.00%%s"
 
 #: src/progress.c:261
 #, c-format
@@ -61,7 +61,7 @@ msgstr ""
 #: src/progress.c:263
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
-msgstr "Taxa média: %6.1f%s%s, "
+msgstr "Taxa média: %6.1f%s/%s, "
 
 #: src/progress.c:264
 #, c-format
@@ -76,12 +76,12 @@ msgstr "Passado: %s Restante: %s "
 #: src/progress.c:295
 #, fuzzy, c-format
 msgid "Rate: %6.2f%s/%s"
-msgstr "Taxa: %6.2f%s/min"
+msgstr "Taxa: %6.2f%s/%s"
 
 #: src/progress.c:297
 #, c-format
 msgid "Current Block: %llu  Total Block: %llu "
-msgstr "Bloco atual: %llu    Blocos totais: %llu "
+msgstr "Bloco atual: %llu   Blocos totais: %llu "
 
 #: src/progress.c:300 src/progress.c:333
 msgid "Data Block Process:"
@@ -108,7 +108,7 @@ msgstr "Tempo total: %s Restante: %s "
 #: src/progress.c:330
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
-msgstr "Taxa média: %6.2f%s/min"
+msgstr "Taxa média: %6.2f%s/%s"
 
 #: src/partclone.c:1966
 #, c-format
@@ -199,7 +199,7 @@ msgstr "Tam. bloco:    %i Byte\n"
 #: src/partclone.c:2023
 #, fuzzy, c-format
 msgid "Used Blocks in Super-Block:   %llu Blocks\n"
-msgstr "Espaço em uso: %s = %llu blocos\n"
+msgstr "Espaço em uso(super block):   %llu blocos\n"
 
 #: src/partclone.c:2036
 #, c-format

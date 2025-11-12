@@ -26,27 +26,27 @@ msgstr "Ecoulé : %s, Restant : %s, Complété :%6.2f%%,"
 #: src/progress.c:242
 #, fuzzy, c-format
 msgid ", %6.2f%s/%s,"
-msgstr ", %6.2f%s/mn"
+msgstr ", %6.2f%s/%s"
 
 #: src/progress.c:245
 #, fuzzy, c-format
 msgid "Current block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s"
-msgstr "Bloc actuel : %llu  Bloc total : %llu "
+msgstr "Bloc actuel : %llu  Bloc total : %llu Complété : %6.2f%%%s"
 
 #: src/progress.c:253
 #, fuzzy, c-format
 msgid "Elapsed: %s, Remaining: %s, Completed: 100.00%%"
-msgstr "Ecoulé : %s, Restant : %s, Complété : 100.00%%,"
+msgstr "Ecoulé : %s, Restant : %s, Complété : 100.00%%"
 
 #: src/progress.c:255
 #, fuzzy, c-format
 msgid ", Rate: %6.2f%s/%s,"
-msgstr ", Débit : %6.2f%s%s,"
+msgstr ", Débit : %6.2f%s/%s,"
 
 #: src/progress.c:258
 #, fuzzy, c-format
 msgid "Current block: %10Lu, Total block: %10Lu, Complete: 100.00%%"
-msgstr "Bloc actuel : %llu  Bloc total : %llu "
+msgstr "Bloc actuel : %10Lu,  Bloc total : %10Lu, Complété : 100.00%%"
 
 #: src/progress.c:261
 #, c-format
@@ -60,7 +60,7 @@ msgstr ""
 #: src/progress.c:263
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
-msgstr "Débit moyen : %6.1f%s%s, "
+msgstr "Débit moyen : %6.2f%s/%s, "
 
 #: src/progress.c:264
 #, c-format
@@ -75,7 +75,7 @@ msgstr "Ecoulé : %s Restant : %s "
 #: src/progress.c:295
 #, fuzzy, c-format
 msgid "Rate: %6.2f%s/%s"
-msgstr "Débit : %6.2f%s/mn"
+msgstr "Débit : %6.2f%s/%s"
 
 #: src/progress.c:297
 #, c-format
@@ -107,7 +107,7 @@ msgstr "Durée totale : %s Restant: %s "
 #: src/progress.c:330
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
-msgstr "Débit moyen : %6.2f%s/min"
+msgstr "Débit moyen : %6.2f%s/%s"
 
 #: src/partclone.c:1966
 #, c-format
@@ -197,7 +197,7 @@ msgstr "Taille de bloc :  %i octets\n"
 #: src/partclone.c:2023
 #, fuzzy, c-format
 msgid "Used Blocks in Super-Block:   %llu Blocks\n"
-msgstr "Espace utilisé : %s = %llu Blocs\n"
+msgstr "Espace utilisé :    %llu Blocs\n"
 
 #: src/partclone.c:2036
 #, c-format
