@@ -2,12 +2,12 @@
 .\"     Title: PARTCLONE
 .\"    Author: Yu-Chin Tsai <thomas@clonezilla.org>
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/21/2024
+.\"      Date: 11/12/2025
 .\"    Manual: Partclone User Manual
 .\"    Source: partclone
 .\"  Language: English
 .\"
-.TH "PARTCLONE" "8" "06/21/2024" "partclone" "Partclone User Manual"
+.TH "PARTCLONE" "8" "11/12/2025" "partclone" "Partclone User Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -198,6 +198,8 @@ where X:
 0: No checksum (no slowdown, smallest image)
 .sp
 1: CRC32 (Fast to compute, basic detection)
+.sp
+2: xxHash extremely fast non\-cryptographic hash algorithm
 .RE
 .PP
 \fB\-kX\fR, \fB\-\-blocks\-per\-checksum=X\fR
