@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: partclone-0.2.61\n"
 "Report-Msgid-Bugs-To: thomas@clonezilla.org\n"
-"POT-Creation-Date: 2025-11-12 09:36+0800\n"
+"POT-Creation-Date: 2025-11-12 14:34+0800\n"
 "PO-Revision-Date: 2013-06-13 09:03+0700\n"
 "Last-Translator: Trần Ngọc Quân <vnwildman@gmail.com>\n"
 "Language-Team: Vietnamese <translation-team-vi@lists.sourceforge.net>\n"
@@ -18,41 +18,37 @@ msgstr ""
 "X-Generator: Poedit 1.5.5\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-#: src/progress.c:238
-#, c-format
-msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: %6.2f%%"
-msgstr "\r%80c\rĐã được: %s, Còn: %s, Đã hoàn tất: %6.2f%%"
+#: src/progress.c:239
+#, fuzzy, c-format
+msgid "Elapsed: %s, Remaining: %s, Completed: %6.2f%%"
+msgstr "Đã được: %s, Còn: %s, Đã hoàn tất: %6.2f%%"
 
-#: src/progress.c:241
+#: src/progress.c:242
 #, fuzzy, c-format
 msgid ", %6.2f%s/%s,"
-msgstr ", %6.2f%s/phút,"
+msgstr ", %6.2f%s%s,"
 
-#: src/progress.c:243
-#, c-format
-msgid ""
-"\n"
-"\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s\r"
-msgstr ""
-
-#: src/progress.c:249
-#, c-format
-msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: 100.00%%"
-msgstr "\r%80c\rĐã được: %s, Còn: %s, Đã hoàn tất: 100.00%%"
-
-#: src/progress.c:251
+#: src/progress.c:245
 #, fuzzy, c-format
-msgid ", Rate: %6.2f%s/%s,"
-msgstr ", Tốc độ: %6.2f%s/phút, "
+msgid "Current block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s"
+msgstr "Khối hiện tại: %llu  Khối tổng: %llu "
 
 #: src/progress.c:253
-#, c-format
-msgid ""
-"\n"
-"\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: 100.00%%\r"
-msgstr ""
+#, fuzzy, c-format
+msgid "Elapsed: %s, Remaining: %s, Completed: 100.00%%"
+msgstr "Đã được: %s, Còn: %s, Đã hoàn tất: 100.00%%"
 
 #: src/progress.c:255
+#, fuzzy, c-format
+msgid ", Rate: %6.2f%s/%s,"
+msgstr ", Tốc độ: %6.2f%s%s, "
+
+#: src/progress.c:258
+#, fuzzy, c-format
+msgid "Current block: %10Lu, Total block: %10Lu, Complete: 100.00%%"
+msgstr "Khối hiện tại: %llu  Khối tổng: %llu "
+
+#: src/progress.c:261
 #, c-format
 msgid ""
 "\n"
@@ -61,57 +57,57 @@ msgstr ""
 "\n"
 "Thời gian tổng cộng: %s, "
 
-#: src/progress.c:257
+#: src/progress.c:263
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
-msgstr "Tốc độ tb: %6.1f%s/phút, "
+msgstr "Tốc độ tb: %6.1f%s%s, "
 
-#: src/progress.c:258
+#: src/progress.c:264
 #, c-format
 msgid "%s"
 msgstr "%s"
 
-#: src/progress.c:287
+#: src/progress.c:293
 #, c-format
 msgid "Elapsed: %s Remaining: %s "
 msgstr "Đã được: %s Còn lại: %s "
 
-#: src/progress.c:289
+#: src/progress.c:295
 #, fuzzy, c-format
 msgid "Rate: %6.2f%s/%s"
 msgstr "Tốc độ: %6.2f%s/phút"
 
-#: src/progress.c:291
+#: src/progress.c:297
 #, c-format
 msgid "Current Block: %llu  Total Block: %llu "
 msgstr "Khối hiện tại: %llu  Khối tổng: %llu "
 
-#: src/progress.c:294 src/progress.c:327
+#: src/progress.c:300 src/progress.c:333
 msgid "Data Block Process:"
 msgstr ""
 
-#: src/progress.c:296 src/progress.c:329
+#: src/progress.c:302 src/progress.c:335
 msgid "Calculating Bitmap Process:"
 msgstr ""
 
-#: src/progress.c:300 src/progress.c:311
+#: src/progress.c:306 src/progress.c:317
 #, c-format
 msgid "ncurses update error\n"
 msgstr ""
 
-#: src/progress.c:307 src/progress.c:337
+#: src/progress.c:313 src/progress.c:343
 msgid "Total Block Process:"
 msgstr ""
 
-#: src/progress.c:322
+#: src/progress.c:328
 #, c-format
 msgid "Total Time: %s Remaining: %s "
 msgstr "Thời gian tổng cộng: %s Còn lại: %s "
 
-#: src/progress.c:324
+#: src/progress.c:330
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
-msgstr "Tốc độ tb: %6.2f%s/phút, "
+msgstr "Tốc độ tb: %6.2f%s%s, "
 
 #: src/partclone.c:1966
 #, c-format

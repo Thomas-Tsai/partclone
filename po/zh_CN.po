@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.2.51\n"
 "Report-Msgid-Bugs-To: thomas@clonezilla.org\n"
-"POT-Creation-Date: 2025-11-12 09:36+0800\n"
+"POT-Creation-Date: 2025-11-12 14:34+0800\n"
 "PO-Revision-Date: 2007-11-01 11:35+0800\n"
 "Last-Translator: Peter Dave Hello\n"
 "Language-Team: Peter Dave Hello\n"
@@ -14,41 +14,37 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/progress.c:238
-#, c-format
-msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: %6.2f%%"
-msgstr "\r%80c\r经过：%s, 剩余： %s, 完成：%6.2f%%"
+#: src/progress.c:239
+#, fuzzy, c-format
+msgid "Elapsed: %s, Remaining: %s, Completed: %6.2f%%"
+msgstr "经过：%s, 剩余： %s, 完成：%6.2f%%"
 
-#: src/progress.c:241
+#: src/progress.c:242
 #, fuzzy, c-format
 msgid ", %6.2f%s/%s,"
-msgstr ", %6.2f%s/min,"
+msgstr ", %6.2f%s%s,"
 
-#: src/progress.c:243
-#, c-format
-msgid ""
-"\n"
-"\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s\r"
-msgstr ""
+#: src/progress.c:245
+#, fuzzy, c-format
+msgid "Current block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s"
+msgstr "當前塊：%llu 總塊：%llu "
 
-#: src/progress.c:249
-#, c-format
-msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: 100.00%%"
-msgstr "\r%80c\r经过：%s, 剩余： %s, 完成：100.00%%"
+#: src/progress.c:253
+#, fuzzy, c-format
+msgid "Elapsed: %s, Remaining: %s, Completed: 100.00%%"
+msgstr "经过：%s, 剩余： %s, 完成：100.00%%"
 
-#: src/progress.c:251
+#: src/progress.c:255
 #, fuzzy, c-format
 msgid ", Rate: %6.2f%s/%s,"
 msgstr ", 速率：%6.2f%s/min"
 
-#: src/progress.c:253
-#, c-format
-msgid ""
-"\n"
-"\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: 100.00%%\r"
-msgstr ""
+#: src/progress.c:258
+#, fuzzy, c-format
+msgid "Current block: %10Lu, Total block: %10Lu, Complete: 100.00%%"
+msgstr "當前塊：%llu 總塊：%llu "
 
-#: src/progress.c:255
+#: src/progress.c:261
 #, c-format
 msgid ""
 "\n"
@@ -57,54 +53,54 @@ msgstr ""
 "\n"
 "全部时间：%s, "
 
-#: src/progress.c:257
+#: src/progress.c:263
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
-msgstr "平均速率：%6.1f%s/min, "
+msgstr "平均速率：%6.1f%s%s, "
 
-#: src/progress.c:258
+#: src/progress.c:264
 #, c-format
 msgid "%s"
 msgstr "%s"
 
-#: src/progress.c:287
+#: src/progress.c:293
 #, c-format
 msgid "Elapsed: %s Remaining: %s "
 msgstr "经过：%s  剩余： %s "
 
-#: src/progress.c:289
+#: src/progress.c:295
 #, fuzzy, c-format
 msgid "Rate: %6.2f%s/%s"
 msgstr "速率：%6.2f%s/min"
 
-#: src/progress.c:291
+#: src/progress.c:297
 #, c-format
 msgid "Current Block: %llu  Total Block: %llu "
 msgstr "當前塊：%llu 總塊：%llu "
 
-#: src/progress.c:294 src/progress.c:327
+#: src/progress.c:300 src/progress.c:333
 msgid "Data Block Process:"
 msgstr ""
 
-#: src/progress.c:296 src/progress.c:329
+#: src/progress.c:302 src/progress.c:335
 msgid "Calculating Bitmap Process:"
 msgstr ""
 
-#: src/progress.c:300 src/progress.c:311
+#: src/progress.c:306 src/progress.c:317
 #, c-format
 msgid "ncurses update error\n"
 msgstr ""
 
-#: src/progress.c:307 src/progress.c:337
+#: src/progress.c:313 src/progress.c:343
 msgid "Total Block Process:"
 msgstr ""
 
-#: src/progress.c:322
+#: src/progress.c:328
 #, c-format
 msgid "Total Time: %s Remaining: %s "
 msgstr "全部时间：%s 剩余时间: %s "
 
-#: src/progress.c:324
+#: src/progress.c:330
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
 msgstr "平均速率：%6.2f%s/min"
