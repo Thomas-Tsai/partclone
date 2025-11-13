@@ -1,10 +1,13 @@
+#include <config.h>
 #include "checksum.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "partclone.h" // for log_mesg() & cmd_opt
+#ifdef HAVE_XXHASH
 #include "xxhash.h"
+#endif
 
 #ifdef HAVE_ISAL
 #include <isa-l.h>
@@ -14,7 +17,9 @@
 
 static uint32_t crc_tab32[256] = { 0 };
 static int cs_mode = CSM_NONE;
+#ifdef HAVE_XXHASH
 static XXH64_state_t* xxh64_state = NULL;
+#endif
 
 /**
  * ISA-L compatible CRC32 wrapper
@@ -56,8 +61,10 @@ unsigned get_checksum_size(int checksum_mode, int debug) {
 	case CSM_CRC32_0001:
 		return 4;
 
+#ifdef HAVE_XXHASH
 	case CSM_XXH64:
 		return sizeof(XXH64_hash_t);
+#endif
 
 	default:
 		log_mesg(0, 1, 1, debug, "Unknown checksum mode [%d]\n", checksum_mode);
@@ -76,8 +83,10 @@ const char *get_checksum_str(int checksum_mode) {
 	case CSM_CRC32:
 		return "CRC32";
 
+#ifdef HAVE_XXHASH
 	case CSM_XXH64:
 		return "XXH64";
+#endif
 
 	case CSM_CRC32_0001:
 		return "CRC32_0001";
@@ -135,12 +144,14 @@ void init_checksum(int checksum_mode, unsigned char* seed, int debug) {
 		init_crc32((uint32_t*)seed);
 		break;
 
+#ifdef HAVE_XXHASH
 	case CSM_XXH64:
 		if (xxh64_state == NULL) {
 			xxh64_state = XXH64_createState();
 		}
 		XXH64_reset(xxh64_state, 0); // Using 0 as seed
 		break;
+#endif
 
 	case CSM_NONE:
 		// Nothing to do
@@ -204,9 +215,11 @@ void update_checksum(unsigned char* checksum, char* buf, int size) {
 		*(uint32_t*)checksum = crc32_0001(*(uint32_t*)checksum, (unsigned char*)buf, size);
 		break;
 
+#ifdef HAVE_XXHASH
 	case CSM_XXH64:
 		XXH64_update(xxh64_state, buf, size);
 		break;
+#endif
 
 	case CSM_NONE:
 		// Nothing to do
@@ -220,9 +233,11 @@ void finalize_checksum(unsigned char* checksum) {
 
 	switch(cs_mode)
 	{
+#ifdef HAVE_XXHASH
 	case CSM_XXH64:
 		*(XXH64_hash_t*)checksum = XXH64_digest(xxh64_state);
 		break;
+#endif
 
 	case CSM_CRC32:
 	case CSM_CRC32_0001:
@@ -234,10 +249,12 @@ void finalize_checksum(unsigned char* checksum) {
 }
 
 void release_checksum() {
+#ifdef HAVE_XXHASH
     if (xxh64_state != NULL) {
         XXH64_freeState(xxh64_state);
         xxh64_state = NULL;
     }
+#endif
 }
 
 char* format_checksum(const unsigned char* data, unsigned int size) {

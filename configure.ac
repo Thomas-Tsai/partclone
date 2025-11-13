@@ -52,16 +52,56 @@ if test "x$GCC" = "xyes"; then
   esac
 fi
 
+##static linking##
+AC_ARG_ENABLE([static],
+    AS_HELP_STRING(
+        [--enable-static],
+        [enable static linking])
+)
+AM_CONDITIONAL(ENABLE_STATIC, test "$enable_static" = yes)
+if test "$enable_static" = yes; then
+  AC_DEFINE([BTRFS_STATIC_BUILD], [1], [Define if building btrfs statically with system libs])
+fi
+
 dnl Check for uuid
 PKG_CHECK_MODULES(UUID, uuid,,exit)
 
-dnl Check for Intel ISA-L (for optimized CRC32)
-PKG_CHECK_MODULES([ISAL], [libisal], [HAVE_ISAL=1], [HAVE_ISAL=0])
-if test "$HAVE_ISAL" = "1"; then
-    AC_DEFINE([HAVE_ISAL], [1], [Intel ISA-L library available])
+## Intel ISA-L ##
+AC_ARG_ENABLE([isal],
+    AS_HELP_STRING(
+        [--enable-isal],
+        [enable Intel ISA-L for optimized CRC32])
+)
+## libisal do not have static linking now(20251113) ##
+if test "$enable_isal" = "yes" -a "$enable_static" != yes; then
+    dnl Check for Intel ISA-L (for optimized CRC32)
+    AS_MESSAGE([checking  for isal library ... ...])
+    PKG_CHECK_MODULES([ISAL], [libisal], [HAVE_ISAL=1], [HAVE_ISAL=0])
+    if test "$HAVE_ISAL" = "1"; then
+        AC_DEFINE([HAVE_ISAL], [1], [Intel ISA-L library available])
+    else
+        AC_MSG_ERROR([*** Intel ISA-L library (libisal) not found])
+    fi
 fi
 
-PKG_CHECK_MODULES([XXHASH], [libxxhash],, [AC_MSG_ERROR([libxxhash not found])])
+## xxhash ##
+AC_ARG_ENABLE([xxhash],
+    AS_HELP_STRING(
+        [--disable-xxhash],
+        [disable xxhash for checksum])
+)
+AM_CONDITIONAL(ENABLE_XXHASH, test "$enable_xxhash" != no)
+if test "$enable_xxhash" != no; then
+    dnl Check for xxhash
+    AS_MESSAGE([checking for xxhash library ...])
+    PKG_CHECK_MODULES([XXHASH], [libxxhash], [HAVE_XXHASH=1], [HAVE_XXHASH=0])
+    if test "$HAVE_XXHASH" = "1"; then
+        AC_DEFINE([HAVE_XXHASH], [1], [xxhash library available])
+    else
+        AC_MSG_ERROR([*** xxhash library (libxxhash) not found])
+    fi
+fi
+
 uuidcfg=`pkg-config --cflags --libs uuid`
 
 AC_ARG_ENABLE([fuse],
@@ -450,9 +490,9 @@ AC_CHECK_LIB([ncursesw], [initscr], ,
 fi
 
 ##libcrypto##
-AC_CHECK_LIB(crypto, EVP_MD_CTX_new, [AC_DEFINE([HAVE_EVP_MD_CTX_new],1,[OpenSSL 1.1.0+])])
-AC_CHECK_LIB(crypto, EVP_MD_CTX_create, [AC_DEFINE([HAVE_EVP_MD_CTX_create],1,[OpenSSL 1.0+])])
-AC_CHECK_LIB(crypto, EVP_MD_CTX_reset, [AC_DEFINE([HAVE_EVP_MD_CTX_reset],1,[OpenSSL 1.1.0+])])
+PKG_CHECK_MODULES([OPENSSL], [openssl],, [AC_MSG_ERROR([openssl not found])])
+PKG_CHECK_MODULES([ZLIB], [zlib],, [AC_MSG_ERROR([zlib not found])])
+PKG_CHECK_MODULES([ZSTD], [libzstd],, [AC_MSG_ERROR([libzstd not found])])
 
 ##libm##
 AC_CHECK_DECLS([isnormal], [], [], [[#include <math.h>]])
@@ -463,14 +503,7 @@ fi
 ##bswap_64()##
 AC_CHECK_HEADERS([byteswap.h])
 
-##static linking##
-AC_ARG_ENABLE([static],
-    AS_HELP_STRING(
-        [--enable-static],
-        [enable static linking])
-)
-AM_CONDITIONAL(ENABLE_STATIC, test "$enable_static" = yes)
-
+## libtinfo ##
 AC_CHECK_LIB([tinfo], [setupterm], tinfo=1,
     AC_MSG_WARN([*** tinfo library (libtinfo) not found]))
 AM_CONDITIONAL(ENABLE_TINFO, test "$tinfo" = 1)

@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+#if !defined(BTRFS_STATIC_BUILD) || !defined(HAVE_XXHASH)
 /*
  * xxHash - Extremely Fast Hash algorithm
  * Copyright (C) 2012-2021 Yann Collet
@@ -41,3 +45,4 @@
 #define XXH_IMPLEMENTATION   /* access definitions */
 
 #include "xxhash.h"
+#endif
