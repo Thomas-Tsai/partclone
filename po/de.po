@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.3.3\n"
 "Report-Msgid-Bugs-To: thomas@clonezilla.org\n"
-"POT-Creation-Date: 2025-11-12 09:36+0800\n"
+"POT-Creation-Date: 2025-11-15 14:01+0800\n"
 "PO-Revision-Date: 2023-05-15 18:40+0300\n"
 "Last-Translator: Stanislav Bolshakov <bsv999@mail.ru>\n"
 "Language-Team: Deutsch\n"
@@ -21,41 +21,37 @@ msgstr ""
 "X-Language: de_DE\n"
 "X-Source-Language: C\n"
 
-#: src/progress.c:238
-#, c-format
-msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: %6.2f%%"
-msgstr "\r%80c\rAbgelaufen: %s, Verbleibend: %s, Abgeschlossen: %6.2f%%"
+#: src/progress.c:239
+#, fuzzy, c-format
+msgid "Elapsed: %s, Remaining: %s, Completed: %6.2f%%"
+msgstr "Abgelaufen: %s, Verbleibend: %s, Abgeschlossen: %6.2f%%"
 
-#: src/progress.c:241
+#: src/progress.c:242
 #, fuzzy, c-format
 msgid ", %6.2f%s/%s,"
-msgstr ", %6.2f%s/min,"
+msgstr ", %6.2f%s/%s,"
 
-#: src/progress.c:243
-#, c-format
-msgid ""
-"\n"
-"\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s\r"
-msgstr ""
-
-#: src/progress.c:249
-#, c-format
-msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: 100.00%%"
-msgstr "\r%80c\rVerstrichen: %s, Verbleibend: %s, Abgeschlossen: 100.00%%"
-
-#: src/progress.c:251
+#: src/progress.c:245
 #, fuzzy, c-format
-msgid ", Rate: %6.2f%s/%s,"
-msgstr ", Geschwindigkeit: %6.2f%s/min,"
+msgid "Current block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s"
+msgstr "Aktueller Block: %10Lu Gesamtblock: %10Lu Abgeschlossen: %6.2f%%%s"
 
 #: src/progress.c:253
-#, c-format
-msgid ""
-"\n"
-"\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: 100.00%%\r"
-msgstr ""
+#, fuzzy, c-format
+msgid "Elapsed: %s, Remaining: %s, Completed: 100.00%%"
+msgstr "Verstrichen: %s, Verbleibend: %s, Abgeschlossen: 100.00%%"
 
 #: src/progress.c:255
+#, fuzzy, c-format
+msgid ", Rate: %6.2f%s/%s,"
+msgstr ", Geschwindigkeit: %6.2f%s/%s,"
+
+#: src/progress.c:258
+#, fuzzy, c-format
+msgid "Current block: %10Lu, Total block: %10Lu, Complete: 100.00%%"
+msgstr "Aktueller Block: %10Lu Gesamtblock: %10Lu Abgeschlossen: 100.00%%"
+
+#: src/progress.c:261
 #, c-format
 msgid ""
 "\n"
@@ -64,230 +60,230 @@ msgstr ""
 "\n"
 "Gesamtzeit: %s, "
 
-#: src/progress.c:257
+#: src/progress.c:263
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
-msgstr "Durchschnittsrate: %6.1f%s/min, "
+msgstr "Durchschnittsrate: %6.2f%s/%s, "
 
-#: src/progress.c:258
+#: src/progress.c:264
 #, c-format
 msgid "%s"
 msgstr "%s"
 
-#: src/progress.c:287
+#: src/progress.c:293
 #, c-format
 msgid "Elapsed: %s Remaining: %s "
 msgstr "Verstrichen: %s Verbleibend: %s "
 
-#: src/progress.c:289
+#: src/progress.c:295
 #, fuzzy, c-format
 msgid "Rate: %6.2f%s/%s"
-msgstr "Geschwindigkeit: %6.2f%s/min"
+msgstr "Geschwindigkeit: %6.2f%s/%s"
 
-#: src/progress.c:291
+#: src/progress.c:297
 #, c-format
 msgid "Current Block: %llu  Total Block: %llu "
 msgstr "Aktueller Block: %llu Gesamtblock: %llu "
 
-#: src/progress.c:294 src/progress.c:327
+#: src/progress.c:300 src/progress.c:333
 msgid "Data Block Process:"
 msgstr ""
 
-#: src/progress.c:296 src/progress.c:329
+#: src/progress.c:302 src/progress.c:335
 msgid "Calculating Bitmap Process:"
 msgstr ""
 
-#: src/progress.c:300 src/progress.c:311
+#: src/progress.c:306 src/progress.c:317
 #, c-format
 msgid "ncurses update error\n"
 msgstr ""
 
-#: src/progress.c:307 src/progress.c:337
+#: src/progress.c:313 src/progress.c:343
 msgid "Total Block Process:"
 msgstr ""
 
-#: src/progress.c:322
+#: src/progress.c:328
 #, c-format
 msgid "Total Time: %s Remaining: %s "
 msgstr "Gesamtzeit: %s Verbleibend: %s "
 
-#: src/progress.c:324
+#: src/progress.c:330
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
-msgstr "Durchschnittsrate: %6.2f%s/min"
+msgstr "Durchschnittsrate: %6.2f%s/%s"
 
-#: src/partclone.c:1966
+#: src/partclone.c:1970
 #, c-format
 msgid "Partclone v%s http://partclone.org\n"
 msgstr "Partclone v%s http://partclone.org\n"
 
-#: src/partclone.c:1968
+#: src/partclone.c:1972
 #, c-format
 msgid "Starting to check image (%s)\n"
 msgstr "Ich fange an, das Bild zu überprüfen (%s)\n"
 
-#: src/partclone.c:1971
+#: src/partclone.c:1975
 #, c-format
 msgid "Starting to clone device (%s) to compressed image (%s)\n"
 msgstr "Das Klonen des Geräts (%s) in ein komprimiertes Bild beginnt (%s)\n"
 
-#: src/partclone.c:1973
+#: src/partclone.c:1977
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
 msgstr "Das Klonen des Geräts (%s) in das Image beginnt (%s)\n"
 
-#: src/partclone.c:1976
+#: src/partclone.c:1980
 #, c-format
 msgid "Starting to restore image (%s) to block files (%s)\n"
 msgstr ""
 "Die Wiederherstellung des Images (%s) zum Blockieren von Dateien wird "
 "gestartet (%s)\n"
 
-#: src/partclone.c:1978
+#: src/partclone.c:1982
 #, c-format
 msgid "Starting to restore image (%s) to device (%s)\n"
 msgstr "Die Wiederherstellung des Images (%s) auf dem Gerät beginnt (%s)\n"
 
-#: src/partclone.c:1980
+#: src/partclone.c:1984
 #, c-format
 msgid "Starting to back up device (%s) to device (%s)\n"
 msgstr "Die Sicherung von Gerät (%s) auf Gerät beginnt (%s)\n"
 
-#: src/partclone.c:1982
+#: src/partclone.c:1986
 #, c-format
 msgid "Starting to map device (%s) to domain log (%s)\n"
 msgstr "Die Zuordnung des Geräts (%s) zum Domänenprotokoll beginnt (%s)\n"
 
-#: src/partclone.c:1985
+#: src/partclone.c:1989
 #, c-format
 msgid "Starting to dd image (%s) to block files (%s)\n"
 msgstr "Das dd-Kopieren des Bildes (%s) in Blockdateien beginnt (%s)\n"
 
-#: src/partclone.c:1987
+#: src/partclone.c:1991
 #, c-format
 msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
 msgstr "Beginn des Klonens/Wiederherstellens von (%s) nach (%s) im dd-Modus\n"
 
-#: src/partclone.c:1989
+#: src/partclone.c:1993
 #, c-format
 msgid "Showing info of image (%s)\n"
 msgstr "Informationen zum Bild werden angezeigt (%s)\n"
 
-#: src/partclone.c:1991
+#: src/partclone.c:1995
 msgid "Unknown mode\n"
 msgstr ""
 
-#: src/partclone.c:2011
+#: src/partclone.c:2015
 #, c-format
 msgid "File system:  %s\n"
 msgstr "Dateisystem: %s\n"
 
-#: src/partclone.c:2014
+#: src/partclone.c:2018
 #, c-format
 msgid "Device size:  %s = %llu Blocks\n"
 msgstr "Gerätegröße:  %s = %llu Blöcke\n"
 
-#: src/partclone.c:2017
+#: src/partclone.c:2021
 #, c-format
 msgid "Space in use: %s = %llu Blocks\n"
 msgstr "Genutzter Raum: %s = %llu Blöcke\n"
 
-#: src/partclone.c:2020
+#: src/partclone.c:2024
 #, c-format
 msgid "Free Space:   %s = %llu Blocks\n"
 msgstr "Freiraum:  %s = %llu Blöcke\n"
 
-#: src/partclone.c:2022
+#: src/partclone.c:2026
 #, c-format
 msgid "Block size:   %i Byte\n"
 msgstr "Block Größe:    %i Byte\n"
 
-#: src/partclone.c:2023
+#: src/partclone.c:2027
 #, fuzzy, c-format
 msgid "Used Blocks in Super-Block:   %llu Blocks\n"
-msgstr "Genutzter Raum: %s = %llu Blöcke\n"
+msgstr "Genutzter Raum(super block):   %llu Blöcke\n"
 
-#: src/partclone.c:2036
+#: src/partclone.c:2040
 #, c-format
 msgid "image format:    %04d\n"
 msgstr "bildformat:    %04d\n"
 
-#: src/partclone.c:2040 src/partclone.c:2047
+#: src/partclone.c:2044 src/partclone.c:2051
 #, c-format
 msgid "created on a:    %s\n"
 msgstr "erstellt auf a:    %s\n"
 
-#: src/partclone.c:2042 src/partclone.c:2050
+#: src/partclone.c:2046 src/partclone.c:2054
 #, c-format
 msgid "with partclone:  %s\n"
 msgstr "mit partclone:   %s\n"
 
-#: src/partclone.c:2046
+#: src/partclone.c:2050
 #, c-format
 msgid "%d bits platform"
 msgstr "%d Bits-Plattform"
 
-#: src/partclone.c:2049
+#: src/partclone.c:2053
 #, c-format
 msgid "v%s"
 msgstr "v%s"
 
-#: src/partclone.c:2053
+#: src/partclone.c:2057
 #, c-format
 msgid "bitmap mode:     %s\n"
 msgstr "bitmap-Modus:     %s\n"
 
-#: src/partclone.c:2055
+#: src/partclone.c:2059
 #, c-format
 msgid "checksum algo:   %s\n"
 msgstr "prüfsummenalgo:  %s\n"
 
-#: src/partclone.c:2059 src/partclone.c:2068
+#: src/partclone.c:2063 src/partclone.c:2072
 #, c-format
 msgid "checksum size:   %s\n"
 msgstr "prüfsummengröße:   %s\n"
 
-#: src/partclone.c:2061 src/partclone.c:2071
+#: src/partclone.c:2065 src/partclone.c:2075
 #, c-format
 msgid "blocks/checksum: %s\n"
 msgstr "blöcke/prüfsumme: %s\n"
 
-#: src/partclone.c:2063 src/partclone.c:2073
+#: src/partclone.c:2067 src/partclone.c:2077
 #, c-format
 msgid "reseed checksum: %s\n"
 msgstr "prüfsumme neu setzen: %s\n"
 
-#: src/partclone.c:2073
+#: src/partclone.c:2077
 msgid "yes"
 msgstr "ja"
 
-#: src/partclone.c:2073
+#: src/partclone.c:2077
 msgid "no"
 msgstr "nein"
 
-#: src/partclone.c:2086
+#: src/partclone.c:2090
 #, c-format
 msgid "Partclone successfully checked the image (%s)\n"
 msgstr "Partclone hat das Bild erfolgreich überprüft (%s)\n"
 
-#: src/partclone.c:2088
+#: src/partclone.c:2092
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr "Partclone hat das Gerät (%s) erfolgreich in das Image geklont (%s)\n"
 
-#: src/partclone.c:2090
+#: src/partclone.c:2094
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr ""
 "Partclone hat das Image (%s) erfolgreich auf dem Gerät wiederhergestellt "
 "(%s)\n"
 
-#: src/partclone.c:2092
+#: src/partclone.c:2096
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr "Partclone hat das Gerät (%s) erfolgreich auf das Gerät geklont (%s)\n"
 
-#: src/partclone.c:2094
+#: src/partclone.c:2098
 #, c-format
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
 msgstr ""

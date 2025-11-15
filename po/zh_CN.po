@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.2.51\n"
 "Report-Msgid-Bugs-To: thomas@clonezilla.org\n"
-"POT-Creation-Date: 2025-11-12 09:36+0800\n"
+"POT-Creation-Date: 2025-11-15 14:01+0800\n"
 "PO-Revision-Date: 2007-11-01 11:35+0800\n"
 "Last-Translator: Peter Dave Hello\n"
 "Language-Team: Peter Dave Hello\n"
@@ -14,41 +14,37 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/progress.c:238
-#, c-format
-msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: %6.2f%%"
-msgstr "\r%80c\r经过：%s, 剩余： %s, 完成：%6.2f%%"
+#: src/progress.c:239
+#, fuzzy, c-format
+msgid "Elapsed: %s, Remaining: %s, Completed: %6.2f%%"
+msgstr "经过：%s, 剩余： %s, 完成：%6.2f%%"
 
-#: src/progress.c:241
+#: src/progress.c:242
 #, fuzzy, c-format
 msgid ", %6.2f%s/%s,"
-msgstr ", %6.2f%s/min,"
+msgstr ", %6.2f%s/%s,"
 
-#: src/progress.c:243
-#, c-format
-msgid ""
-"\n"
-"\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s\r"
-msgstr ""
-
-#: src/progress.c:249
-#, c-format
-msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: 100.00%%"
-msgstr "\r%80c\r经过：%s, 剩余： %s, 完成：100.00%%"
-
-#: src/progress.c:251
+#: src/progress.c:245
 #, fuzzy, c-format
-msgid ", Rate: %6.2f%s/%s,"
-msgstr ", 速率：%6.2f%s/min"
+msgid "Current block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s"
+msgstr "當前塊：%10Lu, 總塊：%10Lu, 完成：%6.2f%%%s"
 
 #: src/progress.c:253
-#, c-format
-msgid ""
-"\n"
-"\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: 100.00%%\r"
-msgstr ""
+#, fuzzy, c-format
+msgid "Elapsed: %s, Remaining: %s, Completed: 100.00%%"
+msgstr "经过：%s, 剩余： %s, 完成：100.00%%"
 
 #: src/progress.c:255
+#, fuzzy, c-format
+msgid ", Rate: %6.2f%s/%s,"
+msgstr ", 速率：%6.2f%s/%s,"
+
+#: src/progress.c:258
+#, fuzzy, c-format
+msgid "Current block: %10Lu, Total block: %10Lu, Complete: 100.00%%"
+msgstr "當前塊：%10Lu, 總塊：%10Lu, 完成：100.00%%"
+
+#: src/progress.c:261
 #, c-format
 msgid ""
 "\n"
@@ -57,226 +53,226 @@ msgstr ""
 "\n"
 "全部时间：%s, "
 
-#: src/progress.c:257
+#: src/progress.c:263
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
-msgstr "平均速率：%6.1f%s/min, "
+msgstr "平均速率：%6.2f%s/%s, "
 
-#: src/progress.c:258
+#: src/progress.c:264
 #, c-format
 msgid "%s"
 msgstr "%s"
 
-#: src/progress.c:287
+#: src/progress.c:293
 #, c-format
 msgid "Elapsed: %s Remaining: %s "
 msgstr "经过：%s  剩余： %s "
 
-#: src/progress.c:289
+#: src/progress.c:295
 #, fuzzy, c-format
 msgid "Rate: %6.2f%s/%s"
-msgstr "速率：%6.2f%s/min"
+msgstr "速率：%6.2f%s/%s"
 
-#: src/progress.c:291
+#: src/progress.c:297
 #, c-format
 msgid "Current Block: %llu  Total Block: %llu "
 msgstr "當前塊：%llu 總塊：%llu "
 
-#: src/progress.c:294 src/progress.c:327
+#: src/progress.c:300 src/progress.c:333
 msgid "Data Block Process:"
 msgstr ""
 
-#: src/progress.c:296 src/progress.c:329
+#: src/progress.c:302 src/progress.c:335
 msgid "Calculating Bitmap Process:"
 msgstr ""
 
-#: src/progress.c:300 src/progress.c:311
+#: src/progress.c:306 src/progress.c:317
 #, c-format
 msgid "ncurses update error\n"
 msgstr ""
 
-#: src/progress.c:307 src/progress.c:337
+#: src/progress.c:313 src/progress.c:343
 msgid "Total Block Process:"
 msgstr ""
 
-#: src/progress.c:322
+#: src/progress.c:328
 #, c-format
 msgid "Total Time: %s Remaining: %s "
 msgstr "全部时间：%s 剩余时间: %s "
 
-#: src/progress.c:324
+#: src/progress.c:330
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
-msgstr "平均速率：%6.2f%s/min"
+msgstr "平均速率：%6.2f%s/%s"
 
-#: src/partclone.c:1966
+#: src/partclone.c:1970
 #, c-format
 msgid "Partclone v%s http://partclone.org\n"
 msgstr ""
 
-#: src/partclone.c:1968
+#: src/partclone.c:1972
 #, c-format
 msgid "Starting to check image (%s)\n"
 msgstr "开始检查镜像 (%s)\n"
 
-#: src/partclone.c:1971
+#: src/partclone.c:1975
 #, fuzzy, c-format
 msgid "Starting to clone device (%s) to compressed image (%s)\n"
 msgstr "开始备份 装置 (%s) 到 镜像 (%s)\n"
 
-#: src/partclone.c:1973
+#: src/partclone.c:1977
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
 msgstr "开始备份 装置 (%s) 到 镜像 (%s)\n"
 
-#: src/partclone.c:1976
+#: src/partclone.c:1980
 #, fuzzy, c-format
 msgid "Starting to restore image (%s) to block files (%s)\n"
 msgstr "开始恢复 镜像 (%s) 到 装置 (%s)\n"
 
-#: src/partclone.c:1978
+#: src/partclone.c:1982
 #, c-format
 msgid "Starting to restore image (%s) to device (%s)\n"
 msgstr "开始恢复 镜像 (%s) 到 装置 (%s)\n"
 
-#: src/partclone.c:1980
+#: src/partclone.c:1984
 #, c-format
 msgid "Starting to back up device (%s) to device (%s)\n"
 msgstr "开始备份 装置 (%s) 到 装置 (%s)\n"
 
-#: src/partclone.c:1982
+#: src/partclone.c:1986
 #, c-format
 msgid "Starting to map device (%s) to domain log (%s)\n"
 msgstr "开始输出 装置 (%s)块 到 资料文件 (%s)\n"
 
-#: src/partclone.c:1985
+#: src/partclone.c:1989
 #, fuzzy, c-format
 msgid "Starting to dd image (%s) to block files (%s)\n"
 msgstr "开始恢复 镜像 (%s) 到 装置 (%s)\n"
 
-#: src/partclone.c:1987
+#: src/partclone.c:1991
 #, fuzzy, c-format
 msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
 msgstr "开始备份 装置 (%s) 到 镜像 (%s)\n"
 
-#: src/partclone.c:1989
+#: src/partclone.c:1993
 #, fuzzy, c-format
 msgid "Showing info of image (%s)\n"
 msgstr "开始检查镜像 (%s)\n"
 
-#: src/partclone.c:1991
+#: src/partclone.c:1995
 msgid "Unknown mode\n"
 msgstr ""
 
-#: src/partclone.c:2011
+#: src/partclone.c:2015
 #, c-format
 msgid "File system:  %s\n"
 msgstr "文件系统: %s\n"
 
-#: src/partclone.c:2014
+#: src/partclone.c:2018
 #, c-format
 msgid "Device size:  %s = %llu Blocks\n"
 msgstr "装置大小: %s = %llu Blocks\n"
 
-#: src/partclone.c:2017
+#: src/partclone.c:2021
 #, c-format
 msgid "Space in use: %s = %llu Blocks\n"
 msgstr "装置使用到空间: %s = %llu Blocks\n"
 
-#: src/partclone.c:2020
+#: src/partclone.c:2024
 #, c-format
 msgid "Free Space:   %s = %llu Blocks\n"
 msgstr "剩余空间: %s = %llu Blocks\n"
 
-#: src/partclone.c:2022
+#: src/partclone.c:2026
 #, c-format
 msgid "Block size:   %i Byte\n"
 msgstr "装置块大小: %i Byte\n"
 
-#: src/partclone.c:2023
+#: src/partclone.c:2027
 #, fuzzy, c-format
 msgid "Used Blocks in Super-Block:   %llu Blocks\n"
-msgstr "装置使用到空间: %s = %llu Blocks\n"
+msgstr "装置使用到空间(super block):   %llu Blocks\n"
 
-#: src/partclone.c:2036
+#: src/partclone.c:2040
 #, c-format
 msgid "image format:    %04d\n"
 msgstr "圖像格式:    %04d\n"
 
-#: src/partclone.c:2040 src/partclone.c:2047
+#: src/partclone.c:2044 src/partclone.c:2051
 #, c-format
 msgid "created on a:    %s\n"
 msgstr "創建於:    %s\n"
 
-#: src/partclone.c:2042 src/partclone.c:2050
+#: src/partclone.c:2046 src/partclone.c:2054
 #, c-format
 msgid "with partclone:  %s\n"
 msgstr "使用部分克隆:  %s\n"
 
-#: src/partclone.c:2046
+#: src/partclone.c:2050
 #, c-format
 msgid "%d bits platform"
 msgstr "%d 位平台"
 
-#: src/partclone.c:2049
+#: src/partclone.c:2053
 #, c-format
 msgid "v%s"
 msgstr "v%s"
 
-#: src/partclone.c:2053
+#: src/partclone.c:2057
 #, c-format
 msgid "bitmap mode:     %s\n"
 msgstr "位圖模式: %s\n"
 
-#: src/partclone.c:2055
+#: src/partclone.c:2059
 #, c-format
 msgid "checksum algo:   %s\n"
 msgstr ""
 
-#: src/partclone.c:2059 src/partclone.c:2068
+#: src/partclone.c:2063 src/partclone.c:2072
 #, c-format
 msgid "checksum size:   %s\n"
 msgstr "校驗和大小: %s\n"
 
-#: src/partclone.c:2061 src/partclone.c:2071
+#: src/partclone.c:2065 src/partclone.c:2075
 #, c-format
 msgid "blocks/checksum: %s\n"
 msgstr ""
 
-#: src/partclone.c:2063 src/partclone.c:2073
+#: src/partclone.c:2067 src/partclone.c:2077
 #, c-format
 msgid "reseed checksum: %s\n"
 msgstr ""
 
-#: src/partclone.c:2073
+#: src/partclone.c:2077
 msgid "yes"
 msgstr ""
 
-#: src/partclone.c:2073
+#: src/partclone.c:2077
 msgid "no"
 msgstr ""
 
-#: src/partclone.c:2086
+#: src/partclone.c:2090
 #, c-format
 msgid "Partclone successfully checked the image (%s)\n"
 msgstr "检查镜像 (%s) 完成\n"
 
-#: src/partclone.c:2088
+#: src/partclone.c:2092
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr "备份 装置 (%s) 到 镜像 (%s) 完成\n"
 
-#: src/partclone.c:2090
+#: src/partclone.c:2094
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr "恢复 镜像 (%s) 到 装置 (%s) 完成\n"
 
-#: src/partclone.c:2092
+#: src/partclone.c:2096
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr "备份 装置 (%s) 到 装置 (%s) 完成\n"
 
-#: src/partclone.c:2094
+#: src/partclone.c:2098
 #, c-format
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
 msgstr "输出装置 (%s) 块信息 到 数据文件 (%s) 完成\n"

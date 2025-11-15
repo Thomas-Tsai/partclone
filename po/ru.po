@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Partclone 0.3.3\n"
 "Report-Msgid-Bugs-To: thomas@clonezilla.org\n"
-"POT-Creation-Date: 2025-11-12 09:36+0800\n"
+"POT-Creation-Date: 2025-11-15 14:01+0800\n"
 "PO-Revision-Date: 2023-05-15 18:47+0300\n"
 "Last-Translator: Stanislav Bolshakov <bsv999@mail.ru>\n"
 "Language-Team: Russian\n"
@@ -21,45 +21,41 @@ msgstr ""
 "X-Language: ru_RU\n"
 "X-Source-Language: C\n"
 
-#: src/progress.c:238
-#, c-format
-msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: %6.2f%%"
-msgstr "\r%80c\rПрошло: %s, Осталось: %s, Выполнено: %6.2f%%"
+#: src/progress.c:239
+#, fuzzy, c-format
+msgid "Elapsed: %s, Remaining: %s, Completed: %6.2f%%"
+msgstr "Прошло: %s, Осталось: %s, Выполнено: %6.2f%%"
 
-#: src/progress.c:241
+#: src/progress.c:242
 #, fuzzy, c-format
 msgid ", %6.2f%s/%s,"
-msgstr ", %6.2f%s/мин,"
+msgstr ", %6.2f%s/%s,"
 
-#: src/progress.c:243
-#, c-format
-msgid ""
-"\n"
-"\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s\r"
+#: src/progress.c:245
+#, fuzzy, c-format
+msgid "Current block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s"
 msgstr ""
 "\n"
-"\r%80c\rТекущий блок: %10Lu, Всего блоков: %10Lu, Выполнено: %6.2f%%%s\r"
-
-#: src/progress.c:249
-#, c-format
-msgid "\r%80c\rElapsed: %s, Remaining: %s, Completed: 100.00%%"
-msgstr "\r%80c\rПрошло: %s, Осталось: %s, Выполнено: 100.00%%"
-
-#: src/progress.c:251
-#, fuzzy, c-format
-msgid ", Rate: %6.2f%s/%s,"
-msgstr ", Скорость: %6.2f%s/мин,"
+"Текущий блок: %10Lu, Всего блоков: %10Lu, Выполнено: %6.2f%%%s"
 
 #: src/progress.c:253
-#, c-format
-msgid ""
-"\n"
-"\r%80c\rCurrent block: %10Lu, Total block: %10Lu, Complete: 100.00%%\r"
-msgstr ""
-"\n"
-"\r%80c\rТекущий блок: %10Lu, Всего блоков: %10Lu, Выполнено: 100.00%%\r"
+#, fuzzy, c-format
+msgid "Elapsed: %s, Remaining: %s, Completed: 100.00%%"
+msgstr "Прошло: %s, Осталось: %s, Выполнено: 100.00%%"
 
 #: src/progress.c:255
+#, fuzzy, c-format
+msgid ", Rate: %6.2f%s/%s,"
+msgstr ", Скорость: %6.2f%s/%s,"
+
+#: src/progress.c:258
+#, fuzzy, c-format
+msgid "Current block: %10Lu, Total block: %10Lu, Complete: 100.00%%"
+msgstr ""
+"\n"
+"Текущий блок: %10Lu, Всего блоков: %10Lu, Выполнено: 100.00%%"
+
+#: src/progress.c:261
 #, c-format
 msgid ""
 "\n"
@@ -68,226 +64,226 @@ msgstr ""
 "\n"
 "Всего времени: %s, "
 
-#: src/progress.c:257
+#: src/progress.c:263
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
-msgstr "Ср.скорость: %6.1f%s/мин, "
+msgstr "Ср.скорость: %6.1f%s/%s, "
 
-#: src/progress.c:258
+#: src/progress.c:264
 #, c-format
 msgid "%s"
 msgstr "%s"
 
-#: src/progress.c:287
+#: src/progress.c:293
 #, c-format
 msgid "Elapsed: %s Remaining: %s "
 msgstr "Прошло: %s Осталось: %s "
 
-#: src/progress.c:289
+#: src/progress.c:295
 #, fuzzy, c-format
 msgid "Rate: %6.2f%s/%s"
-msgstr "Скорость: %6.2f%s/мин"
+msgstr "Скорость: %6.2f%s/%s"
 
-#: src/progress.c:291
+#: src/progress.c:297
 #, c-format
 msgid "Current Block: %llu  Total Block: %llu "
 msgstr "Текущий блок: %llu  Всего блоков: %llu "
 
-#: src/progress.c:294 src/progress.c:327
+#: src/progress.c:300 src/progress.c:333
 msgid "Data Block Process:"
 msgstr "Процесс блоков данных:"
 
-#: src/progress.c:296 src/progress.c:329
+#: src/progress.c:302 src/progress.c:335
 msgid "Calculating Bitmap Process:"
 msgstr "Расчёт процесса Bitmap:"
 
-#: src/progress.c:300 src/progress.c:311
+#: src/progress.c:306 src/progress.c:317
 #, c-format
 msgid "ncurses update error\n"
 msgstr "Ошибка обновления ncurses\n"
 
-#: src/progress.c:307 src/progress.c:337
+#: src/progress.c:313 src/progress.c:343
 msgid "Total Block Process:"
 msgstr "Процесс всех блоков:"
 
-#: src/progress.c:322
+#: src/progress.c:328
 #, c-format
 msgid "Total Time: %s Remaining: %s "
 msgstr "Всего времени: %s Осталось: %s "
 
-#: src/progress.c:324
+#: src/progress.c:330
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
-msgstr "Ср.скорость: %6.2f%s/min"
+msgstr "Ср.скорость: %6.2f%s/%s"
 
-#: src/partclone.c:1966
+#: src/partclone.c:1970
 #, c-format
 msgid "Partclone v%s http://partclone.org\n"
 msgstr "Partclone в%s http://partclone.org\n"
 
-#: src/partclone.c:1968
+#: src/partclone.c:1972
 #, c-format
 msgid "Starting to check image (%s)\n"
 msgstr "Началась проверка файла образа (%s)\n"
 
-#: src/partclone.c:1971
+#: src/partclone.c:1975
 #, c-format
 msgid "Starting to clone device (%s) to compressed image (%s)\n"
 msgstr "Началось клонирование устройства (%s) в сжатый файл образа (%s)\n"
 
-#: src/partclone.c:1973
+#: src/partclone.c:1977
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
 msgstr "Началось клонирование устройства (%s) в файл образа (%s)\n"
 
-#: src/partclone.c:1976
+#: src/partclone.c:1980
 #, c-format
 msgid "Starting to restore image (%s) to block files (%s)\n"
 msgstr "Началось восстановление образа (%s) в блочные файлы (%s)\n"
 
-#: src/partclone.c:1978
+#: src/partclone.c:1982
 #, c-format
 msgid "Starting to restore image (%s) to device (%s)\n"
 msgstr "Началось восстановление образа (%s) на устройство (%s)\n"
 
-#: src/partclone.c:1980
+#: src/partclone.c:1984
 #, c-format
 msgid "Starting to back up device (%s) to device (%s)\n"
 msgstr "Началось копирование устройства (%s) на устройство (%s)\n"
 
-#: src/partclone.c:1982
+#: src/partclone.c:1986
 #, c-format
 msgid "Starting to map device (%s) to domain log (%s)\n"
 msgstr "Началось map устройства (%s) в log домена (%s)\n"
 
-#: src/partclone.c:1985
+#: src/partclone.c:1989
 #, c-format
 msgid "Starting to dd image (%s) to block files (%s)\n"
 msgstr "Началось dd-копирование образа (%s) в блочные файлы (%s)\n"
 
-#: src/partclone.c:1987
+#: src/partclone.c:1991
 #, c-format
 msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
 msgstr "Началось клонирование/восстановление (%s) на (%s) в режиме dd\n"
 
-#: src/partclone.c:1989
+#: src/partclone.c:1993
 #, c-format
 msgid "Showing info of image (%s)\n"
 msgstr "Показ информации о образе (%s)\n"
 
-#: src/partclone.c:1991
+#: src/partclone.c:1995
 msgid "Unknown mode\n"
 msgstr "Неизвестный режим\n"
 
-#: src/partclone.c:2011
+#: src/partclone.c:2015
 #, c-format
 msgid "File system:  %s\n"
 msgstr "Файловая система: %s\n"
 
-#: src/partclone.c:2014
+#: src/partclone.c:2018
 #, c-format
 msgid "Device size:  %s = %llu Blocks\n"
 msgstr "Размер устр-ва:  %s = %llu блоков\n"
 
-#: src/partclone.c:2017
+#: src/partclone.c:2021
 #, c-format
 msgid "Space in use: %s = %llu Blocks\n"
 msgstr "Использовано: %s = %llu блоков\n"
 
-#: src/partclone.c:2020
+#: src/partclone.c:2024
 #, c-format
 msgid "Free Space:   %s = %llu Blocks\n"
 msgstr "Свободно:  %s = %llu блоков\n"
 
-#: src/partclone.c:2022
+#: src/partclone.c:2026
 #, c-format
 msgid "Block size:   %i Byte\n"
 msgstr "Размер блока:    %i Байт\n"
 
-#: src/partclone.c:2023
+#: src/partclone.c:2027
 #, fuzzy, c-format
 msgid "Used Blocks in Super-Block:   %llu Blocks\n"
-msgstr "Использовано Блоков в Супер-Блоке: %s = %llu блоков\n"
+msgstr "Использовано Блоков в Супер-Блоке: %llu блоков\n"
 
-#: src/partclone.c:2036
+#: src/partclone.c:2040
 #, c-format
 msgid "image format:    %04d\n"
 msgstr "формат образа:    %04d\n"
 
-#: src/partclone.c:2040 src/partclone.c:2047
+#: src/partclone.c:2044 src/partclone.c:2051
 #, c-format
 msgid "created on a:    %s\n"
 msgstr "создан на:    %s\n"
 
-#: src/partclone.c:2042 src/partclone.c:2050
+#: src/partclone.c:2046 src/partclone.c:2054
 #, c-format
 msgid "with partclone:  %s\n"
 msgstr "с partclone:   %s\n"
 
-#: src/partclone.c:2046
+#: src/partclone.c:2050
 #, c-format
 msgid "%d bits platform"
 msgstr "%d-битная платформа"
 
-#: src/partclone.c:2049
+#: src/partclone.c:2053
 #, c-format
 msgid "v%s"
 msgstr "в%s"
 
-#: src/partclone.c:2053
+#: src/partclone.c:2057
 #, c-format
 msgid "bitmap mode:     %s\n"
 msgstr "режим bitmap:     %s\n"
 
-#: src/partclone.c:2055
+#: src/partclone.c:2059
 #, c-format
 msgid "checksum algo:   %s\n"
 msgstr "алгоритм checksum:  %s\n"
 
-#: src/partclone.c:2059 src/partclone.c:2068
+#: src/partclone.c:2063 src/partclone.c:2072
 #, c-format
 msgid "checksum size:   %s\n"
 msgstr "размер checksum:   %s\n"
 
-#: src/partclone.c:2061 src/partclone.c:2071
+#: src/partclone.c:2065 src/partclone.c:2075
 #, c-format
 msgid "blocks/checksum: %s\n"
 msgstr "блоков/checksum: %s\n"
 
-#: src/partclone.c:2063 src/partclone.c:2073
+#: src/partclone.c:2067 src/partclone.c:2077
 #, c-format
 msgid "reseed checksum: %s\n"
 msgstr "повторная checksum: %s\n"
 
-#: src/partclone.c:2073
+#: src/partclone.c:2077
 msgid "yes"
 msgstr "да"
 
-#: src/partclone.c:2073
+#: src/partclone.c:2077
 msgid "no"
 msgstr "нет"
 
-#: src/partclone.c:2086
+#: src/partclone.c:2090
 #, c-format
 msgid "Partclone successfully checked the image (%s)\n"
 msgstr "Partclone успешно проверил образ (%s)\n"
 
-#: src/partclone.c:2088
+#: src/partclone.c:2092
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr "Partclone успешно клонировал устройство (%s) в файл образа (%s)\n"
 
-#: src/partclone.c:2090
+#: src/partclone.c:2094
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr "Partclone успешно восстановил образ (%s) на устройство (%s)\n"
 
-#: src/partclone.c:2092
+#: src/partclone.c:2096
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr "Partclone успешно клонировал устройство (%s) на устройство (%s)\n"
 
-#: src/partclone.c:2094
+#: src/partclone.c:2098
 #, c-format
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
 msgstr "Partclone успешно mapped устройство (%s) в log домена (%s)\n"
