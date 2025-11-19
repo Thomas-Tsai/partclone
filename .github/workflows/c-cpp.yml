@@ -24,7 +24,28 @@ jobs:
     - name: automake
       run: ./autogen
     - name: configure
-      run: ./configure --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs
+      run: ./configure --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs --enable-xxhash --enable-isal
+    - name: make
+      run: make
+    - name: makeTest
+      run: make check
+
+  static build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: install packages
+      run: | 
+          sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+          sudo sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
+          sudo apt-get update
+          sudo apt-get build-dep partclone
+          sudo apt-get install f2fs-tools hfsprogs exfatprogs gddrescue reiser4progs libxxhash-dev libisal-dev
+    - name: automake
+      run: ./autogen
+    - name: configure
+      run: ./configure --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs --enable-xxhash --enable-isal --enable-static
     - name: make
       run: make
     - name: makeTest

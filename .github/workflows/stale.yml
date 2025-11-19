@@ -13,5 +13,5 @@
               stale-issue-message: 'This issue is stale because it has not been updated in a while.'
               close-issue-message: 'Closing this issue due to inactivity.'
               days-before-stale: 180 # Number of days before an issue is marked as stale
-              days-before-close: 30 # Number of days after being marked stale before closing
+              days-before-close: 90 # Number of days after being marked stale before closing
               exempt-issue-labels: 'keep-open' # Label to exempt issues from being closed
