@@ -30,7 +30,7 @@ jobs:
     - name: makeTest
       run: make check
 
-  static build:
+  static_build:
     runs-on: ubuntu-latest
 
     steps:
