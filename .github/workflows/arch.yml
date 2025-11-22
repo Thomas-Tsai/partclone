@@ -1,12 +1,10 @@
-name: C/C++ CI
+name: multi-arch-build-test
 
 on:
   workflow_dispatch:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
-
+    tags:
+      - '*'
 jobs:
   multi-arch-build:
 
