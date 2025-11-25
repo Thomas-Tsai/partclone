@@ -1,3 +1,74 @@
+2025-11-25  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+	minor update for github actions
+
+2025-11-24  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #282 from grass-lu/master
+	xfsclone: prevent startblock truncation to support filesystems larger than 16TB
+
+2025-11-24  grass-lu  <284555125@qq.com>
+
+	xfsclone: prevent startblock truncation to support filesystems larger than 16TB
+	Ensure 64-bit arithmetic when computing global block numbers from AG-relative addresses by casting agno to unsigned long long before multiplication. This avoids 32-bit overflow in (agno * agblocks + agbno) on large XFS filesystems,which previously caused block offsets to wrap around and corrupt the bitmap.
+	With this fix, partclone correctly handles filesystems exceeding 16TB.
+
+2025-11-22  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	minor update test
+
+	minor update test
+
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+	add more tests in github action
+
+2025-11-19  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update github workflow
+
+2025-11-15  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update po
+	Assisted-by: GitHub Copilot
+
+2025-11-13  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	remove unnecessary files from git management
+
+	This commit addressed several different issues simultaneously: The main modifications included configure.ac and src/Makefile.am. Additionally:
+	1. Added the `--disable-xxhash` option, requiring modifications to
+	   src/partclone.c, src/checksum.h, and src/checksum.c.
+
+	2. Added the `--enableisal` option.
+
+	3. Resolved various conflicts after static build + disable-xxhash,
+	   affecting src/btrfs/common/parse-utils.c and
+	   src/btrfs/crypto/xxhash.c.
+
+2025-11-12  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update po
+
+	update format
+
+	Fix: Remove \r escape sequences from gettext messages and .po files
+	The \r escape sequences were causing warnings in msgmerge.
+	- Modified src/progress.c to move \r characters out of the _() macro for gettext best practices.
+	- Removed \r escape sequences from msgstr entries in all .po files using perl to resolve msgmerge warnings.
+
+	add libisal-dev library in GitHub Action test
+
+	update libtinfo test in configure.ac
+
+	update docs
+
+	release 0.3.39
+
+	update log and docs
+
 2025-11-11  Thomas Tsai  <tlinux.tsai@gmail.com>
 
 	Merge branch 'master' of github.com:Thomas-Tsai/partclone
