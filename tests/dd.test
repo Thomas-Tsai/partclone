@@ -22,6 +22,15 @@ _ptlbreak
 $ptlfs -d -s $raw -O $img -F -L $logfile
 _check_return_code
 
+echo -e "\n dd to btfiles from stdin \n"
+echo -e "    cat $img | $ptlfs --device-size $(($dd_bs*$dd_count)) -d3 -s - --btfiles -z 16777216 -O testbt/ -C -L $logfile\n"
+_ptlbreak
+cat $img | $ptlfs --device-size $(($dd_bs*$dd_count)) -d3 -s - --btfiles -z 16777216 -O testbt/ -C -L $logfile
+_check_return_code
+ls -l testbt/
+_check_return_code
+rm -rf testbt/
+_check_return_code
 
 echo -e "\ncreate raw file $raw for restore\n"
 _ptlbreak

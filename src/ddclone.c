@@ -31,8 +31,16 @@ void read_super_blocks(char* device, file_system_info* fs_info)
 	strncpy(fs_info->fs, raw_MAGIC, FS_MAGIC_SIZE);
 	fs_info->block_size  = PART_SECTOR_SIZE;
 	fs_info->device_size = get_partition_size(&src);
+
+	log_mesg(2, 0, 0, opt.debug, "test device size %llu\n", fs_info->device_size);
+	if (opt.device_size > 0){
+	    fs_info->device_size = opt.device_size;
+	    log_mesg(2, 0, 0, opt.debug, "define device size from option -S  %llu\n", opt.device_size);
+	    log_mesg(2, 0, 0, opt.debug, "change device size to %llu\n", fs_info->device_size);
+	}
+
 	fs_info->totalblock  = fs_info->device_size / PART_SECTOR_SIZE;
 	fs_info->usedblocks  = fs_info->device_size / PART_SECTOR_SIZE;
-        fs_info->superBlockUsedBlocks = fs_info->usedblocks;
+	fs_info->superBlockUsedBlocks = fs_info->usedblocks;
 	close(src);
 }

@@ -243,6 +243,8 @@ void usage(void) {
 		"    -b,  --dev-to-dev       Local device to device copy mode\n"
 		"    -x,  --compresscmd CMD  Start CMD as an output pipe to compress the cloned image\n"
 		"    -n,  --note NOTE        Display Message Note (128 words)\n"
+#else
+		"    -S,  --device-size      Define device size\n"
 #endif
 		"    -D,  --domain           Create ddrescue domain log from source device\n"
 		"         --offset_domain=X  Add offset X (bytes) to domain log values\n"
@@ -349,7 +351,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #elif RESTORE
 	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:Tt";
 #elif DD
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:Tt";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:TtS:";
 #else
 	static const char *sopt = "-hvd::L:cx:brDo:O:s:f:RCFINiqWBz:E:a:k:Kn:Tt";
 #endif
@@ -380,6 +382,8 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "compresscmd",	required_argument,	NULL,	'x' },
 		{ "restore",		no_argument,		NULL,   'r' },
 		{ "dev-to-dev",		no_argument,		NULL,   'b' },
+#else
+		{ "device-size",	required_argument,	NULL,   'S' },
 #endif
 		{ "domain",		no_argument,		NULL,   'D' },
 		{ "offset_domain",	required_argument,	NULL,   OPT_OFFSET_DOMAIN },
@@ -523,6 +527,11 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 			case 'b':
 				opt->dd++;
 				mode=1;
+				break;
+#else
+			case 'S':
+				assert(optarg != NULL);
+				opt->device_size = (off_t)strtoull(optarg, NULL, 0);
 				break;
 #endif
 			case 'D':
@@ -1179,7 +1188,6 @@ unsigned long long get_partition_size(int* ret) {
 	} else {
 		log_mesg(0, 0, 0, debug, "fstat size error, Use option -C to disable size checking(Dangerous).\n");
 	}
-
 	return dest_size;
 }
 

@@ -1,1 +1,28 @@
+# Git itself
+.git            export-ignore
+.gitignore      export-ignore
+.gitattributes  export-ignore
+
+# Autotools / libtool / gettext
+config.guess    export-ignore
+config.sub      export-ignore
+install-sh      export-ignore
+missing         export-ignore
+ltmain.sh       export-ignore
+config.rpath    export-ignore
+depcomp         export-ignore
+aclocal.m4      export-ignore
+Makefile.in     export-ignore
+config.h.in     export-ignore
+po/Makefile.in.in export-ignore
+
+# ignore others
+*.o             export-ignore
+*.lo            export-ignore
+*.la            export-ignore
+*.a             export-ignore
+*.so            export-ignore
+*.dylib         export-ignore
+
+
 src/version.h export-subst

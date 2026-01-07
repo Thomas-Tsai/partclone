@@ -141,6 +141,7 @@ struct cmd_opt
     int checksum_mode;
     int reseed_checksum;
     unsigned long blocks_per_checksum;
+    unsigned long device_size;
 };
 typedef struct cmd_opt cmd_opt;
 
