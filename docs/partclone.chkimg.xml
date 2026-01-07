@@ -130,6 +130,8 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	<group choice="opt">
 	<arg choice="plain"><option>--ignore_crc</option></arg>
 	</group>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-C</option></arg>
 	    <arg choice="plain"><option>--no_check</option></arg>
@@ -147,8 +149,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--logfile</option></arg>
 	</group>
 	<replaceable class="option">logfile</replaceable>
-
-	</arg>
+      </arg>
      
     </cmdsynopsis>
   </refsynopsisdiv>

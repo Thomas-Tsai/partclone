@@ -74,3 +74,13 @@ src/partclone.ufs
 src/partclone.vmfs
 src/partclone.vmfs5
 src/partclone.xfs
+
+# Generated man pages
+docs/partclone.8
+docs/partclone.chkimg.8
+docs/partclone.dd.8
+docs/partclone.fstype.8
+docs/partclone.info.8
+docs/partclone.ntfsfixboot.8
+docs/partclone.restore.8
+

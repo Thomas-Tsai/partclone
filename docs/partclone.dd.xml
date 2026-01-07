@@ -186,6 +186,8 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--logfile</option></arg>
 	</group>
 	<replaceable class="option">logfile</replaceable>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-D</option></arg>
 	    <arg choice="plain"><option>--domain</option></arg>
@@ -221,6 +223,8 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-t</option></arg>
 	    <arg choice="plain"><option>--btfiles_torrent</option></arg>
 	</group>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-B</option></arg>
 	    <arg choice="plain"><option>--no_block_detail</option></arg>
