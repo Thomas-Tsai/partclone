@@ -533,7 +533,7 @@ AM_CONDITIONAL(ENABLE_FEATURE_TEST, test "$enable_feature_test" = yes)
 
 ##bash-completion
 PKG_CHECK_VAR([bashcompletiondir], [bash-completion], [completionsdir], [],
-    [bashcompletiondir="${sysconfdir}/bash_completion.d"])
+    [bashcompletiondir='${datadir}/bash-completion/completions'])
 AC_SUBST(bashcompletiondir)
 
 AC_CONFIG_HEADERS([config.h])
