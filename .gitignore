@@ -84,3 +84,7 @@ docs/partclone.info.8
 docs/partclone.ntfsfixboot.8
 docs/partclone.restore.8
 
+# Manually added generated files
+/libtool
+po/insert-header.sed
+

@@ -1,6 +1,3 @@
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 /*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -74,7 +71,6 @@ int parse_u64(const char *str, u64 *result)
  * Returned values are u64, value validation and interpretation should be done
  * by the caller.
  */
-#ifndef BTRFS_STATIC_BUILD
 int parse_range(const char *range, u64 *start, u64 *end)
 {
 	char *dots;
@@ -115,7 +111,6 @@ int parse_range(const char *range, u64 *start, u64 *end)
 
 	return 1;
 }
-#endif
 
 /*
  * Convert 64bit range to 32bit with boundary checks

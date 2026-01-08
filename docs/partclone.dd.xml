@@ -156,6 +156,8 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-F</option></arg>
 	    <arg choice="plain"><option>--force</option></arg>
 	</group>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-I</option></arg>
 	    <arg choice="plain"><option>--ignore_fschk</option></arg>
@@ -177,6 +179,8 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--logfile</option></arg>
 	</group>
         <replaceable class="option">logfile</replaceable>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-R</option></arg>
 	    <arg choice="plain"><option>--rescue</option></arg>
@@ -203,6 +207,8 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-kX</option></arg>
 	    <arg choice="plain"><option>--blocks-per-checksum=X</option></arg>
 	</group>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-K</option></arg>
 	    <arg choice="plain"><option>--no-reseed</option></arg>
@@ -240,6 +246,10 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	</group>
 	<group choice="opt">
 	    <arg choice="plain"><option>--read-direct-io</option></arg>
+	</group>
+	<group choice="opt">
+	    <arg choice="plain"><option>-S</option></arg>
+	    <arg choice="plain"><option>--device-size</option></arg>
 	</group>
     </arg>
     </cmdsynopsis>
@@ -423,12 +433,19 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>-S</option></term>
+        <term><option>--device-size</option></term>
+        <listitem>
+          <para>Define device size</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>-B</option></term>
         <term><option>--no_block_detail</option></term>
         <listitem>
           <para>Show progress message without block detail</para>
         </listitem>
-      </varlistentry>      
+      </varlistentry>
       <varlistentry>
         <term><option>--binary-prefix</option></term>
         <listitem>

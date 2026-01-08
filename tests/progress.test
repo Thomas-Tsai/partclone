@@ -6,7 +6,7 @@ fs="ext3"
 ptlfs="../src/partclone.extfs"
 mkfs=$(_findmkfs $fs)
 dd_count=$((normal_size/2))
-echo -e "Progress test"
+echo -e "Ncurses test"
 echo -e "====================\n"
 echo -e "\ncreate raw file $raw\n"
 _ptlbreak
@@ -19,26 +19,33 @@ echo -e "    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw\n"
 _ptlbreak
 $mkfs `eval echo "$"mkfs_option_for_$fs""` $raw
 
-echo -e "\nclone $raw to $img\n"
+echo -e "\nclone $raw to $img with ncursesw\n"
 [ -f $img ] && rm $img
-echo -e "    $ptlfs -d --binary-prefix --prog-second -s $raw -O $img -F -L $logfile\n"
+echo -e "    $ptlfs -d -N -s $raw -O $img -F -L $logfile\n"
 _ptlbreak
-$ptlfs -d -c --binary-prefix --prog-second -s $raw -O $img -F -L $logfile -a 1 -k 17
+$ptlfs -d -c -N -s $raw -O $img -F -L $logfile -a 1 -k 17
 _check_return_code
 
+echo -e "\nclone $raw to $img with prog-second\n"
 [ -f $img ] && rm $img
-echo -e "    $ptlfs -d --binary-prefix -s $raw -O $img -F -L $logfile\n"
+echo -e "    $ptlfs -d -c -N --prog-second -s $raw -O $img -F -L $logfile\n"
 _ptlbreak
-$ptlfs -d -c --binary-prefix -s $raw -O $img -F -L $logfile -a 1 -k 17
+$ptlfs -d -c -N --prog-second -s $raw -O $img -F -L $logfile -a 1 -k 17
 _check_return_code
-
-[ -f $img ] && rm $img
-echo -e "    $ptlfs -d --prog-second -s $raw -O $img -F -L $logfile\n"
-_ptlbreak
 $ptlfs -d -c --prog-second -s $raw -O $img -F -L $logfile -a 1 -k 17
 _check_return_code
 
-echo -e "\nncursesw test ok\n"
+echo -e "\nclone $raw to $img with binary-prefix\n"
+[ -f $img ] && rm $img
+echo -e "    $ptlfs -d -c -N --binary-prefix -s $raw -O $img -F -L $logfile\n"
+_ptlbreak
+$ptlfs -d -c -N --binary-prefix -s $raw -O $img -F -L $logfile -a 1 -k 17
+_check_return_code
+$ptlfs -d -c --binary-prefix -s $raw -O $img -F -L $logfile -a 1 -k 17
+_check_return_code
+
+
+echo -e "\nbinary-prefix prog-second  test ok\n"
 echo -e "\nclear tmp files $img $raw $logfile $md5\n"
 _ptlbreak
 rm -f $img $raw $logfile $md5

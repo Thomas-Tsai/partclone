@@ -170,6 +170,8 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-F</option></arg>
 	    <arg choice="plain"><option>--force</option></arg>
 	</group>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-I</option></arg>
 	    <arg choice="plain"><option>--ignore_fschk</option></arg>
@@ -191,15 +193,8 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>--logfile</option></arg>
 	</group>
         <replaceable class="option">logfile</replaceable>
-	<group choice="opt">
-	    <arg choice="plain"><option>-R</option></arg>
-	    <arg choice="plain"><option>--rescue</option></arg>
-	</group>
-	<group choice="opt">
-	    <arg choice="plain"><option>-L</option></arg>
-	    <arg choice="plain"><option>--logfile</option></arg>
-	</group>
-	<replaceable class="option">logfile</replaceable>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-X</option></arg>
 	    <arg choice="plain"><option>--compresscmd</option></arg>
@@ -211,8 +206,6 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	<group choice="opt">
 	    <arg choice="plain"><option>--offset_domain</option></arg>
 	</group>
-      </arg>
-      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-aX</option></arg>
 	    <arg choice="plain"><option>--checksum-mode=X</option></arg>
@@ -221,6 +214,8 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-kX</option></arg>
 	    <arg choice="plain"><option>--blocks-per-checksum=X</option></arg>
 	</group>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-K</option></arg>
 	    <arg choice="plain"><option>--no-reseed</option></arg>

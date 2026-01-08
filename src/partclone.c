@@ -254,7 +254,7 @@ void usage(void) {
 		"                            0: No checksum (no slowdown, smallest image)\n"
 		"                            1: CRC32 (Fast to compute, basic detection)\n"
 #ifdef HAVE_XXHASH
-"                                            2: XXH64 (Extremely fast, modern detection)\n"
+		"                            2: XXH64 (Extremely fast, modern detection)\n"
 #endif
 		"    -kX  --blocks-per-checksum=X\n"
 		"                            Write one checksum for every X blocks\n"
