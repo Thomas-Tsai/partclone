@@ -242,8 +242,13 @@ scan_ag(
 
 
 
+static int xfs_is_open = 0;
+
 static void fs_open(char* device)
 {
+    if (xfs_is_open)
+        return;
+
 
     int		    open_flags;
     struct stat     statbuf;
@@ -331,15 +336,27 @@ static void fs_open(char* device)
     log_mesg(3, 0, 0, fs_opt.debug, "%s: used block= %lli\n", __FILE__, (mp->m_sb.sb_dblocks - mp->m_sb.sb_fdblocks));
     log_mesg(3, 0, 0, fs_opt.debug, "%s: device size= %lli\n", __FILE__, (mp->m_sb.sb_blocksize * mp->m_sb.sb_dblocks));
 
+    xfs_is_open = 1;
 }
 
 static void fs_close()
 {
+    if (!xfs_is_open)
+        return;
+
+    if (mp) {
+        libxfs_umount(mp);
+        mp = NULL;
+    }
+    libxfs_destroy();
+
     if (source_fd != -1) {
         close(source_fd);
         source_fd = -1;
     }
-    log_mesg(0, 0, 0, fs_opt.debug, "%s: fs_close\\n", __FILE__);
+
+    xfs_is_open = 0;
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: fs_close\n", __FILE__);
 }
 
 void read_super_blocks(char* device, file_system_info* fs_info)
@@ -357,8 +374,7 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     log_mesg(1, 0, 0, fs_opt.debug, "%s: used block= %lli\n", __FILE__, (mp->m_sb.sb_dblocks - mp->m_sb.sb_fdblocks));
     log_mesg(1, 0, 0, fs_opt.debug, "%s: superBlockUsedBlocks= %lli\n", __FILE__, fs_info->superBlockUsedBlocks);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: device size= %lli\n", __FILE__, (mp->m_sb.sb_blocksize*mp->m_sb.sb_dblocks));
-    fs_close();
-
+    // fs_close() is called later by read_bitmap
 }
 
 void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui)
