@@ -949,10 +949,34 @@ void load_image_desc_v1(file_system_info* fs_info, image_options* img_opt,
 			(unsigned long long)fs_info->totalblock);
 	}
 
-	dev_size = fs_info->totalblock * fs_info->block_size;
-	if (fs_info->device_size != dev_size) {
+	if (fs_info->block_size == 0 || fs_info->block_size > 65536) {
+		log_mesg(0, 1, 1, opt->debug, "Invalid image v1: block_size (%u) is invalid or too large.\n", fs_info->block_size);
+	}
 
-		log_mesg(1, 0, 0, opt->debug, "INFO: adjusted device size reported by the image [%llu -> %llu]\n", fs_info->device_size, dev_size);
+	if (fs_info->usedblocks > fs_info->totalblock) {
+		log_mesg(0, 1, 1, opt->debug, "Invalid image v1: usedblocks (%llu) is larger than totalblock (%llu).\n", fs_info->usedblocks, fs_info->totalblock);
+	}
+
+	// Check to prevent overflow when casting to signed long long
+	if (fs_info->totalblock > LLONG_MAX) {
+		log_mesg(0, 1, 1, opt->debug, "Invalid image v1: totalblock (%llu) exceeds signed long long max value.\n", fs_info->totalblock);
+	}
+
+	// Check for a reasonable totalblock limit for bitmap allocation (max 1TB bitmap)
+	if (fs_info->totalblock > (1024ULL * 1024 * 1024 * 1024 * 8)) { // 1TB bitmap size
+		log_mesg(0, 1, 1, opt->debug, "Invalid image v1: totalblock (%llu) is excessively large for bitmap allocation.\n", fs_info->totalblock);
+	}
+
+	// Check for multiplication overflow before calculating total device size
+	if (fs_info->block_size > 0 && fs_info->totalblock > ULLONG_MAX / fs_info->block_size) {
+		log_mesg(0, 1, 1, opt->debug, "Invalid image v1: totalblock * block_size would cause an integer overflow.\n");
+	}
+
+	unsigned long long calculated_size = fs_info->totalblock * fs_info->block_size;
+	if (calculated_size > fs_info->device_size) {
+		log_mesg(0, 1, 1, opt->debug, "Invalid image v1: calculated filesystem size is larger than device size.\n");
+	} else if (calculated_size < fs_info->device_size) {
+		log_mesg(1, 0, 0, opt->debug, "INFO: adjusted device size reported by the image [%llu -> %llu]\n", fs_info->device_size, calculated_size);
 		fs_info->device_size = dev_size;
 	}
 
@@ -968,7 +992,44 @@ void load_image_desc_v2(file_system_info* fs_info, image_options* img_opt,
 		log_mesg(0, 1, 1, opt->debug, "The image have been created from an incompatible architecture\n");
 
 	memcpy(fs_info, &fs_info_v2, sizeof(file_system_info_v2));
+
+	if (fs_info->block_size > 65536) {
+	    log_mesg(0, 1, 1, opt->debug, "Invalid image: block_size (%u) is too large.\n", fs_info->block_size);
+	}
 	memcpy(img_opt, &img_opt_v2, sizeof(image_options_v2));
+
+	if (fs_info->block_size == 0 || fs_info->block_size > 65536) {
+		log_mesg(0, 1, 1, opt->debug, "Invalid image: block_size (%u) is invalid or too large.\n", fs_info->block_size);
+	}
+
+	if (fs_info->usedblocks > fs_info->totalblock) {
+		log_mesg(0, 1, 1, opt->debug, "Invalid image: usedblocks (%llu) is larger than totalblock (%llu).\n", fs_info->usedblocks, fs_info->totalblock);
+	}
+
+	if (get_checksum_size(img_opt->checksum_mode, opt->debug) != img_opt->checksum_size) {
+		log_mesg(0, 1, 1, opt->debug, "Invalid image: checksum_size (%u) does not match checksum_mode (%d).\n", img_opt->checksum_size, img_opt->checksum_mode);
+	}
+
+	// Check to prevent overflow when casting to signed long long
+	if (fs_info->totalblock > LLONG_MAX) {
+		log_mesg(0, 1, 1, opt->debug, "Invalid image: totalblock (%llu) exceeds signed long long max value.\n", fs_info->totalblock);
+	}
+
+	// Check for a reasonable totalblock limit for bitmap allocation (max 1TB bitmap)
+	if (fs_info->totalblock > (1024ULL * 1024 * 1024 * 1024 * 8)) { // 1TB bitmap size
+		log_mesg(0, 1, 1, opt->debug, "Invalid image: totalblock (%llu) is excessively large for bitmap allocation.\n", fs_info->totalblock);
+	}
+
+	// Check for multiplication overflow before calculating total device size
+	if (fs_info->block_size > 0 && fs_info->totalblock > ULLONG_MAX / fs_info->block_size) {
+		log_mesg(0, 1, 1, opt->debug, "Invalid image: totalblock * block_size would cause an integer overflow.\n");
+	}
+
+	unsigned long long calculated_size = fs_info->totalblock * fs_info->block_size;
+	if (calculated_size > fs_info->device_size) {
+		log_mesg(0, 1, 1, opt->debug, "Invalid image: calculated filesystem size is larger than device size.\n");
+	}
+
 
 	// Validate blocks_per_checksum to prevent divide-by-zero
 	if (img_opt->checksum_mode != CSM_NONE && img_opt->blocks_per_checksum == 0)
@@ -1499,6 +1560,21 @@ void load_image_bitmap_bytes(int* ret, cmd_opt opt, file_system_info fs_info, un
 
 /// get bitmap from image file to restore data
 void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, image_options img_opt, unsigned long* bitmap) {
+
+	struct stat st;
+	if (fstat(*ret, &st) == -1) {
+		log_mesg(0, 1, 1, opt.debug, "fstat failed: %s\n", strerror(errno));
+	}
+	off_t current_pos = lseek(*ret, 0, SEEK_CUR);
+	if (current_pos == -1) {
+		log_mesg(0, 1, 1, opt.debug, "lseek failed: %s\n", strerror(errno));
+	}
+	unsigned long long remaining_size = st.st_size - current_pos;
+	unsigned long long declared_bitmap_size = get_bitmap_size_on_disk(&fs_info, &img_opt, &opt);
+
+	if (declared_bitmap_size > remaining_size) {
+		log_mesg(0, 1, 1, opt.debug, "Invalid image: declared bitmap size (%llu) is larger than remaining file size (%llu).\n", declared_bitmap_size, remaining_size);
+	}
 
 	switch(img_opt.bitmap_mode) {
 

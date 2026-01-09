@@ -1,0 +1,156 @@
+#!/bin/bash
+
+# ==============================================================================
+# Partclone Proof-of-Concept (PoC) Test Script
+#
+# This script automates the process of testing security validation checks
+# for the partclone image header. It compiles the PoC generator, creates
+# various types of malicious images, and verifies that partclone.restore
+# fails gracefully with the expected error messages.
+# ==============================================================================
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+# --- Configuration ---
+POC_GENERATOR="create_poc"
+POC_GENERATOR_SRC="./security_poc.c"
+RESTORE_BIN="../src/partclone.restore"
+LOG_FILE="/tmp/partclone_test.log"
+
+# Define the types of vulnerabilities to test for each image version
+POC_TYPES_V2=("invalid_block_size" "invalid_usedblocks" "inconsistent_device_size" "small_file" "large_totalblock")
+POC_TYPES_V1=("invalid_block_size" "invalid_usedblocks" "inconsistent_device_size" "large_totalblock")
+
+
+# --- Helper Functions for Colored Output ---
+function print_info() {
+    echo -e "\e[34m[INFO]\e[0m $1"
+}
+
+function print_pass() {
+    echo -e "\e[32m[PASS]\e[0m $1"
+}
+
+function print_fail() {
+    echo -e "\e[31m[FAIL]\e[0m $1"
+    # Clean up and exit with a failure code
+    cleanup
+    exit 1
+}
+
+function cleanup() {
+    print_info "Cleaning up generated files..."
+    rm -f ${POC_GENERATOR} poc_*.img ${LOG_FILE}
+}
+
+# --- Main Script Logic ---
+
+# Ensure we are in the script's directory
+cd "$(dirname "$0")"
+
+# Register a trap to clean up files on script exit (including errors)
+trap cleanup EXIT
+
+# Check if the main partclone binary exists. If not, guide the user.
+if [ ! -f "${RESTORE_BIN}" ]; then
+    print_fail "${RESTORE_BIN} not found. Please compile partclone first (e.g., 'make' in the project root directory)."
+fi
+
+print_info "Compiling the PoC generator..."
+gcc -o ${POC_GENERATOR} ${POC_GENERATOR_SRC} -I.. -I../src -Wall -g
+if [ $? -ne 0 ]; then
+    print_fail "Failed to compile PoC generator."
+fi
+print_info "PoC generator compiled successfully."
+
+# --- Run V2 Tests ---
+print_info "==================================================="
+print_info "  Running V2 Image Format PoC Tests...             "
+print_info "==================================================="
+for poc_type in "${POC_TYPES_V2[@]}"; do
+    IMG_FILE="poc_${poc_type}_v2.img"
+    print_info "Testing v2: ${poc_type}"
+
+    # Generate the malicious image
+    ./${POC_GENERATOR} ${poc_type} v2 > /dev/null
+
+    # Run partclone.restore. We expect it to fail, so '|| true' prevents 'set -e' from stopping the script.
+    # The stderr is redirected to the log file to capture ASan's output if any.
+    ./${RESTORE_BIN} -s ${IMG_FILE} -O /dev/null -L ${LOG_FILE} -C > /dev/null 2>>${LOG_FILE} || true
+
+    # Check if the log was created and is not empty
+    if [ ! -s "${LOG_FILE}" ]; then
+        print_fail "Log file is empty for test '${poc_type}_v2'. The program may have crashed without logging."
+    fi
+
+    # Check if ASan reported any errors
+    if grep -q "==ERROR: AddressSanitizer" "${LOG_FILE}"; then
+        cat ${LOG_FILE}
+        print_fail "AddressSanitizer detected a memory error for '${poc_type}_v2'!"
+    fi
+
+    # Check for the specific, expected error message for each test case
+    expected_error=""
+    case ${poc_type} in
+        "invalid_block_size")       expected_error="block_size .* is too large";;
+        "invalid_usedblocks")       expected_error="usedblocks .* is larger than totalblock";;
+        "inconsistent_device_size") expected_error="calculated filesystem size is larger than device size";;
+        "small_file")               expected_error="declared bitmap size .* is larger than remaining file size";;
+        "large_totalblock")         expected_error="totalblock .* exceeds signed long long max value";;
+    esac
+
+    if ! grep -q "${expected_error}" "${LOG_FILE}"; then
+        cat ${LOG_FILE}
+        print_fail "Expected error message '${expected_error}' not found for '${poc_type}_v2'."
+    fi
+
+    print_pass "Test for ${poc_type} v2 passed."
+    rm -f ${LOG_FILE}
+done
+
+# --- Run V1 Tests ---
+print_info "==================================================="
+print_info "  Running V1 Image Format PoC Tests...             "
+print_info "==================================================="
+for poc_type in "${POC_TYPES_V1[@]}"; do
+    IMG_FILE="poc_${poc_type}_v1.img"
+    print_info "Testing v1: ${poc_type}"
+
+    ./${POC_GENERATOR} ${poc_type} v1 > /dev/null
+
+    ./${RESTORE_BIN} -s ${IMG_FILE} -O /dev/null -L ${LOG_FILE} -C > /dev/null 2>>${LOG_FILE} || true
+
+    if [ ! -s "${LOG_FILE}" ]; then
+        print_fail "Log file is empty for test '${poc_type}_v1'."
+    fi
+    
+    if grep -q "==ERROR: AddressSanitizer" "${LOG_FILE}"; then
+        cat ${LOG_FILE}
+        print_fail "AddressSanitizer detected a memory error for '${poc_type}_v1'!"
+    fi
+
+    expected_error=""
+    case ${poc_type} in
+        "invalid_block_size")       expected_error="block_size .* is invalid or too large";;
+        "invalid_usedblocks")       expected_error="usedblocks .* is larger than totalblock";;
+        "inconsistent_device_size") expected_error="calculated filesystem size is larger than device size";;
+        "large_totalblock")         expected_error="totalblock value .* would cause integer overflow";;
+    esac
+    
+    if ! grep -q "${expected_error}" "${LOG_FILE}"; then
+        cat ${LOG_FILE}
+        print_fail "Expected error message '${expected_error}' not found for '${poc_type}_v1'."
+    fi
+
+    print_pass "Test for ${poc_type} v1 passed."
+    rm -f ${LOG_FILE}
+done
+
+
+# --- Final Success Message ---
+print_info "==================================================="
+print_pass " All PoC security validation tests passed! "
+print_info "==================================================="
+
+exit 0
