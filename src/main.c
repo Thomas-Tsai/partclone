@@ -874,6 +874,7 @@ int main(int argc, char **argv) {
 			torrent_final(&bt.torrent);
 		}
 		free(read_buffer);
+		free(write_buffer);
 		if (empty_buffer) {
 		    if (block_id < blocks_total && skip_blocks(&dfw, empty_buffer, block_size, blocks_total - block_id, &opt, &block_id) < 0) {
 			log_mesg(0, 0, 1, debug, "target seek ERROR:%s\n", strerror(errno));

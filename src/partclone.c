@@ -1862,12 +1862,14 @@ int write_block_file(char* target, char *buf, unsigned long long count, unsigned
 	    if (i < 0) {
 		log_mesg(1, 0, 1, debug, "%s: errno = %i(%s)\n",__func__, errno, strerror(errno));
 		if (errno != EAGAIN && errno != EINTR) {
+		    free(block_filename);
 		    return -1;
 		}
 	    } else if (i == 0) {
 		log_mesg(1, 0, 1, debug, "%s: nothing to read. errno = %i(%s)\n",__func__, errno, strerror(errno));
 		rescue_write_size = size - count;
 		log_mesg(1, 0, 0, debug, "%s: rescue write size = %llu\n",__func__, rescue_write_size);
+		free(block_filename);
 		return 0;
 	    } else {
 		count -= i;
@@ -1875,6 +1877,7 @@ int write_block_file(char* target, char *buf, unsigned long long count, unsigned
 		log_mesg(2, 0, 0, debug, "%s: %s %lli, %llu left.\n", __func__, "write block file", i, count);
 	    }
 	}
+    free(block_filename);
     close(torrent_fd);
     return size;
 }

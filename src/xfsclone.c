@@ -335,8 +335,11 @@ static void fs_open(char* device)
 
 static void fs_close()
 {
-    libxfs_device_close(xargs.ddev);
-    log_mesg(0, 0, 0, fs_opt.debug, "%s: fs_close\n", __FILE__);
+    if (source_fd != -1) {
+        close(source_fd);
+        source_fd = -1;
+    }
+    log_mesg(0, 0, 0, fs_opt.debug, "%s: fs_close\\n", __FILE__);
 }
 
 void read_super_blocks(char* device, file_system_info* fs_info)

@@ -64,28 +64,8 @@ static void fs_open(char* device){
 
 /// close device
 static void fs_close(){
-
-    struct stat *st_buf;
-    char *path = c.devices[0].path;
     f2fs_do_umount(sbi);
-    st_buf = malloc(sizeof(struct stat));
-    if (stat(path, st_buf) == 0 && S_ISBLK(st_buf->st_mode)) {
-        int fd = open(path, O_RDONLY | O_EXCL);
-        if (fd >= 0) {
-             close(fd);
-        } else if (errno == EBUSY) { 
-            free(st_buf);
-        }
-    }
-    sleep(5);
-    //int ret = f2fs_finalize_device();
-
-    //if (sbi->ckpt)
-    //    free(sbi->ckpt);
-    //if (sbi->raw_super)
-    //    free(sbi->raw_super);
-    //f2fs_release_sparse_resource();
-
+    fsck_free(sbi);
 }
 
 ///  readbitmap - read bitmap
