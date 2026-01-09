@@ -1565,15 +1565,19 @@ void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, image_op
 	if (fstat(*ret, &st) == -1) {
 		log_mesg(0, 1, 1, opt.debug, "fstat failed: %s\n", strerror(errno));
 	}
-	off_t current_pos = lseek(*ret, 0, SEEK_CUR);
-	if (current_pos == -1) {
-		log_mesg(0, 1, 1, opt.debug, "lseek failed: %s\n", strerror(errno));
-	}
-	unsigned long long remaining_size = st.st_size - current_pos;
-	unsigned long long declared_bitmap_size = get_bitmap_size_on_disk(&fs_info, &img_opt, &opt);
 
-	if (declared_bitmap_size > remaining_size) {
-		log_mesg(0, 1, 1, opt.debug, "Invalid image: declared bitmap size (%llu) is larger than remaining file size (%llu).\n", declared_bitmap_size, remaining_size);
+	// Only perform this check if the source is a regular file (seekable)
+	if (S_ISREG(st.st_mode)) {
+		off_t current_pos = lseek(*ret, 0, SEEK_CUR);
+		if (current_pos == -1) {
+			log_mesg(0, 1, 1, opt.debug, "lseek failed: %s\n", strerror(errno));
+		}
+		unsigned long long remaining_size = st.st_size - current_pos;
+		unsigned long long declared_bitmap_size = get_bitmap_size_on_disk(&fs_info, &img_opt, &opt);
+
+		if (declared_bitmap_size > remaining_size) {
+			log_mesg(0, 1, 1, opt.debug, "Invalid image: declared bitmap size (%llu) is larger than remaining file size (%llu).\n", declared_bitmap_size, remaining_size);
+		}
 	}
 
 	switch(img_opt.bitmap_mode) {
