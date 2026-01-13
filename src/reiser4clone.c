@@ -54,14 +54,12 @@ static int fs_open(char* device){
     if (!(fs_device = aal_device_open(&file_ops, device, 512, O_RDONLY)))
     {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Cannot open the partition (%s).\n", __FILE__, device);
-        libreiser4_fini();
         return -1;
     }
 
     if (!(fs = reiser4_fs_open(fs_device, 0))) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Can't open reiser4 on %s\n", __FILE__, device);
         aal_device_close(fs_device);
-        libreiser4_fini();
         return -1;
     }
 
@@ -69,7 +67,6 @@ static int fs_open(char* device){
         log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Can't open journal on %s\n", __FILE__, device);
         reiser4_fs_close(fs);
         aal_device_close(fs_device);
-        libreiser4_fini();
         return -1;
     }
 
@@ -91,15 +88,14 @@ static int fs_open(char* device){
 
         if (extended)
             log_mesg(3, 0, 0, fs_opt.debug, "%s: Extended status: %0xllx\n", extended, __FILE__);
-    }
 
+    }
     fs->format = reiser4_format_open(fs);
     if (!fs->format) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Can't open format on %s\n", __FILE__, device);
         reiser4_journal_close(fs->journal);
         reiser4_fs_close(fs);
         aal_device_close(fs_device);
-        libreiser4_fini();
         return -1;
     }
     return 0; // Success
@@ -107,23 +103,8 @@ static int fs_open(char* device){
 
 /// close device
 static void fs_close(){
-    if (fs && fs->format) {
-        reiser4_format_close(fs->format);
-        fs->format = NULL;
-    }
-    if (fs && fs->journal) {
-        reiser4_journal_close(fs->journal);
-        fs->journal = NULL;
-    }
-    if (fs) {
-        reiser4_fs_close(fs);
-        fs = NULL;
-    }
-    if (fs_device) {
-        aal_device_close(fs_device);
-        fs_device = NULL;
-    }
-    libreiser4_fini(); // Only call once at the very end
+    reiser4_fs_close(fs);
+    aal_device_close(fs_device);
 }
 
 void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui)
@@ -166,7 +147,8 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     progress_bar   prog;	/// progress_bar structure defined in progress.h
     progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
 
-    for(bit = 0; bit < fs_info.totalblock; bit++){
+
+    for(bit = 0; bit < total_blocks_from_format; bit++){
         block = bit ;
         if(reiser4_bitmap_test(fs_bitmap, bit)){
             bused++;
@@ -207,7 +189,6 @@ void read_super_blocks(char* device, file_system_info* fs_info)
 
     if (fs_info->block_size < MIN_REISER4_BLOCK_SIZE || fs_info->block_size > MAX_REISER4_BLOCK_SIZE || (fs_info->block_size & (fs_info->block_size - 1)) != 0) {
         log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Invalid block size detected in superblock: %lu.\n", fs_info->block_size);
-        free(fs_bitmap);
         fs_close();
         return;
     }
@@ -216,7 +197,6 @@ void read_super_blocks(char* device, file_system_info* fs_info)
 
     if (fs_info->totalblock == 0 || fs_info->totalblock > MAX_REISER4_TOTAL_BLOCKS) {
         log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large or zero total blocks detected in superblock: %llu. Max allowed: %llu\n", fs_info->totalblock, MAX_REISER4_TOTAL_BLOCKS);
-        free(fs_bitmap);
         fs_close();
         return;
     }
@@ -224,14 +204,14 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     if (fs_info->block_size == 0 || fs_info->totalblock > ULLONG_MAX / fs_info->block_size) {
         log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Potential overflow or division by zero in device size calculation. totalblock: %llu, block_size: %lu\n",
                  fs_info->totalblock, fs_info->block_size);
-        free(fs_bitmap);
         fs_close();
         return;
     }
-    fs_info->device_size = fs_info->totalblock * fs_info->block_size;
+    fs_info->device_size = fs_info->block_size * fs_info->totalblock;
 
     fs_info->usedblocks  = reiser4_format_get_len(fs->format) - free_blocks;
     fs_info->superBlockUsedBlocks = fs_info->usedblocks;
     free(fs_bitmap);
     fs_close();
 }
+
