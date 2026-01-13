@@ -42,6 +42,10 @@
 #include "progress.h"
 #include "fs_common.h"
 
+#define MAX_JFS_TOTAL_BLOCKS (1ULL << 40) // Max total blocks (approx 512TB @ 512B/block) to prevent DoS/memory exhaustion
+#define MIN_JFS_BLOCK_SIZE 512 // Minimum JFS block size (typical)
+#define MAX_JFS_BLOCK_SIZE 65536 // Maximum JFS block size (64KB, typical)
+
 /* DMAP BLOCK TYPES	*/
 #define DMAP	-1
 #define LEVEL0	0
@@ -69,7 +73,7 @@ static int find_iag(unsigned iagnum, unsigned which_table, int64_t * address);
 static int find_inode(unsigned inum, unsigned which_table, int64_t * address);
 static int xRead(int64_t, unsigned, char *);
 static int jfs_bit_inuse(unsigned *bitmap, uint64_t block);
-static void get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks);
+static int get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks);
 
 struct superblock sb;
 FILE *fp;
@@ -85,16 +89,19 @@ unsigned jfs_type;
 /// xpeek.h
 #define AGGREGATE_2ND_I -1
 /// open device
-static void fs_open(char* device){
+static int fs_open(char* device){
     fp = fopen(device, "r+");
     if (fp == NULL) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: Cannot open device %s.\n", __FILE__, device);
+        return -1;
     }
 
     if (ujfs_get_superblk(fp, &sb, 1)) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: error reading primary superblock\n", __FILE__);
 	if (ujfs_get_superblk(fp, &sb, 0)) {
 	    log_mesg(0, 1, 1, fs_opt.debug, "%s: error reading secondary superblock\n", __FILE__);
+            fclose(fp);
+            return -1;
 	} else
 	    log_mesg(1, 0, 0, fs_opt.debug, "%s: using secondary superblock\n", __FILE__);
     }
@@ -102,8 +109,16 @@ static void fs_open(char* device){
     l2bsize = sb.s_l2bsize;
     bsize = sb.s_bsize;
 
+    if (bsize < MIN_JFS_BLOCK_SIZE || bsize > MAX_JFS_BLOCK_SIZE || (bsize & (bsize - 1)) != 0) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously invalid block size detected: %i. Allowed: %i-%i and power of 2\n",
+                 bsize, MIN_JFS_BLOCK_SIZE, MAX_JFS_BLOCK_SIZE);
+        fclose(fp);
+        return -1;
+    }
+
     log_mesg(1, 0, 0, fs_opt.debug, "%s: type = %u\n", __FILE__, sb.s_flag);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: block size = %i\n", __FILE__, sb.s_bsize);
+    return 0;
     log_mesg(1, 0, 0, fs_opt.debug, "%s: magic = %s\n", __FILE__, sb.s_magic);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: version = %u\n", __FILE__, sb.s_version);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: blocks = %lli\n", __FILE__, sb.s_size);
@@ -140,7 +155,9 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     int start = 0;
     int bit_size = 1;
 
-    fs_open(device);
+    if (fs_open(device) != 0) {
+        return; // Abort
+    }
     /// Read Blocal Allocation Map  Inode 
     ret = find_inode(BMAP_I, AGGREGATE_I, &address);
     if (ret){
@@ -161,8 +178,17 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     ret = xRead(cntl_addr, sizeof(struct dbmap), (char *) &cntl_page);
     if (ret){
 	log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):xRead error %i\n", __FILE__, __LINE__);
+        fs_close();
+        return;
     }
     dn_mapsize = cntl_page.dn_mapsize;
+    if (dn_mapsize < 0 || (uint64_t)dn_mapsize > MAX_JFS_TOTAL_BLOCKS) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large or negative dn_mapsize detected: %lld. Max allowed: %llu\n",
+                 dn_mapsize, MAX_JFS_TOTAL_BLOCKS);
+        fs_close();
+        return;
+    }
+
     dmap_l2bpp = cntl_page.dn_l2nbperpage;
 
     /// display leaf 
@@ -177,9 +203,18 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     ret = xRead(d_address, sizeof(struct dmap), (char *)&d_map);
     if (ret){
 	log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):xRead error.\n", __FILE__, __LINE__);
+	fs_close();
+	return;
     }
 
-    /// ujfs_swap_dmap(&d_map); fixme
+    if (d_map.nblocks <= 0 || (uint64_t)d_map.nblocks > (uint64_t)dn_mapsize) { // nblocks should not exceed total map size
+	log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Invalid d_map.nblocks detected: %d. Should be positive and <= dn_mapsize (%lld).\n",
+	d_map.nblocks, dn_mapsize);
+	fs_close();
+	return;
+    }
+
+    ///ujfs_swap_dmap(&d_map);
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s: Dmap page at block %lld\n", __FILE__, (long long) (d_address >> sb.s_l2bsize));
     log_mesg(2, 0, 0, fs_opt.debug, "%s: control nblocks %d\n", __FILE__, d_map.nblocks);
@@ -279,8 +314,13 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 void read_super_blocks(char* device, file_system_info* fs_info) {
     uint64_t used_blocks = 0;
     uint64_t total_blocks = 0;
-    fs_open(device);
-    get_all_used_blocks(&total_blocks, &used_blocks);
+    if (fs_open(device) != 0) {
+        return; // Abort
+    }
+    if (get_all_used_blocks(&total_blocks, &used_blocks) != 0) {
+        fs_close();
+        return; // Abort
+    }
     strncpy(fs_info->fs, jfs_MAGIC, FS_MAGIC_SIZE);
     fs_info->block_size  = sb.s_bsize;
     fs_info->totalblock  = total_blocks;
@@ -291,7 +331,7 @@ void read_super_blocks(char* device, file_system_info* fs_info) {
 }
 
 /// get_all_used_blocks
-void get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks) {
+static int get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks) {
 
     int64_t address;
     int64_t cntl_addr;
@@ -326,6 +366,14 @@ void get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks) {
     logsize = lengthPXD(&(sb.s_logpxd));
     ret = ujfs_get_dev_size(fp, &bytes_on_device);
     *total_blocks = bytes_on_device / sb.s_bsize;
+
+    if (*total_blocks == 0 || *total_blocks > MAX_JFS_TOTAL_BLOCKS) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large or zero total_blocks detected: %llu. Max allowed: %llu\n",
+                 *total_blocks, MAX_JFS_TOTAL_BLOCKS);
+        // Do not fclose(fp) here, as fs_close will be called by read_super_blocks
+        return -1;
+    }
+
     *used_blocks = (cntl_page.dn_mapsize - cntl_page.dn_nfree + logsize);
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s: dn.mapsize = %lli\n", __FILE__, cntl_page.dn_mapsize);
@@ -333,6 +381,7 @@ void get_all_used_blocks(uint64_t *total_blocks, uint64_t *used_blocks) {
     log_mesg(2, 0, 0, fs_opt.debug, "%s: free_blocks = %lli\n", __FILE__, cntl_page.dn_nfree);
     log_mesg(2, 0, 0, fs_opt.debug, "%s: log_blocks = %i\n", __FILE__, logsize);
 
+    return 0; // Success
 }
 
 

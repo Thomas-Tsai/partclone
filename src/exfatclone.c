@@ -21,6 +21,8 @@
 #include "partclone.h"
 #include "exfatclone.h"
 #include "progress.h"
+
+#define MAX_EXFAT_SECTORS (1ULL << 40) // Max sectors (approx 512TB @ 512B/sector) to prevent DoS/memory exhaustion
 #include "fs_common.h"
 
 #define EXFAT_SECTOR_SIZE(sb) (1 << (sb).sector_bits)
@@ -86,6 +88,14 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     strncpy(fs_info->fs, exfat_MAGIC, FS_MAGIC_SIZE);
     fs_info->block_size  = EXFAT_SECTOR_SIZE(*sb);
     fs_info->totalblock  = le64_to_cpu(sb->sector_count);
+
+    if (fs_info->totalblock == 0 || fs_info->totalblock > MAX_EXFAT_SECTORS) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large or zero sector_count detected: %llu. Max allowed: %llu\n",
+                 fs_info->totalblock, MAX_EXFAT_SECTORS);
+        fs_close(); 
+        return; 
+    }
+
     fs_info->usedblocks  = le64_to_cpu(sb->sector_count) - free_sectors;
     fs_info->superBlockUsedBlocks = fs_info->usedblocks;
     fs_info->device_size = fs_info->totalblock * fs_info->block_size;

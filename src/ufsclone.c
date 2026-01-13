@@ -11,6 +11,7 @@
  * (at your option) any later version.
  */
 
+#include "partclone.h"
 #include <sys/param.h>
 #include <sys/time.h>
 
@@ -30,49 +31,83 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "progress.h"
+#include "fs_common.h"
+
+#define MAX_UFS_TOTAL_BLOCKS (1ULL << 40) // Max total blocks (approx 512TB @ 512B/block) to prevent DoS/memory exhaustion
+#define MIN_UFS_BLOCK_SIZE 512 // Smallest supported UFS block size
+#define MAX_UFS_BLOCK_SIZE 65536 // Largest supported UFS block size (64KB)
+#define MAX_UFS_NCG (1ULL << 24) // Max 16 million cylinder groups for DoS prevention
+#define MAX_UFS_CG_BLOCKS (1ULL << 20) // Max 1 million blocks per cylinder group for DoS prevention
+
 #define afs     disk.d_fs
 #define acg     disk.d_cg
 struct uufsd disk;
 
-#include "partclone.h"
-#include "ufsclone.h"
-#include "progress.h"
-#include "fs_common.h"
-
 /// get_used_block - get FAT used blocks
-static unsigned long long get_used_block()
+static int get_used_block(unsigned long long *bused_out)
 {
-    unsigned long long     block, bused = 0, bfree = 0;
-    int                    i = 0;
-    unsigned char	   *p;
+    unsigned long long    block;
+    unsigned long long    current_bused = 0, current_bfree = 0;
+    int                   i = 0;
+    unsigned char	  *p;
 
+    if (afs.fs_ncg <= 0 || (unsigned long long)afs.fs_ncg > MAX_UFS_NCG) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large or zero number of cylinder groups detected: %d. Max allowed: %llu\n", afs.fs_ncg, MAX_UFS_NCG);
+        return -1;
+    }
 
-    /// read group
-    while ((i = cgread(&disk)) != 0) {
-        log_mesg(2, 0, 0, fs_opt.debug, "%s: \ncg = %d\n", __FILE__, disk.d_lcg);
-        log_mesg(2, 0, 0, fs_opt.debug, "%s: blocks = %i\n", __FILE__, acg.cg_ndblk);
-        p = cg_blksfree(&acg);
+    disk.d_lcg = -1; // Force cgread to read the first cg (0)
 
-        for (block = 0; block < acg.cg_ndblk; block++){
-            if (isset(p, block)) {
-                bfree++;
-            } else {
-                bused++;
-            }
+    // Loop for all cylinder groups up to afs.fs_ncg
+    for (int cg_idx = 0; cg_idx < afs.fs_ncg; cg_idx++) {
+        i = cgread(&disk);
+        if (i == 0) { // End of groups before expected
+            log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Unexpected end of cylinder groups (only read %d out of %d).\n", cg_idx, afs.fs_ncg);
+            return -1;
+        }
+        if (i == -1) { // Error reading cylinder group
+            log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Failed to read cylinder group %d: %s.\n", cg_idx, strerror(errno));
+            return -1;
         }
 
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: \ncg = %d\n", __FILE__, disk.d_lcg);
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: blocks = %i\n", __FILE__, acg.cg_ndblk);
+
+        // Validate acg.cg_ndblk
+        if (acg.cg_ndblk <= 0 || (unsigned long long)acg.cg_ndblk > MAX_UFS_CG_BLOCKS) {
+            log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large or zero blocks in cylinder group detected: %d. Max allowed: %llu\n", acg.cg_ndblk, MAX_UFS_CG_BLOCKS);
+            return -1;
+        }
+
+        p = cg_blksfree(&acg);
+        if (!p) {
+            log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Failed to get block free map for cylinder group %d.\n", cg_idx);
+            return -1;
+        }
+
+        for (block = 0; block < (unsigned long long)acg.cg_ndblk; block++){ // Loop up to validated acg.cg_ndblk
+            if (isset(p, block)) {
+                current_bfree++;
+            } else {
+                current_bused++;
+            }
+        }
     }
-    log_mesg(1, 0, 0, fs_opt.debug, "%s: total used = %lli, total free = %lli\n", __FILE__, bused, bfree);
-    return bused;
+    log_mesg(1, 0, 0, fs_opt.debug, "%s: total used = %lli, total free = %lli\n", __FILE__, current_bused, current_bfree);
+    *bused_out = current_bused; // Assign to output parameter
+    return 0; // Success
 }
+
 /// open device
-static void fs_open(char* device){
+static int fs_open(char* device){ // Changed return type to int
 
     int fsflags = 0;
 
     log_mesg(3, 0, 0, fs_opt.debug, "%s: UFS partition Open\n", __FILE__);
     if (ufs_disk_fillout(&disk, device) == -1){
-        log_mesg(0, 1, 1, fs_opt.debug, "%s: UFS open fail\n", __FILE__);
+        log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: UFS open fail for %s: %s\n", __FILE__, device, strerror(errno));
+        return -1;
     } else {
 	log_mesg(0, 0, 0, fs_opt.debug, "%s: UFS open well\n", __FILE__);
     }
@@ -122,8 +157,8 @@ static void fs_open(char* device){
 	    log_mesg(1, 0, 0, fs_opt.debug, "%s: FS CLEAN not set!(%i)\n", __FILE__, afs.fs_clean);
 	}
     }
+    return 0; // Success
 }
-
 /// close device
 static void fs_close(){
     log_mesg(1, 0, 0, fs_opt.debug, "%s: close\n", __FILE__);
@@ -133,69 +168,154 @@ static void fs_close(){
 
 void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui)
 {
-    unsigned long long     total_block, block, bused = 0, bfree = 0;
+    unsigned long long     total_block_idx = 0;
+    unsigned long long     block_in_cg;
+    unsigned long long     bused = 0, bfree = 0;
     int                    done = 0, i = 0, start = 0, bit_size = 1;
     unsigned char* p;
 
 
-    fs_open(device);
+    if (fs_open(device) != 0) {
+        return; // Abort
+    }
+
+    // Initialize bitmap based on fs_info.totalblock (which is already validated in read_super_blocks)
+    pc_init_bitmap(bitmap, 0xFF, fs_info.totalblock);
 
     /// init progress
     progress_bar   bprog;	/// progress_bar structure defined in progress.h
     progress_init(&bprog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
 
-    total_block = 0;
-    /// read group
-    while ((i = cgread(&disk)) != 0) {
+    if (afs.fs_ncg <= 0 || (unsigned long long)afs.fs_ncg > MAX_UFS_NCG) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large or zero number of cylinder groups detected: %d. Max allowed: %llu\n", afs.fs_ncg, MAX_UFS_NCG);
+        fs_close();
+        return;
+    }
+
+    // Ensure we start from the first cylinder group
+    disk.d_lcg = -1; // Force cgread to read the first cg (0)
+
+    // Loop for all cylinder groups up to afs.fs_ncg
+    for (int cg_idx = 0; cg_idx < afs.fs_ncg; cg_idx++) {
+        i = cgread(&disk);
+        if (i == 0) { // End of groups before expected
+            log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Unexpected end of cylinder groups (only read %d out of %d).\n", cg_idx, afs.fs_ncg);
+            fs_close();
+            return;
+        }
+        if (i == -1) { // Error reading cylinder group
+            log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Failed to read cylinder group %d: %s.\n", cg_idx, strerror(errno));
+            fs_close();
+            return;
+        }
+
         log_mesg(2, 0, 0, fs_opt.debug, "%s: \ncg = %d\n", __FILE__, disk.d_lcg);
         log_mesg(2, 0, 0, fs_opt.debug, "%s: blocks = %i\n", __FILE__, acg.cg_ndblk);
-        p = cg_blksfree(&acg);
 
-        for (block = 0; block < acg.cg_ndblk; block++){
-            if (isset(p, block)) {
-                pc_clear_bit(total_block, bitmap, fs_info.totalblock);
-                bfree++;
-                log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is free %lli\n", __FILE__, block);
-            } else {
-                pc_set_bit(total_block, bitmap, fs_info.totalblock);
-                bused++;
-                log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %lli\n", __FILE__, block);
-            }
-	    total_block++;
-            update_pui(&bprog, total_block, total_block,done);
+        // Validate acg.cg_ndblk
+        if (acg.cg_ndblk <= 0 || (unsigned long long)acg.cg_ndblk > MAX_UFS_CG_BLOCKS) {
+            log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large or zero blocks in cylinder group detected: %d. Max allowed: %llu\n", acg.cg_ndblk, MAX_UFS_CG_BLOCKS);
+            fs_close();
+            return;
         }
-        log_mesg(1, 0, 0, fs_opt.debug, "%s: read bitmap done\n", __FILE__);
 
+        p = cg_blksfree(&acg);
+        if (!p) {
+            log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Failed to get block free map for cylinder group %d.\n", cg_idx);
+            fs_close();
+            return;
+        }
+
+        for (block_in_cg = 0; block_in_cg < (unsigned long long)acg.cg_ndblk; block_in_cg++){
+            // Ensure total_block_idx does not exceed fs_info.totalblock
+            if (total_block_idx >= fs_info.totalblock) {
+                log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Block index %llu exceeds total filesystem blocks %llu.\n", total_block_idx, fs_info.totalblock);
+                fs_close();
+                return;
+            }
+
+            if (isset(p, block_in_cg)) {
+                pc_clear_bit(total_block_idx, bitmap, fs_info.totalblock);
+                bfree++;
+                log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is free %lli\n", __FILE__, block_in_cg);
+            } else {
+                pc_set_bit(total_block_idx, bitmap, fs_info.totalblock);
+                bused++;
+                log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %lli\n", __FILE__, block_in_cg);
+            }
+	    total_block_idx++;
+            update_pui(&bprog, total_block_idx, total_block_idx, done);
+        }
+        log_mesg(3, 0, 0, fs_opt.debug, "%s: read bitmap done for cg %d\n", __FILE__, cg_idx);
+    } // End of for loop for cylinder groups
+
+    if (total_block_idx != fs_info.totalblock) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Mismatch between blocks processed (%llu) and total filesystem blocks (%llu).\n", total_block_idx, fs_info.totalblock);
+        fs_close();
+        return;
     }
 
     fs_close();
 
     log_mesg(1, 0, 0, fs_opt.debug, "%s: total used = %lli, total free = %lli\n", __FILE__, bused, bfree);
     update_pui(&bprog, 1, 1, 1);
-
 }
 
 void read_super_blocks(char* device, file_system_info* fs_info)
 {
 
-    fs_open(device);
+    if (fs_open(device) != 0) {
+        return; // Abort
+    }
     strncpy(fs_info->fs, ufs_MAGIC, FS_MAGIC_SIZE);
     fs_info->block_size = afs.fs_fsize;
-    fs_info->usedblocks = get_used_block();
+
+    if (fs_info->block_size < MIN_UFS_BLOCK_SIZE || fs_info->block_size > MAX_UFS_BLOCK_SIZE || (fs_info->block_size & (fs_info->block_size - 1)) != 0) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Invalid block size detected in superblock: %u.\n", fs_info->block_size);
+        fs_close();
+        return;
+    }
+
+    unsigned long long detected_used_blocks;
+    if (get_used_block(&detected_used_blocks) != 0) {
+        fs_close();
+        return;
+    }
+    fs_info->usedblocks = detected_used_blocks;
     fs_info->superBlockUsedBlocks = fs_info->usedblocks;
+
     switch (disk.d_ufs) {
         case 2:
+            // afs.fs_size is int64_t
+            if (afs.fs_size <= 0 || (unsigned long long)afs.fs_size > MAX_UFS_TOTAL_BLOCKS) {
+                log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large or zero total blocks (UFS2) detected: %lld. Max allowed: %llu\n", afs.fs_size, MAX_UFS_TOTAL_BLOCKS);
+                fs_close();
+                return;
+            }
             fs_info->totalblock  = afs.fs_size;
-            fs_info->device_size = afs.fs_fsize*afs.fs_size;
             break;
         case 1:
+            // afs.fs_old_size is int32_t
+            if (afs.fs_old_size <= 0 || (unsigned long long)afs.fs_old_size > MAX_UFS_TOTAL_BLOCKS) {
+                log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large or zero total blocks (UFS1) detected: %d. Max allowed: %llu\n", afs.fs_old_size, MAX_UFS_TOTAL_BLOCKS);
+                fs_close();
+                return;
+            }
             fs_info->totalblock  = afs.fs_old_size;
-            fs_info->device_size = afs.fs_fsize*afs.fs_old_size;
             break;
         default:
-            log_mesg(0, 1, 1, fs_opt.debug, "Warning: unknown ufs's version [%d]", disk.d_ufs);
-            break;
+            log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Unknown UFS version [%d].\n", disk.d_ufs);
+            fs_close();
+            return;
     }
+
+    if (fs_info->block_size == 0 || fs_info->totalblock > ULLONG_MAX / fs_info->block_size) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Potential overflow or division by zero in device size calculation. totalblock: %llu, block_size: %u\n",
+                 fs_info->totalblock, fs_info->block_size);
+        fs_close();
+        return;
+    }
+    fs_info->device_size = fs_info->totalblock * fs_info->block_size;
 
     fs_close();
 }
