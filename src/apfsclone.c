@@ -29,7 +29,7 @@
 #include "progress.h"
 #include "fs_common.h"
 
-#define APFS_MAGIC_CONSTANT 0x4c4b534eULL // APFS magic number
+#define APFS_MAGIC_CONSTANT 0x4253584EULL // "BSXN"
 
 #define MAX_APFS_TOTAL_BLOCKS (1ULL << 50) // Max blocks (approx 1 Exabyte @ 4KB/block)
 #define MIN_APFS_BLOCK_SIZE 4096 // APFS block size is typically 4KB
@@ -40,14 +40,14 @@
 #define MAX_APFS_CHUNK_PER_CIB (1ULL << 16) // Max 65536 chunks per chunk info block
 
 
-static struct spaceman_phys_t *get_spaceman_buf(int fd, const struct nx_superblock_t *nxsb)
+static void *get_spaceman_buf(int fd, const struct nx_superblock_t *nxsb)
 {
     uint32_t block_size = nxsb->nx_block_size;
     uint64_t base = nxsb->nx_xp_desc_base;
     uint32_t blocks = nxsb->nx_xp_desc_blocks;
     int found_nxsb = 0;
     checkpoint_map_phys_t *cpm = NULL;
-    struct spaceman_phys_t *ret = NULL;
+    void *ret = NULL;
     obj_phys_t *obj = NULL;
     const uint32_t type_checkpoint_map =
 	(OBJ_PHYSICAL | OBJECT_TYPE_CHECKPOINT_MAP);
@@ -175,20 +175,20 @@ struct nx_superblock_t nxsb;
 static uint64_t get_apfs_free_count(){
 
     struct spaceman_phys_t spaceman;
-    struct spaceman_phys_t *spaceman_ptr = NULL;
+    void *spaceman_buf;
     uint64_t free_count = 0;
     uint64_t total_free_count = 0;
 
-    spaceman_ptr = get_spaceman_buf(APFSDEV, &nxsb);
-    if (!spaceman_ptr) {
+    spaceman_buf = get_spaceman_buf(APFSDEV, &nxsb);
+    if (!spaceman_buf) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Failed to get spaceman buffer.\n", __FILE__);
         return 0;
     }
-    memcpy(&spaceman, spaceman_ptr, sizeof(spaceman));
-    free(spaceman_ptr);
+    memcpy(&spaceman, spaceman_buf, sizeof(spaceman));
 
     if (spaceman.sm_block_size == 0 || spaceman.sm_block_size != nxsb.nx_block_size) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Spaceman block size %u inconsistent with superblock %u.\n", __FILE__, spaceman.sm_block_size, nxsb.nx_block_size);
+        free(spaceman_buf);
         return 0;
     }
 
@@ -200,16 +200,19 @@ static uint64_t get_apfs_free_count(){
     // Assuming SD_COUNT is a safe constant or derived from struct definition.
     if (SD_COUNT == 0 || SD_COUNT > 1024) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Maliciously large or zero SD_COUNT detected: %u.\n", __FILE__, SD_COUNT);
+        free(spaceman_buf);
         return 0;
     }
 
     for (int sd = 0; sd < SD_COUNT; sd++){
         if (spaceman.sm_dev[sd].sm_block_count > MAX_APFS_TOTAL_BLOCKS) {
             log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Maliciously large sm_dev[%d].sm_block_count: %llu.\n", __FILE__, sd, spaceman.sm_dev[sd].sm_block_count);
+            free(spaceman_buf);
             return 0;
         }
         if (spaceman.sm_dev[sd].sm_free_count > spaceman.sm_dev[sd].sm_block_count) {
             log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: sm_dev[%d].sm_free_count %llu exceeds sm_block_count %llu.\n", __FILE__, sd, spaceman.sm_dev[sd].sm_free_count, spaceman.sm_dev[sd].sm_block_count);
+            free(spaceman_buf);
             return 0;
         }
 
@@ -221,10 +224,11 @@ static uint64_t get_apfs_free_count(){
         total_free_count += free_count;
         if (total_free_count < free_count) {
             log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Overflow in total_free_count calculation.\n", __FILE__);
+            free(spaceman_buf);
             return 0;
         }
     }
-
+    free(spaceman_buf);
     return total_free_count;
 }
 
@@ -302,7 +306,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     uint32_t block_size;
 
     struct spaceman_phys_t spaceman;
-    struct spaceman_phys_t *spaceman_ptr = NULL;
+    void *spaceman_buf;
     uint64_t sm_offset = 0;
 
     char *chunk_info_block_buf = NULL;
@@ -330,18 +334,16 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     pc_init_bitmap(bitmap, 0xFF, fs_info.totalblock);
 
     /// init progress
-    progress_bar   prog;	/// progress_bar structure defined in progress.h
+    progress_bar   prog;    /// progress_bar structure defined in progress.h
     progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
 
-    spaceman_ptr = get_spaceman_buf(APFSDEV, &nxsb);
-    if (!spaceman_ptr) {
+    spaceman_buf = get_spaceman_buf(APFSDEV, &nxsb);
+    if (!spaceman_buf) {
         log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Failed to get spaceman buffer.\n", __FILE__);
         fs_close();
         return;
     }
-    memcpy(&spaceman, spaceman_ptr, sizeof(spaceman));
-    free(spaceman_ptr);
-    spaceman_ptr = NULL;
+    memcpy(&spaceman, spaceman_buf, sizeof(spaceman));
 
     block_size = nxsb.nx_block_size;
     blocks_per_chunk = spaceman.sm_blocks_per_chunk;
@@ -383,7 +385,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
         } else {
             cnt_count = current_sd_cib_count;
         }
-        if (cnt_count == 0 || cnt_count > MAX_APFS_CHUNK_INFO_COUNT) {
+        if (cnt_count > MAX_APFS_CHUNK_INFO_COUNT) {
             log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Maliciously large or zero cnt_count for sd %d: %llu (Max allowed: %llu).\n", __FILE__, sd, cnt_count, MAX_APFS_CHUNK_INFO_COUNT);
             // This might be non-fatal if other sd's are fine, but for now, abort
             free(chunk_info_block_buf); free(bitmap_entry_buf);
@@ -399,29 +401,9 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
             for (cnt = 0; cnt < cnt_count; cnt++){
 		log_mesg(2, 0, 0, fs_opt.debug, "%s: check chunk %llu\n", __FILE__, cnt);
 
-                if (sm_offset > ULLONG_MAX - (uint64_t)sizeof(addr)*cnt) {
-                    log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Overflow in addr calculation (sm_offset + sizeof(addr)*cnt).\n", __FILE__);
-                    free(chunk_info_block_buf); free(bitmap_entry_buf);
-                    fs_close();
-                    return;
-                }
-                addr = sm_offset + (uint64_t)sizeof(addr)*cnt; // Physical address of the pointer
+                addr = sm_offset + (uint64_t)sizeof(addr)*cnt; 
 
-                if (addr > ULLONG_MAX - sizeof(addr_data) || addr < nxsb.nx_block_size) {
-                    log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Malicious pointer location for addr_data: %llu.\n", __FILE__, addr);
-                    free(chunk_info_block_buf); free(bitmap_entry_buf);
-                    fs_close();
-                    return;
-                }
-
-                // pread for addr_data
-                read_size = pread(APFSDEV, &addr_data, sizeof(addr_data), addr);
-                if (read_size != sizeof(addr_data)) {
-                    log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: pread error reading addr_data from %llu (%zd bytes, expected %zu): %s\n", __FILE__, addr, read_size, sizeof(addr_data), strerror(errno));
-                    free(chunk_info_block_buf); free(bitmap_entry_buf);
-                    fs_close();
-                    return;
-                }
+                memcpy(&addr_data, (char *)spaceman_buf+addr, sizeof(addr));
 
                 log_mesg(2, 0, 0, fs_opt.debug, "%s: bitmap addr  %llx\n", __FILE__, addr_data); // use %llx for uint64_t
 
@@ -470,30 +452,29 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
                         log_mesg(2, 0, 0, fs_opt.debug, "%s: xid = %x, offset = %llx, bitTot = %llx, bit avl = %llx, block = %llx\n", __FILE__, chunk_info.ci_xid, chunk_info.ci_addr, chunk_info.ci_block_count, chunk_info.ci_free_count, chunk_info.ci_bitmap_addr ); // use %llx for uint64_t
 
 
-                        if ((chunk_info.ci_bitmap_addr == 0) && (chunk_info.ci_free_count == blocks_per_chunk))  { // 0x8000, all free
-                            if (chunk_info.ci_block_count == 0 || (unsigned long long)chunk_info.ci_block_count > fs_info.totalblock) {
-                                log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Maliciously large or zero ci_block_count: %llu.\n", __FILE__, chunk_info.ci_block_count);
-                                free(chunk_info_block_buf); free(bitmap_entry_buf);
-                                fs_close();
-                                return;
-                            }
-                            for (block = 0 ; block < chunk_info.ci_block_count; block++){
-                                if (chunk_info.ci_addr > ULLONG_MAX - block) {
-                                    log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Overflow in block+ci_addr calculation.\n", __FILE__);
-                                    free(chunk_info_block_buf); free(bitmap_entry_buf);
-                                    fs_close();
-                                    return;
-                                }
-                                pc_clear_bit(block+chunk_info.ci_addr, bitmap, fs_info.totalblock);
-                            }
-                        } else {
-                            if (chunk_info.ci_bitmap_addr == 0 || chunk_info.ci_bitmap_addr > ULLONG_MAX / block_size) {
-                                log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Malicious physical address for bitmap entry: %llu.\n", __FILE__, chunk_info.ci_bitmap_addr);
-                                free(chunk_info_block_buf); free(bitmap_entry_buf);
-                                fs_close();
-                                return;
-                            }
-                            if (chunk_info.ci_block_count == 0 || (unsigned long long)chunk_info.ci_block_count > fs_info.totalblock) {
+                                                if ((chunk_info.ci_bitmap_addr == 0) && (chunk_info.ci_free_count == blocks_per_chunk))  { // 0x8000, all free
+                                                    if (chunk_info.ci_block_count == 0 || (unsigned long long)chunk_info.ci_block_count > fs_info.totalblock) {
+                                                        log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Maliciously large or zero ci_block_count: %llu.\n", __FILE__, chunk_info.ci_block_count);
+                                                        free(chunk_info_block_buf); free(bitmap_entry_buf);
+                                                        fs_close();
+                                                        return;
+                                                    }
+                                                    for (block = 0 ; block < chunk_info.ci_block_count; block++){
+                                                        if (chunk_info.ci_addr > ULLONG_MAX - block) {
+                                                            log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Overflow in block+ci_addr calculation.\n", __FILE__);
+                                                            free(chunk_info_block_buf); free(bitmap_entry_buf);
+                                                            fs_close();
+                                                            return;
+                                                        }
+                                                        pc_clear_bit(block+chunk_info.ci_addr, bitmap, fs_info.totalblock);
+                                                    }
+                                                } else {
+                                                    if (chunk_info.ci_bitmap_addr != 0 && (chunk_info.ci_bitmap_addr > ULLONG_MAX / block_size)) {
+                                                        log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Malicious physical address for bitmap entry: %llu.\n", __FILE__, chunk_info.ci_bitmap_addr);
+                                                        free(chunk_info_block_buf); free(bitmap_entry_buf);
+                                                        fs_close();
+                                                        return;
+                                                    }                            if (chunk_info.ci_block_count == 0 || (unsigned long long)chunk_info.ci_block_count > fs_info.totalblock) {
                                 log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Maliciously large or zero ci_block_count (for pc_test_bit loop): %llu.\n", __FILE__, chunk_info.ci_block_count);
                                 free(chunk_info_block_buf); free(bitmap_entry_buf);
                                 fs_close();
@@ -572,6 +553,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     }
     free(bitmap_entry_buf);
     free(chunk_info_block_buf);
+    free(spaceman_buf);
 
     fs_close();
     ///// update progress
@@ -584,7 +566,7 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     if (fs_open(device) != 0) {
         return; // Abort
     }
-    // get_apfs_free_count already has error handling. If it returns 0 on error, it's fine.
+    // get_apfs_free_count already has error handling. If it returns 0 on error, it's fine. 
     free_blocks = get_apfs_free_count(); 
 
     strncpy(fs_info->fs, apfs_MAGIC, FS_MAGIC_SIZE);
