@@ -1,0 +1,93 @@
+#!/bin/bash
+
+. "$(dirname "$0")"/_common
+break_debug=0
+
+test_fs=apfs
+dd_count=$normal_size
+
+apfs_raw_file="/test/apfs.raw"
+source_partition=$apfs_raw_file
+target_partition="/dev/vdb2"
+target_image="/test/partclone-test.img"
+source_mountpoint="/test/source"
+target_mountpoint="/test/target"
+data_pool="/test/datapool/"
+chfile="./md5.log"
+cchfile="/test/checksum_test.log"
+
+if [ "X$SOURCEPART" != "X" ]; then
+    source_partition=$SOURCEPART
+fi
+
+if [ "X$TARGETPART" != "X" ]; then
+    target_partition=$TARGETPART
+fi
+
+#main
+
+# clean partition
+
+dd if=/dev/zero of=$target_partition bs=1M count=4096
+
+for fs in $test_fs; do
+    echo -e "Advanced $fs test"
+    echo -e "==========================\n"
+    mkdir -p $source_mountpoint $target_mountpoint $data_pool
+    umount $target_mountpoint $source_mountpoint
+    set -e
+    ptlfs=$(_ptlname $fs)
+    logfile="/test/clone-$fs.log"
+
+    echo -e "\n__device to device clone__, $source_partition to $target_partition\n"
+    echo -e "    $ptlfs -d -b -s $source_partition -o $target_partition -L $logfile\n"
+    _ptlbreak
+    $ptlfs -q -d -b -s $source_partition -o $target_partition -L $logfile
+    _check_return_code
+
+    echo -e "\n__check data__\n"
+    _ptlbreak
+    fsapfsmount $target_partition $target_mountpoint
+    pushd $target_mountpoint
+    echo -e "\n    md5sum --quiet -c $chfile 2>&1 > $cchfile\n"
+    md5sum --quiet -c $chfile 2>&1 > $cchfile
+    popd
+    umount $target_mountpoint
+    echo -e "\n__done__\n"
+    _check_return_code
+
+    echo -e "\n__device to image clone__, $source_partition to $target_image\n"
+    echo -e "    $ptlfs -d -c -s $source_partition -O $target_image -L $logfile -a 2 -k 64\n"
+    _ptlbreak
+    $ptlfs -q -d -c -s $source_partition -O $target_image -L $logfile -a 2 -k 64
+    _check_return_code
+
+    echo -e "\n__restore image to device__, $target_image to $target_partition\n"
+    echo -e "    $ptlfs -d -r -s $target_image -o $target_partition -L $logfile\n"
+    _ptlbreak
+    dd if=/dev/zero of=$target_partition bs=512 count=32
+    $ptlfs -q -d -r -s $target_image -o $target_partition -L $logfile
+    _check_return_code
+
+    echo -e "\n__check data__\n"
+    _ptlbreak
+    fsapfsmount $target_partition $target_mountpoint
+    pushd $target_mountpoint
+    echo -e "\n    md5sum --quiet -c $chfile 2>&1 > $cchfile\n"
+    md5sum --quiet -c $chfile 2>&1 > $cchfile
+    popd
+    umount $target_mountpoint
+    echo -e "\n__done__\n"
+    _check_return_code
+
+    echo -e "\nclear tmp files\n"
+    _ptlbreak
+    set +e
+    umount $target_mountpoint $source_mountpoint
+    rm -r $target_mountpoint $source_mountpoint $logfile $cchfile $target_image
+    _check_return_code
+
+    echo -e "\n$fs test ok\n"
+
+done
+echo -e "\nFinish!\n\n"
