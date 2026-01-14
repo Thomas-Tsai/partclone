@@ -309,6 +309,10 @@ void read_super_blocks(char* device, file_system_info* fs_info) {
 
 
 void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui) {
+    if (fs_open(device) != 0) {
+        return;
+    }
+
     unsigned long zones = get_nzones();
     unsigned long imaps = get_nimaps();
     unsigned long zmaps = get_nzmaps();
@@ -316,10 +320,6 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     char * zone_map = NULL;
     ssize_t rc;
     unsigned long test_block = 0, test_zone = 0;
-
-    if (fs_open(device) != 0) {
-        return;
-    }
 
     unsigned long block_size = get_block_size();
 
