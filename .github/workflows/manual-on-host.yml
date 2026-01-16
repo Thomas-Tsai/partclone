@@ -114,13 +114,6 @@ jobs:
     - name: ntfs Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test ntfs && cd ../ && pwd
-  APFSDataIOTest:
-    runs-on: self-hosted
-    needs: build
-    steps:
-    - name: apfs Data Test
-      if: always()
-      run: cd tests && sudo env SOURCEPART="/test/apfs.raw" env TARGETPART="/dev/vdb2"  bash -x ./apfs_clone_restore_test && cd ../ && pwd
   MINIXDataIOTest:
     runs-on: self-hosted
     needs: build
@@ -128,4 +121,18 @@ jobs:
     - name: minix Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test minix && cd ../ && pwd
+  APFSDataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
+    - name: apfs Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/test/apfs.raw" env TARGETPART="/dev/vdb2"  bash -x ./apfs_clone_restore_test && cd ../ && pwd
+  JFSDataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
+    - name: jfs Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test jfs && cd ../ && pwd
 

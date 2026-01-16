@@ -230,11 +230,20 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     progress_init(&prog, start, fs_info.totalblock, fs_info.totalblock, BITMAP, bit_size);
     pc_init_bitmap(bitmap, 0xFF, fs_info.totalblock);
 
-    while(next){
+    tb = 0;
+    lblock = 4; //First map page blocks (L2+L1+L0+Control=4)
+    while(tb < dn_mapsize){
 	block_used = 0;
 	block_free = 0;
 	log_mesg(2, 0, 0, fs_opt.debug, "%s:lblock = %lli\n", __FILE__, lblock);
-	decode_pagenum(lblock, &l1, &l0, &dmap_i);
+
+	int page_type = decode_pagenum(lblock, &l1, &l0, &dmap_i);
+	if (page_type != DMAP) {
+	    log_mesg(2, 0, 0, fs_opt.debug, "%s: skipping control page lblock = %lli, type = %i\n", __FILE__, lblock, page_type);
+	    lblock++;
+	    continue;
+	}
+
 	ret = ujfs_rwdaddr(fp, &d_address, &bmap_inode, (lblock) << dmap_l2bpp, GET, bsize);
 	if (ret){
 	    //log_mesg(0, 1, 1, fs_opt.debug, "%s(%i):ujfs_rwdaddr error(%s).\n", __FILE__, __LINE__, strerror(ret));
@@ -278,13 +287,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
 	log_mesg(2, 0, 0, fs_opt.debug, "%s:block_used %lli block_free %lli\n", __FILE__, block_used, block_free);
 	tub += block_used;
-	next = 0;
-	if (((lblock-4)*d_map.nblocks)<fs_info.totalblock){
-	    lblock++;
-	    next = 1;
-	}
-        if (tb >= dn_mapsize)
-            next = 0;
+        lblock++;
     }
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s:data_used = %llu\n", __FILE__, tub);
@@ -292,12 +295,12 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     /// log
 
     log_mesg(2, 0, 0, fs_opt.debug, "%s:%llu log %llu\n", __FILE__, logloc, (logloc+logsize));
-    for (;tb <= fs_info.totalblock; tb++){
+    for (;tb < fs_info.totalblock; tb++){
 
 	if ((tb >= logloc) && (tb < (logloc+logsize))){
 	    pc_set_bit(tb, bitmap, fs_info.totalblock);
 	    block_used++;
-	    log_mesg(3, 0, 0, fs_opt.debug, "%s: log used tb = %llu\n", __FILE__, pb, tb);
+	    log_mesg(3, 0, 0, fs_opt.debug, "%s: log used tb = %llu\n", __FILE__, tb);
 	}
 	update_pui(&prog, tb, tb, 0);//keep update
 
