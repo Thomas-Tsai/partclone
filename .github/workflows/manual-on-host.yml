@@ -15,11 +15,11 @@ jobs:
           sudo apt-get update
           sudo apt-get build-dep -y partclone
           sudo apt-get install -y build-essential autoconf automake autotools-dev libtool libtool-bin gettext intltool pkg-config
-          sudo apt-get install -y f2fs-tools hfsprogs exfatprogs gddrescue libfuse3-dev fuse3 jfsutils reiser4progs hfsprogs hfsplus reiserfsprogs libxxhash-dev libisal-dev
+          sudo apt-get install -y f2fs-tools hfsprogs exfatprogs gddrescue libfuse3-dev fuse3 jfsutils reiser4progs hfsprogs hfsplus reiserfsprogs libxxhash-dev libisal-dev jfsutils libjfs-dev libufs2 ufsutils
     - name: automake
       run: ./autogen
     - name: configure
-      run: ./configure --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs --enable-nilfs2 --enable-fuse
+      run: ./configure --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs --enable-nilfs2 --enable-fuse --enable-jfs --enable-ufs
     - name: make
       run: make
     - name: makeTest
