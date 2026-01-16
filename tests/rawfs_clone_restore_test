@@ -52,6 +52,8 @@ for fs in $test_fs; do
         fsapfsmount $target_partition $target_mountpoint
     elif [ "$fs" = "ufs" ]; then
         mount -t ufs -o ufstype=ufs2,ro $target_partition $target_mountpoint
+    elif [ "$fs" = "vmfs" ]; then
+        vmfs-fuse $target_partition $target_mountpoint
     else
         mount -t $fs $target_partition $target_mountpoint
     fi
@@ -82,6 +84,8 @@ for fs in $test_fs; do
         fsapfsmount $target_partition $target_mountpoint
     elif [ "$fs" = "ufs" ]; then
         mount -t ufs -o ufstype=ufs2,ro $target_partition $target_mountpoint
+    elif [ "$fs" = "vmfs" ]; then
+        vmfs-fuse $target_partition $target_mountpoint
     else
         mount -t $fs $target_partition $target_mountpoint
     fi

@@ -67,6 +67,7 @@ typedef struct {
 #define CRC32_SIZE 4
 #define NOTE_SIZE 128
 #define BSIZE 512
+#define MAX_BLOCK_SIZE (64 * 1024 * 1024)
 
 // Reference: ntfsclone.c
 #define KBYTE (1000)
