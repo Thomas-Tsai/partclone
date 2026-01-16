@@ -2,12 +2,13 @@
 
 . "$(dirname "$0")"/_common
 break_debug=0
+manual_fs=$1
 
-test_fs=apfs
+test_fs=$mountable_fs
 dd_count=$normal_size
+[ -z $manual_fs ] || test_fs=$manual_fs
 
-apfs_raw_file="/test/apfs.raw"
-source_partition=$apfs_raw_file
+source_partition=""
 target_partition="/dev/vdb2"
 target_image="/test/partclone-test.img"
 source_mountpoint="/test/source"
@@ -47,7 +48,13 @@ for fs in $test_fs; do
 
     echo -e "\n__check data__\n"
     _ptlbreak
-    fsapfsmount $target_partition $target_mountpoint
+    if [ "$fs" = "apfs" ]; then
+        fsapfsmount $target_partition $target_mountpoint
+    elif [ "$fs" = "ufs" ]; then
+        mount -t ufs -o ufstype=ufs2,ro $target_partition $target_mountpoint
+    else
+        mount -t $fs $target_partition $target_mountpoint
+    fi
     pushd $target_mountpoint
     echo -e "\n    md5sum --quiet -c $chfile 2>&1 > $cchfile\n"
     md5sum --quiet -c $chfile 2>&1 > $cchfile
@@ -71,7 +78,13 @@ for fs in $test_fs; do
 
     echo -e "\n__check data__\n"
     _ptlbreak
-    fsapfsmount $target_partition $target_mountpoint
+    if [ "$fs" = "apfs" ]; then
+        fsapfsmount $target_partition $target_mountpoint
+    elif [ "$fs" = "ufs" ]; then
+        mount -t ufs -o ufstype=ufs2,ro $target_partition $target_mountpoint
+    else
+        mount -t $fs $target_partition $target_mountpoint
+    fi
     pushd $target_mountpoint
     echo -e "\n    md5sum --quiet -c $chfile 2>&1 > $cchfile\n"
     md5sum --quiet -c $chfile 2>&1 > $cchfile

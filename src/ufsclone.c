@@ -44,11 +44,11 @@
 #define acg     disk.d_cg
 struct uufsd disk;
 
-/// get_used_block - get FAT used blocks
-static int get_used_block(unsigned long long *bused_out)
+/// get_used_block - get UFS used blocks
+static int get_used_block(unsigned long long *bused_out, unsigned long long total_blocks)
 {
     unsigned long long    block;
-    unsigned long long    current_bused = 0, current_bfree = 0;
+    unsigned long long    current_bfree = 0;
     int                   i = 0;
     unsigned char	  *p;
 
@@ -72,7 +72,7 @@ static int get_used_block(unsigned long long *bused_out)
         }
 
         log_mesg(2, 0, 0, fs_opt.debug, "%s: \ncg = %d\n", __FILE__, disk.d_lcg);
-        log_mesg(2, 0, 0, fs_opt.debug, "%s: blocks = %i\n", __FILE__, acg.cg_ndblk);
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: data blocks = %i\n", __FILE__, acg.cg_ndblk);
 
         // Validate acg.cg_ndblk
         if (acg.cg_ndblk <= 0 || (unsigned long long)acg.cg_ndblk > MAX_UFS_CG_BLOCKS) {
@@ -86,16 +86,14 @@ static int get_used_block(unsigned long long *bused_out)
             return -1;
         }
 
-        for (block = 0; block < (unsigned long long)acg.cg_ndblk; block++){ // Loop up to validated acg.cg_ndblk
+        for (block = 0; block < (unsigned long long)acg.cg_ndblk; block++){
             if (isset(p, block)) {
                 current_bfree++;
-            } else {
-                current_bused++;
             }
         }
     }
-    log_mesg(1, 0, 0, fs_opt.debug, "%s: total used = %lli, total free = %lli\n", __FILE__, current_bused, current_bfree);
-    *bused_out = current_bused; // Assign to output parameter
+    log_mesg(1, 0, 0, fs_opt.debug, "%s: total blocks = %llu, total free = %lli, total used = %lli\n", __FILE__, total_blocks, current_bfree, total_blocks - current_bfree);
+    *bused_out = total_blocks - current_bfree;
     return 0; // Success
 }
 
@@ -168,10 +166,9 @@ static void fs_close(){
 
 void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, int pui)
 {
-    unsigned long long     total_block_idx = 0;
     unsigned long long     block_in_cg;
     unsigned long long     bused = 0, bfree = 0;
-    int                    done = 0, i = 0, start = 0, bit_size = 1;
+    int                    i = 0, start = 0, bit_size = 1;
     unsigned char* p;
 
 
@@ -179,7 +176,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
         return; // Abort
     }
 
-    // Initialize bitmap based on fs_info.totalblock (which is already validated in read_super_blocks)
+    // Initialize bitmap to all USED (0xFF). We will only CLEAR bits for free data blocks.
     pc_init_bitmap(bitmap, 0xFF, fs_info.totalblock);
 
     /// init progress
@@ -210,7 +207,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
         }
 
         log_mesg(2, 0, 0, fs_opt.debug, "%s: \ncg = %d\n", __FILE__, disk.d_lcg);
-        log_mesg(2, 0, 0, fs_opt.debug, "%s: blocks = %i\n", __FILE__, acg.cg_ndblk);
+        log_mesg(2, 0, 0, fs_opt.debug, "%s: data blocks = %i\n", __FILE__, acg.cg_ndblk);
 
         // Validate acg.cg_ndblk
         if (acg.cg_ndblk <= 0 || (unsigned long long)acg.cg_ndblk > MAX_UFS_CG_BLOCKS) {
@@ -226,38 +223,32 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
             return;
         }
 
-        for (block_in_cg = 0; block_in_cg < (unsigned long long)acg.cg_ndblk; block_in_cg++){
-            // Ensure total_block_idx does not exceed fs_info.totalblock
-            if (total_block_idx >= fs_info.totalblock) {
-                log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Block index %llu exceeds total filesystem blocks %llu.\n", total_block_idx, fs_info.totalblock);
-                fs_close();
-                return;
+        uint64_t cg_base = cgstart(&afs, cg_idx);
+        for (block_in_cg = 0; block_in_cg < (unsigned long long)afs.fs_fpg; block_in_cg++){
+            uint64_t abs_frag = cg_base + block_in_cg;
+
+            // Ensure abs_frag does not exceed fs_info.totalblock
+            if (abs_frag >= fs_info.totalblock) {
+                break;
             }
 
             if (isset(p, block_in_cg)) {
-                pc_clear_bit(total_block_idx, bitmap, fs_info.totalblock);
+                pc_clear_bit(abs_frag, bitmap, fs_info.totalblock);
                 bfree++;
-                log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is free %lli\n", __FILE__, block_in_cg);
+                log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is free %lli (abs %lli)\n", __FILE__, block_in_cg, abs_frag);
             } else {
-                pc_set_bit(total_block_idx, bitmap, fs_info.totalblock);
+                pc_set_bit(abs_frag, bitmap, fs_info.totalblock);
                 bused++;
-                log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %lli\n", __FILE__, block_in_cg);
+                log_mesg(3, 0, 0, fs_opt.debug, "%s: bitmap is used %lli (abs %lli)\n", __FILE__, block_in_cg, abs_frag);
             }
-	    total_block_idx++;
-            update_pui(&bprog, total_block_idx, total_block_idx, done);
+            update_pui(&bprog, abs_frag, abs_frag, 0);
         }
         log_mesg(3, 0, 0, fs_opt.debug, "%s: read bitmap done for cg %d\n", __FILE__, cg_idx);
     } // End of for loop for cylinder groups
 
-    if (total_block_idx != fs_info.totalblock) {
-        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Mismatch between blocks processed (%llu) and total filesystem blocks (%llu).\n", total_block_idx, fs_info.totalblock);
-        fs_close();
-        return;
-    }
-
     fs_close();
 
-    log_mesg(1, 0, 0, fs_opt.debug, "%s: total used = %lli, total free = %lli\n", __FILE__, bused, bfree);
+    log_mesg(1, 0, 0, fs_opt.debug, "%s: total reported free = %lli\n", __FILE__, bfree);
     update_pui(&bprog, 1, 1, 1);
 }
 
@@ -275,14 +266,6 @@ void read_super_blocks(char* device, file_system_info* fs_info)
         fs_close();
         return;
     }
-
-    unsigned long long detected_used_blocks;
-    if (get_used_block(&detected_used_blocks) != 0) {
-        fs_close();
-        return;
-    }
-    fs_info->usedblocks = detected_used_blocks;
-    fs_info->superBlockUsedBlocks = fs_info->usedblocks;
 
     switch (disk.d_ufs) {
         case 2:
@@ -308,6 +291,14 @@ void read_super_blocks(char* device, file_system_info* fs_info)
             fs_close();
             return;
     }
+
+    unsigned long long detected_used_blocks;
+    if (get_used_block(&detected_used_blocks, fs_info->totalblock) != 0) {
+        fs_close();
+        return;
+    }
+    fs_info->usedblocks = detected_used_blocks;
+    fs_info->superBlockUsedBlocks = fs_info->usedblocks;
 
     if (fs_info->block_size == 0 || fs_info->totalblock > ULLONG_MAX / fs_info->block_size) {
         log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Potential overflow or division by zero in device size calculation. totalblock: %llu, block_size: %u\n",
