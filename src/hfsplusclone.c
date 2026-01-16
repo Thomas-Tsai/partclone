@@ -29,6 +29,9 @@
 #include "progress.h"
 #include "fs_common.h"
 
+#define MAX_HFSPLUS_TOTAL_BLOCKS (1ULL << 40) // Max total blocks (approx 512TB @ 512B/block) to prevent DoS/memory exhaustion
+#define MAX_HFSPLUS_ALLOC_FILE_SIZE (1ULL << 30) // Max allocation file size (1GB) to prevent memory exhaustion
+
 struct HFSPlusVolumeHeader sb;
 static struct HFSVolumeHeader hsb;
 static UInt64 partition_size;
@@ -203,42 +206,58 @@ void read_allocation_file(file_system_info *fs_info, unsigned long *bitmap, prog
     UInt32 block = 0, extent_block = 0, tb = 0;
     int allocation_exten = 0;
     UInt64 allocation_start_block, byte_offset, allocation_block_physical;
-    UInt32 allocation_block_size;
+    UInt64 allocation_block_size;
 
     tb = be32toh(sb.totalBlocks);
     block_size = be32toh(sb.blockSize);
     byte_offset = (UInt64)block_offset * block_size;
 
     for (allocation_exten = 0; allocation_exten <= 7; allocation_exten++){
-        allocation_start_block = block_size*be32toh(sb.allocationFile.extents[allocation_exten].startBlock);
+        allocation_start_block = (UInt64)block_size*be32toh(sb.allocationFile.extents[allocation_exten].startBlock);
+        allocation_block_size = (UInt64)block_size*be32toh(sb.allocationFile.extents[allocation_exten].blockCount);
 
-        allocation_block_size = block_size*be32toh(sb.allocationFile.extents[allocation_exten].blockCount);
-        log_mesg(2, 0, 0, 2, "%s: tb = %lu\n", __FILE__, tb);
-        log_mesg(2, 0, 0, 2, "%s: extent_block = %lu\n", __FILE__, extent_block);
+        log_mesg(2, 0, 0, 2, "%s: tb = %u\n", __FILE__, tb);
+        log_mesg(2, 0, 0, 2, "%s: extent_block = %u\n", __FILE__, extent_block);
         log_mesg(2, 0, 0, 2, "%s: allocation_exten = %i\n", __FILE__, allocation_exten);
-        log_mesg(2, 0, 0, 2, "%s: allocation_start_block = %lu\n", __FILE__, allocation_start_block);
-        log_mesg(2, 0, 0, 2, "%s: allocation_block_size = %lu\n", __FILE__, allocation_block_size);
+        log_mesg(2, 0, 0, 2, "%s: allocation_start_block = %llu\n", __FILE__, allocation_start_block);
+        log_mesg(2, 0, 0, 2, "%s: allocation_block_size = %llu\n", __FILE__, allocation_block_size);
 
         if((allocation_start_block == 0) && (allocation_block_size == 0)){
             continue;
         }
 
+        if (allocation_block_size > MAX_HFSPLUS_ALLOC_FILE_SIZE) {
+            log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large allocation_block_size detected: %llu. Max allowed: %llu\n",
+                     allocation_block_size, MAX_HFSPLUS_ALLOC_FILE_SIZE);
+            return; // Abort
+        }
+
         allocation_block_physical = byte_offset + allocation_start_block;
-        if(lseek(ret, allocation_block_physical, SEEK_SET) != allocation_block_physical)
-	     log_mesg(0, 1, 1, fs_opt.debug, "%s: start_block %i seek fail\n", __FILE__, allocation_block_physical);
+        if(lseek(ret, allocation_block_physical, SEEK_SET) != (off_t)allocation_block_physical) {
+	     log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: start_block %llu seek fail: %s\n", __FILE__, allocation_block_physical, strerror(errno));
+             return;
+        }
         extent_bitmap = (UInt8*)malloc(allocation_block_size);
-        if(read(ret, extent_bitmap, allocation_block_size) != allocation_block_size)
-	    log_mesg(0, 0, 1, fs_opt.debug, "%s: read hfsp bitmap fail\n", __FILE__);
+        if (!extent_bitmap) {
+            log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: malloc error for extent_bitmap: %s\n", __FILE__, strerror(errno));
+            return;
+        }
+        ssize_t read_size = read(ret, extent_bitmap, allocation_block_size);
+        if(read_size != (ssize_t)allocation_block_size) {
+	    log_mesg(0, 0, 1, fs_opt.debug, "%s: ERROR: read hfsp bitmap fail (read %zd, expected %llu): %s\n", __FILE__, read_size, allocation_block_size, strerror(errno));
+            free(extent_bitmap);
+            return;
+        }
         for(extent_block = 0 ; (extent_block < allocation_block_size*8) && (block< tb); extent_block++){
             IsUsed = IsAllocationBlockUsed(extent_block, extent_bitmap);
             if (IsUsed){
                 bused++;
                 pc_set_bit_many(block_offset, block, bitmap, fs_info->totalblock, bits_per_block);
-                log_mesg(3, 0, 0, fs_opt.debug, "%s: used block= %i\n", __FILE__, block);
+                log_mesg(3, 0, 0, fs_opt.debug, "%s: used block= %u\n", __FILE__, block);
             } else {
                 bfree++;
                 pc_clear_bit_many(block_offset, block, bitmap, fs_info->totalblock, bits_per_block);
-                log_mesg(3, 0, 0, fs_opt.debug, "%s: free block= %i\n", __FILE__, block);
+                log_mesg(3, 0, 0, fs_opt.debug, "%s: free block= %u\n", __FILE__, block);
             }
             block++;
             /// update progress
@@ -246,10 +265,10 @@ void read_allocation_file(file_system_info *fs_info, unsigned long *bitmap, prog
 
         }
         log_mesg(2, 0, 0, 2, "%s: next exten\n", __FILE__);
-        log_mesg(2, 0, 0, 2, "%s: extent_bitmap:%i\n", __FILE__, extent_bitmap);
+        log_mesg(2, 0, 0, 2, "%s: extent_bitmap:%p\n", __FILE__, extent_bitmap);
         free(extent_bitmap);
-        log_mesg(2, 0, 0, 2, "%s: bfree:%i\n", __FILE__, bfree);
-        log_mesg(2, 0, 0, 2, "%s: bused:%i\n", __FILE__, bused);
+        log_mesg(2, 0, 0, 2, "%s: bfree:%u\n", __FILE__, bfree);
+        log_mesg(2, 0, 0, 2, "%s: bused:%u\n", __FILE__, bused);
     }
     mused = (be32toh(sb.totalBlocks) - be32toh(sb.freeBlocks));
     if(bused != mused)
@@ -277,7 +296,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
         block_size = be32toh(sb.blockSize);
         block_offset = embed_offset / block_size;
         embed_end = embed_offset + (UInt64)be32toh(hsb.allocationBlockSize) * (UInt16)be16toh(hsb.allocationBlockCount);
-          
+
         bits_per_block = block_size / fs_info.block_size;
 
         // Initialize the bitmap with wrapper blocks (start + end)
@@ -296,28 +315,57 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
 void read_super_blocks(char* device, file_system_info* fs_info)
 {
+    unsigned long long free_blocks_in_sb;
 
     fs_open(device);
     strncpy(fs_info->fs, hfsplus_MAGIC, FS_MAGIC_SIZE);
+
     if (hsb.signature != 0) {
         // HFS wrapper volumes are not necessarily a multiple of any block size, because of the
         // arbitrary space before the alternate superblock.
         // So use small sectors sizes for these volumes.
         fs_info->block_size = PART_SECTOR_SIZE;
-        fs_info->device_size = partition_size;
-        fs_info->totalblock = fs_info->device_size / fs_info->block_size;
-        fs_info->usedblocks = fs_info->totalblock - be32toh(sb.freeBlocks) * (be32toh(sb.blockSize) / PART_SECTOR_SIZE);
+        fs_info->totalblock = partition_size / fs_info->block_size;
+        free_blocks_in_sb = be32toh(sb.freeBlocks) * (be32toh(sb.blockSize) / PART_SECTOR_SIZE);
     } else {
         fs_info->block_size  = be32toh(sb.blockSize);
         fs_info->totalblock  = be32toh(sb.totalBlocks);
-        fs_info->usedblocks  = be32toh(sb.totalBlocks) - be32toh(sb.freeBlocks);
-        fs_info->device_size = fs_info->block_size * fs_info->totalblock;
+        free_blocks_in_sb = be32toh(sb.freeBlocks);
     }
+
+    // Validate block_size
+    if (fs_info->block_size == 0 || (fs_info->block_size & (fs_info->block_size - 1)) != 0) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Invalid block size detected in superblock: %llu.\n", fs_info->block_size);
+        fs_close();
+        return;
+    }
+    // Validate totalblock
+    if (fs_info->totalblock == 0 || fs_info->totalblock > MAX_HFSPLUS_TOTAL_BLOCKS) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large or zero total blocks detected in superblock: %llu.\n", fs_info->totalblock);
+        fs_close();
+        return;
+    }
+    // Validate free_blocks
+    if (free_blocks_in_sb > fs_info->totalblock) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Free blocks (%llu) greater than total blocks (%llu).\n", free_blocks_in_sb, fs_info->totalblock);
+        fs_close();
+        return;
+    }
+    fs_info->usedblocks = fs_info->totalblock - free_blocks_in_sb;
     fs_info->superBlockUsedBlocks = fs_info->usedblocks;
-    log_mesg(2, 0, 0, 2, "%s: blockSize:%lli\n", __FILE__, fs_info->block_size);
-    log_mesg(2, 0, 0, 2, "%s: totalBlocks:%lli\n", __FILE__, fs_info->totalblock);
-    log_mesg(2, 0, 0, 2, "%s: freeBlocks:%lli\n", __FILE__, fs_info->totalblock - fs_info->usedblocks);
-    log_mesg(2, 0, 0, 2, "%s: superBlockUsedBlocks:%lli\n", __FILE__, fs_info->superBlockUsedBlocks);
+
+    if (fs_info->totalblock > ULLONG_MAX / fs_info->block_size) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Potential overflow in device size calculation. totalblock: %llu, block_size: %llu\n",
+                 fs_info->totalblock, fs_info->block_size);
+        fs_close();
+        return;
+    }
+    fs_info->device_size = fs_info->totalblock * fs_info->block_size;
+
+    log_mesg(2, 0, 0, 2, "%s: blockSize:%llu\n", __FILE__, fs_info->block_size);
+    log_mesg(2, 0, 0, 2, "%s: totalBlocks:%llu\n", __FILE__, fs_info->totalblock);
+    log_mesg(2, 0, 0, 2, "%s: freeBlocks:%llu\n", __FILE__, fs_info->totalblock - fs_info->usedblocks);
+    log_mesg(2, 0, 0, 2, "%s: superBlockUsedBlocks:%llu\n", __FILE__, fs_info->superBlockUsedBlocks);
     print_fork_data(&sb.allocationFile);
     print_fork_data(&sb.extentsFile);
     print_fork_data(&sb.catalogFile);

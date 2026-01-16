@@ -29,6 +29,7 @@ mkfs_option_for_fat16='-F 16'
 mkfs_option_for_fat32='-F 32'
 mkfs_option_for_f2fs='-f'
 mkfs_option_for_nilfs2='-f'
+mkfs_option_for_apfs=''
 #mkfs_option_for_minix='-3'
 
 ## file system
@@ -37,7 +38,7 @@ mountable_fs="ext2 ext3 ext4 vfat exfat minix jfs xfs reiserfs ntfs btrfs hfsplu
 
 # vmfs file system can't format, can mount read-only
 # ufs mkfs.ufs can't format special file as partition
-extra_fs="vmfs ufs"
+extra_fs="vmfs ufs apfs"
 
 # foramtable file system reiser4 can't mount, ufs read-only
 formatable_fs="$mountable_fs reiser4"
@@ -98,13 +99,18 @@ _test_size(){
 
 _findmkfs(){
     fs=$1
+    locate_path=$(type -P locate)
     case "$fs" in
 	fat12|fat16|fat32|fat|vfat)
 	    fs="vfat"
 	;;
+	apfs)
+	    mkfs_path=$($locate_path mkapfs|grep sbin| grep -v union| sort -n -r |head -n 1)
+	    echo $mkfs_path
+	    exit 0
+	;;
     esac
 
-    locate_path=$(type -P locate)
     if [ -n $locate_path ]; then
         mkfs_path=$($locate_path mkfs.$fs|grep sbin| grep -v union| sort -n -r |head -n 1)
     fi

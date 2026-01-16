@@ -41,6 +41,7 @@ char *fat_type = "FATXX";
 /* don't divide by zero */ 
 #define ROUND_TO_MULTIPLE(n,m) ((n) && (m) ? (n)+(m)-1-((n)-1)%(m) : 0)
 #define MSDOS_DIR_BITS 5        /* log2(sizeof(struct msdos_dir_entry)) */
+#define MAX_FAT_CLUSTERS (0x0FFFFFF6ULL) // Max valid clusters for FAT32 to prevent DoS from maliciously large cluster count(1-8TB)
 unsigned long long total_block = 0;
 
 static unsigned long long get_used_block();
@@ -427,6 +428,14 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     total_sector = get_total_sector();
     cluster_count = get_cluster_count();
+
+    if (cluster_count > MAX_FAT_CLUSTERS) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large cluster_count detected: %llu. Max allowed: %llu\n",
+                 cluster_count, MAX_FAT_CLUSTERS);
+        fs_close();
+        return;
+    }
+
     total_block = fs_info.totalblock;
 
     /// init progress

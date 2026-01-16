@@ -261,6 +261,13 @@ void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct exte
     if (!eb)
 	return;
     u32 nr = btrfs_header_nritems(eb);
+
+    if (nr > ((root->fs_info->nodesize - sizeof(struct btrfs_header)) / sizeof(struct btrfs_item))) {
+        log_mesg(0, 0, 1, fs_opt.debug, "Invalid number of items in btrfs node %llu, nritems: %d\n",
+            (unsigned long long)btrfs_header_bytenr(eb), nr);
+        return;
+    }
+
     if (btrfs_is_leaf(eb)) {
 	size = (u64)root->fs_info->nodesize;
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: DUMP: leaf %llu\n", __FILE__, (unsigned long long)btrfs_header_bytenr(eb));

@@ -15,11 +15,11 @@ jobs:
           sudo apt-get update
           sudo apt-get build-dep -y partclone
           sudo apt-get install -y build-essential autoconf automake autotools-dev libtool libtool-bin gettext intltool pkg-config
-          sudo apt-get install -y f2fs-tools hfsprogs exfatprogs gddrescue libfuse3-dev fuse3 jfsutils reiser4progs hfsprogs hfsplus reiserfsprogs libxxhash-dev libisal-dev
+          sudo apt-get install -y f2fs-tools hfsprogs exfatprogs gddrescue libfuse3-dev fuse3 jfsutils reiser4progs hfsprogs hfsplus reiserfsprogs libxxhash-dev libisal-dev jfsutils libjfs-dev libufs2 ufsutils vmfs-tools libvmfs
     - name: automake
       run: ./autogen
     - name: configure
-      run: ./configure --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs --enable-nilfs2 --enable-fuse
+      run: ./configure --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs --enable-nilfs2 --enable-fuse --enable-jfs --enable-ufs --enable-vmfs
     - name: make
       run: make
     - name: makeTest
@@ -113,7 +113,7 @@ jobs:
     steps:
     - name: ntfs Data Test
       if: always()
-      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test ntfs && cd ../ && pwd 
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test ntfs && cd ../ && pwd
   MINIXDataIOTest:
     runs-on: self-hosted
     needs: build
@@ -121,4 +121,32 @@ jobs:
     - name: minix Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test minix && cd ../ && pwd
+  JFSDataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
+    - name: jfs Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./data_clone_restore_test jfs && cd ../ && pwd
+  APFSDataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
+    - name: apfs Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/test/apfs.raw" env TARGETPART="/dev/vdb2"  bash -x ./rawfs_clone_restore_test apfs && cd ../ && pwd
+  UFSDataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
+    - name: apfs Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/test/ufs.raw" env TARGETPART="/dev/vdb2"  bash -x ./rawfs_clone_restore_test ufs && cd ../ && pwd
+  VMFS5DataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
+    - name: vmfs5 Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/test/vmfs.raw" env TARGETPART="/dev/vdb2"  bash -x ./rawfs_clone_restore_test vmfs && cd ../ && pwd
 

@@ -949,7 +949,7 @@ void load_image_desc_v1(file_system_info* fs_info, image_options* img_opt,
 			(unsigned long long)fs_info->totalblock);
 	}
 
-	if (fs_info->block_size == 0 || fs_info->block_size > 65536) {
+	if (fs_info->block_size == 0 || fs_info->block_size > MAX_BLOCK_SIZE) {
 		log_mesg(0, 1, 1, opt->debug, "Invalid image v1: block_size (%u) is invalid or too large.\n", fs_info->block_size);
 	}
 
@@ -993,14 +993,10 @@ void load_image_desc_v2(file_system_info* fs_info, image_options* img_opt,
 
 	memcpy(fs_info, &fs_info_v2, sizeof(file_system_info_v2));
 
-	if (fs_info->block_size > 65536) {
-	    log_mesg(0, 1, 1, opt->debug, "Invalid image: block_size (%u) is too large.\n", fs_info->block_size);
-	}
-	memcpy(img_opt, &img_opt_v2, sizeof(image_options_v2));
-
-	if (fs_info->block_size == 0 || fs_info->block_size > 65536) {
+	if (fs_info->block_size == 0 || fs_info->block_size > MAX_BLOCK_SIZE) {
 		log_mesg(0, 1, 1, opt->debug, "Invalid image: block_size (%u) is invalid or too large.\n", fs_info->block_size);
 	}
+	memcpy(img_opt, &img_opt_v2, sizeof(image_options_v2));
 
 	if (fs_info->usedblocks > fs_info->totalblock) {
 		log_mesg(0, 1, 1, opt->debug, "Invalid image: usedblocks (%llu) is larger than totalblock (%llu).\n", fs_info->usedblocks, fs_info->totalblock);
