@@ -48,6 +48,8 @@
 #include "progress.h"
 #include "fs_common.h"
 
+#define MAX_NTFS_CLUSTERS (8ULL * 1024 * 1024 * 1024) // Max clusters (approx 32TB @ 4KB/cluster) to prevent DoS from maliciously large cluster count
+
 /// define mount flag
 #ifdef NTFS_MNT_RDONLY
 #define LIBNTFS_VER_10 1
@@ -309,6 +311,13 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     fs_open(device);
     strncpy(fs_info->fs, ntfs_MAGIC, FS_MAGIC_SIZE);
     fs_info->block_size  = ntfs->cluster_size;
+
+    if (ntfs->nr_clusters < 0 || (unsigned long long)ntfs->nr_clusters > MAX_NTFS_CLUSTERS) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large or negative nr_clusters detected: %"PRId64". Max allowed: %llu\n",
+                 ntfs->nr_clusters, MAX_NTFS_CLUSTERS);
+        fs_close();
+        return;
+    }
     fs_info->totalblock  = ntfs->nr_clusters;
 #ifdef NTFS3G
     log_mesg(3, 0, 0, fs_opt.debug, "%s: ntfs - nr_free:\t: %"PRId64"\n", __FILE__, ntfs->free_clusters);
