@@ -1,3 +1,21 @@
+2026-01-20  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update for Lintian tag: groff-message
+
+	remove src/xfs/libxfs/crc32selftest
+
+	remove .la
+
+	update doc and remove .lo
+
+	fix(docs): fix lintian warnings in manpages
+
+2026-01-19  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	release 0.3.41
+
+	update log and docs
+
 2026-01-16  Thomas Tsai  <tlinux.tsai@gmail.com>
 
 	Merge branch 'master' of github.com:Thomas-Tsai/partclone

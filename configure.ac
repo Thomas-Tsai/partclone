@@ -1,4 +1,4 @@
-AC_INIT([Partclone],[0.3.41],[thomas@clonezilla.org])
+AC_INIT([Partclone],[0.3.42],[thomas@clonezilla.org])
 
 #condition for CPU target
 AC_CANONICAL_TARGET
