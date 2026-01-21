@@ -188,10 +188,19 @@ partclone_jfs_LDADD=-luuid -ljfs torrent_helper.o $(CRYPTO_DEPS) ${LDADD_static}
 endif
 
 if ENABLE_BTRFS
+noinst_LTLIBRARIES = libpartclone_btrfs.la
+libpartclone_btrfs_la_SOURCES = $(BTRFS_SOURCE) btrfs_static_fixes.c
+libpartclone_btrfs_la_CFLAGS = -std=gnu11 -DBTRFS -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -D_GNU_SOURCE -DCRYPTOPROVIDER_BUILTIN=1 -I$(srcdir)/btrfs -I$(srcdir)/btrfs/include -I$(srcdir)/btrfs/libbtrfsutil
+if ENABLE_XXHASH
+if ENABLE_STATIC
+libpartclone_btrfs_la_CFLAGS += -DXXH_NAMESPACE=BTRFS_
+endif
+endif
+
 sbin_PROGRAMS += partclone.btrfs
-partclone_btrfs_SOURCES=$(main_files) btrfsclone.c btrfsclone.h $(BTRFS_SOURCE) btrfs_static_fixes.c
+partclone_btrfs_SOURCES=$(main_files) btrfsclone.c btrfsclone.h
 partclone_btrfs_CFLAGS=-std=gnu11 -DBTRFS -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -D_GNU_SOURCE -DCRYPTOPROVIDER_BUILTIN=1 -I$(srcdir)/btrfs -I$(srcdir)/btrfs/include -I$(srcdir)/btrfs/libbtrfsutil 
-partclone_btrfs_LDADD=-luuid -lblkid torrent_helper.o $(CRYPTO_DEPS) ${LDADD_static} $(PCL_XXHASH_LIBS)
+partclone_btrfs_LDADD=libpartclone_btrfs.la -luuid -lblkid torrent_helper.o $(CRYPTO_DEPS) ${LDADD_static} $(PCL_XXHASH_LIBS)
 endif
 
 if ENABLE_MINIX
