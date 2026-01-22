@@ -1,5 +1,5 @@
 XSLTPROC=xsltproc
-MAN_STYLESHEET=/usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
+MAN_STYLESHEET=http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl
 
 man_MANS = partclone.info.8 partclone.chkimg.8 partclone.dd.8 partclone.restore.8 partclone.8 partclone.imager.8
 
@@ -93,4 +93,4 @@ man_MANS_corporeal = \
 	partclone.restore.8
 
 $(man_MANS_corporeal) : %.8 : %.xml
-	-@($(XSLTPROC) $(MAN_STYLESHEET) $<)
+	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) $<)
