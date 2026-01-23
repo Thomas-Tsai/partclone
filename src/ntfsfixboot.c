@@ -39,6 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <linux/fs.h>
 #include <stdint.h>
 
 int flip(void *p, int size) {
@@ -81,6 +82,10 @@ int usage(char *progname) {
     "\n-f:\t\tForce the operation to occur even if device does not look"
     "\n\t\tlike a valid NTFS partition or values are equal."
     "\n-p:\t\tPrint debug information (values read, values requested etc.)"
+    "\n--convert-from-512-to-4k:"
+    "\n\t\tEXPERIMENTAL! Convert NTFS from 512-byte to 4K-native sectors."
+    "\n\t\tThis rewrites critical BPB values. Use only when migrating a"
+    "\n\t\t512-byte sector filesystem to a 4Kn disk. USE AT YOUR OWN RISK."
     "\n"
     "\nThis utility displays the current starting sector as defined by the"
     "\nthe filesystem.  No change will actually be made without the -w"
@@ -107,7 +112,7 @@ void flip_all(struct ntfs_geometry *geo) {
   flip(&geo->start, 4);
 }
 
-char optSpecifyStart = 0, optSpecifyHS = 0, optWrite = 0, optBlock = 0, optForce = 0, optPrint = 0;
+char optSpecifyStart = 0, optSpecifyHS = 0, optWrite = 0, optBlock = 0, optForce = 0, optPrint = 0, optConvert4K = 0;
 char *optDeviceName = NULL;
 struct ntfs_geometry opt_geom = {0, 0, 0};
 
@@ -163,6 +168,11 @@ int read_options(int argc, char *argv[]) {
         continue;
       }
 
+      if (strcmp(argv[i], "--convert-from-512-to-4k") == 0) {
+        optConvert4K = 1;
+        continue;
+      }
+
       if (opt && argv[i][2]) {
         fprintf(stderr, "Unknown option '%s'\n", argv[i]);
         usage(argv[0]);
@@ -205,6 +215,7 @@ int main(int argc, char *argv[]) {
   int opt_res;
   char haveGeom = 0;
   uint16_t sector_size = 0;
+  uint8_t sectors_per_cluster = 0;
   uint64_t total_sectors = 0;
   off64_t last_sector = 0;
   struct hd_geometry part_geom = {0, 0, 0, 0};
@@ -215,7 +226,7 @@ int main(int argc, char *argv[]) {
   char bak_sector[512];
   const int geomsize = sizeof(struct ntfs_geometry);
 
-  puts("ntfsfixboot version 1.0");
+  puts("ntfsfixboot version 1.1-4k");
 
   // read program options (into global variables)
   opt_res = read_options(argc, argv);
@@ -270,6 +281,66 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  if (optConvert4K) {
+    puts("--- 512-byte to 4K Conversion Mode ---");
+    // 1. Pre-checks
+    uint16_t src_sector_size = 0;
+    int target_sector_size = 0;
+    memcpy(&src_sector_size, br_sector + 0x0b, 2);
+    flip(&src_sector_size, 2);
+
+    if (src_sector_size != 512) {
+      fprintf(stderr, "ERROR: Conversion source filesystem is not 512-byte sector size. Aborting.\n");
+      return 2;
+    }
+
+    if (ioctl(device, BLKSSZGET, &target_sector_size) < 0) {
+      perror("ioctl(BLKSSZGET)");
+      fprintf(stderr, "ERROR: Could not determine target device sector size. Aborting.\n");
+      return 2;
+    }
+
+    if (target_sector_size != 4096) {
+      fprintf(stderr, "ERROR: Target device logical sector size is not 4096. Aborting.\n");
+      return 2;
+    }
+    
+    puts("Checks passed: Source is 512b, Target is 4096b.");
+
+    // 2. Patch BPB in br_sector buffer
+    uint8_t target_spc = 0;
+    uint64_t src_total_sectors = 0;
+    uint64_t target_total_sectors = 0;
+    uint32_t cluster_size_bytes = 0;
+
+    memcpy(&sectors_per_cluster, br_sector + 0x0d, 1);
+    memcpy(&src_total_sectors, br_sector + 0x28, 8);
+    flip(&src_total_sectors, 8);
+    
+    cluster_size_bytes = sectors_per_cluster * src_sector_size;
+    target_spc = cluster_size_bytes / target_sector_size;
+
+    if (target_spc == 0) {
+        fprintf(stderr, "ERROR: Calculated target sectors-per-cluster is zero. Check cluster size. Aborting.\n");
+        return 2;
+    }
+
+    target_total_sectors = (src_total_sectors * src_sector_size) / target_sector_size;
+    
+    print("Old BPB: BytesPerSector=%d, SectorsPerCluster=%d, TotalSectors=%llu\n", src_sector_size, sectors_per_cluster, (unsigned long long)src_total_sectors);
+    print("New BPB: BytesPerSector=%d, SectorsPerCluster=%d, TotalSectors=%llu\n", target_sector_size, target_spc, (unsigned long long)target_total_sectors);
+
+    // Apply patches
+    uint16_t new_ss = target_sector_size;
+    flip(&new_ss, 2);
+    memcpy(br_sector + 0x0b, &new_ss, 2);
+    memcpy(br_sector + 0x0d, &target_spc, 1);
+    flip(&target_total_sectors, 8);
+    memcpy(br_sector + 0x28, &target_total_sectors, 8);
+
+    puts("BPB values patched in memory.");
+  }
+
   // filesystem geometry
   memcpy(&fs_geom, br_sector + 0x18, geomsize);
 
@@ -281,13 +352,25 @@ int main(int argc, char *argv[]) {
 
   flip(&sector_size, 2);
   flip(&total_sectors, 8);
-  last_sector = total_sectors * sector_size;
-
-  // very unlikely to happen...
-  if (sector_size != 512) {
-    fprintf(stderr, "Sector size is not 512. this mode is not supported!");
-    return 2;
+  
+  if (!optConvert4K) {
+    // very unlikely to happen...
+    if (sector_size != 512) {
+      fprintf(stderr, "Sector size is not 512. this mode is not supported!");
+      return 2;
+    }
   }
+
+  // Last sector calculation for backup
+  // We determine device size to safely locate the backup sector at the end.
+  off64_t device_size = lseek64(device, 0, SEEK_END);
+  if (device_size <= 0) {
+      perror("lseek64(SEEK_END)");
+      fprintf(stderr, "Unable to determine device size to locate backup sector.\n");
+      return 2;
+  }
+  last_sector = device_size - 512;
+
 
   if (last_sector == 0) {
     fprintf(stderr, "Unable to determine last (backup) sector!\n");
@@ -295,7 +378,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (lseek64(device, last_sector, SEEK_SET) < 0) {
-    perror("lseek64");
+    perror("lseek64 to backup sector");
     return 2;
   }
 
@@ -361,13 +444,17 @@ int main(int argc, char *argv[]) {
 
   if (!optWrite) {
     puts("Changes will be written to disk only with -w flag");
+    if(optConvert4K) {
+        puts("In conversion mode, this means the BPB and geometry will be updated.");
+    }
     return 1;
   }
-
+  
+  // Apply final geometry changes to the (potentially already modified) br_sector
   flip_all(&set_geom);
-
   memcpy(br_sector + 0x18, &set_geom, geomsize);
-  // write back changes
+  
+  // write back changes to main boot sector
   if (lseek(device, 0L, SEEK_SET) < 0) {
     perror("lseek");
     return 2;
@@ -376,16 +463,18 @@ int main(int argc, char *argv[]) {
     perror("write");
     return 2;
   }
+  puts("Main boot sector written successfully.");
 
   // write to backup sector
   if (lseek64(device, last_sector, SEEK_SET) < 0) {
-    perror("lseek64");
+    perror("lseek64 to backup sector");
     return 2;
   }
   if (write(device, br_sector, 512) != 512) {
-    perror("write");
+    perror("write to backup sector");
     return 2;
   }
+  puts("Backup boot sector written successfully.");
 
   if (fsync(device)) {
     perror("fsync");
