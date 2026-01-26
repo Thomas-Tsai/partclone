@@ -8,7 +8,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
+  dynamic_build:
 
     runs-on: ubuntu-latest
 
@@ -30,6 +30,15 @@ jobs:
       run: make
     - name: makeTest
       run: make check
+    - name: Verify build
+      run: |
+        file src/partclone.extfs
+        ldd src/partclone.extfs
+        nm src/partclone.extfs | grep " T main"
+        if file src/partclone.extfs | grep -q "statically linked"; then
+          echo "Error: Binary is statically linked but expected dynamic."
+          exit 1
+        fi
 
   static_build:
     runs-on: ubuntu-latest
@@ -46,8 +55,79 @@ jobs:
     - name: automake
       run: ./autogen
     - name: configure
-      run: ./configure --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs --enable-xxhash --enable-isal --enable-static
+      run: ./configure --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs --enable-xxhash --enable-isal --enable-static-linking
     - name: make
       run: make
     - name: makeTest
       run: make check
+    - name: Verify build
+      run: |
+        file src/partclone.extfs
+        ldd src/partclone.extfs || true
+        nm src/partclone.extfs | grep " T main"
+        if ! file src/partclone.extfs | grep -q "statically linked"; then
+          echo "Error: Binary is not statically linked but expected static."
+          exit 1
+        fi
+
+  dynamic_build_disable_xxhash:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: install packages
+      run: | 
+          sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+          sudo sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
+          sudo apt-get update
+          sudo apt-get build-dep partclone
+          sudo apt-get install build-essential autoconf automake autotools-dev libtool libtool-bin gettext intltool pkg-config
+          sudo apt-get install f2fs-tools hfsprogs exfatprogs gddrescue reiser4progs libisal-dev
+    - name: automake
+      run: ./autogen
+    - name: configure
+      run: ./configure --disable_xxhash --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs --enable-xxhash --enable-isal
+    - name: make
+      run: make
+    - name: makeTest
+      run: make check
+    - name: Verify build
+      run: |
+        file src/partclone.extfs
+        ldd src/partclone.extfs
+        nm src/partclone.extfs | grep " T main"
+        if file src/partclone.extfs | grep -q "statically linked"; then
+          echo "Error: Binary is statically linked but expected dynamic."
+          exit 1
+        fi
+
+  static_build_disable_xxhash:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: install packages
+      run: | 
+          sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+          sudo sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
+          sudo apt-get update
+          sudo apt-get build-dep partclone
+          sudo apt-get install f2fs-tools hfsprogs exfatprogs gddrescue reiser4progs libisal-dev
+    - name: automake
+      run: ./autogen
+    - name: configure
+      run: ./configure --disable_xxhash --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs --enable-xxhash --enable-isal --enable-static-linking
+    - name: make
+      run: make
+    - name: makeTest
+      run: make check
+    - name: Verify build
+      run: |
+        file src/partclone.extfs
+        ldd src/partclone.extfs || true
+        nm src/partclone.extfs | grep " T main"
+        if ! file src/partclone.extfs | grep -q "statically linked"; then
+          echo "Error: Binary is not statically linked but expected static."
+          exit 1
+        fi

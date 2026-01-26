@@ -60,13 +60,13 @@ if test "x$GCC" = "xyes"; then
 fi
 
 ##static linking##
-AC_ARG_ENABLE([static],
+AC_ARG_ENABLE([static-linking],
     AS_HELP_STRING(
-        [--enable-static],
+        [--enable-static-linking],
         [enable static linking])
 )
-AM_CONDITIONAL(ENABLE_STATIC, test "$enable_static" = yes)
-if test "$enable_static" = yes; then
+AM_CONDITIONAL(ENABLE_STATIC, test "$enable_static_linking" = yes)
+if test "$enable_static_linking" = yes; then
   AC_DEFINE([BTRFS_STATIC_BUILD], [1], [Define if building btrfs statically with system libs])
 fi
 
@@ -80,7 +80,7 @@ AC_ARG_ENABLE([isal],
         [enable Intel ISA-L for optimized CRC32])
 )
 ## libisal do not have static linking now(20251113) ##
-if test "$enable_isal" = "yes" -a "$enable_static" != yes; then
+if test "$enable_isal" = "yes" -a "$enable_static_linking" != yes; then
     dnl Check for Intel ISA-L (for optimized CRC32)
     AS_MESSAGE([checking  for isal library ... ...])
     PKG_CHECK_MODULES([ISAL], [libisal], [HAVE_ISAL=1], [HAVE_ISAL=0])
@@ -160,6 +160,7 @@ AS_MESSAGE([checking  for EXT2/3 Library and Header files ... ...])
 AC_CHECK_HEADERS([ext2fs/ext2fs.h], ,
   AC_MSG_ERROR([*** EXT2/3 header files (ext2fs/ext2fs.h) not found])
 )
+AC_CHECK_LIB([com_err], [com_err])
 AC_CHECK_LIB([ext2fs], [ext2fs_initialize], [],
     AC_MSG_ERROR([*** EXT2/3 library (libext2fs) not found]))
 
@@ -199,10 +200,10 @@ AS_MESSAGE([checking  for Reiserfs Library and Header files ... ...])
 AC_CHECK_HEADERS([reiserfs/reiserfs.h], ,
     AC_MSG_ERROR([*** reiserfs header files (reiserfs/reiserfs.h) not found])
 )
-AC_CHECK_LIB([reiserfs], [reiserfs_fs_open], [],
-    AC_MSG_ERROR([*** Reiserfs library (libreiserfs) not found]))
 AC_CHECK_LIB([dal], [file_dal_open], [],
     AC_MSG_ERROR([*** Reiserfs depend library (libdal) not found]))
+AC_CHECK_LIB([reiserfs], [reiserfs_fs_open], [],
+    AC_MSG_ERROR([*** Reiserfs library (libreiserfs) not found]))
 AC_MSG_CHECKING(version of libreiserfs)
 supported_fs=$supported_fs" reiserfs"
 reiserfs_version="unknown, suggest 0.3.0.5"
