@@ -1,4 +1,32 @@
+2026-01-26  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update jobs
+
+	fix action jobs
+
+	fix action jobs
+
+	Fixing and upport both Static and Dynamic Builds add CI to verify dynamic and static build
+
+2026-01-23  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	fix ntfs from 512e/n to 4kn
+
+2026-01-22  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	try to fix # 286
+
+2026-01-21  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Downgrade gettext requirement to 0.19 for better compatibility
+
+	fix disable-xxhash compile issue
+
 2026-01-20  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	release 0.3.42
+
+	update log and docs
 
 	update for Lintian tag: groff-message
 
