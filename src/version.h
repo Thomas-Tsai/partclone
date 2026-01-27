@@ -3,5 +3,5 @@
  * WHETHER THEY ARE BUILT BY OTHERS OR DURING DEVELOPMENT OR FOR THE
  * OFFICIAL PARTCLONE RELEASES.
  */
-#define git_version  "0.3.42-1-g2803ce4"
+#define git_version  "0.3.42-9-g43ed8ab"
 
