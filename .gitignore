@@ -30,6 +30,7 @@ Makefile.in
 *.la
 .deps/
 .dirstamp
+src/.libs/
 
 # Translation files
 po/*.gmo
