@@ -34,6 +34,7 @@ src/.libs/
 
 # Translation files
 po/*.gmo
+po/POTFILES
 po/Makefile
 po/Makefile.in
 po/Makefile.in.in
