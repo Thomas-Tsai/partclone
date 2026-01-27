@@ -1,3 +1,15 @@
+2026-01-27  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update gitignore to ignore libtool generated files
+
+	remove .a
+
+	fix docker build
+
+	release 0.3.43
+
+	update log and docs
+
 2026-01-26  Thomas Tsai  <tlinux.tsai@gmail.com>
 
 	update jobs
