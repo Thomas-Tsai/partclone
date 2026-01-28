@@ -82,3 +82,4 @@ TESTS += checksum.test
 endif
 
 CLEANFILES = floppy*
+MAINTAINERCLEANFILES = Makefile.in

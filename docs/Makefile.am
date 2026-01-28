@@ -94,3 +94,6 @@ man_MANS_corporeal = \
 
 $(man_MANS_corporeal) : %.8 : %.xml
 	-@($(XSLTPROC) --nonet $(MAN_STYLESHEET) $<)
+
+CLEANFILES = $(man_MANS_corporeal)
+MAINTAINERCLEANFILES = Makefile.in

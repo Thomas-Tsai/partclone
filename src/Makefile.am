@@ -280,4 +280,6 @@ endif
 distclean-local:
 	-rm -rf .deps f2fs/.deps btrfs/libbtrfs/.deps btrfs/kernel-lib/.deps btrfs/crypto/.deps btrfs/kernel-shared/.deps btrfs/libbtrfsutil/.deps btrfs/common/.deps btrfs/check/.deps xfs/libxfs/.deps exfat/.deps
 
+MAINTAINERCLEANFILES = Makefile.in
+
 FORCE:
