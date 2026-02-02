@@ -1,4 +1,16 @@
+2026-01-28  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	fix make for dist clean and maintainer-clean
+
 2026-01-27  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update .gitignore
+
+	delete all .deps
+
+	release 0.3.44
+
+	update log and docs
 
 	update gitignore to ignore libtool generated files
 
