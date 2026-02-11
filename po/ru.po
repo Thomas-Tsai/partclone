@@ -169,7 +169,7 @@ msgstr "Началось клонирование/восстановление (
 #: src/partclone.c:2080
 #, c-format
 msgid "Showing info of image (%s)\n"
-msgstr "Показ информации о образе (%s)\n"
+msgstr "Показ информации о файле образа (%s)\n"
 
 #: src/partclone.c:2082
 msgid "Unknown mode\n"
@@ -266,7 +266,7 @@ msgstr "нет"
 #: src/partclone.c:2177
 #, c-format
 msgid "Partclone successfully checked the image (%s)\n"
-msgstr "Partclone успешно проверил образ (%s)\n"
+msgstr "Partclone успешно проверил файл образа (%s)\n"
 
 #: src/partclone.c:2179
 #, c-format
