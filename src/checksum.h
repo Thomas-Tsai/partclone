@@ -9,6 +9,7 @@ typedef enum
 	CSM_CRC32 = 0x20,
 #ifdef HAVE_XXHASH
 	CSM_XXH64 = 0x30,
+	CSM_XXH128 = 0x31,
 #endif
 	CSM_CRC32_0001 = 0xFF, // use crc32_0001() and watch for x64 bug
 } checksum_mode_enum;

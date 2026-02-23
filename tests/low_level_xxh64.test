@@ -61,26 +61,56 @@ fi
 
 echo "First block is present. Proceeding with checksum verification..."
 
-# Calculate the XXH64 checksum of the first data strip
-calculated_checksum=$(dd if="$IMAGE_FILE" bs=1 skip=$data_start_offset count=$strip_size 2>/dev/null | xxhsum -H64 | cut -d' ' -f1)
+# Calculate the checksum of the first data strip
+if [ "$checksum_size" -eq 16 ]; then
+    algo_flag="-H128"
+    hash_name="XXH128"
+elif [ "$checksum_size" -eq 8 ]; then
+    algo_flag="-H64"
+    hash_name="XXH64"
+else
+    echo "Unsupported checksum size: $checksum_size"
+    exit 1
+fi
+
+echo "Verifying $hash_name checksum..."
+calculated_checksum=$(dd if="$IMAGE_FILE" bs=1 skip=$data_start_offset count=$strip_size 2>/dev/null | xxhsum $algo_flag | cut -d' ' -f1)
 
 # Read the stored checksum
 stored_checksum_offset=$(( data_start_offset + strip_size ))
 stored_checksum_hex=$(hexdump -s $stored_checksum_offset -n $checksum_size -e '1/1 "%02x"' "$IMAGE_FILE")
 
-# Reverse the byte order of the stored checksum (little-endian to big-endian)
-stored_checksum_reversed=""
-for (( i=${#stored_checksum_hex}-2; i>=0; i-=2 )); do
-    stored_checksum_reversed="$stored_checksum_reversed${stored_checksum_hex:$i:2}"
-done
+# Function to reverse byte order of a hex string
+reverse_hex() {
+    local hex=$1
+    local reversed=""
+    for (( i=${#hex}-2; i>=0; i-=2 )); do
+        reversed="$reversed${hex:$i:2}"
+    done
+    echo "$reversed"
+}
+
+if [ "$checksum_size" -eq 16 ]; then
+    # XXH128 stores low64 then high64 in memory, both little-endian.
+    # The xxhsum output is a 128-bit big-endian value (high64 big-endian, then low64 big-endian).
+    # So we need to reverse the first 8 bytes (low64) and the next 8 bytes (high64),
+    # and then concatenate them as high64_reversed + low64_reversed to match the canonical 128-bit hex string.
+    low64_hex=$(reverse_hex "${stored_checksum_hex:0:16}")
+    high64_hex=$(reverse_hex "${stored_checksum_hex:16:16}")
+    stored_checksum_converted="${high64_hex}${low64_hex}"
+else
+    # XXH64 is just an 8-byte little-endian value
+    stored_checksum_converted=$(reverse_hex "$stored_checksum_hex")
+fi
 
 echo "Calculated Checksum: $calculated_checksum"
-echo "Stored Checksum    : $stored_checksum_reversed"
+echo "Stored Checksum    : $stored_checksum_converted"
 
-if [ "$calculated_checksum" == "$stored_checksum_reversed" ]; then
+if [ "$calculated_checksum" == "$stored_checksum_converted" ]; then
     echo "Checksum verification PASSED for the first strip."
     exit 0
 else
     echo "Checksum verification FAILED for the first strip."
     exit 1
 fi
+

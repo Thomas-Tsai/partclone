@@ -19,6 +19,7 @@ static uint32_t crc_tab32[256] = { 0 };
 static int cs_mode = CSM_NONE;
 #ifdef HAVE_XXHASH
 static XXH64_state_t* xxh64_state = NULL;
+static XXH3_state_t* xxh128_state = NULL;
 #endif
 
 /**
@@ -64,6 +65,8 @@ unsigned get_checksum_size(int checksum_mode, int debug) {
 #ifdef HAVE_XXHASH
 	case CSM_XXH64:
 		return sizeof(XXH64_hash_t);
+	case CSM_XXH128:
+		return 16;
 #endif
 
 	default:
@@ -86,6 +89,8 @@ const char *get_checksum_str(int checksum_mode) {
 #ifdef HAVE_XXHASH
 	case CSM_XXH64:
 		return "XXH64";
+	case CSM_XXH128:
+		return "XXH128";
 #endif
 
 	case CSM_CRC32_0001:
@@ -150,6 +155,13 @@ void init_checksum(int checksum_mode, unsigned char* seed, int debug) {
 			xxh64_state = XXH64_createState();
 		}
 		XXH64_reset(xxh64_state, 0); // Using 0 as seed
+		break;
+
+	case CSM_XXH128:
+		if (xxh128_state == NULL) {
+			xxh128_state = XXH3_createState();
+		}
+		XXH3_128bits_reset(xxh128_state);
 		break;
 #endif
 
@@ -219,6 +231,10 @@ void update_checksum(unsigned char* checksum, char* buf, int size) {
 	case CSM_XXH64:
 		XXH64_update(xxh64_state, buf, size);
 		break;
+
+	case CSM_XXH128:
+		XXH3_128bits_update(xxh128_state, buf, size);
+		break;
 #endif
 
 	case CSM_NONE:
@@ -237,6 +253,13 @@ void finalize_checksum(unsigned char* checksum) {
 	case CSM_XXH64:
 		*(XXH64_hash_t*)checksum = XXH64_digest(xxh64_state);
 		break;
+
+	case CSM_XXH128:
+		{
+			XXH128_hash_t hash = XXH3_128bits_digest(xxh128_state);
+			memcpy(checksum, &hash, sizeof(XXH128_hash_t));
+		}
+		break;
 #endif
 
 	case CSM_CRC32:
@@ -253,6 +276,10 @@ void release_checksum() {
     if (xxh64_state != NULL) {
         XXH64_freeState(xxh64_state);
         xxh64_state = NULL;
+    }
+    if (xxh128_state != NULL) {
+        XXH3_freeState(xxh128_state);
+        xxh128_state = NULL;
     }
 #endif
 }

@@ -255,6 +255,7 @@ void usage(void) {
 		"                            1: CRC32 (Fast to compute, basic detection)\n"
 #ifdef HAVE_XXHASH
 		"                            2: XXH64 (Extremely fast, modern detection)\n"
+		"                            3: XXH128 (Strong and extremely fast, best detection)\n"
 #endif
 		"    -kX  --blocks-per-checksum=X\n"
 		"                            Write one checksum for every X blocks\n"
@@ -311,6 +312,9 @@ int convert_to_checksum_mode(unsigned long mode) {
 #ifdef HAVE_XXHASH
 	case 2:
 		return CSM_XXH64;
+		break;
+	case 3:
+		return CSM_XXH128;
 		break;
 #endif
 
