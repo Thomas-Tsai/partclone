@@ -1,15 +1,15 @@
 # Brazilian Portuguese translations for Partclone package.
 # Traduções em português brasileiro para o pacote Partclone.
-# Copyright (C) 2016 thomas@nchc.org.tw
+# Copyright (C) 2026 thomas@nchc.org.tw
 # This file is distributed under the same license as the Partclone package.
-# Rafael Fontenelle <rafaelff@gnome.org>, 2016.
+# Rafael Fontenelle <rafaelff@gnome.org>, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Partclone 0.3.3\n"
+"Project-Id-Version: Partclone 0.3.44\n"
 "Report-Msgid-Bugs-To: thomas@clonezilla.org\n"
 "POT-Creation-Date: 2026-01-27 11:25+0800\n"
-"PO-Revision-Date: 2016-11-04 17:11-0200\n"
+"PO-Revision-Date: 2026-02-17 23:28-0300\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Brazilian Portuguese\n"
 "Language: pt_BR\n"
@@ -17,37 +17,37 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Virtaal 0.7.1\n"
+"X-Generator: Gtranslator 49.0\n"
 
 #: src/progress.c:239
-#, fuzzy, c-format
+#, c-format
 msgid "Elapsed: %s, Remaining: %s, Completed: %6.2f%%"
 msgstr "Passado: %s, Restante: %s, Concluído: %6.2f%%"
 
 #: src/progress.c:242
-#, fuzzy, c-format
+#, c-format
 msgid ", %6.2f%s/%s,"
 msgstr ", %6.2f%s/%s,"
 
 #: src/progress.c:245
-#, fuzzy, c-format
+#, c-format
 msgid "Current block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s"
-msgstr "Bloco atual: %10Lu, Blocos totais: %10Lu, Completo: %6.2f%%%s"
+msgstr "Bloco atual: %10Lu, Blocos totais: %10Lu, Concluído: %6.2f%%%s"
 
 #: src/progress.c:254
-#, fuzzy, c-format
+#, c-format
 msgid "Elapsed: %s, Remaining: %s, Completed: 100.00%%"
 msgstr "Passado: %s, Restante: %s, Concluído: 100.00%%"
 
 #: src/progress.c:256
-#, fuzzy, c-format
+#, c-format
 msgid ", Rate: %6.2f%s/%s,"
 msgstr ", Taxa: %6.2f%s/%s,"
 
 #: src/progress.c:259
-#, fuzzy, c-format
+#, c-format
 msgid "Current block: %10Lu, Total block: %10Lu, Complete: 100.00%%"
-msgstr "Bloco atual: %10Lu, Blocos totais: %10Lu, Completo: 100.00%%s"
+msgstr "Bloco atual: %10Lu, Blocos totais: %10Lu, Concluído: 100.00%%s"
 
 #: src/progress.c:263
 #, c-format
@@ -56,12 +56,12 @@ msgid ""
 "Total Time: %s, "
 msgstr ""
 "\n"
-"Tempo Total: %s, "
+"Tempo total: %s, "
 
 #: src/progress.c:265
-#, fuzzy, c-format
+#, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
-msgstr "Taxa média: %6.1f%s/%s, "
+msgstr "Taxa média: %6.2f%s/%s, "
 
 #: src/progress.c:266
 #, c-format
@@ -74,7 +74,7 @@ msgid "Elapsed: %s Remaining: %s "
 msgstr "Passado: %s Restante: %s "
 
 #: src/progress.c:297
-#, fuzzy, c-format
+#, c-format
 msgid "Rate: %6.2f%s/%s"
 msgstr "Taxa: %6.2f%s/%s"
 
@@ -85,20 +85,20 @@ msgstr "Bloco atual: %llu   Blocos totais: %llu "
 
 #: src/progress.c:302 src/progress.c:335
 msgid "Data Block Process:"
-msgstr ""
+msgstr "Processo de bloco de dados:"
 
 #: src/progress.c:304 src/progress.c:337
 msgid "Calculating Bitmap Process:"
-msgstr ""
+msgstr "Processo de cálculo de bitmap:"
 
 #: src/progress.c:308 src/progress.c:319
 #, c-format
 msgid "ncurses update error\n"
-msgstr ""
+msgstr "Erro de atualização de ncurses\n"
 
 #: src/progress.c:315 src/progress.c:345
 msgid "Total Block Process:"
-msgstr ""
+msgstr "Processo de blocos totais:"
 
 #: src/progress.c:330
 #, c-format
@@ -106,7 +106,7 @@ msgid "Total Time: %s Remaining: %s "
 msgstr "Tempo total: %s Restante: %s "
 
 #: src/progress.c:332
-#, fuzzy, c-format
+#, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
 msgstr "Taxa média: %6.2f%s/%s"
 
@@ -121,9 +121,9 @@ msgid "Starting to check image (%s)\n"
 msgstr "Iniciando a verificação da imagem (%s)\n"
 
 #: src/partclone.c:2062
-#, fuzzy, c-format
+#, c-format
 msgid "Starting to clone device (%s) to compressed image (%s)\n"
-msgstr "Iniciando a clonagem de dispositivo (%s) para imagem (%s)\n"
+msgstr "Iniciando a clonagem de dispositivo (%s) para imagem compactada (%s)\n"
 
 #: src/partclone.c:2064
 #, c-format
@@ -169,7 +169,7 @@ msgstr "Mostrando info sobre a imagem (%s)\n"
 
 #: src/partclone.c:2082
 msgid "Unknown mode\n"
-msgstr ""
+msgstr "Modo desconhecido\n"
 
 #: src/partclone.c:2102
 #, c-format
@@ -197,9 +197,9 @@ msgid "Block size:   %i Byte\n"
 msgstr "Tam. bloco:    %i Byte\n"
 
 #: src/partclone.c:2114
-#, fuzzy, c-format
+#, c-format
 msgid "Used Blocks in Super-Block:   %llu Blocks\n"
-msgstr "Espaço em uso(super block):   %llu blocos\n"
+msgstr "Blocos usados em super block:   %llu blocos\n"
 
 #: src/partclone.c:2127
 #, c-format
