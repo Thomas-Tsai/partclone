@@ -341,7 +341,8 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
           <para>where X:</para>
           <para>0: No checksum (no slowdown, smallest image)</para>
           <para>1: CRC32 (Fast to compute, basic detection)</para>
-          <para>2: xxHash extremely fast non-cryptographic hash algorithm</para>
+          <para>2: xxHash64  extremely fast non-cryptographic hash algorithm</para>
+          <para>3: xxHash128 Strong and extremely fast, best detection</para>
         </listitem>
       </varlistentry>
       <varlistentry>
