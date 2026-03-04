@@ -189,7 +189,8 @@ then
       git_ver=$(git log -1 --format="%h")
   else
       # Not in git repo: check if it was exported via git archive
-      if [ "$EXPORTED_COMMIT" != "\$Format:%h\$" ]; then
+      # We check if the string still contains the literal Format tag
+      if [[ "$EXPORTED_COMMIT" != *"\$Format"* ]]; then
           git_ver="${EXPORTED_COMMIT}"
       else
           echo "not git repository and not exported from git?"
