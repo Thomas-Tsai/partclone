@@ -47,10 +47,8 @@ AM_CFLAGS+=-I/usr/include/ncursesw
 endif
 
 version.h: FORCE
-	$(TOOLBOX) --update-version
 
 main_files=main.c partclone.c progress.c checksum.c partclone.h progress.h gettext.h checksum.h bitmap.h
-
 partclone_info_SOURCES=info.c partclone.c checksum.c partclone.h fs_common.h checksum.h
 partclone_info_LDADD=torrent_helper.o $(PCL_XXHASH_LIBS) $(CRYPTO_DEPS) ${LDADD_static}
 partclone_restore_SOURCES=$(main_files) ddclone.c ddclone.h
