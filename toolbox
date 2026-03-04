@@ -191,7 +191,11 @@ then
       # Not in git repo: check if it was exported via git archive
       # We check if the string still contains the literal Format tag
       if [[ "$EXPORTED_COMMIT" != *"\$Format"* ]]; then
-          git_ver="${EXPORTED_COMMIT}"
+          # It was exported via git archive.
+          # Since src/version.h is also processed by export-subst, it is already correct.
+          # We exit silently so we don't change the timestamp of version.h, 
+          # which would break dpkg-source's check for unexpected upstream changes.
+          exit 0
       else
           echo "not git repository and not exported from git?"
           exit 0
