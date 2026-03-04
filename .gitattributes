@@ -26,3 +26,4 @@ po/Makefile.in.in export-ignore
 
 
 src/version.h export-subst
+toolbox export-subst

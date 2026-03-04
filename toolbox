@@ -179,23 +179,22 @@ if test "${action}" = "version"
 then
   scriptdir=`dirname "$0"`
   file="$scriptdir/src/version.h"
-  GIT_REPOSITORY=`git remote -v | grep partclone`
-  GIT_REVISION=`git describe --abbrev=7 --always --tags`
+  
+  # When git archive runs, it replaces this string with the short hash
+  EXPORTED_COMMIT='$Format:%h$'
   git_ver="none"
 
-  if [ "${GIT_REPOSITORY}" = "" ];
-  then
-    echo "not git repository?"
-    exit 0
-  fi
-
-  #if [ "${GIT_REVISION_UPSTREAM}" != "" ]; then
-  #    git_ver=$GIT_REVISION_UPSTREAM
-  #el
-  if [ "${GIT_REVISION}" != "" ]; then
-      git_ver=$GIT_REVISION
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+      # Inside git repo: get current commit hash (e.g., f502de0)
+      git_ver=$(git log -1 --format="%h")
   else
-      git_ver="none"
+      # Not in git repo: check if it was exported via git archive
+      if [ "$EXPORTED_COMMIT" != "\$Format:%h\$" ]; then
+          git_ver="${EXPORTED_COMMIT}"
+      else
+          echo "not git repository and not exported from git?"
+          exit 0
+      fi
   fi
 
   if [ "$git_ver" != "none" ];

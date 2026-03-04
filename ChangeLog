@@ -1,3 +1,32 @@
+2026-03-03  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #288 from rffontenelle/patch-1
+	Update Brazilian Portuguese translations
+
+	update tests for xxh128
+
+2026-02-23  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	add option -a3 for xxhash/3 128
+
+2026-02-18  Rafael Fontenelle  <rffontenelle@users.noreply.github.com>
+
+	Update Brazilian Portuguese translations
+
+2026-02-12  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #287 from PushKK/PushKK-patch-2
+	Update ru.po
+
+2026-02-12  Stanislav  <42420548+PushKK@users.noreply.github.com>
+
+	Update ru.po
+	Small fix.
+
+2026-02-02  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update log and docs; release 0.3.45
+
 2026-01-28  Thomas Tsai  <tlinux.tsai@gmail.com>
 
 	fix make for dist clean and maintainer-clean
