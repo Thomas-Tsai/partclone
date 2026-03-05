@@ -1,47 +1,65 @@
-Format: http://dep.debian.net/deps/dep5
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: partclone
-Upstream-Contact: Yu-Chin Tsai <thomas@nchc.org.tw>
 Source: https://github.com/Thomas-Tsai/partclone
 
 Files: *
-Copyright: 2006-2012 Thomas Tsai <thomas@nchc.org.tw>
-           2007-2012 Steven Shiau <steven@nchc.org.tw>
-           2007-2008 Jazz Wang <jazz@nchc.org.tw>
+Copyright: 2007-2015 Thomas Tsai <thomas@clonezilla.org>
+           2007-2015 Steven Shiau <steven@clonezilla.org>
+           2007-2015 Ceasar Sun <ceasar@clonezilla.org>
+           2007-2011 Jazz Wang <jazz@clonezilla.org>
 License: GPL-2+
- see below for the text of this license.
+ This package is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ see "/usr/share/common-licenses/GPL-2"
 
-Files: debian/*
-Copyright: 2012 Thomas Tsai  <thomas@nchc.org.tw>
-           2011 Georges Khaznadar <georgesk@ofset.org>
-License: GPL-2+
- see below for the text of this license.
+Files: src/btrfs/libbtrfsutil/*
+Copyright: Various, see source files for details
+License: LGPL-2.1+
+Comment: Files originating from the btrfs-progs project.
 
-Files: src/ufs/libufs.h
-Copyright: 2002 Juli Mallett<jmallett@FreeBSD.org>
-License: FreeBSD-like
- see below for the text of this license.
+Files: src/xfs/include/*
+       src/xfs/libxfs/*
+Copyright: Various, see source files for details
+License: LGPL-2.1+
+Comment: Files originating from the xfsprogs project.
 
-Files: src/ufs/sys/*
+Files: src/btrfs_static_fixes.c
+       src/btrfs/crypto/xxhash.c
+       src/btrfs/crypto/xxhash.h
+Copyright: Various, see source files for details
+License: BSD-2-Clause
+Comment: Files originating from the btrfs-progs project.
+
+Files: src/ufs/ffs/fs.h
+       src/ufs/ufs/fs.h
+Copyright: 1982, 1986, 1993 The Regents of the University of California.
+License: BSD-3-Clause
+
+Files: src/ufs/sys/disklabel.h
 Copyright: 1987, 1988, 1993 The Regents of the University of California.
-License: FreeBSD-like
- see below for the text of this license.
-
-Files: src/ufs/ffs/*
-Copyright: 1982, 1986, 1993 The Regents of the University of California.
-License: FreeBSD-like
- see below for the text of this license.
-
-Files: src/ufs/ufs/fs.h
-Copyright: 1982, 1986, 1993 The Regents of the University of California.
-License: FreeBSD-like
- see below for the text of this license.
+License: BSD-3-Clause
 
 Files: src/ufs/ufs/dinode.h
 Copyright: 2002 Networks Associates Technology, Inc.
-License: FreeBSD-like
- see below for the text of this license.
+License: BSD-3-Clause
+Comment: src/cp.txt indicates license is "BSD 2-Clause License and/or BSD 3-Clause License". Using BSD-3-Clause here.
 
-License: FreeBSD-like
+Files: src/ntfsfixboot.c
+Copyright: 2009 Orgad Shaneh (Original work)
+           2026 Thomas Tsai <thomas@clonezilla.org> (Modifications)
+License: GPL-3+
+Comment: This file originates from the ntfsfixboot project.
+         Original work is loosely based on Daniel J. Grace (2006).
+
+Files: src/gettext.h
+Copyright: Free Software Foundation, Inc.
+License: LGPL-2.0+
+Comment: File from GNU gettext project.
+
+License: BSD-2-Clause
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
  are met:
@@ -50,7 +68,29 @@ License: FreeBSD-like
  2. Redistributions in binary form must reproduce the above copyright
     notice, this list of conditions and the following disclaimer in the
     documentation and/or other materials provided with the distribution.
- 4. Neither the name of the University nor the names of its contributors
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+
+License: BSD-3-Clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ 3. Neither the name of the University nor the names of its contributors
     may be used to endorse or promote products derived from this software
     without specific prior written permission.
  .
@@ -66,6 +106,36 @@ License: FreeBSD-like
  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  SUCH DAMAGE.
 
+License: GPL-3+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+ .
+ On Debian systems, the full text of the GNU General Public License
+ version 3 can be found in `/usr/share/common-licenses/GPL-3'.
+
+License: LGPL-2.0+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Library General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+ .
+ On Debian systems, the full text of the GNU Library General Public
+ License version 2 can be found in `/usr/share/common-licenses/LGPL-2'.
+
+License: LGPL-2.1+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ .
+ On Debian systems, the full text of the GNU Lesser General Public
+ License version 2.1 can be found in `/usr/share/common-licenses/LGPL-2.1'.
+
+Files: debian/*
+Copyright: 2011 Georges Khaznadar <georgesk@ofset.org>
+           2026 Thomas Tsai <thomas@clonezilla.org>
 License: GPL-2+
  This package is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

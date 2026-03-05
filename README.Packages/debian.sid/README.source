@@ -1,0 +1,26 @@
+partclone for Debian
+--------------------
+
+The source is retrieved from 
+http://sourceforge.net/projects/partclone with uscan (see debian/watch)
+
+Modifications are managed by quilt, see /usr/share/doc/quilt/README.source
+
+
+Removed files
+-------------
+
+files which are regenerated during a build are removed from the source tree:
+
+config.h.in
+m4/ChangeLog
+m4/gettext.m4
+m4/iconv.m4
+m4/lib-ld.m4
+m4/lib-link.m4
+m4/lib-prefix.m4
+m4/nls.m4
+m4/po.m4
+m4/progtest.m4
+
+ -- Georges Khaznadar <georgesk@debian.org>, Sun,  6 Mar 2022 18:43:53 +0100

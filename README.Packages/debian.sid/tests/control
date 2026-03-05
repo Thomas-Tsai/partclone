@@ -1,0 +1,3 @@
+Tests: run-smoke-check
+Depends: @, shunit2, coreutils
+Restrictions: allow-stderr, needs-root

@@ -1,901 +1,618 @@
-partclone (0.2.52-1) unstable; urgency=low
+partclone (0.3.46-1) UNRELEASED; urgency=medium
 
-  * update debian control
-  * update TODO
-  * update ncurses interface.
+  * New upstream version 0.3.46.
 
- -- Yu-Chin Tsai <thomas@nchc.org.tw>  Fri, 21 Sep 2012 09:59:32 +0800
+ -- Thomas Tsai <tlinux.tsai@gmail.com>  Wed, 04 Mar 2026 17:33:40 +0800
 
-partclone (0.2.51) unstable; urgency=low
+partclone (0.3.45-1) unstable; urgency=medium
 
-  * update makefile
-  * update supported list
-  * update process for elapsed time over 24hr
-  * update version to 0.2.51
-  * update some docs
+  * New upstream version 0.3.45.
+  * Update debian/copyright:
+    - Remove Files-Excluded session as upstream has removed related files.
+    - Update licenses for src/btrfs, arc/ufs, and arc/xfs.
+  * update override_dh_clean in debian/rules to fix twice build errors.
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 20 Sep 2012 17:07:41 +0800
+ -- Thomas Tsai <tlinux.tsai@gmail.com>  Mon, 02 Feb 2026 12:32:46 +0800
 
-partclone (0.2.50) unstable; urgency=low
+partclone (0.3.42-1) unstable; urgency=medium
 
-  * release 0.2.49
-  * update control
-  * update control
-  * add partclone.btrfs.8
-  * add more detail message in image head output
-  * add exfat
-  * update exfat and add exfat man docs
-  * add test for exfat
-  * update test and size information
-  * version 0.2.50
+  * New upstream version 0.3.42.
+  * Drop patche integrated upstream:
+    - d/patches/config-stuff.patch: Removed, merged in upstream.
+  * Update Standards-Version to 4.7.3.
+  * Update debian/copyright:
+    - Remove po/POTFILES from Files-Excluded. This file is a static source
+      list and not auto-generated during the build.
+  * Update debian/partclone.manpages:
+    - Exclude partclone.fstype.8. This manpage is specific to VMFS,
+      which is currently not enabled in the build.
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 10 Jul 2012 16:39:19 +0800
+ -- Thomas Tsai <tlinux.tsai@gmail.com>  Wed, 21 Jan 2026 09:49:06 +0800
 
-partclone (0.2.49) unstable; urgency=low
+partclone (0.3.40+repack-2) unstable; urgency=medium
 
-  * release 0.2.48
-  * update TODO
-  * minor update readme
-  * update docs
-  * update docs
-  * update manpage
-  * fix quiet mode issue. The issue make partclone can't stop/finish even action is done. bug report from pille
+  [Georges Khaznadar]
+  * fixed two lintian warnings, maintainer-also-in-uploaders and
+    useless-autoreconf-build-depends
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 10 Jul 2012 16:35:27 +0800
+ -- Thomas Tsai <tlinux.tsai@gmail.com>  Wed, 07 Jan 2026 09:34:18 +0800
 
-partclone (0.2.48) unstable; urgency=low
+partclone (0.3.40+repack-1) unstable; urgency=medium
+
+  * New upstream version 0.3.40+repack
+  * modified d/control and d/rules for libisal support
+  * added a new build dependency: libisal-dev, libzstd-dev,
+    zlib1g-dev, automake related packages
+  * removed the build dependency: libbsd-dev, vmfs-tools
+  * replace autogen by autoreconf in d/rules
+
+ -- Thomas Tsai <tlinux.tsai@gmail.com>  Fri, 28 Nov 2025 16:06:35 +0800
+
+partclone (0.3.39+repack-1) unstable; urgency=medium
 
   [ Thomas Tsai ]
-  * update debian control for vmfs-tools
+  * New upstream version 0.3.39+repack
 
-  [ thomas ]
-  * ignore unallocated block for vmfs
+ -- Thomas Tsai <tlinux.tsai@gmail.com>  Wed, 12 Nov 2025 12:14:18 +0800
+
+partclone (0.3.38+repack-1) unstable; urgency=medium
 
   [ Thomas Tsai ]
-  * update bitmap progress
-  * A partclone bug found when it backs up  WindowsServer2008R2 (64bit)
-  * update vmfs for some unallocated block
+  * Non-maintainer upload.
+  *New upstream version 0.3.38+repack
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 01 May 2012 11:32:47 +0800
+ -- Thomas Tsai <tlinux.tsai@gmail.com>  Thu, 16 Oct 2025 11:20:12 +0800
 
-partclone (0.2.47) unstable; urgency=low
+partclone (0.3.37+repack-1) unstable; urgency=medium
 
-  * try to fix ID: 3509757 from clonezilla track system
-  * change row to raw, noticed from Vincent van Adrighem
-  * update fresh, add sleep in progress thread to reduce cpu usage, contributed and bug information from http://sourceforge.net/tracker/?func=detail&aid=3509757&group_id=115473&atid=671650
-  * update fresh done
-  * 0.2.47
+  * New upstream version 0.3.37+repack
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 18 Apr 2012 13:41:31 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Fri, 11 Jul 2025 14:45:19 +0200
 
-partclone (0.2.46) unstable; urgency=low
+partclone (0.3.36+repack-1) unstable; urgency=medium
 
-  * accept part of patch from Matthew Booth's review
-  * update partclone.vmfs for version 5
-  * update manpages
-  * update document, some example error. 
-  * update vmfsclone to backup vmfs5 well
-  * accept patch from Rommer to update memory usage
-  * and release 0.2.46
+  * New upstream version 0.3.36+repack
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 02 Apr 2012 09:14:23 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Thu, 03 Apr 2025 15:53:04 +0200
 
-partclone (0.2.45) unstable; urgency=low
+partclone (0.3.34+repack-2) unstable; urgency=medium
 
-  * print vmfs version from fstype
-  * add compatibility of vmfs3 and vmfs5
+  * the build is OK in exprimental; downloading to unstable, and
+    removing tests with gcc-15. Closes: #1097551
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 18 Jan 2012 10:39:22 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Wed, 19 Mar 2025 14:19:29 +0100
 
-partclone (0.2.44) unstable; urgency=low
+partclone (0.3.34+repack-1) experimental; urgency=medium
 
-  * update pui for mode dev-to-dev
+  * New upstream version 0.3.34+repack
+  * refreshed the debian patch
+  * removed the stuff related to fail-mbr
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 17 Jan 2012 15:11:30 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Wed, 19 Mar 2025 10:49:33 +0100
 
-partclone (0.2.43) unstable; urgency=low
+partclone (0.3.33+repack-4) experimental; urgency=medium
 
-  * 0.2.43
+  * added a CI file for salsa.debian.org
+  * bumped Standards-Version: 4.7.2
+  * modified d/control and d/rules to enforce gcc-15
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 27 Dec 2011 16:25:57 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Tue, 18 Mar 2025 16:40:33 +0100
 
-partclone (0.2.42) unstable; urgency=low
+partclone (0.3.33+repack-3) unstable; urgency=medium
 
-  * add option B to disable block detail; old progress style.
-  * add finish progress to dd
-  * 0.2.42
+  * added a build dependency on the virtual package
+    architecture-is-little-endian to prevent building on 
+    s390x architecture. Closes: #1093194
+ -- Georges Khaznadar <georgesk@debian.org>  Tue, 28 Jan 2025 14:57:37 +0100
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 27 Dec 2011 15:58:55 +0800
+partclone (0.3.33+repack-2) unstable; urgency=medium
 
-partclone (0.2.41) unstable; urgency=low
+  * Used Philipp Kern's hint « AC_CHECK_HEADERS([byteswap.h]) », thanks!
+    Closes: #1093194
 
-  * add block status
-  * update progress bar
-  * add thread to display progress, draft
-  * add thread to dd, restore and chkimg
-  * 0.2.41
+ -- Georges Khaznadar <georgesk@debian.org>  Tue, 21 Jan 2025 18:15:45 +0100
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 27 Dec 2011 00:53:41 +0800
+partclone (0.3.33+repack-1) unstable; urgency=medium
 
-partclone (0.2.40) unstable; urgency=low
+  * New upstream version 0.3.33+repack
 
-  * update progress seeking at 100%
+ -- Georges Khaznadar <georgesk@debian.org>  Sun, 15 Dec 2024 18:51:32 +0100
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Fri, 23 Dec 2011 10:25:43 +0800
+partclone (0.3.32+repack-3) unstable; urgency=medium
 
-partclone (0.2.39) unstable; urgency=low
+  * do not install manpages for unsupported file systems.
+    removed the build-dependency on libaal-dev.
+    Closes: #1080522
+  * applied some parts of Bastian Germann's debdiff, thanks!
+    + Drop unused manpage template.
+    + Drop unused lintian override.
+    + Fix lintian: unused-license-paragraph-in-dep5-copyright
 
-  * 0.2.39
-  * updaet ntfsfixboot to version 1.0
+ -- Georges Khaznadar <georgesk@debian.org>  Sun, 08 Sep 2024 17:27:04 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 12 Dec 2011 14:49:22 +0800
+partclone (0.3.32+repack-2) unstable; urgency=medium
 
-partclone (0.2.38) unstable; urgency=low
+  * removed the build-dependency on libreiser4-dev, and the ability to
+    deal with reiserfs4 file systems. Closes: #1079599
 
-  * update for makefile for ncursesw
-  * update for progress
-  * 0.2.38
+ -- Georges Khaznadar <georgesk@debian.org>  Sat, 31 Aug 2024 10:17:52 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 12 Dec 2011 14:27:23 +0800
+partclone (0.3.32+repack-1) unstable; urgency=medium
 
-partclone (0.2.37) unstable; urgency=low
+  * New upstream version 0.3.32+repack
 
-  * add -I/usr/include/ncursesw/
-  * release 0.2.37
+ -- Georges Khaznadar <georgesk@debian.org>  Thu, 25 Jul 2024 16:46:07 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 23 Nov 2011 16:32:09 +0800
+partclone (0.3.31+repack-2) unstable; urgency=medium
 
-partclone (0.2.36) unstable; urgency=low
+  * modified the patch debian/patches/config-stuff.patch, in order
+    to define the macro HAVE-TIME_H. Closes:#1075364
 
-  * update ncurses size
-  * 0.2.36
+ -- Georges Khaznadar <georgesk@debian.org>  Sat, 06 Jul 2024 16:47:04 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 23 Nov 2011 16:31:06 +0800
+partclone (0.3.31+repack-1) unstable; urgency=medium
 
-partclone (0.2.35) unstable; urgency=low
+  * d/copyright do no longer exclude manfiles, except
+    docs/partclone.8 and docs/partclone.info.8 which are rebuilt
+    from source
+  * New upstream version 0.3.31+repack
 
-  * move debian folder to README.Packages as sample
-  * update control for debian-sid
-  * save last changelog ($version)
-  * update version script
-  * add debian
-  * re remove debian
-  * update TODO
-  * add debian
-  * remove debian
-  * add debian
-  * move partclone.spec to README.Packages/partclone.spec
-  * update
-  * align version and tag
-  * update toolbox
+ -- Georges Khaznadar <georgesk@debian.org>  Sat, 22 Jun 2024 15:54:42 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 02 Nov 2011 01:07:24 +0800
+partclone (0.3.29+repack-1) unstable; urgency=medium
 
-partclone (0.2.34) unstable; urgency=low
+  * New upstream version 0.3.29+repack
+  * fixed build dependencies e2fslibs-dev => libext2fs-dev,
+    libncursesw5-dev => libncurses-dev, pkg-config => pkgconf
 
-  * update autoconf and automake for squeeze 
+ -- Georges Khaznadar <georgesk@debian.org>  Mon, 17 Jun 2024 17:19:33 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 01 Nov 2011 11:32:42 +0800
+partclone (0.3.27+repack-2) unstable; urgency=medium
 
-partclone (0.2.33) unstable; urgency=low
+  * remove file /usr/share/man/dd/man8/partclone.8.gz
+    Closes: #850623
+  * replaced ./autogen by sh ./autogen in d/rules. Closes: #1031106
+  * modified Files-Excluded in d/copyright to exclude all man 8
+    generated pages and src/xfs/libxfs/crc32selftest
+  * improved the clean target. Closes: #1049043
 
-  * update makefile for ncurses static linking 
-  * update memory usage
-  * update ncurses progress bar
+ -- Georges Khaznadar <georgesk@debian.org>  Mon, 26 Feb 2024 14:44:25 +0100
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 27 Oct 2011 22:05:17 +0800
+partclone (0.3.27+repack-1) unstable; urgency=medium
 
-partclone (0.2.32) unstable; urgency=low
+  * New upstream version 0.3.27+repack
 
-  * accept patch file from Rommer.
-  * Attached patch for partclone 0.2.31 reduces memory usage by 4-8 times.  by Rommer.
+ -- Georges Khaznadar <georgesk@debian.org>  Sun, 15 Oct 2023 19:38:47 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 12 Oct 2011 21:27:43 +0800
+partclone (0.3.26+repack-1) unstable; urgency=medium
 
-partclone (0.2.31) unstable; urgency=low
+  * New upstream version 0.3.26+repack
 
-  * update for vmfs5 
+ -- Georges Khaznadar <georgesk@debian.org>  Sat, 30 Sep 2023 14:07:42 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 12 Oct 2011 21:27:43 +0800
+partclone (0.3.25+repack-1) unstable; urgency=medium
 
-partclone (0.2.30) unstable; urgency=low
+  * New upstream version 0.3.25+repack
 
-  * patch for new vmfs-tools
+ -- Georges Khaznadar <georgesk@debian.org>  Mon, 07 Aug 2023 10:50:41 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 11 Oct 2011 21:21:24 +0800
+partclone (0.3.24+repack-1) unstable; urgency=medium
 
-partclone (0.2.29) unstable; urgency=low
+  * New upstream version 0.3.24+repack
 
-  * fix bugs
-  * release 0.2.29
+ -- Georges Khaznadar <georgesk@debian.org>  Tue, 25 Jul 2023 10:38:28 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 12 Sep 2011 21:21:24 +0800
+partclone (0.3.23+repack-1) unstable; urgency=medium
 
-partclone (0.2.28) unstable; urgency=low
+  * New upstream version 0.3.23+repack
+  * bumped Standards-Version: 4.6.1
 
-  * update e2fslibs for squeeze
-  * fix bug for ntfsclone with ncurses on unstable
+ -- Georges Khaznadar <georgesk@debian.org>  Sat, 11 Feb 2023 18:15:32 +0100
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 08 Sep 2011 22:58:27 +0800
+partclone (0.3.22+repack-1) unstable; urgency=medium
 
-partclone (0.2.27) unstable; urgency=low
+  * New upstream version 0.3.22+repack
 
-  * accept patch from Georges about configure, fixIntTypes and typos in manpages
-  * try to fix issue for bitmap, suggestion from Paul.
+ -- Georges Khaznadar <georgesk@debian.org>  Thu, 12 Jan 2023 17:55:51 +0100
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 30 Aug 2011 11:45:06 +0800
+partclone (0.3.20+repack-1) unstable; urgency=medium
 
-partclone (0.2.26) unstable; urgency=low
+  * changed the repack suffix
+  * New upstream version 0.3.20+repack
 
-  * update test script
+ -- Georges Khaznadar <georgesk@debian.org>  Fri, 06 May 2022 18:54:03 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 15 Aug 2011 10:45:06 +0800
+partclone (0.3.19~repack-1) unstable; urgency=medium
 
-partclone (0.2.25) unstable; urgency=low
+  * new upstream version 0.3.19
+  * updated debian patches
+  * added a new build dependency, libmount-dev
 
-  * update for e2fslibs 1.42~WIP-2011-07-02
-  * compact ntfs and ntfs-3g
+ -- Georges Khaznadar <georgesk@debian.org>  Mon, 11 Apr 2022 18:21:54 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 15 Aug 2011 10:45:06 +0800
+partclone (0.3.18~repack-3) unstable; urgency=medium
 
-partclone (0.2.24) natty; urgency=low
+  * enabled NTFS again. Why did the --enable-ntfs option break the build
+    process two days ago?
+  * declared a build-dependency on ntfs-3g-dev
 
-  * accept patch from Ian Abbott.
-  * '--domain' (-D) and -offset_domain=X to generate domain file for ddrescue.
+ -- Georges Khaznadar <georgesk@debian.org>  Tue, 22 Mar 2022 10:27:08 +0100
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 24 May 2011 10:45:06 +0800
+partclone (0.3.18~repack-2) unstable; urgency=medium
 
-partclone (0.2.23) maverick; urgency=low
+  * fixed the target override_dh_auto_configure in debian/rules.
+    Closes: #1007975
+  * disable NTFS support
+  * made all --enable and --disable options explicitely for the configuration
+    in debian/rules
 
-  * update manpages 
+ -- Georges Khaznadar <georgesk@debian.org>  Sun, 20 Mar 2022 15:53:00 +0100
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Fri, 22 Apr 2011 11:02:59 +0800
+partclone (0.3.18~repack-1) unstable; urgency=medium
 
-partclone (0.2.22) maverick; urgency=low
+  * new upstream version
+  * updated debian patches
 
-  * typo error for progress
+ -- Georges Khaznadar <georgesk@debian.org>  Sun, 06 Mar 2022 19:10:32 +0100
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 28 Mar 2011 15:19:16 +0800
+partclone (0.3.17+dfsg-2) unstable; urgency=medium
 
-partclone (0.2.21) maverick; urgency=low
+  * added Vcs stuff
+  * bumped debhelper-compat (= 13), Standards-Version: 4.6.0
+  * removed the useless dependency  dh-autoreconf
+  * merged the contents of the file debian/source comments into
+    debian/README.source
 
-  * fix bug for partclone.dd and partclone.restore for stdin dd data.
+ -- Georges Khaznadar <georgesk@debian.org>  Sun, 06 Mar 2022 18:34:26 +0100
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 22 Mar 2011 14:21:11 +0800
+partclone (0.3.17+dfsg-1) unstable; urgency=medium
 
-partclone (0.2.20) maverick; urgency=low
+  * new upstream version
+  * fixed a bad usage of wprintw in partclone.c. Closes: #997192
 
-  * fix dd issue. set default size as target size for stdin data.
+ -- Georges Khaznadar <georgesk@debian.org>  Mon, 25 Oct 2021 16:23:54 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 14 Mar 2011 10:12:19 +0800
+partclone (0.3.13+dfsg-6) unstable; urgency=medium
 
-partclone (0.2.19) unstable; urgency=low
+  * applied nabijaczleweli's patches, Thanks! Closes: #958924
 
-  * update makefile for btrf
+ -- Georges Khaznadar <georgesk@debian.org>  Thu, 25 Mar 2021 19:00:52 +0100
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 09 Mar 2011 14:06:05 +0800
-partclone (0.2.18) unstable; urgency=low
-  
-  * add option max_block_cache to get better performance escpcially small block size(fat)
-  * update typo error
+partclone (0.3.13+dfsg-5) unstable; urgency=medium
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 25 Jan 2011 16:06:05 +0800
+  * modifications to comply with gcc-10: Closes: #957662
+  * updated configuration stuff for gettext
+  * made a stronger rule for d/rules clean : "rm -rf m4/"
 
-partclone (0.2.17) unstable; urgency=low
-  
-  * update for ext4 metadata mismatch issue
-  * update makefile and configure
+ -- Georges Khaznadar <georgesk@debian.org>  Fri, 17 Apr 2020 17:42:58 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 25 Jan 2011 16:06:05 +0800
+partclone (0.3.13+dfsg-4) unstable; urgency=medium
 
-partclone (0.2.16) unstable; urgency=low
+  * This revision is just to make a source upload
 
-  * add option --quiet to disable progress bar
-  * add option --restore_row_file to create special file for mounting with loop option
+ -- Georges Khaznadar <georgesk@debian.org>  Wed, 02 Oct 2019 16:58:37 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 06 Oct 2010 16:06:05 +0800
+partclone (0.3.13+dfsg-3) unstable; urgency=medium
 
-partclone (0.2.15) unstable; urgency=low
+  * removed the non-sensic $(DESTDIR) from d/rules, line 21,
+    thanks to Holger Schröder's bug report. Closes: #935932
 
-  * Bug fixed: btrfs clone fail, lost some metadata message
-  * Add po: add fr_FR po file from Cédric, very thanks.
+ -- Georges Khaznadar <georgesk@debian.org>  Wed, 28 Aug 2019 15:17:52 +0200
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 01 Sep 2010 10:25:48 +0800
+partclone (0.3.13+dfsg-2) unstable; urgency=medium
 
-partclone (0.2.14) unstable; urgency=low
+  [ Helmut Grohne ]
+  * Non-maintainer upload.
+  * Fix FTCBFS:
+    + Let dh_auto_configure pass --host to ./configure.
+    + cross.patch: Don't hard code the build architecture pkg-config
 
-  * add btrfs support
+  [ Georges Khaznadar ]
+  * adopted Helmut Grohne's patch, thanks! Closes: #935932
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Sun, 22 Aug 2010 15:14:20 +0800
+ -- Helmut Grohne <helmut@subdivi.de>  Tue, 27 Aug 2019 20:38:00 +0200
 
-partclone (0.2.13) unstable; urgency=low
+partclone (0.3.13+dfsg-1) unstable; urgency=medium
 
-  * add link partclone.VMFS_volume_member
-  * fix bug: jfsclone segfault
-  * add debian/control pkg-config
+  * New upstream version 0.3.13
+  * removed ELF files from the source package
+  * refreshed one debian patch
+  * updated Standards-Version: 4.3.0, debhelper (>= 11)
+  * set priority to optional
+  * added a build-dependency on libssl-dev
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 28 Jul 2010 17:14:20 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Mon, 26 Aug 2019 14:37:10 +0200
 
-partclone (0.2.12) unstable; urgency=low
+partclone (0.3.11+dfsg-1) unstable; urgency=medium
 
-  * New Feature: The jfs filesystem is supported.
+  * removed the ELF file src/xfs/libxfs/crc32selftest
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 30 Jun 2010 11:58:41 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Mon, 26 Aug 2019 14:13:55 +0200
 
-partclone (0.2.11) unstable; urgency=low
+partclone (0.3.11-1) UNPUBLISHED; urgency=medium
 
-  * Bug fixed: xfsclone type error for amd64
-  * Update control file: add libvmfs
+  * New upstream release
+  * Upgraded Standards-Version
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 19 May 2010 12:22:07 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Mon, 23 Oct 2017 18:37:29 +0200
 
-partclone (0.2.10) unstable; urgency=low
+partclone (0.3.8-1) unstable; urgency=medium
 
-  * Bug fixed: chkimg.c not work
-  * Bug fixed: new xfsclone
+  * New upstream release
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 19 May 2010 12:22:07 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Mon, 09 Oct 2017 19:41:18 +0200
 
-partclone (0.2.9) unstable; urgency=low
+partclone (0.3.6-2) unstable; urgency=medium
 
-  * Bug fixed: error for backup partition larger than 8.7T
-  * Bug fixed: better memory usage for restore
+  * new build, for sid.
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Thu, 29 Apr 2010 15:22:07 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Tue, 20 Jun 2017 15:54:09 +0200
 
-partclone (0.2.8) unstable; urgency=low
+partclone (0.3.6-1) experimental; urgency=medium
 
-  * Bug fixed: update progress bar faster
+  * New upstream release
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 29 Mar 2010 16:22:38 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Sun, 18 Jun 2017 17:00:54 +0200
 
-partclone (0.2.7-1) unstable; urgency=low
+partclone (0.2.90-2) experimental; urgency=medium
 
-  * fix progress bug about: alwayn new line for 640x480 resolution
-  * update version
+  * Enabled XFS support back. Closes: #830535
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 16 Mar 2010 15:13:04 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Thu, 11 May 2017 19:10:13 +0200
 
-partclone (0.2.6-1) unstable; urgency=low
+partclone (0.2.90-1) experimental; urgency=medium
 
-  * update version 
+  * New upstream release. Closes: #857966 (CVE-2017-6596)
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Mon, 15 Mar 2010 11:29:18 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Wed, 29 Mar 2017 17:54:24 +0200
 
-partclone (0.2.5-1) unstable; urgency=low
+partclone (0.2.89-2) unstable; urgency=medium
 
-  * A bug about 0 rate for bitmap calculation.
-  * update partclone to show more readable size for partition and rate/min.
+  * added a dependency on libaal-dev >= 1.06-3. Closes: #842115
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Fri, 12 Mar 2010 09:15:31 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Wed, 23 Nov 2016 18:25:53 +0100
 
-partclone (0.2.4-1) unstable; urgency=low
+partclone (0.2.89-1) unstable; urgency=medium
 
-  * autogen git number
-  * fix progress inf bug
+  * included Matthias Klose's patch. Closes: #842115
+  * upgraded to the new upstream release, which Closes: #825990
+  * upgraded Standards-Version: 3.9.8
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 10 Mar 2010 16:30:55 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Sun, 13 Nov 2016 12:23:29 +0100
 
-partclone (0.2.3-1) unstable; urgency=low
+partclone (0.2.88-1) unstable; urgency=medium
 
-  * add partclone.fstype to test filesystem type (vmfs only)
-  * update svn versionto git version
+  * upgraded to the newest upstream release
+  * upgraded Standards-Version to 3.9.7
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Tue, 02 Mar 2010 13:50:26 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Sat, 23 Apr 2016 19:21:57 +0200
 
-partclone (0.2.0-2) unstable; urgency=low
+partclone (0.2.86-1) unstable; urgency=medium
 
-  * VMFS supported in this release.
+  * upgraded to the newest upstream release
+  * modified slightly configure.ac to cope with libreiser4 v. 1.1.0
+    Closes: #798937
+  * added a build-dependency on nilfs-tools
+  * modified debian/docs (README -> README.md)
 
- -- Steven Shiau <steven@nchc.org.tw>  Sun, 14 Feb 2010 15:00:00 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Thu, 17 Sep 2015 17:54:15 +0200
 
-partclone (0.2.0-1) unstable; urgency=low
+partclone (0.2.78-3) unstable; urgency=medium
 
-  [ Yu-Chin Tsai ]
-  * A test release.
+  * removed an obsoleted patch
+  * updated d/copyright data
+  * restored two mandatory parameters which configure was missing
 
- -- Thomas Tsai <thomas@nchc.org.tw>  Wed, 06 Jan 2010 16:07:05 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Wed, 13 May 2015 16:08:09 +0200
 
-partclone (0.1.9-5) unstable; urgency=low
+partclone (0.2.78-2) unstable; urgency=medium
 
-  [ Yu-Chin Tsai  ]
-  * A bug about hfsplus error for 2 or more extents was fixed.
+  * modified the build system to compile fail-mbr.bin only with x86
+    architectures.
+  * the binary file fail-mbr/fail-mbr.bin.orig is no longer removed, it used as
+    a comparison for successful builds, or as a file to copy for non-x86
+    architectures. The file fail-mbr/compile.sh does this job.
+  * documented this peculiarity in debian/README.source; Closes: #784975
+  * simplified d/rules by using "--with autoreconf" and d/control by using the
+    build-dependency on dh-autoreconf
 
- -- Steven Shiau <steven@nchc.org.tw>  Wed, 25 Nov 2009 16:54:00 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Wed, 13 May 2015 14:05:59 +0200
 
-partclone (0.1.9-4) unstable; urgency=low
+partclone (0.2.78-1) unstable; urgency=medium
 
-  * update configure.ac, set ufs as default enabled file system.
-  * update progress bar to show the "100%" in the end.
+  * upgraded to the newest upstream release
 
- -- Yu-Chin Tsai <thomas@nchc.org.tw>  Mon, 16 Nov 2009 14:46:04 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Sat, 09 May 2015 15:13:29 +0200
 
-partclone (0.1.9-3) unstable; urgency=low
+partclone (0.2.76-1) unstable; urgency=medium
 
-  [ Yu-Chin Tsai  ]
-  * An option to ignore CRC checking was added.
+  * upgraded to the newest upstream release
+  * Checked the build-dependency on libtnfs-3g-dev with pbuilder. Closes: #777249
+  * Removed the build-dependency on libreadline, which is a dependency for reiser4-dev
+  * Modified d/rules to skip the test suite
 
- -- Steven Shiau <steven@nchc.org.tw>  Tue, 03 Nov 2009 17:16:00 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Sun, 08 Feb 2015 19:10:53 +0100
 
-partclone (0.1.9-2) unstable; urgency=low
+partclone (0.2.73-3) unstable; urgency=medium
 
-  [ Yu-Chin Tsai  ]
-  * Bug fixed: update log message and open fail message for ufsclone. Thanks to dswartz for testing ufs backup and report.
+  * upgraded Standards-Version to 3.9.6
+  * recompiled the package. Closes: #765674
 
- -- Steven Shiau <steven@nchc.org.tw>  Fri, 09 Oct 2009 11:14:00 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Wed, 22 Oct 2014 17:14:25 +0200
 
-partclone (0.1.9-1) unstable; urgency=low
+partclone (0.2.73-2) unstable; urgency=medium
 
-  [ Yu-Chin Tsai  ]
-  * Bug fixed: XFS clone failure was fixed. 
-  * UFS was added.
+  * applied Ravindran Arani's patch. Closes: #761664
+  * added a build-dependency on autopoint
 
- -- Yu-Chin Tsai  <thomas@nchc.org.tw>  Thu, 17 Sep 2009 14:07:33 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Wed, 17 Sep 2014 18:45:14 +0200
 
-partclone (0.1.1-16) unstable; urgency=low
+partclone (0.2.73-1) unstable; urgency=medium
 
-  [Thomas Tsai]
-    * Bug fixed: FAT clone failure was fixed.
+  * upgraded to the newest upstream release
+  * replaced the build-dependency libntfs-dev by ntfs-3g-dev
+    (Closes: #761255)
 
- -- Steven Shiau <steven@nchc.org.tw>  Sun, 09 Aug 2009 08:49:00 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Sun, 14 Sep 2014 17:16:58 +0200
 
-partclone (0.1.1-15) unstable; urgency=low
+partclone (0.2.72-1) unstable; urgency=medium
 
-  [Thomas Tsai]
-    * Bug fixed: Wrong path for exec files.
+  * upgraded to the newest upstream release
+  * added a build-dependency on libblkid-dev
 
- -- Steven Shiau <steven@nchc.org.tw>  Wed, 24 Jun 2009 16:48:00 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Tue, 26 Aug 2014 12:59:02 +0200
 
-partclone (0.1.1-14) unstable; urgency=low
+partclone (0.2.70-1) unstable; urgency=medium
 
-  [Thomas Tsai]
-    * Bug fixed: version number from SVN was not shown correctly.
+  * upgraded to the newest upstream release
+  * upgraded Standards-Version to 3.9.5
 
- -- Steven Shiau <steven@nchc.org.tw>  Wed, 24 Jun 2009 14:36:00 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Sat, 25 Jan 2014 15:27:42 +0100
 
-partclone (0.1.1-13) unstable; urgency=low
+partclone (0.2.69-1) unstable; urgency=medium
 
-  [Thomas Tsai]
-    * Prompt messages were updated.
+  * upgraded to the newest upstream release
 
- -- Steven Shiau <steven@nchc.org.tw>  Fri, 18 Jun 2009 13:30:00 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Sun, 05 Jan 2014 15:05:43 +0100
 
-partclone (0.1.1-12) unstable; urgency=low
+partclone (0.2.68-1) unstable; urgency=low
 
-  [Thomas Tsai]
-    * An option was added: --logfile or -L to specify file for log message.
-    * A new program partclone.chkimg was added to help checking img by CRC.
+  * upgraded to the newest upstream release
 
- -- Steven Shiau <steven@nchc.org.tw>  Wed, 17 Jun 2009 10:34:00 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Wed, 25 Dec 2013 18:14:58 +0100
 
-partclone (0.1.1-11) unstable; urgency=low
+partclone (0.2.66-2) unstable; urgency=low
 
-  [Thomas Tsai]
-    * update clear_buf
-    * The patch from Kristian Erik Hermansen. fix progress.c:152- SECURITY: fprintf call should have "%s" as argument 1
+  * definitely prevented rebuild of fail-mbr's binaries by automatic means
 
- -- Steven Shiau <steven@nchc.org.tw>  Sat, 13 Jun 2009 14:39:00 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Sat, 27 Jul 2013 21:41:01 +0200
 
-partclone (0.1.1-10) unstable; urgency=low
+partclone (0.2.66-1) unstable; urgency=low
 
-  [Thomas Tsai]
-    * Bug fixed: pointer problem was fixed.
-    * Bug fixed: buffer overflow problem was fixed. Thanks to Kristian Erik Hermansen and Piavlo.
-    * Bug fixed: a bug about hfs+ was fixed.
+  * upgraded to the newest upstream version
+  * modified Makefile.am to prevent building fail-mbr's binaries
+  * mentioned fail-mbr's binaries in debian/source/include-binaries
+  * modified debian/rules to install fail-mbr.bin
 
- -- Steven Shiau <steven@nchc.org.tw>  Wed, 10 Jun 2009 10:39:00 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Sat, 27 Jul 2013 16:53:50 +0200
 
-partclone (0.1.1-9) unstable; urgency=low
+partclone (0.2.62-1) unstable; urgency=low
 
-  [Steven Shiau]
-    * Some output messages were polished again.
+  * changed my DEBEMAIL
+  * upgraded to the newest upstream version
+  * upgraded Standards-Version to 3.9.4
+  * upgraded debhelper level to 9
+  * added a build-depedency on the last gettext package. Ran "gettextize -f"
+    and adjusted configurations files so the source can be built in an
+    up-to-date environment. Closes: #713329
+  * modified fail-mbr/Makefile to define a path for included headers and
+    to fix a bug with the installation directory
 
- -- Steven Shiau <steven@nchc.org.tw>  Tue, 02 Jun 2009 18:09:00 +0800
+ -- Georges Khaznadar <georgesk@debian.org>  Mon, 24 Jun 2013 14:40:46 +0200
 
-partclone (0.1.1-8) unstable; urgency=low
+partclone (0.2.56-1) unstable; urgency=low
 
-  [Thomas Tsai]
-    * Some output messages were polished.
+  * enabled xfs support.
+  * upgraded to the new upstream version
 
- -- Steven Shiau <steven@nchc.org.tw>  Tue, 02 Jun 2009 16:51:00 +0800
+ -- Georges Khaznadar <georgesk@ofset.org>  Mon, 20 Aug 2012 12:02:55 +0200
 
-partclone (0.1.1-7) unstable; urgency=low
+partclone (0.2.51-1) unstable; urgency=low
 
-  [Thomas Tsai]
-    * Bug fixed: Progress update with nogui, "Calculating bitmap..." was added without option -d.
+  * upgraded to the new upstream version
 
- -- Steven Shiau <steven@nchc.org.tw>  Mon, 01 Jun 2009 22:36:00 +0800
+ -- Georges Khaznadar <georgesk@ofset.org>  Sun, 19 Aug 2012 10:15:44 +0200
 
-partclone (0.1.1-6) unstable; urgency=low
+partclone (0.2.49-1) unstable; urgency=low
 
-  [Thomas Tsai]
-    * bug of CRC in 64 bit image problem was fixed. A better method will be imlemented in the nexe version of image format.
+  * upgraded to the new upstream version
+  * restored the build-dependencies xsltproc, docbook-xsl
+  * activated dpkg-buildflags in debian/rules
 
- -- Steven Shiau <steven@nchc.org.tw>  Sat, 30 May 2009 12:10:00 +0800
+ -- Georges Khaznadar <georgesk@ofset.org>  Sun, 01 Jul 2012 12:11:06 +0200
 
-partclone (0.1.1-5) unstable; urgency=low
+partclone (0.2.48-1) unstable; urgency=low
 
-  [Thomas Tsai]
-    * bug of time calculating was fixed.
+  * upgraded to the newer upstream version
 
- -- Steven Shiau <steven@nchc.org.tw>  Wed, 27 May 2009 22:13:00 +0800
+ -- Georges Khaznadar <georgesk@ofset.org>  Sun, 13 May 2012 21:20:44 +0000
 
-partclone (0.1.1-4) unstable; urgency=low
+partclone (0.2.46-1) unstable; urgency=low
 
-  [Thomas Tsai]
-    * Update default RES from 10000 to 1000.
+  * upgraded to the newer upstream version
+  * upgraded Standards-Version to 3.9.3
 
- -- Steven Shiau <steven@nchc.org.tw>  Wed, 27 May 2009 12:59:00 +0800
+ -- Georges Khaznadar <georgesk@ofset.org>  Thu, 12 Apr 2012 06:30:49 +0000
 
-partclone (0.1.1-3) unstable; urgency=low
+partclone (0.2.43-1) unstable; urgency=low
 
-  [Thomas Tsai]
-    * Bug fixed: block device should not have to use "--overwrite".
+  * upgraded to the newer upstream version
 
- -- Steven Shiau <steven@nchc.org.tw>  Wed, 27 May 2009 11:23:00 +0800
+ -- Georges Khaznadar <georgesk@ofset.org>  Tue, 27 Dec 2011 19:21:55 +0100
 
-partclone (0.1.1-2) unstable; urgency=low
+partclone (0.2.38-1) unstable; urgency=low
 
-  [Thomas Tsai]
-    * partclone.ntfsreloc is linked to partclone.ntfsfixboot.
+  * upgraded to the newer upstream version
 
- -- Steven Shiau <steven@nchc.org.tw>  Fri, 22 May 2009 13:52:00 +0800
+ -- Georges Khaznadar <georgesk@ofset.org>  Sun, 04 Dec 2011 00:00:04 +0100
 
-partclone (0.1.1-1) unstable; urgency=low
+partclone (0.2.33-1) unstable; urgency=low
 
-  [Thomas Tsai]
-    * Minor updates for output messages.
-    * New Feature: add argument to set fresh of progress bar
-    * New Feature: restore to new file(non-block device)
-    * A bug about crc check in 64bit image
-    * Update partclone.ntfsreloc to ntfsfixboot.c from http://cc.jct.ac.il/~shaneh/ntfsfixboot.c
+  * upgraded to the newer upstream version
 
- -- root <root@partclone.TDRBL>  Fri, 22 May 2009 05:52:00 +0800
+ -- Georges Khaznadar <georgesk@ofset.org>  Sun, 30 Oct 2011 02:27:44 +0200
 
-partclone (0.1.0-10) unstable; urgency=low
+partclone (0.2.29-1) unstable; urgency=low
 
-    [ Thomas Tsai ]
-    * Bug fixed: clonezilla-Bugs-2784676. Thanks to njorl _at_ users sourceforge net.
+  * upgraded to the newer upstream version
 
- -- Steven Shiau <steven@nchc.org.tw>  Fri, 01 May 2009 10:55:00 +0800
+ -- Georges Khaznadar <georgesk@ofset.org>  Mon, 19 Sep 2011 19:38:40 +0200
 
-partclone (0.1.0-9) unstable; urgency=low
+partclone (0.2.27-1) unstable; urgency=low
 
-    [ Steven Shiau ]
-    * Minor updates for output messages.
+  * upgraded to the newer upstream version
+  * tested the compilation in a Sid chroot, which works, due to the 
+    availability of libreiser4-dev since the last NMU. Closes: #634543
+  * defined a versioned build-dependency on libreiser4-dev
 
- -- Steven Shiau <steven@nchc.org.tw>  Sun, 26 Apr 2009 13:54:00 +0800
+ -- Georges Khaznadar <georgesk@ofset.org>  Sun, 04 Sep 2011 16:32:35 +0200
 
-partclone (0.1.0-8) unstable; urgency=low
+partclone (0.2.26-1) unstable; urgency=low
 
-    [ Steven Shiau ]
-    * Minor updates for output messages.
+  * upgraded to the newer upstream version
+  * fixed a few typos in the source of manpages
+  * applied the patch sent by Nameless <thenamelessnumerologist@gmail.com>
+    Closes: #636927
 
-    [ Thomas Tsai ]
-    * EXECNAME was added for partclone.restore.
-    
- -- Steven Shiau <steven@nchc.org.tw>  Fri, 24 Apr 2009 14:07:00 +0800
+ -- Georges Khaznadar <georgesk@ofset.org>  Fri, 26 Aug 2011 09:30:46 +0200
 
-partclone (0.1.0-7) unstable; urgency=low
+partclone (0.2.22-3) unstable; urgency=low
 
-    [ Thomas Tsai ]
-    * partclone.ext4dev is linkded now.
-    
- -- Steven Shiau <steven@nchc.org.tw>  Thu, 23 Apr 2009 19:01:00 +0800
+  * Closes: #623452 (the already fixed ITP)
+  * added a build-dependency on libreadline-gplv2-dev|libreadline5-dev,
+    which Closes: #634543
 
-partclone (0.1.0-6) unstable; urgency=low
+ -- Georges Khaznadar <georgesk@ofset.org>  Tue, 19 Jul 2011 10:49:11 +0200
 
-    [ Thomas Tsai ]
-    * A bug about partclone.restore used to restore known file systems was fixed.
-    
- -- Steven Shiau <steven@nchc.org.tw>  Thu, 18 Apr 2009 09:59:00 +0800
+partclone (0.2.22-2) unstable; urgency=low
 
-partclone (0.1.0-5) unstable; urgency=low
+  * fixed debian/copyright, thanks to Luca Falavigna
+    included references to authors of third-party sources and mentioned
+    their FreedBSD-like license.
 
-    [ Thomas Tsai ]
-    * A bug about checking partition size was fixed.
-    
- -- Steven Shiau <steven@nchc.org.tw>  Thu, 16 Apr 2009 15:03:00 +0800
+ -- Georges Khaznadar <georgesk@ofset.org>  Tue, 28 Jun 2011 17:18:39 +0200
 
-partclone (0.1.0-4) unstable; urgency=low
+partclone (0.2.22-1) unstable; urgency=low
 
-    [ Thomas Tsai ]
-    * Local device to device copy mode option "-b,  --dd-mode" was changed to be "-b,  --dev-to-dev" 
-    * A bug about partclone.dd wrongly get the partition size was fixed.
-    
- -- Steven Shiau <steven@nchc.org.tw>  Thu, 16 Apr 2009 12:16:00 +0800
+  * Initial release (Closes: #623452)
+  * removed the upstream's debian subdirectory, and taken some of its contents
+    as an input for the new debian subdirectory generated by dh_make
+  * refreshed the list of build-dependencies which had been defined by
+    upstream developers to take in account non-existent development libraries
+    for some filesystems in Debian
+  * modified configure.ac to disable those filesystems whose development
+    libraries are not in Debian, added a few rules to erase autoconf files
+    and rebuild them with autoreconf
+  * renamed partimage.manpages into partclone.manpages
 
-partclone (0.1.0-3) unstable; urgency=low
-
-    [ Thomas Tsai ]
-    * Bug fixed: partclone.ntfs statistics data was wrong when doing partition to partition clone.
-    
- -- Steven Shiau <steven@nchc.org.tw>  Tue, 15 Apr 2009 10:52:00 +0800
-
-partclone (0.1.0-2) unstable; urgency=low
-
-    [ Steven Shiau ]
-    * --enable-static is on again.
-    
- -- Steven Shiau <steven@nchc.org.tw>  Tue, 10 Apr 2009 11:47:00 +0800
-
-partclone (0.1.0-1) unstable; urgency=low
-
-    [ Thomas Tsai ]
-    * partclone.ext4, partclone.dd, partclone.restore were added.
-    
- -- Steven Shiau <steven@nchc.org.tw>  Tue, 07 Apr 2009 15:01:00 +0800
-
-partclone (0.0.9-4) unstable; urgency=low
-
-    [ Thomas Tsai ]
-    * A bug about FAT12 was fixed.
-
- -- Steven Shiau <steven@nchc.org.tw>  Tue, 30 Dec 2008 13:41:00 +0800
-
-partclone (0.0.9-3) unstable; urgency=low
-
-    [ Steven Shiau ]
-    * New upstream ntfsreloc.c 0.8.
-
- -- Steven Shiau <steven@nchc.org.tw>  Thu, 25 Dec 2008 15:32:00 +0800
-
-partclone (0.0.9-2) unstable; urgency=low
-
-    [ Thomas Tsai ]
-    * Update dirty message for ntfsclone-ng.
-    * Check filesystem before cloning partition. Partclone will make sure that.
-    * Add check hfs_plus filesystem before cloning volume.
-    * Update fatclone.c fatclone.h clearly. update dirty message for extfs.
-
- -- Steven Shiau <steven@nchc.org.tw>  Mon, 22 Dec 2008 09:46:00 +0800
-
-partclone (0.0.9-1) unstable; urgency=low
-    
-    # New features: partclone.ntfsreloc and partclone.ntfs were added. 
-
- -- Steven Shiau <steven@nchc.org.tw>  Thu, 30 Oct 2008 10:51:00 +0800
-
-partclone (0.0.8-8) unstable; urgency=low
-    
-    # Bug fixed: Failing to restore fat32 image was fixed by Thomas Tsai.
-
- -- Steven Shiau <steven@nchc.org.tw>  Wed, 30 Jul 2008 09:18:00 +0800
-
-partclone (0.0.8-7) unstable; urgency=low
-    
-    # partclone.hfsplus link was added by Thomas Tsai.
-
- -- Steven Shiau <steven@nchc.org.tw>  Thu, 24 Jul 2008 11:53:00 +0800
-
-partclone (0.0.8-6) unstable; urgency=low
-    
-    # Bug fixed: partclone.fat12 link was not done.
-
- -- Steven Shiau <steven@nchc.org.tw>  Fri, 11 Jul 2008 16:11:00 +0800
-
-partclone (0.0.8-5) unstable; urgency=low
-    
-    # fat12 was added by Thomas Tsai.
-
- -- Steven Shiau <steven@nchc.org.tw>  Fri, 11 Jul 2008 15:03:00 +0800
-
-partclone (0.0.8-4) unstable; urgency=low
-    
-    # Enable static linking.
-
- -- Steven Shiau <steven@nchc.org.tw>  Sat, 28 Jun 2008 10:22:00 +0800
-
-partclone (0.0.8-3) unstable; urgency=low
-    
-    # Some minor updates about messages by Thomas Tsai.
-
- -- Steven Shiau <steven@nchc.org.tw>  Sun, 15 Jun 2008 22:48:00 +0800
-
-partclone (0.0.8-2) unstable; urgency=low
-   
-    # configure.ac updated by Thomas Tsai.
-    # partclone website is www.partclone.org now.
-
- -- Steven Shiau <steven@nchc.org.tw>  Mon, 26 May 2008 14:19:00 +0800
-
-partclone (0.0.8-1) unstable; urgency=low
-   
-    # clone.$FS was renamed as partclone.$FS by Thomas Tsai.
-
- -- Steven Shiau <steven@nchc.org.tw>  Sun, 25 May 2008 09:19:00 +0800
-
-partclone (0.0.7-4) unstable; urgency=low
-   
-    # Some bugs about ncursesw were fixed by Thomas Tsai.
-
- -- Steven Shiau <steven@nchc.org.tw>  Fri, 16 May 2008 16:18:00 +0800
-
-partclone (0.0.7-3) unstable; urgency=low
-   
-    # Some bugs about ncursesw were fixed by Thomas Tsai.
-
- -- Steven Shiau <steven@nchc.org.tw>  Thu, 06 May 2008 23:00:00 +0800
-
-partclone (0.0.7-2) unstable; urgency=low
-
-    # Use --enable-ncursesw by default.
-
- -- Steven Shiau <steven@nchc.org.tw>  Thu, 01 May 2008 11:13:00 +0800
-
-partclone (0.0.7-1) unstable; urgency=low
-
-    # New functions: TUI mode for output done by Thomas Tsai.
-
- -- Steven Shiau <steven@nchc.org.tw>  Thu, 01 May 2008 11:08:00 +0800
-
-partclone (0.0.6-4) unstable; urgency=low
-
-    # Some new function for #14 "TUI of status reports" from Thomas Tsai.
-    # Smaller FS_MAGIC_SIZE in main.c.
-
- -- Steven Shiau <steven@nchc.org.tw>  Tue, 22 Apr 2008 14:52:00 +0800
-
-partclone (0.0.6-3) unstable; urgency=low
-
-    # Bug fixed: version was not changed.
-
- -- Steven Shiau <steven@nchc.org.tw>  Thu, 21 Feb 2008 13:40:00 +0800
-
-partclone (0.0.6-2) unstable; urgency=low
-
-    # Bug fixed: clone.fat was not complied.
-
- -- Steven Shiau <steven@nchc.org.tw>  Wed, 20 Feb 2008 22:47:00 +0800
-
-partclone (0.0.6-1) unstable; urgency=low
-
-    # clone.fat was added by Thomas Tsai.
-
- -- Steven Shiau <steven@nchc.org.tw>  Wed, 20 Feb 2008 22:41:00 +0800
-
-partclone (0.0.5-16) unstable; urgency=low
-
-    # Typos fixed.
-    # Bug fixed: partition to partition clone size checking failed.
-
- -- Steven Shiau <steven@nchc.org.tw>  Sat,  16 Feb 2008 10:02:00 +0800
-
-partclone (0.0.5-15) unstable; urgency=low
-
-    # partclone.nchc.org.tw was put without http:// in usage.
-
- -- Steven Shiau <steven@nchc.org.tw>  Mon,  04 Feb 2008 13:47:00 +0800
-
-partclone (0.0.5-14) unstable; urgency=low
-
-    # Some minor bugs fixed by Thomas Tsai.
-    # http://partclone.nchc.org.tw was added in usage.
-
- -- Steven Shiau <steven@nchc.org.tw>  Mon,  04 Feb 2008 13:45:00 +0800
-
-partclone (0.0.5-13) unstable; urgency=low
-
-  * Bugs fixed and feature added by Thomas Tsai: 
-    # reduce seek time
-    # fix number of Ave.Rate
-    # check every filesystem's image_head data...
-    # add new option to disable device and free space checking 
-
- -- Steven Shiau <steven@nchc.org.tw>  Tue,  30 Jan 2008 23:07:00 +0800
-
-partclone (0.0.5-12) unstable; urgency=low
-
-  * Bug fixed by Thomas Tsai: Partition size checking failed in some cases.
-
- -- Steven Shiau <steven@nchc.org.tw>  Tue,  30 Jan 2008 21:08:00 +0800
-
-partclone (0.0.5-11) unstable; urgency=low
-
-  * Bug fixed by Thomas Tsai: Partition size checking failed
-
- -- Steven Shiau <steven@nchc.org.tw>  Tue,  29 Jan 2008 16:47:00 +0800
-
-partclone (0.0.5-10) unstable; urgency=low
-
-  * Functions to check memory size, check_free_space were added by Thomas Tsai.
-
- -- Steven Shiau <steven@nchc.org.tw>  Wed,  23 Jan 2008 22:57:00 +0800
-
-partclone (0.0.5-9) unstable; urgency=low
-
-  * Thomas Tsai added:
-    New function rescue_sector.
-    UNSTALBE feature, support device to device.
-    Some other minor changes.
-
- -- Steven Shiau <steven@nchc.org.tw>  Sun,  20 Jan 2008 14:15:00 +0800
-
-partclone (0.0.5-8) unstable; urgency=low
-
-  * Some minor changes on ticket #18 from Thomas Tsai.
-
- -- Steven Shiau <steven@nchc.org.tw>  Fri,  11 Jan 2008 09:24:00 +0800
-
-partclone (0.0.5-7) unstable; urgency=low
-
-  * Some minor changes.
-
- -- Steven Shiau <steven@nchc.org.tw>  Wed,  9 Jan 2008 22:45:00 +0800
-
-partclone (0.0.5-6) unstable; urgency=low
-
-  * Thomas Tsai enhanced the status report.
-
- -- Steven Shiau <steven@nchc.org.tw>  Wed,  9 Jan 2008 09:15:00 +0800
-
-partclone (0.0.5-5) unstable; urgency=low
-
-  * Thomas Tsai closed ticket #18: Add a saving/restoring rate and estimated time to finish job in the status report.
-
- -- Steven Shiau <steven@nchc.org.tw>  Sun,  8 Jan 2008 15:12:00 +0800
-
-partclone (0.0.5-4) unstable; urgency=low
-
-  * Thomas Tsai closed these tickets: 
-    #12: Command without any option should show only short help messages.
-    #13: Change "HFSPLUS" as "HFS+" or "HFS Plus".
-    #15 (Sync after image is restored). 
-    #17: Show program name "partclone" and version number and url in the status report.
-
- -- Steven Shiau <steven@nchc.org.tw>  Sun,  7 Jan 2008 17:05:00 +0800
-
-partclone (0.0.5-3) unstable; urgency=low
-
-  * Static linking was disabled in debian/rules.
-
- -- Steven Shiau <steven@nchc.org.tw>  Sun,  6 Jan 2008 16:34:00 +0800
-
-partclone (0.0.5-2) unstable; urgency=low
-
-  * Description for deb package was updated.
-
- -- Steven Shiau <steven@nchc.org.tw>  Fri,  4 Jan 2008 21:40:00 +0800
-
-partclone (0.0.5-1) unstable; urgency=low
-
-  * [bugfix] reopen and close ticket #8 
-    - fix debian packaging linking permission issue.
-
- -- Jazz Yao-Tsung Wang <jazz@nchc.org.tw>  Fri,  4 Jan 2008 11:54:14 +0800
-
-partclone (0.0.4-5) unstable; urgency=low
-
-  * close ticket #8. Thomas added some alias programs when making install.
-
- -- Steven Shiau <steven@nchc.org.tw>  Fri,  4 Jan 2008 11:12:00 +0800
-
-partclone (0.0.4-3ubuntu1) feisty; urgency=low
-
-  * add support of static linking to configure.ac and src/Makefile.am
-  * [BUGFIX #1] fixed static linking time error while enabling XFS file system
-    support.
-  * modified debian packaginf control and rules to fix some mistakes.
-
- -- Jazz Yao-Tsung Wang <jazz@nchc.org.tw>  Wed,  2 Jan 2008 21:23:52 +0800
-
-partclone (0.0.4-3) unstable; urgency=low
-
-  * A Bug about restoring image from stdin was fixed by Jazz Wang.
-  * zh_TW.po was updated.
-
- -- Steven Shiau <steven@nchc.org.tw>  Sun, 1 Jan 2008 20:20:00 +0800
-
-partclone (0.0.4-2) unstable; urgency=low
-
-  * Updated config by Jazz Wang so that static linking now it's better. Not finished.
-  * Help messages updated.
-
- -- Steven Shiau <steven@nchc.org.tw>  Sun, 1 Jan 2008 11:20:00 +0800
-
-partclone (0.0.4-1) unstable; urgency=low
-
-  * Initial release.
-  * modify rules
-
- -- Yu-Chin Tsai <thomas@thomas-laptop.drbl.sf.net>  Thu, 13 Dec 2007 10:48:03 +0800
+ -- Georges Khaznadar <georgesk@ofset.org>  Wed, 20 Apr 2011 15:56:52 +0200

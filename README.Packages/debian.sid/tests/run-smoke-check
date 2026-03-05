@@ -1,0 +1,21 @@
+#!/bin/sh
+set -e
+test_partclone_dd(){
+  if [ -e testfile.img ]; then
+      rm testfile.img
+  fi
+  if [ -e restorefile.img ]; then
+      rm restorefile.img
+  fi
+  if [ -e testrun.log ]; then
+      rm testrun.log
+  fi
+  echo "initial file by dd"
+  dd if=/dev/urandom of=testfile.img bs=4096 count=8192
+  echo "to sector/block copy by partclone.dd"
+  partclone.dd -s testfile.img -o restorefile.img -C -F -L testrun.log
+  echo "check copied file"
+  cmp testfile.img restorefile.img
+  echo "finish partclone.dd test"
+}
+. shunit2
