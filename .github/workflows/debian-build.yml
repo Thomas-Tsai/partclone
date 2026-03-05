@@ -1,0 +1,85 @@
+name: Debian Snapshot Build
+
+on:
+  push:
+    branches:
+      - master
+      - add-debian-ci
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Debian Package (sid)
+    runs-on: ubuntu-latest
+    container:
+      image: debian:sid
+
+    steps:
+      - name: Install basic dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential devscripts debhelper fakeroot git tar ca-certificates curl dpkg-dev lintian
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Debian packaging directory
+        run: |
+          rm -rf debian
+          cp -a README.Packages/debian.sid debian
+
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          mk-build-deps --install --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y' debian/control
+
+      - name: Generate snapshot version (dch)
+        id: versioning
+        run: |
+          export DEBEMAIL="tlinux.tsai@gmail.com"
+          export DEBFULLNAME="Thomas Tsai"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          BASE=$(git describe --tags --abbrev=0 2>/dev/null || echo "0")
+          debversion=1
+          TS=$(date -u +%Y%m%d%H%M%S)
+          HASH=$(git rev-parse --short HEAD)
+          VERSION="${BASE}-${debversion}~git${TS}${HASH}"
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "UPSTREAM_VER=${BASE}" >> $GITHUB_ENV
+          echo "PKG=partclone" >> $GITHUB_ENV
+          dch -b --newversion "${VERSION}" "Automated snapshot build from ${HASH} (UTC ${TS})."
+          cat debian/changelog | head -n 10
+
+      - name: Create source package (orig.tar.gz)
+        run: |
+          git archive --format=tar.gz --prefix="${PKG}-${UPSTREAM_VER}/" \
+            -o "../${PKG}_${UPSTREAM_VER}.orig.tar.gz" HEAD
+          tar -O -xf "../${PKG}_${UPSTREAM_VER}.orig.tar.gz" "${PKG}-${UPSTREAM_VER}/src/version.h" > src/version.h || true
+
+      - name: Build Debian package
+        run: |
+          dpkg-buildpackage -us -uc -sa
+
+      - name: Run lintian checks
+        run: |
+          lintian -i -I --show-overrides ../*.deb ../*.dsc || echo "Lintian found issues but continuing..."
+
+      - name: Prepare Artifacts
+        run: |
+          mkdir -p export
+          mv ../${PKG}_${VERSION}* export/
+          mv ../${PKG}_${UPSTREAM_VER}.orig.tar.gz export/ 2>/dev/null || true
+      - name: Upload Debian Packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-packages-sid
+          path: export/*
+          retention-days: 14
