@@ -39,7 +39,8 @@ jobs:
       - name: Install build dependencies
         run: |
           apt-get update
-          mk-build-deps --install --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y' debian/control
+          mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y' debian/control
+          rm -f *build-deps*
 
       - name: Generate snapshot version (dch)
         id: versioning
