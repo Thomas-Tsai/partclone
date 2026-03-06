@@ -18,9 +18,9 @@
 #include "xfs_mount.h"
 #include "xfs_bit.h"
 
-#define CACHE_DEBUG 1
-#undef CACHE_DEBUG
-#define CACHE_DEBUG 1
+/* #define CACHE_DEBUG 1 */
+/* #undef CACHE_DEBUG */
+/* #define CACHE_DEBUG 1 */
 #undef CACHE_ABORT
 /* #define CACHE_ABORT 1 */
 

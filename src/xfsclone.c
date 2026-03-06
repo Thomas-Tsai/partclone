@@ -32,7 +32,7 @@ unsigned long* xfs_bitmap;
 
 xfs_mount_t     *mp;
 xfs_mount_t     mbuf;
-libxfs_init_t   xargs;
+struct libxfs_init   xargs;
 unsigned int    source_blocksize;       /* source filesystem blocksize */
 unsigned int    source_sectorsize;      /* source disk sectorsize */
 
@@ -42,7 +42,7 @@ void *thread_update_bitmap_pui(void *arg);
 
 void get_sb(xfs_sb_t *sbp, xfs_off_t off, int size, xfs_agnumber_t agno)
 {
-        xfs_dsb_t *buf = NULL;
+        struct xfs_dsb *buf = NULL;
 	int rval = 0;
 
         buf = memalign(libxfs_device_alignment(), size);
@@ -135,13 +135,20 @@ scan_sbtree(
 	//push_cur();
 	//set_cur(&typtab[typ], XFS_AGB_TO_DADDR(mp, seqno, root),
 	//	blkbb, DB_RING_IGN, NULL);
-	bp = libxfs_readbuf(mp->m_ddev_targp, XFS_AGB_TO_DADDR(mp, seqno, root), blkbb, 0, NULL);
-        data = bp->b_addr;
-	if (data == NULL) {
+	int error;
+	error = libxfs_buf_read(mp->m_ddev_targp, XFS_AGB_TO_DADDR(mp, seqno, root), blkbb, 0, &bp, NULL);
+	if (error || !bp) {
 		log_mesg(0, 0, 0, fs_opt.debug, "%s: can't read btree block %u/%u\n", __FILE__, seqno, root);
 		return;
 	}
+	data = bp->b_addr;
+	if (data == NULL) {
+		log_mesg(0, 0, 0, fs_opt.debug, "%s: can't read btree block %u/%u\n", __FILE__, seqno, root);
+		libxfs_buf_relse(bp);
+		return;
+	}
 	(*func)(data, typ, nlevels - 1, agf);
+	libxfs_buf_relse(bp);
 	//pop_cur();
 }
 
@@ -181,22 +188,23 @@ scan_freelist(
 	xfs_agf_t	*agf)
 {
 	xfs_agnumber_t	seqno = be32_to_cpu(agf->agf_seqno);
-	xfs_agfl_t	*agfl;
 	xfs_agblock_t	bno;
 	unsigned int	i;
-	void		*agfl_bno;
+	__be32		*agfl_bno;
 	struct xfs_buf	*bp;
 	const struct xfs_buf_ops *ops = NULL;
 
 	if (be32_to_cpu(agf->agf_flcount) == 0)
 		return;
-	bp = libxfs_readbuf(mp->m_ddev_targp, XFS_AG_DADDR(mp, seqno, XFS_AGFL_DADDR(mp)), XFS_FSS_TO_BB(mp, 1), 0, ops);
-	agfl = bp->b_addr;
+	int error;
+	error = libxfs_buf_read(mp->m_ddev_targp, XFS_AG_DADDR(mp, seqno, XFS_AGFL_DADDR(mp)), XFS_FSS_TO_BB(mp, 1), 0, &bp, ops);
+	if (error || !bp) {
+		log_mesg(0, 0, 0, fs_opt.debug, "%s: can't read agfl block for ag %u\n", __FILE__, seqno);
+		return;
+	}
 	i = be32_to_cpu(agf->agf_flfirst);
 
-	/* open coded XFS_BUF_TO_AGFL_BNO */
-	agfl_bno = xfs_sb_version_hascrc(&mp->m_sb) ? (void *)&agfl->agfl_bno[0]
-						   : (void *)agfl;
+	agfl_bno = xfs_buf_to_agfl_bno(bp);
 
 	/* verify agf values before proceeding */
 	if (be32_to_cpu(agf->agf_flfirst) >= xfs_agfl_size(mp) ||
@@ -206,9 +214,7 @@ scan_freelist(
 	}
 
 	for (;;) {
-		__be32 temp_bno;
-		memcpy(&temp_bno, (char *)agfl_bno + i * sizeof(__be32), sizeof(temp_bno));
-		bno = be32_to_cpu(temp_bno);
+		bno = be32_to_cpu(agfl_bno[i]);
 		addtohist(seqno, bno, 1);
 		if (i == be32_to_cpu(agf->agf_fllast))
 			break;
@@ -226,17 +232,23 @@ scan_ag(
 	xfs_agf_t	*agf;
 	struct xfs_buf	*bp;
 	const struct xfs_buf_ops *ops = NULL;
+	int error;
 
 	//push_cur();
 	//set_cur(&typtab[TYP_AGF], XFS_AG_DADDR(mp, agno, XFS_AGF_DADDR(mp)),
 	//			XFS_FSS_TO_BB(mp, 1), DB_RING_IGN, NULL);
 	//agf = iocur_top->data;
-	bp = libxfs_readbuf(mp->m_ddev_targp, XFS_AG_DADDR(mp, agno, XFS_AGF_DADDR(mp)), XFS_FSS_TO_BB(mp, 1), 0, ops);
+	error = libxfs_buf_read(mp->m_ddev_targp, XFS_AG_DADDR(mp, agno, XFS_AGF_DADDR(mp)), XFS_FSS_TO_BB(mp, 1), 0, &bp, ops);
+	if (error || !bp) {
+		log_mesg(0, 0, 0, fs_opt.debug, "%s: can't read agf block for ag %u\n", __FILE__, agno);
+		return;
+	}
 	agf = bp->b_addr;
 	scan_freelist(agf);
-	scan_sbtree(agf, be32_to_cpu(agf->agf_roots[XFS_BTNUM_BNO]),
-			TYP_BNOBT, be32_to_cpu(agf->agf_levels[XFS_BTNUM_BNO]),
+	scan_sbtree(agf, be32_to_cpu(agf->agf_bno_root),
+			TYP_BNOBT, be32_to_cpu(agf->agf_bno_level),
 			scanfunc_bno);
+	libxfs_buf_relse(bp);
 	//pop_cur();
 }
 
@@ -278,14 +290,12 @@ static void fs_open(char* device)
     /* prepare the libxfs_init structure */
 
     memset(&xargs, 0, sizeof(xargs));
-    xargs.isdirect = LIBXFS_DIRECT;
-    xargs.isreadonly = LIBXFS_ISREADONLY;
+    xargs.flags = LIBXFS_ISREADONLY | LIBXFS_DIRECT;
 
+    xargs.data.name = device;
     if (source_is_file)  {
-	xargs.dname = device;
-	xargs.disfile = 1;
-    } else
-	xargs.volname = device;
+	xargs.data.isfile = true;
+    }
 
     if (libxfs_init(&xargs) == 0)
     {
@@ -296,13 +306,8 @@ static void fs_open(char* device)
     memset(&mbuf, 0, sizeof(xfs_mount_t));
     sb = &mbuf.m_sb;
     get_sb(sb, 0, XFS_MAX_SECTORSIZE, 0);
-    //sbp = libxfs_readbuf(xargs.ddev, XFS_SB_DADDR, 1, 0, ops);
 
-    //memset(&mbuf, 0, sizeof(xfs_mount_t));
-    //sb = &mbuf.m_sb;
-    //libxfs_sb_from_disk(sb, XFS_BUF_TO_SBP(sbp));
-
-    mp = libxfs_mount(&mbuf, sb, xargs.ddev, xargs.logdev, xargs.rtdev, 1);
+    mp = libxfs_mount(&mbuf, sb, &xargs, 0);
     if (mp == NULL) {
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: %s filesystem failed to initialize\nAborting.\n", __FILE__, device);
     } else if (mp->m_sb.sb_inprogress)  {
@@ -348,7 +353,7 @@ static void fs_close()
         libxfs_umount(mp);
         mp = NULL;
     }
-    libxfs_destroy();
+    libxfs_destroy(&xargs);
 
     if (source_fd != -1) {
         close(source_fd);

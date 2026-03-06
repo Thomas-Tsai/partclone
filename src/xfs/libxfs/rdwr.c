@@ -17,8 +17,12 @@
 #include "xfs_inode_fork.h"
 #include "xfs_inode.h"
 #include "xfs_trans.h"
+#include "libfrog/platform.h"
+#include "libxfs/xfile.h"
+#include "libxfs/buf_mem.h"
+#include "libxfs.h"
 
-#include "libxfs.h"		/* for LIBXFS_EXIT_ON_FAILURE */
+static void libxfs_brelse(struct cache_node *node);
 
 /*
  * Important design/architecture note:
@@ -29,7 +33,7 @@
  * outside libxfs clears bp->b_error - very little code even checks it - so the
  * libxfs code is tripping on stale errors left by the userspace code.
  *
- * We can't clear errors or zero buffer contents in libxfs_getbuf-* like we do
+ * We can't clear errors or zero buffer contents in libxfs_buf_get-* like we do
  * in the kernel, because those functions are used by the libxfs_readbuf_*
  * functions and hence need to leave the buffers unchanged on cache hits. This
  * is actually the only way to gather a write error from a libxfs_writebuf()
@@ -43,11 +47,11 @@
  *
  * IOWs, userspace is behaving quite differently to the kernel and as a result
  * it leaks errors from reads, invalidations and writes through
- * libxfs_getbuf/libxfs_readbuf.
+ * libxfs_buf_get/libxfs_buf_read.
  *
  * The result of this is that until the userspace code outside libxfs is cleaned
  * up, functions that release buffers from userspace control (i.e
- * libxfs_writebuf/libxfs_putbuf) need to zero bp->b_error to prevent
+ * libxfs_writebuf/libxfs_buf_relse) need to zero bp->b_error to prevent
  * propagation of stale errors into future buffer operations.
  */
 
@@ -59,10 +63,25 @@
 int
 libxfs_device_zero(struct xfs_buftarg *btp, xfs_daddr_t start, uint len)
 {
+	int		fd = btp->bt_bdev_fd;
 	xfs_off_t	start_offset, end_offset, offset;
 	ssize_t		zsize, bytes;
+	size_t		len_bytes;
 	char		*z;
-	int		fd;
+	int		error;
+
+	if (xfs_buftarg_is_mem(btp))
+		return -EOPNOTSUPP;
+
+	start_offset = LIBXFS_BBTOOFF64(start);
+
+	/* try to use special zeroing methods, fall back to writes if needed */
+	len_bytes = LIBXFS_BBTOOFF64(len);
+	error = fallocate(fd, FALLOC_FL_ZERO_RANGE, start_offset, len_bytes);
+	if (!error) {
+		xfs_buftarg_trip_write(btp);
+		return 0;
+	}
 
 	zsize = min(BDSTRAT_SIZE, BBTOB(len));
 	if ((z = memalign(libxfs_device_alignment(), zsize)) == NULL) {
@@ -72,9 +91,6 @@ libxfs_device_zero(struct xfs_buftarg *btp, xfs_daddr_t start, uint len)
 		exit(1);
 	}
 	memset(z, 0, zsize);
-
-	fd = libxfs_device_to_fd(btp->dev);
-	start_offset = LIBXFS_BBTOOFF64(start);
 
 	if ((lseek(fd, start_offset, SEEK_SET)) < 0) {
 		fprintf(stderr, _("%s: %s seek to offset %llu failed: %s\n"),
@@ -95,6 +111,7 @@ libxfs_device_zero(struct xfs_buftarg *btp, xfs_daddr_t start, uint len)
 				progname, __FUNCTION__);
 			exit(1);
 		}
+		xfs_buftarg_trip_write(btp);
 		offset += bytes;
 	}
 	free(z);
@@ -131,10 +148,1015 @@ static char *next(
 	struct xfs_buf	*buf = (struct xfs_buf *)private;
 
 	if (buf &&
-	    (buf->b_bcount < (int)(ptr - (char *)buf->b_addr) + offset))
+	    (BBTOB(buf->b_length) < (int)(ptr - (char *)buf->b_addr) + offset))
 		abort();
 
 	return ptr + offset;
+}
+
+struct xfs_buf *
+libxfs_getsb(
+	struct xfs_mount	*mp)
+{
+	struct xfs_buf		*bp;
+
+	libxfs_buf_read(mp->m_ddev_targp, XFS_SB_DADDR, XFS_FSS_TO_BB(mp, 1),
+			0, &bp, &xfs_sb_buf_ops);
+	return bp;
+}
+
+struct xfs_buf *
+libxfs_getrtsb(
+	struct xfs_mount	*mp)
+{
+	struct xfs_buf		*bp;
+	int			error;
+
+	if (!mp->m_rtdev_targp->bt_bdev)
+		return NULL;
+
+	error = libxfs_buf_read_uncached(mp->m_rtdev_targp, XFS_RTSB_DADDR,
+			XFS_FSB_TO_BB(mp, 1), 0, &bp, &xfs_rtsb_buf_ops);
+	if (error)
+		return NULL;
+	return bp;
+}
+
+struct kmem_cache			*xfs_buf_cache;
+
+static struct cache_mru		xfs_buf_freelist =
+	{{&xfs_buf_freelist.cm_list, &xfs_buf_freelist.cm_list},
+	 0, PTHREAD_MUTEX_INITIALIZER };
+
+/*  2^63 + 2^61 - 2^57 + 2^54 - 2^51 - 2^18 + 1 */
+#define GOLDEN_RATIO_PRIME	0x9e37fffffffc0001UL
+#define CACHE_LINE_SIZE		64
+unsigned int
+libxfs_bhash(cache_key_t key, unsigned int hashsize, unsigned int hashshift)
+{
+	uint64_t	hashval = ((struct xfs_bufkey *)key)->blkno;
+	uint64_t	tmp;
+
+	tmp = hashval ^ (GOLDEN_RATIO_PRIME + hashval) / CACHE_LINE_SIZE;
+	tmp = tmp ^ ((tmp ^ GOLDEN_RATIO_PRIME) >> hashshift);
+	return tmp % hashsize;
+}
+
+int
+libxfs_bcompare(
+	struct cache_node	*node,
+	cache_key_t		key)
+{
+	struct xfs_buf		*bp = container_of(node, struct xfs_buf,
+						   b_node);
+	struct xfs_bufkey	*bkey = (struct xfs_bufkey *)key;
+	struct cache		*bcache = bkey->buftarg->bcache;
+
+	if (bp->b_cache_key == bkey->blkno) {
+		if (bp->b_length == bkey->bblen)
+			return CACHE_HIT;
+#ifdef IO_BCOMPARE_CHECK
+		if (!(bcache->c_flags & CACHE_MISCOMPARE_PURGE)) {
+			fprintf(stderr,
+	"%lx: Badness in key lookup (length)\n"
+	"bp=(bno 0x%llx, len %u bytes) key=(bno 0x%llx, len %u bytes)\n",
+				pthread_self(),
+				(unsigned long long)xfs_buf_daddr(bp),
+				BBTOB(bp->b_length),
+				(unsigned long long)bkey->blkno,
+				BBTOB(bkey->bblen));
+		}
+#endif
+		return CACHE_PURGE;
+	}
+	return CACHE_MISS;
+}
+
+static void
+__initbuf(struct xfs_buf *bp, struct xfs_buftarg *btp, xfs_daddr_t bno,
+		unsigned int bytes)
+{
+	ASSERT(!xfs_buftarg_is_mem(btp));
+
+	bp->b_flags = 0;
+	bp->b_cache_key = bno;
+	bp->b_length = BTOBB(bytes);
+	bp->b_target = btp;
+	bp->b_mount = btp->bt_mount;
+	bp->b_error = 0;
+	if (!bp->b_addr)
+		bp->b_addr = memalign(libxfs_device_alignment(), bytes);
+	if (!bp->b_addr) {
+		fprintf(stderr,
+			_("%s: %s can't memalign %u bytes: %s\n"),
+			progname, __FUNCTION__, bytes,
+			strerror(errno));
+		exit(1);
+	}
+	memset(bp->b_addr, 0, bytes);
+	pthread_mutex_init(&bp->b_lock, NULL);
+	bp->b_holder = 0;
+	bp->b_recur = 0;
+	bp->b_ops = NULL;
+	INIT_LIST_HEAD(&bp->b_li_list);
+
+	if (!bp->b_maps)
+		bp->b_maps = &bp->__b_map;
+
+	if (bp->b_maps == &bp->__b_map) {
+		bp->b_nmaps = 1;
+		bp->b_maps[0].bm_bn = bno;
+		bp->b_maps[0].bm_len = bp->b_length;
+	}
+}
+
+static void
+libxfs_initbuf(struct xfs_buf *bp, struct xfs_buftarg *btp, xfs_daddr_t bno,
+		unsigned int bytes)
+{
+	__initbuf(bp, btp, bno, bytes);
+}
+
+static void
+libxfs_initbuf_map(struct xfs_buf *bp, struct xfs_buftarg *btp,
+		struct xfs_buf_map *map, int nmaps)
+{
+	unsigned int bytes = 0;
+	int i;
+
+	bytes = sizeof(struct xfs_buf_map) * nmaps;
+	bp->b_maps = malloc(bytes);
+	if (!bp->b_maps) {
+		fprintf(stderr,
+			_("%s: %s can't malloc %u bytes: %s\n"),
+			progname, __FUNCTION__, bytes,
+			strerror(errno));
+		exit(1);
+	}
+	bp->b_nmaps = nmaps;
+
+	bytes = 0;
+	for ( i = 0; i < nmaps; i++) {
+		bp->b_maps[i].bm_bn = map[i].bm_bn;
+		bp->b_maps[i].bm_len = map[i].bm_len;
+		bytes += BBTOB(map[i].bm_len);
+	}
+
+	__initbuf(bp, btp, map[0].bm_bn, bytes);
+	bp->b_flags |= LIBXFS_B_DISCONTIG;
+}
+
+static struct xfs_buf *
+__libxfs_getbufr(int blen)
+{
+	struct xfs_buf	*bp;
+
+	/*
+	 * first look for a buffer that can be used as-is,
+	 * if one cannot be found, see if there is a buffer,
+	 * and if so, free its buffer and set b_addr to NULL
+	 * before calling libxfs_initbuf.
+	 */
+	pthread_mutex_lock(&xfs_buf_freelist.cm_mutex);
+	if (!list_empty(&xfs_buf_freelist.cm_list)) {
+		list_for_each_entry(bp, &xfs_buf_freelist.cm_list, b_node.cn_mru) {
+			if (bp->b_length == BTOBB(blen)) {
+				list_del_init(&bp->b_node.cn_mru);
+				break;
+			}
+		}
+		if (&bp->b_node.cn_mru == &xfs_buf_freelist.cm_list) {
+			bp = list_entry(xfs_buf_freelist.cm_list.next,
+					struct xfs_buf, b_node.cn_mru);
+			list_del_init(&bp->b_node.cn_mru);
+			free(bp->b_addr);
+			bp->b_addr = NULL;
+			if (bp->b_maps != &bp->__b_map)
+				free(bp->b_maps);
+			bp->b_maps = NULL;
+		}
+	} else
+		bp = kmem_cache_zalloc(xfs_buf_cache, 0);
+	pthread_mutex_unlock(&xfs_buf_freelist.cm_mutex);
+	bp->b_ops = NULL;
+	if (bp->b_flags & LIBXFS_B_DIRTY)
+		fprintf(stderr, "found dirty buffer (bulk) on free list!\n");
+
+	return bp;
+}
+
+static struct xfs_buf *
+libxfs_getbufr(struct xfs_buftarg *btp, xfs_daddr_t blkno, int bblen)
+{
+	struct xfs_buf	*bp;
+	int		blen = BBTOB(bblen);
+
+	bp =__libxfs_getbufr(blen);
+	if (bp)
+		libxfs_initbuf(bp, btp, blkno, blen);
+	return bp;
+}
+
+static struct xfs_buf *
+libxfs_getbufr_map(struct xfs_buftarg *btp, xfs_daddr_t blkno, int bblen,
+		struct xfs_buf_map *map, int nmaps)
+{
+	struct xfs_buf	*bp;
+	int		blen = BBTOB(bblen);
+
+	if (!map || !nmaps) {
+		fprintf(stderr,
+			_("%s: %s invalid map %p or nmaps %d\n"),
+			progname, __FUNCTION__, map, nmaps);
+		exit(1);
+	}
+
+	if (blkno != map[0].bm_bn) {
+		fprintf(stderr,
+			_("%s: %s map blkno 0x%llx doesn't match key 0x%llx\n"),
+			progname, __FUNCTION__, (long long)map[0].bm_bn,
+			(long long)blkno);
+		exit(1);
+	}
+
+	bp =__libxfs_getbufr(blen);
+	if (bp)
+		libxfs_initbuf_map(bp, btp, map, nmaps);
+	return bp;
+}
+
+void
+xfs_buf_lock(
+	struct xfs_buf	*bp)
+{
+	if (use_xfs_buf_lock)
+		pthread_mutex_lock(&bp->b_lock);
+}
+
+void
+xfs_buf_unlock(
+	struct xfs_buf	*bp)
+{
+	if (use_xfs_buf_lock)
+		pthread_mutex_unlock(&bp->b_lock);
+}
+
+static int
+__cache_lookup(
+	struct xfs_bufkey	*key,
+	unsigned int		flags,
+	struct xfs_buf		**bpp)
+{
+	struct cache_node	*cn = NULL;
+	struct cache		*bcache = key->buftarg->bcache;
+	struct xfs_buf		*bp;
+
+	*bpp = NULL;
+
+	cache_node_get(bcache, key, &cn);
+	if (!cn)
+		return -ENOMEM;
+	bp = container_of(cn, struct xfs_buf, b_node);
+
+	if (use_xfs_buf_lock) {
+		int		ret;
+
+		ret = pthread_mutex_trylock(&bp->b_lock);
+		if (ret) {
+			ASSERT(ret == EAGAIN);
+			if (flags & LIBXFS_GETBUF_TRYLOCK) {
+				cache_node_put(bcache, cn);
+				return -EAGAIN;
+			}
+
+			if (pthread_equal(bp->b_holder, pthread_self())) {
+				fprintf(stderr,
+	_("Warning: recursive buffer locking at block %" PRIu64 " detected\n"),
+					key->blkno);
+				bp->b_recur++;
+				*bpp = bp;
+				return 0;
+			} else {
+				pthread_mutex_lock(&bp->b_lock);
+			}
+		}
+
+		bp->b_holder = pthread_self();
+	}
+
+	cache_node_set_priority(bcache, cn,
+			cache_node_get_priority(cn) - CACHE_PREFETCH_PRIORITY);
+	*bpp = bp;
+	return 0;
+}
+
+static int
+libxfs_getbuf_flags(
+	struct xfs_buftarg	*btp,
+	xfs_daddr_t		blkno,
+	int			len,
+	unsigned int		flags,
+	struct xfs_buf		**bpp)
+{
+	struct xfs_bufkey	key = {NULL};
+	int			ret;
+
+	key.buftarg = btp;
+	key.blkno = blkno;
+	key.bblen = len;
+
+	ret = __cache_lookup(&key, flags, bpp);
+	if (ret)
+		return ret;
+
+	if (btp == btp->bt_mount->m_ddev_targp) {
+		(*bpp)->b_pag = xfs_perag_get(btp->bt_mount,
+				xfs_daddr_to_agno(btp->bt_mount, blkno));
+	}
+
+	return 0;
+}
+
+/*
+ * Clean the buffer flags for libxfs_getbuf*(), which wants to return
+ * an unused buffer with clean state.  This prevents CRC errors on a
+ * re-read of a corrupt block that was prefetched and freed.  This
+ * can happen with a massively corrupt directory that is discarded,
+ * but whose blocks are then recycled into expanding lost+found.
+ *
+ * Note however that if the buffer's dirty (prefetch calls getbuf)
+ * we'll leave the state alone because we don't want to discard blocks
+ * that have been fixed.
+ */
+static void
+reset_buf_state(
+	struct xfs_buf	*bp)
+{
+	if (bp && !(bp->b_flags & LIBXFS_B_DIRTY))
+		bp->b_flags &= ~(LIBXFS_B_UNCHECKED | LIBXFS_B_STALE |
+				LIBXFS_B_UPTODATE);
+}
+
+static int
+__libxfs_buf_get_map(
+	struct xfs_buftarg	*btp,
+	struct xfs_buf_map	*map,
+	int			nmaps,
+	int			flags,
+	struct xfs_buf		**bpp)
+{
+	struct xfs_bufkey	key = {NULL};
+	int			i;
+
+	if (nmaps == 1)
+		return libxfs_getbuf_flags(btp, map[0].bm_bn, map[0].bm_len,
+				flags, bpp);
+
+	key.buftarg = btp;
+	key.blkno = map[0].bm_bn;
+	for (i = 0; i < nmaps; i++) {
+		key.bblen += map[i].bm_len;
+	}
+	key.map = map;
+	key.nmaps = nmaps;
+
+	return __cache_lookup(&key, flags, bpp);
+}
+
+int
+libxfs_buf_get_map(
+	struct xfs_buftarg	*btp,
+	struct xfs_buf_map	*map,
+	int			nmaps,
+	int			flags,
+	struct xfs_buf		**bpp)
+{
+	int			error;
+
+	error = __libxfs_buf_get_map(btp, map, nmaps, flags, bpp);
+	if (error)
+		return error;
+
+	reset_buf_state(*bpp);
+	return 0;
+}
+
+void
+libxfs_buf_relse(
+	struct xfs_buf	*bp)
+{
+	/*
+	 * ensure that any errors on this use of the buffer don't carry
+	 * over to the next user.
+	 */
+	bp->b_error = 0;
+	if (use_xfs_buf_lock) {
+		if (bp->b_recur) {
+			bp->b_recur--;
+		} else {
+			bp->b_holder = 0;
+			pthread_mutex_unlock(&bp->b_lock);
+		}
+	}
+
+	if (!list_empty(&bp->b_node.cn_hash))
+		cache_node_put(bp->b_target->bcache, &bp->b_node);
+	else if (--bp->b_node.cn_count == 0) {
+		if (bp->b_flags & LIBXFS_B_DIRTY)
+			libxfs_bwrite(bp);
+		libxfs_brelse(&bp->b_node);
+	}
+}
+
+static struct cache_node *
+libxfs_balloc(
+	cache_key_t		key)
+{
+	struct xfs_bufkey	*bufkey = (struct xfs_bufkey *)key;
+	struct xfs_buf		*bp;
+
+	if (bufkey->map)
+		bp = libxfs_getbufr_map(bufkey->buftarg, bufkey->blkno,
+				bufkey->bblen, bufkey->map, bufkey->nmaps);
+	else
+		bp = libxfs_getbufr(bufkey->buftarg, bufkey->blkno,
+				bufkey->bblen);
+	return &bp->b_node;
+}
+
+static int
+__read_buf(int fd, void *buf, int len, off_t offset, int flags)
+{
+	int	sts;
+
+	sts = pread(fd, buf, len, offset);
+	if (sts < 0) {
+		int error = errno;
+		fprintf(stderr, _("%s: read failed: %s\n"),
+			progname, strerror(error));
+		return -error;
+	} else if (sts != len) {
+		fprintf(stderr, _("%s: error - read only %d of %d bytes\n"),
+			progname, sts, len);
+		return -EIO;
+	}
+	return 0;
+}
+
+int
+libxfs_readbufr(struct xfs_buftarg *btp, xfs_daddr_t blkno, struct xfs_buf *bp,
+		int len, int flags)
+{
+	int	fd = btp->bt_bdev_fd;
+	int	bytes = BBTOB(len);
+	int	error;
+
+	ASSERT(len <= bp->b_length);
+
+	if (xfs_buftarg_is_mem(btp))
+		return 0;
+
+	error = __read_buf(fd, bp->b_addr, bytes, LIBXFS_BBTOOFF64(blkno), flags);
+	if (!error &&
+	    bp->b_target == btp &&
+	    bp->b_cache_key == blkno &&
+	    bp->b_length == len)
+		bp->b_flags |= LIBXFS_B_UPTODATE;
+	bp->b_error = error;
+	return error;
+}
+
+int
+libxfs_readbuf_verify(
+	struct xfs_buf		*bp,
+	const struct xfs_buf_ops *ops)
+{
+	if (!ops)
+		return bp->b_error;
+
+	bp->b_ops = ops;
+	bp->b_ops->verify_read(bp);
+	bp->b_flags &= ~LIBXFS_B_UNCHECKED;
+	return bp->b_error;
+}
+
+int
+libxfs_readbufr_map(struct xfs_buftarg *btp, struct xfs_buf *bp, int flags)
+{
+	int	fd = btp->bt_bdev_fd;
+	int	error = 0;
+	void	*buf;
+	int	i;
+
+	if (xfs_buftarg_is_mem(btp))
+		return 0;
+
+	buf = bp->b_addr;
+	for (i = 0; i < bp->b_nmaps; i++) {
+		off_t	offset = LIBXFS_BBTOOFF64(bp->b_maps[i].bm_bn);
+		int len = BBTOB(bp->b_maps[i].bm_len);
+
+		error = __read_buf(fd, buf, len, offset, flags);
+		if (error) {
+			bp->b_error = error;
+			break;
+		}
+		buf += len;
+	}
+
+	if (!error)
+		bp->b_flags |= LIBXFS_B_UPTODATE;
+	return error;
+}
+
+int
+libxfs_buf_read_map(
+	struct xfs_buftarg	*btp,
+	struct xfs_buf_map	*map,
+	int			nmaps,
+	int			flags,
+	struct xfs_buf		**bpp,
+	const struct xfs_buf_ops *ops)
+{
+	struct xfs_buf		*bp;
+	bool			salvage = flags & LIBXFS_READBUF_SALVAGE;
+	int			error = 0;
+
+	*bpp = NULL;
+	if (nmaps == 1)
+		error = libxfs_getbuf_flags(btp, map[0].bm_bn, map[0].bm_len,
+				0, &bp);
+	else
+		error = __libxfs_buf_get_map(btp, map, nmaps, 0, &bp);
+	if (error)
+		return error;
+
+	/*
+	 * If the buffer was prefetched, it is likely that it was not validated.
+	 * Hence if we are supplied an ops function and the buffer is marked as
+	 * unchecked, we need to validate it now.
+	 *
+	 * We do this verification even if the buffer is dirty - the
+	 * verification is almost certainly going to fail the CRC check in this
+	 * case as a dirty buffer has not had the CRC recalculated. However, we
+	 * should not be dirtying unchecked buffers and therefore failing it
+	 * here because it's dirty and unchecked indicates we've screwed up
+	 * somewhere else.
+	 *
+	 * Note that if the caller passes in LIBXFS_READBUF_SALVAGE, that means
+	 * they want the buffer even if it fails verification.
+	 */
+	bp->b_error = 0;
+	if (bp->b_flags & (LIBXFS_B_UPTODATE | LIBXFS_B_DIRTY)) {
+		if (bp->b_flags & LIBXFS_B_UNCHECKED)
+			error = libxfs_readbuf_verify(bp, ops);
+		if (error && !salvage)
+			goto err;
+		goto ok;
+	}
+
+	/*
+	 * Set the ops on a cache miss (i.e. first physical read) as the
+	 * verifier may change the ops to match the type of buffer it contains.
+	 * A cache hit might reset the verifier to the original type if we set
+	 * it again, but it won't get called again and set to match the buffer
+	 * contents. *cough* xfs_da_node_buf_ops *cough*.
+	 */
+	if (nmaps == 1)
+		error = libxfs_readbufr(btp, map[0].bm_bn, bp, map[0].bm_len,
+				flags);
+	else
+		error = libxfs_readbufr_map(btp, bp, flags);
+	if (error)
+		goto err;
+
+	error = libxfs_readbuf_verify(bp, ops);
+	if (error && !salvage)
+		goto err;
+
+ok:
+	*bpp = bp;
+	return 0;
+err:
+	libxfs_buf_relse(bp);
+	return error;
+}
+
+/* Allocate a raw uncached buffer. */
+static inline struct xfs_buf *
+libxfs_getbufr_uncached(
+	struct xfs_buftarg	*targ,
+	xfs_daddr_t		daddr,
+	size_t			bblen)
+{
+	struct xfs_buf		*bp;
+
+	bp = libxfs_getbufr(targ, daddr, bblen);
+	if (!bp)
+		return NULL;
+
+	INIT_LIST_HEAD(&bp->b_node.cn_hash);
+	bp->b_node.cn_count = 1;
+	return bp;
+}
+
+/*
+ * Allocate an uncached buffer that points nowhere.  The refcount will be 1,
+ * and the cache node hash list will be empty to indicate that it's uncached.
+ */
+int
+libxfs_buf_get_uncached(
+	struct xfs_buftarg	*targ,
+	size_t			bblen,
+	int			flags,
+	struct xfs_buf		**bpp)
+{
+	*bpp = libxfs_getbufr_uncached(targ, XFS_BUF_DADDR_NULL, bblen);
+	return *bpp != NULL ? 0 : -ENOMEM;
+}
+
+/*
+ * Allocate and read an uncached buffer.  The refcount will be 1, and the cache
+ * node hash list will be empty to indicate that it's uncached.
+ */
+int
+libxfs_buf_read_uncached(
+	struct xfs_buftarg	*targ,
+	xfs_daddr_t		daddr,
+	size_t			bblen,
+	int			flags,
+	struct xfs_buf		**bpp,
+	const struct xfs_buf_ops *ops)
+{
+	struct xfs_buf		*bp;
+	int			error;
+
+	*bpp = NULL;
+	bp = libxfs_getbufr_uncached(targ, daddr, bblen);
+	if (!bp)
+		return -ENOMEM;
+
+	error = libxfs_readbufr(targ, daddr, bp, bblen, flags);
+	if (error)
+		goto err;
+
+	error = libxfs_readbuf_verify(bp, ops);
+	if (error)
+		goto err;
+
+	*bpp = bp;
+	return 0;
+err:
+	libxfs_buf_relse(bp);
+	return error;
+}
+
+static int
+__write_buf(int fd, void *buf, int len, off_t offset, int flags)
+{
+	int	sts;
+
+	sts = pwrite(fd, buf, len, offset);
+	if (sts < 0) {
+		int error = errno;
+		fprintf(stderr, _("%s: pwrite failed: %s\n"),
+			progname, strerror(error));
+		return -error;
+	} else if (sts != len) {
+		fprintf(stderr, _("%s: error - pwrite only %d of %d bytes\n"),
+			progname, sts, len);
+		return -EIO;
+	}
+	return 0;
+}
+
+int
+libxfs_bwrite(
+	struct xfs_buf	*bp)
+{
+	int		fd = bp->b_target->bt_bdev_fd;
+
+	/*
+	 * we never write buffers that are marked stale. This indicates they
+	 * contain data that has been invalidated, and even if the buffer is
+	 * dirty it must *never* be written. Verifiers are wonderful for finding
+	 * bugs like this. Make sure the error is obvious as to the cause.
+	 */
+	if (bp->b_flags & LIBXFS_B_STALE) {
+		bp->b_error = -ESTALE;
+		return bp->b_error;
+	}
+
+	/* Trigger the writeback hook if there is one. */
+	if (bp->b_mount->m_buf_writeback_fn)
+		bp->b_mount->m_buf_writeback_fn(bp);
+
+	/*
+	 * clear any pre-existing error status on the buffer. This can occur if
+	 * the buffer is corrupt on disk and the repair process doesn't clear
+	 * the error before fixing and writing it back.
+	 */
+	bp->b_error = 0;
+	if (bp->b_ops) {
+		bp->b_ops->verify_write(bp);
+		if (bp->b_error) {
+			fprintf(stderr,
+	_("%s: write verifier failed on %s bno 0x%llx/0x%x\n"),
+				__func__, bp->b_ops->name,
+				(unsigned long long)xfs_buf_daddr(bp),
+				bp->b_length);
+			return bp->b_error;
+		}
+	}
+
+	if (xfs_buftarg_is_mem(bp->b_target)) {
+		bp->b_error = 0;
+	} else if (!(bp->b_flags & LIBXFS_B_DISCONTIG)) {
+		bp->b_error = __write_buf(fd, bp->b_addr, BBTOB(bp->b_length),
+				    LIBXFS_BBTOOFF64(xfs_buf_daddr(bp)),
+				    bp->b_flags);
+	} else {
+		int	i;
+		void	*buf = bp->b_addr;
+
+		for (i = 0; i < bp->b_nmaps; i++) {
+			off_t	offset = LIBXFS_BBTOOFF64(bp->b_maps[i].bm_bn);
+			int len = BBTOB(bp->b_maps[i].bm_len);
+
+			bp->b_error = __write_buf(fd, buf, len, offset,
+						  bp->b_flags);
+			if (bp->b_error)
+				break;
+			buf += len;
+		}
+	}
+
+	if (bp->b_error) {
+		fprintf(stderr,
+	_("%s: write failed on %s bno 0x%llx/0x%x, err=%d\n"),
+			__func__, bp->b_ops ? bp->b_ops->name : "(unknown)",
+			(unsigned long long)xfs_buf_daddr(bp),
+			bp->b_length, -bp->b_error);
+	} else {
+		bp->b_flags |= LIBXFS_B_UPTODATE;
+		bp->b_flags &= ~(LIBXFS_B_DIRTY | LIBXFS_B_UNCHECKED);
+		xfs_buftarg_trip_write(bp->b_target);
+	}
+	return bp->b_error;
+}
+
+/*
+ * Mark a buffer dirty.  The dirty data will be written out when the cache
+ * is flushed (or at release time if the buffer is uncached).
+ */
+void
+libxfs_buf_mark_dirty(
+	struct xfs_buf	*bp)
+{
+	/*
+	 * Clear any error hanging over from reading the buffer. This prevents
+	 * subsequent reads after this write from seeing stale errors.
+	 */
+	bp->b_error = 0;
+	bp->b_flags &= ~LIBXFS_B_STALE;
+	bp->b_flags |= LIBXFS_B_DIRTY | LIBXFS_B_UPTODATE;
+}
+
+/* Prepare a buffer to be sent to the MRU list. */
+static inline void
+libxfs_buf_prepare_mru(
+	struct xfs_buf		*bp)
+{
+	if (bp->b_pag)
+		xfs_perag_put(bp->b_pag);
+	bp->b_pag = NULL;
+
+	ASSERT(!xfs_buftarg_is_mem(btp));
+
+	if (!(bp->b_flags & LIBXFS_B_DIRTY))
+		return;
+
+	/* Complain about (and remember) dropping dirty buffers. */
+	fprintf(stderr, _("%s: Releasing dirty buffer to free list!\n"),
+			progname);
+
+	if (bp->b_error == -EFSCORRUPTED)
+		bp->b_target->flags |= XFS_BUFTARG_CORRUPT_WRITE;
+	bp->b_target->flags |= XFS_BUFTARG_LOST_WRITE;
+}
+
+static void
+libxfs_brelse(
+	struct cache_node	*node)
+{
+	struct xfs_buf		*bp = container_of(node, struct xfs_buf,
+						   b_node);
+
+	if (!bp)
+		return;
+	libxfs_buf_prepare_mru(bp);
+
+	pthread_mutex_lock(&xfs_buf_freelist.cm_mutex);
+	list_add(&bp->b_node.cn_mru, &xfs_buf_freelist.cm_list);
+	pthread_mutex_unlock(&xfs_buf_freelist.cm_mutex);
+}
+
+static unsigned int
+libxfs_bulkrelse(
+	struct cache		*cache,
+	struct list_head	*list)
+{
+	struct xfs_buf		*bp;
+	int			count = 0;
+
+	if (list_empty(list))
+		return 0 ;
+
+	list_for_each_entry(bp, list, b_node.cn_mru) {
+		libxfs_buf_prepare_mru(bp);
+		count++;
+	}
+
+	pthread_mutex_lock(&xfs_buf_freelist.cm_mutex);
+	list_splice(list, &xfs_buf_freelist.cm_list);
+	pthread_mutex_unlock(&xfs_buf_freelist.cm_mutex);
+
+	return count;
+}
+
+/*
+ * Free everything from the xfs_buf_freelist MRU, used at final teardown
+ */
+void
+libxfs_bcache_free(void)
+{
+	struct list_head	*cm_list;
+	struct xfs_buf		*bp, *next;
+
+	cm_list = &xfs_buf_freelist.cm_list;
+	list_for_each_entry_safe(bp, next, cm_list, b_node.cn_mru) {
+		free(bp->b_addr);
+		if (bp->b_maps != &bp->__b_map)
+			free(bp->b_maps);
+		kmem_cache_free(xfs_buf_cache, bp);
+	}
+}
+
+/*
+ * When a buffer is marked dirty, the error is cleared. Hence if we are trying
+ * to flush a buffer prior to cache reclaim that has an error on it it means
+ * we've already tried to flush it and it failed. Prevent repeated corruption
+ * errors from being reported by skipping such buffers - when the corruption is
+ * fixed the buffer will be marked dirty again and we can write it again.
+ */
+static int
+libxfs_bflush(
+	struct cache_node	*node)
+{
+	struct xfs_buf		*bp = container_of(node, struct xfs_buf,
+						   b_node);
+
+	if (!bp->b_error && bp->b_flags & LIBXFS_B_DIRTY)
+		return libxfs_bwrite(bp);
+	return bp->b_error;
+}
+
+void
+libxfs_bcache_purge(struct xfs_mount *mp)
+{
+	if (!mp)
+		return;
+	cache_purge(mp->m_ddev_targp->bcache);
+	cache_purge(mp->m_logdev_targp->bcache);
+	cache_purge(mp->m_rtdev_targp->bcache);
+}
+
+void
+libxfs_bcache_flush(struct xfs_mount *mp)
+{
+	if (!mp)
+		return;
+	cache_flush(mp->m_ddev_targp->bcache);
+	cache_flush(mp->m_logdev_targp->bcache);
+	cache_flush(mp->m_rtdev_targp->bcache);
+}
+
+int
+libxfs_bcache_overflowed(struct xfs_mount *mp)
+{
+	return cache_overflowed(mp->m_ddev_targp->bcache) ||
+		cache_overflowed(mp->m_logdev_targp->bcache) ||
+		cache_overflowed(mp->m_rtdev_targp->bcache);
+}
+
+struct cache_operations libxfs_bcache_operations = {
+	.hash		= libxfs_bhash,
+	.alloc		= libxfs_balloc,
+	.flush		= libxfs_bflush,
+	.relse		= libxfs_brelse,
+	.compare	= libxfs_bcompare,
+	.bulkrelse	= libxfs_bulkrelse
+};
+
+/*
+ * Verify an on-disk magic value against the magic value specified in the
+ * verifier structure. The verifier magic is in disk byte order so the caller is
+ * expected to pass the value directly from disk.
+ */
+bool
+xfs_verify_magic(
+	struct xfs_buf		*bp,
+	__be32			dmagic)
+{
+	struct xfs_mount	*mp = bp->b_mount;
+	int			idx;
+
+	idx = xfs_has_crc(mp);
+	if (unlikely(WARN_ON(!bp->b_ops || !bp->b_ops->magic[idx])))
+		return false;
+	return dmagic == bp->b_ops->magic[idx];
+}
+
+/*
+ * Verify an on-disk magic value against the magic value specified in the
+ * verifier structure. The verifier magic is in disk byte order so the caller is
+ * expected to pass the value directly from disk.
+ */
+bool
+xfs_verify_magic16(
+	struct xfs_buf		*bp,
+	__be16			dmagic)
+{
+	struct xfs_mount	*mp = bp->b_mount;
+	int			idx;
+
+	idx = xfs_has_crc(mp);
+	if (unlikely(WARN_ON(!bp->b_ops || !bp->b_ops->magic16[idx])))
+		return false;
+	return dmagic == bp->b_ops->magic16[idx];
+}
+
+/*
+ * Flush everything dirty in the kernel and disk write caches to stable media.
+ * Returns 0 for success or a negative error code.
+ */
+int
+libxfs_blkdev_issue_flush(
+	struct xfs_buftarg	*btp)
+{
+	int			ret;
+
+	if (btp->bt_bdev == 0)
+		return 0;
+
+	ret = platform_flush_device(btp->bt_bdev_fd, btp->bt_bdev);
+	return ret ? -errno : 0;
+}
+
+/*
+ * Write out a buffer list synchronously.
+ *
+ * This will take the @buffer_list, write all buffers out and wait for I/O
+ * completion on all of the buffers. @buffer_list is consumed by the function,
+ * so callers must have some other way of tracking buffers if they require such
+ * functionality.
+ */
+int
+xfs_buf_delwri_submit(
+	struct list_head	*buffer_list)
+{
+	struct xfs_buf		*bp, *n;
+	int			error = 0, error2;
+
+	list_for_each_entry_safe(bp, n, buffer_list, b_list) {
+		list_del_init(&bp->b_list);
+		error2 = libxfs_bwrite(bp);
+		if (!error)
+			error = error2;
+		libxfs_buf_relse(bp);
+	}
+
+	return error;
+}
+
+/*
+ * Cancel a delayed write list.
+ *
+ * Remove each buffer from the list, clear the delwri queue flag and drop the
+ * associated buffer reference.
+ */
+void
+xfs_buf_delwri_cancel(
+	struct list_head	*list)
+{
+	struct xfs_buf		*bp;
+
+	while (!list_empty(list)) {
+		bp = list_first_entry(list, struct xfs_buf, b_list);
+
+		list_del_init(&bp->b_list);
+		libxfs_buf_relse(bp);
+	}
 }
 
 /*
@@ -164,7 +1186,7 @@ libxfs_log_clear(
 	char			*ptr;
 
 	if (((btp && dptr) || (!btp && !dptr)) ||
-	    (btp && !btp->dev) || !fs_uuid)
+	    (btp && !btp->bt_bdev) || !fs_uuid)
 		return -EINVAL;
 
 	/* first zero the log */
@@ -191,14 +1213,14 @@ libxfs_log_clear(
 	/* write out the first log record */
 	ptr = dptr;
 	if (btp) {
-		bp = libxfs_getbufr(btp, start, len);
+		bp = libxfs_getbufr_uncached(btp, start, len);
 		ptr = bp->b_addr;
 	}
 	libxfs_log_header(ptr, fs_uuid, version, sunit, fmt, lsn, tail_lsn,
 			  next, bp);
 	if (bp) {
-		bp->b_flags |= LIBXFS_B_DIRTY;
-		libxfs_putbufr(bp);
+		libxfs_buf_mark_dirty(bp);
+		libxfs_buf_relse(bp);
 	}
 
 	/*
@@ -239,7 +1261,7 @@ libxfs_log_clear(
 
 		ptr = dptr;
 		if (btp) {
-			bp = libxfs_getbufr(btp, blk, len);
+			bp = libxfs_getbufr_uncached(btp, blk, len);
 			ptr = bp->b_addr;
 		}
 		/*
@@ -249,8 +1271,8 @@ libxfs_log_clear(
 		libxfs_log_header(ptr, fs_uuid, version, BBTOB(len), fmt, lsn,
 				  tail_lsn, next, bp);
 		if (bp) {
-			bp->b_flags |= LIBXFS_B_DIRTY;
-			libxfs_putbufr(bp);
+			libxfs_buf_mark_dirty(bp);
+			libxfs_buf_relse(bp);
 		}
 
 		blk += len;
@@ -373,1064 +1395,39 @@ libxfs_log_header(
 	return BBTOB(len);
 }
 
-/*
- * Simple I/O (buffer cache) interface
- */
-
-
-#ifdef XFS_BUF_TRACING
-
-#undef libxfs_readbuf
-#undef libxfs_readbuf_map
-#undef libxfs_writebuf
-#undef libxfs_getbuf
-#undef libxfs_getbuf_map
-#undef libxfs_getbuf_flags
-#undef libxfs_putbuf
-
-xfs_buf_t	*libxfs_readbuf(struct xfs_buftarg *, xfs_daddr_t, int, int,
-				const struct xfs_buf_ops *);
-xfs_buf_t	*libxfs_readbuf_map(struct xfs_buftarg *, struct xfs_buf_map *,
-				int, int, const struct xfs_buf_ops *);
-int		libxfs_writebuf(xfs_buf_t *, int);
-xfs_buf_t	*libxfs_getbuf(struct xfs_buftarg *, xfs_daddr_t, int);
-xfs_buf_t	*libxfs_getbuf_map(struct xfs_buftarg *, struct xfs_buf_map *,
-				int, int);
-xfs_buf_t	*libxfs_getbuf_flags(struct xfs_buftarg *, xfs_daddr_t, int,
-				unsigned int);
-void		libxfs_putbuf (xfs_buf_t *);
-
-#define	__add_trace(bp, func, file, line)	\
-do {						\
-	if (bp) {				\
-		(bp)->b_func = (func);		\
-		(bp)->b_file = (file);		\
-		(bp)->b_line = (line);		\
-	}					\
-} while (0)
-
-xfs_buf_t *
-libxfs_trace_readbuf(const char *func, const char *file, int line,
-		struct xfs_buftarg *btp, xfs_daddr_t blkno, int len, int flags,
-		const struct xfs_buf_ops *ops)
+void
+libxfs_buf_set_priority(
+	struct xfs_buf	*bp,
+	int		priority)
 {
-	xfs_buf_t	*bp = libxfs_readbuf(btp, blkno, len, flags, ops);
-	__add_trace(bp, func, file, line);
-	return bp;
-}
-
-xfs_buf_t *
-libxfs_trace_readbuf_map(const char *func, const char *file, int line,
-		struct xfs_buftarg *btp, struct xfs_buf_map *map, int nmaps, int flags,
-		const struct xfs_buf_ops *ops)
-{
-	xfs_buf_t	*bp = libxfs_readbuf_map(btp, map, nmaps, flags, ops);
-	__add_trace(bp, func, file, line);
-	return bp;
+	cache_node_set_priority(bp->b_target->bcache, &bp->b_node, priority);
 }
 
 int
-libxfs_trace_writebuf(const char *func, const char *file, int line, xfs_buf_t *bp, int flags)
-{
-	__add_trace(bp, func, file, line);
-	return libxfs_writebuf(bp, flags);
-}
-
-xfs_buf_t *
-libxfs_trace_getbuf(const char *func, const char *file, int line,
-		struct xfs_buftarg *btp, xfs_daddr_t blkno, int len)
-{
-	xfs_buf_t	*bp = libxfs_getbuf(btp, blkno, len);
-	__add_trace(bp, func, file, line);
-	return bp;
-}
-
-xfs_buf_t *
-libxfs_trace_getbuf_map(const char *func, const char *file, int line,
-		struct xfs_buftarg *btp, struct xfs_buf_map *map, int nmaps,
-		int flags)
-{
-	xfs_buf_t	*bp = libxfs_getbuf_map(btp, map, nmaps, flags);
-	__add_trace(bp, func, file, line);
-	return bp;
-}
-
-xfs_buf_t *
-libxfs_trace_getbuf_flags(const char *func, const char *file, int line,
-		struct xfs_buftarg *btp, xfs_daddr_t blkno, int len, unsigned int flags)
-{
-	xfs_buf_t	*bp = libxfs_getbuf_flags(btp, blkno, len, flags);
-	__add_trace(bp, func, file, line);
-	return bp;
-}
-
-void
-libxfs_trace_putbuf(const char *func, const char *file, int line, xfs_buf_t *bp)
-{
-	__add_trace(bp, func, file, line);
-	libxfs_putbuf(bp);
-}
-
-
-#endif
-
-
-xfs_buf_t *
-libxfs_getsb(xfs_mount_t *mp, int flags)
-{
-	return libxfs_readbuf(mp->m_ddev_targp, XFS_SB_DADDR,
-				XFS_FSS_TO_BB(mp, 1), flags, &xfs_sb_buf_ops);
-}
-
-kmem_zone_t			*xfs_buf_zone;
-
-static struct cache_mru		xfs_buf_freelist =
-	{{&xfs_buf_freelist.cm_list, &xfs_buf_freelist.cm_list},
-	 0, PTHREAD_MUTEX_INITIALIZER };
-
-/*
- * The bufkey is used to pass the new buffer information to the cache object
- * allocation routine. Because discontiguous buffers need to pass different
- * information, we need fields to pass that information. However, because the
- * blkno and bblen is needed for the initial cache entry lookup (i.e. for
- * bcompare) the fact that the map/nmaps is non-null to switch to discontiguous
- * buffer initialisation instead of a contiguous buffer.
- */
-struct xfs_bufkey {
-	struct xfs_buftarg	*buftarg;
-	xfs_daddr_t		blkno;
-	unsigned int		bblen;
-	struct xfs_buf_map	*map;
-	int			nmaps;
-};
-
-/*  2^63 + 2^61 - 2^57 + 2^54 - 2^51 - 2^18 + 1 */
-#define GOLDEN_RATIO_PRIME	0x9e37fffffffc0001UL
-#define CACHE_LINE_SIZE		64
-static unsigned int
-libxfs_bhash(cache_key_t key, unsigned int hashsize, unsigned int hashshift)
-{
-	uint64_t	hashval = ((struct xfs_bufkey *)key)->blkno;
-	uint64_t	tmp;
-
-	tmp = hashval ^ (GOLDEN_RATIO_PRIME + hashval) / CACHE_LINE_SIZE;
-	tmp = tmp ^ ((tmp ^ GOLDEN_RATIO_PRIME) >> hashshift);
-	return tmp % hashsize;
-}
-
-static int
-libxfs_bcompare(struct cache_node *node, cache_key_t key)
-{
-	struct xfs_buf	*bp = (struct xfs_buf *)node;
-	struct xfs_bufkey *bkey = (struct xfs_bufkey *)key;
-
-	if (bp->b_target->dev == bkey->buftarg->dev &&
-	    bp->b_bn == bkey->blkno) {
-		if (bp->b_bcount == BBTOB(bkey->bblen))
-			return CACHE_HIT;
-#ifdef IO_BCOMPARE_CHECK
-		if (!(libxfs_bcache->c_flags & CACHE_MISCOMPARE_PURGE)) {
-			fprintf(stderr,
-	"%lx: Badness in key lookup (length)\n"
-	"bp=(bno 0x%llx, len %u bytes) key=(bno 0x%llx, len %u bytes)\n",
-				pthread_self(),
-				(unsigned long long)bp->b_bn, (int)bp->b_bcount,
-				(unsigned long long)bkey->blkno,
-				BBTOB(bkey->bblen));
-		}
-#endif
-		return CACHE_PURGE;
-	}
-	return CACHE_MISS;
-}
-
-static void
-__initbuf(xfs_buf_t *bp, struct xfs_buftarg *btp, xfs_daddr_t bno,
-		unsigned int bytes)
-{
-	bp->b_flags = 0;
-	bp->b_bn = bno;
-	bp->b_bcount = bytes;
-	bp->b_length = BTOBB(bytes);
-	bp->b_target = btp;
-	bp->b_error = 0;
-	if (!bp->b_addr)
-		bp->b_addr = memalign(libxfs_device_alignment(), bytes);
-	if (!bp->b_addr) {
-		fprintf(stderr,
-			_("%s: %s can't memalign %u bytes: %s\n"),
-			progname, __FUNCTION__, bytes,
-			strerror(errno));
-		exit(1);
-	}
-	memset(bp->b_addr, 0, bytes);
-#ifdef XFS_BUF_TRACING
-	list_head_init(&bp->b_lock_list);
-#endif
-	pthread_mutex_init(&bp->b_lock, NULL);
-	bp->b_holder = 0;
-	bp->b_recur = 0;
-	bp->b_ops = NULL;
-
-	if (!bp->b_maps) {
-		bp->b_nmaps = 1;
-		bp->b_maps = &bp->__b_map;
-		bp->b_maps[0].bm_bn = bp->b_bn;
-		bp->b_maps[0].bm_len = bp->b_length;
-	}
-}
-
-static void
-libxfs_initbuf(xfs_buf_t *bp, struct xfs_buftarg *btp, xfs_daddr_t bno,
-		unsigned int bytes)
-{
-	__initbuf(bp, btp, bno, bytes);
-}
-
-static void
-libxfs_initbuf_map(xfs_buf_t *bp, struct xfs_buftarg *btp,
-		struct xfs_buf_map *map, int nmaps)
-{
-	unsigned int bytes = 0;
-	int i;
-
-	bytes = sizeof(struct xfs_buf_map) * nmaps;
-	bp->b_maps = malloc(bytes);
-	if (!bp->b_maps) {
-		fprintf(stderr,
-			_("%s: %s can't malloc %u bytes: %s\n"),
-			progname, __FUNCTION__, bytes,
-			strerror(errno));
-		exit(1);
-	}
-	bp->b_nmaps = nmaps;
-
-	bytes = 0;
-	for ( i = 0; i < nmaps; i++) {
-		bp->b_maps[i].bm_bn = map[i].bm_bn;
-		bp->b_maps[i].bm_len = map[i].bm_len;
-		bytes += BBTOB(map[i].bm_len);
-	}
-
-	__initbuf(bp, btp, map[0].bm_bn, bytes);
-	bp->b_flags |= LIBXFS_B_DISCONTIG;
-}
-
-static xfs_buf_t *
-__libxfs_getbufr(int blen)
-{
-	xfs_buf_t	*bp;
-
-	/*
-	 * first look for a buffer that can be used as-is,
-	 * if one cannot be found, see if there is a buffer,
-	 * and if so, free its buffer and set b_addr to NULL
-	 * before calling libxfs_initbuf.
-	 */
-	pthread_mutex_lock(&xfs_buf_freelist.cm_mutex);
-	if (!list_empty(&xfs_buf_freelist.cm_list)) {
-		list_for_each_entry(bp, &xfs_buf_freelist.cm_list, b_node.cn_mru) {
-			if (bp->b_bcount == blen) {
-				list_del_init(&bp->b_node.cn_mru);
-				break;
-			}
-		}
-		if (&bp->b_node.cn_mru == &xfs_buf_freelist.cm_list) {
-			bp = list_entry(xfs_buf_freelist.cm_list.next,
-					xfs_buf_t, b_node.cn_mru);
-			list_del_init(&bp->b_node.cn_mru);
-			free(bp->b_addr);
-			bp->b_addr = NULL;
-			if (bp->b_maps != &bp->__b_map)
-				free(bp->b_maps);
-			bp->b_maps = NULL;
-		}
-	} else
-		bp = kmem_zone_zalloc(xfs_buf_zone, 0);
-	pthread_mutex_unlock(&xfs_buf_freelist.cm_mutex);
-	bp->b_ops = NULL;
-	if (bp->b_flags & LIBXFS_B_DIRTY)
-		fprintf(stderr, "found dirty buffer (bulk) on free list!");
-
-	return bp;
-}
-
-xfs_buf_t *
-libxfs_getbufr(struct xfs_buftarg *btp, xfs_daddr_t blkno, int bblen)
-{
-	xfs_buf_t	*bp;
-	int		blen = BBTOB(bblen);
-
-	bp =__libxfs_getbufr(blen);
-	if (bp)
-		libxfs_initbuf(bp, btp, blkno, blen);
-#ifdef IO_DEBUG
-	printf("%lx: %s: allocated %u bytes buffer, key=0x%llx(0x%llx), %p\n",
-		pthread_self(), __FUNCTION__, blen,
-		(long long)LIBXFS_BBTOOFF64(blkno), (long long)blkno, bp);
-#endif
-
-	return bp;
-}
-
-static xfs_buf_t *
-libxfs_getbufr_map(struct xfs_buftarg *btp, xfs_daddr_t blkno, int bblen,
-		struct xfs_buf_map *map, int nmaps)
-{
-	xfs_buf_t	*bp;
-	int		blen = BBTOB(bblen);
-
-	if (!map || !nmaps) {
-		fprintf(stderr,
-			_("%s: %s invalid map %p or nmaps %d\n"),
-			progname, __FUNCTION__, map, nmaps);
-		exit(1);
-	}
-
-	if (blkno != map[0].bm_bn) {
-		fprintf(stderr,
-			_("%s: %s map blkno 0x%llx doesn't match key 0x%llx\n"),
-			progname, __FUNCTION__, (long long)map[0].bm_bn,
-			(long long)blkno);
-		exit(1);
-	}
-
-	bp =__libxfs_getbufr(blen);
-	if (bp)
-		libxfs_initbuf_map(bp, btp, map, nmaps);
-#ifdef IO_DEBUG
-	printf("%lx: %s: allocated %u bytes buffer, key=0x%llx(0x%llx), %p\n",
-		pthread_self(), __FUNCTION__, blen,
-		(long long)LIBXFS_BBTOOFF64(blkno), (long long)blkno, bp);
-#endif
-
-	return bp;
-}
-
-#ifdef XFS_BUF_TRACING
-struct list_head	lock_buf_list = {&lock_buf_list, &lock_buf_list};
-int			lock_buf_count = 0;
-#endif
-
-static struct xfs_buf *
-__cache_lookup(struct xfs_bufkey *key, unsigned int flags)
-{
-	struct xfs_buf	*bp;
-
-	cache_node_get(libxfs_bcache, key, (struct cache_node **)&bp);
-	if (!bp)
-		return NULL;
-
-	if (use_xfs_buf_lock) {
-		int ret;
-
-		ret = pthread_mutex_trylock(&bp->b_lock);
-		if (ret) {
-			ASSERT(ret == EAGAIN);
-			if (flags & LIBXFS_GETBUF_TRYLOCK)
-				goto out_put;
-
-			if (pthread_equal(bp->b_holder, pthread_self())) {
-				fprintf(stderr,
-	_("Warning: recursive buffer locking at block %" PRIu64 " detected\n"),
-					key->blkno);
-				bp->b_recur++;
-				return bp;
-			} else {
-				pthread_mutex_lock(&bp->b_lock);
-			}
-		}
-
-		bp->b_holder = pthread_self();
-	}
-
-	cache_node_set_priority(libxfs_bcache, (struct cache_node *)bp,
-		cache_node_get_priority((struct cache_node *)bp) -
-						CACHE_PREFETCH_PRIORITY);
-#ifdef XFS_BUF_TRACING
-	pthread_mutex_lock(&libxfs_bcache->c_mutex);
-	lock_buf_count++;
-	list_add(&bp->b_lock_list, &lock_buf_list);
-	pthread_mutex_unlock(&libxfs_bcache->c_mutex);
-#endif
-#ifdef IO_DEBUG
-	printf("%lx %s: hit buffer %p for bno = 0x%llx/0x%llx\n",
-		pthread_self(), __FUNCTION__,
-		bp, bp->b_bn, (long long)LIBXFS_BBTOOFF64(key->blkno));
-#endif
-
-	return bp;
-out_put:
-	cache_node_put(libxfs_bcache, (struct cache_node *)bp);
-	return NULL;
-}
-
-struct xfs_buf *
-libxfs_getbuf_flags(struct xfs_buftarg *btp, xfs_daddr_t blkno, int len,
-		unsigned int flags)
-{
-	struct xfs_bufkey key = {NULL};
-
-	key.buftarg = btp;
-	key.blkno = blkno;
-	key.bblen = len;
-
-	return __cache_lookup(&key, flags);
-}
-
-/*
- * Clean the buffer flags for libxfs_getbuf*(), which wants to return
- * an unused buffer with clean state.  This prevents CRC errors on a
- * re-read of a corrupt block that was prefetched and freed.  This
- * can happen with a massively corrupt directory that is discarded,
- * but whose blocks are then recycled into expanding lost+found.
- *
- * Note however that if the buffer's dirty (prefetch calls getbuf)
- * we'll leave the state alone because we don't want to discard blocks
- * that have been fixed.
- */
-static void
-reset_buf_state(
+libxfs_buf_priority(
 	struct xfs_buf	*bp)
 {
-	if (bp && !(bp->b_flags & LIBXFS_B_DIRTY))
-		bp->b_flags &= ~(LIBXFS_B_UNCHECKED | LIBXFS_B_STALE |
-				LIBXFS_B_UPTODATE);
-}
-
-struct xfs_buf *
-libxfs_getbuf(struct xfs_buftarg *btp, xfs_daddr_t blkno, int len)
-{
-	struct xfs_buf	*bp;
-
-	bp = libxfs_getbuf_flags(btp, blkno, len, 0);
-	reset_buf_state(bp);
-	return bp;
-}
-
-static struct xfs_buf *
-__libxfs_getbuf_map(struct xfs_buftarg *btp, struct xfs_buf_map *map,
-		    int nmaps, int flags)
-{
-	struct xfs_bufkey key = {NULL};
-	int i;
-
-	if (nmaps == 1)
-		return libxfs_getbuf_flags(btp, map[0].bm_bn, map[0].bm_len,
-					   flags);
-
-	key.buftarg = btp;
-	key.blkno = map[0].bm_bn;
-	for (i = 0; i < nmaps; i++) {
-		key.bblen += map[i].bm_len;
-	}
-	key.map = map;
-	key.nmaps = nmaps;
-
-	return __cache_lookup(&key, flags);
-}
-
-struct xfs_buf *
-libxfs_getbuf_map(struct xfs_buftarg *btp, struct xfs_buf_map *map,
-		  int nmaps, int flags)
-{
-	struct xfs_buf	*bp;
-
-	bp = __libxfs_getbuf_map(btp, map, nmaps, flags);
-	reset_buf_state(bp);
-	return bp;
-}
-
-void
-libxfs_putbuf(xfs_buf_t *bp)
-{
-	/*
-	 * ensure that any errors on this use of the buffer don't carry
-	 * over to the next user.
-	 */
-	bp->b_error = 0;
-
-#ifdef XFS_BUF_TRACING
-	pthread_mutex_lock(&libxfs_bcache->c_mutex);
-	lock_buf_count--;
-	ASSERT(lock_buf_count >= 0);
-	list_del_init(&bp->b_lock_list);
-	pthread_mutex_unlock(&libxfs_bcache->c_mutex);
-#endif
-	if (use_xfs_buf_lock) {
-		if (bp->b_recur) {
-			bp->b_recur--;
-		} else {
-			bp->b_holder = 0;
-			pthread_mutex_unlock(&bp->b_lock);
-		}
-	}
-
-	cache_node_put(libxfs_bcache, (struct cache_node *)bp);
-}
-
-void
-libxfs_purgebuf(xfs_buf_t *bp)
-{
-	struct xfs_bufkey key = {NULL};
-
-	key.buftarg = bp->b_target;
-	key.blkno = bp->b_bn;
-	key.bblen = bp->b_length;
-
-	cache_node_purge(libxfs_bcache, &key, (struct cache_node *)bp);
-}
-
-static struct cache_node *
-libxfs_balloc(cache_key_t key)
-{
-	struct xfs_bufkey *bufkey = (struct xfs_bufkey *)key;
-
-	if (bufkey->map)
-		return (struct cache_node *)
-		       libxfs_getbufr_map(bufkey->buftarg,
-					  bufkey->blkno, bufkey->bblen,
-					  bufkey->map, bufkey->nmaps);
-	return (struct cache_node *)libxfs_getbufr(bufkey->buftarg,
-					  bufkey->blkno, bufkey->bblen);
-}
-
-
-static int
-__read_buf(int fd, void *buf, int len, off64_t offset, int flags)
-{
-	int	sts;
-
-	sts = pread(fd, buf, len, offset);
-	if (sts < 0) {
-		int error = errno;
-		fprintf(stderr, _("%s: read failed: %s\n"),
-			progname, strerror(error));
-		if (flags & LIBXFS_EXIT_ON_FAILURE)
-			exit(1);
-		return -error;
-	} else if (sts != len) {
-		fprintf(stderr, _("%s: error - read only %d of %d bytes\n"),
-			progname, sts, len);
-		if (flags & LIBXFS_EXIT_ON_FAILURE)
-			exit(1);
-		return -EIO;
-	}
-	return 0;
-}
-
-int
-libxfs_readbufr(struct xfs_buftarg *btp, xfs_daddr_t blkno, xfs_buf_t *bp,
-		int len, int flags)
-{
-	int	fd = libxfs_device_to_fd(btp->dev);
-	int	bytes = BBTOB(len);
-	int	error;
-
-	ASSERT(BBTOB(len) <= bp->b_bcount);
-
-	error = __read_buf(fd, bp->b_addr, bytes, LIBXFS_BBTOOFF64(blkno), flags);
-	if (!error &&
-	    bp->b_target->dev == btp->dev &&
-	    bp->b_bn == blkno &&
-	    bp->b_bcount == bytes)
-		bp->b_flags |= LIBXFS_B_UPTODATE;
-#ifdef IO_DEBUG
-	printf("%lx: %s: read %u bytes, error %d, blkno=0x%llx(0x%llx), %p\n",
-		pthread_self(), __FUNCTION__, bytes, error,
-		(long long)LIBXFS_BBTOOFF64(blkno), (long long)blkno, bp);
-#endif
-	return error;
-}
-
-void
-libxfs_readbuf_verify(struct xfs_buf *bp, const struct xfs_buf_ops *ops)
-{
-	if (!ops)
-		return;
-	bp->b_ops = ops;
-	bp->b_ops->verify_read(bp);
-	bp->b_flags &= ~LIBXFS_B_UNCHECKED;
-}
-
-
-xfs_buf_t *
-libxfs_readbuf(struct xfs_buftarg *btp, xfs_daddr_t blkno, int len, int flags,
-		const struct xfs_buf_ops *ops)
-{
-	xfs_buf_t	*bp;
-	int		error;
-
-	bp = libxfs_getbuf_flags(btp, blkno, len, 0);
-	if (!bp)
-		return NULL;
-
-	/*
-	 * if the buffer was prefetched, it is likely that it was not validated.
-	 * Hence if we are supplied an ops function and the buffer is marked as
-	 * unchecked, we need to validate it now.
-	 *
-	 * We do this verification even if the buffer is dirty - the
-	 * verification is almost certainly going to fail the CRC check in this
-	 * case as a dirty buffer has not had the CRC recalculated. However, we
-	 * should not be dirtying unchecked buffers and therefore failing it
-	 * here because it's dirty and unchecked indicates we've screwed up
-	 * somewhere else.
-	 */
-	bp->b_error = 0;
-	if ((bp->b_flags & (LIBXFS_B_UPTODATE|LIBXFS_B_DIRTY))) {
-		if (bp->b_flags & LIBXFS_B_UNCHECKED)
-			libxfs_readbuf_verify(bp, ops);
-		return bp;
-	}
-
-	/*
-	 * Set the ops on a cache miss (i.e. first physical read) as the
-	 * verifier may change the ops to match the type of buffer it contains.
-	 * A cache hit might reset the verifier to the original type if we set
-	 * it again, but it won't get called again and set to match the buffer
-	 * contents. *cough* xfs_da_node_buf_ops *cough*.
-	 */
-	error = libxfs_readbufr(btp, blkno, bp, len, flags);
-	if (error)
-		bp->b_error = error;
-	else
-		libxfs_readbuf_verify(bp, ops);
-	return bp;
-}
-
-int
-libxfs_readbufr_map(struct xfs_buftarg *btp, struct xfs_buf *bp, int flags)
-{
-	int	fd;
-	int	error = 0;
-	void	*buf;
-	int	i;
-
-	fd = libxfs_device_to_fd(btp->dev);
-	buf = bp->b_addr;
-	for (i = 0; i < bp->b_nmaps; i++) {
-		off64_t	offset = LIBXFS_BBTOOFF64(bp->b_maps[i].bm_bn);
-		int len = BBTOB(bp->b_maps[i].bm_len);
-
-		error = __read_buf(fd, buf, len, offset, flags);
-		if (error) {
-			bp->b_error = error;
-			break;
-		}
-		buf += len;
-	}
-
-	if (!error)
-		bp->b_flags |= LIBXFS_B_UPTODATE;
-#ifdef IO_DEBUG
-	printf("%lx: %s: read %lu bytes, error %d, blkno=%llu(%llu), %p\n",
-		pthread_self(), __FUNCTION__, buf - (char *)bp->b_addr, error,
-		(long long)LIBXFS_BBTOOFF64(bp->b_bn), (long long)bp->b_bn, bp);
-#endif
-	return error;
-}
-
-struct xfs_buf *
-libxfs_readbuf_map(struct xfs_buftarg *btp, struct xfs_buf_map *map, int nmaps,
-		int flags, const struct xfs_buf_ops *ops)
-{
-	struct xfs_buf	*bp;
-	int		error = 0;
-
-	if (nmaps == 1)
-		return libxfs_readbuf(btp, map[0].bm_bn, map[0].bm_len,
-					flags, ops);
-
-	bp = __libxfs_getbuf_map(btp, map, nmaps, 0);
-	if (!bp)
-		return NULL;
-
-	bp->b_error = 0;
-	if ((bp->b_flags & (LIBXFS_B_UPTODATE|LIBXFS_B_DIRTY))) {
-		if (bp->b_flags & LIBXFS_B_UNCHECKED)
-			libxfs_readbuf_verify(bp, ops);
-		return bp;
-	}
-	error = libxfs_readbufr_map(btp, bp, flags);
-	if (!error)
-		libxfs_readbuf_verify(bp, ops);
-
-#ifdef IO_DEBUGX
-	printf("%lx: %s: read %lu bytes, error %d, blkno=%llu(%llu), %p\n",
-		pthread_self(), __FUNCTION__, buf - (char *)bp->b_addr, error,
-		(long long)LIBXFS_BBTOOFF64(bp->b_bn), (long long)bp->b_bn, bp);
-#endif
-	return bp;
-}
-
-static int
-__write_buf(int fd, void *buf, int len, off64_t offset, int flags)
-{
-	int	sts;
-
-	sts = pwrite(fd, buf, len, offset);
-	if (sts < 0) {
-		int error = errno;
-		fprintf(stderr, _("%s: pwrite failed: %s\n"),
-			progname, strerror(error));
-		if (flags & LIBXFS_B_EXIT)
-			exit(1);
-		return -error;
-	} else if (sts != len) {
-		fprintf(stderr, _("%s: error - pwrite only %d of %d bytes\n"),
-			progname, sts, len);
-		if (flags & LIBXFS_B_EXIT)
-			exit(1);
-		return -EIO;
-	}
-	return 0;
-}
-
-int
-libxfs_writebufr(xfs_buf_t *bp)
-{
-	int	fd = libxfs_device_to_fd(bp->b_target->dev);
-
-	/*
-	 * we never write buffers that are marked stale. This indicates they
-	 * contain data that has been invalidated, and even if the buffer is
-	 * dirty it must *never* be written. Verifiers are wonderful for finding
-	 * bugs like this. Make sure the error is obvious as to the cause.
-	 */
-	if (bp->b_flags & LIBXFS_B_STALE) {
-		bp->b_error = -ESTALE;
-		return bp->b_error;
-	}
-
-	/*
-	 * clear any pre-existing error status on the buffer. This can occur if
-	 * the buffer is corrupt on disk and the repair process doesn't clear
-	 * the error before fixing and writing it back.
-	 */
-	bp->b_error = 0;
-	if (bp->b_ops) {
-		bp->b_ops->verify_write(bp);
-		if (bp->b_error) {
-			fprintf(stderr,
-	_("%s: write verifer failed on %s bno 0x%llx/0x%x\n"),
-				__func__, bp->b_ops->name,
-				(long long)bp->b_bn, bp->b_bcount);
-			return bp->b_error;
-		}
-	}
-
-	if (!(bp->b_flags & LIBXFS_B_DISCONTIG)) {
-		bp->b_error = __write_buf(fd, bp->b_addr, bp->b_bcount,
-				    LIBXFS_BBTOOFF64(bp->b_bn), bp->b_flags);
-	} else {
-		int	i;
-		void	*buf = bp->b_addr;
-
-		for (i = 0; i < bp->b_nmaps; i++) {
-			off64_t	offset = LIBXFS_BBTOOFF64(bp->b_maps[i].bm_bn);
-			int len = BBTOB(bp->b_maps[i].bm_len);
-
-			bp->b_error = __write_buf(fd, buf, len, offset,
-						  bp->b_flags);
-			if (bp->b_error)
-				break;
-			buf += len;
-		}
-	}
-
-#ifdef IO_DEBUG
-	printf("%lx: %s: wrote %u bytes, blkno=%llu(%llu), %p, error %d\n",
-			pthread_self(), __FUNCTION__, bp->b_bcount,
-			(long long)LIBXFS_BBTOOFF64(bp->b_bn),
-			(long long)bp->b_bn, bp, bp->b_error);
-#endif
-	if (!bp->b_error) {
-		bp->b_flags |= LIBXFS_B_UPTODATE;
-		bp->b_flags &= ~(LIBXFS_B_DIRTY | LIBXFS_B_EXIT |
-				 LIBXFS_B_UNCHECKED);
-	}
-	return bp->b_error;
-}
-
-int
-libxfs_writebuf_int(xfs_buf_t *bp, int flags)
-{
-	/*
-	 * Clear any error hanging over from reading the buffer. This prevents
-	 * subsequent reads after this write from seeing stale errors.
-	 */
-	bp->b_error = 0;
-	bp->b_flags &= ~LIBXFS_B_STALE;
-	bp->b_flags |= (LIBXFS_B_DIRTY | flags);
-	return 0;
-}
-
-int
-libxfs_writebuf(xfs_buf_t *bp, int flags)
-{
-#ifdef IO_DEBUG
-	printf("%lx: %s: dirty blkno=%llu(%llu)\n",
-			pthread_self(), __FUNCTION__,
-			(long long)LIBXFS_BBTOOFF64(bp->b_bn),
-			(long long)bp->b_bn);
-#endif
-	/*
-	 * Clear any error hanging over from reading the buffer. This prevents
-	 * subsequent reads after this write from seeing stale errors.
-	 */
-	bp->b_error = 0;
-	bp->b_flags &= ~LIBXFS_B_STALE;
-	bp->b_flags |= (LIBXFS_B_DIRTY | flags);
-	libxfs_putbuf(bp);
-	return 0;
-}
-
-void
-libxfs_iomove(xfs_buf_t *bp, uint boff, int len, void *data, int flags)
-{
-#ifdef IO_DEBUG
-	if (boff + len > bp->b_bcount) {
-		printf("Badness, iomove out of range!\n"
-			"bp=(bno 0x%llx, bytes %u) range=(boff %u, bytes %u)\n",
-			(long long)bp->b_bn, bp->b_bcount, boff, len);
-		abort();
-	}
-#endif
-	switch (flags) {
-	case LIBXFS_BZERO:
-		memset(bp->b_addr + boff, 0, len);
-		break;
-	case LIBXFS_BREAD:
-		memcpy(data, bp->b_addr + boff, len);
-		break;
-	case LIBXFS_BWRITE:
-		memcpy(bp->b_addr + boff, data, len);
-		break;
-	}
-}
-
-static void
-libxfs_brelse(
-	struct cache_node	*node)
-{
-	struct xfs_buf		*bp = (struct xfs_buf *)node;
-
-	if (!bp)
-		return;
-	if (bp->b_flags & LIBXFS_B_DIRTY)
-		fprintf(stderr,
-			"releasing dirty buffer to free list!");
-
-	pthread_mutex_lock(&xfs_buf_freelist.cm_mutex);
-	list_add(&bp->b_node.cn_mru, &xfs_buf_freelist.cm_list);
-	pthread_mutex_unlock(&xfs_buf_freelist.cm_mutex);
-}
-
-static unsigned int
-libxfs_bulkrelse(
-	struct cache		*cache,
-	struct list_head	*list)
-{
-	xfs_buf_t		*bp;
-	int			count = 0;
-
-	if (list_empty(list))
-		return 0 ;
-
-	list_for_each_entry(bp, list, b_node.cn_mru) {
-		if (bp->b_flags & LIBXFS_B_DIRTY)
-			fprintf(stderr,
-				"releasing dirty buffer (bulk) to free list!");
-		count++;
-	}
-
-	pthread_mutex_lock(&xfs_buf_freelist.cm_mutex);
-	list_splice(list, &xfs_buf_freelist.cm_list);
-	pthread_mutex_unlock(&xfs_buf_freelist.cm_mutex);
-
-	return count;
+	return cache_node_get_priority(&bp->b_node);
 }
 
 /*
- * Free everything from the xfs_buf_freelist MRU, used at final teardown
+ * Log a message about and stale a buffer that a caller has decided is corrupt.
+ *
+ * This function should be called for the kinds of metadata corruption that
+ * cannot be detect from a verifier, such as incorrect inter-block relationship
+ * data.  Do /not/ call this function from a verifier function.
+ *
+ * The buffer must be XBF_DONE prior to the call.  Afterwards, the buffer will
+ * be marked stale, but b_error will not be set.  The caller is responsible for
+ * releasing the buffer or fixing it.
  */
 void
-libxfs_bcache_free(void)
+__xfs_buf_mark_corrupt(
+	struct xfs_buf		*bp,
+	xfs_failaddr_t		fa)
 {
-	struct list_head	*cm_list;
-	xfs_buf_t		*bp, *next;
+	ASSERT(bp->b_flags & XBF_DONE);
 
-	cm_list = &xfs_buf_freelist.cm_list;
-	list_for_each_entry_safe(bp, next, cm_list, b_node.cn_mru) {
-		free(bp->b_addr);
-		if (bp->b_maps != &bp->__b_map)
-			free(bp->b_maps);
-		kmem_zone_free(xfs_buf_zone, bp);
-	}
-}
-
-/*
- * When a buffer is marked dirty, the error is cleared. Hence if we are trying
- * to flush a buffer prior to cache reclaim that has an error on it it means
- * we've already tried to flush it and it failed. Prevent repeated corruption
- * errors from being reported by skipping such buffers - when the corruption is
- * fixed the buffer will be marked dirty again and we can write it again.
- */
-static int
-libxfs_bflush(
-	struct cache_node	*node)
-{
-	struct xfs_buf		*bp = (struct xfs_buf *)node;
-
-	if (!bp->b_error && bp->b_flags & LIBXFS_B_DIRTY)
-		return libxfs_writebufr(bp);
-	return bp->b_error;
-}
-
-void
-libxfs_putbufr(xfs_buf_t *bp)
-{
-	if (bp->b_flags & LIBXFS_B_DIRTY)
-		libxfs_writebufr(bp);
-	libxfs_brelse((struct cache_node *)bp);
-}
-
-
-void
-libxfs_bcache_purge(void)
-{
-	cache_purge(libxfs_bcache);
-}
-
-void
-libxfs_bcache_flush(void)
-{
-	cache_flush(libxfs_bcache);
-}
-
-int
-libxfs_bcache_overflowed(void)
-{
-	return cache_overflowed(libxfs_bcache);
-}
-
-struct cache_operations libxfs_bcache_operations = {
-	.hash		= libxfs_bhash,
-	.alloc		= libxfs_balloc,
-	.flush		= libxfs_bflush,
-	.relse		= libxfs_brelse,
-	.compare	= libxfs_bcompare,
-	.bulkrelse	= libxfs_bulkrelse
-};
-
-
-/*
- * Inode cache stubs.
- */
-
-kmem_zone_t		*xfs_inode_zone;
-extern kmem_zone_t	*xfs_ili_zone;
-
-/*
- * If there are inline format data / attr forks attached to this inode,
- * make sure they're not corrupt.
- */
-bool
-libxfs_inode_verify_forks(
-	struct xfs_inode	*ip,
-	struct xfs_ifork_ops	*ops)
-{
-	struct xfs_ifork	*ifp;
-	xfs_failaddr_t		fa;
-
-	if (!ops)
-		return true;
-
-	fa = xfs_ifork_verify_data(ip, ops);
-	if (fa) {
-		ifp = XFS_IFORK_PTR(ip, XFS_DATA_FORK);
-		xfs_inode_verifier_error(ip, -EFSCORRUPTED, "data fork",
-				ifp->if_u1.if_data, ifp->if_bytes, fa);
-		return false;
-	}
-
-	fa = xfs_ifork_verify_attr(ip, ops);
-	if (fa) {
-		ifp = XFS_IFORK_PTR(ip, XFS_ATTR_FORK);
-		xfs_inode_verifier_error(ip, -EFSCORRUPTED, "attr fork",
-				ifp ? ifp->if_u1.if_data : NULL,
-				ifp ? ifp->if_bytes : 0, fa);
-		return false;
-	}
-	return true;
-}
-
-int
-libxfs_iget(
-	struct xfs_mount	*mp,
-	struct xfs_trans	*tp,
-	xfs_ino_t		ino,
-	uint			lock_flags,
-	struct xfs_inode	**ipp,
-	struct xfs_ifork_ops	*ifork_ops)
-{
-	struct xfs_inode	*ip;
-	int			error = 0;
-
-	ip = kmem_zone_zalloc(xfs_inode_zone, 0);
-	if (!ip)
-		return -ENOMEM;
-
-	ip->i_ino = ino;
-	ip->i_mount = mp;
-	error = xfs_iread(mp, tp, ip, 0);
-	if (error) {
-		kmem_zone_free(xfs_inode_zone, ip);
-		*ipp = NULL;
-		return error;
-	}
-
-	if (!libxfs_inode_verify_forks(ip, ifork_ops)) {
-		libxfs_irele(ip);
-		return -EFSCORRUPTED;
-	}
-
-	/*
-	 * set up the inode ops structure that the libxfs code relies on
-	 */
-	if (XFS_ISDIR(ip))
-		ip->d_ops = mp->m_dir_inode_ops;
-	else
-		ip->d_ops = mp->m_nondir_inode_ops;
-
-	*ipp = ip;
-	return 0;
-}
-
-static void
-libxfs_idestroy(xfs_inode_t *ip)
-{
-	switch (VFS_I(ip)->i_mode & S_IFMT) {
-		case S_IFREG:
-		case S_IFDIR:
-		case S_IFLNK:
-			libxfs_idestroy_fork(ip, XFS_DATA_FORK);
-			break;
-	}
-	if (ip->i_afp)
-		libxfs_idestroy_fork(ip, XFS_ATTR_FORK);
-	if (ip->i_cowfp)
-		xfs_idestroy_fork(ip, XFS_COW_FORK);
-}
-
-void
-libxfs_irele(
-	struct xfs_inode	*ip)
-{
-	if (ip->i_itemp)
-		kmem_zone_free(xfs_ili_zone, ip->i_itemp);
-	ip->i_itemp = NULL;
-	libxfs_idestroy(ip);
-	kmem_zone_free(xfs_inode_zone, ip);
+	xfs_buf_corruption_error(bp, fa);
+	xfs_buf_stale(bp);
 }
