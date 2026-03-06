@@ -21,7 +21,7 @@ jobs:
           sudo apt-get update
           sudo apt-get build-dep partclone
           sudo apt-get install build-essential autoconf automake autotools-dev libtool libtool-bin gettext intltool pkg-config
-          sudo apt-get install f2fs-tools hfsprogs exfatprogs gddrescue reiser4progs libxxhash-dev libisal-dev
+          sudo apt-get install f2fs-tools hfsprogs exfatprogs gddrescue reiser4progs libxxhash-dev libisal-dev liburcu-dev
     - name: automake
       run: ./autogen
     - name: configure
@@ -51,7 +51,7 @@ jobs:
           sudo sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
           sudo apt-get update
           sudo apt-get build-dep partclone
-          sudo apt-get install f2fs-tools hfsprogs exfatprogs gddrescue reiser4progs libxxhash-dev libisal-dev
+          sudo apt-get install f2fs-tools hfsprogs exfatprogs gddrescue reiser4progs libxxhash-dev libisal-dev liburcu-dev
     - name: automake
       run: ./autogen
     - name: configure
@@ -83,7 +83,7 @@ jobs:
           sudo apt-get update
           sudo apt-get build-dep partclone
           sudo apt-get install build-essential autoconf automake autotools-dev libtool libtool-bin gettext intltool pkg-config
-          sudo apt-get install f2fs-tools hfsprogs exfatprogs gddrescue reiser4progs libisal-dev
+          sudo apt-get install f2fs-tools hfsprogs exfatprogs gddrescue reiser4progs libisal-dev liburcu-dev
     - name: automake
       run: ./autogen
     - name: configure
@@ -113,7 +113,7 @@ jobs:
           sudo sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
           sudo apt-get update
           sudo apt-get build-dep partclone
-          sudo apt-get install f2fs-tools hfsprogs exfatprogs gddrescue reiser4progs libisal-dev
+          sudo apt-get install f2fs-tools hfsprogs exfatprogs gddrescue reiser4progs libisal-dev liburcu-dev
     - name: automake
       run: ./autogen
     - name: configure
