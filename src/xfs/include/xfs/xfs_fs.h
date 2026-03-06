@@ -1,1 +1,1 @@
-../xfs_fs.h
+../../libxfs/xfs_fs.h
