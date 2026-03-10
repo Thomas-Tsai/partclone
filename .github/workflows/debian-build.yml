@@ -1,16 +1,10 @@
 name: Debian Snapshot Build
 
 on:
-  push:
-    branches:
-      - master
-      - add-debian-ci
-    paths-ignore:
-      - '**.md'
-  pull_request:
-    branches:
-      - master
   workflow_dispatch:
+  push:
+    tags:
+      - '*'
 
 jobs:
   build:
