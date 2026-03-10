@@ -181,7 +181,8 @@ AM_CONDITIONAL(ENABLE_XFS, test "$enable_xfs" = yes)
 
 if test "$enable_xfs" = "yes"; then
 supported_fs=$supported_fs" xfs"
-xfs_version="build-in"
+xfs_version="build-in (xfsprogs-6.13.0)"
+PKG_CHECK_MODULES([URCU], [liburcu], [], [AC_MSG_ERROR([liburcu library not found, required for XFS support])])
 fi
 #end of check xfs
 
@@ -514,6 +515,7 @@ AC_CHECK_HEADERS([byteswap.h], ,
     AC_MSG_ERROR([*** byteswap header file (byteswap.h) not found]))
 
 ## libtinfo ##
+AC_CHECK_FUNCS([memfd_create])
 AC_CHECK_LIB([tinfo], [setupterm], tinfo=1,
     AC_MSG_WARN([*** tinfo library (libtinfo) not found]))
 AM_CONDITIONAL(ENABLE_TINFO, test "$tinfo" = 1)

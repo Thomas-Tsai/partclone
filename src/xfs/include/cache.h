@@ -33,7 +33,7 @@ enum {
  * For prefetch support, the top half of the range starts at
  * CACHE_PREFETCH_PRIORITY and everytime the buffer is fetched and is at or
  * above this priority level, it is reduced to below this level (refer to
- * libxfs_getbuf).
+ * libxfs_buf_get).
  *
  * If we have dirty nodes, we can't recycle them until they've been cleaned. To
  * keep these out of the reclaimable lists (as there can be lots of them) give

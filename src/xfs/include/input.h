@@ -9,8 +9,8 @@
 #include <pwd.h>
 #include <grp.h>
 #include <sys/types.h>
-#include "project.h"
-#include "convert.h"
+#include "libfrog/projects.h"
+#include "libfrog/convert.h"
 #include <stdbool.h>
 
 extern char	**breakline(char *input, int *count);
@@ -19,7 +19,6 @@ extern char	*fetchline(void);
 
 extern size_t numlen(uint64_t val, size_t base);
 
-extern struct timeval tadd(struct timeval t1, struct timeval t2);
 extern struct timeval tsub(struct timeval t1, struct timeval t2);
 extern double	tdiv(double value, struct timeval tv);
 

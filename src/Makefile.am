@@ -19,7 +19,8 @@ if X64
 BTRFS_SOURCE+=btrfs/crypto/crc32c-pcl-intel-asm_64.S
 endif
 
-XFS_SOURCE=xfs/libxfs/cache.c xfs/libxfs/crc32.c xfs/libxfs/defer_item.c xfs/libxfs/init.c xfs/libxfs/kmem.c xfs/libxfs/list_sort.c xfs/libxfs/logitem.c xfs/libxfs/radix-tree.c xfs/libxfs/rdwr.c xfs/libxfs/trans.c xfs/libxfs/util.c xfs/libxfs/xfs_ag_resv.c xfs/libxfs/xfs_alloc.c xfs/libxfs/xfs_alloc_btree.c xfs/libxfs/xfs_attr.c xfs/libxfs/xfs_attr_leaf.c xfs/libxfs/xfs_attr_remote.c xfs/libxfs/xfs_bit.c xfs/libxfs/xfs_bmap.c xfs/libxfs/xfs_bmap_btree.c xfs/libxfs/xfs_btree.c xfs/libxfs/xfs_da_btree.c xfs/libxfs/xfs_da_format.c xfs/libxfs/xfs_defer.c xfs/libxfs/xfs_dir2.c xfs/libxfs/xfs_dir2_block.c xfs/libxfs/xfs_dir2_data.c xfs/libxfs/xfs_dir2_leaf.c xfs/libxfs/xfs_dir2_node.c xfs/libxfs/xfs_dir2_sf.c xfs/libxfs/xfs_dquot_buf.c xfs/libxfs/xfs_ialloc.c xfs/libxfs/xfs_inode_buf.c xfs/libxfs/xfs_inode_fork.c xfs/libxfs/xfs_ialloc_btree.c xfs/libxfs/xfs_log_rlimit.c xfs/libxfs/xfs_refcount.c xfs/libxfs/xfs_refcount_btree.c xfs/libxfs/xfs_rmap.c xfs/libxfs/xfs_rmap_btree.c xfs/libxfs/xfs_rtbitmap.c xfs/libxfs/xfs_sb.c xfs/libxfs/xfs_symlink_remote.c xfs/libxfs/xfs_trans_resv.c xfs/libxfs/linux.c xfs/libxfs/xfs_types.h xfs/libxfs/xfs_types.c xfs/libxfs/xfs_iext_tree.c 
+XFS_LIBFROG=xfs/libfrog/radix-tree.c xfs/libfrog/list_sort.c xfs/libfrog/crc32.c xfs/libfrog/linux.c xfs/libfrog/util.c xfs/libfrog/bitmap.c xfs/libfrog/avl64.c
+XFS_SOURCE=xfs/libxfs/buf_mem.c xfs/libxfs/cache.c xfs/libxfs/defer_item.c xfs/libxfs/init.c xfs/libxfs/inode.c xfs/libxfs/iunlink.c xfs/libxfs/kmem.c xfs/libxfs/listxattr.c xfs/libxfs/logitem.c xfs/libxfs/rdwr.c xfs/libxfs/topology.c xfs/libxfs/trans.c xfs/libxfs/util.c xfs/libxfs/xfblob.c xfs/libxfs/xfile.c xfs/libxfs/xfs_ag.c xfs/libxfs/xfs_ag_resv.c xfs/libxfs/xfs_alloc.c xfs/libxfs/xfs_alloc_btree.c xfs/libxfs/xfs_attr.c xfs/libxfs/xfs_attr_leaf.c xfs/libxfs/xfs_attr_remote.c xfs/libxfs/xfs_bit.c xfs/libxfs/xfs_bmap.c xfs/libxfs/xfs_bmap_btree.c xfs/libxfs/xfs_btree.c xfs/libxfs/xfs_btree_mem.c xfs/libxfs/xfs_btree_staging.c xfs/libxfs/xfs_da_btree.c xfs/libxfs/xfs_defer.c xfs/libxfs/xfs_dir2.c xfs/libxfs/xfs_dir2_block.c xfs/libxfs/xfs_dir2_data.c xfs/libxfs/xfs_dir2_leaf.c xfs/libxfs/xfs_dir2_node.c xfs/libxfs/xfs_dir2_sf.c xfs/libxfs/xfs_dquot_buf.c xfs/libxfs/xfs_exchmaps.c xfs/libxfs/xfs_group.c xfs/libxfs/xfs_ialloc.c xfs/libxfs/xfs_iext_tree.c xfs/libxfs/xfs_inode_buf.c xfs/libxfs/xfs_inode_fork.c xfs/libxfs/xfs_inode_util.c xfs/libxfs/xfs_ialloc_btree.c xfs/libxfs/xfs_metadir.c xfs/libxfs/xfs_metafile.c xfs/libxfs/xfs_log_rlimit.c xfs/libxfs/xfs_parent.c xfs/libxfs/xfs_refcount.c xfs/libxfs/xfs_refcount_btree.c xfs/libxfs/xfs_rmap.c xfs/libxfs/xfs_rmap_btree.c xfs/libxfs/xfs_rtbitmap.c xfs/libxfs/xfs_rtgroup.c xfs/libxfs/xfs_sb.c xfs/libxfs/xfs_symlink_remote.c xfs/libxfs/xfs_trans_inode.c xfs/libxfs/xfs_trans_resv.c xfs/libxfs/xfs_trans_space.c xfs/libxfs/xfs_types.c $(XFS_LIBFROG)
 
 EXFATFS_SOURCE=exfat/cluster.c exfat/utf.c exfat/utils.c exfat/lookup.c exfat/io.c exfat/log.c exfat/node.c exfat/mount.c exfat/time.c
 
@@ -106,8 +107,8 @@ endif
 if ENABLE_XFS
 sbin_PROGRAMS += partclone.xfs
 partclone_xfs_SOURCES=$(main_files) xfsclone.c xfsclone.h $(XFS_SOURCE)
-partclone_xfs_CFLAGS=-I$(srcdir)/xfs/include -I$(srcdir)/xfs/libxfs/ -I$(srcdir)/xfs/include/xfs/ -DXFS -D_GNU_SOURCE -DNDEBUG  $(UUID_CFLAGS) 
-partclone_xfs_LDADD=torrent_helper.o -lrt -luuid $(PCL_XXHASH_LIBS) $(CRYPTO_DEPS) ${LDADD_static} -lpthread
+partclone_xfs_CFLAGS=-I$(srcdir)/xfs/include -I$(srcdir)/xfs/libxfs/ -I$(srcdir)/xfs/include/xfs/ -I$(srcdir)/xfs/ -DXFS -D_GNU_SOURCE -DNDEBUG  $(UUID_CFLAGS) $(URCU_CFLAGS)
+partclone_xfs_LDADD=torrent_helper.o -lrt -luuid -lblkid $(PCL_XXHASH_LIBS) $(CRYPTO_DEPS) ${LDADD_static} -lpthread $(URCU_LIBS)
 endif
 
 if ENABLE_EXFAT
@@ -276,7 +277,7 @@ if ENABLE_VMFS
 endif
 
 distclean-local:
-	-rm -rf .deps f2fs/.deps btrfs/libbtrfs/.deps btrfs/kernel-lib/.deps btrfs/crypto/.deps btrfs/kernel-shared/.deps btrfs/libbtrfsutil/.deps btrfs/common/.deps btrfs/check/.deps xfs/libxfs/.deps exfat/.deps
+	-rm -rf .deps f2fs/.deps btrfs/libbtrfs/.deps btrfs/kernel-lib/.deps btrfs/crypto/.deps btrfs/kernel-shared/.deps btrfs/libbtrfsutil/.deps btrfs/common/.deps btrfs/check/.deps xfs/libxfs/.deps xfs/libfrog/.deps exfat/.deps
 
 MAINTAINERCLEANFILES = Makefile.in
 

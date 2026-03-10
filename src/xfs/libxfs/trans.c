@@ -18,6 +18,8 @@
 #include "xfs_trans.h"
 #include "xfs_sb.h"
 #include "xfs_defer.h"
+#include "xfs_trace.h"
+#include "xfs_rtbitmap.h"
 
 static void xfs_trans_free_items(struct xfs_trans *tp);
 STATIC struct xfs_trans *xfs_trans_dup(struct xfs_trans *tp);
@@ -29,7 +31,7 @@ static int __xfs_trans_commit(struct xfs_trans *tp, bool regrant);
  * Simple transaction interface
  */
 
-kmem_zone_t	*xfs_trans_zone;
+struct kmem_cache	*xfs_trans_cache;
 
 /*
  * Initialize the precomputed transaction reservation values
@@ -123,7 +125,7 @@ static void
 xfs_trans_free(
 	struct xfs_trans	*tp)
 {
-	kmem_zone_free(xfs_trans_zone, tp);
+	kmem_cache_free(xfs_trans_cache, tp);
 }
 
 /*
@@ -140,7 +142,7 @@ xfs_trans_dup(
 {
 	struct xfs_trans	*ntp;
 
-	ntp = kmem_zone_zalloc(xfs_trans_zone, KM_SLEEP);
+	ntp = kmem_cache_zalloc(xfs_trans_cache, 0);
 
 	/*
 	 * Initialize the new transaction structure.
@@ -148,7 +150,7 @@ xfs_trans_dup(
 	ntp->t_mountp = tp->t_mountp;
 	INIT_LIST_HEAD(&ntp->t_items);
 	INIT_LIST_HEAD(&ntp->t_dfops);
-	ntp->t_firstblock = NULLFSBLOCK;
+	ntp->t_highest_agno = NULLAGNUMBER;
 
 	ASSERT(tp->t_flags & XFS_TRANS_PERM_LOG_RES);
 
@@ -229,6 +231,7 @@ xfs_trans_reserve(
 			error = -ENOSPC;
 			goto undo_blocks;
 		}
+		tp->t_rtx_res += rtextents;
 	}
 
 	return 0;
@@ -257,21 +260,20 @@ libxfs_trans_alloc(
 	struct xfs_trans	*tp;
 	int			error;
 
-	tp = kmem_zone_zalloc(xfs_trans_zone,
-		(flags & XFS_TRANS_NOFS) ? KM_NOFS : KM_SLEEP);
+	tp = kmem_cache_zalloc(xfs_trans_cache, 0);
 	tp->t_mountp = mp;
 	INIT_LIST_HEAD(&tp->t_items);
 	INIT_LIST_HEAD(&tp->t_dfops);
-	tp->t_firstblock = NULLFSBLOCK;
+	tp->t_highest_agno = NULLAGNUMBER;
 
 	error = xfs_trans_reserve(tp, resp, blocks, rtextents);
 	if (error) {
 		xfs_trans_cancel(tp);
 		return error;
 	}
-#ifdef XACT_DEBUG
-	fprintf(stderr, "allocated new transaction %p\n", tp);
-#endif
+
+	trace_xfs_trans_alloc(tp, _RET_IP_);
+
 	*tpp = tp;
 	return 0;
 }
@@ -317,164 +319,389 @@ void
 libxfs_trans_cancel(
 	struct xfs_trans	*tp)
 {
-#ifdef XACT_DEBUG
-	struct xfs_trans	*otp = tp;
-#endif
-	if (tp == NULL)
-		goto out;
+	bool			dirty;
 
-	if (tp->t_flags & XFS_TRANS_PERM_LOG_RES)
+	trace_xfs_trans_cancel(tp, _RET_IP_);
+
+	if (tp == NULL)
+		return;
+	dirty = (tp->t_flags & XFS_TRANS_DIRTY);
+
+	/*
+	 * It's never valid to cancel a transaction with deferred ops attached,
+	 * because the transaction is effectively dirty.  Complain about this
+	 * loudly before freeing the in-memory defer items.
+	 */
+	if (!list_empty(&tp->t_dfops)) {
+		ASSERT(list_empty(&tp->t_dfops));
+		ASSERT(tp->t_flags & XFS_TRANS_PERM_LOG_RES);
+		dirty = true;
 		xfs_defer_cancel(tp);
+	}
+
+	if (dirty) {
+		fprintf(stderr, _("Cancelling dirty transaction!\n"));
+		abort();
+	}
 
 	xfs_trans_free_items(tp);
 	xfs_trans_free(tp);
-
-out:
-#ifdef XACT_DEBUG
-	fprintf(stderr, "## cancelled transaction %p\n", otp);
-#endif
-	return;
 }
 
-int
-libxfs_trans_iget(
-	xfs_mount_t		*mp,
-	xfs_trans_t		*tp,
-	xfs_ino_t		ino,
-	uint			flags,
-	uint			lock_flags,
-	xfs_inode_t		**ipp)
+static void
+xfs_buf_item_put(
+	struct xfs_buf_log_item	*bip)
 {
-	int			error;
-	xfs_inode_t		*ip;
-	xfs_inode_log_item_t	*iip;
+	struct xfs_buf		*bp = bip->bli_buf;
 
-	if (tp == NULL)
-		return libxfs_iget(mp, tp, ino, lock_flags, ipp,
-				&xfs_default_ifork_ops);
-
-	error = libxfs_iget(mp, tp, ino, lock_flags, &ip,
-			&xfs_default_ifork_ops);
-	if (error)
-		return error;
-	ASSERT(ip != NULL);
-
-	if (ip->i_itemp == NULL)
-		xfs_inode_item_init(ip, mp);
-	iip = ip->i_itemp;
-	xfs_trans_add_item(tp, (xfs_log_item_t *)(iip));
-
-	/* initialize i_transp so we can find it incore */
-	ip->i_transp = tp;
-
-	*ipp = ip;
-	return 0;
+	bp->b_log_item = NULL;
+	kmem_cache_free(xfs_buf_item_cache, bip);
 }
 
-void
-libxfs_trans_ijoin(
-	xfs_trans_t		*tp,
-	xfs_inode_t		*ip,
-	uint			lock_flags)
+/* from xfs_trans_buf.c */
+
+/*
+ * Add the locked buffer to the transaction.
+ *
+ * The buffer must be locked, and it cannot be associated with any
+ * transaction.
+ *
+ * If the buffer does not yet have a buf log item associated with it,
+ * then allocate one for it.  Then add the buf item to the transaction.
+ */
+STATIC void
+_libxfs_trans_bjoin(
+	struct xfs_trans	*tp,
+	struct xfs_buf		*bp,
+	int			reset_recur)
 {
-	xfs_inode_log_item_t	*iip;
+	struct xfs_buf_log_item	*bip;
 
-	ASSERT(ip->i_transp == NULL);
-	if (ip->i_itemp == NULL)
-		xfs_inode_item_init(ip, ip->i_mount);
-	iip = ip->i_itemp;
-	ASSERT(iip->ili_flags == 0);
-	ASSERT(iip->ili_inode != NULL);
+	ASSERT(bp->b_transp == NULL);
 
-	ASSERT(iip->ili_lock_flags == 0);
-	iip->ili_lock_flags = lock_flags;
+	/*
+	 * The xfs_buf_log_item pointer is stored in b_log_item.  If
+	 * it doesn't have one yet, then allocate one and initialize it.
+	 * The checks to see if one is there are in xfs_buf_item_init().
+	 */
+	xfs_buf_item_init(bp, tp->t_mountp);
+	bip = bp->b_log_item;
+	if (reset_recur)
+		bip->bli_recur = 0;
 
-	xfs_trans_add_item(tp, (xfs_log_item_t *)(iip));
+	/*
+	 * Attach the item to the transaction so we can find it in
+	 * xfs_trans_get_buf() and friends.
+	 */
+	xfs_trans_add_item(tp, &bip->bli_item);
+	bp->b_transp = tp;
 
-	ip->i_transp = tp;
-#ifdef XACT_DEBUG
-	fprintf(stderr, "ijoin'd inode %llu, transaction %p\n", ip->i_ino, tp);
-#endif
 }
 
 void
-libxfs_trans_ijoin_ref(
-	xfs_trans_t		*tp,
-	xfs_inode_t		*ip,
-	int			lock_flags)
+libxfs_trans_bjoin(
+	struct xfs_trans	*tp,
+	struct xfs_buf		*bp)
 {
-	ASSERT(ip->i_transp == tp);
-	ASSERT(ip->i_itemp != NULL);
-
-	xfs_trans_ijoin(tp, ip, lock_flags);
-
-#ifdef XACT_DEBUG
-	fprintf(stderr, "ijoin_ref'd inode %llu, transaction %p\n", ip->i_ino, tp);
-#endif
-}
-
-void
-libxfs_trans_inode_alloc_buf(
-	xfs_trans_t		*tp,
-	xfs_buf_t		*bp)
-{
-	xfs_buf_log_item_t	*bip = bp->b_log_item;
-
-	ASSERT(bp->bp_transp == tp);
-	ASSERT(bip != NULL);
-	bip->bli_flags |= XFS_BLI_INODE_ALLOC_BUF;
-	xfs_trans_buf_set_type(tp, bp, XFS_BLFT_DINO_BUF);
+	_libxfs_trans_bjoin(tp, bp, 0);
+	trace_xfs_trans_bjoin(bp->b_log_item);
 }
 
 /*
- * This is called to mark the fields indicated in fieldmask as needing
- * to be logged when the transaction is committed.  The inode must
- * already be associated with the given transaction.
- *
- * The values for fieldmask are defined in xfs_log_format.h.  We always
- * log all of the core inode if any of it has changed, and we always log
- * all of the inline data/extents/b-tree root if any of them has changed.
+ * Cancel the previous buffer hold request made on this buffer
+ * for this transaction.
  */
 void
-xfs_trans_log_inode(
+libxfs_trans_bhold_release(
 	xfs_trans_t		*tp,
-	xfs_inode_t		*ip,
-	uint			flags)
+	struct xfs_buf		*bp)
 {
-	ASSERT(ip->i_transp == tp);
-	ASSERT(ip->i_itemp != NULL);
-#ifdef XACT_DEBUG
-	fprintf(stderr, "dirtied inode %llu, transaction %p\n", ip->i_ino, tp);
-#endif
+	struct xfs_buf_log_item *bip = bp->b_log_item;
 
-	tp->t_flags |= XFS_TRANS_DIRTY;
-	set_bit(XFS_LI_DIRTY, &ip->i_itemp->ili_item.li_flags);
+	ASSERT(bp->b_transp == tp);
+	ASSERT(bip != NULL);
+
+	bip->bli_flags &= ~XFS_BLI_HOLD;
+	trace_xfs_trans_bhold_release(bip);
+}
+
+/*
+ * Get and lock the buffer for the caller if it is not already
+ * locked within the given transaction.  If it is already locked
+ * within the transaction, just increment its lock recursion count
+ * and return a pointer to it.
+ *
+ * If the transaction pointer is NULL, make this just a normal
+ * get_buf() call.
+ */
+int
+libxfs_trans_get_buf_map(
+	struct xfs_trans	*tp,
+	struct xfs_buftarg	*target,
+	struct xfs_buf_map	*map,
+	int			nmaps,
+	xfs_buf_flags_t		flags,
+	struct xfs_buf		**bpp)
+{
+	struct xfs_buf		*bp;
+	struct xfs_buf_log_item	*bip;
+	int			error;
+
+	*bpp = NULL;
+	if (!tp)
+		return libxfs_buf_get_map(target, map, nmaps, 0, bpp);
 
 	/*
-	 * Always OR in the bits from the ili_last_fields field.
-	 * This is to coordinate with the xfs_iflush() and xfs_iflush_done()
-	 * routines in the eventual clearing of the ilf_fields bits.
-	 * See the big comment in xfs_iflush() for an explanation of
-	 * this coordination mechanism.
+	 * If we find the buffer in the cache with this transaction
+	 * pointer in its b_fsprivate2 field, then we know we already
+	 * have it locked.  In this case we just increment the lock
+	 * recursion count and return the buffer to the caller.
 	 */
-	flags |= ip->i_itemp->ili_last_fields;
-	ip->i_itemp->ili_fields |= flags;
+	bp = xfs_trans_buf_item_match(tp, target, map, nmaps);
+	if (bp != NULL) {
+		ASSERT(bp->b_transp == tp);
+		bip = bp->b_log_item;
+		ASSERT(bip != NULL);
+		bip->bli_recur++;
+		trace_xfs_trans_get_buf_recur(bip);
+		*bpp = bp;
+		return 0;
+	}
+
+	error = libxfs_buf_get_map(target, map, nmaps, 0, &bp);
+	if (error)
+		return error;
+
+	ASSERT(!bp->b_error);
+
+	_libxfs_trans_bjoin(tp, bp, 1);
+	trace_xfs_trans_get_buf(bp->b_log_item);
+	*bpp = bp;
+	return 0;
+}
+
+struct xfs_buf *
+libxfs_trans_getsb(
+	struct xfs_trans	*tp)
+{
+	struct xfs_mount	*mp = tp->t_mountp;
+	struct xfs_buf		*bp;
+	struct xfs_buf_log_item	*bip;
+	int			len = XFS_FSS_TO_BB(mp, 1);
+	DEFINE_SINGLE_BUF_MAP(map, XFS_SB_DADDR, len);
+
+	if (tp == NULL)
+		return libxfs_getsb(mp);
+
+	bp = xfs_trans_buf_item_match(tp, mp->m_dev, &map, 1);
+	if (bp != NULL) {
+		ASSERT(bp->b_transp == tp);
+		bip = bp->b_log_item;
+		ASSERT(bip != NULL);
+		bip->bli_recur++;
+		trace_xfs_trans_getsb_recur(bip);
+		return bp;
+	}
+
+	bp = libxfs_getsb(mp);
+	if (bp == NULL)
+		return NULL;
+
+	_libxfs_trans_bjoin(tp, bp, 1);
+	trace_xfs_trans_getsb(bp->b_log_item);
+	return bp;
+}
+
+struct xfs_buf *
+libxfs_trans_getrtsb(
+	struct xfs_trans	*tp)
+{
+	struct xfs_mount	*mp = tp->t_mountp;
+	struct xfs_buf		*bp;
+	struct xfs_buf_log_item	*bip;
+	int			len = XFS_FSS_TO_BB(mp, 1);
+	DEFINE_SINGLE_BUF_MAP(map, XFS_SB_DADDR, len);
+
+	bp = xfs_trans_buf_item_match(tp, mp->m_rtdev, &map, 1);
+	if (bp != NULL) {
+		ASSERT(bp->b_transp == tp);
+		bip = bp->b_log_item;
+		ASSERT(bip != NULL);
+		bip->bli_recur++;
+		trace_xfs_trans_getsb_recur(bip);
+		return bp;
+	}
+
+	bp = libxfs_getrtsb(mp);
+	if (bp == NULL)
+		return NULL;
+
+	_libxfs_trans_bjoin(tp, bp, 1);
+	trace_xfs_trans_getsb(bp->b_log_item);
+	return bp;
 }
 
 int
-libxfs_trans_roll_inode(
-	struct xfs_trans	**tpp,
-	struct xfs_inode	*ip)
+libxfs_trans_read_buf_map(
+	struct xfs_mount	*mp,
+	struct xfs_trans	*tp,
+	struct xfs_buftarg	*target,
+	struct xfs_buf_map	*map,
+	int			nmaps,
+	xfs_buf_flags_t		flags,
+	struct xfs_buf		**bpp,
+	const struct xfs_buf_ops *ops)
 {
+	struct xfs_buf		*bp;
+	struct xfs_buf_log_item	*bip;
 	int			error;
 
-	xfs_trans_log_inode(*tpp, ip, XFS_ILOG_CORE);
-	error = xfs_trans_roll(tpp);
-	if (!error)
-		xfs_trans_ijoin(*tpp, ip, 0);
-	return error;
+	*bpp = NULL;
+
+	if (tp == NULL)
+		return libxfs_buf_read_map(target, map, nmaps, flags, bpp, ops);
+
+	bp = xfs_trans_buf_item_match(tp, target, map, nmaps);
+	if (bp) {
+		ASSERT(bp->b_transp == tp);
+		ASSERT(bp->b_log_item != NULL);
+		bip = bp->b_log_item;
+		bip->bli_recur++;
+		trace_xfs_trans_read_buf_recur(bip);
+		goto done;
+	}
+
+	error = libxfs_buf_read_map(target, map, nmaps, flags, &bp, ops);
+	if (error)
+		return error;
+
+	_libxfs_trans_bjoin(tp, bp, 1);
+done:
+	trace_xfs_trans_read_buf(bp->b_log_item);
+	*bpp = bp;
+	return 0;
 }
 
+/*
+ * Release a buffer previously joined to the transaction. If the buffer is
+ * modified within this transaction, decrement the recursion count but do not
+ * release the buffer even if the count goes to 0. If the buffer is not modified
+ * within the transaction, decrement the recursion count and release the buffer
+ * if the recursion count goes to 0.
+ *
+ * If the buffer is to be released and it was not already dirty before this
+ * transaction began, then also free the buf_log_item associated with it.
+ *
+ * If the transaction pointer is NULL, this is a normal xfs_buf_relse() call.
+ */
+void
+libxfs_trans_brelse(
+	struct xfs_trans	*tp,
+	struct xfs_buf		*bp)
+{
+	struct xfs_buf_log_item	*bip = bp->b_log_item;
+
+	ASSERT(bp->b_transp == tp);
+
+	if (!tp) {
+		libxfs_buf_relse(bp);
+		return;
+	}
+
+	trace_xfs_trans_brelse(bip);
+	ASSERT(bip->bli_item.li_type == XFS_LI_BUF);
+
+	/*
+	 * If the release is for a recursive lookup, then decrement the count
+	 * and return.
+	 */
+	if (bip->bli_recur > 0) {
+		bip->bli_recur--;
+		return;
+	}
+
+	/*
+	 * If the buffer is invalidated or dirty in this transaction, we can't
+	 * release it until we commit.
+	 */
+	if (test_bit(XFS_LI_DIRTY, &bip->bli_item.li_flags))
+		return;
+	if (bip->bli_flags & XFS_BLI_STALE)
+		return;
+
+	/*
+	 * Unlink the log item from the transaction and clear the hold flag, if
+	 * set. We wouldn't want the next user of the buffer to get confused.
+	 */
+	xfs_trans_del_item(&bip->bli_item);
+	bip->bli_flags &= ~XFS_BLI_HOLD;
+
+	/* drop the reference to the bli */
+	xfs_buf_item_put(bip);
+
+	bp->b_transp = NULL;
+	libxfs_buf_relse(bp);
+}
+
+/*
+ * Forcibly detach a buffer previously joined to the transaction.  The caller
+ * will retain its locked reference to the buffer after this function returns.
+ * The buffer must be completely clean and must not be held to the transaction.
+ */
+void
+libxfs_trans_bdetach(
+	struct xfs_trans	*tp,
+	struct xfs_buf		*bp)
+{
+	struct xfs_buf_log_item	*bip = bp->b_log_item;
+
+	ASSERT(tp != NULL);
+	ASSERT(bp->b_transp == tp);
+	ASSERT(bip->bli_item.li_type == XFS_LI_BUF);
+
+	trace_xfs_trans_bdetach(bip);
+
+	/*
+	 * Erase all recursion count, since we're removing this buffer from the
+	 * transaction.
+	 */
+	bip->bli_recur = 0;
+
+	/*
+	 * The buffer must be completely clean.  Specifically, it had better
+	 * not be dirty, stale, logged, ordered, or held to the transaction.
+	 */
+	ASSERT(!test_bit(XFS_LI_DIRTY, &bip->bli_item.li_flags));
+	ASSERT(!(bip->bli_flags & XFS_BLI_DIRTY));
+	ASSERT(!(bip->bli_flags & XFS_BLI_HOLD));
+	ASSERT(!(bip->bli_flags & XFS_BLI_ORDERED));
+	ASSERT(!(bip->bli_flags & XFS_BLI_STALE));
+
+	/* Unlink the log item from the transaction and drop the log item. */
+	xfs_trans_del_item(&bip->bli_item);
+	xfs_buf_item_put(bip);
+	bp->b_transp = NULL;
+}
+
+/*
+ * Mark the buffer as not needing to be unlocked when the buf item's
+ * iop_unlock() routine is called.  The buffer must already be locked
+ * and associated with the given transaction.
+ */
+/* ARGSUSED */
+void
+libxfs_trans_bhold(
+	xfs_trans_t		*tp,
+	struct xfs_buf		*bp)
+{
+	struct xfs_buf_log_item	*bip = bp->b_log_item;
+
+	ASSERT(bp->b_transp == tp);
+	ASSERT(bip != NULL);
+
+	bip->bli_flags |= XFS_BLI_HOLD;
+	trace_xfs_trans_bhold(bip);
+}
 
 /*
  * Mark a buffer dirty in the transaction.
@@ -486,12 +713,10 @@ libxfs_trans_dirty_buf(
 {
 	struct xfs_buf_log_item	*bip = bp->b_log_item;
 
-	ASSERT(bp->bp_transp == tp);
+	ASSERT(bp->b_transp == tp);
 	ASSERT(bip != NULL);
 
-#ifdef XACT_DEBUG
-	fprintf(stderr, "dirtied buffer %p, transaction %p\n", bp, tp);
-#endif
+	bp->b_flags |= LIBXFS_B_UPTODATE;
 	tp->t_flags |= XFS_TRANS_DIRTY;
 	set_bit(XFS_LI_DIRTY, &bip->bli_item.li_flags);
 }
@@ -514,10 +739,59 @@ libxfs_trans_log_buf(
 {
 	struct xfs_buf_log_item	*bip = bp->b_log_item;
 
-	ASSERT((first <= last) && (last < bp->b_bcount));
+	ASSERT(first <= last && last < BBTOB(bp->b_length));
 
 	xfs_trans_dirty_buf(tp, bp);
+
+	trace_xfs_trans_log_buf(bip);
 	xfs_buf_item_log(bip, first, last);
+}
+
+void
+libxfs_trans_binval(
+	xfs_trans_t		*tp,
+	struct xfs_buf		*bp)
+{
+	struct xfs_buf_log_item	*bip = bp->b_log_item;
+
+	ASSERT(bp->b_transp == tp);
+	ASSERT(bip != NULL);
+
+	trace_xfs_trans_binval(bip);
+
+	if (bip->bli_flags & XFS_BLI_STALE)
+		return;
+	XFS_BUF_UNDELAYWRITE(bp);
+	xfs_buf_stale(bp);
+
+	bip->bli_flags |= XFS_BLI_STALE;
+	bip->bli_flags &= ~XFS_BLI_DIRTY;
+	bip->__bli_format.blf_flags &= ~XFS_BLF_INODE_BUF;
+	bip->__bli_format.blf_flags |= XFS_BLF_CANCEL;
+	set_bit(XFS_LI_DIRTY, &bip->bli_item.li_flags);
+	tp->t_flags |= XFS_TRANS_DIRTY;
+}
+
+/*
+ * Mark the buffer as being one which contains newly allocated
+ * inodes.  We need to make sure that even if this buffer is
+ * relogged as an 'inode buf' we still recover all of the inode
+ * images in the face of a crash.  This works in coordination with
+ * xfs_buf_item_committed() to ensure that the buffer remains in the
+ * AIL at its original location even after it has been relogged.
+ */
+/* ARGSUSED */
+void
+libxfs_trans_inode_alloc_buf(
+	xfs_trans_t		*tp,
+	struct xfs_buf		*bp)
+{
+	struct xfs_buf_log_item	*bip = bp->b_log_item;
+
+	ASSERT(bp->b_transp == tp);
+	ASSERT(bip != NULL);
+	bip->bli_flags |= XFS_BLI_INODE_ALLOC_BUF;
+	xfs_trans_buf_set_type(tp, bp, XFS_BLFT_DINO_BUF);
 }
 
 /*
@@ -536,243 +810,11 @@ libxfs_trans_ordered_buf(
 	bool			ret;
 
 	ret = test_bit(XFS_LI_DIRTY, &bip->bli_item.li_flags);
-	libxfs_trans_log_buf(tp, bp, 0, bp->b_bcount);
+	libxfs_trans_log_buf(tp, bp, 0, BBTOB(bp->b_length));
 	return ret;
 }
 
-void
-libxfs_trans_brelse(
-	xfs_trans_t		*tp,
-	xfs_buf_t		*bp)
-{
-	xfs_buf_log_item_t	*bip;
-#ifdef XACT_DEBUG
-	fprintf(stderr, "released buffer %p, transaction %p\n", bp, tp);
-#endif
-
-	if (tp == NULL) {
-		ASSERT(bp->bp_transp == NULL);
-		libxfs_putbuf(bp);
-		return;
-	}
-	ASSERT(bp->bp_transp == tp);
-	bip = bp->b_log_item;
-	ASSERT(bip->bli_item.li_type == XFS_LI_BUF);
-	if (bip->bli_recur > 0) {
-		bip->bli_recur--;
-		return;
-	}
-	/* If dirty/stale, can't release till transaction committed */
-	if (bip->bli_flags & XFS_BLI_STALE)
-		return;
-	if (test_bit(XFS_LI_DIRTY, &bip->bli_item.li_flags))
-		return;
-	xfs_trans_del_item(&bip->bli_item);
-	if (bip->bli_flags & XFS_BLI_HOLD)
-		bip->bli_flags &= ~XFS_BLI_HOLD;
-	bp->b_transp = NULL;
-	libxfs_putbuf(bp);
-}
-
-void
-libxfs_trans_binval(
-	xfs_trans_t		*tp,
-	xfs_buf_t		*bp)
-{
-	xfs_buf_log_item_t	*bip = bp->b_log_item;
-#ifdef XACT_DEBUG
-	fprintf(stderr, "binval'd buffer %p, transaction %p\n", bp, tp);
-#endif
-
-	ASSERT(bp->bp_transp == tp);
-	ASSERT(bip != NULL);
-
-	if (bip->bli_flags & XFS_BLI_STALE)
-		return;
-	XFS_BUF_UNDELAYWRITE(bp);
-	xfs_buf_stale(bp);
-	bip->bli_flags |= XFS_BLI_STALE;
-	bip->bli_flags &= ~XFS_BLI_DIRTY;
-	bip->bli_format.blf_flags &= ~XFS_BLF_INODE_BUF;
-	bip->bli_format.blf_flags |= XFS_BLF_CANCEL;
-	set_bit(XFS_LI_DIRTY, &bip->bli_item.li_flags);
-	tp->t_flags |= XFS_TRANS_DIRTY;
-}
-
-void
-libxfs_trans_bjoin(
-	xfs_trans_t		*tp,
-	xfs_buf_t		*bp)
-{
-	xfs_buf_log_item_t	*bip;
-
-	ASSERT(bp->bp_transp == NULL);
-#ifdef XACT_DEBUG
-	fprintf(stderr, "bjoin'd buffer %p, transaction %p\n", bp, tp);
-#endif
-
-	xfs_buf_item_init(bp, tp->t_mountp);
-	bip = bp->b_log_item;
-	xfs_trans_add_item(tp, (xfs_log_item_t *)bip);
-	bp->b_transp = tp;
-}
-
-void
-libxfs_trans_bhold(
-	xfs_trans_t		*tp,
-	xfs_buf_t		*bp)
-{
-	xfs_buf_log_item_t	*bip = bp->b_log_item;
-
-	ASSERT(bp->bp_transp == tp);
-	ASSERT(bip != NULL);
-#ifdef XACT_DEBUG
-	fprintf(stderr, "bhold'd buffer %p, transaction %p\n", bp, tp);
-#endif
-
-	bip->bli_flags |= XFS_BLI_HOLD;
-}
-
-xfs_buf_t *
-libxfs_trans_get_buf_map(
-	xfs_trans_t		*tp,
-	struct xfs_buftarg	*btp,
-	struct xfs_buf_map	*map,
-	int			nmaps,
-	uint			f)
-{
-	xfs_buf_t		*bp;
-	xfs_buf_log_item_t	*bip;
-
-	if (tp == NULL)
-		return libxfs_getbuf_map(btp, map, nmaps, 0);
-
-	bp = xfs_trans_buf_item_match(tp, btp, map, nmaps);
-	if (bp != NULL) {
-		ASSERT(bp->bp_transp == tp);
-		bip = bp->b_log_item;
-		ASSERT(bip != NULL);
-		bip->bli_recur++;
-		return bp;
-	}
-
-	bp = libxfs_getbuf_map(btp, map, nmaps, 0);
-	if (bp == NULL)
-		return NULL;
-#ifdef XACT_DEBUG
-	fprintf(stderr, "trans_get_buf buffer %p, transaction %p\n", bp, tp);
-#endif
-
-	xfs_buf_item_init(bp, tp->t_mountp);
-	bip = bp->b_log_item;
-	bip->bli_recur = 0;
-	xfs_trans_add_item(tp, (xfs_log_item_t *)bip);
-
-	/* initialize b_transp so we can find it incore */
-	bp->b_transp = tp;
-	return bp;
-}
-
-xfs_buf_t *
-libxfs_trans_getsb(
-	xfs_trans_t		*tp,
-	xfs_mount_t		*mp,
-	int			flags)
-{
-	xfs_buf_t		*bp;
-	xfs_buf_log_item_t	*bip;
-	int			len = XFS_FSS_TO_BB(mp, 1);
-	DEFINE_SINGLE_BUF_MAP(map, XFS_SB_DADDR, len);
-
-	if (tp == NULL)
-		return libxfs_getsb(mp, flags);
-
-	bp = xfs_trans_buf_item_match(tp, mp->m_dev, &map, 1);
-	if (bp != NULL) {
-		ASSERT(bp->bp_transp == tp);
-		bip = bp->b_log_item;
-		ASSERT(bip != NULL);
-		bip->bli_recur++;
-		return bp;
-	}
-
-	bp = libxfs_getsb(mp, flags);
-#ifdef XACT_DEBUG
-	fprintf(stderr, "trans_get_sb buffer %p, transaction %p\n", bp, tp);
-#endif
-
-	xfs_buf_item_init(bp, mp);
-	bip = bp->b_log_item;
-	bip->bli_recur = 0;
-	xfs_trans_add_item(tp, (xfs_log_item_t *)bip);
-
-	/* initialize b_transp so we can find it incore */
-	bp->b_transp = tp;
-	return bp;
-}
-
-int
-libxfs_trans_read_buf_map(
-	xfs_mount_t		*mp,
-	xfs_trans_t		*tp,
-	struct xfs_buftarg	*btp,
-	struct xfs_buf_map	*map,
-	int			nmaps,
-	uint			flags,
-	xfs_buf_t		**bpp,
-	const struct xfs_buf_ops *ops)
-{
-	xfs_buf_t		*bp;
-	xfs_buf_log_item_t	*bip;
-	int			error;
-
-	*bpp = NULL;
-
-	if (tp == NULL) {
-		bp = libxfs_readbuf_map(btp, map, nmaps, flags, ops);
-		if (!bp) {
-			return (flags & XBF_TRYLOCK) ?  -EAGAIN : -ENOMEM;
-		}
-		if (bp->b_error)
-			goto out_relse;
-		goto done;
-	}
-
-	bp = xfs_trans_buf_item_match(tp, btp, map, nmaps);
-	if (bp != NULL) {
-		ASSERT(bp->bp_transp == tp);
-		ASSERT(bp->b_log_item != NULL);
-		bip = bp->b_log_item;
-		bip->bli_recur++;
-		goto done;
-	}
-
-	bp = libxfs_readbuf_map(btp, map, nmaps, flags, ops);
-	if (!bp) {
-		return (flags & XBF_TRYLOCK) ?  -EAGAIN : -ENOMEM;
-	}
-	if (bp->b_error)
-		goto out_relse;
-
-#ifdef XACT_DEBUG
-	fprintf(stderr, "trans_read_buf buffer %p, transaction %p\n", bp, tp);
-#endif
-
-	xfs_buf_item_init(bp, tp->t_mountp);
-	bip = bp->b_log_item;
-	bip->bli_recur = 0;
-	xfs_trans_add_item(tp, (xfs_log_item_t *)bip);
-
-	/* initialise b_transp so we can find it incore */
-	bp->b_transp = tp;
-done:
-	*bpp = bp;
-	return 0;
-out_relse:
-	error = bp->b_error;
-	xfs_buf_relse(bp);
-	return error;
-}
+/* end of xfs_trans_buf.c */
 
 /*
  * Record the indicated change to the given field for application
@@ -812,6 +854,19 @@ _("Transaction block reservation exceeded! %u > %u\n"),
 		tp->t_ifree_delta += delta;
 		break;
 	case XFS_TRANS_SB_FREXTENTS:
+		/*
+		 * Track the number of rt extents allocated in the transaction.
+		 * Make sure it does not exceed the number reserved.
+		 */
+		if (delta < 0) {
+			tp->t_rtx_res_used += (uint)-delta;
+			if (tp->t_rtx_res_used > tp->t_rtx_res) {
+				fprintf(stderr,
+_("Transaction rt block reservation exceeded! %u > %u\n"),
+					tp->t_rtx_res_used, tp->t_rtx_res);
+				ASSERT(0);
+			}
+		}
 		tp->t_frextents_delta += delta;
 		break;
 	default:
@@ -821,86 +876,84 @@ _("Transaction block reservation exceeded! %u > %u\n"),
 	tp->t_flags |= (XFS_TRANS_SB_DIRTY | XFS_TRANS_DIRTY);
 }
 
+static void
+xfs_inode_item_put(
+	struct xfs_inode_log_item	*iip)
+{
+	struct xfs_inode		*ip = iip->ili_inode;
+
+	ASSERT(iip->ili_item.li_buf == NULL);
+
+	ip->i_itemp = NULL;
+
+	list_del_init(&iip->ili_item.li_bio_list);
+	kmem_cache_free(xfs_ili_cache, iip);
+}
+
 
 /*
  * Transaction commital code follows (i.e. write to disk in libxfs)
+ *
+ * XXX (dgc): should failure to flush the inode (e.g. due to uncorrected
+ * corruption) result in transaction commit failure w/ EFSCORRUPTED?
  */
-
 static void
 inode_item_done(
-	xfs_inode_log_item_t	*iip)
+	struct xfs_inode_log_item	*iip)
 {
-	xfs_dinode_t		*dip;
-	xfs_inode_t		*ip;
-	xfs_mount_t		*mp;
-	xfs_buf_t		*bp;
-	int			error;
+	struct xfs_buf			*bp;
+	int				error;
 
-	ip = iip->ili_inode;
-	mp = iip->ili_item.li_mountp;
-	ASSERT(ip != NULL);
+	ASSERT(iip->ili_inode != NULL);
 
-	if (!(iip->ili_fields & XFS_ILOG_ALL)) {
-		ip->i_transp = NULL;	/* disassociate from transaction */
-		iip->ili_flags = 0;	/* reset all flags */
-		return;
-	}
+	if (!(iip->ili_fields & XFS_ILOG_ALL))
+		goto free_item;
+
+	bp = iip->ili_item.li_buf;
+	iip->ili_item.li_buf = NULL;
 
 	/*
-	 * Get the buffer containing the on-disk inode.
+	 * Flush the inode and disassociate it from the transaction regardless
+	 * of whether the flush succeed or not. If we fail the flush, make sure
+	 * we still release the buffer reference we currently hold.
 	 */
-	error = xfs_imap_to_bp(mp, NULL, &ip->i_imap, &dip, &bp, 0, 0);
-	if (error) {
-		fprintf(stderr, _("%s: warning - imap_to_bp failed (%d)\n"),
-			progname, error);
-		return;
-	}
+	error = libxfs_iflush_int(iip->ili_inode, bp);
+	bp->b_transp = NULL;	/* remove xact ptr */
 
-	bp->b_log_item = iip;
-	error = libxfs_iflush_int(ip, bp);
 	if (error) {
 		fprintf(stderr, _("%s: warning - iflush_int failed (%d)\n"),
 			progname, error);
-		return;
+		goto free;
 	}
 
-	ip->i_transp = NULL;	/* disassociate from transaction */
-	bp->b_log_item = NULL;	/* remove log item */
-	bp->b_transp = NULL;	/* remove xact ptr */
-	libxfs_writebuf(bp, 0);
-#ifdef XACT_DEBUG
-	fprintf(stderr, "flushing dirty inode %llu, buffer %p\n",
-			ip->i_ino, bp);
-#endif
+	libxfs_buf_mark_dirty(bp);
+free:
+	libxfs_buf_relse(bp);
+free_item:
+	xfs_inode_item_put(iip);
 }
 
 static void
 buf_item_done(
 	xfs_buf_log_item_t	*bip)
 {
-	xfs_buf_t		*bp;
+	struct xfs_buf		*bp;
 	int			hold;
-	extern kmem_zone_t	*xfs_buf_item_zone;
+	extern struct kmem_cache	*xfs_buf_item_cache;
 
 	bp = bip->bli_buf;
 	ASSERT(bp != NULL);
-	bp->b_log_item = NULL;			/* remove log item */
 	bp->b_transp = NULL;			/* remove xact ptr */
 
 	hold = (bip->bli_flags & XFS_BLI_HOLD);
-	if (bip->bli_flags & XFS_BLI_DIRTY) {
-#ifdef XACT_DEBUG
-		fprintf(stderr, "flushing/staling buffer %p (hold=%d)\n",
-			bp, hold);
-#endif
-		libxfs_writebuf_int(bp, 0);
-	}
+	if (bip->bli_flags & XFS_BLI_DIRTY)
+		libxfs_buf_mark_dirty(bp);
+
+	bip->bli_flags &= ~XFS_BLI_HOLD;
+	xfs_buf_item_put(bip);
 	if (hold)
-		bip->bli_flags &= ~XFS_BLI_HOLD;
-	else
-		libxfs_putbuf(bp);
-	/* release the buf item */
-	kmem_zone_free(xfs_buf_item_zone, bip);
+		return;
+	libxfs_buf_relse(bp);
 }
 
 static void
@@ -915,7 +968,7 @@ trans_committed(
 		if (lip->li_type == XFS_LI_BUF)
 			buf_item_done((xfs_buf_log_item_t *)lip);
 		else if (lip->li_type == XFS_LI_INODE)
-			inode_item_done((xfs_inode_log_item_t *)lip);
+			inode_item_done((struct xfs_inode_log_item *)lip);
 		else {
 			fprintf(stderr, _("%s: unrecognised log item type\n"),
 				progname);
@@ -928,7 +981,7 @@ static void
 buf_item_unlock(
 	xfs_buf_log_item_t	*bip)
 {
-	xfs_buf_t		*bp = bip->bli_buf;
+	struct xfs_buf		*bp = bip->bli_buf;
 	uint			hold;
 
 	/* Clear the buffer's association with this transaction. */
@@ -936,20 +989,16 @@ buf_item_unlock(
 
 	hold = bip->bli_flags & XFS_BLI_HOLD;
 	bip->bli_flags &= ~XFS_BLI_HOLD;
+	xfs_buf_item_put(bip);
 	if (!hold)
-		libxfs_putbuf(bp);
+		libxfs_buf_relse(bp);
 }
 
 static void
 inode_item_unlock(
-	xfs_inode_log_item_t	*iip)
+	struct xfs_inode_log_item	*iip)
 {
-	xfs_inode_t		*ip = iip->ili_inode;
-
-	/* Clear the transaction pointer in the inode. */
-	ip->i_transp = NULL;
-
-	iip->ili_flags = 0;
+	xfs_inode_item_put(iip);
 }
 
 /* Detach and unlock all of the items in a transaction */
@@ -964,13 +1013,97 @@ xfs_trans_free_items(
 		if (lip->li_type == XFS_LI_BUF)
 			buf_item_unlock((xfs_buf_log_item_t *)lip);
 		else if (lip->li_type == XFS_LI_INODE)
-			inode_item_unlock((xfs_inode_log_item_t *)lip);
+			inode_item_unlock((struct xfs_inode_log_item *)lip);
 		else {
 			fprintf(stderr, _("%s: unrecognised log item type\n"),
 				progname);
 			ASSERT(0);
 		}
 	}
+}
+
+/*
+ * Sort transaction items prior to running precommit operations. This will
+ * attempt to order the items such that they will always be locked in the same
+ * order. Items that have no sort function are moved to the end of the list
+ * and so are locked last.
+ *
+ * This may need refinement as different types of objects add sort functions.
+ *
+ * Function is more complex than it needs to be because we are comparing 64 bit
+ * values and the function only returns 32 bit values.
+ */
+static int
+xfs_trans_precommit_sort(
+	void			*unused_arg,
+	const struct list_head	*a,
+	const struct list_head	*b)
+{
+	struct xfs_log_item	*lia = container_of(a,
+					struct xfs_log_item, li_trans);
+	struct xfs_log_item	*lib = container_of(b,
+					struct xfs_log_item, li_trans);
+	int64_t			diff;
+
+	/*
+	 * If both items are non-sortable, leave them alone. If only one is
+	 * sortable, move the non-sortable item towards the end of the list.
+	 */
+	if (!lia->li_ops->iop_sort && !lib->li_ops->iop_sort)
+		return 0;
+	if (!lia->li_ops->iop_sort)
+		return 1;
+	if (!lib->li_ops->iop_sort)
+		return -1;
+
+	diff = lia->li_ops->iop_sort(lia) - lib->li_ops->iop_sort(lib);
+	if (diff < 0)
+		return -1;
+	if (diff > 0)
+		return 1;
+	return 0;
+}
+
+/*
+ * Run transaction precommit functions.
+ *
+ * If there is an error in any of the callouts, then stop immediately and
+ * trigger a shutdown to abort the transaction. There is no recovery possible
+ * from errors at this point as the transaction is dirty....
+ */
+static int
+xfs_trans_run_precommits(
+	struct xfs_trans	*tp)
+{
+	//struct xfs_mount	*mp = tp->t_mountp;
+	struct xfs_log_item	*lip, *n;
+	int			error = 0;
+
+	/*
+	 * Sort the item list to avoid ABBA deadlocks with other transactions
+	 * running precommit operations that lock multiple shared items such as
+	 * inode cluster buffers.
+	 */
+	list_sort(NULL, &tp->t_items, xfs_trans_precommit_sort);
+
+	/*
+	 * Precommit operations can remove the log item from the transaction
+	 * if the log item exists purely to delay modifications until they
+	 * can be ordered against other operations. Hence we have to use
+	 * list_for_each_entry_safe() here.
+	 */
+	list_for_each_entry_safe(lip, n, &tp->t_items, li_trans) {
+		if (!test_bit(XFS_LI_DIRTY, &lip->li_flags))
+			continue;
+		if (lip->li_ops->iop_precommit) {
+			error = lip->li_ops->iop_precommit(tp, lip);
+			if (error)
+				break;
+		}
+	}
+	if (error)
+		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_INCORE);
+	return error;
 }
 
 /*
@@ -984,8 +1117,17 @@ __xfs_trans_commit(
 	struct xfs_sb		*sbp;
 	int			error = 0;
 
+	trace_xfs_trans_commit(tp, _RET_IP_);
+
 	if (tp == NULL)
 		return 0;
+
+	error = xfs_trans_run_precommits(tp);
+	if (error) {
+		if (tp->t_flags & XFS_TRANS_PERM_LOG_RES)
+			xfs_defer_cancel(tp);
+		goto out_unreserve;
+	}
 
 	/*
 	 * Finish deferred items on final commit. Only permanent transactions
@@ -997,14 +1139,15 @@ __xfs_trans_commit(
 		error = xfs_defer_finish_noroll(&tp);
 		if (error)
 			goto out_unreserve;
+
+		/* Run precommits from final tx in defer chain. */
+		error = xfs_trans_run_precommits(tp);
+		if (error)
+			goto out_unreserve;
 	}
 
-	if (!(tp->t_flags & XFS_TRANS_DIRTY)) {
-#ifdef XACT_DEBUG
-		fprintf(stderr, "committed clean transaction %p\n", tp);
-#endif
+	if (!(tp->t_flags & XFS_TRANS_DIRTY))
 		goto out_unreserve;
-	}
 
 	if (tp->t_flags & XFS_TRANS_SB_DIRTY) {
 		sbp = &(tp->t_mountp->m_sb);
@@ -1019,9 +1162,6 @@ __xfs_trans_commit(
 		xfs_log_sb(tp);
 	}
 
-#ifdef XACT_DEBUG
-	fprintf(stderr, "committing dirty transaction %p\n", tp);
-#endif
 	trans_committed(tp);
 
 	/* That's it for the transaction structure.  Free it. */
@@ -1039,4 +1179,124 @@ libxfs_trans_commit(
 	struct xfs_trans	*tp)
 {
 	return __xfs_trans_commit(tp, false);
+}
+
+/*
+ * Allocate an transaction, lock and join the inode to it, and reserve quota.
+ *
+ * The caller must ensure that the on-disk dquots attached to this inode have
+ * already been allocated and initialized.  The caller is responsible for
+ * releasing ILOCK_EXCL if a new transaction is returned.
+ */
+int
+libxfs_trans_alloc_inode(
+	struct xfs_inode	*ip,
+	struct xfs_trans_res	*resv,
+	unsigned int		dblocks,
+	unsigned int		rblocks,
+	bool			force,
+	struct xfs_trans	**tpp)
+{
+	struct xfs_trans	*tp;
+	struct xfs_mount	*mp = ip->i_mount;
+	int			error;
+
+	error = libxfs_trans_alloc(mp, resv, dblocks,
+			xfs_extlen_to_rtxlen(mp, rblocks),
+			force ? XFS_TRANS_RESERVE : 0, &tp);
+	if (error)
+		return error;
+
+	xfs_ilock(ip, XFS_ILOCK_EXCL);
+	xfs_trans_ijoin(tp, ip, 0);
+
+	*tpp = tp;
+	return 0;
+}
+
+/*
+ * Allocate an transaction, lock and join the directory and child inodes to it,
+ * and reserve quota for a directory update.  @resblks must point to the number
+ * of blocks to reserve; if not enough space is available, -ENOSPC will be
+ * returned.  @nospace_error is always set to zero here.  Userspace does not
+ * support reservationless creation at all, unlike the kernel.
+ *
+ * The ILOCKs will be dropped when the transaction is committed or cancelled.
+ *
+ * Caller is responsible for unlocking the inodes manually upon return
+ */
+int
+libxfs_trans_alloc_dir(
+	struct xfs_inode	*dp,
+	struct xfs_trans_res	*resv,
+	struct xfs_inode	*ip,
+	unsigned int		*resblks,
+	struct xfs_trans	**tpp,
+	int			*nospace_error)
+{
+	struct xfs_trans	*tp;
+	struct xfs_mount	*mp = ip->i_mount;
+	int			error;
+
+	*nospace_error = 0;
+
+	error = xfs_trans_alloc(mp, resv, *resblks, 0, 0, &tp);
+	if (error)
+		return error;
+
+	xfs_lock_two_inodes(dp, XFS_ILOCK_EXCL, ip, XFS_ILOCK_EXCL);
+
+	xfs_trans_ijoin(tp, dp, 0);
+	xfs_trans_ijoin(tp, ip, 0);
+
+	*tpp = tp;
+	return 0;
+}
+
+/*
+ * Try to reserve more blocks for a transaction.  The single use case we
+ * support is for offline repair -- use a transaction to gather data without
+ * fear of btree cycle deadlocks; calculate how many blocks we really need
+ * from that data; and only then start modifying data.  This can fail due to
+ * ENOSPC, so we have to be able to cancel the transaction.
+ */
+int
+libxfs_trans_reserve_more(
+	struct xfs_trans	*tp,
+	uint			blocks,
+	uint			rtextents)
+{
+	int			error = 0;
+
+	ASSERT(!(tp->t_flags & XFS_TRANS_DIRTY));
+
+	/*
+	 * Attempt to reserve the needed disk blocks by decrementing
+	 * the number needed from the number available.  This will
+	 * fail if the count would go below zero.
+	 */
+	if (blocks > 0) {
+		if (tp->t_mountp->m_sb.sb_fdblocks < blocks)
+			return -ENOSPC;
+		tp->t_blk_res += blocks;
+	}
+
+	/*
+	 * Attempt to reserve the needed realtime extents by decrementing
+	 * the number needed from the number available.  This will
+	 * fail if the count would go below zero.
+	 */
+	if (rtextents > 0) {
+		if (tp->t_mountp->m_sb.sb_rextents < rtextents) {
+			error = -ENOSPC;
+			goto out_blocks;
+		}
+	}
+
+	return 0;
+out_blocks:
+	if (blocks > 0)
+		tp->t_blk_res -= blocks;
+
+	return error;
 }
