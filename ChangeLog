@@ -1,3 +1,47 @@
+2026-03-10  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update github action for debian build
+
+	Merge pull request #290 from Thomas-Tsai/xfs-update
+	Xfs update
+
+	Merge pull request #291 from Thomas-Tsai/add-debian-ci
+	Add debian ci
+
+	add dependence package liburcu-dev for xfs
+
+2026-03-06  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	fix broken link
+
+	add liburcu-dev to github action jobs
+
+	Upgrade src/xfs to 6.13.0 from xfsprogs ; Disable XFS Debug Messages
+
+2026-03-05  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	update debian-build.yml
+
+	add equivs to debian-build.yml
+
+	add debian package auto test
+
+	update README.Packages
+
+	remove update-version
+
+2026-03-04  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	remove dynamic version.h updates via toolbox during build
+
+	toolbox: do not touch version.h if exported
+
+	update version.h to use git archive export-subst
+
+	fix toolbox export-subst comparison
+
+	Bump version to 0.3.46
+
 2026-03-03  Thomas Tsai  <tlinux.tsai@gmail.com>
 
 	Merge pull request #288 from rffontenelle/patch-1
