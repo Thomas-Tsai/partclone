@@ -1,9 +1,8 @@
 # Georgian translation for partclone.
-# Copyright (C) 2026 thomas@nchc.org.tw
+# Copyright (C) 2026 partclone's authors
 # This file is distributed under the same license as the partclone package.
 # Ekaterine Papava <papava.e@gtu.ge>, 2026.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: partclone 0.3.46\n"
