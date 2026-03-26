@@ -102,23 +102,23 @@ _findmkfs(){
     locate_path=$(type -P locate)
     case "$fs" in
 	fat12|fat16|fat32|fat|vfat)
-	    fs="vfat"
+	    mkfs_name="mkfs.vfat"
 	;;
 	apfs)
-	    mkfs_path=$($locate_path mkapfs|grep sbin| grep -v union| sort -n -r |head -n 1)
-	    echo $mkfs_path
-	    exit 0
+	    mkfs_name="mkapfs"
 	;;
+	*)
+	    mkfs_name="mkfs.$fs"
     esac
 
-    if [ -n $locate_path ]; then
-        mkfs_path=$($locate_path mkfs.$fs|grep sbin| grep -v union| sort -n -r |head -n 1)
+    if [ -z $mkfs_path ]; then
+        mkfs_path=$(which $mkfs_name)
+    fi
+    if [ -z $mkfs_path ] && [ -n $locate_path ]; then
+        mkfs_path=$($locate_path $mkfs_name|grep sbin| grep -v union| sort -n -r |head -n 1)
     fi
     if [ -z $mkfs_path ]; then
-        mkfs_path=$(which mkfs.$fs)
-    fi
-    if [ -z $mkfs_path ]; then
-	echo  >&2 "can't find mkfs.$fs"
+	echo  >&2 "can't find $mkfs_name"
 	exit 1
     fi
     echo $mkfs_path
