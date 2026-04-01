@@ -1,0 +1,73 @@
+name: Cross-Arch Image Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "matrix_test", "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  generate-images:
+    name: Generate Image via ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, 386, arm64, riscv64]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Build Partclone and Generate Image in Docker
+        run: |
+          docker run --rm --privileged \
+            --platform linux/${{ matrix.arch }} \
+            -v ${{ github.workspace }}:/workspace \
+            ubuntu:24.04 \
+            bash /workspace/tests/cross_arch_save.sh ${{ matrix.arch }}
+
+      - name: Upload Generated Image and MD5
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-${{ matrix.arch }}
+          path: |
+            test_img_${{ matrix.arch }}.img
+            payload_md5_${{ matrix.arch }}.txt
+          if-no-files-found: error
+
+  restore-images:
+    name: Restore testing on ${{ matrix.arch }}
+    needs: generate-images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, 386, arm64, riscv64]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Download all images
+        uses: actions/download-artifact@v4
+        with:
+          path: downloaded-images/
+          pattern: image-*
+          merge-multiple: true
+
+
+      - name: Restore and Verify in Docker
+        run: |
+          docker run --rm --privileged \
+            --platform linux/${{ matrix.arch }} \
+            -v ${{ github.workspace }}:/workspace \
+            ubuntu:24.04 \
+            bash /workspace/tests/cross_arch_restore.sh
