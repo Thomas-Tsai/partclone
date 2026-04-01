@@ -195,3 +195,20 @@ _configure_feature(){
     fi
     echo 0
 }
+
+_check_xxhash(){
+    # if ptlfs is not defined, use partclone.extfs as default for feature check
+    local check_bin=${ptlfs:-$ptldir/partclone.extfs}
+    if [ ! -x "$check_bin" ]; then
+        # if partclone.extfs doesn't exist, try to find any partclone.* in ptldir
+        check_bin=$(ls $ptldir/partclone.* 2>/dev/null | grep -v '\.o$' | head -n 1)
+    fi
+
+    if [ -n "$check_bin" ] && [ -x "$check_bin" ]; then
+        if $check_bin --help 2>&1 | grep -q "XXH64"; then
+            echo 1
+            return
+        fi
+    fi
+    echo 0
+}
