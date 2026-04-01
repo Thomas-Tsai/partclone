@@ -38,7 +38,7 @@ md5sum /mnt/base/random_data.bin | awk '{print $1}' > /workspace/payload_md5_${A
 umount /mnt/base
 
 # 5. Save image using partclone
-src/partclone.extfs -c -s base_${ARCH}.img -O test_img_${ARCH}.img -F -q
+src/partclone.extfs -c -s base_${ARCH}.img -O test_img_${ARCH}.img -F -q -a3
 
 # Fix permissions to allow non-root users (like CI runners) to read the artifact
 chmod a+r test_img_${ARCH}.img /workspace/payload_md5_${ARCH}.txt
