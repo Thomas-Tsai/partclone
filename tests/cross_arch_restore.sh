@@ -5,12 +5,13 @@ export DEBIAN_FRONTEND=noninteractive
 
 # 1. Install dependencies for minimal build
 apt-get update
-apt-get install -y build-essential autoconf automake libtool gettext pkg-config e2fslibs-dev uuid-dev libblkid-dev libxxhash-dev bc autopoint intltool libtool-bin libssl-dev zlib1g-dev libzstd-dev
+apt-get install -y build-essential autoconf automake libtool gettext pkg-config e2fslibs-dev uuid-dev libblkid-dev libxxhash-dev bc autopoint intltool libtool-bin libssl-dev zlib1g-dev libzstd-dev e2fsprogs xsltproc docbook-xsl
 
 # 2. Compile partclone
 cd /workspace
 ./autogen
 ./configure --enable-extfs --enable-xxhash --disable-ncursesw
+make clean || true
 make -j $(nproc)
 
 # 3. Restore and verify EACH image
