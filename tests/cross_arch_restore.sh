@@ -24,6 +24,12 @@ make -j $(nproc)
 cd /workspace
 mkdir -p /mnt/restored
 
+declare -a RESULTS
+FAILED=0
+
+# Disable exit on error for the loop execution to collect all results
+set +e
+
 for img in /workspace/downloaded-images/test_img_*.img; do
     # Extract the architecture that created this image
     filename=$(basename -- "$img")
@@ -38,14 +44,32 @@ for img in /workspace/downloaded-images/test_img_*.img; do
     truncate -s 50M target.img
     
     # Restore
-    src/partclone.extfs -r -s $img -O target.img -F -q
+    if ! src/partclone.extfs -r -s "$img" -O target.img -F -q; then
+        echo "❌ FATAL: partclone restore failed for image from ${ARCH_OF_IMG}!"
+        RESULTS+=("❌ FAIL (Restore): Image from ${ARCH_OF_IMG}")
+        FAILED=1
+        rm -f target.img
+        continue
+    fi
     
     # Run fsck to verify filesystem integrity
-    e2fsck -fn target.img
+    if ! e2fsck -fn target.img; then
+        echo "❌ FATAL: e2fsck failed for image from ${ARCH_OF_IMG}!"
+        RESULTS+=("❌ FAIL (fsck): Image from ${ARCH_OF_IMG}")
+        FAILED=1
+        rm -f target.img
+        continue
+    fi
     
     # Mount and verify that the MD5 Hash of the file matches
     mkdir -p /mnt/target
-    mount -o loop target.img /mnt/target
+    if ! mount -o loop target.img /mnt/target; then
+        echo "❌ FATAL: mount failed for image from ${ARCH_OF_IMG}!"
+        RESULTS+=("❌ FAIL (mount): Image from ${ARCH_OF_IMG}")
+        FAILED=1
+        rm -f target.img
+        continue
+    fi
     
     EXPECTED_MD5=$(cat "/workspace/downloaded-images/payload_md5_${ARCH_OF_IMG}.txt")
     ACTUAL_MD5=$(md5sum /mnt/target/random_data.bin | awk '{print $1}')
@@ -55,16 +79,42 @@ for img in /workspace/downloaded-images/test_img_*.img; do
         echo "❌ FATAL: MD5 mismatch for image created by ${ARCH_OF_IMG}!"
         echo "Expected: $EXPECTED_MD5"
         echo "Actual:   $ACTUAL_MD5"
-        umount /mnt/target
-        exit 1
+        RESULTS+=("❌ FAIL (MD5 mismatch): Image from ${ARCH_OF_IMG}")
+        FAILED=1
     else
         echo "✅ SUCCESS: MD5 checksum perfectly matches! ($ACTUAL_MD5)"
+        RESULTS+=("✅ PASS: Image from ${ARCH_OF_IMG}")
     fi
     umount /mnt/target
-
     
     # Clean up
-    rm target.img
+    rm -f target.img
 done
 
-echo "All restore tests passed on this architecture!"
+# Re-enable exit on error
+set -e
+
+echo
+echo "========================================"
+echo "          RESTORE TEST SUMMARY          "
+echo "========================================"
+for res in "${RESULTS[@]}"; do
+    echo "$res"
+done
+
+# Write the summary to a file so GitHub Actions can append it to GITHUB_STEP_SUMMARY
+{
+    echo "### Restore Results (Host: $(uname -m))"
+    for res in "${RESULTS[@]}"; do
+        echo "- $res"
+    done
+    echo ""
+} > /workspace/restore_summary.txt
+
+if [ $FAILED -ne 0 ]; then
+    echo "❌ Some restore tests failed!"
+    exit 1
+else
+    echo "✅ All restore tests passed on this architecture!"
+    exit 0
+fi
