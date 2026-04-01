@@ -118,9 +118,9 @@ for fs in $test_fs; do
     echo -e "    dd if=/dev/zero of=$raw_restore bs=$dd_bs count=$dd_count\n"
     dd if=/dev/zero of=$raw_restore bs=$dd_bs count=$dd_count
     echo -e "\n\ndirect clone $raw to $raw_restore\n"
-    echo -e "    $ptlfs -d -b -s $raw -O $raw_restore -L $logfile\n"
+    echo -e "    $ptlfs -d -b -a3 -s $raw -O $raw_restore -L $logfile\n"
     _ptlbreak
-    $ptlfs -d -b -s $raw -O $raw_restore  -L $logfile
+    $ptlfs -d -b -a3  -s $raw -O $raw_restore  -L $logfile
     _check_return_code
 
 

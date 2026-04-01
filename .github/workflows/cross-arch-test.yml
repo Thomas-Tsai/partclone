@@ -3,9 +3,8 @@ name: Cross-Arch Image Test
 on:
   workflow_dispatch:
   push:
-    branches: [ "matrix_test", "master" ]
-  pull_request:
-    branches: [ "master" ]
+    tags:
+      - '*'
 
 jobs:
   generate-images:
