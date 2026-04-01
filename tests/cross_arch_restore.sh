@@ -9,6 +9,12 @@ apt-get install -y build-essential autoconf automake libtool gettext pkg-config 
 
 # 2. Compile partclone
 cd /workspace
+# 確保上一次編譯架構遺留下來的 object files 被徹底清除乾淨
+find . -name "*.o" -delete
+find . -name "*.lo" -delete
+find . -name "*.la" -delete
+rm -rf .deps src/.deps
+
 ./autogen
 ./configure --enable-extfs --enable-xxhash --disable-ncursesw
 make clean || true
