@@ -28,7 +28,7 @@ jobs:
           docker run --rm --privileged \
             --platform linux/${{ matrix.arch }} \
             -v ${{ github.workspace }}:/workspace \
-            ubuntu:24.04 \
+            debian:trixie \
             bash /workspace/tests/cross_arch_save.sh ${{ matrix.arch }}
 
       - name: Upload Generated Image and MD5
@@ -69,5 +69,5 @@ jobs:
           docker run --rm --privileged \
             --platform linux/${{ matrix.arch }} \
             -v ${{ github.workspace }}:/workspace \
-            ubuntu:24.04 \
+            debian:trixie \
             bash /workspace/tests/cross_arch_restore.sh
