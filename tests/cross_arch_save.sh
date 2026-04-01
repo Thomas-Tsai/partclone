@@ -6,7 +6,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 # 1. Install dependencies for minimal build
 apt-get update
-apt-get install -y build-essential autoconf automake libtool gettext pkg-config e2fslibs-dev uuid-dev libblkid-dev libxxhash-dev
+apt-get install -y build-essential autoconf automake libtool gettext pkg-config e2fslibs-dev uuid-dev libblkid-dev libxxhash-dev autopoint intltool libtool-bin
 
 # 2. Compile partclone (minimal ext4 build to save CI time on emulated architectures)
 cd /workspace
