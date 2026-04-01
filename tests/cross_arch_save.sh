@@ -40,5 +40,8 @@ umount /mnt/base
 # 5. Save image using partclone
 src/partclone.extfs -c -s base_${ARCH}.img -O test_img_${ARCH}.img -F -q
 
+# Fix permissions to allow non-root users (like CI runners) to read the artifact
+chmod a+r test_img_${ARCH}.img /workspace/payload_md5_${ARCH}.txt
+
 # Cleanup dummy source to save space
 rm base_${ARCH}.img
