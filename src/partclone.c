@@ -243,9 +243,6 @@ void usage(void) {
 		"    -b,  --dev-to-dev       Local device to device copy mode\n"
 		"    -x,  --compresscmd CMD  Start CMD as an output pipe to compress the cloned image\n"
 		"    -n,  --note NOTE        Display Message Note (128 words)\n"
-#else
-		"    -S,  --device-size      Define device size\n"
-#endif
 		"    -D,  --domain           Create ddrescue domain log from source device\n"
 		"         --offset_domain=X  Add offset X (bytes) to domain log values\n"
 		"    -R,  --rescue           Continue clone while disk read errors\n"
@@ -260,6 +257,9 @@ void usage(void) {
 		"    -kX  --blocks-per-checksum=X\n"
 		"                            Write one checksum for every X blocks\n"
 		"    -K,  --no-reseed        Do not reseed the checksum at each write (TEST)\n"
+#else
+		"    -S,  --device-size      Define device size\n"
+#endif
 #endif
 		"    -w,  --skip_write_error Continue restore while write errors\n"
 #endif
@@ -353,11 +353,11 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #if CHKIMG
 	static const char *sopt = "-hvd::L:s:f:CFiBz:Nn:";
 #elif RESTORE
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:Tt";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqwWBz:E:n:Tt";
 #elif DD
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqWBz:E:n:TtS:";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqwWBz:E:n:TtS:";
 #else
-	static const char *sopt = "-hvd::L:cx:brDo:O:s:f:RCFINiqWBz:E:a:k:Kn:Tt";
+	static const char *sopt = "-hvd::L:cx:brDo:O:s:f:RCFINiqwWBz:E:a:k:Kn:Tt";
 #endif
 
 	static const struct option lopt[] = {

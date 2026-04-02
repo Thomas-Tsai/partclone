@@ -119,13 +119,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-I</option></arg><arg choice="plain"><option>--ignore_fschk</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-i</option></arg><arg choice="plain"><option>--ignore_crc</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-C</option></arg><arg choice="plain"><option>--nocheck</option></arg></group></arg>
-      <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-R</option></arg><arg choice="plain"><option>--rescue</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-L</option></arg><arg choice="plain"><option>--logfile</option></arg></group> <replaceable class="option">logfile</replaceable></arg>
-      <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-D</option></arg><arg choice="plain"><option>--domain</option></arg></group></arg>
-      <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--offset_domain</option></arg></group></arg>
-      <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-aX</option></arg><arg choice="plain"><option>--checksum-mode=X</option></arg></group></arg>
-      <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-kX</option></arg><arg choice="plain"><option>--blocks-per-checksum=X</option></arg></group></arg>
-      <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-K</option></arg><arg choice="plain"><option>--no-reseed</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-w</option></arg><arg choice="plain"><option>--skip_write_error</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-E</option></arg><arg choice="plain"><option>--offset=X</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-T</option></arg><arg choice="plain"><option>--btfiles</option></arg></group></arg>
@@ -184,19 +178,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
           <para>create special raw file for loop device.</para>
         </listitem>
       </varlistentry>
-      <varlistentry>
-      <term><option>-D</option></term> 
-      <term><option>--domain</option></term>
-      <listitem>
-      <para>Create GNU Ddrescue domain log file from source device. This is a human readable file in which + marks used block areas and ? marks free areas.</para>
-      </listitem>
-      </varlistentry>
-      <varlistentry>
-      <term><option>--offset_domain=X</option></term>
-      <listitem>
-      <para>Add X (in bytes) to all positions reported in the domain log file</para>
-      </listitem>
-      </varlistentry>
+
       <varlistentry>
         <term><option>--restore_raw_file</option></term>
         <listitem>
@@ -210,13 +192,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
           <para>put special path to record partclone log information. (default /var/log/partclone.log)</para>
         </listitem>
       </varlistentry>
-      <varlistentry>
-        <term><option>-R</option></term>
-        <term><option>--rescue</option></term>
-        <listitem>
-          <para>Continue after disk read errors.</para>
-        </listitem>
-      </varlistentry>
+
       <varlistentry>
         <term><option>-C</option></term>
         <term><option>--no_check</option></term>
@@ -280,23 +256,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
           <para>Set the debug level [1|2|3]</para>
         </listitem>
       </varlistentry>
-      <varlistentry>
-        <term><option>-aX</option></term>
-        <term><option>--checksum-mode=X</option></term>
-        <listitem>
-          <para>Checksum formula to use to add error detection</para>
-          <para>where X:</para>
-          <para>0: No checksum (no slowdown, smallest image)</para>
-          <para>1: CRC32 (Fast to compute, basic detection)</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term><option>-kX</option></term>
-        <term><option>--blocks-per-checksum=X</option></term>
-        <listitem>
-          <para>Write one checksum for every X blocks</para>
-        </listitem>
-      </varlistentry>
+
       <varlistentry>
         <term><option>-w</option></term>
         <term><option>--skip_write_error</option></term>
