@@ -355,7 +355,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #elif RESTORE
 	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqwWBz:E:n:Tt";
 #elif DD
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqwWBz:E:n:TtS:";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqwWBz:E:n:TtS:a:k:K";
 #else
 	static const char *sopt = "-hvd::L:cx:brDo:O:s:f:RCFINiqwWBz:E:a:k:Kn:Tt";
 #endif
@@ -386,12 +386,12 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "compresscmd",	required_argument,	NULL,	'x' },
 		{ "restore",		no_argument,		NULL,   'r' },
 		{ "dev-to-dev",		no_argument,		NULL,   'b' },
-#else
-		{ "device-size",	required_argument,	NULL,   'S' },
-#endif
 		{ "domain",		no_argument,		NULL,   'D' },
 		{ "offset_domain",	required_argument,	NULL,   OPT_OFFSET_DOMAIN },
 		{ "rescue",		no_argument,		NULL,   'R' },
+#else
+		{ "device-size",	required_argument,	NULL,   'S' },
+#endif
 		{ "checksum-mode",       required_argument, NULL, 'a' },
 		{ "blocks-per-checksum", required_argument, NULL, 'k' },
 		{ "no-reseed",           no_argument,       NULL, 'K' },
@@ -532,12 +532,6 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 				opt->dd++;
 				mode=1;
 				break;
-#else
-			case 'S':
-				assert(optarg != NULL);
-				opt->device_size = (off_t)strtoull(optarg, NULL, 0);
-				break;
-#endif
 			case 'D':
 				opt->domain++;
 				mode=1;
@@ -549,16 +543,34 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 			case 'R':
 				opt->rescue++;
 				break;
+#else
+			case 'S':
+				assert(optarg != NULL);
+				opt->device_size = (off_t)strtoull(optarg, NULL, 0);
+				break;
+#endif
 			case 'a':
+#ifdef DD
+				fprintf(stderr, "Warning: checksum-mode option is ignored in DD mode\n");
+#else
                 assert(optarg != NULL);
 				opt->checksum_mode = convert_to_checksum_mode(atol(optarg));
+#endif
 				break;
 			case 'k':
+#ifdef DD
+				fprintf(stderr, "Warning: blocks-per-checksum option is ignored in DD mode\n");
+#else
                 assert(optarg != NULL);
 				opt->blocks_per_checksum = atol(optarg);
+#endif
 				break;
 			case 'K':
+#ifdef DD
+				fprintf(stderr, "Warning: no-reseed option is ignored in DD mode\n");
+#else
 				opt->reseed_checksum = 0;
+#endif
 				break;
 #endif
 #endif
