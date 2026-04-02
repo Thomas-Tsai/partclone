@@ -147,18 +147,20 @@ static inline size_t __ab_c_size(size_t a, size_t b, size_t c)
 #define __init
 
 #ifdef __GNUC__
-#define __return_address	__builtin_return_address(0)
+# define __return_address	__builtin_return_address(0)
 
 /*
  * Return the address of a label.  Use barrier() so that the optimizer
  * won't reorder code to refactor the error jumpouts into a single
  * return, which throws off the reported address.
  */
-#define __this_address	({ __label__ __here; __here: barrier(); &&__here; })
+# define __this_address	({ __label__ __here; __here: barrier(); &&__here; })
 /* Optimization barrier */
 
 /* The "volatile" is due to gcc bugs */
-#define barrier() __asm__ __volatile__("": : :"memory")
+# ifndef barrier
+#  define barrier() __asm__ __volatile__("": : :"memory")
+# endif
 #endif
 
 /* Optimization barrier */
