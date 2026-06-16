@@ -1731,6 +1731,33 @@ int open_source(char* source, cmd_opt* opt) {
 
 static FILE *compress_pipe = NULL;
 
+static char *shell_escape(const char *str) {
+    size_t len = strlen(str);
+    size_t quotes = 0;
+    size_t i;
+    for (i = 0; i < len; i++)
+        if (str[i] == '\'')
+            quotes++;
+    char *result = malloc(len + quotes * 3 + 3);
+    if (!result)
+        return NULL;
+    size_t j = 0;
+    result[j++] = '\'';
+    for (i = 0; i < len; i++) {
+        if (str[i] == '\'') {
+            result[j++] = '\'';
+            result[j++] = '\\';
+            result[j++] = '\'';
+            result[j++] = '\'';
+        } else {
+            result[j++] = str[i];
+        }
+    }
+    result[j++] = '\'';
+    result[j] = '\0';
+    return result;
+}
+
 int open_target(char* target, cmd_opt* opt) {
 	int ret = 0;
 	int debug = opt->debug;
@@ -1763,12 +1790,16 @@ int open_target(char* target, cmd_opt* opt) {
 
 	if ((opt->clone || opt->domain || (ddd_block_device == 0)) && (opt->blockfile == 0)) {
 		if (opt->compresscmd) {
-			int strsz = strlen(opt->compresscmd) + strlen(target) + 4;
+			char *esc_cmd = shell_escape(opt->compresscmd);
+			char *esc_target = shell_escape(target);
+			int strsz = strlen(esc_cmd) + strlen(esc_target) + 4;
 			char *compresscmd = malloc(strsz);
 
-			sprintf(compresscmd, "%s >%s", opt->compresscmd, target);
+			sprintf(compresscmd, "%s >%s", esc_cmd, esc_target);
 			compress_pipe = popen(compresscmd, "w");
 			free(compresscmd);
+			free(esc_cmd);
+			free(esc_target);
 			if ((ret = (compress_pipe ? fileno(compress_pipe) : -1)) == -1)
 				log_mesg(0, 1, 1, debug, "clone: popen (%s >%s) error\n", opt->compresscmd, target);
 		} else if (strcmp(target, "-") == 0) {
