@@ -35,7 +35,6 @@
 
 int mnt_x=0;
 char *mnt_path = "/tmp/partclone_nilfs2_mnt/"; //fixme
-struct nilfs_super_block *sbp;
 struct nilfs *nilfs;
 
 extern fs_cmd_opt fs_opt;
@@ -226,12 +225,18 @@ extern void read_bitmap(char* device, file_system_info fs_info, unsigned long* b
 /// read super block and write to image head
 extern void read_super_blocks(char* device, file_system_info* fs_info)
 {
+    struct nilfs_layout layout;
+
     if (fs_open(device) != 0) {
         return; // Abort
     }
-    sbp = nilfs->n_sb;
+    if (nilfs_get_layout(nilfs, &layout, sizeof(layout)) < 0) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Failed to get NILFS layout: %s.\n", strerror(errno));
+        fs_close();
+        return;
+    }
     strncpy(fs_info->fs, nilfs_MAGIC, FS_MAGIC_SIZE);
-    fs_info->block_size  = nilfs_get_block_size(nilfs);
+    fs_info->block_size = layout.blocksize;
 
     if (fs_info->block_size < MIN_NILFS_BLOCK_SIZE || fs_info->block_size > MAX_NILFS_BLOCK_SIZE || (fs_info->block_size & (fs_info->block_size - 1)) != 0) {
         log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Invalid block size detected in superblock: %u.\n", fs_info->block_size);
@@ -239,8 +244,8 @@ extern void read_super_blocks(char* device, file_system_info* fs_info)
         return;
     }
 
-    if (sbp->s_dev_size == 0) {
-        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Device size (s_dev_size) is zero in superblock.\n");
+    if (layout.devsize == 0) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Device size is zero in NILFS layout.\n");
         fs_close();
         return;
     }
@@ -249,7 +254,7 @@ extern void read_super_blocks(char* device, file_system_info* fs_info)
         fs_close();
         return;
     }
-    fs_info->totalblock  = sbp->s_dev_size / fs_info->block_size;
+    fs_info->totalblock = layout.devsize / fs_info->block_size;
 
     if (fs_info->totalblock == 0 || fs_info->totalblock > MAX_NILFS_TOTAL_BLOCKS) {
         log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large or zero total blocks detected in superblock: %llu. Max allowed: %llu\n", fs_info->totalblock, MAX_NILFS_TOTAL_BLOCKS);
@@ -265,7 +270,8 @@ extern void read_super_blocks(char* device, file_system_info* fs_info)
     }
     fs_info->device_size = fs_info->totalblock * fs_info->block_size;
 
-    fs_info->usedblocks  = fs_info->totalblock - sbp->s_free_blocks_count;
-    fs_info->superBlockUsedBlocks = fs_info->usedblocks;
+    /* main.c updates usedblocks from the segment bitmap after this call. */
+    fs_info->usedblocks = 0;
+    fs_info->superBlockUsedBlocks = 0;
     fs_close();
 }
