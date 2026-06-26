@@ -49,7 +49,7 @@ void get_sb(xfs_sb_t *sbp, xfs_off_t off, int size, xfs_agnumber_t agno)
         if (buf == NULL) {
                 log_mesg(0, 1, 1, fs_opt.debug, "%s: error reading superblock %u -- failed to memalign buffer\n", __FILE__, agno);
         }
-        assert(buf == NULL);
+        assert(buf != NULL);
         memset(buf, 0, size);
         memset(sbp, 0, sizeof(*sbp));
 
