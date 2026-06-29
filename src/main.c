@@ -327,6 +327,7 @@ int main(int argc, char **argv) {
 		/// read and check bitmap from partition
 		log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
 		read_bitmap(source, fs_info, bitmap, pui);
+		update_used_blocks_count(&fs_info, bitmap);
 
 		/// check the dest partition size.
 		if (opt.dd && opt.check && !target_stdout) {
@@ -374,6 +375,7 @@ int main(int argc, char **argv) {
 		/// read and check bitmap from partition
 		log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait... ");
 		read_bitmap(source, fs_info, bitmap, pui);
+		update_used_blocks_count(&fs_info, bitmap);
 
 		/// check the dest partition size.
 		/* skip check free space while torrent_only on */
