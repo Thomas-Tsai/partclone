@@ -544,9 +544,21 @@ AM_CONDITIONAL(ENABLE_FS_TEST, test "$enable_fs_test" = yes)
 AM_CONDITIONAL(ENABLE_FEATURE_TEST, test "$enable_feature_test" = yes)
 
 ##bash-completion
-PKG_CHECK_VAR([bashcompletiondir], [bash-completion], [completionsdir], [],
-    [bashcompletiondir='${datadir}/bash-completion/completions'])
-AC_SUBST(bashcompletiondir)
+AC_ARG_WITH([bashcompdir],
+    AS_HELP_STRING([--with-bashcompdir=DIR], [Directory for bash completion files]),
+    [bashcompdir="$withval"],
+    [with_bashcompdir=yes]
+)
+
+if test "x$with_bashcompdir" = "xyes"; then
+    PKG_CHECK_VAR([bashcompdir], [bash-completion], [completionsdir], [],
+        [bashcompdir='${datadir}/bash-completion/completions'])
+elif test "x$with_bashcompdir" = "xno"; then
+    bashcompdir=""
+fi
+
+AC_SUBST([bashcompdir])
+AM_CONDITIONAL([ENABLE_BASH_COMPLETION], [test -n "$bashcompdir"])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([

@@ -220,8 +220,16 @@ partclone_imgfuse_LDADD+=-ldl
 endif
 endif
 
-bashcompletiondir=@bashcompletiondir@
-bashcompletion_DATA = partclone-completion
+bashcompdir = @bashcompdir@
+
+if ENABLE_BASH_COMPLETION
+dist_bashcomp_DATA = partclone
+endif
+
+partclone: partclone-completion
+	cp $(srcdir)/partclone-completion partclone
+
+CLEANFILES = partclone
 
 # Extra
 install-exec-hook:
@@ -251,7 +259,6 @@ if ENABLE_VMFS
 endif
 
 uninstall-local:
-	$(RM) -f $(bashcompletiondir)/partclone-completion
 if ENABLE_EXTFS
 	$(RM) -f $(sbindir)/partclone.ext4dev
 	$(RM) -f $(sbindir)/partclone.ext4
