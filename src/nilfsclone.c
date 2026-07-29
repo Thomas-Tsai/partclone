@@ -12,6 +12,10 @@
 */
 
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -225,6 +229,7 @@ extern void read_bitmap(char* device, file_system_info fs_info, unsigned long* b
 /// read super block and write to image head
 extern void read_super_blocks(char* device, file_system_info* fs_info)
 {
+#if defined(HAVE_STRUCT_NILFS_LAYOUT) || defined(HAVE_NILFS_GET_LAYOUT)
     struct nilfs_layout layout;
 
     if (fs_open(device) != 0) {
@@ -255,6 +260,34 @@ extern void read_super_blocks(char* device, file_system_info* fs_info)
         return;
     }
     fs_info->totalblock = layout.devsize / fs_info->block_size;
+#else
+    struct nilfs_super_block *sbp;
+
+    if (fs_open(device) != 0) {
+        return; // Abort
+    }
+    sbp = nilfs->n_sb;
+    strncpy(fs_info->fs, nilfs_MAGIC, FS_MAGIC_SIZE);
+    fs_info->block_size = nilfs_get_block_size(nilfs);
+
+    if (fs_info->block_size < MIN_NILFS_BLOCK_SIZE || fs_info->block_size > MAX_NILFS_BLOCK_SIZE || (fs_info->block_size & (fs_info->block_size - 1)) != 0) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Invalid block size detected in superblock: %u.\n", fs_info->block_size);
+        fs_close();
+        return;
+    }
+
+    if (sbp->s_dev_size == 0) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Device size (s_dev_size) is zero in superblock.\n");
+        fs_close();
+        return;
+    }
+    if (fs_info->block_size == 0) {
+        log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Block size is zero, cannot calculate total blocks.\n");
+        fs_close();
+        return;
+    }
+    fs_info->totalblock = sbp->s_dev_size / fs_info->block_size;
+#endif
 
     if (fs_info->totalblock == 0 || fs_info->totalblock > MAX_NILFS_TOTAL_BLOCKS) {
         log_mesg(0, 1, 1, fs_opt.debug, "ERROR: Maliciously large or zero total blocks detected in superblock: %llu. Max allowed: %llu\n", fs_info->totalblock, MAX_NILFS_TOTAL_BLOCKS);

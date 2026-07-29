@@ -328,6 +328,9 @@ AC_CHECK_HEADERS([nilfs.h], ,
 AC_CHECK_LIB([nilfs], [nilfs_open], [],
     AC_MSG_ERROR([*** nilfs2 depend library (libnilfs) not found]))
 
+AC_CHECK_TYPES([struct nilfs_layout], [], [], [#include <nilfs.h>])
+AC_CHECK_FUNCS([nilfs_get_layout])
+
 supported_fs=$supported_fs" nilfs2"
 nilfs2_version="unknown, suggest 2.3.2"
 fi
