@@ -1,3 +1,126 @@
+2026-07-29  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	fix(nilfs): add backward compatibility for nilfs-utils pre-2.3
+
+2026-07-09  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #301 from pickerd/master
+	Add AM_PROG_AR to configure.ac
+
+2026-07-09  pickerd  <47850793+pickerd@users.noreply.github.com>
+
+	Add AM_PROG_AR to configure.ac
+
+2026-07-02  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge branch 'master' of github.com:Thomas-Tsai/partclone
+
+	Use pkg-config for bashcompdir with customizable override support
+
+	Merge pull request #299 from xuammu/fix-order-inject
+	fix: shell-escape compresscmd and target to prevent command injection
+
+2026-06-29  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #295 from blanktonio/avoid_redefining_barrier
+	Prevent redefinition of `barrier` macro
+
+	Merge pull request #300 from nzb-tuxxx/fix-nilfs-utils-2.3
+	Fix compatibility with nilfs-utils 2.3
+
+2026-06-26  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #298 from xuammu/master
+	fix: correct assert condition in xfsclone.c get_sb()
+
+2026-06-22  tuxxx  <nzb_tuxxx@proton.me>
+
+	Fix compatibility with nilfs-utils 2.3
+	Use the public nilfs_get_layout() API now that struct nilfs is opaque. Recalculate used block counts from the segment bitmap in every mode that reads it.
+
+	Fixes https://github.com/Thomas-Tsai/partclone/issues/289
+
+	References https://gitlab.archlinux.org/archlinux/packaging/packages/partclone/-/work_items/10
+
+2026-06-16  陈玄林  <chenxuanlin@uniontech.com>
+
+	fix: shell-escape compresscmd and target to prevent command injection
+
+2026-06-11  陈玄林  <chenxuanlin@uniontech.com>
+
+	fix: correct assert condition in xfsclone.c get_sb()
+	The assert should check buf != NULL to ensure memalign succeeded,
+	not buf == NULL which would assert when allocation is successful.
+
+2026-04-02  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	add checksum and block options to DD mode with warning messages
+
+	fix option error
+
+	remove release.sh
+
+2026-04-01  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #296 from Thomas-Tsai/matrix_test
+	Matrix test for different architectures
+
+	add xxhash check before test
+
+	update github action
+
+	feat: add cross-architecture MD5 verification and detailed test summary reporting
+
+	add cross image test for xxh3 128bit
+
+	fix action fail - upload fail
+
+	fix x86 test
+
+	add local scripts for matrix image test
+
+	fix compile issue
+
+	fix compile issue
+
+	fix compile issue
+
+	change base image to Trixie
+
+	add martix image test for different arch
+
+	Merge pull request #294 from blanktonio/fix_printf_20260326
+	Fix missing character escape sequence
+
+	Merge pull request #293 from blanktonio/locate_test_utils
+	Prefer `PATH` over `locate` for finding utilities
+
+2026-03-26  Anton Samsonov  <Anton.V.Samsonov@mcst.ru>
+
+	Prevent redefinition of `barrier` macro
+
+	Fix missing character escape sequence
+
+	Prefer `PATH` over `locate` for finding utilities
+
+2026-03-23  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #292 from EkaterinePapava/master
+	po: Add Georgian translation
+
+2026-03-22  Ekaterine Papava  <papava.e@gtu.ge>
+
+	Revise copyright line in ka.po
+	Updated copyright information for the Georgian translation.
+
+	po: Add Georgian translation
+
+	po: Add Georgian translation
+
+2026-03-11  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Bump version to 0.3.47
+
 2026-03-10  Thomas Tsai  <tlinux.tsai@gmail.com>
 
 	update github action for debian build
