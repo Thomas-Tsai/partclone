@@ -220,16 +220,18 @@ partclone_imgfuse_LDADD+=-ldl
 endif
 endif
 
-bashcompdir = @bashcompdir@
 
 if ENABLE_BASH_COMPLETION
-dist_bashcomp_DATA = partclone
+dist_bashcomp_DATA = partclone-completion
+
+install-data-hook:
+	mv $(DESTDIR)$(bashcompdir)/partclone-completion $(DESTDIR)$(bashcompdir)/partclone
+
+uninstall-hook:
+	rm -f $(DESTDIR)$(bashcompdir)/partclone
 endif
 
-partclone: partclone-completion
-	cp $(srcdir)/partclone-completion partclone
 
-CLEANFILES = partclone
 
 # Extra
 install-exec-hook:

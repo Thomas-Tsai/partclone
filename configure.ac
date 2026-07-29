@@ -505,6 +505,10 @@ fi
 
 ##libcrypto##
 PKG_CHECK_MODULES([OPENSSL], [openssl],, [AC_MSG_ERROR([openssl not found])])
+save_LIBS="$LIBS"
+LIBS="$LIBS $OPENSSL_LIBS"
+AC_CHECK_FUNCS([EVP_MD_CTX_new EVP_MD_CTX_create EVP_MD_CTX_reset])
+LIBS="$save_LIBS"
 PKG_CHECK_MODULES([ZLIB], [zlib],, [AC_MSG_ERROR([zlib not found])])
 PKG_CHECK_MODULES([ZSTD], [libzstd],, [AC_MSG_ERROR([libzstd not found])])
 

@@ -20,10 +20,10 @@ void torrent_init(torrent_generator *torrent, FILE *tinfo)
 	torrent->tinfo = tinfo;
 #if !defined(HAVE_EVP_MD_CTX_methods)
 	SHA1_Init(&torrent->ctx);
-#elif defined(HAVE_EVP_MD_CTX_new)
+#elif defined(HAVE_EVP_MD_CTX_NEW) || defined(HAVE_EVP_MD_CTX_new)
 	torrent->ctx = EVP_MD_CTX_new();
 	EVP_DigestInit(torrent->ctx, EVP_sha1());
-#elif defined(HAVE_EVP_MD_CTX_create)
+#elif defined(HAVE_EVP_MD_CTX_CREATE) || defined(HAVE_EVP_MD_CTX_create)
 	torrent->ctx = EVP_MD_CTX_create();
 	EVP_DigestInit(torrent->ctx, EVP_sha1());
 #endif
@@ -98,10 +98,10 @@ void torrent_final(torrent_generator *torrent)
 	if (torrent->length) {
 #if !defined(HAVE_EVP_MD_CTX_methods)
 		SHA1_Final(torrent->hash, &torrent->ctx);
-#elif defined(HAVE_EVP_MD_CTX_new)
+#elif defined(HAVE_EVP_MD_CTX_NEW) || defined(HAVE_EVP_MD_CTX_new)
 		EVP_DigestFinal(torrent->ctx, torrent->hash, NULL);
 		EVP_MD_CTX_free(torrent->ctx);
-#elif defined(HAVE_EVP_MD_CTX_create)
+#elif defined(HAVE_EVP_MD_CTX_CREATE) || defined(HAVE_EVP_MD_CTX_create)
 		EVP_DigestFinal(torrent->ctx, torrent->hash, NULL);
 		EVP_MD_CTX_destroy(torrent->ctx);
 #endif

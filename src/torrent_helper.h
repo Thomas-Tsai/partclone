@@ -23,7 +23,7 @@
 #include <stdint.h>
 
 /* SHA1 for torrent info */
-#if (defined(HAVE_EVP_MD_CTX_new) || defined(HAVE_EVP_MD_CTX_create)) && defined(HAVE_EVP_MD_CTX_reset)
+#if (defined(HAVE_EVP_MD_CTX_NEW) || defined(HAVE_EVP_MD_CTX_CREATE) || defined(HAVE_EVP_MD_CTX_new) || defined(HAVE_EVP_MD_CTX_create)) && (defined(HAVE_EVP_MD_CTX_RESET) || defined(HAVE_EVP_MD_CTX_reset))
 #define HAVE_EVP_MD_CTX_methods
 #endif
 #if defined(HAVE_EVP_MD_CTX_methods)

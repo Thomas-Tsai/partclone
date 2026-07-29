@@ -1,5 +1,7 @@
 2026-07-29  Thomas Tsai  <tlinux.tsai@gmail.com>
 
+	release version to 0.3.48
+
 	fix(nilfs): add backward compatibility for nilfs-utils pre-2.3
 
 2026-07-09  Thomas Tsai  <tlinux.tsai@gmail.com>

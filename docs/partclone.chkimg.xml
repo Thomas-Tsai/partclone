@@ -115,18 +115,26 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-dX</option></arg>
 	    <arg choice="plain"><option>--debug=X</option></arg>
 	</group>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-N</option></arg>
 	    <arg choice="plain"><option>--ncurses</option></arg>
 	</group>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-f</option></arg>
 	    <arg choice="plain"><option>--UI-fresh</option></arg>
 	</group>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-F</option></arg>
 	    <arg choice="plain"><option>--force</option></arg>
 	</group>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	<arg choice="plain"><option>--ignore_crc</option></arg>
 	</group>
@@ -136,14 +144,20 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	    <arg choice="plain"><option>-C</option></arg>
 	    <arg choice="plain"><option>--no_check</option></arg>
 	</group>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-B</option></arg>
 	    <arg choice="plain"><option>--no_block_detail</option></arg>
 	</group>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-z</option></arg>
 	    <arg choice="plain"><option>--buffer_size</option></arg>
 	</group>
+      </arg>
+      <arg choice="opt">
 	<group choice="opt">
 	    <arg choice="plain"><option>-L</option></arg>
 	    <arg choice="plain"><option>--logfile</option></arg>

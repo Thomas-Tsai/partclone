@@ -23,6 +23,7 @@ Makefile.in
 /stamp-h1
 /test-driver
 /m4/
+/ar-lib
 
 # Libtool and object files
 *.o
