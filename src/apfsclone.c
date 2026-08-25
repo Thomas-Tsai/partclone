@@ -136,8 +136,8 @@ static void *get_spaceman_buf(int fd, const struct nx_superblock_t *nxsb)
     for (i = 0; i < cpm->cpm_count; i++) {
 	if (cpm->cpm_map[i].cpm_oid == nxsb->nx_spaceman_oid &&
 	    cpm->cpm_map[i].cpm_type == type_spaceman) {
-            if (cpm->cpm_map[i].cpm_size == 0 || cpm->cpm_map[i].cpm_size > MAX_APFS_SPACEMAN_SIZE) {
-                log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Maliciously large or zero spaceman size: %u (Max allowed: %llu).\n", __FILE__, cpm->cpm_map[i].cpm_size, MAX_APFS_SPACEMAN_SIZE);
+            if (cpm->cpm_map[i].cpm_size < sizeof(struct spaceman_phys_t) || cpm->cpm_map[i].cpm_size > MAX_APFS_SPACEMAN_SIZE) {
+                log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Invalid or maliciously large spaceman size: %u (Max allowed: %llu, Min expected: %zu).\n", __FILE__, cpm->cpm_map[i].cpm_size, MAX_APFS_SPACEMAN_SIZE, sizeof(struct spaceman_phys_t));
                 free(cpm);
                 return NULL;
             }

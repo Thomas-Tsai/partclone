@@ -289,6 +289,13 @@ static void fs_open(char* device)
         free(buffer);
     }
 
+    if (fat_sb.sector_size == 0) {
+        log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR: Invalid sector_size (0) in FAT boot sector\n", __func__, __LINE__);
+    }
+    if (fat_sb.cluster_size == 0) {
+        log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR: Invalid cluster_size (0) in FAT boot sector\n", __func__, __LINE__);
+    }
+
     if (read(ret, &fatfs_info, sizeof(FatFsInfo)) != sizeof(FatFsInfo))
 	log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, ERROR:%s", __func__, __LINE__, strerror(errno));
 

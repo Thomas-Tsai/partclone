@@ -949,8 +949,6 @@ void close_log(void) {
 void load_image_desc_v1(file_system_info* fs_info, image_options* img_opt,
 		const image_head_v1 img_hdr_v1, const file_system_info_v1 fs_info_v1, cmd_opt* opt) {
 
-	unsigned long long dev_size = 0;
-
 	strncpy(fs_info->fs, img_hdr_v1.fs, FS_MAGIC_SIZE);
 
 	fs_info->block_size  = fs_info_v1.block_size;
@@ -993,7 +991,7 @@ void load_image_desc_v1(file_system_info* fs_info, image_options* img_opt,
 		log_mesg(0, 1, 1, opt->debug, "Invalid image v1: calculated filesystem size is larger than device size.\n");
 	} else if (calculated_size < fs_info->device_size) {
 		log_mesg(1, 0, 0, opt->debug, "INFO: adjusted device size reported by the image [%llu -> %llu]\n", fs_info->device_size, calculated_size);
-		fs_info->device_size = dev_size;
+		fs_info->device_size = calculated_size;
 	}
 
 	set_image_options_v1(img_opt);

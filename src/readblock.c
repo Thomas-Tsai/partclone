@@ -190,7 +190,10 @@ int main(int argc, char **argv){
     read_buffer = (char*)malloc(fs_info.block_size);
     write_buffer = (char*)malloc(fs_info.block_size);
     log_mesg(0, 0, 1, opt.debug, "get block data %ld\n", block);
-    unsigned long int seek_crc_size = ((used-1) / img_opt.blocks_per_checksum) * img_opt.checksum_size;
+    unsigned long int seek_crc_size = 0;
+    if (img_opt.blocks_per_checksum) {
+        seek_crc_size = ((used-1) / img_opt.blocks_per_checksum) * img_opt.checksum_size;
+    }
     long int bseek = fs_info.block_size*(used-1)+seek_crc_size;
     int baseseek = lseek(dfr, 0, SEEK_CUR);
     printf("baseseek = %i\n", baseseek);

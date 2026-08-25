@@ -89,7 +89,9 @@ size_t read_block_data(unsigned long block, char *buf, size_t size, off_t offset
 	    ++used;
     }
 
-    seek_crc_size = (used / img_opt.blocks_per_checksum) * img_opt.checksum_size;
+    if (img_opt.blocks_per_checksum) {
+	seek_crc_size = (used / img_opt.blocks_per_checksum) * img_opt.checksum_size;
+    }
     bseek = (off_t)(fs_info.block_size*used+seek_crc_size+baseseek);
 
     //printf("RRRRR read block %lu\n", block);
