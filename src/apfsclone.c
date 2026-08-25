@@ -176,7 +176,6 @@ static uint64_t get_apfs_free_count(){
 
     struct spaceman_phys_t spaceman;
     void *spaceman_buf;
-    uint64_t free_count = 0;
     uint64_t total_free_count = 0;
 
     spaceman_buf = get_spaceman_buf(APFSDEV, &nxsb);
@@ -216,7 +215,7 @@ static uint64_t get_apfs_free_count(){
             return 0;
         }
 
-        free_count = spaceman.sm_dev[sd].sm_free_count;
+        uint64_t free_count = spaceman.sm_dev[sd].sm_free_count;
 
 	log_mesg(1, 0, 0, fs_opt.debug, "%s: block_count %llX in sd %i\n", __FILE__, spaceman.sm_dev[sd].sm_block_count, sd);
 	log_mesg(1, 0, 0, fs_opt.debug, "%s: free_count  %llX in sd %i\n", __FILE__, free_count, sd);
@@ -307,24 +306,17 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     struct spaceman_phys_t spaceman;
     void *spaceman_buf;
-    uint64_t sm_offset = 0;
 
     char *chunk_info_block_buf = NULL;
     struct obj_phys_t obj_phys_t;
     struct chunk_info_block_t chunk_info_block;
     struct chunk_info_t chunk_info;
-    ssize_t  read_size = 0;
     uint64_t  addr;
     uint64_t  addr_data;
-    uint64_t cnt = 0;
-    uint64_t cnt_count = 0;
-    uint64_t chunk = 0;
     uint64_t blocks_per_chunk = 0;
 
     int sd = 0;
 
-    uint64_t block = 0;
-    uint64_t bitmap_block = 0;
     char *bitmap_entry_buf = NULL;
 
     if (fs_open(device) != 0) {
@@ -376,15 +368,10 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     }
 
     for (sd = 0; sd < SD_COUNT; sd++){
-        sm_offset = spaceman.sm_dev[sd].sm_addr_offset;
+        uint64_t sm_offset = spaceman.sm_dev[sd].sm_addr_offset;
         uint32_t current_sd_cab_count = spaceman.sm_dev[sd].sm_cab_count;
         uint32_t current_sd_cib_count = spaceman.sm_dev[sd].sm_cib_count;
-
-        if (current_sd_cab_count > 0){
-            cnt_count = current_sd_cab_count;
-        } else {
-            cnt_count = current_sd_cib_count;
-        }
+        uint64_t cnt_count = current_sd_cab_count > 0 ? current_sd_cab_count : current_sd_cib_count;
         if (cnt_count > MAX_APFS_CHUNK_INFO_COUNT) {
             log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Maliciously large or zero cnt_count for sd %d: %llu (Max allowed: %llu).\n", __FILE__, sd, cnt_count, MAX_APFS_CHUNK_INFO_COUNT);
             // This might be non-fatal if other sd's are fine, but for now, abort
@@ -398,7 +385,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
         if ((sm_offset != 0) && (cnt_count != 0)) { // Only proceed if there's actual data to process
 	    log_mesg(2, 0, 0, fs_opt.debug, "%s: check each chunk\n", __FILE__);
 
-            for (cnt = 0; cnt < cnt_count; cnt++){
+            for (uint64_t cnt = 0; cnt < cnt_count; cnt++){
 		log_mesg(2, 0, 0, fs_opt.debug, "%s: check chunk %llu\n", __FILE__, cnt);
 
                 addr = sm_offset + (uint64_t)sizeof(addr)*cnt; 
@@ -417,7 +404,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
                 memset(chunk_info_block_buf, 0,  block_size);
                 memset(&chunk_info_block, 0, sizeof(chunk_info_block));
-                read_size = pread(APFSDEV, chunk_info_block_buf, block_size, addr_data*block_size);
+                ssize_t read_size = pread(APFSDEV, chunk_info_block_buf, block_size, addr_data*block_size);
                 if (read_size != block_size) {
                     log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: pread error reading chunk info block from %llu (%zd bytes, expected %u): %s\n", __FILE__, addr_data*block_size, read_size, block_size, strerror(errno));
                     free(chunk_info_block_buf); free(bitmap_entry_buf);
@@ -440,7 +427,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
                 if(obj_phys_t.o_type == 0x40000007ULL){ // Use ULL for constants, check against actual APFS object type defines
 
                     log_mesg(3, 0, 0, fs_opt.debug, "%s: get addr %llx\n", __FILE__, addr_data); // use %llx for uint64_t
-                    for (chunk = 0; chunk < chunk_info_block.cib_chunk_info_count; chunk++) {
+                    for (uint64_t chunk = 0; chunk < chunk_info_block.cib_chunk_info_count; chunk++) {
                         if (sizeof(chunk_info_block) + chunk*(uint64_t)sizeof(chunk_info) > block_size - sizeof(chunk_info)) {
                             log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Overflow in chunk_info memcpy offset or OOB access for chunk %llu.\n", __FILE__, chunk);
                             free(chunk_info_block_buf); free(bitmap_entry_buf);
@@ -459,7 +446,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
                                                         fs_close();
                                                         return;
                                                     }
-                                                    for (block = 0 ; block < chunk_info.ci_block_count; block++){
+                                                    for (uint64_t block = 0 ; block < chunk_info.ci_block_count; block++){
                                                         if (chunk_info.ci_addr > ULLONG_MAX - block) {
                                                             log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Overflow in block+ci_addr calculation.\n", __FILE__);
                                                             free(chunk_info_block_buf); free(bitmap_entry_buf);
@@ -483,7 +470,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
 
                             memset(bitmap_entry_buf, 0, block_size);
-                            read_size = pread(APFSDEV, bitmap_entry_buf, block_size, chunk_info.ci_bitmap_addr*block_size);
+                            ssize_t read_size = pread(APFSDEV, bitmap_entry_buf, block_size, chunk_info.ci_bitmap_addr*block_size);
                             if (read_size != block_size) {
                                 log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: pread error reading bitmap entry from %llu (%zd bytes, expected %u): %s\n", __FILE__, chunk_info.ci_bitmap_addr*block_size, read_size, block_size, strerror(errno));
                                 free(chunk_info_block_buf); free(bitmap_entry_buf);
@@ -491,7 +478,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
                                 return;
                             }
 
-                            for (block = 0 ; block < chunk_info.ci_block_count; block++){
+                            for (uint64_t block = 0 ; block < chunk_info.ci_block_count; block++){
                                 if (block / 8 >= block_size) {
                                     log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: Block index %llu out of bounds for bitmap_entry_buf (size %u).\n", __FILE__, block, block_size);
                                     free(chunk_info_block_buf); free(bitmap_entry_buf);
@@ -527,8 +514,8 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
                         return;
                     }
 
-                    for (chunk = 0; chunk < spaceman.sm_blocks_per_chunk; chunk++) {
-                        for (block = 0 ; block < spaceman.sm_chunks_per_cib; block++){
+                    for (uint64_t chunk = 0; chunk < spaceman.sm_blocks_per_chunk; chunk++) {
+                        for (uint64_t block = 0 ; block < spaceman.sm_chunks_per_cib; block++){
                             if (spaceman.sm_blocks_per_chunk > ULLONG_MAX / spaceman.sm_chunks_per_cib ||
                                 spaceman.sm_blocks_per_chunk * spaceman.sm_chunks_per_cib > ULLONG_MAX / cnt ||
                                 block > ULLONG_MAX - (spaceman.sm_blocks_per_chunk * spaceman.sm_chunks_per_cib * cnt) ) {
@@ -537,7 +524,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
                                 fs_close();
                                 return;
                             }
-                            bitmap_block = block + spaceman.sm_blocks_per_chunk*spaceman.sm_chunks_per_cib*cnt;
+                            uint64_t bitmap_block = block + spaceman.sm_blocks_per_chunk*spaceman.sm_chunks_per_cib*cnt;
                             if (bitmap_block > fs_info.totalblock){
                                 log_mesg(0, 1, 1, fs_opt.debug, "%s: ERROR: bitmap_block %llu exceeds fs_info.totalblock %llu.\n", __FILE__, bitmap_block, fs_info.totalblock);
                                 free(chunk_info_block_buf); free(bitmap_entry_buf);
