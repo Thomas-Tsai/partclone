@@ -432,6 +432,29 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     check_extent_bitmap(bitmap, btrfs_super_chunk_root(info->super_copy), &bsize, 0);
     check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->fs_root->root_item), &bsize, 0);
 
+    /* Root Tree: its address lives in the superblock (btrfs_super_root),
+     * not as a ROOT_ITEM in the root tree itself, so
+     * info->tree_root->root_item.bytenr is 0. Read it from the superblock
+     * directly to guarantee the root tree node is always marked used even
+     * if the recursive dump_start_leaf() walk below is skipped (e.g. when
+     * info->tree_root->node is NULL) or fails. */
+    check_extent_bitmap(bitmap, btrfs_super_root(info->super_copy), &bsize, 0);
+
+    /* Quota Tree: optional, may be NULL when quotas are disabled. Only the
+     * ROOT_ITEM_KEY scan below covers it otherwise; mark it explicitly so
+     * a failing read_tree_block() cannot silently drop quota metadata. */
+    if (info->quota_root)
+	check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->quota_root->root_item), &bsize, 0);
+
+    /* UUID Tree: optional, may be NULL. Same rationale as quota_root. */
+    if (info->uuid_root)
+	check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->uuid_root->root_item), &bsize, 0);
+
+    /* Raid Stripe Tree: feature-gated (BTRFS_FEATURE_INCOMPAT_RAID_STRIPE_TREE),
+     * may be NULL when the feature is not enabled. */
+    if (btrfs_fs_incompat(info, RAID_STRIPE_TREE) && info->stripe_root)
+	check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->stripe_root->root_item), &bsize, 0);
+
     if (btrfs_fs_compat_ro(info, BLOCK_GROUP_TREE)) {
         struct btrfs_root *bg_root = btrfs_block_group_root(info);
         if (bg_root)

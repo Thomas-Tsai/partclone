@@ -11,6 +11,7 @@ endif
 if ENABLE_BTRFS
 TESTS += btrfs.test
 TESTS += btrfs_bgt.test
+TESTS += btrfs_trees.test
 endif
 
 if ENABLE_FAT

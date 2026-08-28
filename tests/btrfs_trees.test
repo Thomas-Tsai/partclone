@@ -1,0 +1,543 @@
+#!/bin/bash
+
+# ==============================================================================
+# Partclone Btrfs Multi-Tree Coverage Test
+#
+# Regression test for issue #303 (chunk_root + block_group_root) and the
+# follow-up patch that adds explicit check_extent_bitmap() marking for the
+# Root Tree (objectid 1), Quota Tree (8), UUID Tree (9) and Raid Stripe
+# Tree (12).
+#
+# The source filesystem is created with mkfs.btrfs -O block-group-tree,
+# free-space-tree,quota,extref,no-holes so that the following tree roots
+# exist as ROOT_ITEM entries in the root tree (or as direct superblock
+# fields for root/chunk tree):
+#
+#   objectid  1  Root Tree          (superblock: btrfs_super_root)
+#   objectid  2  Extent Tree
+#   objectid  3  Chunk Tree         (superblock: btrfs_super_chunk_root)
+#   objectid  4  Dev Tree
+#   objectid  5  FS Tree
+#   objectid  7  CSUM Tree
+#   objectid  8  Quota Tree         (-O quota)
+#   objectid  9  UUID Tree
+#   objectid 10  Free Space Tree    (-O free-space-tree)
+#   objectid 11  Block Group Tree   (-O block-group-tree, issue #303)
+#   objectid -9  Data Reloc Tree    (empty ROOT_ITEM at mkfs time)
+#
+# This test:
+#   1. Creates a feature-rich btrfs filesystem
+#   2. Optionally mounts it (sudo + loop available) to populate fs/csum/quota
+#      trees with real content; falls back to pure mkfs image otherwise
+#   3. Extracts every tree root bytenr from the source (dump-super +
+#      dump-tree -r)
+#   4. Clones with partclone.btrfs and restores with partclone.restore
+#   5. Verifies `btrfs check --readonly` passes on the restored image
+#   6. Verifies the restored superblock root/chunk_root bytenr match source
+#   7. Verifies dump-tree -r is walkable and lists every expected ROOT_ITEM
+#   8. Byte-level check: for each tree root bytenr, the nodesize bytes at
+#      that offset in the restored image must NOT be all-zero (this is the
+#      decisive check for the issue #303 zero-fill symptom).
+#
+# NOT COVERED:
+#   - Raid Stripe Tree (objectid 12): btrfs-progs 6.14 and Linux 6.12 do
+#     not yet allow mkfs to create a filesystem with the
+#     RAID_STRIPE_TREE incompat feature, so no real image can be
+#     produced. The patch logic
+#       if (btrfs_fs_incompat(info, RAID_STRIPE_TREE) && info->stripe_root)
+#     remains unexercised by this test; revisit once btrfs-progs gains
+#     support.
+#   - Log Root Tree: transient, per-transaction; intentionally not
+#     covered (clean unmount leaves no log root).
+#
+# Requirements:
+#   - btrfs-progs >= 6.1 (for -O block-group-tree support)
+#   - Compiled partclone.btrfs / partclone.restore in ../src/
+#   - Optional: sudo + loop device for the mount-enriched variant
+# ==============================================================================
+
+set -e
+
+# --- Helper Functions for Colored Output ---
+function print_info() {
+    echo -e "\e[34m[INFO]\e[0m $1"
+}
+function print_pass() {
+    echo -e "\e[32m[PASS]\e[0m $1"
+}
+function print_warn() {
+    echo -e "\e[33m[WARN]\e[0m $1"
+}
+function print_fail() {
+    echo -e "\e[31m[FAIL]\e[0m $1"
+    cleanup
+    exit 1
+}
+
+# --- Configuration ---
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PTLDIR="$SCRIPT_DIR/../src"
+PTLBTRFS="$PTLDIR/partclone.btrfs"
+PTLRESTORE="$PTLDIR/partclone.restore"
+
+IMG_SIZE=$((512 * 1024 * 1024))   # 512 MiB
+RAW_SRC="btrfs_trees_src.raw"
+CLONE_IMG="btrfs_trees_clone.img"
+RAW_RESTORE="btrfs_trees_restore.raw"
+LOG_FILE="btrfs_trees_test.log"
+MNT_POINT="btrfs_trees_mnt"
+RESTORE_MNT_POINT="btrfs_trees_restore_mnt"
+SRC_FILES_SHA256=""        # sha256 of concatenated file contents (source)
+SRC_FILE_SHA256=()         # per-file sha256 (source), indexed by file number
+NUM_TEST_FILES=5
+
+# Trees we expect to find as ROOT_ITEM in the root tree (dump-tree -r).
+# Format: "TREE_NAME" for sed matching against dump-tree output.
+# Raid Stripe Tree is intentionally absent (see NOT COVERED above).
+EXPECTED_ROOT_ITEMS=(
+    "EXTENT_TREE"
+    "DEV_TREE"
+    "FS_TREE"
+    "CSUM_TREE"
+    "QUOTA_TREE"
+    "UUID_TREE"
+    "FREE_SPACE_TREE"
+    "BLOCK_GROUP_TREE"
+    "DATA_RELOC_TREE"
+)
+
+# --- Cleanup ---
+function cleanup() {
+    print_info "Cleaning up generated files..."
+    # Unmount source mountpoint if still mounted; retry then lazy-unmount
+    # as fallback so we never leave the mountpoint stuck busy.
+    for mp in "$MNT_POINT" "$RESTORE_MNT_POINT"; do
+        if mountpoint -q "$mp" 2>/dev/null; then
+            for _ in 1 2 3; do
+                sudo -n umount "$mp" 2>/dev/null && break
+                sync
+                sleep 1
+            done
+            mountpoint -q "$mp" 2>/dev/null && sudo -n umount -l "$mp" 2>/dev/null || true
+        fi
+        rmdir "$mp" 2>/dev/null || true
+    done
+    # Detach loop devices if we attached any
+    for dev in "$LOOP_DEV" "$RESTORE_LOOP_DEV"; do
+        if [ -n "$dev" ]; then
+            sudo -n losetup -d "$dev" 2>/dev/null || true
+        fi
+    done
+    rm -f "$RAW_SRC" "$CLONE_IMG" "$RAW_RESTORE" "$LOG_FILE"
+}
+
+cd "$SCRIPT_DIR"
+trap cleanup EXIT
+
+# --- Pre-flight Checks ---
+
+if [ ! -x "$PTLBTRFS" ]; then
+    print_fail "$PTLBTRFS not found. Please compile partclone first (e.g., 'make' in the project root directory)."
+fi
+if [ ! -x "$PTLRESTORE" ]; then
+    print_fail "$PTLRESTORE not found. Please compile partclone first."
+fi
+
+MKFS_BTRFS=$(which mkfs.btrfs 2>/dev/null || true)
+if [ -z "$MKFS_BTRFS" ]; then
+    print_fail "mkfs.btrfs not found. Please install btrfs-progs."
+fi
+
+BTRFS_BIN=$(which btrfs 2>/dev/null || true)
+if [ -z "$BTRFS_BIN" ]; then
+    print_fail "btrfs not found. Please install btrfs-progs."
+fi
+
+# btrfs-progs >= 6.1 for block-group-tree
+BTRFS_PROGS_VERSION=$($MKFS_BTRFS --version 2>&1 | grep -oE 'v[0-9]+\.[0-9]+' | head -1 | tr -d 'v')
+BTRFS_PROGS_MAJOR=$(echo "$BTRFS_PROGS_VERSION" | cut -d. -f1)
+if [ -z "$BTRFS_PROGS_MAJOR" ] || [ "$BTRFS_PROGS_MAJOR" -lt 6 ]; then
+    print_info "btrfs-progs version $BTRFS_PROGS_VERSION does not support block-group-tree (requires >= 6.1)."
+    print_info "Skipping test."
+    exit 77   # 77 = skip (automake convention)
+fi
+if ! $MKFS_BTRFS -O list-all 2>&1 | grep -q "block-group-tree"; then
+    print_info "mkfs.btrfs does not advertise the block-group-tree feature."
+    print_info "Skipping test."
+    exit 77
+fi
+
+print_info "==================================================="
+print_info "  Btrfs Multi-Tree Coverage Regression Test       "
+print_info "==================================================="
+print_info "btrfs-progs version: $BTRFS_PROGS_VERSION"
+print_info "partclone.btrfs:     $PTLBTRFS"
+
+# --- Step 1: Create raw file and format as feature-rich btrfs ---
+print_info "Step 1: Creating ${IMG_SIZE}-byte raw file and formatting with -O block-group-tree,free-space-tree,quota,extref,no-holes..."
+
+dd if=/dev/zero of="$RAW_SRC" bs=1M count=$((IMG_SIZE / 1024 / 1024)) status=none
+$MKFS_BTRFS -O block-group-tree,free-space-tree,quota,extref,no-holes -f "$RAW_SRC" > /dev/null 2>&1
+
+# Verify the features were enabled (re-read superblock later, after any mount,
+# because btrfs is COW and the root tree bytenr moves on commit).
+DUMP_SUPER_CHECK=$($BTRFS_BIN inspect-internal dump-super "$RAW_SRC" 2>&1)
+for feat in BLOCK_GROUP_TREE FREE_SPACE_TREE; do
+    if ! echo "$DUMP_SUPER_CHECK" | grep -q "$feat"; then
+        print_fail "Feature $feat was not enabled on the source filesystem."
+    fi
+done
+print_pass "Source filesystem created with all requested features enabled."
+
+# --- Step 2: Optional mount-enriched variant ---
+# Mounting + writing files + enabling qgroups makes the FS/CSUM/Quota trees
+# carry real content (rather than empty leaves). If sudo or a loop device is
+# unavailable, we fall back to the pure mkfs image, which is still sufficient
+# to exercise the tree-root bitmap marking logic that partclone's read_bitmap()
+# is responsible for.
+MOUNT_ENRICHED=0
+LOOP_DEV=""
+# Use `sudo -n` (non-interactive) so the test does not hang waiting for a
+# password in CI or unattended runs. If sudo requires a password, we simply
+# fall back to the pure mkfs variant.
+if command -v sudo >/dev/null 2>&1 && command -v losetup >/dev/null 2>&1 \
+   && sudo -n true 2>/dev/null; then
+    LOOP_DEV=$(sudo -n losetup -f 2>/dev/null || true)
+    if [ -n "$LOOP_DEV" ] && [ -e "$LOOP_DEV" ]; then
+        if sudo -n losetup "$LOOP_DEV" "$RAW_SRC" 2>/dev/null; then
+            mkdir -p "$MNT_POINT"
+            if sudo -n mount -o loop "$LOOP_DEV" "$MNT_POINT" 2>/dev/null; then
+                MOUNT_ENRICHED=1
+                print_info "Step 2: Mount-enriched variant active ($LOOP_DEV on $MNT_POINT)."
+                # Write a few small files with random content to populate
+                # fs/csum trees. Record per-file sha256 (and a concatenated
+                # digest) BEFORE unmounting, so we can later verify restored
+                # content without needing to re-read the (unmounted) source.
+                SRC_FILE_SHA256=()
+                for i in $(seq 1 "$NUM_TEST_FILES"); do
+                    sudo -n dd if=/dev/urandom of="$MNT_POINT/file_$i.bin" bs=4k count=4 status=none
+                    SRC_FILE_SHA256[$i]=$(sudo -n cat "$MNT_POINT/file_$i.bin" | sha256sum | awk '{print $1}')
+                done
+                SRC_FILES_SHA256=$(
+                    for i in $(seq 1 "$NUM_TEST_FILES"); do
+                        sudo -n cat "$MNT_POINT/file_$i.bin"
+                    done | sha256sum | awk '{print $1}'
+                )
+                print_info "  Source files (concat) sha256 = $SRC_FILES_SHA256"
+                # Enable qgroups to ensure the quota tree is actually populated.
+                # Note: in btrfs-progs >= 6.x the subcommand moved from
+                # `btrfs qgroup enable` to `btrfs quota enable`.
+                sudo -n btrfs quota enable "$MNT_POINT" >/dev/null 2>&1 || true
+                # Sync so metadata is committed to disk
+                sync
+                sudo -n btrfs filesystem sync "$MNT_POINT" >/dev/null 2>&1 || true
+                # Unmount; retry a few times since btrfs may still be flushing
+                # async commits in the background (target busy).
+                umount_ok=0
+                for _ in 1 2 3 4 5; do
+                    if sudo -n umount "$MNT_POINT" 2>/dev/null; then
+                        umount_ok=1
+                        break
+                    fi
+                    sync
+                    sleep 1
+                done
+                if [ "$umount_ok" -ne 1 ]; then
+                    # Last resort: lazy unmount so the loop device can be
+                    # detached and we don't leave the test in a stuck state.
+                    print_warn "umount busy after retries; attempting lazy unmount."
+                    sudo -n umount -l "$MNT_POINT" 2>/dev/null || true
+                    sleep 1
+                fi
+            else
+                print_warn "sudo mount failed; falling back to pure mkfs image."
+                sudo -n losetup -d "$LOOP_DEV" 2>/dev/null || true
+                LOOP_DEV=""
+            fi
+        else
+            print_warn "sudo losetup attach failed; falling back to pure mkfs image."
+            LOOP_DEV=""
+        fi
+    else
+        print_warn "No free loop device; falling back to pure mkfs image."
+        LOOP_DEV=""
+    fi
+else
+    print_warn "sudo not available non-interactively; falling back to pure mkfs image."
+    LOOP_DEV=""
+fi
+if [ "$MOUNT_ENRICHED" -eq 0 ]; then
+    print_info "Step 2: Pure mkfs image (no mount enrichment). Tree-root marking logic still exercised."
+fi
+
+# --- Step 3: Extract reference bytenrs from source ---
+print_info "Step 3: Extracting tree root bytenrs from source..."
+
+# IMPORTANT: btrfs is copy-on-write. If we mounted and wrote files in Step 2,
+# the root tree (and possibly other tree roots) were re-committed to new
+# bytenrs. We must (re)read the superblock and root tree *after* any mount
+# enrichment so the source bytenrs reflect the final on-disk state that
+# partclone.btrfs will see.
+DUMP_SUPER_SRC=$($BTRFS_BIN inspect-internal dump-super "$RAW_SRC" 2>&1)
+
+# Superblock-resident roots
+SRC_ROOT_BYTENR=$(echo "$DUMP_SUPER_SRC" | sed -n 's/^root[[:space:]]\+\([0-9]\+\)/\1/p')
+SRC_CHUNK_ROOT_BYTENR=$(echo "$DUMP_SUPER_SRC" | sed -n 's/^chunk_root[[:space:]]\+\([0-9]\+\)/\1/p')
+NODESIZE=$(echo "$DUMP_SUPER_SRC" | sed -n 's/^nodesize[[:space:]]\+\([0-9]\+\)/\1/p')
+if [ -z "$NODESIZE" ]; then
+    NODESIZE=16384
+fi
+
+if [ -z "$SRC_ROOT_BYTENR" ]; then
+    print_fail "Could not extract root bytenr from source superblock."
+fi
+if [ -z "$SRC_CHUNK_ROOT_BYTENR" ]; then
+    print_fail "Could not extract chunk_root bytenr from source superblock."
+fi
+
+# ROOT_ITEM-resident roots: parse "dump-tree -r" lines of the form:
+#   <name> tree key (<NAME> ROOT_ITEM 0) <bytenr> level <n>
+DUMP_TREE_SRC=$($BTRFS_BIN inspect-internal dump-tree -r "$RAW_SRC" 2>&1)
+
+# Build an associative array: TREE_NAME -> bytenr
+declare -A SRC_ROOT_ITEM_BYTENR
+while IFS= read -r line; do
+    # Match "key (NAME ROOT_ITEM 0) BYTENR level"
+    name=$(echo "$line" | sed -n 's/.*(\([A-Z_]*\) ROOT_ITEM 0) [0-9]\+ level.*/\1/p')
+    bytenr=$(echo "$line" | sed -n 's/.*([A-Z_]* ROOT_ITEM 0) \([0-9]\+\) level.*/\1/p')
+    if [ -n "$name" ] && [ -n "$bytenr" ]; then
+        SRC_ROOT_ITEM_BYTENR["$name"]="$bytenr"
+    fi
+done <<< "$DUMP_TREE_SRC"
+
+print_info "Source tree root bytenrs:"
+print_info "  ROOT_TREE       (superblock) = $SRC_ROOT_BYTENR"
+print_info "  CHUNK_TREE      (superblock) = $SRC_CHUNK_ROOT_BYTENR"
+for name in "${EXPECTED_ROOT_ITEMS[@]}"; do
+    b="${SRC_ROOT_ITEM_BYTENR[$name]:-MISSING}"
+    print_info "  $name (ROOT_ITEM)   = $b"
+    if [ "$b" = "MISSING" ]; then
+        print_fail "Expected ROOT_ITEM '$name' not found in source root tree dump."
+    fi
+done
+print_info "nodesize = $NODESIZE"
+
+# --- Step 4: Clone the source with partclone.btrfs ---
+print_info "Step 4: Cloning source with partclone.btrfs..."
+
+$PTLBTRFS -c -s "$RAW_SRC" -O "$CLONE_IMG" -F -L "$LOG_FILE" > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    print_fail "partclone.btrfs clone failed. See $LOG_FILE for details."
+fi
+print_pass "Clone completed successfully."
+
+# --- Step 5: Restore the image to a raw file ---
+print_info "Step 5: Restoring image to raw file..."
+
+dd if=/dev/zero of="$RAW_RESTORE" bs=1M count=$((IMG_SIZE / 1024 / 1024)) status=none
+$PTLRESTORE -s "$CLONE_IMG" -O "$RAW_RESTORE" -C -F -L "$LOG_FILE" > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    print_fail "partclone.restore failed. See $LOG_FILE for details."
+fi
+print_pass "Restore completed successfully."
+
+# --- Step 6: btrfs check on restored filesystem ---
+print_info "Step 6: Running 'btrfs check --readonly' on restored filesystem..."
+
+CHECK_OUTPUT=$($BTRFS_BIN check --readonly "$RAW_RESTORE" 2>&1) || {
+    echo "$CHECK_OUTPUT"
+    print_fail "btrfs check failed on restored filesystem."
+}
+if echo "$CHECK_OUTPUT" | grep -q "cannot read chunk root"; then
+    echo "$CHECK_OUTPUT"
+    print_fail "Restored filesystem has 'cannot read chunk root' — issue #303 regression detected."
+fi
+print_pass "btrfs check passed (no 'cannot read chunk root' error)."
+
+# --- Step 7: Verify restored superblock root/chunk_root match source ---
+print_info "Step 7: Verifying restored superblock root/chunk_root bytenr..."
+
+if ! DUMP_SUPER_RESTORE=$($BTRFS_BIN inspect-internal dump-super "$RAW_RESTORE" 2>&1); then
+    echo "$DUMP_SUPER_RESTORE"
+    print_fail "dump-super failed on restored filesystem - superblock or critical metadata is corrupt."
+fi
+
+RESTORED_ROOT_BYTENR=$(echo "$DUMP_SUPER_RESTORE" | sed -n 's/^root[[:space:]]\+\([0-9]\+\)/\1/p')
+RESTORED_CHUNK_ROOT_BYTENR=$(echo "$DUMP_SUPER_RESTORE" | sed -n 's/^chunk_root[[:space:]]\+\([0-9]\+\)/\1/p')
+
+if [ -z "$RESTORED_ROOT_BYTENR" ]; then
+    print_fail "Could not extract root bytenr from restored superblock."
+fi
+if [ -z "$RESTORED_CHUNK_ROOT_BYTENR" ]; then
+    print_fail "Could not extract chunk_root bytenr from restored superblock."
+fi
+if [ "$RESTORED_ROOT_BYTENR" != "$SRC_ROOT_BYTENR" ]; then
+    print_fail "Restored root ($RESTORED_ROOT_BYTENR) != source ($SRC_ROOT_BYTENR)."
+fi
+if [ "$RESTORED_CHUNK_ROOT_BYTENR" != "$SRC_CHUNK_ROOT_BYTENR" ]; then
+    print_fail "Restored chunk_root ($RESTORED_CHUNK_ROOT_BYTENR) != source ($SRC_CHUNK_ROOT_BYTENR)."
+fi
+print_pass "Restored superblock intact: root=$RESTORED_ROOT_BYTENR, chunk_root=$RESTORED_CHUNK_ROOT_BYTENR."
+
+# --- Step 8: dump-tree -r walkable + every expected ROOT_ITEM present ---
+print_info "Step 8: Walking restored root tree with 'btrfs inspect-internal dump-tree -r'..."
+
+if ! DUMP_TREE_RESTORE=$($BTRFS_BIN inspect-internal dump-tree -r "$RAW_RESTORE" 2>&1); then
+    echo "$DUMP_TREE_RESTORE"
+    print_fail "dump-tree -r failed on restored filesystem - root tree walk failed."
+fi
+if echo "$DUMP_TREE_RESTORE" | grep -q "cannot read chunk root"; then
+    echo "$DUMP_TREE_RESTORE"
+    print_fail "dump-tree -r hit 'cannot read chunk root' - issue #303 regression detected."
+fi
+
+# Build the same TREE_NAME -> bytenr map for the restored image
+declare -A RESTORED_ROOT_ITEM_BYTENR
+while IFS= read -r line; do
+    name=$(echo "$line" | sed -n 's/.*(\([A-Z_]*\) ROOT_ITEM 0) [0-9]\+ level.*/\1/p')
+    bytenr=$(echo "$line" | sed -n 's/.*([A-Z_]* ROOT_ITEM 0) \([0-9]\+\) level.*/\1/p')
+    if [ -n "$name" ] && [ -n "$bytenr" ]; then
+        RESTORED_ROOT_ITEM_BYTENR["$name"]="$bytenr"
+    fi
+done <<< "$DUMP_TREE_RESTORE"
+
+for name in "${EXPECTED_ROOT_ITEMS[@]}"; do
+    b="${RESTORED_ROOT_ITEM_BYTENR[$name]:-MISSING}"
+    if [ "$b" = "MISSING" ]; then
+        print_fail "Expected ROOT_ITEM '$name' not found in restored root tree dump."
+    fi
+    if [ "$b" != "${SRC_ROOT_ITEM_BYTENR[$name]}" ]; then
+        print_fail "Restored $name bytenr ($b) != source (${SRC_ROOT_ITEM_BYTENR[$name]})."
+    fi
+done
+print_pass "All expected ROOT_ITEM entries present in restored root tree with matching bytenrs."
+
+# --- Step 9: Byte-level non-zero check for every tree root block ---
+# This is the decisive check for the issue #303 zero-fill symptom: if
+# partclone's read_bitmap() failed to mark a tree root as used, the
+# restored image contains a nodesize block of zeros at that bytenr.
+print_info "Step 9: Byte-level non-zero check for every tree root block..."
+
+# Helper: returns 0 if the nodesize bytes at $1 in $RAW_RESTORE are non-zero,
+# 1 if they are all zero.
+function check_block_nonzero() {
+    local bytenr="$1"
+    # Read nodesize bytes starting at bytenr. od -An -tu1 prints bytes as
+    # decimal, one space-separated row per line. If every byte is 0 the
+    # block is all-zero; awk exits with status 1 (block zero) by default,
+    # or 0 (block nonzero) as soon as a nonzero byte is seen.
+    dd if="$RAW_RESTORE" bs=1 skip="$bytenr" count="$NODESIZE" 2>/dev/null \
+        | od -An -tu1 \
+        | tr -s ' ' '\n' \
+        | grep -v '^$' \
+        | awk '{ if ($1 != 0) { found=1; exit } } END { exit !found }'
+}
+
+# Check superblock-resident roots
+print_info "  ROOT_TREE  @ $SRC_ROOT_BYTENR ..."
+if ! check_block_nonzero "$SRC_ROOT_BYTENR"; then
+    print_fail "Root tree block @ $SRC_ROOT_BYTENR is all-zero in restored image (Root Tree gap)."
+fi
+print_info "  CHUNK_TREE @ $SRC_CHUNK_ROOT_BYTENR ..."
+if ! check_block_nonzero "$SRC_CHUNK_ROOT_BYTENR"; then
+    print_fail "Chunk tree block @ $SRC_CHUNK_ROOT_BYTENR is all-zero in restored image (issue #303 regression)."
+fi
+
+# Check ROOT_ITEM-resident roots
+for name in "${EXPECTED_ROOT_ITEMS[@]}"; do
+    b="${SRC_ROOT_ITEM_BYTENR[$name]}"
+    print_info "  $name @ $b ..."
+    if ! check_block_nonzero "$b"; then
+        print_fail "$name block @ $b is all-zero in restored image."
+    fi
+done
+print_pass "All tree root blocks are non-zero in the restored image."
+
+# --- Step 10: File content integrity check (mount-enriched variant only) ---
+# If we wrote files into the source filesystem in Step 2, mount the restored
+# image read-only and verify each file's sha256 matches the source. This
+# exercises the FS Tree and CSUM Tree end-to-end: if either tree's blocks
+# were dropped from the bitmap, the files would be unreadable or corrupted
+# after restore.
+if [ "$MOUNT_ENRICHED" -eq 1 ]; then
+    print_info "Step 10: File content integrity check on restored filesystem..."
+
+    RESTORE_LOOP_DEV=""
+    if ! command -v sudo >/dev/null 2>&1 || ! sudo -n true 2>/dev/null; then
+        print_warn "sudo unavailable for mounting restored image; skipping Step 10."
+    else
+        RESTORE_LOOP_DEV=$(sudo -n losetup -f 2>/dev/null || true)
+        if [ -z "$RESTORE_LOOP_DEV" ] || [ ! -e "$RESTORE_LOOP_DEV" ]; then
+            print_warn "No free loop device for restored image; skipping Step 10."
+            RESTORE_LOOP_DEV=""
+        elif ! sudo -n losetup "$RESTORE_LOOP_DEV" "$RAW_RESTORE" 2>/dev/null; then
+            print_warn "losetup attach failed for restored image; skipping Step 10."
+            RESTORE_LOOP_DEV=""
+        else
+            mkdir -p "$RESTORE_MNT_POINT"
+            if ! sudo -n mount -o ro "$RESTORE_LOOP_DEV" "$RESTORE_MNT_POINT" 2>/dev/null; then
+                print_warn "mount of restored image failed; skipping Step 10."
+                sudo -n losetup -d "$RESTORE_LOOP_DEV" 2>/dev/null || true
+                RESTORE_LOOP_DEV=""
+            else
+                # Verify each expected file exists and its sha256 matches the
+                # value recorded at write time in Step 2 (source is already
+                # unmounted by now, so we cannot re-read it here).
+                for i in $(seq 1 "$NUM_TEST_FILES"); do
+                    fname="file_$i.bin"
+                    if ! sudo -n test -e "$RESTORE_MNT_POINT/$fname"; then
+                        print_fail "Restored filesystem is missing $fname (FS Tree walk failed)."
+                    fi
+                    restored_sha=$(sudo -n cat "$RESTORE_MNT_POINT/$fname" | sha256sum | awk '{print $1}')
+                    src_sha="${SRC_FILE_SHA256[$i]}"
+                    if [ -z "$src_sha" ]; then
+                        print_fail "No recorded source sha256 for $fname."
+                    fi
+                    if [ "$restored_sha" != "$src_sha" ]; then
+                        print_fail "Checksum mismatch for $fname: src=$src_sha restored=$restored_sha"
+                    fi
+                    print_info "  $fname sha256 = $restored_sha [OK]"
+                done
+
+                # Also verify the concatenated digest matches the value
+                # recorded in Step 2.
+                restored_concat_sha=$(
+                    for i in $(seq 1 "$NUM_TEST_FILES"); do
+                        sudo -n cat "$RESTORE_MNT_POINT/file_$i.bin"
+                    done | sha256sum | awk '{print $1}'
+                )
+                if [ "$restored_concat_sha" != "$SRC_FILES_SHA256" ]; then
+                    print_fail "Concatenated file digest mismatch: src=$SRC_FILES_SHA256 restored=$restored_concat_sha"
+                fi
+                print_pass "All file checksums match between source and restored filesystem."
+
+                # Unmount restored image (retry then lazy as fallback).
+                for _ in 1 2 3; do
+                    if sudo -n umount "$RESTORE_MNT_POINT" 2>/dev/null; then
+                        break
+                    fi
+                    sync
+                    sleep 1
+                done
+                mountpoint -q "$RESTORE_MNT_POINT" 2>/dev/null && sudo -n umount -l "$RESTORE_MNT_POINT" 2>/dev/null || true
+                sudo -n losetup -d "$RESTORE_LOOP_DEV" 2>/dev/null || true
+                RESTORE_LOOP_DEV=""
+            fi
+        fi
+    fi
+else
+    print_info "Step 10: Skipped (pure mkfs variant wrote no files)."
+fi
+
+# --- Final Success ---
+print_info "==================================================="
+print_pass " All Btrfs multi-tree coverage tests passed!       "
+print_info "==================================================="
+if [ "$MOUNT_ENRICHED" -eq 1 ]; then
+    print_info " (mount-enriched variant was active)               "
+else
+    print_info " (pure mkfs variant; mount enrichment was skipped) "
+fi
+print_info "==================================================="
+
+exit 0
