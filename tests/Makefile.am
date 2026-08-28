@@ -10,6 +10,7 @@ endif
 
 if ENABLE_BTRFS
 TESTS += btrfs.test
+TESTS += btrfs_bgt.test
 endif
 
 if ENABLE_FAT
