@@ -424,8 +424,19 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->quota_root->root_item), &block_size);
     check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->dev_root->root_item), &bsize, 0);
     //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->tree_root->root_item), &block_size);
-    //check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->chunk_root->root_item), &bsize);
+    /* chunk_root address lives in the superblock, not as a ROOT_ITEM in the
+     * root tree, so chunk_root->root_item.bytenr is 0. Read it from the
+     * superblock directly to guarantee the chunk root node is always marked
+     * used even if the recursive dump_start_leaf() walk below is skipped
+     * (e.g. when info->chunk_root->node is NULL) or fails. */
+    check_extent_bitmap(bitmap, btrfs_super_chunk_root(info->super_copy), &bsize, 0);
     check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->fs_root->root_item), &bsize, 0);
+
+    if (btrfs_fs_compat_ro(info, BLOCK_GROUP_TREE)) {
+        struct btrfs_root *bg_root = btrfs_block_group_root(info);
+        if (bg_root)
+            check_extent_bitmap(bitmap, btrfs_root_bytenr(&bg_root->root_item), &bsize, 0);
+    }
 
     //log_mesg(3, 0, 0, fs_opt.debug, "%s: super tree done.\n", __FILE__);
 
