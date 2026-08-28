@@ -1,0 +1,235 @@
+#!/bin/bash
+
+# ==============================================================================
+# Partclone Btrfs BLOCK_GROUP_TREE Feature Test
+#
+# Regression test for issue #303: partclone.btrfs produced images that were
+# missing the chunk root block when the source filesystem had the
+# BLOCK_GROUP_TREE compat_ro feature enabled, leaving the restored filesystem
+# unmountable with "cannot read chunk root" (have=0).
+#
+# This test:
+#   1. Creates a btrfs filesystem with -O block-group-tree
+#   2. Clones it with partclone.btrfs
+#   3. Restores the image to a raw file
+#   4. Verifies the restored filesystem passes `btrfs check --readonly`
+#   5. Verifies the chunk root block is non-zero in the restored image
+#
+# Requirements:
+#   - btrfs-progs >= 6.1 (for -O block-group-tree support)
+#   - Compiled partclone.btrfs in ../src/
+# ==============================================================================
+
+set -e
+
+# --- Helper Functions for Colored Output ---
+function print_info() {
+    echo -e "\e[34m[INFO]\e[0m $1"
+}
+
+function print_pass() {
+    echo -e "\e[32m[PASS]\e[0m $1"
+}
+
+function print_fail() {
+    echo -e "\e[31m[FAIL]\e[0m $1"
+    cleanup
+    exit 1
+}
+
+# --- Configuration ---
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PTLDIR="$SCRIPT_DIR/../src"
+PTLBTRFS="$PTLDIR/partclone.btrfs"
+PTLRESTORE="$PTLDIR/partclone.restore"
+
+IMG_SIZE=$((512 * 1024 * 1024))   # 512 MiB
+RAW_SRC="$_bgt_src.raw"
+CLONE_IMG="$_bgt_clone.img"
+RAW_RESTORE="$_bgt_restore.raw"
+LOG_FILE="$_bgt_test.log"
+
+# --- Cleanup ---
+function cleanup() {
+    print_info "Cleaning up generated files..."
+    rm -f "$RAW_SRC" "$CLONE_IMG" "$RAW_RESTORE" "$LOG_FILE"
+}
+
+# Ensure we are in the script's directory
+cd "$SCRIPT_DIR"
+
+# Register a trap to clean up files on script exit
+trap cleanup EXIT
+
+# --- Pre-flight Checks ---
+
+# Check partclone.btrfs binary
+if [ ! -x "$PTLBTRFS" ]; then
+    print_fail "$PTLBTRFS not found. Please compile partclone first (e.g., 'make' in the project root directory)."
+fi
+
+# Check partclone.restore binary
+if [ ! -x "$PTLRESTORE" ]; then
+    print_fail "$PTLRESTORE not found. Please compile partclone first."
+fi
+
+# Check mkfs.btrfs
+MKFS_BTRFS=$(which mkfs.btrfs 2>/dev/null || true)
+if [ -z "$MKFS_BTRFS" ]; then
+    print_fail "mkfs.btrfs not found. Please install btrfs-progs."
+fi
+
+# Check btrfs (for btrfs check)
+BTRFS_BIN=$(which btrfs 2>/dev/null || true)
+if [ -z "$BTRFS_BIN" ]; then
+    print_fail "btrfs not found. Please install btrfs-progs."
+fi
+
+# Check btrfs-progs version supports BLOCK_GROUP_TREE (>= 6.1)
+BTRFS_PROGS_VERSION=$($MKFS_BTRFS --version 2>&1 | grep -oE 'v[0-9]+\.[0-9]+' | head -1 | tr -d 'v')
+BTRFS_PROGS_MAJOR=$(echo "$BTRFS_PROGS_VERSION" | cut -d. -f1)
+if [ -z "$BTRFS_PROGS_MAJOR" ] || [ "$BTRFS_PROGS_MAJOR" -lt 6 ]; then
+    print_info "btrfs-progs version $BTRFS_PROGS_VERSION does not support BLOCK_GROUP_TREE (requires >= 6.1)."
+    print_info "Skipping test."
+    exit 77   # 77 = skip (automake convention)
+fi
+# version 6.0 might exist but BGT landed in 6.1; double-check feature availability
+if ! $MKFS_BTRFS -O list-all 2>&1 | grep -q "block-group-tree"; then
+    print_info "mkfs.btrfs does not advertise the block-group-tree feature."
+    print_info "Skipping test."
+    exit 77
+fi
+
+print_info "==================================================="
+print_info "  Btrfs BLOCK_GROUP_TREE Regression Test (#303)   "
+print_info "==================================================="
+print_info "btrfs-progs version: $BTRFS_PROGS_VERSION"
+print_info "partclone.btrfs:     $PTLBTRFS"
+
+# --- Step 1: Create raw file and format as btrfs with BLOCK_GROUP_TREE ---
+print_info "Step 1: Creating ${IMG_SIZE}-byte raw file and formatting with -O block-group-tree..."
+
+dd if=/dev/zero of="$RAW_SRC" bs=1M count=$((IMG_SIZE / 1024 / 1024)) status=none
+$MKFS_BTRFS -O block-group-tree -f "$RAW_SRC" > /dev/null 2>&1
+
+# Verify the feature was actually enabled
+if ! $BTRFS_BIN inspect-internal dump-super "$RAW_SRC" 2>&1 | grep -q "BLOCK_GROUP_TREE"; then
+    print_fail "BLOCK_GROUP_TREE feature was not enabled on the source filesystem."
+fi
+print_pass "Source filesystem created with BLOCK_GROUP_TREE enabled."
+
+# --- Step 2: Extract reference values from the source superblock ---
+print_info "Step 2: Extracting chunk_root and block_group_root addresses from source..."
+
+# Match the "chunk_root" line exactly (not chunk_root_generation/level) and
+# extract the numeric value. dump-super uses tab alignment, so the bytenr may
+# follow one or more tabs.
+CHUNK_ROOT_BYTENR=$($BTRFS_BIN inspect-internal dump-super "$RAW_SRC" 2>&1 | sed -n 's/^chunk_root\t\+\([0-9]\+\)/\1/p')
+if [ -z "$CHUNK_ROOT_BYTENR" ]; then
+    print_fail "Could not extract chunk_root bytenr from source superblock."
+fi
+
+# block_group_root is stored as a ROOT_ITEM in the root tree, not in the superblock.
+# Use dump-tree on the root tree to find it. The line format is:
+#   block group tree key (BLOCK_GROUP_TREE ROOT_ITEM 0) 30408704 level 0
+# Parse the bytenr after the closing parenthesis.
+BG_ROOT_BYTENR=$($BTRFS_BIN inspect-internal dump-tree -r "$RAW_SRC" 2>&1 | grep "BLOCK_GROUP_TREE ROOT_ITEM" | head -1 | sed -n 's/.*) \([0-9]\+\) .*/\1/p')
+if [ -z "$BG_ROOT_BYTENR" ]; then
+    print_fail "Could not extract block_group_root bytenr from root tree."
+fi
+
+NODESIZE=$($BTRFS_BIN inspect-internal dump-super "$RAW_SRC" 2>&1 | sed -n 's/^nodesize\t\+\([0-9]\+\)/\1/p')
+if [ -z "$NODESIZE" ]; then
+    NODESIZE=16384
+fi
+
+print_info "chunk_root bytenr      = $CHUNK_ROOT_BYTENR"
+print_info "block_group_root bytenr= $BG_ROOT_BYTENR"
+print_info "nodesize               = $NODESIZE"
+
+# --- Step 3: Clone the source with partclone.btrfs ---
+print_info "Step 3: Cloning source with partclone.btrfs..."
+
+$PTLBTRFS -c -s "$RAW_SRC" -O "$CLONE_IMG" -F -L "$LOG_FILE" > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    print_fail "partclone.btrfs clone failed. See $LOG_FILE for details."
+fi
+print_pass "Clone completed successfully."
+
+# --- Step 4: Restore the image to a raw file ---
+print_info "Step 4: Restoring image to raw file..."
+
+dd if=/dev/zero of="$RAW_RESTORE" bs=1M count=$((IMG_SIZE / 1024 / 1024)) status=none
+$PTLRESTORE -s "$CLONE_IMG" -O "$RAW_RESTORE" -C -F -L "$LOG_FILE" > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    print_fail "partclone.restore failed. See $LOG_FILE for details."
+fi
+print_pass "Restore completed successfully."
+
+# --- Step 5: Verify the restored filesystem passes btrfs check ---
+print_info "Step 5: Running 'btrfs check --readonly' on restored filesystem..."
+
+CHECK_OUTPUT=$($BTRFS_BIN check --readonly "$RAW_RESTORE" 2>&1) || {
+    echo "$CHECK_OUTPUT"
+    print_fail "btrfs check failed on restored filesystem."
+}
+
+# Specifically check for the issue #303 symptom
+if echo "$CHECK_OUTPUT" | grep -q "cannot read chunk root"; then
+    echo "$CHECK_OUTPUT"
+    print_fail "Restored filesystem has 'cannot read chunk root' — issue #303 regression detected."
+fi
+print_pass "btrfs check passed (no 'cannot read chunk root' error)."
+
+# --- Step 6: Verify the restored filesystem's superblock is intact ---
+print_info "Step 6: Verifying restored filesystem superblock via 'btrfs inspect-internal dump-super'..."
+
+# dump-super reads the superblock and validates it. If the chunk root or other
+# critical structures are missing/corrupt, this will report errors.
+DUMP_OUTPUT=$($BTRFS_BIN inspect-internal dump-super "$RAW_RESTORE" 2>&1) || {
+    echo "$DUMP_OUTPUT"
+    print_fail "dump-super failed on restored filesystem — superblock or critical metadata is corrupt."
+}
+
+# Verify the chunk_root field in the restored superblock matches the source
+RESTORED_CHUNK_ROOT=$(echo "$DUMP_OUTPUT" | sed -n 's/^chunk_root\t\+\([0-9]\+\)/\1/p')
+if [ -z "$RESTORED_CHUNK_ROOT" ]; then
+    print_fail "Could not extract chunk_root from restored superblock."
+fi
+if [ "$RESTORED_CHUNK_ROOT" != "$CHUNK_ROOT_BYTENR" ]; then
+    print_fail "Restored chunk_root ($RESTORED_CHUNK_ROOT) != source ($CHUNK_ROOT_BYTENR)."
+fi
+
+# Verify BLOCK_GROUP_TREE feature is still present in the restored image
+if ! echo "$DUMP_OUTPUT" | grep -q "BLOCK_GROUP_TREE"; then
+    print_fail "BLOCK_GROUP_TREE feature missing from restored filesystem superblock."
+fi
+print_pass "Restored superblock intact, chunk_root=$RESTORED_CHUNK_ROOT, BLOCK_GROUP_TREE present."
+
+# --- Step 7: Verify the restored filesystem can be read by btrfs-find-root ---
+# btrfs-find-root scans for tree roots by signature rather than following
+# pointers. If it comes up empty, the metadata is genuinely not present.
+# This is the "decisive" test mentioned in issue #303.
+print_info "Step 7: Running 'btrfs inspect-internal dump-tree -r' (root tree) on restored filesystem..."
+
+# dump-tree on the root tree forces btrfs to walk the chunk tree to translate
+# logical addresses. If the chunk root is absent, this fails with the exact
+# "cannot read chunk root" error from issue #303.
+if ! $BTRFS_BIN inspect-internal dump-tree -r "$RAW_RESTORE" > /dev/null 2>&1; then
+    TREE_OUTPUT=$($BTRFS_BIN inspect-internal dump-tree -r "$RAW_RESTORE" 2>&1)
+    echo "$TREE_OUTPUT"
+    print_fail "dump-tree -r failed on restored filesystem — chunk tree walk failed (issue #303 regression)."
+fi
+
+# Verify the block group tree root is reachable in the restored image
+if ! $BTRFS_BIN inspect-internal dump-tree -r "$RAW_RESTORE" 2>&1 | grep -q "BLOCK_GROUP_TREE ROOT_ITEM"; then
+    print_fail "BLOCK_GROUP_TREE ROOT_ITEM not found in restored root tree — bg_root metadata is missing."
+fi
+print_pass "Root tree walkable, BLOCK_GROUP_TREE ROOT_ITEM present in restored image."
+
+# --- Final Success ---
+print_info "==================================================="
+print_pass " All Btrfs BLOCK_GROUP_TREE regression tests passed! "
+print_info "==================================================="
+
+exit 0
