@@ -680,6 +680,9 @@ int main(int argc, char **argv) {
 			empty_buffer = malloc(block_size);
 			if (empty_buffer == NULL) {
 				log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
+				// If opt.force is set, log_mesg does not exit. Avoid NULL
+				// pointer dereference in memset below.
+				return -1;
 			}
 			memset(empty_buffer, 0, block_size);
 		}
@@ -923,6 +926,9 @@ int main(int argc, char **argv) {
 			empty_buffer = malloc(block_size);
 			if (empty_buffer == NULL) {
 				log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
+				// If opt.force is set, log_mesg does not exit. Avoid NULL
+				// pointer dereference in memset below.
+				return -1;
 			}
 			memset(empty_buffer, 0, block_size);
 		}

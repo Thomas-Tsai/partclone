@@ -100,7 +100,8 @@ int get_cpu_bits()
 #elif __SIZEOF_POINTER__ == 8
 	return 64;
 #else
-#pragma GCC error "Unrecognised CPU architecture. Please update this file."
+#error "Unrecognised CPU architecture. Please update this file."
+	return 0;
 #endif
 }
 
@@ -1476,8 +1477,13 @@ void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt
 	if (img_opt.checksum_mode != CSM_NONE) {
 
 		// Verify blocks_per_checksum is valid
-		if (blkcs == 0)
+		if (blkcs == 0) {
 			log_mesg(0, 1, 1, opt.debug, "Invalid image: blocks_per_checksum cannot be 0 when checksum is enabled\n");
+			// In case opt.force is set, log_mesg does not exit. Guard against
+			// division by zero to avoid a denial-of-service triggered by a
+			// crafted image.
+			return;
+		}
 
 		unsigned long long cs_in_buffer = buffer_capacity / blkcs;
 
@@ -1493,12 +1499,16 @@ void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt
 	test_read   = malloc(raw_io_size);
 	test_write  = malloc(raw_io_size + cs_size);
 
-    free(test_bitmap);
-    free(test_read);
-    free(test_write);
 	if (test_bitmap == NULL || test_read == NULL || test_write == NULL) {
-        log_mesg(0, 1, 1, opt.debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_size);
-    }
+		free(test_bitmap);
+		free(test_read);
+		free(test_write);
+		log_mesg(0, 1, 1, opt.debug, "There is not enough free memory, partclone suggests you should have %llu bytes memory\n", needed_size);
+		return;
+	}
+	free(test_bitmap);
+	free(test_read);
+	free(test_write);
 }
 
 void load_image_bitmap_bits(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap) {
@@ -2179,7 +2189,7 @@ void print_image_info(image_head_v2 img_head, image_options img_opt, cmd_opt opt
 	}
 	else
 	{
-		sprintf(bufstr, _("%d bits platform"), img_opt.cpu_bits);
+		sprintf(bufstr, _("%u bits platform"), img_opt.cpu_bits);
 		log_mesg(0, 0, 1, debug, _("created on a:    %s\n"), bufstr);
 
 		sprintf(bufstr, _("v%s"), img_head.ptc_version);
@@ -2200,10 +2210,10 @@ void print_image_info(image_head_v2 img_head, image_options img_opt, cmd_opt opt
 	}
 	else
 	{
-		sprintf(bufstr, "%d", img_opt.checksum_size);
+		sprintf(bufstr, "%u", img_opt.checksum_size);
 		log_mesg(0, 0, 1, debug, _("checksum size:   %s\n"), bufstr);
 
-		sprintf(bufstr, "%d", img_opt.blocks_per_checksum);
+		sprintf(bufstr, "%u", img_opt.blocks_per_checksum);
 		log_mesg(0, 0, 1, debug, _("blocks/checksum: %s\n"), bufstr);
 
 		log_mesg(0, 0, 1, debug, _("reseed checksum: %s\n"), img_opt.reseed_checksum?_("yes"):_("no"));
