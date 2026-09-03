@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <linux/types.h>
+#include <limits.h>
 
 #include "partclone.h"
 #include "hfsplusclone.h"
@@ -372,4 +373,131 @@ void read_super_blocks(char* device, file_system_info* fs_info)
     print_fork_data(&sb.attributesFile);
     print_fork_data(&sb.startupFile);
     fs_close();
+}
+
+/// HFS+ maintains an alternate volume header in the last 1024 bytes of the
+/// volume. The Linux hfsplus kernel driver validates both the primary VH
+/// (at offset 1024) and the alternate VH (at target_size - 1024) on mount.
+/// When the target device is larger than the source, the alternate VH was
+/// written at source_size - 1024 by the block copy loop, but the kernel
+/// looks for it at target_size - 1024. This hook copies it to the correct
+/// location so the target remains mountable.
+int post_clone_fixup(int* dfw, file_system_info fs_info, cmd_opt opt)
+{
+    struct stat st;
+    unsigned long long target_size, src_size;
+    off_t src_alt_offset, dst_alt_offset;
+    char alt_vh_buf[1024];
+    ssize_t r_size, w_size;
+    int rfd = -1;
+    int ret_val = 1;
+
+    // Only relevant for block device targets (not image files / stdout)
+    if (dfw == NULL || *dfw < 0)
+        return 0;
+    if (fstat(*dfw, &st) != 0) {
+        log_mesg(1, 0, 0, opt.debug, "%s: post_clone_fixup: fstat failed: %s\n", __FILE__, strerror(errno));
+        return 1;
+    }
+    if (!S_ISBLK(st.st_mode))
+        return 0;
+
+    target_size = get_partition_size(dfw);
+    if (target_size == 0) {
+        log_mesg(1, 0, 0, opt.debug, "%s: post_clone_fixup: target_size is 0, skipping\n", __FILE__);
+        return 0;
+    }
+
+    src_size = fs_info.device_size;
+
+    // If target is not larger than source, the alt VH is already in place
+    if (target_size <= src_size) {
+        log_mesg(2, 0, 0, opt.debug, "%s: post_clone_fixup: target (%llu) <= source (%llu), no fixup needed\n",
+                 __FILE__, target_size, src_size);
+        return 0;
+    }
+
+    // HFS+ alternate VH is the last 1024 bytes of the volume
+    if (src_size < 1024) {
+        log_mesg(1, 0, 0, opt.debug, "%s: post_clone_fixup: source device_size (%llu) < 1024, cannot read alt VH\n",
+                 __FILE__, src_size);
+        return 1;
+    }
+
+    src_alt_offset = (off_t)(src_size - 1024);
+    dst_alt_offset = (off_t)(target_size - 1024);
+
+    log_mesg(1, 0, 0, opt.debug, "%s: post_clone_fixup: copying HFS+ alt VH from offset %lld to %lld (target_size=%llu, src_size=%llu)\n",
+             __FILE__, (long long)src_alt_offset, (long long)dst_alt_offset, target_size, src_size);
+
+    // The target fd may have been opened O_WRONLY (e.g. dd/restore paths),
+    // so we cannot read from it directly. Re-open the same block device
+    // O_RDONLY just for reading back the alt VH that the block copy loop
+    // already wrote at src_size - 1024.
+    // Resolve the target device path from the open fd via /proc/self/fd/<fd>
+    {
+        char proc_path[64];
+        char dev_path[PATH_MAX];
+        ssize_t link_len;
+        snprintf(proc_path, sizeof(proc_path), "/proc/self/fd/%d", *dfw);
+        link_len = readlink(proc_path, dev_path, sizeof(dev_path) - 1);
+        if (link_len < 0) {
+            log_mesg(0, 0, 1, opt.debug, "%s: post_clone_fixup: cannot resolve target fd path via %s: %s\n",
+                     __FILE__, proc_path, strerror(errno));
+            return 1;
+        }
+        dev_path[link_len] = '\0';
+
+        rfd = open(dev_path, O_RDONLY);
+        if (rfd < 0) {
+            log_mesg(0, 0, 1, opt.debug, "%s: post_clone_fixup: cannot re-open target %s O_RDONLY for reading: %s\n",
+                     __FILE__, dev_path, strerror(errno));
+            return 1;
+        }
+    }
+
+    // Read the alt VH from where the block copy loop wrote it (src_size - 1024)
+    if (lseek(rfd, src_alt_offset, SEEK_SET) != src_alt_offset) {
+        log_mesg(0, 0, 1, opt.debug, "%s: post_clone_fixup: seek to src alt VH offset %lld failed: %s\n",
+                 __FILE__, (long long)src_alt_offset, strerror(errno));
+        goto out;
+    }
+    r_size = read(rfd, alt_vh_buf, sizeof(alt_vh_buf));
+    if (r_size != (ssize_t)sizeof(alt_vh_buf)) {
+        log_mesg(0, 0, 1, opt.debug, "%s: post_clone_fixup: read alt VH failed (read %zd, expected %zu): %s\n",
+                 __FILE__, r_size, sizeof(alt_vh_buf), strerror(errno));
+        goto out;
+    }
+
+    // Sanity check: the alt VH should have a valid HFS+ signature
+    {
+        UInt16 sig = be16toh(((struct HFSPlusVolumeHeader*)alt_vh_buf)->signature);
+        if (sig != HFSPlusSignature && sig != HFSXSignature) {
+            log_mesg(0, 0, 1, opt.debug, "%s: post_clone_fixup: alt VH at offset %lld has invalid signature 0x%04x, skipping (source may not be HFS+ at this offset)\n",
+                     __FILE__, (long long)src_alt_offset, sig);
+            goto out;
+        }
+    }
+
+    // Write the alt VH to the end of the (larger) target device via the
+    // original writable fd.
+    if (lseek(*dfw, dst_alt_offset, SEEK_SET) != dst_alt_offset) {
+        log_mesg(0, 0, 1, opt.debug, "%s: post_clone_fixup: seek to dst alt VH offset %lld failed: %s\n",
+                 __FILE__, (long long)dst_alt_offset, strerror(errno));
+        goto out;
+    }
+    w_size = write(*dfw, alt_vh_buf, sizeof(alt_vh_buf));
+    if (w_size != (ssize_t)sizeof(alt_vh_buf)) {
+        log_mesg(0, 0, 1, opt.debug, "%s: post_clone_fixup: write alt VH failed (wrote %zd, expected %zu): %s\n",
+                 __FILE__, w_size, sizeof(alt_vh_buf), strerror(errno));
+        goto out;
+    }
+
+    log_mesg(1, 0, 0, opt.debug, "%s: post_clone_fixup: HFS+ alt VH copied to target end successfully\n", __FILE__);
+    ret_val = 0;
+
+out:
+    if (rfd >= 0)
+        close(rfd);
+    return ret_val;
 }

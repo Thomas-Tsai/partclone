@@ -1279,6 +1279,23 @@ int check_size(int* ret, unsigned long long size) {
 
 }
 
+/**
+ * Default no-op implementation of post_clone_fixup.
+ *
+ * Filesystem modules (e.g. hfsplusclone.c) may override this weak symbol to
+ * perform filesystem-specific fixups after the block copy loop finishes, such
+ * as writing an alternate superblock to the end of a larger target device.
+ *
+ * See the docstring in partclone.h for full semantics.
+ */
+__attribute__((weak)) int post_clone_fixup(int* dfw, file_system_info fs_info, cmd_opt opt)
+{
+	(void)dfw;
+	(void)fs_info;
+	(void)opt;
+	return 0;
+}
+
 /// remove DIR, copy from http://stackoverflow.com/questions/2256945/removing-a-non-empty-directory-programmatically-in-c-or-c
 int remove_directory(const char *path)
 {
