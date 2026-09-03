@@ -1206,6 +1206,19 @@ int main(int argc, char **argv) {
 #endif
 	print_finish_info(opt);
 
+#ifndef CHKIMG
+	/// Filesystem-specific post-clone fixups (e.g. HFS+ alternate volume
+	/// header must be copied to the end of a larger target device).
+	/// Only meaningful when writing to a block device (dd / restore / ddd);
+	/// the default no-op returns 0 for image-file targets and clone mode.
+	if (dfw != -1) {
+		if (post_clone_fixup(&dfw, fs_info, opt) != 0)
+			log_mesg(0, 0, 1, debug, "%s: post_clone_fixup reported a non-fatal error\n", __func__);
+		/// Make sure the fixup bytes are durable before close.
+		sync_data(dfw, &opt);
+	}
+#endif
+
 	/// close source
 	close(dfr);
 	/// close target

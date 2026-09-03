@@ -374,3 +374,23 @@ extern void init_bt_info(bt_info_t * bt, char *target,
 
 extern void update_bt_info(bt_info_t * bt, unsigned long long offset,
 			   char *buffer, unsigned long long length);
+
+/**
+ * post_clone_fixup - filesystem-specific fixups after a device-to-device or
+ * restore operation has finished writing all data blocks.
+ *
+ * Some filesystems (e.g. HFS+) keep a secondary/alternate superblock at the
+ * very end of the volume. When the target device is larger than the source,
+ * the kernel looks for this alternate superblock at target_size - 1024, which
+ * was never written by the block copy loop. This hook lets each filesystem
+ * copy any trailing metadata to the correct location on the target.
+ *
+ * Default implementation is a no-op (defined as a weak symbol in partclone.c).
+ * Filesystem modules may override it.
+ *
+ * @dfw       file descriptor of the target (already open, before close_target)
+ * @fs_info   filesystem info (block_size, device_size, totalblock, fs magic)
+ * @opt       command options (debug, etc.)
+ * @return    0 on success, non-zero on failure (logged but non-fatal)
+ */
+extern int post_clone_fixup(int* dfw, file_system_info fs_info, cmd_opt opt);
