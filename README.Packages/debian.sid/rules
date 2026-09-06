@@ -9,13 +9,28 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+# Check if PARTCLONE_STATIC is set to 1 OR if "static" is in DEB_BUILD_OPTIONS
+ifneq (,$(filter static,$(DEB_BUILD_OPTIONS)))
+    IS_STATIC = 1
+endif
+ifeq ($(PARTCLONE_STATIC),1)
+    IS_STATIC = 1
+endif
+
+ifeq ($(IS_STATIC),1)
+    PKG_NAME = partclone-static
+    STATIC_OPT = --enable-static-linking
+else
+    PKG_NAME = partclone
+    STATIC_OPT =
+endif
 
 %:
-	dh $@ --with autoreconf
+	dh $@ --with autoreconf -p$(PKG_NAME)
 
 
-FAILBOOTDIR = $(CURDIR)/debian/partclone/usr/share/partclone
-MAN8DIR = $(CURDIR)/debian/partclone/usr/share/man/man8
+FAILBOOTDIR = $(CURDIR)/debian/$(PKG_NAME)/usr/share/partclone
+MAN8DIR = $(CURDIR)/debian/$(PKG_NAME)/usr/share/man/man8
 
 # default configuration options
 CONFIG_OPTS = \
@@ -36,13 +51,14 @@ CONFIG_OPTS = \
 	--enable-btrfs \
 	--enable-minix \
 	--enable-f2fs \
-	--disable-nilfs2
+	--disable-nilfs2 \
+	$(STATIC_OPT)
 
 # isal support architectures
 ISAL_ARCHES = amd64 arm64 ppc64el riscv64 s390x
 
 override_dh_auto_configure:
-	ARCH=$(shell dpkg-architecture -qDEB_HOST_ARCH); \
+	ARCH=$$(dpkg-architecture -qDEB_HOST_ARCH); \
 	if echo "$(ISAL_ARCHES)" | grep -w $$ARCH >/dev/null; then \
 		dh_auto_configure -- $(CONFIG_OPTS) --enable-isal; \
 	else \
@@ -83,20 +99,93 @@ override_dh_auto_test:
 	echo Skipping tests.
 
 override_dh_auto_install:
-	dh_auto_install
+	dh_auto_install -p$(PKG_NAME) -- DESTDIR=$(CURDIR)/debian/$(PKG_NAME)
+ifeq ($(PKG_NAME),partclone-static)
+	# Rename all regular binary files from partclone.* to partclone-static.* using POSIX parameter expansion
+	cd $(CURDIR)/debian/partclone-static/usr/sbin && \
+	for f in partclone.*; do \
+		if [ -f "$$f" ] && [ ! -L "$$f" ]; then \
+			suffix="$${f#partclone.}"; \
+			mv "$$f" "partclone-static.$$suffix"; \
+		fi; \
+	done
+	# Remove old symlinks in sbin
+	find $(CURDIR)/debian/partclone-static/usr/sbin -type l -delete
+	# Recreate binary symlinks with the new names
+	cd $(CURDIR)/debian/partclone-static/usr/sbin && \
+	if [ -f partclone-static.extfs ]; then \
+		ln -sf partclone-static.extfs partclone-static.ext2; \
+		ln -sf partclone-static.extfs partclone-static.ext3; \
+		ln -sf partclone-static.extfs partclone-static.ext4; \
+		ln -sf partclone-static.extfs partclone-static.ext4dev; \
+	fi && \
+	if [ -f partclone-static.hfsp ]; then \
+		ln -sf partclone-static.hfsp partclone-static.hfs+; \
+		ln -sf partclone-static.hfsp partclone-static.hfsplus; \
+	fi && \
+	if [ -f partclone-static.ntfsfixboot ]; then \
+		ln -sf partclone-static.ntfsfixboot partclone-static.ntfsreloc; \
+	fi && \
+	if [ -f partclone-static.fat ]; then \
+		ln -sf partclone-static.fat partclone-static.fat12; \
+		ln -sf partclone-static.fat partclone-static.fat16; \
+		ln -sf partclone-static.fat partclone-static.fat32; \
+		ln -sf partclone-static.fat partclone-static.vfat; \
+	fi && \
+	if [ -f partclone-static.vmfs ]; then \
+		ln -sf partclone-static.vmfs partclone-static.VMFS_volume_member; \
+		ln -sf partclone-static.vmfs partclone-static.vmfs3; \
+	fi
+	# Ensure the directory structures exist
 	install -d $(FAILBOOTDIR)
 	install -d $(MAN8DIR)
-	cd $(MAN8DIR); \
-	  ln -s partclone.fat.8.gz partclone.vfat.8.gz; \
-	  ln -s partclone.fat.8.gz partclone.fat12.8.gz; \
-	  ln -s partclone.fat.8.gz partclone.fat16.8.gz; \
-	  ln -s partclone.fat.8.gz partclone.fat32.8.gz; \
-	  ln -s partclone.hfsp.8.gz partclone.hfs+.8.gz; \
-	  ln -s partclone.hfsp.8.gz partclone.hfsplus.8.gz; \
-	  ln -s partclone.extfs.8.gz partclone.ext2.8.gz; \
-	  ln -s partclone.extfs.8.gz partclone.ext3.8.gz; \
-	  ln -s partclone.extfs.8.gz partclone.ext4.8.gz; \
-	  ln -s partclone.extfs.8.gz partclone.ext4dev.8.gz
+	# Rename man pages from partclone.* to partclone-static.* using POSIX parameter expansion
+	cd $(MAN8DIR) && \
+	for f in partclone.*; do \
+		if [ -f "$$f" ] && [ ! -L "$$f" ]; then \
+			suffix="$${f#partclone.}"; \
+			mv "$$f" "partclone-static.$$suffix"; \
+		fi; \
+	done
+	# Remove old symlinks for man pages
+	find $(MAN8DIR) -type l -delete
+	# Recreate symlinks for man pages
+	cd $(MAN8DIR) && \
+	  ln -s partclone-static.fat.8.gz partclone-static.vfat.8.gz; \
+	  ln -s partclone-static.fat.8.gz partclone-static.fat12.8.gz; \
+	  ln -s partclone-static.fat.8.gz partclone-static.fat16.8.gz; \
+	  ln -s partclone-static.fat.8.gz partclone-static.fat32.8.gz; \
+	  ln -s partclone-static.hfsp.8.gz partclone-static.hfs+.8.gz; \
+	  ln -s partclone-static.hfsp.8.gz partclone-static.hfsplus.8.gz; \
+	  ln -s partclone-static.extfs.8.gz partclone-static.ext2.8.gz; \
+	  ln -s partclone-static.extfs.8.gz partclone-static.ext3.8.gz; \
+	  ln -s partclone-static.extfs.8.gz partclone-static.ext4.8.gz; \
+	  ln -s partclone-static.extfs.8.gz partclone-static.ext4dev.8.gz
+	# docs/partclone.dd.8 is a particular case, see bug #850623
+	rm -rf $(CURDIR)/debian/partclone-static/usr/share/man/dd
+else
+	# Ensure the directory structures exist
+	install -d $(FAILBOOTDIR)
+	install -d $(MAN8DIR)
+	# Recreate symlinks for man pages
+	cd $(MAN8DIR) && \
+	  ln -s partclone.fat.8.gz partclone.vfat.8.gz || true; \
+	  ln -s partclone.fat.8.gz partclone.fat12.8.gz || true; \
+	  ln -s partclone.fat.8.gz partclone.fat16.8.gz || true; \
+	  ln -s partclone.fat.8.gz partclone.fat32.8.gz || true; \
+	  ln -s partclone.hfsp.8.gz partclone.hfs+.8.gz || true; \
+	  ln -s partclone.hfsp.8.gz partclone.hfsplus.8.gz || true; \
+	  ln -s partclone.extfs.8.gz partclone.ext2.8.gz || true; \
+	  ln -s partclone.extfs.8.gz partclone.ext3.8.gz || true; \
+	  ln -s partclone.extfs.8.gz partclone.ext4.8.gz || true; \
+	  ln -s partclone.extfs.8.gz partclone.ext4dev.8.gz || true
 	# docs/partclone.dd.8 is a particular case, see bug #850623
 	rm -rf $(CURDIR)/debian/partclone/usr/share/man/dd
+endif
 
+override_dh_installman:
+ifeq ($(PKG_NAME),partclone-static)
+	# Man pages are already installed and renamed in override_dh_auto_install
+else
+	dh_installman -p$(PKG_NAME)
+endif
