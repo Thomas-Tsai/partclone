@@ -364,13 +364,13 @@ static int report_zones(int fd, const char *file,
 
 	zinfo->zones = calloc(zinfo->nr_zones, sizeof(struct blk_zone));
 	if (!zinfo->zones) {
-		error_msg(ERROR_MSG_MEMORY, "zone information");
+		error_mem("zone information");
 		exit(1);
 	}
 
 	zinfo->active_zones = bitmap_zalloc(zinfo->nr_zones);
 	if (!zinfo->active_zones) {
-		error_msg(ERROR_MSG_MEMORY, "active zone bitmap");
+		error_mem("active zone bitmap");
 		exit(1);
 	}
 
@@ -387,7 +387,7 @@ static int report_zones(int fd, const char *file,
 		   sizeof(struct blk_zone) * BTRFS_REPORT_NR_ZONES;
 	rep = kmalloc(rep_size, GFP_KERNEL);
 	if (!rep) {
-		error_msg(ERROR_MSG_MEMORY, "zone report");
+		error_mem("zone report");
 		exit(1);
 	}
 
@@ -651,7 +651,7 @@ size_t btrfs_sb_io(int fd, void *buf, off_t offset, int rw)
 	rep_size = sizeof(struct blk_zone_report) + sizeof(struct blk_zone) * 2;
 	rep = calloc(1, rep_size);
 	if (!rep) {
-		error_msg(ERROR_MSG_MEMORY, "zone report");
+		error_mem("zone report");
 		exit(1);
 	}
 
@@ -1011,10 +1011,19 @@ static int btrfs_load_block_group_dup(struct btrfs_fs_info *fs_info,
 		return -EIO;
 	}
 
-	if (zone_info[0].alloc_offset == WP_CONVENTIONAL)
-		zone_info[0].alloc_offset = last_alloc;
-	if (zone_info[1].alloc_offset == WP_CONVENTIONAL)
-		zone_info[1].alloc_offset = last_alloc;
+	if (zone_info[0].alloc_offset == WP_CONVENTIONAL) {
+		if (last_alloc == 0 && zone_info[1].alloc_offset != WP_CONVENTIONAL)
+			zone_info[0].alloc_offset = zone_info[1].alloc_offset;
+		else
+			zone_info[0].alloc_offset = last_alloc;
+	}
+
+	if (zone_info[1].alloc_offset == WP_CONVENTIONAL) {
+		if (last_alloc == 0 && zone_info[0].alloc_offset != WP_CONVENTIONAL)
+			zone_info[1].alloc_offset = zone_info[0].alloc_offset;
+		else
+			zone_info[1].alloc_offset = last_alloc;
+	}
 
 	if (zone_info[0].alloc_offset != zone_info[1].alloc_offset) {
 		btrfs_err(fs_info,
@@ -1211,14 +1220,14 @@ int btrfs_load_block_group_zone_info(struct btrfs_fs_info *fs_info,
 
 	zone_info = calloc(map->num_stripes, sizeof(*zone_info));
 	if (!zone_info) {
-		error_msg(ERROR_MSG_MEMORY, "zone info");
+		error_mem("zone info");
 		return -ENOMEM;
 	}
 
 	active = bitmap_zalloc(map->num_stripes);
 	if (!active) {
 		free(zone_info);
-		error_msg(ERROR_MSG_MEMORY, "active bitmap");
+		error_mem("active bitmap");
 		return -ENOMEM;
 	}
 
@@ -1293,6 +1302,7 @@ out:
 	if (!ret)
 		cache->write_offset = cache->alloc_offset;
 
+	kfree(active);
 	kfree(zone_info);
 	return ret;
 }
@@ -1446,7 +1456,7 @@ int btrfs_get_zone_info(int fd, const char *file,
 #ifdef BTRFS_ZONED
 	zinfo = calloc(1, sizeof(*zinfo));
 	if (!zinfo) {
-		error_msg(ERROR_MSG_MEMORY, "zone information");
+		error_mem("zone information");
 		exit(1);
 	}
 
@@ -1455,7 +1465,7 @@ int btrfs_get_zone_info(int fd, const char *file,
 	/* Get zone information */
 	ret = report_zones(fd, file, zinfo);
 	if (ret != 0) {
-		kfree(zinfo);
+		btrfs_free_zoned_device_info(zinfo);
 		return ret;
 	}
 	*zinfo_ret = zinfo;

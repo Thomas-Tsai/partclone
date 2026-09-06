@@ -455,6 +455,11 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     if (btrfs_fs_incompat(info, RAID_STRIPE_TREE) && info->stripe_root)
 	check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->stripe_root->root_item), &bsize, 0);
 
+    /* Remap Tree: feature-gated (BTRFS_FEATURE_INCOMPAT_REMAP_TREE),
+     * may be NULL when the feature is not enabled. */
+    if (btrfs_fs_incompat(info, REMAP_TREE) && info->remap_root)
+	check_extent_bitmap(bitmap, btrfs_root_bytenr(&info->remap_root->root_item), &bsize, 0);
+
     if (btrfs_fs_compat_ro(info, BLOCK_GROUP_TREE)) {
         struct btrfs_root *bg_root = btrfs_block_group_root(info);
         if (bg_root)

@@ -25,6 +25,23 @@
 #include "kernel-shared/file-item.h"
 #include "kernel-shared/extent_io.h"
 #include "common/internal.h"
+#include "common/messages.h"
+
+int btrfs_insert_hole_extent(struct btrfs_trans_handle *trans, struct btrfs_root *root,
+			     u64 objectid, u64 pos, u64 num_bytes)
+{
+	struct btrfs_file_extent_item stack_fi = { 0 };
+	const u32 blocksize = root->fs_info->sectorsize;
+
+	UASSERT(IS_ALIGNED(pos, blocksize));
+	UASSERT(IS_ALIGNED(num_bytes, blocksize));
+
+	btrfs_set_stack_file_extent_type(&stack_fi, BTRFS_FILE_EXTENT_REG);
+	btrfs_set_stack_file_extent_num_bytes(&stack_fi, num_bytes);
+	btrfs_set_stack_file_extent_ram_bytes(&stack_fi, num_bytes);
+
+	return btrfs_insert_file_extent(trans, root, objectid, pos, &stack_fi);
+}
 
 #define MAX_CSUM_ITEMS(r, size) ((((BTRFS_LEAF_DATA_SIZE(r->fs_info) - \
 			       sizeof(struct btrfs_item) * 2) / \
@@ -165,8 +182,9 @@ fail:
 	return ERR_PTR(ret);
 }
 
-int btrfs_csum_file_block(struct btrfs_trans_handle *trans, u64 logical,
-			  u64 csum_objectid, u32 csum_type, const char *data)
+int btrfs_insert_file_block_csum(struct btrfs_trans_handle *trans, u64 logical,
+				 u64 csum_objectid, u32 csum_type,
+				 const u8 *csum_result)
 {
 	struct btrfs_root *root = btrfs_csum_root(trans->fs_info, logical);
 	int ret = 0;
@@ -178,7 +196,6 @@ int btrfs_csum_file_block(struct btrfs_trans_handle *trans, u64 logical,
 	struct btrfs_csum_item *item;
 	struct extent_buffer *leaf = NULL;
 	u64 csum_offset;
-	u8 csum_result[BTRFS_CSUM_SIZE];
 	u32 sectorsize = root->fs_info->sectorsize;
 	u32 nritems;
 	u32 ins_size;
@@ -203,7 +220,6 @@ int btrfs_csum_file_block(struct btrfs_trans_handle *trans, u64 logical,
 	if (ret == -EFBIG) {
 		u32 item_size;
 
-		/* printf("item not big enough for bytenr %llu\n", bytenr); */
 		/* we found one, but it isn't big enough yet */
 		leaf = path->nodes[0];
 		item_size = btrfs_item_size(leaf, path->slots[0]);
@@ -298,13 +314,24 @@ csum:
 	item = (struct btrfs_csum_item *)((unsigned char *)item +
 					  csum_offset * csum_size);
 found:
-	btrfs_csum_data(csum_type, (u8 *)data, csum_result, sectorsize);
 	write_extent_buffer(leaf, csum_result, (unsigned long)item,
 			    csum_size);
 	btrfs_mark_buffer_dirty(path->nodes[0]);
 fail:
 	btrfs_free_path(path);
 	return ret;
+}
+
+int btrfs_csum_file_block(struct btrfs_trans_handle *trans, u64 logical,
+			  u64 csum_objectid, u32 csum_type, const char *data)
+{
+	u8 csum_result[BTRFS_CSUM_SIZE];
+	u32 sectorsize = trans->fs_info->sectorsize;
+
+	btrfs_csum_data(csum_type, (u8 *)data, csum_result, sectorsize);
+
+	return btrfs_insert_file_block_csum(trans, logical, csum_objectid,
+					    csum_type, csum_result);
 }
 
 /*

@@ -194,7 +194,7 @@ static int __csum_tree_block_size(struct extent_buffer *buf, u16 csum_size,
 
 	if (verify) {
 		if (buf->fs_info && buf->fs_info->skip_csum_check) {
-			/* printf("skip csum check for block %llu\n", buf->start); */
+			/* Skip csum check for block buf->start. */
 		} else if (memcmp_extent_buffer(buf, result, 0, csum_size)) {
 			if (!silent) {
 				char found[BTRFS_CSUM_STRING_LEN];
@@ -796,7 +796,7 @@ struct btrfs_root *btrfs_read_fs_root(struct btrfs_fs_info *fs_info,
 	if (location->objectid == BTRFS_CHUNK_TREE_OBJECTID)
 		return fs_info->chunk_root;
 	if (location->objectid == BTRFS_DEV_TREE_OBJECTID)
-		return fs_info->dev_root;
+		return fs_info->dev_root ? fs_info->dev_root : ERR_PTR(-ENOENT);
 	if (location->objectid == BTRFS_CSUM_TREE_OBJECTID)
 		return btrfs_global_root(fs_info, location);
 	if (location->objectid == BTRFS_UUID_TREE_OBJECTID)
@@ -814,6 +814,9 @@ struct btrfs_root *btrfs_read_fs_root(struct btrfs_fs_info *fs_info,
 
 	if (location->objectid == BTRFS_RAID_STRIPE_TREE_OBJECTID)
 		return fs_info->stripe_root ? fs_info->stripe_root : ERR_PTR(-ENOENT);
+
+	if (location->objectid == BTRFS_REMAP_TREE_OBJECTID)
+		return fs_info->remap_root ?: ERR_PTR(-ENOENT);
 
 	BUG_ON(location->objectid == BTRFS_TREE_RELOC_OBJECTID);
 
@@ -850,6 +853,9 @@ void btrfs_free_fs_info(struct btrfs_fs_info *fs_info)
 	if (fs_info->stripe_root)
 		kfree(fs_info->stripe_root);
 
+	if (fs_info->remap_root)
+		kfree(fs_info->remap_root);
+
 	free_global_roots_tree(&fs_info->global_roots_tree);
 	kfree(fs_info->tree_root);
 	kfree(fs_info->chunk_root);
@@ -876,12 +882,13 @@ struct btrfs_fs_info *btrfs_new_fs_info(int writable, u64 sb_bytenr)
 	fs_info->uuid_root = calloc(1, sizeof(struct btrfs_root));
 	fs_info->stripe_root = calloc(1, sizeof(struct btrfs_root));
 	fs_info->block_group_root = calloc(1, sizeof(struct btrfs_root));
+	fs_info->remap_root = calloc(1, sizeof(struct btrfs_root));
 	fs_info->super_copy = calloc(1, BTRFS_SUPER_INFO_SIZE);
 
 	if (!fs_info->tree_root || !fs_info->chunk_root || !fs_info->dev_root ||
 	    !fs_info->quota_root || !fs_info->uuid_root ||
 	    !fs_info->block_group_root || !fs_info->super_copy ||
-	    !fs_info->stripe_root)
+	    !fs_info->stripe_root || !fs_info->remap_root)
 		goto free_all;
 
 	extent_buffer_init_cache(fs_info);
@@ -992,7 +999,7 @@ static int read_root_or_create_block(struct btrfs_fs_info *fs_info,
 			error("could not setup %s tree", str);
 			return -EIO;
 		}
-		warning("could not setup %s tree, skipping it", str);
+		warning("could not setup %s tree, skipping (partial open)", str);
 		/*
 		 * Need a blank node here just so we don't screw up in the
 		 * million of places that assume a root has a valid ->node
@@ -1037,8 +1044,14 @@ static int load_global_roots_objectid(struct btrfs_fs_info *fs_info,
 
 	ret = btrfs_search_slot(NULL, tree_root, &key, path, 0, 0);
 	if (ret < 0) {
-		error("could not find %s tree", str);
-		return ret;
+		if (!(flags & OPEN_CTREE_PARTIAL)) {
+			error("could not find %s tree", str);
+			return ret;
+		}
+		warning("could not find %s tree, skipping (partial open)", str);
+		btrfs_release_path(path);
+		ret = 0;
+		goto create_synthetic;
 	}
 	ret = 0;
 
@@ -1098,6 +1111,7 @@ static int load_global_roots_objectid(struct btrfs_fs_info *fs_info,
 	}
 	btrfs_release_path(path);
 
+create_synthetic:
 	/*
 	 * We didn't find all of our roots, create empty ones if we have PARTIAL
 	 * set.
@@ -1110,7 +1124,7 @@ static int load_global_roots_objectid(struct btrfs_fs_info *fs_info,
 			return -EIO;
 		}
 
-		warning("could not setup %s tree, skipping it", str);
+		warning("could not setup %s tree, skipping (partial open)", str);
 		for (i = found; i < fs_info->nr_global_roots; i++) {
 			root = calloc(1, sizeof(*root));
 			if (!root) {
@@ -1226,6 +1240,21 @@ tree_root:
 		return -EIO;
 	}
 
+	if (btrfs_fs_incompat(fs_info, REMAP_TREE) && btrfs_super_remap_root(sb) != 0) {
+		bytenr = btrfs_super_remap_root(sb);
+		gen = btrfs_super_remap_root_generation(sb);
+		level = btrfs_super_remap_root_level(sb);
+
+		root = fs_info->remap_root;
+		btrfs_setup_root(root, fs_info, BTRFS_REMAP_TREE_OBJECTID);
+
+		ret = read_root_node(fs_info, root, bytenr, gen, level);
+		if (ret) {
+			btrfs_warn(fs_info, "couldn't read remap root");
+			return ret;
+		}
+	}
+
 	return 0;
 }
 
@@ -1251,11 +1280,16 @@ int btrfs_setup_all_roots(struct btrfs_fs_info *fs_info, u64 root_tree_bytenr,
 				BTRFS_BLOCK_GROUP_TREE_OBJECTID,
 				fs_info->block_group_root);
 		if (ret) {
-			error("couldn't load block group tree");
-			return -EIO;
+			if (!(flags & OPEN_CTREE_PARTIAL)) {
+				error("couldn't load block group tree");
+				return -EIO;
+			}
+			warning("couldn't load block group tree, skipping (partial open)");
+			kfree(fs_info->block_group_root);
+			fs_info->block_group_root = NULL;
+		} else {
+			set_bit(BTRFS_ROOT_TRACK_DIRTY, &fs_info->block_group_root->state);
 		}
-		set_bit(BTRFS_ROOT_TRACK_DIRTY,
-			&fs_info->block_group_root->state);
 	}
 
 	ret = btrfs_find_and_setup_root(root, fs_info,
@@ -1263,9 +1297,13 @@ int btrfs_setup_all_roots(struct btrfs_fs_info *fs_info, u64 root_tree_bytenr,
 					fs_info->dev_root);
 	if (ret) {
 		printk("Couldn't setup device tree\n");
-		return -EIO;
+		if (!(flags & OPEN_CTREE_PARTIAL))
+			return -EIO;
+		kfree(fs_info->dev_root);
+		fs_info->dev_root = NULL;
+	} else {
+		set_bit(BTRFS_ROOT_TRACK_DIRTY, &fs_info->dev_root->state);
 	}
-	set_bit(BTRFS_ROOT_TRACK_DIRTY, &fs_info->dev_root->state);
 
 	ret = btrfs_find_and_setup_root(root, fs_info,
 					BTRFS_UUID_TREE_OBJECTID,
@@ -1314,9 +1352,12 @@ int btrfs_setup_all_roots(struct btrfs_fs_info *fs_info, u64 root_tree_bytenr,
 		 * anything else is error
 		 */
 		if (ret < 0 && ret != -ENOENT) {
-			errno = -ret;
-			error("failed to read block groups: %m");
-			return ret;
+			if (!(flags & OPEN_CTREE_PARTIAL)) {
+				errno = -ret;
+				error("failed to read block groups: %m");
+				return ret;
+			}
+			warning("failed to read block groups, skipping (partial open)");
 		}
 	}
 
@@ -1365,6 +1406,8 @@ void btrfs_release_all_roots(struct btrfs_fs_info *fs_info)
 		free_extent_buffer(fs_info->uuid_root->node);
 	if (fs_info->stripe_root)
 		free_extent_buffer(fs_info->stripe_root->node);
+	if (fs_info->remap_root)
+		free_extent_buffer(fs_info->remap_root->node);
 }
 
 static void free_map_lookup(struct cache_extent *ce)
@@ -1439,6 +1482,7 @@ int btrfs_setup_chunk_tree_and_device_map(struct btrfs_fs_info *fs_info,
 {
 	struct btrfs_super_block *sb = fs_info->super_copy;
 	u64 generation;
+	u8 level;
 	int ret;
 
 	btrfs_setup_root(fs_info->chunk_root, fs_info,
@@ -1448,8 +1492,6 @@ int btrfs_setup_chunk_tree_and_device_map(struct btrfs_fs_info *fs_info,
 	if (ret)
 		return ret;
 
-	generation = btrfs_super_chunk_root_generation(sb);
-
 	if (chunk_root_bytenr && !IS_ALIGNED(chunk_root_bytenr,
 					    fs_info->sectorsize)) {
 		warning("chunk_root_bytenr %llu is unaligned to %u, ignore it",
@@ -1457,13 +1499,28 @@ int btrfs_setup_chunk_tree_and_device_map(struct btrfs_fs_info *fs_info,
 		chunk_root_bytenr = 0;
 	}
 
-	if (!chunk_root_bytenr)
-		chunk_root_bytenr = btrfs_super_chunk_root(sb);
-	else
+	if (chunk_root_bytenr) {
+		struct extent_buffer *eb;
+		struct btrfs_tree_parent_check check = { 0 };
+
 		generation = 0;
+		eb = read_tree_block(fs_info, chunk_root_bytenr, &check);
+		if (IS_ERR(eb)) {
+			ret = PTR_ERR(eb);
+			errno = -ret;
+			error("unable to read tree block at %llu: %m", chunk_root_bytenr);
+			return ret;
+		}
+		level = btrfs_header_level(eb);
+		free_extent_buffer(eb);
+	} else {
+		chunk_root_bytenr = btrfs_super_chunk_root(sb);
+		generation = btrfs_super_chunk_root_generation(sb);
+		level = btrfs_super_chunk_root_level(sb);
+	}
 
 	ret = read_root_node(fs_info, fs_info->chunk_root, chunk_root_bytenr,
-			     generation, btrfs_super_chunk_root_level(sb));
+			     generation, level);
 	if (ret) {
 		if (fs_info->ignore_chunk_tree_error) {
 			warning("cannot read chunk root, continue anyway");
@@ -1506,7 +1563,7 @@ static struct btrfs_fs_info *__open_ctree_fd(int fp, struct open_ctree_args *oca
 
 	fs_info = btrfs_new_fs_info(flags & OPEN_CTREE_WRITES, sb_bytenr);
 	if (!fs_info) {
-		error_msg(ERROR_MSG_MEMORY, "fs_info");
+		error_mem("fs_info");
 		return NULL;
 	}
 	if (flags & OPEN_CTREE_RESTORE)
@@ -1580,17 +1637,16 @@ static struct btrfs_fs_info *__open_ctree_fd(int fp, struct open_ctree_args *oca
 
 	/* CHECK: ignore_csum_mismatch */
 
-	ASSERT(!memcmp(disk_super->fsid, fs_devices->fsid, BTRFS_FSID_SIZE));
+	ASSERT(memcmp(disk_super->fsid, fs_devices->fsid, BTRFS_FSID_SIZE) == 0);
 	if (btrfs_fs_incompat(fs_info, METADATA_UUID))
-		ASSERT(!memcmp(disk_super->metadata_uuid,
-			       fs_devices->metadata_uuid, BTRFS_FSID_SIZE));
+		ASSERT(memcmp(disk_super->metadata_uuid, fs_devices->metadata_uuid,
+			      BTRFS_FSID_SIZE) == 0);
 
 	fs_info->sectorsize = btrfs_super_sectorsize(disk_super);
 	fs_info->nodesize = btrfs_super_nodesize(disk_super);
 	fs_info->stripesize = btrfs_super_stripesize(disk_super);
 	fs_info->csum_type = btrfs_super_csum_type(disk_super);
 	fs_info->csum_size = btrfs_super_csum_size(disk_super);
-	fs_info->leaf_data_size = __BTRFS_LEAF_DATA_SIZE(fs_info->nodesize);
 
 	ret = btrfs_check_fs_compatibility(fs_info->super_copy, flags);
 	if (ret)
@@ -1635,6 +1691,11 @@ static struct btrfs_fs_info *__open_ctree_fd(int fp, struct open_ctree_args *oca
 	if (ret) {
 		error("zoned: failed to initialize zoned mode: %d", ret);
 		goto out_chunk;
+	}
+
+	if (btrfs_fs_incompat(fs_info, REMAP_TREE)) {
+		btrfs_setup_root(fs_info->remap_root, fs_info,
+				 BTRFS_REMAP_TREE_OBJECTID);
 	}
 
 	eb = fs_info->chunk_root->node;
@@ -2151,11 +2212,11 @@ static void backup_super_roots(struct btrfs_fs_info *info)
 			       btrfs_header_level(info->fs_root->node));
 	}
 
-	btrfs_set_backup_dev_root(root_backup, info->dev_root->node->start);
-	btrfs_set_backup_dev_root_gen(root_backup,
-			       btrfs_header_generation(info->dev_root->node));
-	btrfs_set_backup_dev_root_level(root_backup,
-				       btrfs_header_level(info->dev_root->node));
+	if (info->dev_root && info->dev_root->node) {
+		btrfs_set_backup_dev_root(root_backup, info->dev_root->node->start);
+		btrfs_set_backup_dev_root_gen(root_backup, btrfs_header_generation(info->dev_root->node));
+		btrfs_set_backup_dev_root_level(root_backup, btrfs_header_level(info->dev_root->node));
+	}
 
 	btrfs_set_backup_total_bytes(root_backup,
 			     btrfs_super_total_bytes(info->super_copy));
@@ -2227,6 +2288,7 @@ int write_ctree_super(struct btrfs_trans_handle *trans)
 	struct btrfs_fs_info *fs_info = trans->fs_info;
 	struct btrfs_root *tree_root = fs_info->tree_root;
 	struct btrfs_root *chunk_root = fs_info->chunk_root;
+	struct btrfs_root *remap_root = fs_info->remap_root;
 
 	if (fs_info->readonly)
 		return 0;
@@ -2244,6 +2306,15 @@ int write_ctree_super(struct btrfs_trans_handle *trans)
 	btrfs_set_super_chunk_root_generation(fs_info->super_copy,
 				btrfs_header_generation(chunk_root->node));
 
+	if (btrfs_fs_incompat(fs_info, REMAP_TREE)) {
+		btrfs_set_super_remap_root(fs_info->super_copy,
+					   remap_root->node->start);
+		btrfs_set_super_remap_root_level(fs_info->super_copy,
+					btrfs_header_level(remap_root->node));
+		btrfs_set_super_remap_root_generation(fs_info->super_copy,
+				btrfs_header_generation(remap_root->node));
+	}
+
 	ret = write_all_supers(fs_info);
 	if (ret)
 		fprintf(stderr, "failed to write new super block err %d\n", ret);
@@ -2256,6 +2327,11 @@ int close_ctree_fs_info(struct btrfs_fs_info *fs_info)
 	int err = 0;
 	struct btrfs_trans_handle *trans;
 	struct btrfs_root *root = fs_info->tree_root;
+
+	if (fs_info->transaction_aborted && fs_info->running_transaction) {
+		btrfs_cleanup_aborted_transaction(fs_info);
+		goto skip_commit;
+	}
 
 	if (fs_info->last_trans_committed !=
 	    fs_info->generation) {

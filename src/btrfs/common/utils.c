@@ -31,7 +31,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <mntent.h>
-#include <ctype.h>
 #include <limits.h>
 #include <strings.h>
 #include "kernel-lib/list.h"
@@ -120,75 +119,6 @@ int get_df(int fd, struct btrfs_ioctl_space_args **sargs_ret)
 	return 0;
 }
 
-
-static u64 find_max_device_id(struct btrfs_tree_search_args *args, int nr_items)
-{
-	struct btrfs_dev_item *dev_item;
-	char *buf = btrfs_tree_search_data(args, 0);
-
-	buf += (nr_items - 1) * (sizeof(struct btrfs_ioctl_search_header)
-				       + sizeof(struct btrfs_dev_item));
-	buf += sizeof(struct btrfs_ioctl_search_header);
-
-	dev_item = (struct btrfs_dev_item *)buf;
-
-	return btrfs_stack_device_id(dev_item);
-}
-
-static int search_chunk_tree_for_fs_info(int fd,
-				struct btrfs_ioctl_fs_info_args *fi_args)
-{
-	int ret;
-	int max_items;
-	u64 start_devid = 1;
-	struct btrfs_tree_search_args args;
-	struct btrfs_ioctl_search_key *sk;
-
-	fi_args->num_devices = 0;
-
-	max_items = BTRFS_SEARCH_ARGS_BUFSIZE
-	       / (sizeof(struct btrfs_ioctl_search_header)
-			       + sizeof(struct btrfs_dev_item));
-
-	memset(&args, 0, sizeof(args));
-	sk = btrfs_tree_search_sk(&args);
-	sk->tree_id = BTRFS_CHUNK_TREE_OBJECTID;
-	sk->min_objectid = BTRFS_DEV_ITEMS_OBJECTID;
-	sk->min_type = BTRFS_DEV_ITEM_KEY;
-	sk->max_objectid = BTRFS_DEV_ITEMS_OBJECTID;
-	sk->max_type = BTRFS_DEV_ITEM_KEY;
-	sk->min_transid = 0;
-	sk->max_transid = (u64)-1;
-	sk->nr_items = max_items;
-	sk->max_offset = (u64)-1;
-
-again:
-	sk->min_offset = start_devid;
-
-	ret = btrfs_tree_search_ioctl(fd, &args);
-	if (ret < 0)
-		return -errno;
-
-	fi_args->num_devices += (u64)sk->nr_items;
-
-	if (sk->nr_items == max_items) {
-		start_devid = find_max_device_id(&args, sk->nr_items) + 1;
-		goto again;
-	}
-
-	/* Get the latest max_id to stay consistent with the num_devices */
-	if (sk->nr_items == 0)
-		/*
-		 * last tree_search returns an empty buf, use the devid of
-		 * the last dev_item of the previous tree_search
-		 */
-		fi_args->max_id = start_devid - 1;
-	else
-		fi_args->max_id = find_max_device_id(&args, sk->nr_items);
-
-	return 0;
-}
-
 /*
  * For a given path, fill in the ioctl fs_ and info_ args.
  * If the path is a btrfs mountpoint, fill info for all devices.
@@ -258,6 +188,8 @@ int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 
 	/* fill in fi_args if not just a single device */
 	if (fi_args->num_devices != 1) {
+		u64 count = 0;
+
 		ret = ioctl(fd, BTRFS_IOC_FS_INFO, fi_args);
 		if (ret < 0) {
 			ret = -errno;
@@ -265,16 +197,20 @@ int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 		}
 
 		/*
-		 * The fs_args->num_devices does not include seed devices
+		 * The fs_args->num_devices does not include seed devices,
+		 * so we count them manually.
 		 */
-		ret = search_chunk_tree_for_fs_info(fd, fi_args);
-		if (ret)
-			goto out;
+		for (u64 devid = 1; devid <= fi_args->max_id; devid++) {
+			struct btrfs_ioctl_dev_info_args args = { .devid = devid };
 
-		/*
-		 * search_chunk_tree_for_fs_info() will lacks the devid 0
-		 * so manual probe for it here.
-		 */
+			ret = ioctl(fd, BTRFS_IOC_DEV_INFO, &args);
+			if (ret == 0)
+				count++;
+		}
+		if (count > fi_args->num_devices)
+			fi_args->num_devices = count;
+
+		/* We did not count devid 0, do another probe. */
 		ret = device_get_info(fd, 0, &tmp);
 		if (!ret) {
 			fi_args->num_devices++;
@@ -288,7 +224,7 @@ int get_fs_info(const char *path, struct btrfs_ioctl_fs_info_args *fi_args,
 	if (!fi_args->num_devices)
 		goto out;
 
-	di_args = *di_ret = malloc((fi_args->num_devices) * sizeof(*di_args));
+	di_args = *di_ret = calloc(fi_args->num_devices, sizeof(*di_args));
 	if (!di_args) {
 		ret = -errno;
 		goto out;
@@ -438,19 +374,27 @@ struct mnt_entry {
 /*
  * Find first occurrence of up an option string (as "option=") in @options,
  * separated by comma. Return allocated string as "option=value"
+ *
+ * If NULL is returned, the caller needs to check errno to make sure it's not
+ * caused by memory allocation failure.
  */
 static char *find_option(const char *options, const char *option)
 {
-	char *tmp, *ret;
+	const char *tmp;
+	char *ret;
+	int i;
 
+	errno = 0;
 	tmp = strstr(options, option);
 	if (!tmp)
 		return NULL;
 	ret = strdup(tmp);
-	tmp = ret;
-	while (*tmp && *tmp != ',')
-		tmp++;
-	*tmp = 0;
+	if (!ret)
+		return NULL;
+	i = 0;
+	while (*(ret + i) && *(ret + i) != ',')
+		i++;
+	*(ret + i) = '\0';
 	return ret;
 }
 
@@ -663,6 +607,10 @@ int find_mount_fsroot(const char *subvol, const char *subvolid, char **mount)
 			 * requested by the caller
 			 */
 			opt = find_option(ent.options2, "subvolid=");
+			if (opt == NULL && errno != 0) {
+				ret = -errno;
+				goto out;
+			}
 			if (!opt)
 				goto nextline;
 			value = opt + strlen("subvolid=");
@@ -683,6 +631,10 @@ int find_mount_fsroot(const char *subvol, const char *subvolid, char **mount)
 				goto out;
 			found = true;
 			*mount = strdup(ent.path);
+			if (!*mount) {
+				ret = -ENOMEM;
+				goto out;
+			}
 			ret = 0;
 			goto nextline;
 		}
@@ -995,17 +947,28 @@ void bconf_be_quiet(void)
 	bconf.verbose = BTRFS_BCONF_QUIET;
 }
 
-void bconf_add_param(const char *key, const char *value)
+int bconf_add_param(const char *key, const char *value)
 {
 	struct config_param *param;
 
 	param = calloc(1, sizeof(*param));
 	if (!param)
-		return;
+		return -ENOMEM;
 	param->key = strdup(key);
-	if (value)
+	if (!param->key) {
+		free(param);
+		return -ENOMEM;
+	}
+	if (value) {
 		param->value = strdup(value);
+		if (!param->value) {
+			free(param->key);
+			free(param);
+			return -ENOMEM;
+		}
+	}
 	list_add(&param->list, &bconf.params);
+	return 0;
 }
 
 const char *bconf_param_value(const char *key)
@@ -1019,25 +982,31 @@ const char *bconf_param_value(const char *key)
 	return NULL;
 }
 
-void bconf_save_param(const char *str)
+int bconf_save_param(char *str)
 {
 	char *tmp;
+	int ret;
 
 	tmp = strchr(str, '=');
 	if (!tmp) {
-		bconf_add_param(str, NULL);
+		ret = bconf_add_param(str, NULL);
+		if (ret)
+			return ret;
 		printf("Global param: %s\n", str);
 	} else {
 		*tmp = 0;
-		bconf_add_param(str, tmp + 1);
+		ret = bconf_add_param(str, tmp + 1);
+		if (ret)
+			return ret;
 		printf("Global param: %s=%s\n", str, tmp + 1);
 		*tmp = '=';
 	}
+	return 0;
 }
 
 void bconf_set_dry_run(void)
 {
-	pr_verbose(LOG_INFO, "Dry-run requested\n");
+	pr_info("Dry-run requested\n");
 	bconf.dry_run = 1;
 }
 
@@ -1265,23 +1234,12 @@ int get_fs_exclop(int fd)
 {
 	int sysfs_fd;
 	char buf[32];
-	int ret;
 	int i;
 
-	sysfs_fd = sysfs_open_fsid_file(fd, "exclusive_operation");
+	sysfs_fd = sysfs_read_fsid_file_clean_str(fd, "exclusive_operation", buf, sizeof(buf));
 	if (sysfs_fd < 0)
 		return BTRFS_EXCLOP_UNKNOWN;
 
-	memset(buf, 0, sizeof(buf));
-	ret = sysfs_read_file(sysfs_fd, buf, sizeof(buf));
-	close(sysfs_fd);
-	if (ret <= 0)
-		return BTRFS_EXCLOP_UNKNOWN;
-
-	i = strlen(buf) - 1;
-	while (i > 0 && isspace(buf[i])) i--;
-	if (i > 0)
-		buf[i + 1] = 0;
 	for (i = 0; i < ARRAY_SIZE(exclop_def); i++) {
 		if (strcmp(exclop_def[i], buf) == 0)
 			return i;
@@ -1344,7 +1302,7 @@ int check_running_fs_exclop(int fd, enum exclusive_operation start, bool enqueue
 		ret = 1;
 		goto out;
 	} else {
-		pr_verbose(LOG_DEFAULT, "Waiting for another exclusive operation '%s' to finish ...",
+		pr_default("Waiting for another exclusive operation '%s' to finish ...",
 			get_fs_exclop_name(exclop));
 		fflush(stdout);
 	}
@@ -1394,7 +1352,7 @@ int check_running_fs_exclop(int fd, enum exclusive_operation start, bool enqueue
 				ret = 0;
 		}
 	}
-	pr_verbose(LOG_DEFAULT, " done\n");
+	pr_default(" done\n");
 out:
 	close(sysfs_fd);
 

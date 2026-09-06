@@ -218,8 +218,8 @@ static const struct btrfs_feature mkfs_features[] = {
 		.compat_ro_flag	= BTRFS_FEATURE_COMPAT_RO_BLOCK_GROUP_TREE,
 		.sysfs_name	= "block_group_tree",
 		VERSION_TO_STRING2(compat, 6,1),
-		VERSION_NULL(safe),
-		VERSION_NULL(default),
+		VERSION_TO_STRING2(safe, 6,6),
+		VERSION_TO_STRING2(default, 6,19),
 		.desc		= "block group tree, more efficient block group tracking to reduce mount time"
 	},
 #if EXPERIMENTAL
@@ -249,6 +249,17 @@ static const struct btrfs_feature mkfs_features[] = {
 		VERSION_NULL(default),
 		.desc		= "squota support (simple accounting qgroups)"
 	},
+#if EXPERIMENTAL
+	{
+		.name		= "remap-tree",
+		.incompat_flag	= BTRFS_FEATURE_INCOMPAT_REMAP_TREE,
+		.sysfs_name	= "remap_tree",
+		VERSION_TO_STRING2(compat, 6,20),
+		VERSION_NULL(safe),
+		VERSION_NULL(default),
+		.desc		= "remap tree (logical-to-logical block address mapping layer)"
+	},
+#endif
 	/* Keep this one last */
 	{
 		.name		= "list-all",
@@ -361,12 +372,12 @@ static int parse_one_fs_feature(const char *name,
 	for (i = 0; i < array_size; i++) {
 		const struct btrfs_feature *feat = get_feature(i, source);
 
-		if (name[0] == '^' && !strcmp(feat->name, name + 1)) {
+		if (name[0] == '^' && strcmp(feat->name, name + 1) == 0) {
 			features->compat_ro_flags &= ~feat->compat_ro_flag;
 			features->incompat_flags &= ~feat->incompat_flag;
 			features->runtime_flags &= ~feat->runtime_flag;
 			found = 1;
-		} else if (!strcmp(feat->name, name)) {
+		} else if (strcmp(feat->name, name) == 0) {
 			features->compat_ro_flags |= feat->compat_ro_flag;
 			features->incompat_flags |= feat->incompat_flag;
 			features->runtime_flags |= feat->runtime_flag;
@@ -613,7 +624,7 @@ static bool check_supported_sectorsize(u32 sectorsize)
 		 * Also check the terminal '\0' to handle cases like
 		 * "4096" and "40960".
 		 */
-		if (!strncmp(this_char, sectorsize_buf, strlen(sectorsize_buf) + 1))
+		if (strncmp(this_char, sectorsize_buf, strlen(sectorsize_buf) + 1) == 0)
 			return true;
 	}
 	return false;
@@ -697,15 +708,11 @@ int btrfs_tree_search_ioctl(int fd, struct btrfs_tree_search_args *sa)
 {
 	/* On first use check the supported status and save it. */
 	if (!tree_search_v2_initialized) {
-#if 0
-		/*
-		 * Keep using v1 until v2 is fully tested, in some cases it
-		 * does not return properly formatted results in the buffer.
-		 */
+#ifdef EXPERIMENTAL
 		if (btrfs_tree_search2_ioctl_supported(fd) == 1)
 			tree_search_v2_supported = true;
-#endif
 		tree_search_v2_initialized = true;
+#endif
 	}
 	sa->use_v2 = tree_search_v2_supported;
 

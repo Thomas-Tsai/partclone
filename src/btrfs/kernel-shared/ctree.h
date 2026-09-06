@@ -53,9 +53,8 @@ struct btrfs_mapping_tree {
 
 static inline unsigned long btrfs_chunk_item_size(int num_stripes)
 {
-	BUG_ON(num_stripes == 0);
-	return sizeof(struct btrfs_chunk) +
-		sizeof(struct btrfs_stripe) * (num_stripes - 1);
+	return offsetof(struct btrfs_chunk, stripe) +
+		sizeof(struct btrfs_stripe) * num_stripes;
 }
 
 static inline u32 __BTRFS_LEAF_DATA_SIZE(u32 nodesize)
@@ -68,8 +67,6 @@ static inline u32 __BTRFS_LEAF_DATA_SIZE(u32 nodesize)
 #else
 #define BTRFS_MIN_BLOCKSIZE	(SZ_4K)
 #endif
-
-#define BTRFS_LEAF_DATA_SIZE(fs_info) (fs_info->leaf_data_size)
 
 #define BTRFS_SUPER_INFO_OFFSET			(65536)
 #define BTRFS_SUPER_INFO_SIZE			(4096)
@@ -102,7 +99,9 @@ static inline u32 __BTRFS_LEAF_DATA_SIZE(u32 nodesize)
 	 BTRFS_FEATURE_INCOMPAT_ZONED |			\
 	 BTRFS_FEATURE_INCOMPAT_EXTENT_TREE_V2 |	\
 	 BTRFS_FEATURE_INCOMPAT_RAID_STRIPE_TREE |	\
-	 BTRFS_FEATURE_INCOMPAT_SIMPLE_QUOTA)
+	 BTRFS_FEATURE_INCOMPAT_ENCRYPT |		\
+	 BTRFS_FEATURE_INCOMPAT_SIMPLE_QUOTA |		\
+	 BTRFS_FEATURE_INCOMPAT_REMAP_TREE)
 #else
 #define BTRFS_FEATURE_INCOMPAT_SUPP			\
 	(BTRFS_FEATURE_INCOMPAT_MIXED_BACKREF |		\
@@ -295,6 +294,8 @@ struct btrfs_block_group {
 	bool zone_is_active;
 
 	u64 global_root_id;
+	u64 remap_bytes;
+	u32 identity_remap_count;
 };
 
 struct btrfs_device;
@@ -310,6 +311,7 @@ struct btrfs_fs_info {
 	struct btrfs_root *uuid_root;
 	struct btrfs_root *block_group_root;
 	struct btrfs_root *stripe_root;
+	struct btrfs_root *remap_root;
 
 	struct rb_root global_roots_tree;
 	struct rb_root fs_root_tree;
@@ -401,7 +403,6 @@ struct btrfs_fs_info {
 	u32 nodesize;
 	u32 sectorsize;
 	u32 stripesize;
-	u32 leaf_data_size;
 
 	/*
 	 * For open_ctree_fs_info() to hold the initial fd until close.
@@ -425,6 +426,11 @@ struct btrfs_fs_info {
 
 	struct super_block *sb;
 };
+
+static inline u32 BTRFS_LEAF_DATA_SIZE(const struct btrfs_fs_info *fs_info)
+{
+	return __BTRFS_LEAF_DATA_SIZE(fs_info->nodesize);
+}
 
 static inline bool btrfs_is_zoned(const struct btrfs_fs_info *fs_info)
 {
@@ -670,6 +676,10 @@ static inline u32 BTRFS_MAX_XATTR_SIZE(const struct btrfs_fs_info *info)
 #define BTRFS_CHUNK_ITEM_KEY	228
 
 #define BTRFS_RAID_STRIPE_KEY	230
+
+#define BTRFS_IDENTITY_REMAP_KEY	234
+#define BTRFS_REMAP_KEY			235
+#define BTRFS_REMAP_BACKREF_KEY		236
 
 #define BTRFS_BALANCE_ITEM_KEY	248
 
