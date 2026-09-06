@@ -1011,10 +1011,19 @@ static int btrfs_load_block_group_dup(struct btrfs_fs_info *fs_info,
 		return -EIO;
 	}
 
-	if (zone_info[0].alloc_offset == WP_CONVENTIONAL)
-		zone_info[0].alloc_offset = last_alloc;
-	if (zone_info[1].alloc_offset == WP_CONVENTIONAL)
-		zone_info[1].alloc_offset = last_alloc;
+	if (zone_info[0].alloc_offset == WP_CONVENTIONAL) {
+		if (last_alloc == 0 && zone_info[1].alloc_offset != WP_CONVENTIONAL)
+			zone_info[0].alloc_offset = zone_info[1].alloc_offset;
+		else
+			zone_info[0].alloc_offset = last_alloc;
+	}
+
+	if (zone_info[1].alloc_offset == WP_CONVENTIONAL) {
+		if (last_alloc == 0 && zone_info[0].alloc_offset != WP_CONVENTIONAL)
+			zone_info[1].alloc_offset = zone_info[0].alloc_offset;
+		else
+			zone_info[1].alloc_offset = last_alloc;
+	}
 
 	if (zone_info[0].alloc_offset != zone_info[1].alloc_offset) {
 		btrfs_err(fs_info,
@@ -1293,6 +1302,7 @@ out:
 	if (!ret)
 		cache->write_offset = cache->alloc_offset;
 
+	kfree(active);
 	kfree(zone_info);
 	return ret;
 }
@@ -1455,7 +1465,7 @@ int btrfs_get_zone_info(int fd, const char *file,
 	/* Get zone information */
 	ret = report_zones(fd, file, zinfo);
 	if (ret != 0) {
-		kfree(zinfo);
+		btrfs_free_zoned_device_info(zinfo);
 		return ret;
 	}
 	*zinfo_ret = zinfo;

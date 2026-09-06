@@ -39,6 +39,10 @@
 #include <stdarg.h>
 #include <features.h>
 
+#ifndef static_assert
+#define static_assert(expr, str) _Static_assert(expr, str)
+#endif
+
 /*
  * Glibc supports backtrace, some other libc implementations don't but need to
  * be more careful detecting proper glibc.
