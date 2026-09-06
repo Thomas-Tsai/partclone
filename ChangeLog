@@ -1,4 +1,90 @@
+2026-09-03  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #306 from Thomas-Tsai/fix/hfsplus-alt-vh
+	fix(hfsplus): write alternate volume header to end of larger target
+
+	fix(hfsplus): write alternate volume header to end of larger target device.
+
+2026-08-28  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	btrfs: cover more tree roots in read_bitmap
+
+	Merge pull request #305 from Thomas-Tsai/fix/btrfs-block-group-tree-chunk-root
+	fix(btrfs): mark chunk_root and block_group_root as used in bitmap (#303)
+
+	test(btrfs): add BLOCK_GROUP_TREE regression test for issue #303
+	Adds tests/btrfs_bgt.test, a standalone regression test that:
+
+	1. Creates a btrfs filesystem with -O block-group-tree (requires
+	   btrfs-progs >= 6.1; skips with exit code 77 if unavailable)
+	2. Clones it with partclone.btrfs and restores to a raw file
+	3. Verifies 'btrfs check --readonly' passes with no 'cannot read
+	   chunk root' error (the issue #303 symptom)
+	4. Verifies the restored superblock is intact and BLOCK_GROUP_TREE
+	   feature is preserved
+	5. Verifies 'btrfs inspect-internal dump-tree -r' can walk the root
+	   tree and locate the BLOCK_GROUP_TREE ROOT_ITEM
+
+	The test follows the style of security_poc.test (independent script
+	with colored pass/fail output and trap-based cleanup) rather than
+	mini_clone_restore_test, because it needs btrfs-progs version checks
+	and btrfs check/dump-tree verification that the generic framework
+	does not support.
+
+	Registered in Makefile.am under ENABLE_BTRFS.
+
+	fix minor security issue
+
+	fix(btrfs): mark chunk_root and block_group_root as used in bitmap
+	Issue #303: partclone.btrfs produced images that were missing the chunk
+	root block when the source filesystem had the BLOCK_GROUP_TREE compat_ro
+	feature enabled, leaving the restored filesystem unmountable with
+	'cannot read chunk root' (have=0).
+
+	Root cause in src/btrfsclone.c read_bitmap():
+	1. The chunk_root root_item bytenr was only marked via a commented-out
+	   line, so the chunk root node relied solely on the recursive
+	   dump_start_leaf() walk. Any read_tree_block() failure during that
+	   walk silently dropped the chunk root from the used-block bitmap.
+	2. When BLOCK_GROUP_TREE is enabled, block group items live in a
+	   dedicated tree (objectid BTRFS_BLOCK_GROUP_TREE_OBJECTID) whose root
+	   item is never explicitly marked as used. The bundled btrfs-progs
+	   library (v6.16) already exposes btrfs_block_group_root() and sets up
+	   fs_info->block_group_root during open_ctree, but partclone never
+	   consulted it.
+
+	Fix:
+	- Mark the chunk root node using btrfs_super_chunk_root(info->super_copy)
+	  rather than btrfs_root_bytenr(&info->chunk_root->root_item). The
+	  chunk root address lives in the superblock, not as a ROOT_ITEM in the
+	  root tree, so chunk_root->root_item.bytenr is 0. Reading it from the
+	  superblock guarantees the chunk root node is always marked used
+	  regardless of the recursive walk outcome.
+	- When btrfs_fs_compat_ro(info, BLOCK_GROUP_TREE) is set, also mark the
+	  block group tree root_item bytenr as used (this one is stored as a
+	  ROOT_ITEM in the root tree, so btrfs_root_bytenr is correct here).
+
+	Verified on a 512MB btrfs image with BLOCK_GROUP_TREE enabled:
+	- Unpatched: chunk_root first marked at log line 132, AFTER the
+	  'chunk tree:' recursive walk begins at line 130. If the walk is
+	  skipped or read_tree_block() fails, chunk_root is never marked.
+	- Patched: chunk_root explicitly marked at log line 84, BEFORE the
+	  recursive walk. block_group_root (30408704) explicitly marked at
+	  line 108, also before the walk.
+	- btrfs check --readonly on the restored image passes with no
+	  'cannot read chunk root' error.
+
+	Build: make -C src partclone.btrfs compiles cleanly with -Wall.
+
+2026-08-25  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Refactored src/apfsclone.c to resolve Cppcheck static analysis findings by reducing the scope of local variables and removing redundant initializations.
+
+	Fix multiple security issues: added size check to prevent APFS spaceman OOB read, corrected device size assignment in load_image_desc_v1 to avoid data loss, added guard against zero divisor in FAT ROUND_TO_MULTIPLE macro, and validated blocks_per_checksum before division in fuseimg to prevent divide‑by‑zero.
+
 2026-07-29  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	fix groff issue, openssl 3.0 issue and bash complete issue
 
 	release version to 0.3.48
 
