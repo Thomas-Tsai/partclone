@@ -12,6 +12,8 @@ if ENABLE_BTRFS
 TESTS += btrfs.test
 TESTS += btrfs_bgt.test
 TESTS += btrfs_trees.test
+TESTS += btrfs_multilevel.test
+TESTS += btrfs_uninitvalgrind.test
 endif
 
 if ENABLE_FAT

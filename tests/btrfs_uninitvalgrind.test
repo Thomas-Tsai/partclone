@@ -1,0 +1,141 @@
+#!/bin/bash
+
+# ==============================================================================
+# Partclone Btrfs Uninitialized-Read Detection Test (valgrind)
+#
+# The bitmap code in btrfsclone.c once marked interior tree nodes with an
+# *uninitialized* length (u64 size was only assigned on the leaf path of
+# dump_start_leaf()). Whether a clone then lost whole subtrees depended on
+# leftover stack garbage, so some builds/environments appeared fine while
+# others (e.g. Fedora 44 with multi-level trees) silently lost ~25% of the
+# data. Outcome-based tests can only catch this when the garbage happens to
+# be bad; valgrind catches the uninitialized *use* deterministically on the
+# very first interior tree node walked.
+#
+# This test is skipped (exit 77) when valgrind is unavailable.
+#
+# The test:
+#   1. Builds a btrfs image whose FS tree has interior nodes (root level >= 2)
+#   2. Runs partclone.btrfs under valgrind with error reporting enabled
+#   3. Fails if any "uninitialised value" report implicates the bitmap marking
+#      code (check_extent_bitmap / dump_start_leaf / set_bitmap)
+#
+# Requirements:
+#   - valgrind
+#   - btrfs-progs
+#   - Compiled partclone.btrfs in ../src/ (dynamic build; -g recommended)
+# ==============================================================================
+
+set -e
+
+function print_info() {
+    echo -e "\e[34m[INFO]\e[0m $1"
+}
+
+function print_pass() {
+    echo -e "\e[32m[PASS]\e[0m $1"
+}
+
+function print_fail() {
+    echo -e "\e[31m[FAIL]\e[0m $1"
+    cleanup
+    exit 1
+}
+
+# --- Configuration ---
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PTLDIR="$SCRIPT_DIR/../src"
+PTLBTRFS="$PTLDIR/partclone.btrfs"
+
+IMG_SIZE=$((256 * 1024 * 1024))   # 256 MiB
+NFILES=2500                        # enough to force interior nodes at 4K nodesize
+RAW_SRC="$$_uvg_src.raw"
+CLONE_IMG="$$_uvg_clone.img"
+LOG_FILE="$$_uvg_test.log"
+VG_LOG="$$_uvg_valgrind.log"
+STAGING="$$_uvg_staging"
+
+function cleanup() {
+    print_info "Cleaning up generated files..."
+    rm -rf "$RAW_SRC" "$CLONE_IMG" "$LOG_FILE" "$VG_LOG" "$STAGING"
+}
+
+cd "$SCRIPT_DIR"
+trap cleanup EXIT
+
+# --- Pre-flight Checks ---
+
+VALGRIND=$(which valgrind 2>/dev/null || true)
+if [ -z "$VALGRIND" ]; then
+    print_info "valgrind not found. Skipping test."
+    exit 77
+fi
+
+if [ ! -x "$PTLBTRFS" ]; then
+    print_fail "$PTLBTRFS not found. Please compile partclone first."
+fi
+
+MKFS_BTRFS=$(which mkfs.btrfs 2>/dev/null || true)
+BTRFS_BIN=$(which btrfs 2>/dev/null || true)
+if [ -z "$MKFS_BTRFS" ] || [ -z "$BTRFS_BIN" ]; then
+    print_fail "btrfs-progs not found."
+fi
+
+print_info "==================================================="
+print_info "  Btrfs Uninitialized-Read Detection (valgrind)    "
+print_info "==================================================="
+
+# --- Step 1: Build a multi-level source filesystem ---
+print_info "Step 1: Creating $NFILES-file btrfs image (4K nodesize, FS tree level >= 2)..."
+
+mkdir -p "$STAGING"
+for i in $(seq 1 $NFILES); do
+    echo "valgrind uninit regression file $i" > "$STAGING/file_$i"
+done
+
+dd if=/dev/zero of="$RAW_SRC" bs=1M count=$((IMG_SIZE / 1024 / 1024)) status=none
+$MKFS_BTRFS -n 4096 -f --rootdir "$(cd "$STAGING" && pwd)" "$RAW_SRC" > /dev/null 2>&1
+
+FS_TREE_LEVEL=$($BTRFS_BIN inspect-internal dump-tree -t 5 "$RAW_SRC" 2>&1 \
+    | grep -E '^(node|leaf) [0-9]+ level' | head -1 | sed -n 's/^.* level \([0-9]\+\) .*/\1/p')
+if [ -z "$FS_TREE_LEVEL" ] || [ "$FS_TREE_LEVEL" -lt 2 ]; then
+    print_info "FS tree root level is '${FS_TREE_LEVEL:-unknown}', need >= 2 for interior-node walk."
+    exit 77
+fi
+print_pass "Source filesystem ready (FS tree root level $FS_TREE_LEVEL)."
+
+# --- Step 2: Run clone under valgrind ---
+print_info "Step 2: Running partclone.btrfs under valgrind..."
+
+$VALGRIND --quiet --track-origins=no --error-exitcode=42 \
+    "$PTLBTRFS" -c -s "$RAW_SRC" -O "$CLONE_IMG" -F -L "$LOG_FILE" \
+    > /dev/null 2> "$VG_LOG" || VG_EXIT=$?
+VG_EXIT=${VG_EXIT:-0}
+
+if [ "$VG_EXIT" -eq 42 ]; then
+    print_info "valgrind reported errors; checking if they implicate the bitmap code..."
+fi
+
+# --- Step 3: Inspect valgrind reports ---
+# An uninitialized-read report looks like:
+#   ==XXXX== Conditional jump or move depends on uninitialised value(s)
+#   ==XXXX==    at 0x...: check_extent_bitmap (btrfsclone.c:...)
+# Match reports whose stack trace names the bitmap marking code.
+if grep -q "uninitialised value" "$VG_LOG"; then
+    if grep -B2 -A20 "uninitialised value" "$VG_LOG" \
+        | grep -qE "check_extent_bitmap|dump_start_leaf|set_bitmap|dump_file_extent_item"; then
+        grep -B2 -A20 "uninitialised value" "$VG_LOG" | head -30
+        print_fail "Uninitialized value used in bitmap marking code (regression detected)."
+    fi
+    print_info "valgrind found uninitialized values, but none in the bitmap marking code:"
+    grep -A5 "uninitialised value" "$VG_LOG" | head -12
+fi
+
+print_pass "No uninitialized reads in bitmap marking code."
+
+# --- Final Success ---
+print_info "==================================================="
+print_pass " Btrfs uninitialized-read detection test passed!  "
+print_info "==================================================="
+
+exit 0

@@ -43,6 +43,11 @@ int block_size = 0;
 uint64_t dev_size = 0;
 unsigned long long total_block = 0;
 
+/// number of tree blocks that could not be read while building the bitmap;
+/// any non-zero value means the resulting image would silently miss data,
+/// so read_bitmap() aborts at the end instead of producing a corrupt image.
+static unsigned long unreadable_tree_blocks = 0;
+
 ///set useb block
 static void set_bitmap(unsigned long* bitmap, uint64_t pos, uint64_t length){
     uint64_t block;
@@ -154,24 +159,27 @@ static void dump_file_extent_item(unsigned long* bitmap, struct extent_buffer *e
 				   struct btrfs_file_extent_item *fi)
 {
 	int extent_type = btrfs_file_extent_type(eb, fi);
+	/* file extent disk_bytenr is a *logical* address; it must be mapped
+	 * through the chunk tree to physical device offsets (and all mirrors)
+	 * via check_extent_bitmap(). Marking the logical address directly is
+	 * only correct when logical == physical, which is not guaranteed. */
+	u64 len = (u64)btrfs_file_extent_disk_num_bytes(eb, fi);
 
 	if (extent_type == BTRFS_FILE_EXTENT_INLINE) {
 	    return;
 	}
 
 	if (extent_type == BTRFS_FILE_EXTENT_PREALLOC) {
-		log_mesg(3, 0, 0, fs_opt.debug, "%s: DUMP: prealloc data disk byte %llu nr %llu\n", __FILE__, 
+		log_mesg(3, 0, 0, fs_opt.debug, "%s: DUMP: prealloc data disk byte %llu nr %llu\n", __FILE__,
 		  (unsigned long long)btrfs_file_extent_disk_bytenr(eb, fi),
 		  (unsigned long long)btrfs_file_extent_disk_num_bytes(eb, fi));
-		set_bitmap(bitmap, (unsigned long long)btrfs_file_extent_disk_bytenr(eb, fi), 
-		                   (unsigned long long)btrfs_file_extent_disk_num_bytes(eb, fi) );
+		check_extent_bitmap(bitmap, (u64)btrfs_file_extent_disk_bytenr(eb, fi), &len, 0);
 		return;
 	}
 	log_mesg(3, 0, 0, fs_opt.debug, "DUMP: extent data disk byte %llu nr %llu\n",
 		(unsigned long long)btrfs_file_extent_disk_bytenr(eb, fi),
 		(unsigned long long)btrfs_file_extent_disk_num_bytes(eb, fi));
-		set_bitmap(bitmap, (unsigned long long)btrfs_file_extent_disk_bytenr(eb, fi), 
-		                   (unsigned long long)btrfs_file_extent_disk_num_bytes(eb, fi) );
+	check_extent_bitmap(bitmap, (u64)btrfs_file_extent_disk_bytenr(eb, fi), &len, 0);
 }
 
 int csum_bitmap(unsigned long* bitmap, struct btrfs_root *root){
@@ -248,17 +256,22 @@ int csum_bitmap(unsigned long* bitmap, struct btrfs_root *root){
 
 void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct extent_buffer *eb, int follow){
 
-    u64 bytenr;
-    u64 size;
-    u64 objectid;
-    u64 offset;
-    u32 type;
-    int i;
-    struct btrfs_disk_key disk_key;
-    struct btrfs_file_extent_item *fi;
+	u64 bytenr;
+	/* size must always be initialized to nodesize: it is used to mark
+	 * this node and its children below. Leaving it uninitialized marks
+	 * nodes with an indeterminate length, which is mostly rejected by
+	 * check_extent_bitmap(), so interior nodes of multi-level trees are
+	 * silently dropped from the bitmap. */
+	u64 size = (u64)root->fs_info->nodesize;
+	u64 objectid;
+	u64 offset;
+	u32 type;
+	int i;
+	struct btrfs_disk_key disk_key;
+	struct btrfs_file_extent_item *fi;
 
 
-    if (!eb)
+	if (!eb)
 	return;
     u32 nr = btrfs_header_nritems(eb);
 
@@ -281,10 +294,10 @@ void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct exte
 			struct btrfs_file_extent_item);
 		dump_file_extent_item(bitmap, eb, i, fi);
 	    }
-	    if (type == BTRFS_EXTENT_ITEM_KEY){
+	    if (type == BTRFS_EXTENT_ITEM_KEY || type == BTRFS_METADATA_ITEM_KEY){
 		objectid = btrfs_disk_key_objectid(&disk_key);
 		offset = btrfs_disk_key_offset(&disk_key);
-		log_mesg(3, 0, 0, fs_opt.debug, "%s: type == BTRFS_EXTENT_ITEM_KEY %llu %llu\n", __FILE__, objectid, offset);
+		log_mesg(3, 0, 0, fs_opt.debug, "%s: type == EXTENT/METADATA_ITEM_KEY(%u) %llu %llu\n", __FILE__, type, objectid, offset);
 		check_extent_bitmap(bitmap, objectid, &offset, 1);
 	    }
 
@@ -322,12 +335,27 @@ void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct exte
         };
 	struct extent_buffer *next = read_tree_block(root->fs_info,
 		btrfs_node_blockptr(eb, i),  &check);
+	if (IS_ERR_OR_NULL(next)) {
+	    /* read_tree_block() returns ERR_PTR() on failure; dereferencing
+	     * it crashes. Mark the child address from the parent pointer so
+	     * the block itself is not dropped, and count the loss loudly:
+	     * the child's subtree cannot be walked, so the bitmap is
+	     * incomplete. */
+	    unreadable_tree_blocks++;
+	    log_mesg(0, 0, 1, fs_opt.debug, "%s: failed to read tree block %llu in tree %llu\n", __FILE__,
+		    (unsigned long long)btrfs_node_blockptr(eb, i),
+		    (unsigned long long)btrfs_header_owner(eb));
+	    check_extent_bitmap(bitmap, btrfs_node_blockptr(eb, i), &size, 0);
+	    continue;
+	}
 	bytenr = (unsigned long long)btrfs_header_bytenr(next);
 	check_extent_bitmap(bitmap, bytenr, &size, 0);
 	if (!extent_buffer_uptodate(next)) {
+	    unreadable_tree_blocks++;
 	    log_mesg(0, 0, 1, fs_opt.debug, "%s: failed to read %llu in tree %llu\n", __FILE__,
 		    (unsigned long long)btrfs_node_blockptr(eb, i),
 		    (unsigned long long)btrfs_header_owner(eb));
+	    free_extent_buffer(next);
 	    continue;
 	}
 	if (btrfs_is_leaf(next) && btrfs_header_level(eb) != 1)
@@ -500,8 +528,25 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	    offset = btrfs_item_ptr_offset(leaf, slot);
 	    read_extent_buffer(leaf, &ri, offset, sizeof(ri));
 	    buf = read_tree_block(tree_root_scan->fs_info, btrfs_root_bytenr(&ri), &check);
-	    if (!extent_buffer_uptodate(buf))
+	    if (IS_ERR_OR_NULL(buf)) {
+		/* see the note in dump_start_leaf(): read_tree_block() may
+		 * return ERR_PTR(); skipping silently would drop this whole
+		 * tree from the bitmap. Its address is still marked below via
+		 * the extent tree walk, but its contents are not. */
+		unreadable_tree_blocks++;
+		log_mesg(0, 0, 1, fs_opt.debug, "%s: failed to read root tree block %llu (objectid %llu)\n", __FILE__,
+			(unsigned long long)btrfs_root_bytenr(&ri),
+			(unsigned long long)found_key.objectid);
 		goto next;
+	    }
+	    if (!extent_buffer_uptodate(buf)) {
+		unreadable_tree_blocks++;
+		log_mesg(0, 0, 1, fs_opt.debug, "%s: root tree block %llu (objectid %llu) is not uptodate\n", __FILE__,
+			(unsigned long long)btrfs_root_bytenr(&ri),
+			(unsigned long long)found_key.objectid);
+		free_extent_buffer(buf);
+		goto next;
+	    }
 	    dump_start_leaf(bitmap, tree_root_scan, buf, 1);
 	    free_extent_buffer(buf);
 	}
@@ -511,6 +556,8 @@ next:
 no_node:
     //csum_bitmap(bitmap, root);
     btrfs_release_path(&path);
+    if (unreadable_tree_blocks)
+	log_mesg(0, 1, 1, fs_opt.debug, "%s: %lu tree block(s) could not be read; the bitmap would be incomplete, aborting instead of creating a corrupt image\n", __FILE__, unreadable_tree_blocks);
 }
 
 void read_super_blocks(char* device, file_system_info* fs_info)

@@ -1,0 +1,266 @@
+#!/bin/bash
+
+# ==============================================================================
+# Partclone Btrfs Multi-Level Tree Regression Test
+#
+# Regression test for the bitmap gap on multi-level btrfs trees: partclone.btrfs
+# marked interior (non-leaf) tree nodes with an *uninitialized* length, so
+# check_extent_bitmap() rejected most of them and whole level-1 subtrees were
+# silently left out of the image. Only multi-level trees are affected (a tree
+# whose root is a leaf is fully covered by the leaf walk), which is why small
+# test filesystems never caught it. Found on a Fedora 44 (btrfs-progs 6.19+
+# defaults, BLOCK_GROUP_TREE) installation: ~25% of files returned EIO after
+# device-to-device clone.
+#
+# This test:
+#   1. Creates a btrfs filesystem with small nodesize (4K) and enough files to
+#      force the FS tree to grow interior nodes (root level >= 2)
+#   2. Clones it with partclone.btrfs and restores to a raw file pre-filled
+#      with zeros (so skipped blocks cannot masquerade as valid data)
+#   3. Verifies `btrfs check --readonly` passes on the restored filesystem
+#   4. Verifies the restored metadata tree shape is identical to the source
+#      (same number of leaf/node blocks)
+#   5. Verifies all file contents via rootless extraction with `btrfs restore`
+#
+# Requirements:
+#   - btrfs-progs (--rootdir, -n, check, restore, inspect-internal)
+#   - Compiled partclone.btrfs and partclone.restore in ../src/
+# ==============================================================================
+
+set -e
+
+# --- Helper Functions for Colored Output ---
+function print_info() {
+    echo -e "\e[34m[INFO]\e[0m $1"
+}
+
+function print_pass() {
+    echo -e "\e[32m[PASS]\e[0m $1"
+}
+
+function print_fail() {
+    echo -e "\e[31m[FAIL]\e[0m $1"
+    cleanup
+    exit 1
+}
+
+# --- Configuration ---
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PTLDIR="$SCRIPT_DIR/../src"
+PTLBTRFS="$PTLDIR/partclone.btrfs"
+PTLRESTORE="$PTLDIR/partclone.restore"
+
+IMG_SIZE=$((256 * 1024 * 1024))   # 256 MiB
+NFILES=2500                        # enough inode/dir items to grow level-2 trees at 4K nodesize
+RAW_SRC="$$_mlt_src.raw"
+CLONE_IMG="$$_mlt_clone.img"
+RAW_RESTORE="$$_mlt_restore.raw"
+LOG_FILE="$$_mlt_test.log"
+STAGING="$$_mlt_staging"
+EXTRACT_SRC="$$_mlt_extract_src"
+EXTRACT_RESTORE="$$_mlt_extract_restore"
+CHUNK_MAP="$$_mlt_chunk_map.txt"
+TREE_BLOCKS="$$_mlt_tree_blocks.txt"
+
+# --- Cleanup ---
+function cleanup() {
+    print_info "Cleaning up generated files..."
+    rm -rf "$RAW_SRC" "$CLONE_IMG" "$RAW_RESTORE" "$LOG_FILE" "$STAGING" "$EXTRACT_SRC" "$EXTRACT_RESTORE" "$CHUNK_MAP" "$TREE_BLOCKS"
+}
+
+# Ensure we are in the script's directory
+cd "$SCRIPT_DIR"
+
+# Register a trap to clean up files on script exit
+trap cleanup EXIT
+
+# --- Pre-flight Checks ---
+
+if [ ! -x "$PTLBTRFS" ]; then
+    print_fail "$PTLBTRFS not found. Please compile partclone first (e.g., 'make' in the project root directory)."
+fi
+
+if [ ! -x "$PTLRESTORE" ]; then
+    print_fail "$PTLRESTORE not found. Please compile partclone first."
+fi
+
+MKFS_BTRFS=$(which mkfs.btrfs 2>/dev/null || true)
+if [ -z "$MKFS_BTRFS" ]; then
+    print_fail "mkfs.btrfs not found. Please install btrfs-progs."
+fi
+
+BTRFS_BIN=$(which btrfs 2>/dev/null || true)
+if [ -z "$BTRFS_BIN" ]; then
+    print_fail "btrfs not found. Please install btrfs-progs."
+fi
+
+print_info "==================================================="
+print_info "  Btrfs Multi-Level Tree Bitmap Regression Test    "
+print_info "==================================================="
+
+# --- Step 1: Create staging directory with many known files ---
+print_info "Step 1: Creating staging directory with $NFILES files..."
+
+mkdir -p "$STAGING"
+for i in $(seq 1 $NFILES); do
+    echo "partclone multilevel regression file $i" > "$STAGING/file_$i"
+done
+
+# --- Step 2: Format raw file as btrfs with 4K nodesize ---
+print_info "Step 2: Creating ${IMG_SIZE}-byte raw file, mkfs -n 4096 with --rootdir..."
+
+dd if=/dev/zero of="$RAW_SRC" bs=1M count=$((IMG_SIZE / 1024 / 1024)) status=none
+$MKFS_BTRFS -n 4096 -f --rootdir "$(cd "$STAGING" && pwd)" "$RAW_SRC" > /dev/null 2>&1
+print_pass "Source filesystem created."
+
+# --- Step 3: Verify the FS tree is multi-level (bug trigger condition) ---
+print_info "Step 3: Verifying FS tree root level >= 2 (bug trigger condition)..."
+
+FS_TREE_DUMP=$($BTRFS_BIN inspect-internal dump-tree -t 5 "$RAW_SRC" 2>&1)
+FS_TREE_LEVEL=$(echo "$FS_TREE_DUMP" | grep -E '^(node|leaf) [0-9]+ level' | head -1 | sed -n 's/^.* level \([0-9]\+\) .*/\1/p')
+if [ -z "$FS_TREE_LEVEL" ] || [ "$FS_TREE_LEVEL" -lt 2 ]; then
+    print_info "FS tree root level is '${FS_TREE_LEVEL:-unknown}', need >= 2 to trigger this regression."
+    print_info "Increase NFILES or reduce nodesize. Skipping test."
+    exit 77
+fi
+print_pass "FS tree root level is $FS_TREE_LEVEL (multi-level, bug trigger condition met)."
+
+NODESIZE=$($BTRFS_BIN inspect-internal dump-super "$RAW_SRC" 2>&1 | sed -n 's/^nodesize\t\+\([0-9]\+\)/\1/p')
+if [ -z "$NODESIZE" ]; then
+    print_fail "Could not read nodesize from source superblock."
+fi
+
+# Record the metadata tree shape of the source for later comparison
+SRC_SHAPE=$($BTRFS_BIN inspect-internal dump-tree "$RAW_SRC" 2>/dev/null | grep -cE '^(leaf|node) [0-9]+ (items|level)')
+print_info "Source metadata tree blocks (leaf+node lines): $SRC_SHAPE"
+
+# --- Step 4: Clone the source with partclone.btrfs ---
+print_info "Step 4: Cloning source with partclone.btrfs..."
+
+$PTLBTRFS -c -s "$RAW_SRC" -O "$CLONE_IMG" -F -L "$LOG_FILE" > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    print_fail "partclone.btrfs clone failed. See $LOG_FILE for details."
+fi
+print_pass "Clone completed successfully."
+
+# --- Step 5: Restore to a zeros pre-filled raw file ---
+# The pre-filled zeros guarantee that any block partclone failed to copy stays
+# detectably absent (zero blocks always fail btrfs checksum verification),
+# unlike restoring onto a previously-imaged disk where stale old-generation
+# copies of the same filesystem could masquerade as valid blocks.
+print_info "Step 5: Restoring image to zeros pre-filled raw file..."
+
+dd if=/dev/zero of="$RAW_RESTORE" bs=1M count=$((IMG_SIZE / 1024 / 1024)) status=none
+$PTLRESTORE -s "$CLONE_IMG" -O "$RAW_RESTORE" -C -F -L "$LOG_FILE" > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    print_fail "partclone.restore failed. See $LOG_FILE for details."
+fi
+print_pass "Restore completed successfully."
+
+# --- Step 6: Verify the restored filesystem passes btrfs check ---
+print_info "Step 6: Running 'btrfs check --readonly' on restored filesystem..."
+
+CHECK_OUTPUT=$($BTRFS_BIN check --readonly "$RAW_RESTORE" 2>&1) || {
+    echo "$CHECK_OUTPUT"
+    print_fail "btrfs check failed on restored filesystem — interior tree nodes missing (regression detected)."
+}
+# On success 'btrfs check --readonly' ends with "..., no error found".
+if ! echo "$CHECK_OUTPUT" | grep -q "no error found"; then
+    echo "$CHECK_OUTPUT"
+    print_fail "btrfs check reported errors on restored filesystem."
+fi
+print_pass "btrfs check passed."
+
+# --- Step 7: Verify metadata tree shape is identical ---
+print_info "Step 7: Comparing metadata tree shape (leaf+node block count) source vs restored..."
+
+RESTORE_SHAPE=$($BTRFS_BIN inspect-internal dump-tree "$RAW_RESTORE" 2>/dev/null | grep -cE '^(leaf|node) [0-9]+ (items|level)')
+if [ "$RESTORE_SHAPE" != "$SRC_SHAPE" ]; then
+    print_fail "Tree shape mismatch: source has $SRC_SHAPE blocks, restored has $RESTORE_SHAPE blocks — metadata blocks missing (regression detected)."
+fi
+print_pass "Metadata tree shape identical ($SRC_SHAPE blocks)."
+
+# --- Step 7b: Verify every source tree block physically present in restored ---
+# The tree-shape check above proves the restored trees can be *walked*, but a
+# stably zeroed block in the middle of a tree could still escape it (btrfs
+# stops a walk at the first unreadable child). Compare every metadata block
+# byte-for-byte: enumerate all leaf/node logical addresses from the source
+# dump-tree, translate logical->physical through the chunk table (all mirror
+# stripes), and compare source vs restored content. Any block the bitmap
+# missed is left as zeros and shows up as a mismatch.
+
+print_info "Step 7b: Byte-comparing every source tree block against restored image..."
+
+$BTRFS_BIN inspect-internal dump-tree -t chunk "$RAW_SRC" 2>/dev/null | awk '
+/CHUNK_ITEM [0-9]+\)/ {
+    if (logical != "") print logical, len, p0, p1;
+    match($0, /CHUNK_ITEM [0-9]+\)/);
+    s = substr($0, RSTART, RLENGTH); gsub(/[^0-9]/, "", s);
+    logical = s; len = ""; p0 = "-"; p1 = "-"; next
+}
+/^[ \t]*length [0-9]+/ { len = $2; next }
+/stripe 0 devid 1 offset/ { p0 = $NF; next }
+/stripe 1 devid 1 offset/ { p1 = $NF; next }
+END { if (logical != "") print logical, len, p0, p1 }
+' > "$CHUNK_MAP"
+
+$BTRFS_BIN inspect-internal dump-tree "$RAW_SRC" 2>/dev/null \
+    | grep -oE '^(leaf|node) [0-9]+' | awk '{print $2}' | sort -un > "$TREE_BLOCKS"
+
+TOTAL_BLOCKS=$(wc -l < "$TREE_BLOCKS")
+LOST=0
+while read -r B; do
+    while read -r LSTART LLEN P0 P1; do
+        if [ "$B" -ge "$LSTART" ] && [ "$B" -lt $((LSTART + LLEN)) ]; then
+            OFF=$((B - LSTART))
+            for P in $P0 $P1; do
+                [ "$P" = "-" ] && continue
+                SKIP=$(( (P + OFF) / NODESIZE ))
+                A=$(dd if="$RAW_SRC" bs=$NODESIZE skip=$SKIP count=1 2>/dev/null | md5sum | cut -d' ' -f1)
+                R=$(dd if="$RAW_RESTORE" bs=$NODESIZE skip=$SKIP count=1 2>/dev/null | md5sum | cut -d' ' -f1)
+                if [ "$A" != "$R" ]; then
+                    LOST=$((LOST + 1))
+                    echo "  tree block LOST: logical=$B phys=$((P + OFF))"
+                fi
+            done
+            break
+        fi
+    done < "$CHUNK_MAP"
+done < "$TREE_BLOCKS"
+
+if [ "$LOST" -ne 0 ]; then
+    print_fail "$LOST of $TOTAL_BLOCKS tree blocks missing in restored image (regression detected)."
+fi
+print_pass "All $TOTAL_BLOCKS source tree blocks present in restored image."
+
+# --- Step 8: Verify all file contents via rootless extraction ---
+print_info "Step 8: Extracting all files from source and restored with 'btrfs restore' and diffing..."
+
+mkdir -p "$EXTRACT_SRC" "$EXTRACT_RESTORE"
+if ! $BTRFS_BIN restore "$RAW_SRC" "$EXTRACT_SRC" > /dev/null 2>&1; then
+    print_fail "btrfs restore failed on SOURCE filesystem (test setup problem)."
+fi
+if ! $BTRFS_BIN restore "$RAW_RESTORE" "$EXTRACT_RESTORE" > /dev/null 2>&1; then
+    print_fail "btrfs restore failed on restored filesystem — tree walk broken (regression detected)."
+fi
+
+SRC_COUNT=$(find "$EXTRACT_SRC" -type f | wc -l)
+RESTORE_COUNT=$(find "$EXTRACT_RESTORE" -type f | wc -l)
+if [ "$SRC_COUNT" -ne "$NFILES" ]; then
+    print_fail "btrfs restore on SOURCE gave $SRC_COUNT files, expected $NFILES (test setup problem)."
+fi
+if [ "$RESTORE_COUNT" -ne "$NFILES" ]; then
+    print_fail "Restored filesystem only contains $RESTORE_COUNT of $NFILES files — files missing (regression detected)."
+fi
+
+if ! diff -r "$EXTRACT_SRC" "$EXTRACT_RESTORE" > /dev/null 2>&1; then
+    print_fail "File content mismatch between source and restored filesystem (regression detected)."
+fi
+print_pass "All $NFILES files extracted intact with identical contents."
+
+# --- Final Success ---
+print_info "==================================================="
+print_pass " All Btrfs multi-level tree regression tests passed! "
+print_info "==================================================="
+
+exit 0
