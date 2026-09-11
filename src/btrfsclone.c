@@ -158,16 +158,28 @@ static void dump_file_extent_item(unsigned long* bitmap, struct extent_buffer *e
 				   int slot,
 				   struct btrfs_file_extent_item *fi)
 {
-	int extent_type = btrfs_file_extent_type(eb, fi);
+	int extent_type;
 	/* file extent disk_bytenr is a *logical* address; it must be mapped
 	 * through the chunk tree to physical device offsets (and all mirrors)
 	 * via check_extent_bitmap(). Marking the logical address directly is
 	 * only correct when logical == physical, which is not guaranteed. */
-	u64 len = (u64)btrfs_file_extent_disk_num_bytes(eb, fi);
+	u64 len;
 
+	/* Read the type first: inline extents have a variable, smaller header
+	 * and their data can end exactly at the node boundary, so the fixed
+	 * disk_* members must not be touched for them (the accessor bounds
+	 * check warns on reads past the end of the node). */
+	extent_type = btrfs_file_extent_type(eb, fi);
 	if (extent_type == BTRFS_FILE_EXTENT_INLINE) {
 	    return;
 	}
+
+	/* Regular/preallocated items have a fixed size; guard against
+	 * truncated items so member reads never cross the node boundary. */
+	if (btrfs_item_size(eb, slot) < sizeof(struct btrfs_file_extent_item))
+	    return;
+
+	len = (u64)btrfs_file_extent_disk_num_bytes(eb, fi);
 
 	if (extent_type == BTRFS_FILE_EXTENT_PREALLOC) {
 		log_mesg(3, 0, 0, fs_opt.debug, "%s: DUMP: prealloc data disk byte %llu nr %llu\n", __FILE__,
