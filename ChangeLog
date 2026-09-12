@@ -1,3 +1,59 @@
+2026-09-11  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	fix(btrfs): skip file extent member reads for inline/truncated items
+	fcbeab2 hoisted the disk_num_bytes read in dump_file_extent_item()
+	above the inline early-return, so the +29 member was read for inline
+	items too. A tiny inline extent at the very end of a packed leaf
+	(common on Fedora installs, e.g. inline symlinks) then read two
+	bytes past the 16K node buffer, tripping the accessor bounds check
+	("bad eb member start") in the bundled btrfs accessors.
+
+	Move the read back behind the inline early-return and add an item
+	size guard so regular/prealloc member reads never cross the node
+	boundary.
+
+	Verified on Fedora 44 VM: 'bad eb member' warnings 0 (was 3),
+	md5sum 123604/123604 OK, btrfs check clean.
+
+	fix(btrfs): stop dropping interior nodes of multi-level trees from the bitmap
+	dump_start_leaf() marked interior (non-leaf) tree nodes with an
+	uninitialized `size`; check_extent_bitmap() rejects non-sectorsize-
+	aligned lengths, so nodes were dropped whenever the stack garbage
+	failed the check, silently omitting whole subtrees from the clone.
+	Found on Fedora 44 (btrfs-progs 6.19+ defaults, BLOCK_GROUP_TREE):
+	~25% of files returned EIO after device-to-device clone (5 of 45
+	level-1 FS-tree nodes missing). Trees whose root is a leaf never
+	trigger this, which is why small test filesystems never caught it.
+
+	Also harden the same walk:
+	- check IS_ERR_OR_NULL() on read_tree_block(); the btrfs library
+	  returns ERR_PTR() on failure and dereferencing it could crash.
+	  Count read failures and abort the clone instead of writing an
+	  incomplete image.
+	- handle BTRFS_METADATA_ITEM_KEY so metadata extents keep their
+	  extent-tree backstop on skinny-metadata filesystems.
+	- map file extents through the chunk tree (check_extent_bitmap)
+	  instead of marking the logical address as a physical offset.
+
+	Add tests/btrfs_multilevel.test (forces FS tree level >= 2, restores
+	onto zeros pre-filled target, byte-compares every source tree block,
+	diffs extracted file contents) and tests/btrfs_uninitvalgrind.test
+	(deterministic uninitialized-read detection where valgrind exists).
+
+	Verified on Fedora 44 VM: md5sum 123604/123604 OK (30559 failed
+	before), btrfs check clean.
+
+2026-09-06  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #307 from stevenshiau/static
+	static/dynamic linking coexist in same build conf.
+
+	Bump version to 0.3.49
+
+2026-09-06  Steven Shiau  <steven@clonezilla.org>
+
+	static/dynamic linking coexist in same build conf.
+
 2026-09-03  Thomas Tsai  <tlinux.tsai@gmail.com>
 
 	Merge pull request #306 from Thomas-Tsai/fix/hfsplus-alt-vh
