@@ -117,6 +117,20 @@ static void print_dir_item(struct extent_buffer *eb, u32 size,
 	}
 }
 
+static void print_fscrypt_context(struct extent_buffer *eb, int slot)
+{
+	int i;
+	unsigned long ptr = btrfs_item_ptr_offset(eb, slot);
+	u32 item_size = btrfs_item_size(eb, slot);
+	u8 ctx_buf[item_size];
+
+	read_extent_buffer(eb, ctx_buf, ptr, item_size);
+	printf("\t\tvalue: ");
+	for(i = 0; i < item_size; i++)
+		printf("%02x", ctx_buf[i]);
+	printf("\n");
+}
+
 static void print_inode_extref_item(struct extent_buffer *eb, u32 size,
 		struct btrfs_inode_extref *extref)
 {
@@ -241,6 +255,11 @@ static void bg_flags_to_str(u64 flags, char *ret)
 			strncat(ret, "|", BG_FLAG_STRING_LEN);
 		strncat(ret, "SYSTEM", BG_FLAG_STRING_LEN);
 	}
+	if (flags & BTRFS_BLOCK_GROUP_METADATA_REMAP) {
+		if (!empty)
+			strncat(ret, "|", BG_FLAG_STRING_LEN);
+		strncat(ret, "METADATA_REMAP", BG_FLAG_STRING_LEN);
+	}
 	name = btrfs_bg_type_to_raid_name(flags);
 	if (!name) {
 		snprintf(profile, BG_FLAG_STRING_LEN, "UNKNOWN.0x%llx",
@@ -290,12 +309,6 @@ void print_chunk_item(struct extent_buffer *eb, struct btrfs_chunk *chunk)
 	int i;
 	u32 chunk_item_size;
 	char chunk_flags_str[BG_FLAG_STRING_LEN] = {};
-
-	/* The chunk must contain at least one stripe */
-	if (num_stripes < 1) {
-		printf("invalid num_stripes: %u\n", num_stripes);
-		return;
-	}
 
 	chunk_item_size = btrfs_chunk_item_size(num_stripes);
 
@@ -446,11 +459,12 @@ static void print_file_extent_item(struct extent_buffer *eb,
 			extent_type, file_extent_type_to_str(extent_type));
 
 	if (extent_type == BTRFS_FILE_EXTENT_INLINE) {
-		printf("\t\tinline extent data size %u ram_bytes %llu compression %hhu (%s)\n",
+		printf("\t\tinline extent data size %u ram_bytes %llu compression %hhu (%s) encryption %hhu\n",
 				btrfs_file_extent_inline_item_len(eb, slot),
 				btrfs_file_extent_ram_bytes(eb, fi),
 				btrfs_file_extent_compression(eb, fi),
-				compress_str);
+				compress_str,
+				btrfs_file_extent_encryption(eb, fi));
 		return;
 	}
 	if (extent_type == BTRFS_FILE_EXTENT_PREALLOC) {
@@ -472,6 +486,8 @@ static void print_file_extent_item(struct extent_buffer *eb,
 	printf("\t\textent compression %hhu (%s)\n",
 			btrfs_file_extent_compression(eb, fi),
 			compress_str);
+	printf("\t\textent encryption %hhu\n",
+			btrfs_file_extent_encryption(eb, fi));
 }
 
 /* Caller should ensure sizeof(*ret) >= 16("DATA|TREE_BLOCK") */
@@ -722,6 +738,12 @@ static void print_raid_stripe_key(struct extent_buffer *eb,
 		       (unsigned long long)btrfs_raid_stride_physical_nr(eb, stripe, i));
 }
 
+static void print_remap_key(struct extent_buffer *leaf, u32 item_size,
+			    struct btrfs_remap_item *remap)
+{
+	printf("\t\taddress %llu\n", btrfs_remap_address(leaf, remap));
+}
+
 void print_key_type(FILE *stream, u64 objectid, u8 type)
 {
 	static const char* key_to_str[256] = {
@@ -733,6 +755,8 @@ void print_key_type(FILE *stream, u64 objectid, u8 type)
 		[BTRFS_DIR_LOG_ITEM_KEY]	= "DIR_LOG_ITEM",
 		[BTRFS_DIR_LOG_INDEX_KEY]	= "DIR_LOG_INDEX",
 		[BTRFS_XATTR_ITEM_KEY]		= "XATTR_ITEM",
+		[BTRFS_FSCRYPT_INODE_CTX_KEY]   = "FSCRYPT_INODE_CTX",
+		[BTRFS_FSCRYPT_CTX_KEY]         = "FSCRYPT_CTX",
 		[BTRFS_VERITY_DESC_ITEM_KEY]	= "VERITY_DESC_ITEM",
 		[BTRFS_VERITY_MERKLE_ITEM_KEY]	= "VERITY_MERKLE_ITEM",
 		[BTRFS_ORPHAN_ITEM_KEY]		= "ORPHAN_ITEM",
@@ -768,6 +792,9 @@ void print_key_type(FILE *stream, u64 objectid, u8 type)
 		[BTRFS_UUID_KEY_SUBVOL]		= "UUID_KEY_SUBVOL",
 		[BTRFS_UUID_KEY_RECEIVED_SUBVOL] = "UUID_KEY_RECEIVED_SUBVOL",
 		[BTRFS_RAID_STRIPE_KEY]		= "RAID_STRIPE",
+		[BTRFS_IDENTITY_REMAP_KEY]	= "IDENTITY_REMAP",
+		[BTRFS_REMAP_KEY]		= "REMAP",
+		[BTRFS_REMAP_BACKREF_KEY]	= "REMAP_BACKREF",
 	};
 
 	if (type == 0 && objectid == BTRFS_FREE_SPACE_OBJECTID) {
@@ -883,6 +910,9 @@ void print_objectid(FILE *stream, u64 objectid, u8 type)
 	case  BTRFS_RAID_STRIPE_TREE_OBJECTID:
 		fprintf(stream, "RAID_STRIPE_TREE");
 		break;
+	case BTRFS_REMAP_TREE_OBJECTID:
+		fprintf(stream, "REMAP_TREE");
+		break;
 	case (u64)-1:
 		fprintf(stream, "-1");
 		break;
@@ -982,6 +1012,7 @@ static struct readable_flag_entry inode_flags_array[] = {
 	DEF_INODE_FLAG_ENTRY(NOATIME),
 	DEF_INODE_FLAG_ENTRY(DIRSYNC),
 	DEF_INODE_FLAG_ENTRY(COMPRESS),
+	DEF_INODE_FLAG_ENTRY(ENCRYPT),
 	DEF_INODE_FLAG_ENTRY(ROOT_ITEM_INIT),
 };
 static const int inode_flags_num = ARRAY_SIZE(inode_flags_array);
@@ -1543,6 +1574,10 @@ void __btrfs_print_leaf(struct extent_buffer *eb, unsigned int mode)
 		case BTRFS_XATTR_ITEM_KEY:
 			print_dir_item(eb, item_size, ptr);
 			break;
+		case BTRFS_FSCRYPT_INODE_CTX_KEY:
+		case BTRFS_FSCRYPT_CTX_KEY:
+			print_fscrypt_context(eb, i);
+			break;
 		case BTRFS_DIR_LOG_INDEX_KEY:
 		case BTRFS_DIR_LOG_ITEM_KEY: {
 			struct btrfs_dir_log_item *dlog;
@@ -1649,6 +1684,10 @@ void __btrfs_print_leaf(struct extent_buffer *eb, unsigned int mode)
 			break;
 		case BTRFS_RAID_STRIPE_KEY:
 			print_raid_stripe_key(eb, item_size, ptr);
+			break;
+		case BTRFS_REMAP_KEY:
+		case BTRFS_REMAP_BACKREF_KEY:
+			print_remap_key(eb, item_size, ptr);
 			break;
 		case BTRFS_DEV_REPLACE_KEY:
 			print_dev_replace_item(eb, ptr);
@@ -1906,7 +1945,7 @@ static int check_csum_sblock(void *sb, int csum_size, u16 csum_type)
 	btrfs_csum_data(csum_type, (u8 *)sb + BTRFS_CSUM_SIZE,
 			result, BTRFS_SUPER_INFO_SIZE - BTRFS_CSUM_SIZE);
 
-	return !memcmp(sb, result, csum_size);
+	return (memcmp(sb, result, csum_size) == 0);
 }
 
 #define DEF_COMPAT_RO_FLAG_ENTRY(bit_name)		\
@@ -1915,6 +1954,7 @@ static int check_csum_sblock(void *sb, int csum_size, u16 csum_type)
 static struct readable_flag_entry compat_ro_flags_array[] = {
 	DEF_COMPAT_RO_FLAG_ENTRY(FREE_SPACE_TREE),
 	DEF_COMPAT_RO_FLAG_ENTRY(FREE_SPACE_TREE_VALID),
+	DEF_COMPAT_RO_FLAG_ENTRY(VERITY),
 	DEF_COMPAT_RO_FLAG_ENTRY(BLOCK_GROUP_TREE),
 };
 static const int compat_ro_flags_num = ARRAY_SIZE(compat_ro_flags_array);
@@ -1939,6 +1979,7 @@ static struct readable_flag_entry incompat_flags_array[] = {
 	DEF_INCOMPAT_FLAG_ENTRY(EXTENT_TREE_V2),
 	DEF_INCOMPAT_FLAG_ENTRY(RAID_STRIPE_TREE),
 	DEF_INCOMPAT_FLAG_ENTRY(SIMPLE_QUOTA),
+	DEF_INCOMPAT_FLAG_ENTRY(REMAP_TREE),
 };
 static const int incompat_flags_num = ARRAY_SIZE(incompat_flags_array);
 
@@ -2030,7 +2071,7 @@ static void print_sys_chunk_array(struct btrfs_super_block *sb)
 
 	buf = alloc_dummy_extent_buffer(NULL, 0, BTRFS_SUPER_INFO_SIZE);
 	if (!buf) {
-		error_msg(ERROR_MSG_MEMORY, NULL);
+		error_mem(NULL);
 		return;
 	}
 	write_extent_buffer(buf, sb, 0, sizeof(*sb));
@@ -2290,10 +2331,10 @@ void btrfs_print_superblock(struct btrfs_super_block *sb, int full)
 
 	uuid_unparse(sb->dev_item.fsid, buf);
 	if (metadata_uuid_present) {
-		cmp_res = !memcmp(sb->dev_item.fsid, sb->metadata_uuid,
-				 BTRFS_FSID_SIZE);
+		cmp_res = (memcmp(sb->dev_item.fsid, sb->metadata_uuid,
+				 BTRFS_FSID_SIZE) == 0);
 	} else {
-		cmp_res = !memcmp(sb->dev_item.fsid, sb->fsid, BTRFS_FSID_SIZE);
+		cmp_res = (memcmp(sb->dev_item.fsid, sb->fsid, BTRFS_FSID_SIZE) == 0);
 	}
 	printf("dev_item.fsid\t\t%s %s\n", buf,
 	       cmp_res ? "[match]" : "[DON'T MATCH]");

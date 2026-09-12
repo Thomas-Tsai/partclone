@@ -45,7 +45,6 @@ void qgroup_set_item_count_ptr(u64 *item_count_ptr)
 	qgroup_item_count = item_count_ptr;
 }
 
-/*#define QGROUP_VERIFY_DEBUG*/
 static unsigned long tot_extents_scanned = 0;
 
 static struct qgroup_count *find_count(u64 qgroupid);
@@ -157,7 +156,6 @@ struct ref {
 	struct rb_node		bytenr_node;
 };
 
-#ifdef QGROUP_VERIFY_DEBUG
 static void print_ref(struct ref *ref)
 {
 	printf("bytenr: %llu\t\tnum_bytes: %llu\t\t parent: %llu\t\t"
@@ -165,7 +163,7 @@ static void print_ref(struct ref *ref)
 	       ref->parent, ref->root);
 }
 
-static void print_all_refs(void)
+static void __maybe_unused print_all_refs(void)
 {
 	unsigned long count = 0;
 	struct ref *ref;
@@ -184,7 +182,6 @@ static void print_all_refs(void)
 	printf("%lu extents scanned with %lu refs in total.\n",
 	       tot_extents_scanned, count);
 }
-#endif
 
 /*
  * Store by bytenr in rbtree
@@ -490,14 +487,12 @@ static int account_one_extent(struct ulist *roots, u64 bytenr, u64 num_bytes)
 				count->info.exclusive_compressed += num_bytes;
 			}
 		}
-#ifdef QGROUP_VERIFY_DEBUG
-		printf("account (%llu, %llu), qgroup %llu/%llu, rfer %llu,"
+		pr_debug("account (%llu, %llu), qgroup %u/%llu, rfer %llu,"
 		       " excl %llu, refs %llu, roots %llu\n", bytenr, num_bytes,
 		       btrfs_qgroup_level(count->qgroupid),
 		       btrfs_qgroup_subvolid(count->qgroupid),
 		       count->info.referenced, count->info.exclusive, nr_refs,
 		       nr_roots);
-#endif
 	}
 
 	inc_qgroup_seq(roots->nnodes);
@@ -581,7 +576,7 @@ static int account_all_refs(int do_qgroups, u64 search_subvol)
 	ulist_free(roots);
 	return 0;
 enomem:
-	error_msg(ERROR_MSG_MEMORY, "accounting for refs for qgroups");
+	error_mem("accounting for refs for qgroups");
 	return -ENOMEM;
 }
 
@@ -636,7 +631,6 @@ static void free_tree_blocks(void)
 	tree_blocks = NULL;
 }
 
-#ifdef QGROUP_VERIFY_DEBUG
 static void print_tree_block(u64 bytenr, struct tree_block *block)
 {
 	struct ref *ref;
@@ -656,7 +650,7 @@ static void print_tree_block(u64 bytenr, struct tree_block *block)
 	printf("\n");
 }
 
-static void print_all_tree_blocks(void)
+static void __maybe_unused print_all_tree_blocks(void)
 {
 	struct ulist_iterator uiter;
 	struct ulist_node *unode;
@@ -670,7 +664,6 @@ static void print_all_tree_blocks(void)
 	while ((unode = ulist_next(tree_blocks, &uiter)))
 		print_tree_block(unode_bytenr(unode), unode_tree_block(unode));
 }
-#endif
 
 static int add_refs_for_leaf_items(struct extent_buffer *eb, u64 ref_parent)
 {
@@ -1011,7 +1004,7 @@ loop:
 			count = alloc_count(&disk_key, leaf, item);
 			if (!count) {
 				ret = ENOMEM;
-				error_msg(ERROR_MSG_MEMORY, NULL);
+				error_mem(NULL);
 				goto out;
 			}
 
@@ -1458,13 +1451,16 @@ static bool is_bad_qgroup(struct qgroup_count *count)
 }
 
 /*
- * Verify all qgroup numbers.
+ * Load qgroup items and optionally verify qgroup numbers.
+ *
+ * @check_accounting true: verify referenced/exclusive accounting.
+ * @check_accounting false: only load qgroup status/info/relation items.
  *
  * Return <0 for fatal errors (e.g. ENOMEM or failed to read quota tree)
- * Return 0 if all qgroup numbers are correct or no need to check (under rescan)
- * Return >0 if qgroup numbers are inconsistent.
+ * Return 0 if requested checks pass or accounting mismatches are ignored.
+ * Return >0 if qgroup numbers are inconsistent and not ignored.
  */
-int qgroup_verify_all(struct btrfs_fs_info *info)
+int qgroup_verify(struct btrfs_fs_info *info, bool check_accounting)
 {
 	struct rb_node *n;
 	int ret;
@@ -1492,6 +1488,9 @@ int qgroup_verify_all(struct btrfs_fs_info *info)
 	if (counts.qgroup_inconsist && !counts.rescan_running &&
 	    counts.rescan_running == 0)
 		skip_err = true;
+
+	if (!check_accounting)
+		goto out;
 
 	/*
 	 * Put all extent refs into our rbtree
@@ -1592,7 +1591,7 @@ int print_extent_state(struct btrfs_fs_info *info, u64 subvol)
 
 	tree_blocks = ulist_alloc(0);
 	if (!tree_blocks) {
-		error_msg(ERROR_MSG_MEMORY, "allocate ulist");
+		error_mem("allocate ulist");
 		return ENOMEM;
 	}
 

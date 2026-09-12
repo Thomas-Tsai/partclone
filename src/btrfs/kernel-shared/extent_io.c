@@ -324,6 +324,8 @@ static int read_raid56(struct btrfs_fs_info *fs_info, void *buf, u64 logical,
 	const int tolerance = (multi->type & BTRFS_RAID_RAID6 ? 2 : 1);
 	const int num_stripes = multi->num_stripes;
 	const u64 full_stripe_start = raid_map[0];
+	const u64 stripe_start = full_stripe_start +
+				 round_down(logical - full_stripe_start, BTRFS_STRIPE_LEN);
 	void **pointers = NULL;
 	unsigned long *failed_stripe_bitmap = NULL;
 	int failed_a = -1;
@@ -336,7 +338,8 @@ static int read_raid56(struct btrfs_fs_info *fs_info, void *buf, u64 logical,
 	ASSERT(raid_map);
 
 	/* The read length should be inside one stripe */
-	ASSERT(len <= BTRFS_STRIPE_LEN);
+	ASSERT(logical >= stripe_start &&
+	       logical + len <= stripe_start + BTRFS_STRIPE_LEN);
 
 	pointers = calloc(num_stripes, sizeof(void *));
 	if (!pointers)
@@ -439,6 +442,15 @@ int read_data_from_disk(struct btrfs_fs_info *info, void *buf, u64 logical,
 
 	/* We need to rebuild from P/Q */
 	if (mirror > 1 && multi->type & BTRFS_BLOCK_GROUP_RAID56_MASK) {
+		u64 stripe_start;
+
+		/*
+		 * The returned @read_len is always BTRFS_STRIPE_LEN. We have to calculate
+		 * the proper length to the stripe boundary.
+		 */
+		stripe_start = raid_map[0] + round_down(logical - raid_map[0], BTRFS_STRIPE_LEN);
+		read_len = min((stripe_start + BTRFS_STRIPE_LEN) - logical, read_len);
+
 		ret = read_raid56(info, buf, logical, read_len, mirror, multi,
 				  raid_map);
 		kfree(multi);
@@ -479,7 +491,7 @@ int read_data_from_disk(struct btrfs_fs_info *info, void *buf, u64 logical,
  * Such data will be written to all mirrors and RAID56 P/Q will also be
  * properly handled.
  */
-int write_data_to_disk(struct btrfs_fs_info *info, const void *buf, u64 offset,
+int write_data_to_disk(struct btrfs_fs_info *info, const void *buf, u64 logical,
 		       u64 bytes)
 {
 	struct btrfs_multi_bio *multi = NULL;
@@ -496,11 +508,11 @@ int write_data_to_disk(struct btrfs_fs_info *info, const void *buf, u64 offset,
 		this_len = bytes_left;
 		dev_nr = 0;
 
-		ret = btrfs_map_block(info, WRITE, offset, &this_len, &multi,
+		ret = btrfs_map_block(info, WRITE, logical, &this_len, &multi,
 				      0, &raid_map);
 		if (ret) {
 			fprintf(stderr, "Couldn't map the block %llu\n",
-				offset);
+				logical);
 			return -EIO;
 		}
 
@@ -513,13 +525,13 @@ int write_data_to_disk(struct btrfs_fs_info *info, const void *buf, u64 offset,
 
 			eb = kmalloc(sizeof(struct extent_buffer) + this_len, GFP_KERNEL);
 			if (!eb) {
-				error_msg(ERROR_MSG_MEMORY, "extent buffer");
+				error_mem("extent buffer");
 				ret = -ENOMEM;
 				goto out;
 			}
 
 			memset(eb, 0, sizeof(struct extent_buffer) + this_len);
-			eb->start = offset;
+			eb->start = logical;
 			eb->len = this_len;
 
 			memcpy(eb->data, buf + total_write, this_len);
@@ -562,7 +574,7 @@ int write_data_to_disk(struct btrfs_fs_info *info, const void *buf, u64 offset,
 		BUG_ON(bytes_left < this_len);
 
 		bytes_left -= this_len;
-		offset += this_len;
+		logical += this_len;
 		total_write += this_len;
 
 		kfree(multi);

@@ -84,18 +84,17 @@ static void generic_err(const struct extent_buffer *eb, int slot,
 			const char *fmt, ...)
 {
 	const struct btrfs_fs_info *fs_info = eb->fs_info;
-	struct va_format vaf;
+	DECLARE_PV(vaf);
 	va_list args;
 
 	va_start(args, fmt);
 
-	vaf.fmt = fmt;
-	vaf.va = &args;
+	PV_ASSIGN(vaf, fmt, args);
 
 	btrfs_crit(fs_info,
-		"corrupt %s: root=%llu block=%llu slot=%d, %pV",
+		"corrupt %s: root=%llu block=%llu slot=%d, " PV_FMT,
 		btrfs_header_level(eb) == 0 ? "leaf" : "node",
-		btrfs_header_owner(eb), btrfs_header_bytenr(eb), slot, &vaf);
+		btrfs_header_owner(eb), btrfs_header_bytenr(eb), slot, PV_VAL(vaf));
 	va_end(args);
 
 	btrfs_print_tree((struct extent_buffer *)eb, 0);
@@ -112,20 +111,19 @@ static void file_extent_err(const struct extent_buffer *eb, int slot,
 {
 	const struct btrfs_fs_info *fs_info = eb->fs_info;
 	struct btrfs_key key;
-	struct va_format vaf;
+	DECLARE_PV(vaf);
 	va_list args;
 
 	btrfs_item_key_to_cpu(eb, &key, slot);
 	va_start(args, fmt);
 
-	vaf.fmt = fmt;
-	vaf.va = &args;
+	PV_ASSIGN(vaf, fmt, args);
 
 	btrfs_crit(fs_info,
-	"corrupt %s: root=%llu block=%llu slot=%d ino=%llu file_offset=%llu, %pV",
+	"corrupt %s: root=%llu block=%llu slot=%d ino=%llu file_offset=%llu, " PV_FMT,
 		btrfs_header_level(eb) == 0 ? "leaf" : "node",
 		btrfs_header_owner(eb), btrfs_header_bytenr(eb), slot,
-		key.objectid, key.offset, &vaf);
+		key.objectid, key.offset, PV_VAL(vaf));
 	va_end(args);
 
 	btrfs_print_tree((struct extent_buffer *)eb, 0);
@@ -174,20 +172,19 @@ static void dir_item_err(const struct extent_buffer *eb, int slot,
 {
 	const struct btrfs_fs_info *fs_info = eb->fs_info;
 	struct btrfs_key key;
-	struct va_format vaf;
+	DECLARE_PV(vaf);
 	va_list args;
 
 	btrfs_item_key_to_cpu(eb, &key, slot);
 	va_start(args, fmt);
 
-	vaf.fmt = fmt;
-	vaf.va = &args;
+	PV_ASSIGN(vaf, fmt, args);
 
 	btrfs_crit(fs_info,
-		"corrupt %s: root=%llu block=%llu slot=%d ino=%llu, %pV",
+		"corrupt %s: root=%llu block=%llu slot=%d ino=%llu, " PV_FMT,
 		btrfs_header_level(eb) == 0 ? "leaf" : "node",
 		btrfs_header_owner(eb), btrfs_header_bytenr(eb), slot,
-		key.objectid, &vaf);
+		key.objectid, PV_VAL(vaf));
 	va_end(args);
 
 	btrfs_print_tree((struct extent_buffer *)eb, 0);
@@ -242,6 +239,8 @@ static int check_extent_data_item(struct extent_buffer *leaf,
 	u32 sectorsize = fs_info->sectorsize;
 	u32 item_size = btrfs_item_size(leaf, slot);
 	u64 extent_end;
+	u8 policy;
+	u8 fe_type;
 
 	if (unlikely(!IS_ALIGNED(key->offset, sectorsize))) {
 		file_extent_err(leaf, slot,
@@ -272,12 +271,12 @@ static int check_extent_data_item(struct extent_buffer *leaf,
 				SZ_4K);
 		return -EUCLEAN;
 	}
-	if (unlikely(btrfs_file_extent_type(leaf, fi) >=
-		     BTRFS_NR_FILE_EXTENT_TYPES)) {
+
+	fe_type = btrfs_file_extent_type(leaf, fi);
+	if (unlikely(fe_type >= BTRFS_NR_FILE_EXTENT_TYPES)) {
 		file_extent_err(leaf, slot,
 		"invalid type for file extent, have %u expect range [0, %u]",
-			btrfs_file_extent_type(leaf, fi),
-			BTRFS_NR_FILE_EXTENT_TYPES - 1);
+			fe_type, BTRFS_NR_FILE_EXTENT_TYPES - 1);
 		return -EUCLEAN;
 	}
 
@@ -293,10 +292,11 @@ static int check_extent_data_item(struct extent_buffer *leaf,
 			BTRFS_NR_COMPRESS_TYPES - 1);
 		return -EUCLEAN;
 	}
-	if (unlikely(btrfs_file_extent_encryption(leaf, fi))) {
+	policy = btrfs_file_extent_encryption(leaf, fi);
+	if (unlikely(policy >= BTRFS_NR_ENCRYPTION_TYPES)) {
 		file_extent_err(leaf, slot,
-			"invalid encryption for file extent, have %u expect 0",
-			btrfs_file_extent_encryption(leaf, fi));
+			"invalid encryption for file extent, have %u expect range [0, %u]",
+			policy, BTRFS_NR_ENCRYPTION_TYPES - 1);
 		return -EUCLEAN;
 	}
 	if (btrfs_file_extent_type(leaf, fi) == BTRFS_FILE_EXTENT_INLINE) {
@@ -677,20 +677,19 @@ static void block_group_err(const struct extent_buffer *eb, int slot,
 {
 	const struct btrfs_fs_info *fs_info = eb->fs_info;
 	struct btrfs_key key;
-	struct va_format vaf;
+	DECLARE_PV(vaf);
 	va_list args;
 
 	btrfs_item_key_to_cpu(eb, &key, slot);
 	va_start(args, fmt);
 
-	vaf.fmt = fmt;
-	vaf.va = &args;
+	PV_ASSIGN(vaf, fmt, args);
 
 	btrfs_crit(fs_info,
-	"corrupt %s: root=%llu block=%llu slot=%d bg_start=%llu bg_len=%llu, %pV",
+	"corrupt %s: root=%llu block=%llu slot=%d bg_start=%llu bg_len=%llu, " PV_FMT,
 		btrfs_header_level(eb) == 0 ? "leaf" : "node",
 		btrfs_header_owner(eb), btrfs_header_bytenr(eb), slot,
-		key.objectid, key.offset, &vaf);
+		key.objectid, key.offset, PV_VAL(vaf));
 	va_end(args);
 
 	btrfs_print_tree((struct extent_buffer *)eb, 0);
@@ -705,6 +704,7 @@ static int check_block_group_item(struct extent_buffer *leaf,
 	u64 chunk_objectid;
 	u64 flags;
 	u64 type;
+	size_t exp_size;
 
 	/*
 	 * Here we don't really care about alignment since extent allocator can
@@ -716,10 +716,15 @@ static int check_block_group_item(struct extent_buffer *leaf,
 		return -EUCLEAN;
 	}
 
-	if (unlikely(item_size != sizeof(bgi))) {
+	if (btrfs_fs_incompat(fs_info, REMAP_TREE))
+		exp_size = sizeof(struct btrfs_block_group_item_v2);
+	else
+		exp_size = sizeof(struct btrfs_block_group_item);
+
+	if (unlikely(item_size != exp_size)) {
 		block_group_err(leaf, slot,
 			"invalid item size, have %u expect %zu",
-				item_size, sizeof(bgi));
+				item_size, exp_size);
 		return -EUCLEAN;
 	}
 
@@ -769,13 +774,14 @@ static int check_block_group_item(struct extent_buffer *leaf,
 	if (unlikely(type != BTRFS_BLOCK_GROUP_DATA &&
 		     type != BTRFS_BLOCK_GROUP_METADATA &&
 		     type != BTRFS_BLOCK_GROUP_SYSTEM &&
+		     type != BTRFS_BLOCK_GROUP_METADATA_REMAP &&
 		     type != (BTRFS_BLOCK_GROUP_METADATA |
 			      BTRFS_BLOCK_GROUP_DATA))) {
 		block_group_err(leaf, slot,
-"invalid type, have 0x%llx (%lu bits set) expect either 0x%llx, 0x%llx, 0x%llx or 0x%llx",
+"invalid type, have 0x%llx (%lu bits set) expect either 0x%llx, 0x%llx, 0x%llx, 0x%llx or 0x%llx",
 			type, hweight64(type),
 			BTRFS_BLOCK_GROUP_DATA, BTRFS_BLOCK_GROUP_METADATA,
-			BTRFS_BLOCK_GROUP_SYSTEM,
+			BTRFS_BLOCK_GROUP_SYSTEM, BTRFS_BLOCK_GROUP_METADATA_REMAP,
 			BTRFS_BLOCK_GROUP_METADATA | BTRFS_BLOCK_GROUP_DATA);
 		return -EUCLEAN;
 	}
@@ -790,7 +796,7 @@ static void chunk_err(const struct extent_buffer *leaf,
 {
 	const struct btrfs_fs_info *fs_info = leaf->fs_info;
 	bool is_sb;
-	struct va_format vaf;
+	DECLARE_PV(vaf);
 	va_list args;
 	int i;
 	int slot = -1;
@@ -812,21 +818,46 @@ static void chunk_err(const struct extent_buffer *leaf,
 		}
 	}
 	va_start(args, fmt);
-	vaf.fmt = fmt;
-	vaf.va = &args;
+	PV_ASSIGN(vaf, fmt, args);
 
 	if (is_sb)
 		btrfs_crit(fs_info,
-		"corrupt superblock syschunk array: chunk_start=%llu, %pV",
-			   logical, &vaf);
+		"corrupt superblock syschunk array: chunk_start=%llu, " PV_FMT,
+			   logical, PV_VAL(vaf));
 	else
 		btrfs_crit(fs_info,
-	"corrupt leaf: root=%llu block=%llu slot=%d chunk_start=%llu, %pV",
+	"corrupt leaf: root=%llu block=%llu slot=%d chunk_start=%llu, " PV_FMT,
 			   BTRFS_CHUNK_TREE_OBJECTID, leaf->start, slot,
-			   logical, &vaf);
+			   logical, PV_VAL(vaf));
 	va_end(args);
 
 	btrfs_print_tree((struct extent_buffer *)leaf, 0);
+}
+
+static bool valid_stripe_count(u64 profile, u16 num_stripes, u16 sub_stripes)
+{
+	switch (profile) {
+	case BTRFS_BLOCK_GROUP_RAID0:
+		return true;
+	case BTRFS_BLOCK_GROUP_RAID10:
+		return sub_stripes == btrfs_raid_array[BTRFS_RAID_RAID10].sub_stripes;
+	case BTRFS_BLOCK_GROUP_RAID1:
+		return num_stripes == btrfs_raid_array[BTRFS_RAID_RAID1].devs_min;
+	case BTRFS_BLOCK_GROUP_RAID1C3:
+		return num_stripes == btrfs_raid_array[BTRFS_RAID_RAID1C3].devs_min;
+	case BTRFS_BLOCK_GROUP_RAID1C4:
+		return num_stripes == btrfs_raid_array[BTRFS_RAID_RAID1C4].devs_min;
+	case BTRFS_BLOCK_GROUP_RAID5:
+		return num_stripes >= btrfs_raid_array[BTRFS_RAID_RAID5].devs_min;
+	case BTRFS_BLOCK_GROUP_RAID6:
+		return num_stripes >= btrfs_raid_array[BTRFS_RAID_RAID6].devs_min;
+	case BTRFS_BLOCK_GROUP_DUP:
+		return num_stripes == btrfs_raid_array[BTRFS_RAID_DUP].dev_stripes;
+	case 0: /* SINGLE */
+		return num_stripes == btrfs_raid_array[BTRFS_RAID_SINGLE].dev_stripes;
+	default:
+		BUG();
+	}
 }
 
 /*
@@ -847,6 +878,7 @@ int btrfs_check_chunk_valid(struct extent_buffer *leaf,
 	u64 type;
 	u64 features;
 	bool mixed = false;
+	bool remapped;
 	int raid_index;
 	int nparity;
 	int ncopies;
@@ -859,13 +891,14 @@ int btrfs_check_chunk_valid(struct extent_buffer *leaf,
 	raid_index = btrfs_bg_flags_to_raid_index(type);
 	ncopies = btrfs_raid_array[raid_index].ncopies;
 	nparity = btrfs_raid_array[raid_index].nparity;
+	remapped = (type & BTRFS_BLOCK_GROUP_REMAPPED);
 
-	if (unlikely(!num_stripes)) {
+	if (unlikely(!remapped && !num_stripes)) {
 		chunk_err(leaf, chunk, logical,
 			  "invalid chunk num_stripes, have %u", num_stripes);
 		return -EUCLEAN;
 	}
-	if (unlikely(num_stripes < ncopies)) {
+	if (unlikely(num_stripes != 0 && num_stripes < ncopies)) {
 		chunk_err(leaf, chunk, logical,
 			  "invalid chunk num_stripes < ncopies, have %u < %d",
 			  num_stripes, ncopies);
@@ -922,11 +955,13 @@ int btrfs_check_chunk_valid(struct extent_buffer *leaf,
 		return -EUCLEAN;
 	}
 	if (unlikely(type & ~(BTRFS_BLOCK_GROUP_TYPE_MASK |
-			      BTRFS_BLOCK_GROUP_PROFILE_MASK))) {
+			      BTRFS_BLOCK_GROUP_PROFILE_MASK |
+			      BTRFS_BLOCK_GROUP_REMAPPED))) {
 		chunk_err(leaf, chunk, logical,
 			  "unrecognized chunk type: 0x%llx",
 			  ~(BTRFS_BLOCK_GROUP_TYPE_MASK |
-			    BTRFS_BLOCK_GROUP_PROFILE_MASK) &
+			    BTRFS_BLOCK_GROUP_PROFILE_MASK |
+			    BTRFS_BLOCK_GROUP_REMAPPED) &
 			  btrfs_chunk_type(leaf, chunk));
 		return -EUCLEAN;
 	}
@@ -967,22 +1002,8 @@ int btrfs_check_chunk_valid(struct extent_buffer *leaf,
 		}
 	}
 
-	if (unlikely((type & BTRFS_BLOCK_GROUP_RAID10 &&
-		      sub_stripes != btrfs_raid_array[BTRFS_RAID_RAID10].sub_stripes) ||
-		     (type & BTRFS_BLOCK_GROUP_RAID1 &&
-		      num_stripes != btrfs_raid_array[BTRFS_RAID_RAID1].devs_min) ||
-		     (type & BTRFS_BLOCK_GROUP_RAID1C3 &&
-		      num_stripes != btrfs_raid_array[BTRFS_RAID_RAID1C3].devs_min) ||
-		     (type & BTRFS_BLOCK_GROUP_RAID1C4 &&
-		      num_stripes != btrfs_raid_array[BTRFS_RAID_RAID1C4].devs_min) ||
-		     (type & BTRFS_BLOCK_GROUP_RAID5 &&
-		      num_stripes < btrfs_raid_array[BTRFS_RAID_RAID5].devs_min) ||
-		     (type & BTRFS_BLOCK_GROUP_RAID6 &&
-		      num_stripes < btrfs_raid_array[BTRFS_RAID_RAID6].devs_min) ||
-		     (type & BTRFS_BLOCK_GROUP_DUP &&
-		      num_stripes != btrfs_raid_array[BTRFS_RAID_DUP].dev_stripes) ||
-		     ((type & BTRFS_BLOCK_GROUP_PROFILE_MASK) == 0 &&
-		      num_stripes != btrfs_raid_array[BTRFS_RAID_SINGLE].dev_stripes))) {
+	if (!remapped && !valid_stripe_count(type & BTRFS_BLOCK_GROUP_PROFILE_MASK,
+					     num_stripes, sub_stripes)) {
 		chunk_err(leaf, chunk, logical,
 			"invalid num_stripes:sub_stripes %u:%u for profile %llu",
 			num_stripes, sub_stripes,
@@ -1037,20 +1058,19 @@ static void dev_item_err(const struct extent_buffer *eb, int slot,
 			 const char *fmt, ...)
 {
 	struct btrfs_key key;
-	struct va_format vaf;
+	DECLARE_PV(vaf);
 	va_list args;
 
 	btrfs_item_key_to_cpu(eb, &key, slot);
 	va_start(args, fmt);
 
-	vaf.fmt = fmt;
-	vaf.va = &args;
+	PV_ASSIGN(vaf, fmt, args);
 
 	btrfs_crit(eb->fs_info,
-	"corrupt %s: root=%llu block=%llu slot=%d devid=%llu %pV",
+	"corrupt %s: root=%llu block=%llu slot=%d devid=%llu " PV_FMT,
 		btrfs_header_level(eb) == 0 ? "leaf" : "node",
 		btrfs_header_owner(eb), btrfs_header_bytenr(eb), slot,
-		key.objectid, &vaf);
+		key.objectid, PV_VAL(vaf));
 	va_end(args);
 
 	btrfs_print_tree((struct extent_buffer *)eb, 0);
@@ -1285,7 +1305,7 @@ static void extent_err(const struct extent_buffer *eb, int slot,
 		       const char *fmt, ...)
 {
 	struct btrfs_key key;
-	struct va_format vaf;
+	DECLARE_PV(vaf);
 	va_list args;
 	u64 bytenr;
 	u64 len;
@@ -1300,13 +1320,12 @@ static void extent_err(const struct extent_buffer *eb, int slot,
 		len = key.offset;
 	va_start(args, fmt);
 
-	vaf.fmt = fmt;
-	vaf.va = &args;
+	PV_ASSIGN(vaf, fmt, args);
 
 	btrfs_crit(eb->fs_info,
-	"corrupt %s: block=%llu slot=%d extent bytenr=%llu len=%llu %pV",
+	"corrupt %s: block=%llu slot=%d extent bytenr=%llu len=%llu " PV_FMT,
 		btrfs_header_level(eb) == 0 ? "leaf" : "node",
-		eb->start, slot, bytenr, len, &vaf);
+		eb->start, slot, bytenr, len, PV_VAL(vaf));
 	va_end(args);
 
 	btrfs_print_tree((struct extent_buffer *)eb, 0);

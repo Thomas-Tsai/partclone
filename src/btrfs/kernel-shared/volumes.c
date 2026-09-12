@@ -314,7 +314,7 @@ static struct btrfs_device *find_device(struct btrfs_fs_devices *fs_devices,
 
 	list_for_each_entry(dev, head, dev_list) {
 		if (dev->devid == devid &&
-		    (!uuid || !memcmp(dev->uuid, uuid, BTRFS_UUID_SIZE))) {
+		    (!uuid || memcmp(dev->uuid, uuid, BTRFS_UUID_SIZE) == 0)) {
 			return dev;
 		}
 	}
@@ -554,6 +554,7 @@ static int device_list_add(const char *path,
 			/* we can safely leave the fs_devices entry around */
 			return -ENOMEM;
 		}
+		cache_tree_init(&device->discard);
 		device->fd = -1;
 		device->devid = devid;
 		device->generation = found_transid;
@@ -643,10 +644,11 @@ again:
 		}
 		device->writeable = 0;
 		list_del(&device->dev_list);
+		free_extent_cache_tree(&device->discard);
 		/* free the memory */
 		kfree(device->name);
 		kfree(device->label);
-		kfree(device->zone_info);
+		btrfs_free_zoned_device_info(device->zone_info);
 		kfree(device);
 	}
 
@@ -2090,6 +2092,85 @@ error:
 	return ret;
 }
 
+static int btrfs_translate_remap(struct btrfs_fs_info *fs_info, u64 *logical, u64 *length)
+{
+	int ret;
+	struct btrfs_key key, found_key;
+	struct extent_buffer *leaf;
+	struct btrfs_remap_item *remap;
+	struct btrfs_path *path;
+
+	path = btrfs_alloc_path();
+	if (!path)
+		return -ENOMEM;
+
+	key.objectid = *logical;
+	key.type = BTRFS_IDENTITY_REMAP_KEY;
+	key.offset = 0;
+
+	ret = btrfs_search_slot(NULL, fs_info->remap_root, &key, path, 0, 0);
+	if (ret < 0) {
+		btrfs_free_path(path);
+		return ret;
+	}
+
+	leaf = path->nodes[0];
+
+	if (path->slots[0] >= btrfs_header_nritems(leaf)) {
+		ret = btrfs_next_leaf(fs_info->remap_root, path);
+		if (ret < 0) {
+			btrfs_free_path(path);
+			return ret;
+		}
+
+		leaf = path->nodes[0];
+	}
+
+	btrfs_item_key_to_cpu(leaf, &found_key, path->slots[0]);
+
+	if (found_key.objectid > *logical) {
+		if (path->slots[0] == 0) {
+			ret = btrfs_prev_leaf(fs_info->remap_root, path);
+			if (ret) {
+				if (ret == 1)
+					ret = -ENOENT;
+				return ret;
+			}
+
+			leaf = path->nodes[0];
+		} else {
+			path->slots[0]--;
+		}
+
+		btrfs_item_key_to_cpu(leaf, &found_key, path->slots[0]);
+	}
+
+	if (found_key.type != BTRFS_REMAP_KEY && found_key.type != BTRFS_IDENTITY_REMAP_KEY) {
+		btrfs_free_path(path);
+		return -ENOENT;
+	}
+
+	if (found_key.objectid > *logical || found_key.objectid + found_key.offset <= *logical) {
+		btrfs_free_path(path);
+		return -ENOENT;
+	}
+
+	if (*logical + *length > found_key.objectid + found_key.offset)
+		*length = found_key.objectid + found_key.offset - *logical;
+
+	if (found_key.type == BTRFS_IDENTITY_REMAP_KEY) {
+		btrfs_free_path(path);
+		return 0;
+	}
+
+	remap = btrfs_item_ptr(leaf, path->slots[0], struct btrfs_remap_item);
+	*logical = *logical - found_key.objectid + btrfs_remap_address(leaf, remap);
+
+	btrfs_free_path(path);
+
+	return 0;
+}
+
 int __btrfs_map_block(struct btrfs_fs_info *fs_info, int rw,
 		      u64 logical, u64 *length, u64 *type,
 		      struct btrfs_multi_bio **multi_ret, int mirror_num,
@@ -2125,13 +2206,38 @@ again:
 		return -ENOENT;
 	}
 
+	map = container_of(ce, struct map_lookup, ce);
+
+	if (map->type & BTRFS_BLOCK_GROUP_REMAPPED) {
+		int ret;
+		u64 new_logical = logical;
+
+		ret = btrfs_translate_remap(fs_info, &new_logical, length);
+		if (ret)
+			return ret;
+
+		if (new_logical != logical) {
+			ce = search_cache_extent(&map_tree->cache_tree, new_logical);
+			if (!ce) {
+				*length = (u64)-1;
+				return -ENOENT;
+			}
+			if (ce->start > new_logical) {
+				*length = ce->start - new_logical;
+				return -ENOENT;
+			}
+
+			map = container_of(ce, struct map_lookup, ce);
+			logical = new_logical;
+		}
+	}
+
 	if (multi_ret) {
 		multi = kzalloc(btrfs_multi_bio_size(stripes_allocated),
 				GFP_NOFS);
 		if (!multi)
 			return -ENOMEM;
 	}
-	map = container_of(ce, struct map_lookup, ce);
 	offset = logical - ce->start;
 
 	if (rw == WRITE) {
@@ -2290,8 +2396,10 @@ again:
 
 			ret = btrfs_stripe_tree_logical_to_physical(fs_info, logical,
 								    &multi->stripes[i]);
-			if (ret)
+			if (ret) {
+				kfree(multi);
 				return ret;
+			}
 		} else {
 			multi->stripes[i].physical =
 				map->stripes[stripe_index].physical +
@@ -2321,7 +2429,7 @@ struct btrfs_device *btrfs_find_device(struct btrfs_fs_info *fs_info, u64 devid,
 	cur_devices = fs_info->fs_devices;
 	while (cur_devices) {
 		if (!fsid ||
-		    (!memcmp(cur_devices->metadata_uuid, fsid, BTRFS_FSID_SIZE) ||
+		    (memcmp(cur_devices->metadata_uuid, fsid, BTRFS_FSID_SIZE) == 0 ||
 		     fs_info->ignore_fsid_mismatch)) {
 			device = find_device(cur_devices, devid, uuid);
 			if (device)
@@ -2388,6 +2496,7 @@ static struct btrfs_device *fill_missing_device(u64 devid, const u8 *uuid)
 
 	device = kzalloc(sizeof(*device), GFP_NOFS);
 	device->devid = devid;
+	cache_tree_init(&device->discard);
 	memcpy(device->uuid, uuid, BTRFS_UUID_SIZE);
 	device->fd = -1;
 	return device;
@@ -2502,7 +2611,7 @@ static int open_seed_devices(struct btrfs_fs_info *fs_info, u8 *fsid)
 
 	fs_devices = fs_info->fs_devices->seed;
 	while (fs_devices) {
-		if (!memcmp(fs_devices->fsid, fsid, BTRFS_UUID_SIZE)) {
+		if (memcmp(fs_devices->fsid, fsid, BTRFS_UUID_SIZE) == 0) {
 			ret = 0;
 			goto out;
 		}
@@ -2561,6 +2670,7 @@ static int read_one_dev(struct btrfs_fs_info *fs_info,
 		device = kzalloc(sizeof(*device), GFP_NOFS);
 		if (!device)
 			return -ENOMEM;
+		cache_tree_init(&device->discard);
 		device->fd = -1;
 		list_add(&device->dev_list,
 			 &fs_info->fs_devices->devices);
