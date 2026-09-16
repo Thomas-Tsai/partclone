@@ -580,7 +580,7 @@ void print_extent_item(struct extent_buffer *eb, int slot, int metadata)
 			       type, seq, offset, btrfs_shared_data_ref_count(eb, sref));
 			break;
 		case BTRFS_EXTENT_OWNER_REF_KEY:
-			printf("\t\t(%u 0x%llx) extent owner root %llu\n",
+			printf("\t\(%u 0x%llx) textent owner root %llu\n",
 			       type, seq, offset);
 			break;
 		default:
@@ -1906,7 +1906,7 @@ static int check_csum_sblock(void *sb, int csum_size, u16 csum_type)
 	btrfs_csum_data(csum_type, (u8 *)sb + BTRFS_CSUM_SIZE,
 			result, BTRFS_SUPER_INFO_SIZE - BTRFS_CSUM_SIZE);
 
-	return !memcmp(sb, result, csum_size);
+	return (memcmp(sb, result, csum_size) == 0);
 }
 
 #define DEF_COMPAT_RO_FLAG_ENTRY(bit_name)		\
@@ -1915,6 +1915,7 @@ static int check_csum_sblock(void *sb, int csum_size, u16 csum_type)
 static struct readable_flag_entry compat_ro_flags_array[] = {
 	DEF_COMPAT_RO_FLAG_ENTRY(FREE_SPACE_TREE),
 	DEF_COMPAT_RO_FLAG_ENTRY(FREE_SPACE_TREE_VALID),
+	DEF_COMPAT_RO_FLAG_ENTRY(VERITY),
 	DEF_COMPAT_RO_FLAG_ENTRY(BLOCK_GROUP_TREE),
 };
 static const int compat_ro_flags_num = ARRAY_SIZE(compat_ro_flags_array);
@@ -2030,7 +2031,7 @@ static void print_sys_chunk_array(struct btrfs_super_block *sb)
 
 	buf = alloc_dummy_extent_buffer(NULL, 0, BTRFS_SUPER_INFO_SIZE);
 	if (!buf) {
-		error_msg(ERROR_MSG_MEMORY, NULL);
+		error_mem(NULL);
 		return;
 	}
 	write_extent_buffer(buf, sb, 0, sizeof(*sb));
@@ -2290,10 +2291,10 @@ void btrfs_print_superblock(struct btrfs_super_block *sb, int full)
 
 	uuid_unparse(sb->dev_item.fsid, buf);
 	if (metadata_uuid_present) {
-		cmp_res = !memcmp(sb->dev_item.fsid, sb->metadata_uuid,
-				 BTRFS_FSID_SIZE);
+		cmp_res = (memcmp(sb->dev_item.fsid, sb->metadata_uuid,
+				 BTRFS_FSID_SIZE) == 0);
 	} else {
-		cmp_res = !memcmp(sb->dev_item.fsid, sb->fsid, BTRFS_FSID_SIZE);
+		cmp_res = (memcmp(sb->dev_item.fsid, sb->fsid, BTRFS_FSID_SIZE) == 0);
 	}
 	printf("dev_item.fsid\t\t%s %s\n", buf,
 	       cmp_res ? "[match]" : "[DON'T MATCH]");
