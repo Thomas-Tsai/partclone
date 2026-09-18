@@ -33,3 +33,4 @@ docs/partclone.vfat.8
 #docs/partclone.vmfs.8
 docs/partclone.VMFS_volume_member.8
 docs/partclone.xfs.8
+docs/partclone.zfs.8

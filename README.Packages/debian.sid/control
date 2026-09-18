@@ -22,6 +22,9 @@ Build-Depends: debhelper-compat (= 13),
  libmount-dev,
  libxxhash-dev,
  liburcu-dev,
+ libzfslinux-dev [linux-any],
+ libudev-dev [linux-any],
+ libtirpc-dev [linux-any],
  libisal-dev [amd64 arm64 ppc64el riscv64 s390x]
 Standards-Version: 4.7.3
 Vcs-Browser: https://salsa.debian.org/georgesk/partclone

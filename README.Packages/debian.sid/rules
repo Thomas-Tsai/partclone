@@ -20,9 +20,12 @@ endif
 ifeq ($(IS_STATIC),1)
     PKG_NAME = partclone-static
     STATIC_OPT = --enable-static-linking
+    # OpenZFS (libzpool/libzfs) has no static libraries; skip zfs in static builds
+    ZFS_OPT = --disable-zfs
 else
     PKG_NAME = partclone
     STATIC_OPT =
+    ZFS_OPT = --enable-zfs
 endif
 
 %:
@@ -51,6 +54,7 @@ CONFIG_OPTS = \
 	--enable-btrfs \
 	--enable-minix \
 	--enable-f2fs \
+	$(ZFS_OPT) \
 	--disable-nilfs2 \
 	$(STATIC_OPT)
 
