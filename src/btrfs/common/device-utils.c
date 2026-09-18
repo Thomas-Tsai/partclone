@@ -277,8 +277,6 @@ int btrfs_prepare_device(int fd, const char *file, u64 *byte_count_ret,
 				goto err;
 			}
 		}
-	} else if (opflags & PREP_DEVICE_DISCARD) {
-		prepare_discard_device(file, fd, byte_count, opflags);
 	}
 
 	ret = zero_dev_clamped(fd, zinfo, 0, ZERO_DEV_BYTES, byte_count);
@@ -294,6 +292,9 @@ int btrfs_prepare_device(int fd, const char *file, u64 *byte_count_ret,
 		error("failed to zero device '%s': %m", file);
 		goto err;
 	}
+
+	if (!(opflags & PREP_DEVICE_ZONED) && (opflags & PREP_DEVICE_DISCARD))
+		prepare_discard_device(file, fd, byte_count, opflags);
 
 	ret = btrfs_wipe_existing_sb(fd, zinfo);
 	if (ret < 0) {
@@ -559,7 +560,7 @@ ssize_t btrfs_direct_pread(int fd, void *buf, size_t count, off_t offset)
 
 	ret = posix_memalign(&bounce_buf, alignment, iosize);
 	if (ret) {
-		error_msg(ERROR_MSG_MEMORY, "bounce buffer");
+		error_mem("bounce buffer");
 		errno = ret;
 		return -ret;
 	}
@@ -610,7 +611,7 @@ ssize_t btrfs_direct_pwrite(int fd, const void *buf, size_t count, off_t offset)
 
 	ret = posix_memalign(&bounce_buf, alignment, iosize);
 	if (ret) {
-		error_msg(ERROR_MSG_MEMORY, "bounce buffer");
+		error_mem("bounce buffer");
 		errno = ret;
 		return -ret;
 	}
