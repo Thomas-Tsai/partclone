@@ -36,6 +36,7 @@ function print_pass() {
 
 function print_fail() {
     echo -e "\e[31m[FAIL]\e[0m $1"
+    [ -f "$LOG_FILE" ] && tail -20 "$LOG_FILE"
     cleanup
     exit 1
 }
@@ -176,7 +177,7 @@ print_pass "restored pool data verified."
 
 print_info "Step 5: direct clone $RAW_SRC -> $RAW_DIRECT and verify"
 dd if=/dev/zero of="$RAW_DIRECT" bs=1M count=$IMG_MB status=none
-$PTLZFS -b -s "$RAW_SRC" -o "$RAW_DIRECT" -L "$LOG_FILE" > /dev/null 2>&1 ||
+$PTLZFS -b -s "$RAW_SRC" -O "$RAW_DIRECT" -L "$LOG_FILE" > /dev/null 2>&1 ||
     print_fail "partclone.zfs direct clone failed; see $LOG_FILE"
 verify_clone "$RAW_DIRECT" || print_fail "data verification failed on direct-cloned vdev."
 print_pass "direct clone data verified."
