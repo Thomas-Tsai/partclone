@@ -28,9 +28,11 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Build the exact commit that triggered the workflow (checked out by
+# actions/checkout), not the master branch of the remote repository.
 WORKDIR /partclone
-RUN git clone https://github.com/Thomas-Tsai/partclone.git . && \
-    ./autogen && \
+COPY . /partclone
+RUN ./autogen && \
     CFLAGS="-std=gnu99 -g -O2" ./configure \
     --enable-fs-test --enable-feature-test --enable-ncursesw --enable-xxhash \
     --enable-extfs --enable-ntfs --enable-fat --enable-exfat \
