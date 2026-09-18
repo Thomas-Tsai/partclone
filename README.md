@@ -1,6 +1,6 @@
 Partclone is a project similar to the well-known backup utility "Partition Image" a.k.a partimage. Partclone provides utilities to back up and restore used-blocks of a partition and it is designed for higher compatibility of the file system by using existing library, e.g. e2fslibs is used to read and write the ext2 partition.
 
-Partclone now supports ext2, ext3, ext4, hfs+, reiserfs, reiser4, btrfs, vmfs3, vmfs5, xfs, jfs, ufs, ntfs, fat(12/16/32), exfat...
+Partclone now supports ext2, ext3, ext4, hfs+, reiserfs, reiser4, btrfs, vmfs3, vmfs5, xfs, jfs, ufs, ntfs, fat(12/16/32), exfat, zfs (stripe pool)...
 
 We made some utilities:
 
@@ -21,6 +21,7 @@ We made some utilities:
 * partclone.minix
 * partclone.f2fs
 * partclone.nilfs
+* partclone.zfs
 * partclone.info 
 * partclone.restore
 * partclone.chkimg

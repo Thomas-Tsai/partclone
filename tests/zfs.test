@@ -1,0 +1,188 @@
+#!/bin/bash
+
+# ==============================================================================
+# Partclone ZFS basic clone/restore test
+#
+# Scope of partclone.zfs v1: stripe pool on a single (partition-like) vdev.
+# This test therefore creates a stripe pool on a single file vdev, so it can
+# run everywhere the zfs kernel module is available.
+#
+# Steps:
+#   1. Create a raw file, zpool create a stripe pool on it, write test data
+#   2. zpool export, then clone the vdev to an image with partclone.zfs
+#   3. partclone.chkimg the image
+#   4. Restore the image to a new raw file (partclone.restore)
+#   5. Direct device-to-device clone (partclone.zfs -b)
+#   6. Import both results under an alternate name/root and md5sum -c the data
+#
+# Requirements:
+#   - root privileges (zpool/zfs need the kernel module)
+#   - zfsutils-linux (zpool command) and a loaded zfs kernel module
+#   - Compiled partclone.zfs / partclone.restore / partclone.chkimg in ../src/
+#
+# Exits 77 (automake SKIP) when root or the zfs module is unavailable, e.g.
+# inside Docker containers on hosts without zfs.
+# ==============================================================================
+
+set -e
+
+function print_info() {
+    echo -e "\e[34m[INFO]\e[0m $1"
+}
+
+function print_pass() {
+    echo -e "\e[32m[PASS]\e[0m $1"
+}
+
+function print_fail() {
+    echo -e "\e[31m[FAIL]\e[0m $1"
+    cleanup
+    exit 1
+}
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PTLDIR="$SCRIPT_DIR/../src"
+PTLZFS="$PTLDIR/partclone.zfs"
+PTLRESTORE="$PTLDIR/partclone.restore"
+PTLCHKIMG="$PTLDIR/partclone.chkimg"
+
+RAW_SRC="$$_zfs_src.raw"
+CLONE_IMG="$$_zfs_clone.img"
+RAW_RESTORE="$$_zfs_restore.raw"
+RAW_DIRECT="$$_zfs_direct.raw"
+LOG_FILE="$$_zfs_test.log"
+CH_FILE="$$_zfs_checksum.md5"
+
+POOL="ptl_zfs_test"
+POOL_CLONE="ptl_zfs_test_clone"
+IMG_MB=256
+
+SRC_ROOT="$(mktemp -d /tmp/ptlzfs-src.XXXXXX)"
+DST_ROOT="$(mktemp -d /tmp/ptlzfs-dst.XXXXXX)"
+
+function zpool_export_all() {
+    zpool export "$POOL" > /dev/null 2>&1 || true
+    zpool export "$POOL_CLONE" > /dev/null 2>&1 || true
+}
+
+function cleanup() {
+    set +e
+    zpool_export_all
+    rm -f "$RAW_SRC" "$CLONE_IMG" "$RAW_RESTORE" "$RAW_DIRECT" "$LOG_FILE" "$CH_FILE"
+    rm -rf "$SRC_ROOT" "$DST_ROOT"
+    set -e
+}
+
+cd "$SCRIPT_DIR"
+trap cleanup EXIT
+
+# --- Pre-flight Checks ---
+
+if [[ $UID -ne 0 ]]; then
+    print_info "need root to create a zpool; skipping."
+    exit 77
+fi
+
+ZPOOL_BIN=$(which zpool 2>/dev/null || true)
+if [ -z "$ZPOOL_BIN" ]; then
+    print_info "zpool command not found (install zfsutils-linux); skipping."
+    exit 77
+fi
+
+if ! zpool list > /dev/null 2>&1; then
+    modprobe zfs > /dev/null 2>&1 || true
+fi
+if ! zpool list > /dev/null 2>&1; then
+    print_info "zfs kernel module not available (e.g. inside a container); skipping."
+    exit 77
+fi
+
+if [ ! -x "$PTLZFS" ]; then
+    print_fail "$PTLZFS not found. Please configure with --enable-zfs and make first."
+fi
+if [ ! -x "$PTLRESTORE" ] || [ ! -x "$PTLCHKIMG" ]; then
+    print_fail "$PTLRESTORE/$PTLCHKIMG not found. Please compile partclone first."
+fi
+
+print_info "==================================================="
+print_info "       Partclone ZFS basic clone/restore test      "
+print_info "==================================================="
+
+zpool_export_all
+
+# --- Step 1: create stripe pool on a single file vdev and fill it ---
+
+print_info "Step 1: create ${IMG_MB}MB file vdev, zpool create, write data"
+
+dd if=/dev/zero of="$RAW_SRC" bs=1M count=$IMG_MB status=none
+
+zpool create -f -O mountpoint=/data -R "$SRC_ROOT" "$POOL" "$(readlink -f "$RAW_SRC")" || {
+    print_info "zpool create failed (unsupported zfs setup?); skipping."
+    exit 77
+}
+
+DATA_DIR="$SRC_ROOT/data"
+dd if=/dev/urandom of="$DATA_DIR/random_8m.bin" bs=1M count=8 status=none
+mkdir -p "$DATA_DIR/subdir"
+echo "partclone zfs test $(date)" > "$DATA_DIR/subdir/hello.txt"
+sync
+pushd "$DATA_DIR" > /dev/null
+find . -type f -exec md5sum '{}' \; > "$SCRIPT_DIR/$CH_FILE"
+popd > /dev/null
+
+zpool export "$POOL"
+print_pass "source pool '$POOL' created and exported."
+
+# helper: import $1 (file under test) as $POOL_CLONE under $DST_ROOT and md5 check
+function verify_clone() {
+    local under_test="$1"
+    local vdir
+    vdir="$(mktemp -d /tmp/ptlzfs-vdev.XXXXXX)"
+    ln -s "$(readlink -f "$under_test")" "$vdir/"
+    zpool import -f -d "$vdir" -R "$DST_ROOT" "$POOL" "$POOL_CLONE" ||
+        { rm -rf "$vdir"; return 1; }
+    pushd "$DST_ROOT/data" > /dev/null
+    md5sum --quiet -c "$SCRIPT_DIR/$CH_FILE" || { popd > /dev/null; return 1; }
+    popd > /dev/null
+    zpool export "$POOL_CLONE" || return 1
+    rm -rf "$vdir" "$DST_ROOT/data"
+    return 0
+}
+
+# --- Step 2: clone vdev to image ---
+
+print_info "Step 2: partclone.zfs clone $RAW_SRC -> $CLONE_IMG"
+$PTLZFS -c -s "$RAW_SRC" -O "$CLONE_IMG" -F -L "$LOG_FILE" > /dev/null 2>&1 ||
+    print_fail "partclone.zfs clone failed; see $LOG_FILE"
+print_pass "clone done."
+
+# --- Step 3: image check ---
+
+print_info "Step 3: partclone.chkimg $CLONE_IMG"
+$PTLCHKIMG -s "$CLONE_IMG" -L "$LOG_FILE" > /dev/null 2>&1 ||
+    print_fail "partclone.chkimg failed; see $LOG_FILE"
+print_pass "image check ok."
+
+# --- Step 4: restore image and verify data ---
+
+print_info "Step 4: restore $CLONE_IMG -> $RAW_RESTORE and verify"
+dd if=/dev/zero of="$RAW_RESTORE" bs=1M count=$IMG_MB status=none
+$PTLRESTORE -s "$CLONE_IMG" -O "$RAW_RESTORE" -C -F -L "$LOG_FILE" > /dev/null 2>&1 ||
+    print_fail "partclone.restore failed; see $LOG_FILE"
+verify_clone "$RAW_RESTORE" || print_fail "data verification failed on restored vdev."
+print_pass "restored pool data verified."
+
+# --- Step 5: direct clone and verify data ---
+
+print_info "Step 5: direct clone $RAW_SRC -> $RAW_DIRECT and verify"
+dd if=/dev/zero of="$RAW_DIRECT" bs=1M count=$IMG_MB status=none
+$PTLZFS -b -s "$RAW_SRC" -o "$RAW_DIRECT" -L "$LOG_FILE" > /dev/null 2>&1 ||
+    print_fail "partclone.zfs direct clone failed; see $LOG_FILE"
+verify_clone "$RAW_DIRECT" || print_fail "data verification failed on direct-cloned vdev."
+print_pass "direct clone data verified."
+
+print_info "==================================================="
+print_pass "         All ZFS clone/restore tests passed!        "
+print_info "==================================================="
+
+exit 0

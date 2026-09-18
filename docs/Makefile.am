@@ -73,6 +73,10 @@ if ENABLE_BTRFS
 man_MANS += partclone.btrfs.8
 endif
 
+if ENABLE_ZFS
+man_MANS += partclone.zfs.8
+endif
+
 if ENABLE_NTFS
 man_MANS += partclone.ntfs.8
 man_MANS += partclone.ntfsfixboot.8

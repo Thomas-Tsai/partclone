@@ -210,6 +210,18 @@ partclone_minix_CFLAGS=-DMINIX
 partclone_minix_LDADD=torrent_helper.o $(PCL_XXHASH_LIBS) $(CRYPTO_DEPS) ${LDADD_static}
 endif
 
+if ENABLE_ZFS
+sbin_PROGRAMS += partclone.zfs
+partclone_zfs_SOURCES=$(main_files) zfsclone.c zfsclone.h
+partclone_zfs_CFLAGS=-DZFS -D_GNU_SOURCE -D_REENTRANT \
+    -D_LARGEFILE64_SOURCE \
+    -I/usr/include/libzfs -I/usr/include/libspl
+partclone_zfs_LDADD=torrent_helper.o \
+    -lzpool -lzfs -lzfs_core -lnvpair -luutil \
+    -lblkid -luuid -ludev -lcrypto -lzstd -lz -ldl \
+    $(PCL_XXHASH_LIBS) $(CRYPTO_DEPS) ${LDADD_static}
+endif
+
 if ENABLE_FUSE
 sbin_PROGRAMS+=partclone.imgfuse
 partclone_imgfuse_SOURCES=fuseimg.c partclone.c checksum.c partclone.h fs_common.h checksum.h

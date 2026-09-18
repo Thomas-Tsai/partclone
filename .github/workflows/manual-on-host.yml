@@ -15,11 +15,11 @@ jobs:
           sudo apt-get update
           sudo apt-get build-dep -y partclone
           sudo apt-get install -y build-essential autoconf automake autotools-dev libtool libtool-bin gettext intltool pkg-config
-          sudo apt-get install -y f2fs-tools hfsprogs exfatprogs gddrescue libfuse3-dev fuse3 jfsutils reiser4progs hfsprogs hfsplus reiserfsprogs libxxhash-dev libisal-dev jfsutils libjfs-dev libufs2 ufsutils vmfs-tools libvmfs liburcu-dev btrfs-progs valgrind
+          sudo apt-get install -y f2fs-tools hfsprogs exfatprogs gddrescue libfuse3-dev fuse3 jfsutils reiser4progs hfsprogs hfsplus reiserfsprogs libxxhash-dev libisal-dev jfsutils libjfs-dev libufs2 ufsutils vmfs-tools libvmfs liburcu-dev btrfs-progs valgrind libzfslinux-dev libudev-dev zfsutils-linux
     - name: automake
       run: ./autogen
     - name: configure
-      run: ./configure --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs --enable-nilfs2 --enable-fuse --enable-jfs --enable-ufs --enable-vmfs
+      run: ./configure --enable-fs-test --enable-feature-test --enable-extfs --enable-ntfs --enable-fat --enable-exfat --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs --enable-reiser4 --enable-xfs --enable-nilfs2 --enable-fuse --enable-jfs --enable-ufs --enable-vmfs --enable-zfs
     - name: make
       run: make
     - name: makeTest
@@ -37,6 +37,9 @@ jobs:
     - name: direct io Test
       if: always()
       run: cd tests && sudo ./direct_io.test && cd ../ && pwd
+    - name: zfs Test
+      if: always()
+      run: cd tests && sudo ./zfs.test && cd ../ && pwd
   BTRFSDataIOTest:
     runs-on: self-hosted
     needs: build
@@ -149,4 +152,11 @@ jobs:
     - name: vmfs5 Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/test/vmfs.raw" env TARGETPART="/dev/vdb2"  bash -x ./rawfs_clone_restore_test vmfs && cd ../ && pwd
+  ZFSDataIOTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
+    - name: zfs Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./zfs_data_clone_restore_test && cd ../ && pwd
 

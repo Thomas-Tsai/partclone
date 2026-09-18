@@ -77,6 +77,7 @@ src/partclone.ufs
 src/partclone.vmfs
 src/partclone.vmfs5
 src/partclone.xfs
+src/partclone.zfs
 
 # Generated man pages
 docs/partclone.8

@@ -1,0 +1,165 @@
+#!/bin/bash
+
+# ==============================================================================
+# Partclone ZFS advanced data clone/restore test (real partitions)
+#
+# ZFS counterpart of data_clone_restore_test. partclone.zfs v1 supports
+# stripe pools on a single partition vdev only, so this test:
+#
+#   1. zpool create a stripe pool on $source_partition and fill it with data
+#      from $data_pool, record md5 sums, zpool export
+#   2. device-to-device clone with partclone.zfs (-b)
+#   3. verify: import the cloned partition under an alternate name/altroot
+#      (the clone carries an identical pool name/GUID, so it is imported via
+#      an isolated vdev directory to avoid clashing with the source pool)
+#   4. device-to-image clone (-c), restore image to the target partition (-r)
+#   5. verify the restored partition the same way
+#
+# Requirements: root, zfsutils-linux + zfs kernel module, two partitions.
+#   SOURCEPART/TARGETPART env override the defaults (/dev/sdb1 /dev/sdc1).
+# ==============================================================================
+
+. "$(dirname "$0")"/_common
+break_debug=0
+
+source_partition="/dev/sdb1"
+target_partition="/dev/sdc1"
+target_image="/test/partclone-zfs-test.img"
+src_root="/test/zfs_source"
+tgt_root="/test/zfs_target"
+data_pool="/test/datapool/"
+chfile="/test/checksum.log"
+cchfile="/test/checksum_test.log"
+logfile="/test/clone-zfs.log"
+
+pool="ptlzfsdata"
+pool_clone="ptlzfsdata_clone"
+
+if [ "X$SOURCEPART" != "X" ]; then
+    source_partition=$SOURCEPART
+fi
+
+if [ "X$TARGETPART" != "X" ]; then
+    target_partition=$TARGETPART
+fi
+
+_check_root
+
+ZPOOL_BIN=$(which zpool 2>/dev/null || true)
+if [ -z "$ZPOOL_BIN" ]; then
+    echo "zpool command not found (install zfsutils-linux)"
+    exit 1
+fi
+if ! zpool list > /dev/null 2>&1; then
+    modprobe zfs > /dev/null 2>&1 || true
+fi
+if ! zpool list > /dev/null 2>&1; then
+    echo "zfs kernel module not available"
+    exit 1
+fi
+
+ptlfs=$(_ptlname zfs)
+
+zpool_cleanup(){
+    zpool export $pool > /dev/null 2>&1 || true
+    zpool export $pool_clone > /dev/null 2>&1 || true
+}
+
+# import the given partition under $tgt_root as $pool_clone and md5 check
+verify_target(){
+    zpool export $pool_clone > /dev/null 2>&1 || true
+    rm -rf $tgt_root
+    mkdir -p $tgt_root
+    local vdir
+    vdir="$(mktemp -d /tmp/ptlzfs-vdev.XXXXXX)"
+    ln -s "$(readlink -f "$target_partition")" "$vdir/"
+    zpool import -f -d "$vdir" -R $tgt_root $pool $pool_clone
+    _check_return_code
+    pushd $tgt_root/data
+    echo -e "\n    md5sum --quiet -c $chfile 2>&1 > $cchfile\n"
+    md5sum --quiet -c $chfile 2>&1 > $cchfile
+    popd
+    zpool export $pool_clone
+    _check_return_code
+    rm -rf "$vdir" $tgt_root/data
+}
+
+#main
+
+echo -e "Advanced zfs test"
+echo -e "==========================\n"
+
+zpool_cleanup
+mkdir -p $src_root $data_pool
+
+# clean partition
+
+dd if=/dev/zero of=$source_partition bs=1M count=4096
+dd if=/dev/zero of=$target_partition bs=1M count=4096
+
+echo -e "\n__create__ stripe pool $pool on $source_partition\n"
+echo -e "    zpool create -f -O mountpoint=/data -R $src_root $pool $source_partition\n"
+_ptlbreak
+zpool create -f -O mountpoint=/data -R $src_root $pool $source_partition
+_check_return_code
+
+echo -e "\n__prepare__ data to clone\n"
+_ptlbreak
+echo -e "\n    cp -r $data_pool/* $src_root/data\n"
+cp -r $data_pool/* $src_root/data
+sync
+echo -e "\n    find . -type f -exec md5sum '{}' \; > $chfile\n"
+pushd $src_root/data
+find . -type f -exec md5sum '{}' \; > $chfile
+popd
+zpool export $pool
+_check_return_code
+echo -e "\nmd5sum done\n"
+
+echo -e "\n__device to device clone__, $source_partition to $target_partition\n"
+echo -e "    $ptlfs -q -d -b -s $source_partition -o $target_partition -L $logfile\n"
+_ptlbreak
+$ptlfs -q -d -b -s $source_partition -o $target_partition -L $logfile
+_check_return_code
+
+echo -e "\n__check data__\n"
+_ptlbreak
+verify_target
+echo -e "\n__done__\n"
+_check_return_code
+
+echo -e "\n__device to image clone__, $source_partition to $target_image\n"
+enable_xxhash=$(_check_xxhash)
+if [[ $enable_xxhash == 1 ]]; then
+    csum_mode=3
+else
+    csum_mode=1
+fi
+echo -e "    $ptlfs -q -d -c -s $source_partition -O $target_image -L $logfile -a $csum_mode -k 64\n"
+_ptlbreak
+$ptlfs -q -d -c -s $source_partition -O $target_image -L $logfile -a $csum_mode -k 64
+_check_return_code
+
+echo -e "\n__restore image to device__, $target_image to $target_partition\n"
+echo -e "    $ptlfs -q -d -r -s $target_image -o $target_partition -L $logfile\n"
+_ptlbreak
+dd if=/dev/zero of=$target_partition bs=512 count=32
+$ptlfs -q -d -r -s $target_image -o $target_partition -L $logfile
+_check_return_code
+
+echo -e "\n__check data__\n"
+_ptlbreak
+verify_target
+echo -e "\n__done__\n"
+_check_return_code
+
+echo -e "\nclear tmp files\n"
+_ptlbreak
+set +e
+zpool_cleanup
+rm -rf $src_root $tgt_root $logfile $chfile $cchfile $target_image
+set -e
+_check_return_code
+
+echo -e "\nzfs test ok\n"
+echo -e "\nFinish!\n\n"

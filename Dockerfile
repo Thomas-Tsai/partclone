@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN sed -i 's/deb.debian.org/free.nchc.org.tw/g' /etc/apt/sources.list.d/debian.sources && \
     sed -i 's/Types: deb/Types: deb deb-src/g' /etc/apt/sources.list.d/debian.sources && \
-    sed -i 's/Components: main/Components: main non-free/g' /etc/apt/sources.list.d/debian.sources
+    sed -i 's/Components: main/Components: main contrib non-free/g' /etc/apt/sources.list.d/debian.sources
 
 RUN apt-get update && \
     apt-get install -y wget gnupg2 git && \
@@ -23,7 +23,8 @@ RUN apt-get update && \
     f2fs-tools hfsplus exfatprogs gddrescue libfuse-dev jfsutils \
     hfsprogs reiserfsprogs btrfs-progs libxxhash-dev libfuse3-dev\
     libisal-dev zlib1g-dev libzstd-dev libjfs-dev libufs2 ufsutils \
-    vmfs-tools libvmfs libbsd0 libbsd-dev liburcu-dev && \
+    vmfs-tools libvmfs libbsd0 libbsd-dev liburcu-dev \
+    libzfslinux-dev libudev-dev zfsutils-linux && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -35,7 +36,7 @@ RUN git clone https://github.com/Thomas-Tsai/partclone.git . && \
     --enable-extfs --enable-ntfs --enable-fat --enable-exfat \
     --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs \
     --enable-xfs --enable-nilfs2 --enable-fuse --enable-jfs \
-    --enable-ufs --enable-vmfs && \
+    --enable-ufs --enable-vmfs --enable-zfs && \
     make && \
     make install
 

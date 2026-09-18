@@ -469,6 +469,65 @@ fi
 
 #end of check btrfs
 
+##zfs##
+AC_ARG_ENABLE([zfs],
+    AS_HELP_STRING(
+        [--enable-zfs],
+        [enable ZFS file system (requires libzfslinux-dev and libudev-dev)])
+)
+AM_CONDITIONAL(ENABLE_ZFS, test "$enable_zfs" = yes)
+
+if test "$enable_zfs" = yes; then
+
+dnl Headers shipped by libzfslinux-dev. AC_CHECK_HEADERS would fail because
+dnl OpenZFS headers need _LARGEFILE64_SOURCE / _GNU_SOURCE in CPPFLAGS.
+dnl Do a file existence check instead, then verify linkage with AC_CHECK_LIB.
+AC_CHECK_FILE([/usr/include/libzfs/sys/zfs_context.h],,
+    AC_MSG_ERROR([*** libzfs/sys/zfs_context.h not found - install libzfslinux-dev]))
+AC_CHECK_FILE([/usr/include/libzfs/sys/spa.h],,
+    AC_MSG_ERROR([*** libzfs/sys/spa.h not found - install libzfslinux-dev]))
+AC_CHECK_FILE([/usr/include/libzfs/sys/spa_impl.h],,
+    AC_MSG_ERROR([*** libzfs/sys/spa_impl.h not found - install libzfslinux-dev]))
+AC_CHECK_FILE([/usr/include/libzfs/sys/vdev_impl.h],,
+    AC_MSG_ERROR([*** libzfs/sys/vdev_impl.h not found - install libzfslinux-dev]))
+AC_CHECK_FILE([/usr/include/libzfs/sys/dmu_traverse.h],,
+    AC_MSG_ERROR([*** libzfs/sys/dmu_traverse.h not found - install libzfslinux-dev]))
+AC_CHECK_FILE([/usr/include/libzfs/libzutil.h],,
+    AC_MSG_ERROR([*** libzfs/libzutil.h not found - install libzfslinux-dev]))
+AC_CHECK_FILE([/usr/include/libzfs/zfeature_common.h],,
+    AC_MSG_ERROR([*** libzfs/zfeature_common.h not found - install libzfslinux-dev]))
+
+dnl Make sure the libraries exist.
+AC_CHECK_LIB([zpool], [kernel_init], [],
+    AC_MSG_ERROR([*** libzpool not found - install libzfslinux-dev]))
+AC_CHECK_LIB([zfs], [zpool_find_config], [],
+    AC_MSG_ERROR([*** libzfs not found - install libzfslinux-dev]))
+AC_CHECK_LIB([zfs_core], [lzc_snapshot], [],
+    AC_MSG_ERROR([*** libzfs_core not found - install libzfslinux-dev]))
+AC_CHECK_LIB([nvpair], [nvlist_lookup_string], [],
+    AC_MSG_ERROR([*** libnvpair not found - install libzfslinux-dev]))
+AC_CHECK_LIB([uutil], [uu_error], [],
+    AC_MSG_ERROR([*** libuutil not found - install libzfslinux-dev]))
+
+dnl libzfs/libzpool pull in these libraries (see libzfs_core.pc
+dnl Requires.private/Libs.private); they are also linked directly by
+dnl partclone.zfs in src/Makefile.am. libcrypto/zlib/libzstd are already
+dnl checked globally above.
+AC_CHECK_LIB([udev], [udev_device_get_devnode], [],
+    AC_MSG_ERROR([*** libudev not found - install libudev-dev]))
+AC_CHECK_LIB([blkid], [blkid_get_cache], [],
+    AC_MSG_ERROR([*** libblkid not found - install libblkid-dev]))
+AC_CHECK_LIB([uuid], [uuid_generate], [],
+    AC_MSG_ERROR([*** libuuid not found - install uuid-dev]))
+AC_CHECK_LIB([tirpc], [xdr_void], [],
+    AC_MSG_ERROR([*** libtirpc not found - install libtirpc-dev]))
+
+supported_fs=$supported_fs" zfs"
+zfs_version="unknown (uses libzfslinux-dev)"
+fi
+
+#end of check zfs
+
 ##minix##
 AC_ARG_ENABLE([minix],
     AS_HELP_STRING(
@@ -597,4 +656,5 @@ echo "btrfs......... ${enable_btrfs:-no}, ${btrfs_version:-}"
 echo "minix......... ${enable_minix:-no}, ${minix_version:-}"
 echo "f2fs.......... ${enable_f2fs:-no}, ${f2fs_version:-}"
 echo "nilfs2.........${enable_nilfs2:-no}, ${nilfs2_version:-}"
+echo "zfs........... ${enable_zfs:-no}, ${zfs_version:-}"
 #echo $supported_fs
