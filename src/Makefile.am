@@ -212,11 +212,28 @@ endif
 
 if ENABLE_ZFS
 sbin_PROGRAMS += partclone.zfs
-partclone_zfs_SOURCES=$(main_files) zfsclone.c zfsclone.h
-partclone_zfs_CFLAGS=-DZFS -D_GNU_SOURCE -D_REENTRANT \
+partclone_zfs_SOURCES=$(main_files) zfsclone.c zfsclone.h \
+    zfs/zfs_disk.h \
+    zfs/zfs_nvlist.c zfs/zfs_nvlist.h \
+    zfs/zfs_compress.c zfs/zfs_compress.h \
+    zfs/zfs_spa.c zfs/zfs_spa.h \
+    zfs/zfs_dmu.c zfs/zfs_dmu.h \
+    zfs/zfs_zap.c zfs/zfs_zap.h \
+    zfs/zfs_spacemap.c zfs/zfs_spacemap.h \
+    zfs/zfs_traverse.c zfs/zfs_traverse.h
+partclone_zfs_CFLAGS=-DZFS -D_GNU_SOURCE -I$(srcdir)/zfs
+partclone_zfs_LDADD=torrent_helper.o -llz4 -lz \
+    -lblkid -luuid \
+    $(PCL_XXHASH_LIBS) $(CRYPTO_DEPS) ${LDADD_static}
+endif
+
+if ENABLE_OPENZFS
+sbin_PROGRAMS += partclone.openzfs
+partclone_openzfs_SOURCES=$(main_files) openzfsclone.c openzfsclone.h
+partclone_openzfs_CFLAGS=-DZFS -D_GNU_SOURCE -D_REENTRANT \
     -D_LARGEFILE64_SOURCE \
     -I/usr/include/libzfs -I/usr/include/libspl
-partclone_zfs_LDADD=torrent_helper.o \
+partclone_openzfs_LDADD=torrent_helper.o \
     -lzpool -lzfs -lzfs_core -lnvpair -luutil \
     -lblkid -luuid -ludev -lcrypto -lzstd -lz -ldl \
     $(PCL_XXHASH_LIBS) $(CRYPTO_DEPS) ${LDADD_static}

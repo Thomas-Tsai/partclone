@@ -1,30 +1,34 @@
 /**
  * zfsclone.c - part of Partclone project
  *
- * ZFS used-block bitmap provider, modelled after extfsclone.c / btrfsclone.c.
+ * ZFS used-block bitmap provider, **clean-room reimplementation**.
  *
- * v1 scope: **stripe pool on a single partition** only.
- *   - one top-level vdev (vdev_children == 1)
- *   - user supplies the ZFS partition (e.g. /dev/sda1); whole-disk pools
- *     (zpool create ... /dev/sda) are rejected because vdev labels live on
- *     the first GPT partition, not on the whole device itself.
+ * Unlike zfsclone.c (v1), this driver links no OpenZFS library
+ * (libzpool/libzfs are CDDL): it parses the on-disk format directly,
+ * following the MIT-licensed independent specification
+ * "ZFS On-Disk Format" (https://mminkus.github.io/zfs-ondiskformat/).
+ * Only license-clean external libraries are used: liblz4 (BSD) and
+ * zlib (zlib license).
  *
- * Algorithm (no decompression; only metadata is read):
- *   1. Open the pool with libzpool (kernel emulation):
- *      kernel_init(SPA_MODE_READ) + spa_open_rewind(pool_name).
- *      If the pool isn't in /etc/zfs/zpool.cache we fall back to
- *      zpool_find_config() + spa_import() which scans /dev/ (same as
- *      `zdb -e`). This lets a completely exported pool still be read.
- *   2. traverse_pool() walks every live blkptr (MOS + all datasets +
- *      snapshots + all indirect levels). For each bp, DVA_GET_OFFSET()/
- *      DVA_GET_ASIZE() give *bytes* within the single vdev; for a stripe
- *      vdev id is always 0.
- *   3. Always mark the vdev "label area" (first 4 MiB, last 512 KiB)
- *      used: it holds the four vdev labels and the uberblock ring, which
- *      ZFS needs to open the pool at all.
- *   4. As a safety net replay each metaslab's space-map (ALLOC/FREE) and
- *      any log space-maps (SPA_FEATURE_LOG_SPACEMAP). This matches the
- *      "spacemap allocated" count zdb -b reports.
+ * v1 scope (same as zfsclone.c v1):
+ *   - stripe pool, single top-level "disk" vdev
+ *   - user supplies the ZFS partition (e.g. /dev/sda1)
+ *   - little-endian pools only (x86/arm64 LE hosts)
+ *
+ * Algorithm:
+ *   1. Read 4 vdev labels; parse the XDR nvlist in each; pick the
+ *      newest valid uberblock (highest txg/timestamp/mmp-seq).
+ *   2. Read the MOS objset via ub_rootbp (decompress as needed).
+ *   3. MOS object 1 (object directory ZAP) -> "config" and the
+ *      optional "com.delphix:log_spacemap_zap".
+ *   4. config (packed nvlist) -> vdev_tree -> top vdev ->
+ *      "com.delphix:vdev_zap_top" -> "com.delphix:ms_unflushed_phys_txgs".
+ *   5. Replay every metaslab's space map (alloc/free) into the bitmap.
+ *   6. Replay log space maps with txg > per-metaslab unflushed txg
+ *      (txg <= unflushed entries are already folded into step 5).
+ *      If the unflushed array is unavailable, apply alloc entries and
+ *      skip frees (safe over-estimate).
+ *   7. Mark the vdev label area (first 4 MiB; last 512 KiB) used.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,32 +40,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <stdarg.h>
 #include <string.h>
 #include <errno.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
-/* OpenZFS headers (shipped by libzfslinux-dev in /usr/include/libzfs). */
-#include <sys/zfs_context.h>	/* FTAG, kernel userland shim */
-#include <sys/spa.h>
-#include <sys/spa_impl.h>	/* spa_root_vdev, spa_meta_objset, spa_sm_logs_by_txg */
-#include <sys/vdev.h>
-#include <sys/vdev_impl.h>	/* vdev_ms, vdev_asize, vdev_psize, VDEV_LABEL_* */
-#include <sys/metaslab.h>
-#include <sys/metaslab_impl.h>	/* ms_sm, ms_start, ms_id */
-#include <sys/space_map.h>	/* space_map_*, SM_*_DECODE */
-#include <sys/dmu.h>		/* dmu_read */
-#include <sys/dmu_traverse.h>	/* traverse_pool, blkptr_cb_t, TRAVERSE_* */
-#include <sys/zio.h>		/* zbookmark_phys_t */
-#include <sys/avl.h>
-#include <sys/spa_log_spacemap.h>
-#include <libzfs.h>		/* zpool_find_config, libzpool_config_ops, ZFS_IMPORT_SKIP_MMP */
-#include <libzutil.h>		/* zpool_read_label */
-#include <libnvpair.h>
-#include <sys/nvpair.h>
-#include <zfeature_common.h>
 
 #include <config.h>
 #include "partclone.h"
@@ -69,462 +50,518 @@
 #include "progress.h"
 #include "fs_common.h"
 
-/* libzpool.h is not shipped in libzfslinux-dev; declare the two symbols
- * we need: they live in libzpool.so. */
-extern void kernel_init(int mode);
-extern void kernel_fini(void);
+#include "zfs/zfs_disk.h"
+#include "zfs/zfs_nvlist.h"
+#include "zfs/zfs_spa.h"
+#include "zfs/zfs_dmu.h"
+#include "zfs/zfs_zap.h"
+#include "zfs/zfs_spacemap.h"
+#include "zfs/zfs_traverse.h"
 
 #define ZFS_SECTOR_SHIFT	9
 #define ZFS_SECTOR_SIZE		(1ULL << ZFS_SECTOR_SHIFT)	/* 512 */
 
+static zfs_spa_t	*g_spa;
+static zfs_dnode_t	 g_metadn;		/* MOS metadnode */
+
+/* ------------------------------------------------------------------ */
+/* logging adapter (libintl-style log_mesg is printf-based)            */
+/* ------------------------------------------------------------------ */
+
+static void vlogf(const char *fmt, ...)
+{
+	char buf[512];
+	va_list ap;
+
+	va_start(ap, fmt);
+	vsnprintf(buf, sizeof (buf), fmt, ap);
+	va_end(ap);
+	log_mesg(1, 0, 0, fs_opt.debug, "%s", buf);
+}
+
+/* ------------------------------------------------------------------ */
+/* bitmap helpers                                                       */
+/* ------------------------------------------------------------------ */
+
 typedef struct {
-	unsigned long  *bitmap;		/* partclone bitmap (1 bit/block) */
-	uint64_t	total_blocks;	/* total blocks per caller fs_info  */
-} walk_ctx_t;
+	unsigned long	*bitmap;
+	uint64_t	total_blocks;
+	uint64_t	alloc_bytes;	/* running total of marked space */
+} bm_ctx_t;
 
-static spa_t	*g_spa = NULL;
-static int	 g_kernel_inited = 0;
-static char	 g_pool_name[MAXNAMELEN];
+static bm_ctx_t g_bm;
 
-/* ------------------------------------------------------------------ */
-/* Bitmap helpers (translate vdev byte offsets to partclone block idx) */
-/* ------------------------------------------------------------------ */
-
-static inline uint64_t
-clamp_last(uint64_t first, uint64_t last, uint64_t total)
+static void bm_range(uint64_t off, uint64_t len, int used)
 {
-	(void)first;
-	if (last >= total)
-		last = total - 1;
-	return (last);
-}
+	uint64_t first, last;
 
-/*
- * DVA_GET_OFFSET() returns an offset in "data area" space: a leaf vdev's
- * data area starts at VDEV_LABEL_START_SIZE (=4 MiB) within the partition,
- * NOT at partition byte 0. zio_vdev_child_io() adds VDEV_LABEL_START_SIZE
- * to every non-labeling leaf I/O. So every DVA-derived offset or spacemap
- * entry must be translated by adding +4 MiB before indexing the bitmap.
- * Label-area writes (vdev labels, uberblocks) are NOT offset-adjusted, so
- * we have two helpers.
- */
-
-static void
-mark_range_used(walk_ctx_t *ctx, uint64_t off, uint64_t len)
-{
 	if (len == 0)
 		return;
-	uint64_t first = off >> ZFS_SECTOR_SHIFT;
-	uint64_t last  = (off + len - 1) >> ZFS_SECTOR_SHIFT;
-	if (first >= ctx->total_blocks)
+	first = off >> ZFS_SECTOR_SHIFT;
+	last  = (off + len - 1) >> ZFS_SECTOR_SHIFT;
+	if (first >= g_bm.total_blocks)
 		return;
-	last = clamp_last(first, last, ctx->total_blocks);
-	for (uint64_t s = first; s <= last; s++)
-		pc_set_bit(s, ctx->bitmap, ctx->total_blocks);
-}
-
-static void
-clear_range_used(walk_ctx_t *ctx, uint64_t off, uint64_t len)
-{
-	if (len == 0)
-		return;
-	uint64_t first = off >> ZFS_SECTOR_SHIFT;
-	uint64_t last  = (off + len - 1) >> ZFS_SECTOR_SHIFT;
-	if (first >= ctx->total_blocks)
-		return;
-	last = clamp_last(first, last, ctx->total_blocks);
-	for (uint64_t s = first; s <= last; s++)
-		pc_clear_bit(s, ctx->bitmap, ctx->total_blocks);
-}
-
-/* DVA-based marking: DVA offset is data-area-relative. */
-static inline void
-mark_range_used_dva(walk_ctx_t *ctx, uint64_t dva_off, uint64_t len)
-{
-	mark_range_used(ctx, dva_off + VDEV_LABEL_START_SIZE, len);
-}
-
-static inline void
-clear_range_used_dva(walk_ctx_t *ctx, uint64_t dva_off, uint64_t len)
-{
-	clear_range_used(ctx, dva_off + VDEV_LABEL_START_SIZE, len);
-}
-
-/* ------------------------------------------------------------------ */
-/* traverse_pool callback                                               */
-/* ------------------------------------------------------------------ */
-
-static int
-walk_cb(spa_t *spa, zilog_t *zilog, const blkptr_t *bp,
-    const zbookmark_phys_t *zb, const struct dnode_phys *dnp, void *arg)
-{
-	walk_ctx_t *ctx = arg;
-	(void)spa, (void)zilog, (void)zb, (void)dnp;
-
-	if (bp == NULL)
-		return (0);
-	if (BP_IS_HOLE(bp))
-		return (0);
-	if (BP_IS_REDACTED(bp))
-		return (0);
-	if (BP_IS_EMBEDDED(bp))	/* inline data, no DVA */
-		return (0);
-
-	int ndvas = BP_GET_NDVAS(bp);
-	/* tag the uberblock rootbp (zb = 0/-1/0) for debugging */
-	int is_rootbp = (zb != NULL && zb->zb_object == 0 &&
-	    zb->zb_level == -1 && zb->zb_blkid == 0);
-	for (int d = 0; d < ndvas; d++) {
-		const dva_t *dva = &bp->blk_dva[d];
-		uint64_t off = DVA_GET_OFFSET(dva);	/* bytes */
-		uint64_t asize = DVA_GET_ASIZE(dva);	/* bytes */
-		if (is_rootbp)
-			log_mesg(0, 0, 0, fs_opt.debug,
-			    "zfsclone: ROOTBP dva[%d] v=%llu off=0x%llx "
-			    "asize=0x%llx\n",
-			    d, (unsigned long long)DVA_GET_VDEV(dva),
-			    (unsigned long long)off,
-			    (unsigned long long)asize);
-		/* v1: stripe only, so DVA vdev id is always 0. */
-		mark_range_used_dva(ctx, off, asize);
+	if (last >= g_bm.total_blocks)
+		last = g_bm.total_blocks - 1;
+	for (uint64_t s = first; s <= last; s++) {
+		if (used)
+			pc_set_bit(s, g_bm.bitmap, g_bm.total_blocks);
+		else
+			pc_clear_bit(s, g_bm.bitmap, g_bm.total_blocks);
 	}
+}
+
+/* space-map / DVA offsets are data-area relative: add 4 MiB */
+static void bm_range_dva(uint64_t dva_off, uint64_t len, int used)
+{
+	bm_range(dva_off + ZFS_LABEL_START_SIZE, len, used);
+}
+
+/* metaslab space map callback (vdev 0, absolute data-area offsets) */
+static void apply_ms(int is_alloc, uint64_t off, uint64_t run,
+    uint64_t vdev, uint64_t txg, void *arg)
+{
+	(void)vdev; (void)txg; (void)arg;
+	bm_range_dva(off, run, is_alloc);
+}
+
+/* MOS traversal callback: mark every live bp's DVAs */
+static void apply_traverse(const zfs_bp_t *bp, void *arg)
+{
+	(void)arg;
+	for (int d = 0; d < 3; d++) {
+		zfs_dva_t dva;
+
+		zbp_get_dva(bp, d, &dva);
+		if (dva.asize == 0 || dva.vdev != 0)
+			continue;
+		bm_range_dva(dva.offset, dva.asize, 1);
+	}
+}
+
+/* log space map callback: filter by per-metaslab unflushed txg */
+typedef struct {
+	const uint64_t	*unflushed;	/* per-metaslab txg array or NULL */
+	uint64_t	ms_count;
+	uint32_t	ms_shift;
+	uint64_t	txg;		/* this log's target txg */
+	int		allocs_only;	/* unflushed unavailable: safe mode */
+	uint64_t	applied;	/* entries applied (debug) */
+	uint64_t	skipped;	/* entries filtered out */
+} log_ctx_t;
+
+static void apply_log(int is_alloc, uint64_t off, uint64_t run,
+    uint64_t vdev, uint64_t txg_dbg, void *arg)
+{
+	log_ctx_t *ctx = arg;
+	uint64_t m;
+
+	(void)txg_dbg;
+	if (vdev != 0)
+		return;				/* v1: stripe only */
+	m = off >> ctx->ms_shift;
+	if (m >= ctx->ms_count)
+		return;
+	if (ctx->unflushed != NULL) {
+		if (ctx->txg <= ctx->unflushed[m]) {
+			ctx->skipped++;
+			return;			/* already flushed */
+		}
+	} else if (ctx->allocs_only && !is_alloc) {
+		return;				/* safe over-estimate */
+	}
+	ctx->applied++;
+	bm_range_dva(off, run, is_alloc);
+}
+
+/* ------------------------------------------------------------------ */
+/* MOS anchor resolution                                                */
+/* ------------------------------------------------------------------ */
+
+static int resolve_anchors(zfs_spa_t *spa)
+{
+	zfs_dnode_t objdir_dn;
+	zfs_dnode_t cfg_dn;
+	uint8_t *cfg = NULL;
+	size_t cfg_len;
+	znv_list_t *nv = NULL, *tree = NULL, *child = NULL;
+	znv_pair_t *children;
+	int rc = -1;
+
+	zdmu_objset_metadnode(spa->mos_objset, &g_metadn);
+
+	if (zdmu_dnode_of(spa, &g_metadn, ZMOS_OBJECT_DIRECTORY,
+	    &objdir_dn) != 0) {
+		vlogf("zfs: cannot read MOS object directory dnode\n");
+		return (-1);
+	}
+
+	if (zzap_lookup_u64(spa, &objdir_dn, ZMOS_CFG_OBJECT,
+	    &spa->config_obj) != 0) {
+		vlogf("zfs: object directory lacks 'config'\n");
+		return (-1);
+	}
+	/* optional: log spacemap zap object id */
+	if (zzap_lookup_u64(spa, &objdir_dn, ZMOS_LOG_SPACEMAP_ZAP,
+	    &spa->log_spacemap_zap) != 0)
+		spa->log_spacemap_zap = 0;
+
+	/* config object: packed nvlist */
+	if (zdmu_dnode_of(spa, &g_metadn, spa->config_obj, &cfg_dn) != 0)
+		return (-1);
+	cfg_len = (size_t)zdn_datablksz(&cfg_dn) *
+	    (uint64_t)(zle64(cfg_dn.raw + ZDN_MAXBLKID) + 1);
+	if (cfg_len == 0 || cfg_len > (1U << 20))
+		return (-1);
+	cfg = malloc(cfg_len);
+	if (cfg == NULL)
+		return (-1);
+	if (zdmu_read(spa, &cfg_dn, 0, cfg, cfg_len) != 0)
+		goto out;
+	if (znv_parse(cfg, cfg_len, &nv) != 0) {
+		vlogf("zfs: cannot parse MOS config nvlist\n");
+		goto out;
+	}
+	if (znv_get_nvlist(nv, ZPOOL_CFG_VDEV_TREE, &tree) != 0)
+		goto out;
+	children = znv_find(tree, ZPOOL_CFG_CHILDREN);
+	if (children == NULL || children->type != ZNV_NVLIST_ARRAY ||
+	    children->nelem != 1) {
+		vlogf("zfs: root vdev has != 1 children "
+		    "(stripe-only build)\n");
+		goto out;
+	}
+	child = children->childa[0];
+
+	/* optional per-top-vdev ZAP -> unflushed phys txgs object */
+	if (znv_get_u64(child, ZVDEV_TOP_ZAP_KEY, &spa->vdev_top_zap) == 0) {
+		zfs_dnode_t vzap_dn;
+
+		if (zdmu_dnode_of(spa, &g_metadn, spa->vdev_top_zap,
+		    &vzap_dn) == 0 &&
+		    zzap_lookup_u64(spa, &vzap_dn, ZVDEV_TOP_ZAP_UNFLUSHED,
+		    &spa->unflushed_obj) != 0)
+			spa->unflushed_obj = 0;
+	}
+	rc = 0;
+	vlogf("zfs: config_obj=%llu log_sm_zap=%llu vdev_top_zap=%llu "
+	    "unflushed_obj=%llu\n",
+	    (unsigned long long)spa->config_obj,
+	    (unsigned long long)spa->log_spacemap_zap,
+	    (unsigned long long)spa->vdev_top_zap,
+	    (unsigned long long)spa->unflushed_obj);
+out:
+	if (nv != NULL)
+		znv_free(nv);
+	free(cfg);
+	return (rc);
+}
+
+/* ------------------------------------------------------------------ */
+/* metaslab array + unflushed array loading                             */
+/* ------------------------------------------------------------------ */
+
+static uint64_t *load_u64_array(zfs_spa_t *spa, uint64_t obj,
+    uint64_t count)
+{
+	zfs_dnode_t dn;
+	uint64_t *arr;
+
+	if (obj == 0 || count == 0 || count > (1ULL << 24))
+		return (NULL);
+	if (zdmu_dnode_of(spa, &g_metadn, obj, &dn) != 0)
+		return (NULL);
+	arr = malloc(count * sizeof (uint64_t));
+	if (arr == NULL)
+		return (NULL);
+	if (zdmu_read(spa, &dn, 0, arr, count * sizeof (uint64_t)) != 0) {
+		free(arr);
+		return (NULL);
+	}
+	return (arr);
+}
+
+/* ------------------------------------------------------------------ */
+/* log spacemap zap: collect (txg -> sm object) pairs                   */
+/* ------------------------------------------------------------------ */
+
+typedef struct {
+	uint64_t	*txgs;
+	uint64_t	*objs;
+	size_t		n;
+	size_t		cap;
+} log_list_t;
+
+static int log_collect_cb(const uint8_t *name, uint32_t name_len,
+    uint64_t value, int has_value, void *arg)
+{
+	log_list_t *l = arg;
+	uint64_t txg = 0;
+
+	/* keys are the txg number as a lowercase hex ASCII string
+	 * (empirically observed format, e.g. "4b", "88", "c5") */
+	if (name_len < 2 || name_len > 17 || !has_value ||
+	    name[name_len - 1] != '\0')
+		return (0);
+	for (uint32_t i = 0; i + 1 < name_len; i++) {
+		uint8_t c = name[i];
+		uint32_t d;
+
+		if (c >= '0' && c <= '9')
+			d = c - '0';
+		else if (c >= 'a' && c <= 'f')
+			d = c - 'a' + 10;
+		else
+			return (0);
+		txg = (txg << 4) | d;
+	}
+	if (l->n == l->cap) {
+		size_t ncap = l->cap ? l->cap * 2 : 64;
+		uint64_t *nt = realloc(l->txgs, ncap * sizeof (uint64_t));
+		uint64_t *no;
+
+		if (nt == NULL)
+			return (-1);
+		l->txgs = nt;
+		no = realloc(l->objs, ncap * sizeof (uint64_t));
+		if (no == NULL)
+			return (-1);
+		l->objs = no;
+		l->cap = ncap;
+	}
+	l->txgs[l->n] = txg;
+	l->objs[l->n] = value;
+	l->n++;
 	return (0);
 }
 
-/* ------------------------------------------------------------------ */
-/* Space-map replay (safety net; matches zdb -b bp allocated)           */
-/* ------------------------------------------------------------------ */
-
-static void
-replay_metaslab_spacemap(spa_t *spa, metaslab_t *msp, walk_ctx_t *ctx)
+static int cmp_u64_pair(const void *a, const void *b, void *ctx)
 {
-	if (msp->ms_sm == NULL || msp->ms_sm->sm_object == 0)
-		return;
+	const log_list_t *l = ctx;
+	size_t ia = *(const size_t *)a, ib = *(const size_t *)b;
 
-	uint64_t sm_obj	= msp->ms_sm->sm_object;
-	uint64_t start	= msp->ms_start;
-	uint8_t  shift	= msp->ms_sm->sm_shift;
-	uint64_t length	= space_map_length(msp->ms_sm);
-	objset_t *os	= spa_meta_objset(spa);
-
-	for (uint64_t off = 0; off + sizeof (uint64_t) <= length;
-	    off += sizeof (uint64_t)) {
-		uint64_t word = 0;
-		if (dmu_read(os, sm_obj, off, sizeof (word), &word,
-		    DMU_READ_PREFETCH) != 0)
-			break;
-		if (sm_entry_is_debug(word))
-			continue;
-
-		uint64_t entry_off, entry_run;
-		int is_alloc;
-
-		if (sm_entry_is_single_word(word)) {
-			is_alloc = (SM_TYPE_DECODE(word) == SM_ALLOC);
-			entry_off = (SM_OFFSET_DECODE(word) << shift) + start;
-			entry_run = SM_RUN_DECODE(word) << shift;
-		} else {
-			uint64_t extra = 0;
-			off += sizeof (extra);
-			if (off + sizeof (extra) > length)
-				break;
-			if (dmu_read(os, sm_obj, off, sizeof (extra), &extra,
-			    DMU_READ_PREFETCH) != 0)
-				break;
-			entry_run = SM2_RUN_DECODE(word) << shift;
-			is_alloc  = (SM2_TYPE_DECODE(extra) == SM_ALLOC);
-			entry_off = SM2_OFFSET_DECODE(extra) << shift;
-			/* SM2_VDEV_DECODE(word) would give vdev id; v1 ignores
-			 * since stripe is guaranteed vdev==0. */
-		}
-		if (is_alloc)
-			mark_range_used_dva(ctx, entry_off, entry_run);
-		else
-			clear_range_used_dva(ctx, entry_off, entry_run);
-	}
+	if (l->txgs[ia] < l->txgs[ib])
+		return (-1);
+	if (l->txgs[ia] > l->txgs[ib])
+		return (1);
+	return (0);
 }
 
-static void
-replay_log_spacemaps(spa_t *spa, walk_ctx_t *ctx)
+/* replay log spacemaps in ascending txg order */
+static void replay_logs(zfs_spa_t *spa, const uint64_t *unflushed)
 {
-	if (!spa_feature_is_active(spa, SPA_FEATURE_LOG_SPACEMAP))
+	zfs_dnode_t zap_dn;
+	log_list_t list = { 0 };
+	size_t *order = NULL;
+	log_ctx_t ctx;
+
+	if (spa->log_spacemap_zap == 0)
 		return;
+	if (zdmu_dnode_of(spa, &g_metadn, spa->log_spacemap_zap,
+	    &zap_dn) != 0)
+		return;
+	if (zzap_iterate(spa, &zap_dn, log_collect_cb, &list) < 0 ||
+	    list.n == 0)
+		goto out;
 
-	objset_t *os = spa_meta_objset(spa);
+	order = malloc(list.n * sizeof (size_t));
+	if (order == NULL)
+		goto out;
+	for (size_t i = 0; i < list.n; i++)
+		order[i] = i;
+	qsort_r(order, list.n, sizeof (size_t), cmp_u64_pair, &list);
 
-	for (spa_log_sm_t *sls = avl_first(&spa->spa_sm_logs_by_txg);
-	    sls != NULL; sls = AVL_NEXT(&spa->spa_sm_logs_by_txg, sls)) {
-		space_map_t *sm = NULL;
-		if (space_map_open(&sm, os, sls->sls_sm_obj, 0, UINT64_MAX,
-		    SPA_MINBLOCKSHIFT) != 0 || sm == NULL)
-			continue;
-		uint64_t length = space_map_length(sm);
-		uint8_t shift   = sm->sm_shift;
+	ctx.unflushed   = unflushed;
+	ctx.ms_count    = spa->ms_count;
+	ctx.ms_shift    = spa->metaslab_shift;
+	ctx.allocs_only = (unflushed == NULL);
 
-		for (uint64_t off = 0; off + sizeof (uint64_t) <= length;
-		    off += sizeof (uint64_t)) {
-			uint64_t word = 0;
-			if (dmu_read(os, sls->sls_sm_obj, off, sizeof (word),
-			    &word, DMU_READ_PREFETCH) != 0)
-				break;
-			if (sm_entry_is_debug(word))
-				continue;
-			if (sm_entry_is_single_word(word))
-				continue;	/* log entries are SM2 */
-
-			uint64_t extra = 0;
-			off += sizeof (extra);
-			if (off + sizeof (extra) > length)
-				break;
-			if (dmu_read(os, sls->sls_sm_obj, off, sizeof (extra),
-			    &extra, DMU_READ_PREFETCH) != 0)
-				break;
-
-			uint64_t run  = SM2_RUN_DECODE(word) << shift;
-			int is_alloc  = (SM2_TYPE_DECODE(extra) == SM_ALLOC);
-			uint64_t eoff = SM2_OFFSET_DECODE(extra) << shift;
-			if (is_alloc)
-				mark_range_used_dva(ctx, eoff, run);
-			else
-				clear_range_used_dva(ctx, eoff, run);
-		}
-		space_map_close(sm);
+	for (size_t i = 0; i < list.n; i++) {
+		ctx.txg = list.txgs[order[i]];
+		ctx.applied = 0;
+		ctx.skipped = 0;
+		if (zsm_replay_object(spa, &g_metadn, list.objs[order[i]],
+		    0, ZSM_LOG_SHIFT, apply_log, &ctx, NULL) != 0)
+			vlogf("zfs: log txg=%llu obj=%llu UNREADABLE\n",
+			    (unsigned long long)ctx.txg,
+			    (unsigned long long)list.objs[order[i]]);
 	}
+	vlogf("zfs: replayed %zu log spacemaps%s\n", list.n,
+	    ctx.allocs_only ? " (alloc-only: unflushed unavailable)" : "");
+out:
+	free(order);
+	free(list.txgs);
+	free(list.objs);
+}
+
+/* ------------------------------------------------------------------ */
+/* used-block estimate (for fs_info->usedblocks)                        */
+/* ------------------------------------------------------------------ */
+
+static uint64_t estimate_used(zfs_spa_t *spa, const uint64_t *ms_arr)
+{
+	uint64_t total = 2 * ZFS_LABEL_START_SIZE;	/* labels, approx */
+
+	for (uint64_t m = 0; m < spa->ms_count; m++) {
+		uint64_t smp_alloc = 0;
+
+		if (ms_arr[m] == 0)
+			continue;
+		if (zsm_read_header(spa, &g_metadn, ms_arr[m], NULL, NULL,
+		    &smp_alloc) == 0)
+			total += smp_alloc;
+	}
+	return (total >> ZFS_SECTOR_SHIFT);
 }
 
 /* ------------------------------------------------------------------ */
 /* fs_open / fs_close                                                   */
 /* ------------------------------------------------------------------ */
 
-/*
- * Try to import the pool by scanning a given path (device or directory).
- * Returns 0 on success, or sets g_spa via spa_open_rewind afterwards.
- * Returns the last error if the pool cannot be found there.
- */
-static int
-try_import_via_device(const char *scan_path)
-{
-	char *searchdirs[1] = { (char *)scan_path };
-	importargs_t iargs = { 0 };
-	iargs.paths        = 1;
-	iargs.path         = searchdirs;
-	iargs.can_be_active = B_TRUE;
-
-	libpc_handle_t lpch = {
-		.lpc_lib_handle = NULL,
-		.lpc_ops        = &libzpool_config_ops,
-		.lpc_printerr   = B_FALSE,
-	};
-	nvlist_t *cfg = NULL;
-	if (zpool_find_config(&lpch, g_pool_name, &cfg, &iargs) != 0)
-		return (ENOENT);
-
-	int ierr = spa_import((char *)g_pool_name, cfg, NULL,
-	    ZFS_IMPORT_SKIP_MMP);
-	nvlist_free(cfg);
-	if (ierr != 0)
-		return (ierr);
-	return (spa_open_rewind(g_pool_name, &g_spa, FTAG, NULL, NULL));
-}
-
-static int
-read_pool_name_from_label(const char *device, char *buf, size_t bufsz)
-{
-	nvlist_t *cfg = NULL;
-	int nlabels = 0;
-	int err;
-	int fd = open(device, O_RDONLY | O_CLOEXEC);
-	if (fd < 0)
-		return (-1);
-	err = zpool_read_label(fd, &cfg, &nlabels);
-	close(fd);
-	if (err != 0 || cfg == NULL)
-		return (-1);
-	const char *name = NULL;
-	if (nvlist_lookup_string(cfg, ZPOOL_CONFIG_POOL_NAME,
-	    &name) != 0 || name == NULL) {
-		nvlist_free(cfg);
-		return (-1);
-	}
-	snprintf(buf, bufsz, "%s", name);
-	nvlist_free(cfg);
-	return (0);
-}
-
-static void
-fs_open(char *device)
+static void fs_open(char *device)
 {
 	if (g_spa != NULL)
 		return;
-
-	if (!g_kernel_inited) {
-		kernel_init(SPA_MODE_READ);
-		g_kernel_inited = 1;
-	}
-
-	if (read_pool_name_from_label(device, g_pool_name,
-	    sizeof (g_pool_name)) != 0) {
+	if (zspa_open(&g_spa, device, vlogf) != 0)
 		log_mesg(0, 1, 1, fs_opt.debug,
-		    "%s: %s: no readable ZFS vdev label (is this a ZFS "
-		    "partition?)\n", __FILE__, device);
-	}
-
-	int err = spa_open_rewind(g_pool_name, &g_spa, FTAG, NULL, NULL);
-
-	if (err == ENOENT) {
-		/*
-		 * Pool not in the cachefile.  First try to find the pool
-		 * via the source device itself - that avoids ambiguity
-		 * when other stale ZFS-labelled devices are present on
-		 * the system (e.g. a previously-restored clone of the
-		 * same pool sitting on another disk).
-		 */
-		err = try_import_via_device(device);
-		if (err == ENOENT) {
-			/* Fall back to scanning all of /dev/ like zdb -e. */
-			err = try_import_via_device("/dev");
-		}
-	}
-
-	if (err != 0 || g_spa == NULL) {
+		    "%s: %s: not a readable ZFS stripe pool (v2)\n",
+		    __FILE__, device);
+	if (resolve_anchors(g_spa) != 0) {
+		zspa_close(g_spa);
+		g_spa = NULL;
 		log_mesg(0, 1, 1, fs_opt.debug,
-		    "%s: cannot open pool '%s' (device %s): %s\n",
-		    __FILE__, g_pool_name, device, strerror(err));
-	}
-
-	/* v1: enforce stripe-only pool. */
-	vdev_t *rvd = g_spa->spa_root_vdev;
-	if (rvd->vdev_children != 1) {
-		log_mesg(0, 1, 1, fs_opt.debug,
-		    "%s: pool '%s' has %llu top-level vdevs; "
-		    "partclone.zfs v1 supports only stripe pools\n",
-		    __FILE__, g_pool_name,
-		    (unsigned long long)rvd->vdev_children);
-	}
-	vdev_t *cvd = rvd->vdev_child[0];
-	if (cvd->vdev_ms == NULL || cvd->vdev_ms_count == 0) {
-		log_mesg(0, 1, 1, fs_opt.debug,
-		    "%s: top-level vdev has no metaslabs (not a stripe "
-		    "leaf vdev)\n", __FILE__);
+		    "%s: cannot resolve MOS anchors on %s\n",
+		    __FILE__, device);
 	}
 }
 
-static void
-fs_close(void)
+static void fs_close(void)
 {
 	if (g_spa != NULL) {
-		spa_close(g_spa, FTAG);
+		zspa_close(g_spa);
 		g_spa = NULL;
 	}
-	if (g_kernel_inited) {
-		kernel_fini();
-		g_kernel_inited = 0;
-	}
 }
 
 /* ------------------------------------------------------------------ */
-/* file_system_info fillers                                             */
+/* partclone interface                                                  */
 /* ------------------------------------------------------------------ */
 
-static unsigned long long
-get_block_count(void)
+void read_super_blocks(char *device, file_system_info *fs_info)
 {
-	vdev_t *rvd = g_spa->spa_root_vdev;
-	vdev_t *cvd = rvd->vdev_child[0];
-	/* Use vdev_psize (partition size) so the bitmap covers the WHOLE
-	 * partition - including the label area - not just the data area. */
-	return (cvd->vdev_psize >> ZFS_SECTOR_SHIFT);
-}
+	uint64_t *ms_arr = NULL;
 
-static unsigned long long
-get_used_blocks_estimate(void)
-{
-	vdev_t *rvd = g_spa->spa_root_vdev;
-	vdev_t *cvd = rvd->vdev_child[0];
-	uint64_t alloc = 0;
-	for (uint64_t m = 0; m < cvd->vdev_ms_count; m++) {
-		metaslab_t *msp = cvd->vdev_ms[m];
-		if (msp != NULL && msp->ms_sm != NULL)
-			alloc += (uint64_t)space_map_allocated(msp->ms_sm);
-	}
-	return (alloc >> ZFS_SECTOR_SHIFT);
-}
-
-void
-read_super_blocks(char *device, file_system_info *fs_info)
-{
 	fs_open(device);
 
 	strncpy(fs_info->fs, zfs_MAGIC, FS_MAGIC_SIZE);
 	fs_info->block_size  = ZFS_SECTOR_SIZE;
-	fs_info->totalblock  = get_block_count();
-	fs_info->usedblocks  = get_used_blocks_estimate();
+	fs_info->totalblock  =
+	    (unsigned long long)(g_spa->psize >> ZFS_SECTOR_SHIFT);
+
+	ms_arr = load_u64_array(g_spa, g_spa->metaslab_array,
+	    g_spa->ms_count);
+	fs_info->usedblocks = (ms_arr != NULL) ? estimate_used(g_spa, ms_arr)
+	    : fs_info->totalblock / 10;		/* crude fallback */
+	free(ms_arr);
+
 	fs_info->device_size =
 	    (unsigned long long)fs_info->block_size * fs_info->totalblock;
 	fs_info->superBlockUsedBlocks = fs_info->usedblocks;
 
-	log_mesg(1, 0, 0, fs_opt.debug, "%s: zfs pool '%s' block_size=%u "
-	    "totalblock=%llu usedblocks=%llu device_size=%llu\n",
-	    __FILE__, g_pool_name, fs_info->block_size, fs_info->totalblock,
-	    fs_info->usedblocks, fs_info->device_size);
+	log_mesg(1, 0, 0, fs_opt.debug,
+	    "%s: zfs pool '%s' block_size=%u totalblock=%llu "
+	    "usedblocks~=%llu device_size=%llu\n",
+	    __FILE__, g_spa->pool_name, fs_info->block_size,
+	    fs_info->totalblock, fs_info->usedblocks, fs_info->device_size);
 
 	fs_close();
 }
 
-void
-read_bitmap(char *device, file_system_info fs_info, unsigned long *bitmap,
-    int pui)
+void read_bitmap(char *device, file_system_info fs_info,
+    unsigned long *bitmap, int pui)
 {
-	walk_ctx_t ctx = {
-		.bitmap       = bitmap,
-		.total_blocks = fs_info.totalblock,
-	};
-
+	uint64_t *ms_arr = NULL;
+	uint64_t *unflushed = NULL;
 	progress_bar prog;
-	progress_init(&prog, 0, 4, 4, BITMAP, 1);
+
+	(void)pui;
+	progress_init(&prog, 0, 5, 5, BITMAP, 1);
 
 	fs_open(device);
-	vdev_t *rvd = g_spa->spa_root_vdev;
-	vdev_t *cvd = rvd->vdev_child[0];
 
-	log_mesg(1, 0, 0, fs_opt.debug, "%s: read_bitmap: start, pool=%s "
-	    "totalblock=%llu\n", __FILE__, g_pool_name, fs_info.totalblock);
+	log_mesg(1, 0, 0, fs_opt.debug,
+	    "%s: read_bitmap: start pool=%s totalblock=%llu\n",
+	    __FILE__, g_spa->pool_name, fs_info.totalblock);
 
-	/* Start from "all free" then mark used regions. */
+	g_bm.bitmap = bitmap;
+	g_bm.total_blocks = fs_info.totalblock;
 	pc_init_bitmap(bitmap, 0x00, fs_info.totalblock);
 
-	/* Always mark vdev label areas used: labels + uberblock ring. */
-	mark_range_used(&ctx, 0, VDEV_LABEL_START_SIZE);
-	mark_range_used(&ctx, cvd->vdev_psize - VDEV_LABEL_END_SIZE,
-	    VDEV_LABEL_END_SIZE);
+	/* vdev label areas: first 4 MiB, last 512 KiB */
+	bm_range(0, ZFS_LABEL_START_SIZE, 1);
+	bm_range(g_spa->psize - ZFS_LABEL_END_SIZE, ZFS_LABEL_END_SIZE, 1);
 
+	/* The current uberblock's MOS root block (all ditto copies) is
+	 * allocated out-of-band during the txg commit: neither the flushed
+	 * metaslab maps nor the log spacemaps track it (observed on a pool
+	 * exported at txg 26 whose ub_rootbp's DVA[2] landed in a metaslab
+	 * with no space map object at all). Always mark it. */
+	{
+		const zfs_bp_t *rb = &g_spa->mos_bp;
+		for (int d = 0; d < 3; d++) {
+			zfs_dva_t dva;
+			zbp_get_dva(rb, d, &dva);
+			if (dva.asize == 0)
+				continue;
+			bm_range_dva(dva.offset, dva.asize, 1);
+			log_mesg(1, 0, 0, fs_opt.debug,
+			    "%s: ub rootbp dva[%d] off=%#llx asize=%#llx "
+			    "marked\n", __FILE__, d,
+			    (unsigned long long)dva.offset,
+			    (unsigned long long)dva.asize);
+		}
+	}
 	update_pui(&prog, 1, 1, 0);
 
-	/* Walk live blkptrs (MOS + datasets + snapshots + indirects). */
-	int terr = traverse_pool(g_spa, 0,
-	    TRAVERSE_PRE | TRAVERSE_PREFETCH_METADATA, walk_cb, &ctx);
-	if (terr != 0)
+	/* Walk every live block pointer in the MOS subtree. This is the
+	 * comprehensive safety net covering out-of-band commit blocks
+	 * (final uberblock sync writes: new MOS root, object directory,
+	 * config, per-vdev ZAPs, log spacemap objects themselves, ...)
+	 * that no spacemap records. */
+	if (ztraverse_objset(g_spa, g_spa->mos_objset, g_spa->mos_objset_len,
+	    apply_traverse, NULL) != 0)
 		log_mesg(2, 0, 0, fs_opt.debug,
-		    "%s: traverse_pool returned %d\n", __FILE__, terr);
-
+		    "%s: MOS traversal returned error\n", __FILE__);
 	update_pui(&prog, 2, 2, 0);
 
-	/* Replay every metaslab's spacemap: catches orphan allocations that
-	 * no live dnode points to (deferred frees, partially-destroyed
-	 * objects). Produces the same total as `zdb -b`'s bp allocated when
-	 * summed over the whole vdev. */
-	for (uint64_t m = 0; m < cvd->vdev_ms_count; m++) {
-		metaslab_t *msp = cvd->vdev_ms[m];
-		if (msp == NULL || msp->ms_sm == NULL)
+	/* metaslab space maps */
+	ms_arr = load_u64_array(g_spa, g_spa->metaslab_array,
+	    g_spa->ms_count);
+	if (ms_arr == NULL)
+		log_mesg(0, 1, 1, fs_opt.debug,
+		    "%s: cannot read metaslab array object %llu\n",
+		    __FILE__, (unsigned long long)g_spa->metaslab_array);
+	for (uint64_t m = 0; m < g_spa->ms_count; m++) {
+		if (ms_arr[m] == 0)
 			continue;
-		replay_metaslab_spacemap(g_spa, msp, &ctx);
+		if (zsm_replay_object(g_spa, &g_metadn, ms_arr[m],
+		    m << g_spa->metaslab_shift, g_spa->ashift, apply_ms,
+		    NULL, NULL) != 0)
+			log_mesg(2, 0, 0, fs_opt.debug,
+			    "%s: metaslab %llu (sm obj %llu) unreadable\n",
+			    __FILE__, (unsigned long long)m,
+			    (unsigned long long)ms_arr[m]);
 	}
-
+	free(ms_arr);
 	update_pui(&prog, 3, 3, 0);
 
-	/* Log space-maps (if enabled) add pending spacemap entries. */
-	replay_log_spacemaps(g_spa, &ctx);
+	/* log space maps (feature@log_spacemap) */
+	unflushed = load_u64_array(g_spa, g_spa->unflushed_obj,
+	    g_spa->ms_count);
+	replay_logs(g_spa, unflushed);
+	free(unflushed);
+	update_pui(&prog, 4, 4, 0);
 
 	fs_close();
-	update_pui(&prog, 4, 4, 1);
+	update_pui(&prog, 5, 5, 1);
 }

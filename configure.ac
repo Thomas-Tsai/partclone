@@ -144,7 +144,7 @@ fuse_version="${fuse_version_major}.${fuse_version_minor}"
 AC_MSG_RESULT([$fuse_version])
 fi
 
-AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([*** pthread library (libpthread) not found]))
+AC_CHECK_LIB([pthread], [pthread_create], [:], AC_MSG_ERROR([*** pthread library (libpthread) not found]))
 
 ##ext2/3##
 AC_ARG_ENABLE([extfs],
@@ -162,7 +162,7 @@ AC_CHECK_HEADERS([ext2fs/ext2fs.h], ,
   AC_MSG_ERROR([*** EXT2/3 header files (ext2fs/ext2fs.h) not found])
 )
 AC_CHECK_LIB([com_err], [com_err])
-AC_CHECK_LIB([ext2fs], [ext2fs_initialize], [],
+AC_CHECK_LIB([ext2fs], [ext2fs_initialize], [:],
     AC_MSG_ERROR([*** EXT2/3 library (libext2fs) not found]))
 
 AC_MSG_CHECKING(version of libextfs)
@@ -202,9 +202,9 @@ AS_MESSAGE([checking  for Reiserfs Library and Header files ... ...])
 AC_CHECK_HEADERS([reiserfs/reiserfs.h], ,
     AC_MSG_ERROR([*** reiserfs header files (reiserfs/reiserfs.h) not found])
 )
-AC_CHECK_LIB([dal], [file_dal_open], [],
+AC_CHECK_LIB([dal], [file_dal_open], [:],
     AC_MSG_ERROR([*** Reiserfs depend library (libdal) not found]))
-AC_CHECK_LIB([reiserfs], [reiserfs_fs_open], [],
+AC_CHECK_LIB([reiserfs], [reiserfs_fs_open], [:],
     AC_MSG_ERROR([*** Reiserfs library (libreiserfs) not found]))
 AC_MSG_CHECKING(version of libreiserfs)
 supported_fs=$supported_fs" reiserfs"
@@ -229,7 +229,7 @@ AS_MESSAGE([checking  for Reiser4 Library and Header files ... ...])
 AC_CHECK_HEADERS([reiser4/libreiser4.h], ,
   AC_MSG_ERROR([*** reiser4 header files (reiser4/libreiser4.h) not found])
 )
-AC_CHECK_LIB([aal], [aal_device_open], [],
+AC_CHECK_LIB([aal], [aal_device_open], [:],
     AC_MSG_ERROR([*** Reiser4 depend library (libaal) not found]))
 supported_fs=$supported_fs" reiser4"
 reiser4_version="unknown, suggest 1.0.6"
@@ -325,7 +325,7 @@ AC_CHECK_HEADERS([nilfs.h], ,
   AC_MSG_ERROR([*** nilfs2 header files (nilfs.h) not found])
 )
 
-AC_CHECK_LIB([nilfs], [nilfs_open], [],
+AC_CHECK_LIB([nilfs], [nilfs_open], [:],
     AC_MSG_ERROR([*** nilfs2 depend library (libnilfs) not found]))
 
 AC_CHECK_TYPES([struct nilfs_layout], [], [], [#include <nilfs.h>])
@@ -397,7 +397,7 @@ if test "$enable_ufs" = "yes"; then
 
 dnl Check for UFS 
 AS_MESSAGE([checking  for UFS Library ... ...])
-AC_CHECK_LIB([ufs], [ufs_disk_fillout], [],
+AC_CHECK_LIB([ufs], [ufs_disk_fillout], [:],
         AC_MSG_ERROR([*** ufs depend library (libufs2) not found]))
 supported_fs=$supported_fs" ufs"
 ufs_version="unknown, suggest 7.0-2"
@@ -420,7 +420,7 @@ dnl Check for VMFS
 ##AC_CHECK_HEADERS([uuid/uuid.h vmfs/vmfs.h], ,
 ##   AC_MSG_ERROR([*** VMFS(vmfs-tools) header not found]))
 AS_MESSAGE([checking for VMFS Library files ... ...])
-AC_CHECK_LIB([vmfs -luuid], [vmfs_host_init], [],
+AC_CHECK_LIB([vmfs -luuid], [vmfs_host_init], [:],
         AC_MSG_ERROR([*** vmfs depend library (libvmfs) not found]))
 supported_fs=$supported_fs" vmfs"
 vmfs_version="unknown"
@@ -443,7 +443,7 @@ dnl Check for JFS
 ##AC_CHECK_HEADERS([uuid/uuid.h jfs/jfs_superblock.h], ,
 ##   AC_MSG_ERROR([*** JFS(libjfs) header not found]))
 AS_MESSAGE([checking for JFS Library files ... ...])
-AC_CHECK_LIB([jfs -luuid], [ujfs_get_superblk], [],
+AC_CHECK_LIB([jfs -luuid], [ujfs_get_superblk], [:],
         AC_MSG_ERROR([*** jfs depend library (libjfs) not found]))
 supported_fs=$supported_fs" jfs"
 jfs_version="unknown, suggest 1.1.12"
@@ -469,15 +469,40 @@ fi
 
 #end of check btrfs
 
-##zfs##
+##zfs## (clean-room parser: no CDDL dependencies, mainline)
 AC_ARG_ENABLE([zfs],
     AS_HELP_STRING(
         [--enable-zfs],
-        [enable ZFS file system (requires libzfslinux-dev and libudev-dev)])
+        [enable ZFS file system via clean-room parser (no CDDL deps)])
 )
 AM_CONDITIONAL(ENABLE_ZFS, test "$enable_zfs" = yes)
 
 if test "$enable_zfs" = yes; then
+
+AC_CHECK_HEADERS([lz4.h], [],
+    AC_MSG_ERROR([*** lz4.h not found - install liblz4-dev]))
+AC_CHECK_LIB([lz4], [LZ4_decompress_safe], [:],
+    AC_MSG_ERROR([*** liblz4 not found - install liblz4-dev]))
+AC_CHECK_HEADERS([zlib.h], [],
+    AC_MSG_ERROR([*** zlib.h not found - install zlib1g-dev]))
+AC_CHECK_LIB([z], [inflateInit2_], [:],
+    AC_MSG_ERROR([*** zlib not found - install zlib1g-dev]))
+
+supported_fs=$supported_fs" zfs"
+zfs_version="clean-room (liblz4 + zlib only)"
+fi
+
+#end of check zfs
+
+##openzfs## (CDDL-linked fallback via libzfslinux-dev)
+AC_ARG_ENABLE([openzfs],
+    AS_HELP_STRING(
+        [--enable-openzfs],
+        [enable ZFS file system via OpenZFS libraries (CDDL; requires libzfslinux-dev)])
+)
+AM_CONDITIONAL(ENABLE_OPENZFS, test "$enable_openzfs" = yes)
+
+if test "$enable_openzfs" = yes; then
 
 dnl Headers shipped by libzfslinux-dev. AC_CHECK_HEADERS would fail because
 dnl OpenZFS headers need _LARGEFILE64_SOURCE / _GNU_SOURCE in CPPFLAGS.
@@ -498,35 +523,35 @@ AC_CHECK_FILE([/usr/include/libzfs/zfeature_common.h],,
     AC_MSG_ERROR([*** libzfs/zfeature_common.h not found - install libzfslinux-dev]))
 
 dnl Make sure the libraries exist.
-AC_CHECK_LIB([zpool], [kernel_init], [],
+AC_CHECK_LIB([zpool], [kernel_init], [:],
     AC_MSG_ERROR([*** libzpool not found - install libzfslinux-dev]))
-AC_CHECK_LIB([zfs], [zpool_find_config], [],
+AC_CHECK_LIB([zfs], [zpool_find_config], [:],
     AC_MSG_ERROR([*** libzfs not found - install libzfslinux-dev]))
-AC_CHECK_LIB([zfs_core], [lzc_snapshot], [],
+AC_CHECK_LIB([zfs_core], [lzc_snapshot], [:],
     AC_MSG_ERROR([*** libzfs_core not found - install libzfslinux-dev]))
-AC_CHECK_LIB([nvpair], [nvlist_lookup_string], [],
+AC_CHECK_LIB([nvpair], [nvlist_lookup_string], [:],
     AC_MSG_ERROR([*** libnvpair not found - install libzfslinux-dev]))
-AC_CHECK_LIB([uutil], [uu_error], [],
+AC_CHECK_LIB([uutil], [uu_error], [:],
     AC_MSG_ERROR([*** libuutil not found - install libzfslinux-dev]))
 
 dnl libzfs/libzpool pull in these libraries (see libzfs_core.pc
 dnl Requires.private/Libs.private); they are also linked directly by
-dnl partclone.zfs in src/Makefile.am. libcrypto/zlib/libzstd are already
+dnl partclone.openzfs in src/Makefile.am. libcrypto/zlib/libzstd are already
 dnl checked globally above.
-AC_CHECK_LIB([udev], [udev_device_get_devnode], [],
+AC_CHECK_LIB([udev], [udev_device_get_devnode], [:],
     AC_MSG_ERROR([*** libudev not found - install libudev-dev]))
-AC_CHECK_LIB([blkid], [blkid_get_cache], [],
+AC_CHECK_LIB([blkid], [blkid_get_cache], [:],
     AC_MSG_ERROR([*** libblkid not found - install libblkid-dev]))
-AC_CHECK_LIB([uuid], [uuid_generate], [],
+AC_CHECK_LIB([uuid], [uuid_generate], [:],
     AC_MSG_ERROR([*** libuuid not found - install uuid-dev]))
-AC_CHECK_LIB([tirpc], [xdr_void], [],
+AC_CHECK_LIB([tirpc], [xdr_void], [:],
     AC_MSG_ERROR([*** libtirpc not found - install libtirpc-dev]))
 
-supported_fs=$supported_fs" zfs"
-zfs_version="unknown (uses libzfslinux-dev)"
+supported_fs=$supported_fs" openzfs"
+openzfs_version="unknown (CDDL, uses libzfslinux-dev)"
 fi
 
-#end of check zfs
+#end of check openzfs
 
 ##minix##
 AC_ARG_ENABLE([minix],
@@ -657,4 +682,5 @@ echo "minix......... ${enable_minix:-no}, ${minix_version:-}"
 echo "f2fs.......... ${enable_f2fs:-no}, ${f2fs_version:-}"
 echo "nilfs2.........${enable_nilfs2:-no}, ${nilfs2_version:-}"
 echo "zfs........... ${enable_zfs:-no}, ${zfs_version:-}"
+echo "openzfs....... ${enable_openzfs:-no}, ${openzfs_version:-}"
 #echo $supported_fs

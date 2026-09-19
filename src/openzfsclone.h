@@ -1,7 +1,9 @@
 /**
- * zfsclone.h - part of Partclone project
+ * openzfsclone.h - part of Partclone project (CDDL-linked variant)
  *
- * Clean-room ZFS used-block bitmap provider (no CDDL dependencies).
+ * Copyright (c) 2007~ Thomas Tsai <thomas at nchc org tw>
+ *
+ * read zfs vdev label and used-block bitmap
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
