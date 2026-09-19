@@ -3,8 +3,8 @@
 # ==============================================================================
 # Partclone ZFS advanced data clone/restore test (real partitions)
 #
-# ZFS counterpart of data_clone_restore_test. partclone.zfs v1 supports
-# stripe pools on a single partition vdev only, so this test:
+# ZFS counterpart of data_clone_restore_test. partclone.zfs supports stripe
+# pools on a single partition vdev only, so this test:
 #
 #   1. zpool create a stripe pool on $source_partition and fill it with data
 #      from $data_pool, record md5 sums, zpool export
@@ -15,6 +15,9 @@
 #   4. device-to-image clone (-c), restore image to the target partition (-r)
 #   5. verify the restored partition the same way
 #
+# The first argument selects the driver under test ("zfs" by default, or
+# "openzfs" for the CDDL-linked partclone.openzfs binary).
+#
 # Requirements: root, zfsutils-linux + zfs kernel module, two partitions.
 #   SOURCEPART/TARGETPART env override the defaults (/dev/sdb1 /dev/sdc1).
 # ==============================================================================
@@ -22,18 +25,21 @@
 . "$(dirname "$0")"/_common
 break_debug=0
 
+variant="${1:-zfs}"
+ptlfs=$(_ptlname $variant)
+
 source_partition="/dev/sdb1"
 target_partition="/dev/sdc1"
-target_image="/test/partclone-zfs-test.img"
+target_image="/test/partclone-${variant}-test.img"
 src_root="/test/zfs_source"
 tgt_root="/test/zfs_target"
 data_pool="/test/datapool/"
 chfile="/test/checksum.log"
 cchfile="/test/checksum_test.log"
-logfile="/test/clone-zfs.log"
+logfile="/test/clone-${variant}.log"
 
-pool="ptlzfsdata"
-pool_clone="ptlzfsdata_clone"
+pool="ptl${variant}data"
+pool_clone="${pool}_clone"
 
 if [ "X$SOURCEPART" != "X" ]; then
     source_partition=$SOURCEPART
@@ -57,8 +63,6 @@ if ! zpool list > /dev/null 2>&1; then
     echo "zfs kernel module not available"
     exit 1
 fi
-
-ptlfs=$(_ptlname zfs)
 
 zpool_cleanup(){
     zpool export $pool > /dev/null 2>&1 || true
@@ -86,13 +90,20 @@ verify_target(){
 
 #main
 
-echo -e "Advanced zfs test"
+echo -e "Advanced $variant test (driver: $ptlfs)"
 echo -e "==========================\n"
 
 zpool_cleanup
 mkdir -p $src_root $data_pool
 
 # clean partition
+# (dd zeroes only the first 4 GiB; stale ZFS labels near the partition end
+#  of a recycled target device would otherwise win the uberblock race on
+#  import - so clear its signatures first)
+
+wipefs -a $source_partition > /dev/null 2>&1 || true
+wipefs -a $target_partition > /dev/null 2>&1 || true
+zpool labelclear -f $target_partition > /dev/null 2>&1 || true
 
 dd if=/dev/zero of=$source_partition bs=1M count=4096
 dd if=/dev/zero of=$target_partition bs=1M count=4096
@@ -161,5 +172,5 @@ rm -rf $src_root $tgt_root $logfile $chfile $cchfile $target_image
 set -e
 _check_return_code
 
-echo -e "\nzfs test ok\n"
+echo -e "\n$variant test ok\n"
 echo -e "\nFinish!\n\n"

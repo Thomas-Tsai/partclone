@@ -159,4 +159,7 @@ jobs:
     - name: zfs Data Test
       if: always()
       run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./zfs_data_clone_restore_test && cd ../ && pwd
+    - name: openzfs Data Test
+      if: always()
+      run: cd tests && sudo env SOURCEPART="/dev/vdb1" env TARGETPART="/dev/vdb2"  bash -x ./openzfs_data_clone_restore_test && cd ../ && pwd
 
