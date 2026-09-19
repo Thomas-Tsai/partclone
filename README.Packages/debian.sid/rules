@@ -20,13 +20,15 @@ endif
 ifeq ($(IS_STATIC),1)
     PKG_NAME = partclone-static
     STATIC_OPT = --enable-static-linking
-    # OpenZFS (libzpool/libzfs) has no static libraries; skip zfs in static builds
-    ZFS_OPT = --disable-zfs
 else
     PKG_NAME = partclone
     STATIC_OPT =
-    ZFS_OPT = --enable-zfs
 endif
+
+# zfs support is the clean-room parser (liblz4/zlib only; static-safe).
+# The CDDL-linked OpenZFS variant (--enable-openzfs) is intentionally not
+# shipped in the Debian package.
+ZFS_OPT = --enable-zfs
 
 %:
 	dh $@ --with autoreconf -p$(PKG_NAME)

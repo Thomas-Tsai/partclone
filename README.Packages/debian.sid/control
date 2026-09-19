@@ -22,7 +22,7 @@ Build-Depends: debhelper-compat (= 13),
  libmount-dev,
  libxxhash-dev,
  liburcu-dev,
- libzfslinux-dev [linux-any],
+ liblz4-dev,
  libudev-dev [linux-any],
  libtirpc-dev [linux-any],
  libisal-dev [amd64 arm64 ppc64el riscv64 s390x]

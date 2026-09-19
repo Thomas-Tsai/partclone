@@ -24,7 +24,7 @@ RUN apt-get update && \
     hfsprogs reiserfsprogs btrfs-progs libxxhash-dev libfuse3-dev\
     libisal-dev zlib1g-dev libzstd-dev libjfs-dev libufs2 ufsutils \
     vmfs-tools libvmfs libbsd0 libbsd-dev liburcu-dev \
-    libzfslinux-dev libudev-dev libtirpc-dev zfsutils-linux && \
+    liblz4-dev libzfslinux-dev libudev-dev libtirpc-dev zfsutils-linux && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -38,7 +38,7 @@ RUN ./autogen && \
     --enable-extfs --enable-ntfs --enable-fat --enable-exfat \
     --enable-hfsp --enable-apfs --enable-btrfs --enable-minix --enable-f2fs \
     --enable-xfs --enable-nilfs2 --enable-fuse --enable-jfs \
-    --enable-ufs --enable-vmfs --enable-zfs && \
+    --enable-ufs --enable-vmfs --enable-zfs --enable-openzfs && \
     make && \
     make install
 
