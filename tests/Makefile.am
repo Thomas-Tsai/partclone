@@ -20,6 +20,10 @@ if ENABLE_ZFS
 TESTS += zfs.test
 endif
 
+if ENABLE_OPENZFS
+TESTS += openzfs.test
+endif
+
 if ENABLE_FAT
 TESTS += fat.test
 endif

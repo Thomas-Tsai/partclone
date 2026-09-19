@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# ==============================================================================
+# Partclone OpenZFS (CDDL-linked) clone/restore test
+#
+# Runs the exact same scenario as zfs.test, but against partclone.openzfs
+# (the --enable-openzfs binary). See zfs.test for details.
+# ==============================================================================
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+export PTLZFS="$SCRIPT_DIR/../src/partclone.openzfs"
+export POOL="ptl_openzfs_test"
+export POOL_CLONE="ptl_openzfs_test_clone"
+exec "$SCRIPT_DIR/zfs.test" "$@"

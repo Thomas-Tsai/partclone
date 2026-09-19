@@ -43,19 +43,22 @@ function print_fail() {
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PTLDIR="$SCRIPT_DIR/../src"
-PTLZFS="$PTLDIR/partclone.zfs"
+# The binary under test may be overridden (e.g. by openzfs.test) so the
+# same scenario can exercise partclone.zfs or partclone.openzfs.
+PTLZFS="${PTLZFS:-$PTLDIR/partclone.zfs}"
 PTLRESTORE="$PTLDIR/partclone.restore"
 PTLCHKIMG="$PTLDIR/partclone.chkimg"
+VARIANT="$(basename "$PTLZFS")"
 
-RAW_SRC="$$_zfs_src.raw"
-CLONE_IMG="$$_zfs_clone.img"
-RAW_RESTORE="$$_zfs_restore.raw"
-RAW_DIRECT="$$_zfs_direct.raw"
-LOG_FILE="$$_zfs_test.log"
-CH_FILE="$$_zfs_checksum.md5"
+RAW_SRC="$$_${VARIANT}_src.raw"
+CLONE_IMG="$$_${VARIANT}_clone.img"
+RAW_RESTORE="$$_${VARIANT}_restore.raw"
+RAW_DIRECT="$$_${VARIANT}_direct.raw"
+LOG_FILE="$$_${VARIANT}_test.log"
+CH_FILE="$$_${VARIANT}_checksum.md5"
 
-POOL="ptl_zfs_test"
-POOL_CLONE="ptl_zfs_test_clone"
+POOL="${POOL:-ptl_zfs_test}"
+POOL_CLONE="${POOL_CLONE:-ptl_zfs_test_clone}"
 IMG_MB=256
 
 SRC_ROOT="$(mktemp -d /tmp/ptlzfs-src.XXXXXX)"
@@ -99,14 +102,14 @@ if ! zpool list > /dev/null 2>&1; then
 fi
 
 if [ ! -x "$PTLZFS" ]; then
-    print_fail "$PTLZFS not found. Please configure with --enable-zfs and make first."
+    print_fail "$PTLZFS not found. Please configure with the matching --enable flag and make first."
 fi
 if [ ! -x "$PTLRESTORE" ] || [ ! -x "$PTLCHKIMG" ]; then
     print_fail "$PTLRESTORE/$PTLCHKIMG not found. Please compile partclone first."
 fi
 
 print_info "==================================================="
-print_info "       Partclone ZFS basic clone/restore test      "
+print_info "   Partclone ${VARIANT##partclone.} basic clone/restore test   "
 print_info "==================================================="
 
 zpool_export_all
@@ -152,9 +155,9 @@ function verify_clone() {
 
 # --- Step 2: clone vdev to image ---
 
-print_info "Step 2: partclone.zfs clone $RAW_SRC -> $CLONE_IMG"
+print_info "Step 2: $VARIANT clone $RAW_SRC -> $CLONE_IMG"
 $PTLZFS -c -s "$RAW_SRC" -O "$CLONE_IMG" -F -L "$LOG_FILE" > /dev/null 2>&1 ||
-    print_fail "partclone.zfs clone failed; see $LOG_FILE"
+    print_fail "$VARIANT clone failed; see $LOG_FILE"
 print_pass "clone done."
 
 # --- Step 3: image check ---
@@ -178,7 +181,7 @@ print_pass "restored pool data verified."
 print_info "Step 5: direct clone $RAW_SRC -> $RAW_DIRECT and verify"
 dd if=/dev/zero of="$RAW_DIRECT" bs=1M count=$IMG_MB status=none
 $PTLZFS -b -s "$RAW_SRC" -O "$RAW_DIRECT" -L "$LOG_FILE" > /dev/null 2>&1 ||
-    print_fail "partclone.zfs direct clone failed; see $LOG_FILE"
+    print_fail "$VARIANT direct clone failed; see $LOG_FILE"
 verify_clone "$RAW_DIRECT" || print_fail "data verification failed on direct-cloned vdev."
 print_pass "direct clone data verified."
 
