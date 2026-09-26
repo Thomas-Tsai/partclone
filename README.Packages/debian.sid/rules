@@ -136,6 +136,13 @@ ifeq ($(PKG_NAME),partclone-static)
 		ln -sf partclone-static.vmfs partclone-static.VMFS_volume_member; \
 		ln -sf partclone-static.vmfs partclone-static.vmfs3; \
 	fi
+	# Create partclone.* symlinks pointing to partclone-static.*
+	cd $(CURDIR)/debian/partclone-static/usr/sbin && \
+	for f in partclone-static.*; do \
+		[ -e "$$f" ] || continue; \
+		suffix="$${f#partclone-static.}"; \
+		ln -sf "$$f" "partclone.$$suffix"; \
+	done
 	# Ensure the directory structures exist
 	install -d $(FAILBOOTDIR)
 	install -d $(MAN8DIR)
@@ -161,6 +168,13 @@ ifeq ($(PKG_NAME),partclone-static)
 	  ln -s partclone-static.extfs.8.gz partclone-static.ext3.8.gz; \
 	  ln -s partclone-static.extfs.8.gz partclone-static.ext4.8.gz; \
 	  ln -s partclone-static.extfs.8.gz partclone-static.ext4dev.8.gz
+	# Create partclone.* symlinks pointing to partclone-static.* for man pages
+	cd $(MAN8DIR) && \
+	for f in partclone-static.*; do \
+		[ -e "$$f" ] || continue; \
+		suffix="$${f#partclone-static.}"; \
+		ln -sf "$$f" "partclone.$$suffix"; \
+	done
 	# docs/partclone.dd.8 is a particular case, see bug #850623
 	rm -rf $(CURDIR)/debian/partclone-static/usr/share/man/dd
 else

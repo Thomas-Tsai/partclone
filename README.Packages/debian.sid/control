@@ -31,6 +31,8 @@ Homepage: http://partclone.org/
 Package: partclone
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
+Conflicts: partclone-static
+Replaces: partclone-static
 Description: Utility to clone and restore a partition
  Partclone is a project like the well-known backup utility 
  "Partition Image" a.k.a. partimage. 
@@ -45,6 +47,9 @@ Description: Utility to clone and restore a partition
 Package: partclone-static
 Architecture: any
 Depends: ${misc:Depends}
+Conflicts: partclone
+Replaces: partclone
+Provides: partclone (= ${binary:Version})
 Description: Utility to clone and restore a partition (statically linked)
  Partclone is a project like the well-known backup utility 
  "Partition Image" a.k.a. partimage. 
