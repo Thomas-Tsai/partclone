@@ -110,11 +110,11 @@ int get_cpu_bits()
  *
  * @note
  * We must use a special version of CRC32 algorithm, crc32_0001(), because the
- * old crc32() implementation contains a bug that prevented it from computing
- * the crc32 correctly.
+ * old pc_crc32() implementation contains a bug that prevented it from computing
+ * the pc_crc32 correctly.
  *
  * Also, an old bug affects some images generated from an old 64 bits version
- * of partclone. In these images, the crc32 is recorded on 8 bytes instead of 4.
+ * of partclone. In these images, the pc_crc32 is recorded on 8 bytes instead of 4.
  */
 void set_image_options_v1(image_options* img_opt)
 {
@@ -1099,7 +1099,7 @@ void load_image_desc(int* ret, cmd_opt* opt, image_head_v2* img_head, file_syste
 
 		// Verify checksum
 		init_crc32(&crc);
-		crc = crc32(crc, &buf_v2, sizeof(buf_v2) - CRC32_SIZE);
+		crc = pc_crc32(crc, &buf_v2, sizeof(buf_v2) - CRC32_SIZE);
 		if (crc != buf_v2.crc)
 			log_mesg(0, 1, 1, debug, "Invalid header checksum [0x%08X != 0x%08X]\n", crc, buf_v2.crc);
 
@@ -1130,7 +1130,7 @@ void write_image_desc(int* ret, file_system_info fs_info, image_options img_opt,
 	memcpy(&buf_v2.options, &img_opt, sizeof(image_options));
 
 	init_crc32(&buf_v2.crc);
-	buf_v2.crc = crc32(buf_v2.crc, &buf_v2, sizeof(image_desc_v2) - CRC32_SIZE);
+	buf_v2.crc = pc_crc32(buf_v2.crc, &buf_v2, sizeof(image_desc_v2) - CRC32_SIZE);
 
 	if (write_all(ret, (char*)&buf_v2, sizeof(image_desc_v2), opt) != sizeof(image_desc_v2))
 		log_mesg(0, 1, 1, opt->debug, "error writing image header to image: %s\n", strerror(errno));
@@ -1198,7 +1198,7 @@ void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_op
 
 			init_crc32(&crc);
 
-			crc = crc32(crc, bitmap, pc_BITS_TO_BYTES(fs_info.totalblock));
+			crc = pc_crc32(crc, bitmap, pc_BITS_TO_BYTES(fs_info.totalblock));
 			if (write_all(ret, (char*)&crc, sizeof(crc), opt) != sizeof(crc))
 			    log_mesg(0, 1, 1, debug, "write bitmap to image error: %s\n", strerror(errno));
 			break;
@@ -1542,7 +1542,7 @@ void load_image_bitmap_bits(int* ret, cmd_opt opt, file_system_info fs_info, uns
 
 	init_crc32(&crc);
 
-	crc = crc32(crc, bitmap, bitmap_size);
+	crc = pc_crc32(crc, bitmap, bitmap_size);
 	if (crc != r_crc)
 		log_mesg(0, 1, 1, opt.debug, "read bitmap's crc error\n");
 }
