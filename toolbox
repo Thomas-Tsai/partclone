@@ -46,7 +46,7 @@ btrfs_update(){
 
     pushd $btrfsprogsGitRepo
 
-        git checkout -b $tag $tag
+        git checkout -B $tag $tag || git checkout -B $tag || true
         ./autogen.sh
         ./configure --disable-documentation 
         make

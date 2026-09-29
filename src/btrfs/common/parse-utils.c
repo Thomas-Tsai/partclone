@@ -74,9 +74,9 @@ int parse_u64(const char *str, u64 *result)
  */
 int parse_range_u64(const char *range, u64 *start, u64 *end)
 {
-	char *dots;
-	char *endptr;
+	const char *dots;
 	const char *rest;
+	char *endptr;
 	int skipped = 0;
 
 	dots = strstr(range, "..");
@@ -427,6 +427,7 @@ static u64 tree_id_from_string(const char *str, const char **end)
 		{ "BLOCK-GROUP", BTRFS_BLOCK_GROUP_TREE_OBJECTID },
 		{ "RAID_STRIPE", BTRFS_RAID_STRIPE_TREE_OBJECTID },
 		{ "RAID-STRIPE", BTRFS_RAID_STRIPE_TREE_OBJECTID },
+		{ "REMAP", BTRFS_REMAP_TREE_OBJECTID },
 	};
 
 	if (strncasecmp("BTRFS_", str, strlen("BTRFS_")) == 0)

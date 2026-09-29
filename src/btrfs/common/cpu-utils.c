@@ -53,8 +53,8 @@ void cpu_print_flags(void) {
 	FLAG(SSE2);
 	FLAG(SSSE3);
 	FLAG(SSE41);
-	FLAG(PCLMUL);
 	FLAG(SSE42);
+	FLAG(PCLMUL);
 	FLAG(SHA);
 	FLAG(AVX);
 	FLAG(AVX2);
@@ -76,12 +76,12 @@ void cpu_detect_flags(void)
 		__cpu_flags |= CPU_FLAG_SSSE3;
 	if (__builtin_cpu_supports("sse4.1"))
 		__cpu_flags |= CPU_FLAG_SSE41;
+	if (__builtin_cpu_supports("sse4.2"))
+		__cpu_flags |= CPU_FLAG_SSE42;
 #if HAVE___BUILTIN_CPU_SUPPORTS__PCLMUL
 	if (__builtin_cpu_supports("pclmul"))
 		__cpu_flags |= CPU_FLAG_PCLMUL;
 #endif
-	if (__builtin_cpu_supports("sse4.2"))
-		__cpu_flags |= CPU_FLAG_SSE42;
 	if (__builtin_cpu_supports("avx"))
 		__cpu_flags |= CPU_FLAG_AVX;
 	if (__builtin_cpu_supports("avx2"))
