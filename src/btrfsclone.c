@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -42,6 +43,16 @@ struct btrfs_path path = { 0 };
 int block_size = 0;
 uint64_t dev_size = 0;
 unsigned long long total_block = 0;
+
+extern progress_bar prog;
+static unsigned long long walk_items = 0;
+static unsigned long long items_this_root = 0;
+static unsigned long roots_done = 0;
+static unsigned long roots_total = 0;
+static int bitmap_phase = 0;
+static int bitmap_done = 0;
+
+void *thread_update_bitmap_pui(void *arg);
 
 /// number of tree blocks that could not be read while building the bitmap;
 /// any non-zero value means the resulting image would silently miss data,
@@ -285,6 +296,8 @@ void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct exte
 
 	if (!eb)
 	return;
+    walk_items++;
+    items_this_root++;
     u32 nr = btrfs_header_nritems(eb);
 
     if (nr > ((root->fs_info->nodesize - sizeof(struct btrfs_header)) / sizeof(struct btrfs_item))) {
@@ -302,11 +315,15 @@ void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct exte
 	    btrfs_item_key(eb, &disk_key, i);
 	    type = btrfs_disk_key_type(&disk_key);
 	    if (type == BTRFS_EXTENT_DATA_KEY){
+		walk_items++;
+		items_this_root++;
 		fi = btrfs_item_ptr(eb, i,
 			struct btrfs_file_extent_item);
 		dump_file_extent_item(bitmap, eb, i, fi);
 	    }
 	    if (type == BTRFS_EXTENT_ITEM_KEY || type == BTRFS_METADATA_ITEM_KEY){
+		walk_items++;
+		items_this_root++;
 		objectid = btrfs_disk_key_objectid(&disk_key);
 		offset = btrfs_disk_key_offset(&disk_key);
 		log_mesg(3, 0, 0, fs_opt.debug, "%s: type == EXTENT/METADATA_ITEM_KEY(%u) %llu %llu\n", __FILE__, type, objectid, offset);
@@ -439,8 +456,25 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     struct btrfs_root *csum_root;
     struct btrfs_root *extent_root;
     int slot;
+    int bres;
+    pthread_t prog_bitmap_thread;
 
     total_block = fs_info.totalblock;
+
+    /// init progress; the tree walk total is unknown, so a background
+    /// thread maps structural phases, pre-scanned root count and a
+    /// per-root item counter onto a 0..10000 (0.01%) scale
+    progress_init(&prog, 0, 10000, 10000, BITMAP, 1);
+    walk_items = 0;
+    items_this_root = 0;
+    roots_done = 0;
+    roots_total = 0;
+    bitmap_phase = 0;
+    bitmap_done = 0;
+    bres = pthread_create(&prog_bitmap_thread, NULL, thread_update_bitmap_pui, NULL);
+    if (bres) {
+	log_mesg(0, 1, 1, fs_opt.debug, "%s, %i, thread create error\n", __func__, __LINE__);
+    }
 
     fs_open(device);
     dev_size = fs_info.device_size;
@@ -503,14 +537,17 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 
     //log_mesg(3, 0, 0, fs_opt.debug, "%s: super tree done.\n", __FILE__);
 
+    bitmap_phase = 1;
     if (info->tree_root->node) {
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: root tree:\n", __FILE__);
 	dump_start_leaf(bitmap, info->tree_root, info->tree_root->node, 1);
     }
+    bitmap_phase = 2;
     if (info->chunk_root->node) {
 	log_mesg(3, 0, 0, fs_opt.debug, "%s: chunk tree:\n", __FILE__);
 	dump_start_leaf(bitmap, info->chunk_root, info->chunk_root->node, 1);
     }
+    bitmap_phase = 3;
     tree_root_scan = info->tree_root;
 
     if (!extent_buffer_uptodate(tree_root_scan->node))
@@ -519,6 +556,31 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     key.offset = 0;
     key.objectid = 0;
     key.type = BTRFS_ROOT_ITEM_KEY;
+    /* pre-scan: count ROOT_ITEMs so the thread can report phase-3
+     * progress as completed/total roots; the root tree is small and its
+     * nodes were already read above, so this pass is cheap */
+    {
+	struct btrfs_path cpath = { 0 };
+
+	ret = btrfs_search_slot(NULL, tree_root_scan, &key, &cpath, 0, 0);
+	while (1) {
+	    leaf = cpath.nodes[0];
+	    slot = cpath.slots[0];
+	    if (slot >= btrfs_header_nritems(leaf)) {
+		ret = btrfs_next_leaf(tree_root_scan, &cpath);
+		if (ret != 0)
+		    break;
+		leaf = cpath.nodes[0];
+		slot = cpath.slots[0];
+	    }
+	    btrfs_item_key(leaf, &disk_key, cpath.slots[0]);
+	    btrfs_disk_key_to_cpu(&found_key, &disk_key);
+	    if (found_key.type == BTRFS_ROOT_ITEM_KEY)
+		roots_total++;
+	    cpath.slots[0]++;
+	}
+	btrfs_release_path(&cpath);
+    }
     ret = btrfs_search_slot(NULL, tree_root_scan, &key, &path, 0, 0);
     while(1) {
 	leaf = path.nodes[0];
@@ -537,6 +599,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	    struct extent_buffer *buf;
             struct btrfs_tree_parent_check check = { 0 };
 
+	    items_this_root = 0;
 	    offset = btrfs_item_ptr_offset(leaf, slot);
 	    read_extent_buffer(leaf, &ri, offset, sizeof(ri));
 	    buf = read_tree_block(tree_root_scan->fs_info, btrfs_root_bytenr(&ri), &check);
@@ -549,6 +612,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 		log_mesg(0, 0, 1, fs_opt.debug, "%s: failed to read root tree block %llu (objectid %llu)\n", __FILE__,
 			(unsigned long long)btrfs_root_bytenr(&ri),
 			(unsigned long long)found_key.objectid);
+		roots_done++;
 		goto next;
 	    }
 	    if (!extent_buffer_uptodate(buf)) {
@@ -557,10 +621,12 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 			(unsigned long long)btrfs_root_bytenr(&ri),
 			(unsigned long long)found_key.objectid);
 		free_extent_buffer(buf);
+		roots_done++;
 		goto next;
 	    }
 	    dump_start_leaf(bitmap, tree_root_scan, buf, 1);
 	    free_extent_buffer(buf);
+	    roots_done++;
 	}
 next:
 	path.slots[0]++;
@@ -568,6 +634,9 @@ next:
 no_node:
     //csum_bitmap(bitmap, root);
     btrfs_release_path(&path);
+    bitmap_done = 1;
+    update_pui(&prog, 1, 1, 1);
+    log_mesg(1, 0, 0, fs_opt.debug, "%s: bitmap roots = %lu, walked items = %llu\n", __FILE__, roots_total, walk_items);
     if (unreadable_tree_blocks)
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: %lu tree block(s) could not be read; the bitmap would be incomplete, aborting instead of creating a corrupt image\n", __FILE__, unreadable_tree_blocks);
 }
@@ -591,5 +660,26 @@ void read_super_blocks(char* device, file_system_info* fs_info)
 
     fs_close();
     log_mesg(0, 0, 0, fs_opt.debug, "%s: fs_close\n", __FILE__);
+}
+
+void *thread_update_bitmap_pui(void *arg){
+
+    static const unsigned long long stage_floor[] = { 1 * 100, 5 * 100, 10 * 100, 15 * 100 };
+    unsigned long long display;
+
+    while (bitmap_done == 0) {
+	if (bitmap_phase < 3 || roots_total == 0) {
+	    display = stage_floor[bitmap_phase];
+	} else {
+	    double creep = (double)items_this_root / (items_this_root + 4096.0);
+	    double frac = ((double)roots_done + creep) / roots_total;
+	    if (frac > 1.0)
+		frac = 1.0;
+	    display = 15 * 100 + (unsigned long long)(frac * 85 * 100);
+	}
+	update_pui(&prog, display, display, 0);
+	sleep(2);
+    }
+    pthread_exit("exit");
 }
 
