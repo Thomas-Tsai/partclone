@@ -47,10 +47,24 @@ unsigned long long total_block = 0;
 extern progress_bar prog;
 static unsigned long long walk_items = 0;
 static unsigned long long items_this_root = 0;
-static unsigned long roots_done = 0;
 static unsigned long roots_total = 0;
+static double est_total = 0;
+static double est_done_sum = 0;
+static double est_current = 0;
 static int bitmap_phase = 0;
 static int bitmap_done = 0;
+
+/* rough work estimate of a tree from its root node: nritems scaled by a
+ * presumed fanout per level; only used for fuzzy progress weighting */
+static double root_item_weight(struct extent_buffer *eb)
+{
+    double est = btrfs_header_nritems(eb);
+    int level = btrfs_header_level(eb);
+
+    while (level-- > 0)
+	est *= 200;
+    return est > 0 ? est : 1;
+}
 
 void *thread_update_bitmap_pui(void *arg);
 
@@ -312,18 +326,16 @@ void dump_start_leaf(unsigned long* bitmap, struct btrfs_root *root, struct exte
 	bytenr = (unsigned long long)btrfs_header_bytenr(eb);
 	check_extent_bitmap(bitmap, bytenr, &size, 0);
 	for (i = 0 ; i < nr ; i++) {
+	    walk_items++;
+	    items_this_root++;
 	    btrfs_item_key(eb, &disk_key, i);
 	    type = btrfs_disk_key_type(&disk_key);
 	    if (type == BTRFS_EXTENT_DATA_KEY){
-		walk_items++;
-		items_this_root++;
 		fi = btrfs_item_ptr(eb, i,
 			struct btrfs_file_extent_item);
 		dump_file_extent_item(bitmap, eb, i, fi);
 	    }
 	    if (type == BTRFS_EXTENT_ITEM_KEY || type == BTRFS_METADATA_ITEM_KEY){
-		walk_items++;
-		items_this_root++;
 		objectid = btrfs_disk_key_objectid(&disk_key);
 		offset = btrfs_disk_key_offset(&disk_key);
 		log_mesg(3, 0, 0, fs_opt.debug, "%s: type == EXTENT/METADATA_ITEM_KEY(%u) %llu %llu\n", __FILE__, type, objectid, offset);
@@ -467,8 +479,10 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     progress_init(&prog, 0, 10000, 10000, BITMAP, 1);
     walk_items = 0;
     items_this_root = 0;
-    roots_done = 0;
     roots_total = 0;
+    est_total = 0;
+    est_done_sum = 0;
+    est_current = 0;
     bitmap_phase = 0;
     bitmap_done = 0;
     bres = pthread_create(&prog_bitmap_thread, NULL, thread_update_bitmap_pui, NULL);
@@ -556,9 +570,10 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     key.offset = 0;
     key.objectid = 0;
     key.type = BTRFS_ROOT_ITEM_KEY;
-    /* pre-scan: count ROOT_ITEMs so the thread can report phase-3
-     * progress as completed/total roots; the root tree is small and its
-     * nodes were already read above, so this pass is cheap */
+    /* pre-scan: count ROOT_ITEMs and estimate each tree's item count
+     * from its root node so phase-3 progress can weight the heavy trees
+     * (extent/fs/csum) far above tiny ones (dev/quota/uuid); the root
+     * tree is small and only one extra node per tree is read here */
     {
 	struct btrfs_path cpath = { 0 };
 
@@ -575,11 +590,26 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 	    }
 	    btrfs_item_key(leaf, &disk_key, cpath.slots[0]);
 	    btrfs_disk_key_to_cpu(&found_key, &disk_key);
-	    if (found_key.type == BTRFS_ROOT_ITEM_KEY)
+	    if (found_key.type == BTRFS_ROOT_ITEM_KEY) {
+		struct extent_buffer *rbuf;
+		struct btrfs_tree_parent_check rcheck = { 0 };
+		unsigned long roff;
+
+		roff = btrfs_item_ptr_offset(leaf, cpath.slots[0]);
+		read_extent_buffer(leaf, &ri, roff, sizeof(ri));
+		rbuf = read_tree_block(tree_root_scan->fs_info, btrfs_root_bytenr(&ri), &rcheck);
+		if (!IS_ERR_OR_NULL(rbuf)) {
+		    if (extent_buffer_uptodate(rbuf))
+			est_total += root_item_weight(rbuf);
+		    free_extent_buffer(rbuf);
+		}
 		roots_total++;
+	    }
 	    cpath.slots[0]++;
 	}
 	btrfs_release_path(&cpath);
+	if (est_total <= 0)
+	    est_total = roots_total > 0 ? roots_total : 1;
     }
     ret = btrfs_search_slot(NULL, tree_root_scan, &key, &path, 0, 0);
     while(1) {
@@ -600,6 +630,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
             struct btrfs_tree_parent_check check = { 0 };
 
 	    items_this_root = 0;
+	    est_current = 1;
 	    offset = btrfs_item_ptr_offset(leaf, slot);
 	    read_extent_buffer(leaf, &ri, offset, sizeof(ri));
 	    buf = read_tree_block(tree_root_scan->fs_info, btrfs_root_bytenr(&ri), &check);
@@ -612,7 +643,6 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 		log_mesg(0, 0, 1, fs_opt.debug, "%s: failed to read root tree block %llu (objectid %llu)\n", __FILE__,
 			(unsigned long long)btrfs_root_bytenr(&ri),
 			(unsigned long long)found_key.objectid);
-		roots_done++;
 		goto next;
 	    }
 	    if (!extent_buffer_uptodate(buf)) {
@@ -621,12 +651,12 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
 			(unsigned long long)btrfs_root_bytenr(&ri),
 			(unsigned long long)found_key.objectid);
 		free_extent_buffer(buf);
-		roots_done++;
 		goto next;
 	    }
+	    est_current = root_item_weight(buf);
 	    dump_start_leaf(bitmap, tree_root_scan, buf, 1);
 	    free_extent_buffer(buf);
-	    roots_done++;
+	    est_done_sum += items_this_root > est_current ? items_this_root : est_current;
 	}
 next:
 	path.slots[0]++;
@@ -636,7 +666,7 @@ no_node:
     btrfs_release_path(&path);
     bitmap_done = 1;
     update_pui(&prog, 1, 1, 1);
-    log_mesg(1, 0, 0, fs_opt.debug, "%s: bitmap roots = %lu, walked items = %llu\n", __FILE__, roots_total, walk_items);
+    log_mesg(1, 0, 0, fs_opt.debug, "%s: bitmap roots = %lu, est items = %.0f, walked items = %llu\n", __FILE__, roots_total, est_total, walk_items);
     if (unreadable_tree_blocks)
 	log_mesg(0, 1, 1, fs_opt.debug, "%s: %lu tree block(s) could not be read; the bitmap would be incomplete, aborting instead of creating a corrupt image\n", __FILE__, unreadable_tree_blocks);
 }
@@ -668,11 +698,14 @@ void *thread_update_bitmap_pui(void *arg){
     unsigned long long display;
 
     while (bitmap_done == 0) {
-	if (bitmap_phase < 3 || roots_total == 0) {
+	if (bitmap_phase < 3) {
 	    display = stage_floor[bitmap_phase];
 	} else {
-	    double creep = (double)items_this_root / (items_this_root + 4096.0);
-	    double frac = ((double)roots_done + creep) / roots_total;
+	    double cur = (double)items_this_root;
+	    double frac;
+	    if (cur > est_current)
+		cur = est_current;
+	    frac = (est_done_sum + cur) / est_total;
 	    if (frac > 1.0)
 		frac = 1.0;
 	    display = 15 * 100 + (unsigned long long)(frac * 85 * 100);
