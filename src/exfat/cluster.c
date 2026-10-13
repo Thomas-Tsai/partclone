@@ -452,7 +452,9 @@ uint32_t exfat_count_free_clusters(const struct exfat* ef)
 static int find_used_clusters(const struct exfat* ef,
 		cluster_t* a, cluster_t* b)
 {
-	const cluster_t end = le32_to_cpu(ef->sb->cluster_count);
+	/* clusters are numbered 2 .. cluster_count + 1 (exFAT spec 3.1.9, 6.2.2) */
+	const cluster_t end = le32_to_cpu(ef->sb->cluster_count) +
+		EXFAT_FIRST_DATA_CLUSTER;
 
 	/* find first used cluster */
 	for (*a = *b + 1; *a < end; (*a)++)
@@ -468,6 +470,8 @@ static int find_used_clusters(const struct exfat* ef,
 			(*b)--;
 			break;
 		}
+	if (*b == end) /* the run reaches the last cluster */
+		(*b)--;
 
 	return 0;
 }
