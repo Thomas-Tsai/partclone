@@ -52,6 +52,7 @@ unsigned long long block_id;
 int done;
 
 #include "partclone.h"
+#include "json_status.h"
 
 /// cmd_opt structure defined in partclone.h
 cmd_opt opt;
@@ -126,6 +127,8 @@ int main(int argc, char **argv) {
 
 	//if(opt.debug)
 	open_log(opt.logfile);
+
+	json_status_init(opt.json_path, &fs_info, &opt);
 
         struct tm *ptm = gmtime(&now);
         log_mesg(1, 0, 0, debug, "Partclone log start at UTC %s", asctime(ptm));
@@ -1201,6 +1204,7 @@ int main(int argc, char **argv) {
 	if(pres)
 	    log_mesg(0, 1, 1, debug, "%s, %i, thread join error\n", __func__, __LINE__);
 	update_pui(&prog, copied, block_id, done);
+	json_status_finish(&prog, copied, block_id);
 #ifndef CHKIMG
 	sync_data(dfw, &opt);
 #endif
@@ -1249,6 +1253,7 @@ void *thread_update_pui(void *arg) {
 	while (!done) {
 		if (!opt.quiet)
 			update_pui(&prog, copied, block_id, done);
+		json_status_update(&prog, copied, block_id, JSON_STATE_RUNNING);
 		sleep(opt.fresh);
 	}
 	pthread_exit("exit");
