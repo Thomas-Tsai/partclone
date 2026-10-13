@@ -38,6 +38,7 @@ endif
 
 if ENABLE_EXFAT
 TESTS += exfat.test
+TESTS += exfat_last_clusters.test
 endif
 
 if ENABLE_F2FS
