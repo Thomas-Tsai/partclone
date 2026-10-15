@@ -75,6 +75,9 @@ if ENABLE_FEATURE_TEST
 if ENABLE_NCURSESW
 TESTS += ncursesw.test
 endif
+if ENABLE_EXTFS
+TESTS += jsonprogress.test
+endif
 TESTS += btfile.test
 TESTS += info.test
 TESTS += quiet.test

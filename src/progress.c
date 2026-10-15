@@ -23,6 +23,7 @@
 #include "gettext.h"
 #define _(STRING) gettext(STRING)
 #include "partclone.h"
+#include "json_status.h"
 
 #ifdef HAVE_LIBNCURSESW
 #include <ncurses.h>
@@ -102,19 +103,21 @@ extern void update_pui(struct progress_bar *prog, unsigned long long copied, uns
 	if ((difftime(time(0), prog->resolution_time) < prog->interval_time) && copied != 0)
 	    return;
     }
+    if (prog->flag == BITMAP)
+        json_status_update(prog, copied, current, JSON_STATE_BITMAP);
     if (prog->pui == NCURSES)
         Ncurses_progress_update(prog, copied, current, done);
     else if (prog->pui == TEXT)
         progress_update(prog, copied, current, done);
 }
 
-static void calculate_speed(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done, prog_stat_t *prog_stat){
+extern void progress_calculate_stat(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done, prog_stat_t *prog_stat){
     char *format = "%H:%M:%S";
     uint64_t speedps = 1;
     uint64_t speed = 1;
     double dspeed = 1.0;
     float percent = 1.0;
-    time_t remained;
+    time_t remained = 0;
     time_t elapsed;
     char Rformated[12], Eformated[12];
     struct tm *Rtm, *Etm;
@@ -218,6 +221,10 @@ static void calculate_speed(struct progress_bar *prog, unsigned long long copied
 
     strncpy(prog_stat->Eformated, Eformated, sizeof(Eformated)+1);
     strncpy(prog_stat->Rformated, Rformated, sizeof(Rformated)+1);
+
+    prog_stat->elapsed_sec = (unsigned long long)elapsed;
+    prog_stat->remaining_sec = (unsigned long long)remained;
+    prog_stat->rate_bytes_per_sec = (unsigned long long)speedps;
 }
 
 /// update information at progress bar
@@ -227,7 +234,7 @@ extern void progress_update(struct progress_bar *prog, unsigned long long copied
     prog_stat_t prog_stat;
 
     memset(&prog_stat, 0, sizeof(prog_stat_t));
-    calculate_speed(prog, copied, current, done, &prog_stat);
+    progress_calculate_stat(prog, copied, current, done, &prog_stat);
 
     if (done != 1){
 	prog->resolution_time = time(0);
@@ -280,7 +287,7 @@ extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long lon
     prog_stat_t prog_stat;
 
     memset(&prog_stat, 0, sizeof(prog_stat_t));
-    calculate_speed(prog, copied, current, done, &prog_stat);
+    progress_calculate_stat(prog, copied, current, done, &prog_stat);
 
     /// set bar color
     init_pair(4, COLOR_RED, COLOR_RED);

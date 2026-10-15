@@ -78,6 +78,8 @@ int log_y_line = 0;
 #define OPT_READ_DIRECT_IO 1002
 #define OPT_BINARY_PREFIX 1003
 #define OPT_PROG_SEC 1004
+#define OPT_JSON_STATUS 1005
+#define OPT_JSON_FRESH 1006
 //
 //enum {
 //	OPT_OFFSET_DOMAIN = 1000
@@ -280,6 +282,9 @@ void usage(void) {
 		"    -B,  --no_block_detail  Show progress message without block detail\n"
 		"         --binary-prefix    Show progress with bit size (default is MB, GB...)\n"
 		"         --prog-second      Show progress in seconds (default is minute)\n"
+		"         --json-status=[FILE]  Write progress status to FILE in JSON format\n"
+		"                            (default FILE: /var/log/partclone.json)\n"
+		"         --json-fresh=N     JSON status fresh interval in seconds (default: 1)\n"
 		"    -z,  --buffer_size SIZE Read/write buffer size (default: %d)\n"
 #ifndef CHKIMG
 		"    -q,  --quiet            Disable progress message\n"
@@ -379,6 +384,8 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "prog-second",        no_argument,	        NULL,   OPT_PROG_SEC },
 		{ "write-direct-io",	no_argument,	        NULL,   OPT_WRITE_DIRECT_IO },
 		{ "read-direct-io",	no_argument,	        NULL,   OPT_READ_DIRECT_IO },
+		{ "json-status",	optional_argument,	NULL,   OPT_JSON_STATUS },
+		{ "json-fresh",		required_argument,	NULL,   OPT_JSON_FRESH },
 // not RESTORE and not CHKIMG
 #ifndef CHKIMG
 #ifndef RESTORE
@@ -432,6 +439,8 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	opt->no_block_detail = 0;
 	opt->fresh = 2;
 	opt->logfile = "/var/log/partclone.log";
+	opt->json_path = NULL;
+	opt->json_fresh = 1;
 	opt->buffer_size = DEFAULT_BUFFER_SIZE;
 	opt->checksum_mode = CSM_CRC32;
 	opt->reseed_checksum = 1;
@@ -483,6 +492,13 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
                         case OPT_READ_DIRECT_IO:
                                 opt->read_direct_io = 1;
                                 break;
+			case OPT_JSON_STATUS:
+				opt->json_path = optarg ? optarg : "/var/log/partclone.json";
+				break;
+			case OPT_JSON_FRESH:
+				assert(optarg != NULL);
+				opt->json_fresh = atol(optarg);
+				break;
 			case 'n':
 				memcpy(opt->note, optarg, NOTE_SIZE);
 				break;
@@ -651,6 +667,9 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		fprintf(stderr, "Too small or bad offset of domain file. Use --help get more info.\n");
 		exit(1);
 	}
+
+	if (opt->json_fresh < 1)
+		opt->json_fresh = 1;
 
 	if (!opt->target)
 		opt->target = "-";
