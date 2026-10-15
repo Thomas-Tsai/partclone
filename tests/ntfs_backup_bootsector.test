@@ -1,0 +1,57 @@
+#!/bin/bash
+# Regression test for https://github.com/Thomas-Tsai/partclone/issues/310
+#
+# An NTFS volume typically ends before the end of its hosting device: the
+# last sector holds a copy of the boot record (alternate boot sector) and
+# lies outside the NTFS cluster grid, so it is not covered by the NTFS
+# $Bitmap. partclone.ntfs must account for that area as extra trailing
+# blocks (the final one possibly only partially present on the device).
+# Since 0.3.32 (commit 957df07) this was silently dropped and restored
+# volumes failed validation: ntfsfix reported "Checking the alternate
+# boot sector... BAD".
+#
+# This test needs no root and no loop mount: it formats an image with
+# mkntfs, clones, restores, and compares the last sector and the
+# whole-image sha256 (unused regions are zeros in both images after a
+# fresh mkntfs).
+
+set -e
+
+. "$(dirname "$0")"/_common
+
+[ -n "$(command -v mkntfs)" ] || { echo "mkntfs not found, skip"; exit 77; }
+
+ptlfs=$(_ptlname ntfs)
+
+img_size=$((64*1024*1024))
+
+echo -e "create $img_size bytes raw file $raw and format as NTFS\n"
+rm -f "$raw" "$img" "$raw_restore"
+dd if=/dev/zero of="$raw" bs=$img_size count=1 status=none
+mkntfs -F -Q "$raw" >/dev/null
+
+sum_src=$(sha256sum "$raw" | cut -d' ' -f1)
+alt_src=$(tail -c 512 "$raw" | sha256sum | cut -d' ' -f1)
+
+echo -e "\nclone $raw to $img"
+"$ptlfs" -q -c -s "$raw" -O "$img" -F -L "$logfile"
+
+echo -e "restore $img to $raw_restore"
+dd if=/dev/zero of="$raw_restore" bs=$img_size count=1 status=none
+"$ptlrestore" -q -s "$img" -O "$raw_restore" -C -F -L "$logfile"
+
+sum_dst=$(sha256sum "$raw_restore" | cut -d' ' -f1)
+alt_dst=$(tail -c 512 "$raw_restore" | sha256sum | cut -d' ' -f1)
+
+rm -f "$img" "$raw" "$raw_restore" "$logfile"
+
+echo -e "\nsrc  $sum_src\nrest $sum_dst"
+if [ "$alt_src" != "$alt_dst" ]; then
+    echo "FAIL: the alternate boot sector was not cloned"
+    exit 1
+fi
+if [ "$sum_src" != "$sum_dst" ]; then
+    echo "FAIL: restored image differs from source"
+    exit 1
+fi
+echo "ntfs alternate boot sector test ok"
