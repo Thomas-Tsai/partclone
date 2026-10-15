@@ -3,7 +3,8 @@
  * uberblock selection, and block (blkptr) reads with decompression.
  *
  * Format derived from the MIT-licensed specification
- * "ZFS On-Disk Format" (https://mminkus.github.io/zfs-ondiskformat/).
+ * "ZFS On-Disk Format" (https://mminkus.github.io/zfs-ondiskformat/),
+ * chapters 1 (vdevs/labels/uberblocks) and 2 (block pointers).
  * No OpenZFS (CDDL) source is used or linked.
  *
  * This file is part of Partclone (GPL-2.0-or-later).

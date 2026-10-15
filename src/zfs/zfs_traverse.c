@@ -11,6 +11,11 @@
  * spacemaps (which additionally cover deferred allocations no dnode
  * points to).
  *
+ * Format derived from the MIT-licensed specification
+ * "ZFS On-Disk Format" (https://mminkus.github.io/zfs-ondiskformat/),
+ * chapters 2 (block pointers) and 3 (DMU). No OpenZFS (CDDL) source
+ * is used or linked.
+ *
  * This file is part of Partclone (GPL-2.0-or-later).
  */
 

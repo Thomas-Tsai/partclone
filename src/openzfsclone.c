@@ -180,7 +180,7 @@ walk_cb(spa_t *spa, zilog_t *zilog, const blkptr_t *bp,
 		uint64_t asize = DVA_GET_ASIZE(dva);	/* bytes */
 		if (is_rootbp)
 			log_mesg(0, 0, 0, fs_opt.debug,
-			    "zfsclone: ROOTBP dva[%d] v=%llu off=0x%llx "
+			    "openzfsclone: ROOTBP dva[%d] v=%llu off=0x%llx "
 			    "asize=0x%llx\n",
 			    d, (unsigned long long)DVA_GET_VDEV(dva),
 			    (unsigned long long)off,

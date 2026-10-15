@@ -2,6 +2,10 @@
  * zfs_dmu.h - clean-room DMU: dnode fetch and generic object reads
  * through indirect block trees.
  *
+ * Format derived from the MIT-licensed specification
+ * "ZFS On-Disk Format" (https://mminkus.github.io/zfs-ondiskformat/),
+ * chapter 3 (DMU). No OpenZFS (CDDL) source is used or linked.
+ *
  * This file is part of Partclone (GPL-2.0-or-later).
  */
 

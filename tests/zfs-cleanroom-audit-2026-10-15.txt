@@ -1,0 +1,31 @@
+# zfs clean-room audit record
+# date:            2026-10-15
+# partclone ref:   zfsdev @ 0a61a07
+# openzfs ref:     22013c3917f33c915e5be7b990cc9ba9c85fd3f4 (zfs master, 2026-10-14)
+# command:         tests/zfs-cleanroom-check.py --openzfs-src <openzfs-checkout> --no-cppcheck
+
+== 1. forbidden-marker scan ==
+  17 file(s) scanned, 0 finding(s)
+
+== 2. code-similarity check ==
+  corpus: 120 file(s), 467010 shingle(s)
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_compress.c   5.29% containment
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_compress.h   0.00% containment
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_disk.h   1.75% containment
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_dmu.c   4.96% containment
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_dmu.h   3.00% containment
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_nvlist.c   4.91% containment
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_nvlist.h   2.16% containment
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_spa.c   3.92% containment
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_spa.h   2.62% containment
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_spacemap.c   5.41% containment
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_spacemap.h   1.04% containment
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_traverse.c  10.02% containment
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_traverse.h   1.92% containment
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_zap.c   4.18% containment
+  OK   /home/thomas/work_house/partclone/src/zfs/zfs_zap.h   3.80% containment
+  OK   /home/thomas/work_house/partclone/src/zfsclone.c   4.15% containment
+  /home/thomas/work_house/partclone/src/zfsclone.h skipped (too small)
+  worst containment 10.02% (threshold 20.00%)
+
+RESULT: CLEAN

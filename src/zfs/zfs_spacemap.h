@@ -1,6 +1,10 @@
 /**
  * zfs_spacemap.h - clean-room space map decoding and replay.
  *
+ * Format derived from the MIT-licensed specification
+ * "ZFS On-Disk Format" (https://mminkus.github.io/zfs-ondiskformat/),
+ * chapter 9 (space maps). No OpenZFS (CDDL) source is used or linked.
+ *
  * This file is part of Partclone (GPL-2.0-or-later).
  */
 

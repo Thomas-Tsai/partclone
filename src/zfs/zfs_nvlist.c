@@ -1,6 +1,10 @@
 /**
  * zfs_nvlist.c - minimal XDR nvlist parser (clean-room)
  *
+ * Format derived from the MIT-licensed specification
+ * "ZFS On-Disk Format" (https://mminkus.github.io/zfs-ondiskformat/)
+ * (XDR nvlist encoding). No OpenZFS (CDDL) source is used or linked.
+ *
  * This file is part of Partclone (GPL-2.0-or-later).
  */
 

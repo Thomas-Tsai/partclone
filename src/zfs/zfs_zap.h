@@ -8,6 +8,10 @@
  * hundred entries, so a linear walk is cheap and entirely avoids
  * reimplementing the hash function.
  *
+ * Format derived from the MIT-licensed specification
+ * "ZFS On-Disk Format" (https://mminkus.github.io/zfs-ondiskformat/),
+ * chapter 5 (ZAP). No OpenZFS (CDDL) source is used or linked.
+ *
  * This file is part of Partclone (GPL-2.0-or-later).
  */
 

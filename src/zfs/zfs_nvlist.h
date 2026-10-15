@@ -10,6 +10,10 @@
  *            string name (s32 len + bytes, 4-byte padded)
  *            s32 data_type, s32 nelem, then value by type
  *
+ * Format derived from the MIT-licensed specification
+ * "ZFS On-Disk Format" (https://mminkus.github.io/zfs-ondiskformat/)
+ * (XDR nvlist encoding). No OpenZFS (CDDL) source is used or linked.
+ *
  * This file is part of Partclone (GPL-2.0-or-later).
  */
 

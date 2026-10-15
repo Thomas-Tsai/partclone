@@ -3,14 +3,14 @@
  *
  * ZFS used-block bitmap provider, **clean-room reimplementation**.
  *
- * Unlike zfsclone.c (v1), this driver links no OpenZFS library
+ * Unlike openzfsclone.c (v1), this driver links no OpenZFS library
  * (libzpool/libzfs are CDDL): it parses the on-disk format directly,
  * following the MIT-licensed independent specification
  * "ZFS On-Disk Format" (https://mminkus.github.io/zfs-ondiskformat/).
  * Only license-clean external libraries are used: liblz4 (BSD) and
  * zlib (zlib license).
  *
- * v1 scope (same as zfsclone.c v1):
+ * v1 scope (same as openzfsclone.c):
  *   - stripe pool, single top-level "disk" vdev
  *   - user supplies the ZFS partition (e.g. /dev/sda1)
  *   - little-endian pools only (x86/arm64 LE hosts)

@@ -2,6 +2,11 @@
  * zfs_traverse.h - clean-room MOS traversal: walk every live block
  * pointer reachable from an objset's metadnode and report it.
  *
+ * Format derived from the MIT-licensed specification
+ * "ZFS On-Disk Format" (https://mminkus.github.io/zfs-ondiskformat/),
+ * chapters 2 (block pointers) and 3 (DMU). No OpenZFS (CDDL) source
+ * is used or linked.
+ *
  * This file is part of Partclone (GPL-2.0-or-later).
  */
 

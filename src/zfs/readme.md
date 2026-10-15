@@ -34,11 +34,11 @@ may be licensed under the GPL**.
    OpenZFS's `spa_t`/`dnode_t`/`blkptr_t`/`SM_*_DECODE` etc.
 3. **AI output is always human-reviewed**: every generated piece of
    code goes through manual renaming, de-similarization and license
-   review (process: `src/zfsclean-room-req.txt`).
+   review (process: `src/zfs/clean-room-req.md`).
 
 ## 3. Development Process
 
-Mapped against the six phases of `src/zfsclean-room-req.txt`:
+Mapped against the six phases of `src/zfs/clean-room-req.md`:
 
 | Phase | What this project did |
 |---|---|

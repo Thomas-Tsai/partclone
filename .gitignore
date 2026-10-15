@@ -93,3 +93,6 @@ docs/partclone.restore.8
 /libtool
 po/insert-header.sed
 
+# Tool-generated knowledge graph artifacts
+.ua/
+
