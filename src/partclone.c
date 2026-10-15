@@ -1008,7 +1008,13 @@ void load_image_desc_v1(file_system_info* fs_info, image_options* img_opt,
 
 	unsigned long long calculated_size = fs_info->totalblock * fs_info->block_size;
 	if (calculated_size > fs_info->device_size) {
-		log_mesg(0, 1, 1, opt->debug, "Invalid image v1: calculated filesystem size is larger than device size.\n");
+		// Allow the last block to extend past the device end by less than
+		// one block (e.g. NTFS images holding the Boot Record copy located
+		// in the final sectors of the device), but never more.
+		unsigned long long overshoot = calculated_size - fs_info->device_size;
+		if (overshoot >= fs_info->block_size)
+			log_mesg(0, 1, 1, opt->debug, "Invalid image v1: calculated filesystem size is larger than device size.\n");
+		log_mesg(1, 0, 0, opt->debug, "INFO: filesystem size exceeds device size by %llu bytes (partial last block).\n", overshoot);
 	} else if (calculated_size < fs_info->device_size) {
 		log_mesg(1, 0, 0, opt->debug, "INFO: adjusted device size reported by the image [%llu -> %llu]\n", fs_info->device_size, calculated_size);
 		fs_info->device_size = calculated_size;
@@ -1057,7 +1063,13 @@ void load_image_desc_v2(file_system_info* fs_info, image_options* img_opt,
 
 	unsigned long long calculated_size = fs_info->totalblock * fs_info->block_size;
 	if (calculated_size > fs_info->device_size) {
-		log_mesg(0, 1, 1, opt->debug, "Invalid image: calculated filesystem size is larger than device size.\n");
+		// Allow the last block to extend past the device end by less than
+		// one block (e.g. NTFS images holding the Boot Record copy located
+		// in the final sectors of the device), but never more.
+		unsigned long long overshoot = calculated_size - fs_info->device_size;
+		if (overshoot >= fs_info->block_size)
+			log_mesg(0, 1, 1, opt->debug, "Invalid image: calculated filesystem size is larger than device size.\n");
+		log_mesg(1, 0, 0, opt->debug, "INFO: filesystem size exceeds device size by %llu bytes (partial last block).\n", overshoot);
 	}
 
 
