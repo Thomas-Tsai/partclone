@@ -6,6 +6,7 @@ if ENABLE_EXTFS
 TESTS += ext2.test
 TESTS += ext3.test
 TESTS += ext4.test
+TESTS += zero_fill.test
 endif
 
 if ENABLE_BTRFS

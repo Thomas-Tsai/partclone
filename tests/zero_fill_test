@@ -1,0 +1,228 @@
+#!/bin/bash
+#
+# zero_fill_test - negative test for partclone's --zero-free-space flag.
+#
+# Rationale: normal clone/restore tests are "positive" tests - they only
+# prove the used-block set is sufficient to rebuild a working filesystem.
+# This test adds an "unused-set purity" oracle: with -Z partclone writes
+# zeros to every block its bitmap claims is UNUSED.  Two strong checks:
+#
+#   1. content oracle: e2fsck -fn must stay clean and every expected file
+#      must survive with identical md5 - a zero write must never touch
+#      live blocks (catches bitmap bugs and zero-write offset bugs).
+#   2. determinism oracle: a second zero-filled copy U of the first copy
+#      T must be byte-identical (sha256).  The source deliberately keeps
+#      deleted-file garbage in its free blocks, so T is only reproducible
+#      if every free block really got zeroed.
+#
+# The test is rootless: filesystems are raw image files manipulated with
+# debugfs (no loop device, no mount).  Worked example uses ext4.
+#
+# Usage:    zero_fill_test <d2d|restore> [fs]        (fs: only ext4 for now)
+# Example:  cd tests && ./zero_fill_test d2d ext4
+#
+cd "$(dirname "$0")"
+. ./_common
+
+mode="${1:-}"
+fs="${2:-ext4}"
+
+progname=$(basename "$0")
+
+fail() {
+    echo "FAIL: $*" >&2
+    exit 1
+}
+
+usage_exit() {
+    echo "Usage: $progname <d2d|restore> [fs]" >&2
+    exit 2
+}
+
+[ -n "$mode" ] || usage_exit
+[ "$mode" = "d2d" ] || [ "$mode" = "restore" ] || usage_exit
+[ "$fs" = "ext4" ] || fail "only ext4 is supported for now (got: $fs)"
+
+for tool in debugfs e2fsck dumpe2fs sha256sum md5sum; do
+    type -P "$tool" >/dev/null || fail "missing required tool: $tool"
+done
+
+mkfsbin=$(_findmkfs "$fs") || fail "no mkfs for $fs"
+ptlfs=$(_ptlname "$fs") || fail "no partclone binary for $fs"
+[ -x "$ptlrestore" ] || fail "can't find $ptlrestore"
+[ -x "$ptlchkimg" ] || fail "can't find $ptlchkimg"
+
+"$ptlfs" --help 2>&1 | grep -q "zero-free-space" \
+    || fail "$ptlfs lacks --zero-free-space (rebuild with current sources)"
+"$ptlrestore" --help 2>&1 | grep -q "zero-free-space" \
+    || fail "$ptlrestore lacks --zero-free-space (rebuild with current sources)"
+
+work=$(mktemp -d "$PWD/${progname}.XXXXXX") || fail "mktemp failed"
+cleanup() {
+    rm -rf "$work"
+}
+trap cleanup EXIT
+
+src="$work/src.raw"
+t1="$work/t1.raw"
+t2="$work/t2.raw"
+imgf="$work/img.partclone"
+tree="$work/tree"
+extract1="$work/extract1"
+extract2="$work/extract2"
+logc="$work/clone.log"
+log1="$work/op1.log"
+log2="$work/op2.log"
+
+img_mb=512
+small_files=200
+
+sha_of() {
+    sha256sum "$1" | awk '{print $1}'
+}
+
+gen_manifest() {
+    (cd "$1" && find . -type f -exec md5sum {} + | LC_ALL=C sort -k2,2)
+}
+
+check_fs_clean() {
+    local image="$1"
+    e2fsck -fn "$image" >"$work/e2fsck.last" 2>&1 || {
+        sed 's/^/    e2fsck: /' "$work/e2fsck.last" >&2
+        fail "e2fsck -fn not clean on $image"
+    }
+}
+
+# populate $src with a known tree, then delete ~1/3 of the files inside
+# the image so the free blocks keep deleted data (non-zero garbage that a
+# correct zero-fill must wipe on the copy).
+create_source() {
+    echo "create ${img_mb}MB $fs source image"
+    dd if=/dev/zero of="$src" bs=1M "count=$img_mb" status=none || fail "dd src"
+    "$mkfsbin" $mkfs_option_for_ext4 -q "$src" || fail "mkfs"
+
+    mkdir -p "$tree/many" "$tree/big" "$tree/deep/a/b/c"
+    i=1
+    while [ "$i" -le "$small_files" ]; do
+        echo "zero-fill test small file $i - $(date +%s%N)" >"$tree/many/f$i.txt"
+        i=$((i + 1))
+    done
+    dd if=/dev/urandom of="$tree/big/rand_a.bin" bs=1M count=2 status=none
+    dd if=/dev/urandom of="$tree/big/rand_b.bin" bs=1M count=3 status=none
+    dd if=/dev/urandom of="$tree/big/rand_c.bin" bs=1M count=8 status=none
+    head -c 500000 /dev/urandom >"$tree/deep/a/b/c/deep.bin"
+
+    # single debugfs batch: create directories and copy every host file in
+    {
+        echo "mkdir /many"
+        echo "mkdir /big"
+        echo "mkdir /deep"
+        echo "mkdir /deep/a"
+        echo "mkdir /deep/a/b"
+        echo "mkdir /deep/a/b/c"
+        (cd "$tree" && find . -type f) | while read -r f; do
+            rel=${f#./}
+            echo "write $tree/$rel /$rel"
+        done
+    } >"$work/write.cmds"
+    debugfs -w -f "$work/write.cmds" "$src" >/dev/null 2>&1 || fail "debugfs populate"
+
+    # delete every third small file and one big file *inside the image*
+    i=1
+    {
+        while [ "$i" -le "$small_files" ]; do
+            if [ $((i % 3)) -eq 0 ]; then
+                echo "rm /many/f$i.txt"
+            fi
+            i=$((i + 1))
+        done
+        echo "rm /big/rand_b.bin"
+    } >"$work/rm.cmds"
+    debugfs -w -f "$work/rm.cmds" "$src" >/dev/null 2>&1 || fail "debugfs delete"
+
+    # mirror the deletions on the host tree and record the golden manifest
+    i=1
+    while [ "$i" -le "$small_files" ]; do
+        if [ $((i % 3)) -eq 0 ]; then
+            rm -f "$tree/many/f$i.txt"
+        fi
+        i=$((i + 1))
+    done
+    rm -f "$tree/big/rand_b.bin"
+    gen_manifest "$tree" >"$work/manifest.md5"
+    [ -s "$work/manifest.md5" ] || fail "empty manifest"
+
+    # normalize filesystem state after debugfs writes, then require clean
+    e2fsck -fy "$src" >"$work/e2fsck.src" 2>&1
+    check_fs_clean "$src"
+}
+
+# verify one zero-filled copy: fsck clean + all expected files intact
+check_copy() {
+    local image="$1" outdir="$2" tag="$3"
+    check_fs_clean "$image"
+    mkdir -p "$outdir"
+    debugfs -R "rdump / $outdir" "$image" >/dev/null 2>&1 || fail "$tag: debugfs rdump"
+    gen_manifest "$outdir" >"$work/manifest.$tag.md5"
+    if ! cmp -s "$work/manifest.md5" "$work/manifest.$tag.md5"; then
+        diff "$work/manifest.md5" "$work/manifest.$tag.md5" | head -20 >&2
+        fail "$tag: file data mismatch on zero-filled copy"
+    fi
+    echo "$tag check ok (fsck clean, $(wc -l <"$work/manifest.$tag.md5") files md5-identical)"
+}
+
+echo "=== zero_fill_test mode=$mode fs=$fs ==="
+create_source
+
+case "$mode" in
+d2d)
+    echo "hop1: $ptlfs -b -Z src -> t1"
+    dd if=/dev/zero of="$t1" bs=1M "count=$img_mb" status=none
+    "$ptlfs" -q -d1 -b -Z -s "$src" -O "$t1" -L "$log1" || fail "hop1 dev-to-dev clone"
+    echo "hop2: $ptlfs -b -Z t1 -> t2"
+    dd if=/dev/zero of="$t2" bs=1M "count=$img_mb" status=none
+    "$ptlfs" -q -d1 -b -Z -s "$t1" -O "$t2" -L "$log2" || fail "hop2 dev-to-dev clone"
+    ;;
+restore)
+    echo "save: $ptlfs -c src -> image"
+    "$ptlfs" -q -d1 -c -s "$src" -o "$imgf" -L "$logc" || fail "clone to image"
+    "$ptlchkimg" -s "$imgf" -L "$work/chkimg.partclone.log" >"$work/chkimg.out" 2>&1 || {
+        sed 's/^/    chkimg: /' "$work/chkimg.out" >&2
+        fail "chkimg"
+    }
+    echo "hop1: $ptlrestore -Z image -> t1"
+    dd if=/dev/zero of="$t1" bs=1M "count=$img_mb" status=none
+    "$ptlrestore" -q -d1 -Z -s "$imgf" -O "$t1" -L "$log1" || fail "hop1 restore"
+    echo "hop2: $ptlrestore -Z image -> t2"
+    dd if=/dev/zero of="$t2" bs=1M "count=$img_mb" status=none
+    "$ptlrestore" -q -d1 -Z -s "$imgf" -O "$t2" -L "$log2" || fail "hop2 restore"
+    ;;
+esac
+
+# the flag must actually have been exercised
+grep -q "Zero-filled" "$log1" || fail "partclone did not report zero-filling in $log1 (flag broken?)"
+grep -q "Zero-filled" "$log2" || fail "partclone did not report zero-filling in $log2 (flag broken?)"
+grep "Zero-filled" "$log1" | sed 's/^/    t1: /'
+grep "Zero-filled" "$log2" | sed 's/^/    t2: /'
+
+check_copy "$t1" "$extract1" "t1"
+check_copy "$t2" "$extract2" "t2"
+
+# determinism oracle: two zero-filled copies must be byte-identical
+sum1=$(sha_of "$t1")
+sum2=$(sha_of "$t2")
+[ "$sum1" = "$sum2" ] || {
+    echo "    sha256 t1: $sum1" >&2
+    echo "    sha256 t2: $sum2" >&2
+    fail "two zero-filled copies differ (non-deterministic zero-fill)"
+}
+echo "determinism check ok (sha256 $sum1)"
+
+# prove the source really had non-zero free blocks, i.e. zero-fill did
+# visible work (otherwise the determinism check would pass trivially)
+sumsrc=$(sha_of "$src")
+[ "$sumsrc" != "$sum1" ] || \
+    fail "source and zero-filled copy are identical: test did not exercise zero-fill (no garbage in free blocks?)"
+
+echo "=== $mode zero_fill_test ok ==="
+exit 0

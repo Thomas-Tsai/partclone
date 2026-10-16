@@ -54,6 +54,35 @@ int done;
 #include "partclone.h"
 #include "json_status.h"
 
+/**
+ * zero_blocks - write zeros to the target for --zero-free-space.
+ * Writes @blocks blocks of @block_size bytes from a pre-zeroed scratch
+ * buffer @zero_buf of @zero_buf_size bytes, in chunks, advancing
+ * @block_id (and @zeroed when non-NULL). Returns 0 on success, -1 on
+ * short write or write error.
+ */
+static int zero_blocks(int *fd, char *zero_buf, unsigned long long zero_buf_size,
+		       unsigned long long blocks, unsigned int block_size,
+		       cmd_opt *opt, unsigned long long *block_id, unsigned long long *zeroed) {
+	unsigned long long remaining = blocks * (unsigned long long)block_size;
+	int w_size;
+
+	while (remaining > 0) {
+		unsigned long long chunk = remaining < zero_buf_size ? remaining : zero_buf_size;
+		w_size = write_all(fd, zero_buf, chunk, opt);
+		if (w_size <= 0)
+			return -1;
+		remaining -= w_size;
+		if ((unsigned long long)w_size != chunk)
+			return -1;
+	}
+	if (block_id)
+		*block_id += blocks;
+	if (zeroed)
+		*zeroed += blocks;
+	return 0;
+}
+
 /// cmd_opt structure defined in partclone.h
 cmd_opt opt;
 
@@ -659,6 +688,11 @@ int main(int argc, char **argv) {
 		unsigned char checksum[cs_size];
 		char *read_buffer = NULL, *write_buffer = NULL;
 		char *empty_buffer = NULL;
+		char *zero_buffer = NULL;
+		const unsigned long long zero_buffer_size = (unsigned long long)buffer_capacity * block_size;
+#ifndef CHKIMG
+		unsigned long long zeroed_blocks = 0;
+#endif
 		unsigned long long blocks_used_fix = 0, test_block = 0;
 
 		// SHA1 for torrent info
@@ -698,6 +732,15 @@ int main(int argc, char **argv) {
 				return -1;
 			}
 			memset(empty_buffer, 0, block_size);
+		}
+
+		if (opt.zero_free_space) {
+			posix_memalign((void **)&zero_buffer, BSIZE, zero_buffer_size);
+			if (zero_buffer == NULL)
+				log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
+			memset(zero_buffer, 0, zero_buffer_size);
+			if (opt.blockfile == 1)
+				log_mesg(0, 0, 1, debug, "WARNING: --zero-free-space has no effect in blockfile mode\n");
 		}
 
 #ifndef CHKIMG
@@ -832,10 +875,14 @@ int main(int argc, char **argv) {
 #ifndef CHKIMG
 				/// skip empty blocks
 				if (blocks_write == 0) {
-				    if (opt.blockfile == 0 && blocks_skip > 0 && skip_blocks(&dfw, empty_buffer, block_size, blocks_skip, &opt, &block_id) < 0) {
+				    if (opt.blockfile == 0 && blocks_skip > 0 && opt.zero_free_space) {
+					if (zero_blocks(&dfw, zero_buffer, zero_buffer_size, blocks_skip, block_size, &opt, &block_id, &zeroed_blocks) < 0) {
+						log_mesg(0, 1, 1, debug, "target write zero ERROR:%s\n", strerror(errno));
+					}
+				    } else if (opt.blockfile == 0 && blocks_skip > 0 && skip_blocks(&dfw, empty_buffer, block_size, blocks_skip, &opt, &block_id) < 0) {
 					log_mesg(0, 1, 1, debug, "target seek ERROR:%s\n", strerror(errno));
-				    } else if (opt.blockfile == 1 && blocks_skip > 0) 
-                                        block_id += blocks_skip; 
+				    } else if (opt.blockfile == 1 && blocks_skip > 0)
+                                        block_id += blocks_skip;
                                     blocks_skip = 0;
 				}
 #endif
@@ -904,7 +951,24 @@ int main(int argc, char **argv) {
 		}
 		free(read_buffer);
 		free(write_buffer);
+#ifndef CHKIMG
+		if (opt.zero_free_space && opt.blockfile == 0) {
+		    if (block_id < blocks_total && zero_blocks(&dfw, zero_buffer, zero_buffer_size, blocks_total - block_id, block_size, &opt, &block_id, &zeroed_blocks) < 0) {
+			log_mesg(0, 0, 1, debug, "target write zero ERROR:%s\n", strerror(errno));
+		    }
+		    if ((block_id * block_size < fs_info.device_size) &&
+			(skip_bytes(&dfw, zero_buffer, zero_buffer_size, fs_info.device_size - block_id * block_size, &opt) != (long long)(fs_info.device_size - block_id * block_size))) {
+			log_mesg(0, 0, 1, debug, "target write zero ERROR:%s\n", strerror(errno));
+		    }
+		}
+		if (opt.zero_free_space) {
+		    log_mesg(0, 0, 1, debug, "Zero-filled %llu free blocks on target\n", zeroed_blocks);
+		    if (empty_buffer)
+			free(empty_buffer);
+		} else if (empty_buffer) {
+#else
 		if (empty_buffer) {
+#endif
 		    if (block_id < blocks_total && skip_blocks(&dfw, empty_buffer, block_size, blocks_total - block_id, &opt, &block_id) < 0) {
 			log_mesg(0, 0, 1, debug, "target seek ERROR:%s\n", strerror(errno));
 		    }
@@ -913,6 +977,7 @@ int main(int argc, char **argv) {
 		    }
 		    free(empty_buffer);
 		}
+		free(zero_buffer);
 
 #ifndef CHKIMG
 		/// restore_raw_file option
@@ -928,9 +993,12 @@ int main(int argc, char **argv) {
 
 		char *buffer = NULL;
 		char *empty_buffer = NULL;
+		char *zero_buffer = NULL;
 		int block_size = fs_info.block_size;
 		unsigned long long blocks_total = fs_info.totalblock;
 		int buffer_capacity = block_size < opt.buffer_size ? opt.buffer_size / block_size : 1;
+		const unsigned long long zero_buffer_size = (unsigned long long)buffer_capacity * block_size;
+		unsigned long long zeroed_blocks = 0;
 
                 if ((opt.read_direct_io == 1) || (opt.write_direct_io == 1)){
                     ret = posix_memalign((void **)&buffer, BSIZE, (buffer_capacity * block_size));
@@ -955,6 +1023,13 @@ int main(int argc, char **argv) {
 				return -1;
 			}
 			memset(empty_buffer, 0, block_size);
+		}
+
+		if (opt.zero_free_space) {
+			posix_memalign((void **)&zero_buffer, BSIZE, zero_buffer_size);
+			if (zero_buffer == NULL)
+				log_mesg(0, 1, 1, debug, "%s, %i, not enough memory\n", __func__, __LINE__);
+			memset(zero_buffer, 0, zero_buffer_size);
 		}
 
 		block_id = 0;
@@ -984,7 +1059,11 @@ int main(int argc, char **argv) {
 				break;
 
 			if (blocks_skip) {
-				if (skip_blocks(&dfw, empty_buffer, block_size, blocks_skip, &opt, &block_id) < 0) {
+				if (opt.zero_free_space) {
+					if (zero_blocks(&dfw, zero_buffer, zero_buffer_size, blocks_skip, block_size, &opt, &block_id, &zeroed_blocks) < 0) {
+						log_mesg(0, 1, 1, debug, "target write zero ERROR:%s\n", strerror(errno));
+					}
+				} else if (skip_blocks(&dfw, empty_buffer, block_size, blocks_skip, &opt, &block_id) < 0) {
 					log_mesg(0, 1, 1, debug, "target seek ERROR:%s\n", strerror(errno));
 				}
 			}
@@ -1040,7 +1119,19 @@ int main(int argc, char **argv) {
 		} while (1);
 
 		free(buffer);
-		if (empty_buffer) {
+		if (opt.zero_free_space) {
+			if (block_id < blocks_total && zero_blocks(&dfw, zero_buffer, zero_buffer_size, blocks_total - block_id, block_size, &opt, &block_id, &zeroed_blocks) < 0) {
+				log_mesg(0, 0, 1, debug, "write zero ERROR:%s\n", strerror(errno));
+			}
+			if ((block_id * block_size < fs_info.device_size) &&
+			    (skip_bytes(&dfw, zero_buffer, zero_buffer_size, fs_info.device_size - block_id * block_size, &opt) != (long long)(fs_info.device_size - block_id * block_size))) {
+				log_mesg(0, 0, 1, debug, "write zero ERROR:%s\n", strerror(errno));
+			}
+			log_mesg(0, 0, 1, debug, "Zero-filled %llu free blocks on target\n", zeroed_blocks);
+			free(zero_buffer);
+			if (empty_buffer)
+				free(empty_buffer);
+		} else if (empty_buffer) {
 			if (block_id < blocks_total && skip_blocks(&dfw, empty_buffer, block_size, blocks_total - block_id, &opt, &block_id) < 0) {
 				log_mesg(0, 0, 1, debug, "write empty ERROR:%s\n", strerror(errno));
 			}

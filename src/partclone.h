@@ -135,6 +135,7 @@ struct cmd_opt
     int skip_write_error;
     int write_direct_io;
     int read_direct_io;
+    int zero_free_space;
     int binary_prefix;
     int prog_second;
     unsigned int buffer_size;

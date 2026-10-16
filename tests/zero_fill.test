@@ -1,0 +1,9 @@
+#!/bin/bash
+# zero_fill.test - make-check wrapper for zero_fill_test (both modes, ext4).
+# Requires e2fsprogs (mkfs.ext4/e2fsck/debugfs); skipped (77) when missing.
+for t in mkfs.ext4 e2fsck debugfs sha256sum md5sum; do
+    type -P "$t" >/dev/null || exit 77
+done
+"$(dirname "$0")"/zero_fill_test d2d ext4 || exit 1
+"$(dirname "$0")"/zero_fill_test restore ext4 || exit 1
+exit 0

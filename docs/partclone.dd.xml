@@ -124,6 +124,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-E</option></arg><arg choice="plain"><option>--offset=X</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-T</option></arg><arg choice="plain"><option>--btfiles</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-t</option></arg><arg choice="plain"><option>--btfiles_torrent</option></arg></group></arg>
+      <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-Z</option></arg><arg choice="plain"><option>--zero-free-space</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-B</option></arg><arg choice="plain"><option>--no_block_detail</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--binary-prefix</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--prog-second</option></arg></group></arg>
@@ -320,6 +321,13 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>--btfiles_torrent</option></term>
         <listitem>
           <para>Restore block as file for ClonezillaBT but only generate torrent.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-Z</option></term>
+        <term><option>--zero-free-space</option></term>
+        <listitem>
+          <para>Write zeros to the unused blocks of the target instead of skipping them. Without this option unused blocks are left untouched on the target.</para>
         </listitem>
       </varlistentry>
       <varlistentry>

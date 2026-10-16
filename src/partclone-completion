@@ -157,9 +157,9 @@ _partclone_completions()
 	    ;;
         *)
 	    if [[ "$mode" == "dd" ]]; then
-	        availopts="--restore_raw_file --logfile --domain --offset_domain= --rescue --checksum-mode= --blocks-per-checksum= --no-reseed --skip_write_error --debug= --no_check --ncurses --ignore_fschk --ignore_crc --force --UI-fresh --no_block_detail --buffer_size --quiet --offset= --btfiles --btfiles_torrent --note --read-direct-io --write-direct-io --help --version"
+	        availopts="--restore_raw_file --logfile --domain --offset_domain= --rescue --checksum-mode= --blocks-per-checksum= --no-reseed --skip_write_error --debug= --no_check --ncurses --ignore_fschk --ignore_crc --force --UI-fresh --no_block_detail --buffer_size --quiet --offset= --btfiles --btfiles_torrent --note --read-direct-io --write-direct-io --zero-free-space --help --version"
 	    else
-		availopts="--restore_raw_file --logfile --compresscmd --domain --offset_domain= --rescue --checksum-mode= --blocks-per-checksum= --no-reseed --skip_write_error --debug= --no_check --ncurses --ignore_fschk --ignore_crc --force --UI-fresh --no_block_detail --buffer_size --quiet --offset= --btfiles --btfiles_torrent --note --read-direct-io --write-direct-io --help --version"
+		availopts="--restore_raw_file --logfile --compresscmd --domain --offset_domain= --rescue --checksum-mode= --blocks-per-checksum= --no-reseed --skip_write_error --debug= --no_check --ncurses --ignore_fschk --ignore_crc --force --UI-fresh --no_block_detail --buffer_size --quiet --offset= --btfiles --btfiles_torrent --note --read-direct-io --write-direct-io --zero-free-space --help --version"
 	    fi
 	    COMPREPLY=( $(compgen -W "$availopts" -- $cur) )
             [[ ${COMPREPLY-} == *= ]] && compopt -o nospace

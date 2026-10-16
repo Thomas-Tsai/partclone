@@ -1,0 +1,37 @@
+name: Zero-free-space destructive test
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - '*'
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v4
+    - name: install packages
+      run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential autoconf automake autotools-dev libtool libtool-bin gettext intltool pkg-config e2fsprogs
+    - name: automake
+      run: ./autogen
+    - name: configure
+      run: ./configure --enable-fs-test --enable-extfs
+    - name: make
+      run: make
+    - name: makeTest
+      run: make check
+  ZeroFillD2DTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
+    - name: ext4 zero-fill dev-to-dev Test
+      if: always()
+      run: cd tests && bash -x ./zero_fill_test d2d ext4 && cd ../ && pwd
+  ZeroFillRestoreTest:
+    runs-on: self-hosted
+    needs: build
+    steps:
+    - name: ext4 zero-fill restore Test
+      if: always()
+      run: cd tests && bash -x ./zero_fill_test restore ext4 && cd ../ && pwd

@@ -140,6 +140,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--prog-second</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--write-direct-io</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--read-direct-io</option></arg></group></arg>
+      <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-Z</option></arg><arg choice="plain"><option>--zero-free-space</option></arg></group></arg>
     </cmdsynopsis>
   </refsynopsisdiv>
   <refsect1 id="description">
@@ -409,6 +410,13 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>--btfiles_torrent</option></term>
         <listitem>
           <para>Restore block as file for ClonezillaBT but only generate torrent.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-Z</option></term>
+        <term><option>--zero-free-space</option></term>
+        <listitem>
+          <para>Write zeros to the unused blocks of the target instead of skipping them (restore and dev-to-dev modes only). Without this option unused blocks are left untouched on the target.</para>
         </listitem>
       </varlistentry>
       <varlistentry>

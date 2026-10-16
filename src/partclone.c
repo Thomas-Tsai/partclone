@@ -291,6 +291,8 @@ void usage(void) {
 		"    -E,  --offset=X         Add offset X (bytes) to OUTPUT\n"
 		"    -T,  --btfiles          Restore block as file for ClonezillaBT\n"
 		"    -t,  --btfiles_torrent  Restore block as file for ClonezillaBT but only generate torrent\n"
+		"    -Z,  --zero-free-space  Write zeros to unused blocks on the target\n"
+		"                            (restore and dev-to-dev modes only)\n"
 #endif
 		"    -v,  --version          Display partclone version\n"
 		"    -h,  --help             Display this help\n"
@@ -359,11 +361,11 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 #if CHKIMG
 	static const char *sopt = "-hvd::L:s:f:CFiBz:Nn:";
 #elif RESTORE
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqwWBz:E:n:Tt";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqwWBz:ZE:n:Tt";
 #elif DD
-	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqwWBz:E:n:TtS:a:k:K";
+	static const char *sopt = "-hvd::L:o:O:s:f:CFINiqwWBz:ZE:n:TtS:a:k:K";
 #else
-	static const char *sopt = "-hvd::L:cx:brDo:O:s:f:RCFINiqwWBz:E:a:k:Kn:Tt";
+	static const char *sopt = "-hvd::L:cx:brDo:O:s:f:RCFINiqwWBz:ZE:a:k:Kn:Tt";
 #endif
 
 	static const struct option lopt[] = {
@@ -416,6 +418,7 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "offset",		required_argument,	NULL,   'E' },
 		{ "btfiles",		no_argument,		NULL,   'T' },
 		{ "btfiles_torrent",	no_argument,		NULL,   't' },
+		{ "zero-free-space",	no_argument,		NULL,   'Z' },
 #endif
 #ifdef HAVE_LIBNCURSESW
 		{ "ncurses",		no_argument,		NULL,   'N' },
@@ -619,6 +622,9 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 			case 'E':
                 assert(optarg != NULL);
 				opt->offset = (off_t)atol(optarg);
+				break;
+			case 'Z':
+				opt->zero_free_space++;
 				break;
 #endif
 #ifdef HAVE_LIBNCURSESW
@@ -2138,6 +2144,7 @@ void print_opt(cmd_opt opt) {
 	log_mesg(1, 0, 0, debug, "FRESH: %i\n", opt.fresh);
 	log_mesg(1, 0, 0, debug, "FORCE: %i\n", opt.force);
 	log_mesg(1, 0, 0, debug, "BTFILES: %i\n", opt.blockfile);
+	log_mesg(1, 0, 0, debug, "ZERO_FREE_SPACE: %i\n", opt.zero_free_space);
 #ifdef HAVE_LIBNCURSESW
 	log_mesg(1, 0, 0, debug, "NCURSES: %i\n", opt.ncurses);
 #endif
