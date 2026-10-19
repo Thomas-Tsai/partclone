@@ -1,0 +1,114 @@
+#!/bin/bash
+# Regression test for https://github.com/Thomas-Tsai/partclone/issues/313
+#
+# exFAT clusters are numbered 2 .. ClusterCount + 1. partclone.exfat used
+# to leave the last two clusters out of the image (find_used_clusters()
+# stopped at cluster_count and cmap.size had no room for the last two
+# allocation bitmap bits). Data living there was silently lost on restore.
+#
+# This test needs no root and no loop mount: it formats an image, flips
+# the last two bits of the exFAT allocation bitmap so the last two
+# clusters count as "used", fills those clusters with a random pattern,
+# then clones -> restores and compares the whole-image sha256 (unused
+# regions are zeros in both images).
+
+set -e
+
+. "$(dirname "$0")"/_common
+
+[ -n "$(command -v mkfs.exfat)" ] || { echo "mkfs.exfat not found, skip"; exit 77; }
+[ -n "$(command -v python3)" ]   || { echo "python3 not found, skip"; exit 77; }
+
+ptlfs=$(_ptlname exfat)
+
+img_size=$((16*1024*1024))
+cluster_size=$((32*1024))
+
+echo -e "create $img_size bytes raw file $raw and format as exfat\n"
+rm -f "$raw" "$img" "$raw_restore"
+dd if=/dev/zero of="$raw" bs=$img_size count=1 status=none
+mkfs.exfat -q -c ${cluster_size} "$raw"
+
+echo -e "mark the last two clusters used in the allocation bitmap\n"
+python3 - "$raw" <<'EOF'
+import struct, sys
+
+img = sys.argv[1]
+f = open(img, 'r+b')
+
+def read(off, n):
+    f.seek(off)
+    return f.read(n)
+
+# BPB fields (exFAT spec 3.3)
+fat_off,   = struct.unpack('<I', read(0x50, 4))
+heap_off,  = struct.unpack('<I', read(0x58, 4))
+ccount,    = struct.unpack('<I', read(0x5C, 4))
+root_cl,   = struct.unpack('<I', read(0x60, 4))
+bps_shift, = struct.unpack('<B', read(0x6C, 1))
+spc_shift, = struct.unpack('<B', read(0x6D, 1))
+bps = 1 << bps_shift
+cs  = bps << spc_shift
+
+def coff(n):  # absolute byte offset of cluster n
+    return heap_off*bps + (n-2)*cs
+
+# walk the root directory via the FAT to find the allocation bitmap (0x81)
+bmp_cl = bmp_len = None
+cl = root_cl
+while cl < 0xFFFFFFF8:
+    for i in range(cs//32):
+        e = read(coff(cl) + i*32, 32)
+        if e[0] == 0x81:
+            bmp_cl,  = struct.unpack('<I', e[20:24])
+            bmp_len, = struct.unpack('<Q', e[24:32])
+        if e[0] == 0x00:
+            break
+    if bmp_cl is not None:
+        break
+    nxt, = struct.unpack('<I', read(fat_off*bps + cl*4, 4))
+    if nxt >= 0xFFFFFFF8 or nxt == cl:
+        break
+    cl = nxt
+assert bmp_cl is not None, 'allocation bitmap entry not found'
+assert bmp_len*8 >= ccount, 'on-disk bitmap too short for cluster_count'
+
+# mark clusters ccount and ccount+1 used -> bitmap bits ccount-2, ccount-1
+boff = coff(bmp_cl)
+for bit in (ccount-2, ccount-1):
+    f.seek(boff + bit//8)
+    v = f.read(1)[0] | (1 << (bit % 8))
+    f.seek(boff + bit//8)
+    f.write(bytes([v]))
+print('cluster_count=%d cluster_size=%d bitmap@0x%x' % (ccount, cs, boff))
+f.close()
+EOF
+
+echo -e "fill the last two clusters with a random pattern\n"
+ccount=$(od -An -j 0x5C -N 4 -t u4 "$raw")
+heap=$(od -An -j 0x58 -N 4 -t u4 "$raw")
+bps=$((1 << $(od -An -j 0x6C -N 1 -t u1 "$raw")))
+spcs=$((1 << $(od -An -j 0x6D -N 1 -t u1 "$raw")))
+off=$(( heap*bps + (ccount-2)*bps*spcs ))
+dd if=/dev/urandom of="$raw" bs=$((bps*spcs)) seek=$((off/(bps*spcs))) count=2 conv=notrunc status=none
+
+sum_src=$(sha256sum "$raw" | cut -d' ' -f1)
+
+echo -e "\nclone $raw to $img"
+"$ptlfs" -q -c -s "$raw" -O "$img" -F -L "$logfile"
+
+echo -e "restore $img to $raw_restore"
+dd if=/dev/zero of="$raw_restore" bs=$img_size count=1 status=none
+"$ptlrestore" -q -s "$img" -O "$raw_restore" -C -F -L "$logfile"
+
+sum_dst=$(sha256sum "$raw_restore" | cut -d' ' -f1)
+
+rm -f "$img" "$raw" "$raw_restore" "$logfile"
+
+echo -e "\nsrc  $sum_src\nrest $sum_dst"
+if [ "$sum_src" = "$sum_dst" ]; then
+    echo "exfat last two clusters test ok"
+else
+    echo "FAIL: the last two clusters of the volume were not cloned"
+    exit 1
+fi

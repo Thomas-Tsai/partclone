@@ -52,6 +52,7 @@ unsigned long long block_id;
 int done;
 
 #include "partclone.h"
+#include "json_status.h"
 
 /// cmd_opt structure defined in partclone.h
 cmd_opt opt;
@@ -126,6 +127,8 @@ int main(int argc, char **argv) {
 
 	//if(opt.debug)
 	open_log(opt.logfile);
+
+	json_status_init(opt.json_path, &fs_info, &opt);
 
         struct tm *ptm = gmtime(&now);
         log_mesg(1, 0, 0, debug, "Partclone log start at UTC %s", asctime(ptm));
@@ -491,10 +494,10 @@ int main(int argc, char **argv) {
 
 		block_id = 0;
 		do {
-			/// scan bitmap
-			unsigned long long i, blocks_skip, blocks_read;
-			unsigned int cs_added = 0, write_offset = 0;
-			off_t offset;
+		/// scan bitmap
+		unsigned long long i, blocks_skip, blocks_read, read_size;
+		unsigned int cs_added = 0, write_offset = 0;
+		off_t offset;
 
 			/// skip unused blocks
 			for (blocks_skip = 0;
@@ -515,12 +518,22 @@ int main(int argc, char **argv) {
 			if (!blocks_read)
 				break;
 
-			offset = (off_t)(block_id * block_size);
-			if (lseek(dfr, offset, SEEK_SET) == (off_t)-1)
-				log_mesg(0, 1, 1, debug, "source seek ERROR:%s\n", strerror(errno));
+		offset = (off_t)(block_id * block_size);
+		if (lseek(dfr, offset, SEEK_SET) == (off_t)-1)
+			log_mesg(0, 1, 1, debug, "source seek ERROR:%s\n", strerror(errno));
 
-			r_size = read_all(&dfr, read_buffer, blocks_read * block_size, &opt);
-			if (r_size != (int)(blocks_read * block_size)) {
+		/* The last block may be only partially present on the source device
+		 * (e.g. the NTFS Boot Record copy after the end of the volume).
+		 * Clamp the read at the device boundary and zero-fill the rest. */
+		read_size = blocks_read * block_size;
+		if (fs_info.device_size > (unsigned long long)offset &&
+		    fs_info.device_size < (block_id + blocks_read) * block_size) {
+			read_size = fs_info.device_size - offset;
+			memset(read_buffer + read_size, 0, (blocks_read * block_size) - read_size);
+		}
+
+		r_size = read_all(&dfr, read_buffer, read_size, &opt);
+		if (r_size != (int)read_size) {
 				if ((r_size == -1) && (errno == EIO)) {
 					if (opt.rescue) {
 						memset(read_buffer, 0, blocks_read * block_size);
@@ -837,28 +850,39 @@ int main(int argc, char **argv) {
 				     blocks_write++);
 
 #ifndef CHKIMG
-				// write blocks
-				if (blocks_write > 0) {
-				        if (opt.blockfile == 1){
-					    update_bt_info(&bt,
-							   block_id * block_size,
-							   write_buffer +
-							   blocks_written *
-							   block_size,
-							   blocks_write *
-							   block_size);
+			// write blocks
+			if (blocks_write > 0) {
+				unsigned int write_size = blocks_write * block_size;
 
-					    if (opt.torrent_only == 1) {
-						w_size = blocks_write * block_size;
-					    } else {
-					    	w_size = write_block_file(target, write_buffer + blocks_written * block_size,
-							blocks_write * block_size, (block_id*block_size), &opt);
-					    }
-					}else{
-					    w_size = write_all(&dfw, write_buffer + blocks_written * block_size,
-						    blocks_write * block_size, &opt);
-					}
-					if (w_size != blocks_write * block_size) {
+				/* The last block may be only partially present on the
+				 * source device (e.g. the NTFS Boot Record copy after
+				 * the end of the volume); never write past the source
+				 * device boundary. */
+				if (fs_info.device_size > block_id * block_size &&
+				    fs_info.device_size < (block_id + blocks_write) * block_size)
+					write_size = fs_info.device_size - block_id * block_size;
+
+			        if (opt.blockfile == 1){
+				    update_bt_info(&bt,
+						   block_id * block_size,
+						   write_buffer +
+						   blocks_written *
+						   block_size,
+						   blocks_write *
+						   block_size);
+
+				    if (opt.torrent_only == 1) {
+					w_size = blocks_write * block_size;
+				    } else {
+					w_size = write_block_file(target, write_buffer + blocks_written * block_size,
+						blocks_write * block_size, (block_id*block_size), &opt);
+				    }
+				    write_size = blocks_write * block_size;
+				}else{
+				    w_size = write_all(&dfw, write_buffer + blocks_written * block_size,
+					    write_size, &opt);
+				}
+				if (w_size != write_size) {
 						if (!opt.skip_write_error)
 							log_mesg(0, 1, 1, debug, "write block %llu ERROR:%s\n", block_id + blocks_written, strerror(errno));
 						else
@@ -1201,6 +1225,7 @@ int main(int argc, char **argv) {
 	if(pres)
 	    log_mesg(0, 1, 1, debug, "%s, %i, thread join error\n", __func__, __LINE__);
 	update_pui(&prog, copied, block_id, done);
+	json_status_finish(&prog, copied, block_id);
 #ifndef CHKIMG
 	sync_data(dfw, &opt);
 #endif
@@ -1249,6 +1274,7 @@ void *thread_update_pui(void *arg) {
 	while (!done) {
 		if (!opt.quiet)
 			update_pui(&prog, copied, block_id, done);
+		json_status_update(&prog, copied, block_id, JSON_STATE_RUNNING);
 		sleep(opt.fresh);
 	}
 	pthread_exit("exit");

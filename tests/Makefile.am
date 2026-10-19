@@ -46,6 +46,7 @@ endif
 
 if ENABLE_EXFAT
 TESTS += exfat.test
+TESTS += exfat_last_clusters.test
 endif
 
 if ENABLE_F2FS
@@ -54,6 +55,7 @@ endif
 
 if ENABLE_NTFS
 TESTS += ntfs.test
+TESTS += ntfs_backup_bootsector.test
 endif
 
 #if ENABLE_UFS
@@ -81,6 +83,9 @@ endif
 if ENABLE_FEATURE_TEST
 if ENABLE_NCURSESW
 TESTS += ncursesw.test
+endif
+if ENABLE_EXTFS
+TESTS += jsonprogress.test
 endif
 TESTS += btfile.test
 TESTS += info.test

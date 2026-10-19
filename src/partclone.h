@@ -117,6 +117,8 @@ struct cmd_opt
     char* target;
     char* compresscmd;
     char* logfile;
+    char* json_path;
+    unsigned long json_fresh;
     char note[NOTE_SIZE];
     int overwrite;
     int rescue;

@@ -47,6 +47,9 @@ struct prog_stat_t{
     float total_percent;
     float speed;
     char speed_unit[5];
+    unsigned long long elapsed_sec;
+    unsigned long long remaining_sec;
+    unsigned long long rate_bytes_per_sec;
 };
 typedef struct prog_stat_t prog_stat_t;
 
@@ -60,3 +63,6 @@ extern void progress_init(struct progress_bar *prog, int start, unsigned long lo
 /// update number
 extern void progress_update(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done);
 extern void Ncurses_progress_update(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done);
+
+/// compute current progress statistics into prog_stat
+extern void progress_calculate_stat(struct progress_bar *prog, unsigned long long copied, unsigned long long current, int done, prog_stat_t *prog_stat);

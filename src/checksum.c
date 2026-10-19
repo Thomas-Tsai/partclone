@@ -102,7 +102,7 @@ const char *get_checksum_str(int checksum_mode) {
 }
 
 /**
- * Initialise crc32 lookup table if it is not already done and initialise seed
+ * Initialise pc_crc32 lookup table if it is not already done and initialise seed
  * the the default implementation seed value
  */
 void init_crc32(uint32_t* seed) {
@@ -176,12 +176,12 @@ void init_checksum(int checksum_mode, unsigned char* seed, int debug) {
 	}
 }
 
-/// the crc32 function, reference from libcrc.
+/// the pc_crc32 function, reference from libcrc.
 /// Author is Lammert Bies  1999-2007
 /// Mail: info@lammertbies.nl
 /// http://www.lammertbies.nl/comm/info/nl_crc-calculation.html
-/// generate crc32 code
-uint32_t crc32(uint32_t seed, void* buffer, long size) {
+/// generate pc_crc32 code
+uint32_t pc_crc32(uint32_t seed, void* buffer, long size) {
     return crc32_isa_compatible(seed, buffer, size);
 }
 
@@ -189,7 +189,7 @@ uint32_t crc32(uint32_t seed, void* buffer, long size) {
  * Note
  * This version is only used to detect the x64 bug existing in old image version 0001.
  * Once we know if the image as the bug or not, we disable the checksum check. The x64
- * bug caused the crc32 to be recorded with 8 bytes instead of 4. So the data stream
+ * bug caused the pc_crc32 to be recorded with 8 bytes instead of 4. So the data stream
  * is like this: <block><crc><bug><block><crc><bug>...
  */
 static uint32_t crc32_0001(uint32_t seed, void* buffer, int size) {
@@ -220,7 +220,7 @@ void update_checksum(unsigned char* checksum, char* buf, int size) {
 	switch(cs_mode)
 	{
 	case CSM_CRC32:
-		*(uint32_t*)checksum = crc32(*(uint32_t*)checksum, (unsigned char*)buf, size);
+		*(uint32_t*)checksum = pc_crc32(*(uint32_t*)checksum, (unsigned char*)buf, size);
 		break;
 
 	case CSM_CRC32_0001:

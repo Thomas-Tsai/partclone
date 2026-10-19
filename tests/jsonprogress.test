@@ -1,0 +1,93 @@
+#!/bin/bash
+set -e
+
+. "$(dirname "$0")"/_common
+fs="ext3"
+ptlfs="../src/partclone.extfs"
+mkfs=$(_findmkfs $fs)
+dd_count=$((normal_size/2))
+jsonfile="$$_test.json"
+jsondefault="/var/log/partclone.json"
+jsec=1
+
+if type -P jq >/dev/null 2>&1; then
+    json_tool="jq"
+else
+    json_tool="grep"
+fi
+
+_check_json(){
+    file=$1
+    if [ ! -s "$file" ]; then
+	echo "json status file $file missing or empty"
+	exit 1
+    fi
+    if [ "$json_tool" = "jq" ]; then
+	if ! jq -e '.schema_version == 1 and .partclone.version != "" and .partclone.state == "done" and .partclone.progress.data_percent == 100' "$file" >/dev/null; then
+	    echo "json status content invalid:"
+	    cat "$file"
+	    exit 1
+	fi
+    else
+	echo "jq not found, fallback to grep check"
+	grep -q '"schema_version": 1' "$file" || { echo "schema_version missing"; exit 1; }
+	grep -q '"state": "done"' "$file" || { echo '"state": "done" missing'; exit 1; }
+	grep -q '"data_percent": 100.00' "$file" || { echo '"data_percent": 100.00 missing'; exit 1; }
+    fi
+}
+
+echo -e "JSON status output test"
+echo -e "====================\n"
+echo -e "\ncreate raw file $raw\n"
+_ptlbreak
+[ -f $raw ] && rm $raw
+echo -e "    dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count\n"
+dd if=/dev/zero of=$raw bs=$dd_bs count=$dd_count
+
+echo -e "\n\nformat $raw as $fs raw partition\n"
+echo -e "    mkfs.$fs `eval echo "$"mkfs_option_for_$fs""` $raw\n"
+_ptlbreak
+$mkfs `eval echo "$"mkfs_option_for_$fs""` $raw
+
+echo -e "\nclone $raw to $img with --json-status=$jsonfile\n"
+[ -f $img ] && rm $img
+[ -f $jsonfile ] && rm $jsonfile
+echo -e "    $ptlfs -d -c -s $raw -O $img -F -L $logfile --json-status=$jsonfile --json-fresh=$jsec\n"
+_ptlbreak
+$ptlfs -d -c -s $raw -O $img -F -L $logfile -a 1 -k 17 --json-status=$jsonfile --json-fresh=$jsec
+_check_return_code
+cat $jsonfile
+_check_json $jsonfile
+
+if [ "$(_configure_feature ncursesw)" = "1" ]; then
+    echo -e "\nclone $raw to $img with --json-status in ncurses mode\n"
+    [ -f $img ] && rm $img
+    [ -f $jsonfile ] && rm $jsonfile
+    echo -e "    $ptlfs -d -c -N -s $raw -O $img -F -L $logfile --json-status=$jsonfile --json-fresh=$jsec\n"
+    _ptlbreak
+    $ptlfs -d -c -N -s $raw -O $img -F -L $logfile -a 1 -k 17 --json-status=$jsonfile --json-fresh=$jsec
+    _check_return_code
+    cat $jsonfile
+    _check_json $jsonfile
+else
+    echo -e "\nncursesw not enabled, skip ncurses json test\n"
+fi
+
+echo -e "\nclone $raw to $img with --json-status (default path $jsondefault)\n"
+[ -f $img ] && rm $img
+echo -e "    $ptlfs -d -c -s $raw -O $img -F -L $logfile --json-status\n"
+_ptlbreak
+$ptlfs -d -c -s $raw -O $img -F -L $logfile -a 1 -k 17 --json-status --json-fresh=$jsec
+_check_return_code
+if [ -f $jsondefault ]; then
+    cat $jsondefault
+    _check_json $jsondefault
+    rm -f $jsondefault
+else
+    echo "no write permission to $jsondefault, clone must still succeed (checked above)"
+fi
+
+echo -e "\njson status test ok\n"
+echo -e "\nclear tmp files $img $raw $logfile $md5 $jsonfile\n"
+_ptlbreak
+rm -f $img $raw $logfile $md5 $jsonfile

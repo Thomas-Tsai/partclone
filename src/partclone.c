@@ -78,6 +78,8 @@ int log_y_line = 0;
 #define OPT_READ_DIRECT_IO 1002
 #define OPT_BINARY_PREFIX 1003
 #define OPT_PROG_SEC 1004
+#define OPT_JSON_STATUS 1005
+#define OPT_JSON_FRESH 1006
 //
 //enum {
 //	OPT_OFFSET_DOMAIN = 1000
@@ -110,11 +112,11 @@ int get_cpu_bits()
  *
  * @note
  * We must use a special version of CRC32 algorithm, crc32_0001(), because the
- * old crc32() implementation contains a bug that prevented it from computing
- * the crc32 correctly.
+ * old pc_crc32() implementation contains a bug that prevented it from computing
+ * the pc_crc32 correctly.
  *
  * Also, an old bug affects some images generated from an old 64 bits version
- * of partclone. In these images, the crc32 is recorded on 8 bytes instead of 4.
+ * of partclone. In these images, the pc_crc32 is recorded on 8 bytes instead of 4.
  */
 void set_image_options_v1(image_options* img_opt)
 {
@@ -280,6 +282,9 @@ void usage(void) {
 		"    -B,  --no_block_detail  Show progress message without block detail\n"
 		"         --binary-prefix    Show progress with bit size (default is MB, GB...)\n"
 		"         --prog-second      Show progress in seconds (default is minute)\n"
+		"         --json-status=[FILE]  Write progress status to FILE in JSON format\n"
+		"                            (default FILE: /var/log/partclone.json)\n"
+		"         --json-fresh=N     JSON status fresh interval in seconds (default: 1)\n"
 		"    -z,  --buffer_size SIZE Read/write buffer size (default: %d)\n"
 #ifndef CHKIMG
 		"    -q,  --quiet            Disable progress message\n"
@@ -379,6 +384,8 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		{ "prog-second",        no_argument,	        NULL,   OPT_PROG_SEC },
 		{ "write-direct-io",	no_argument,	        NULL,   OPT_WRITE_DIRECT_IO },
 		{ "read-direct-io",	no_argument,	        NULL,   OPT_READ_DIRECT_IO },
+		{ "json-status",	optional_argument,	NULL,   OPT_JSON_STATUS },
+		{ "json-fresh",		required_argument,	NULL,   OPT_JSON_FRESH },
 // not RESTORE and not CHKIMG
 #ifndef CHKIMG
 #ifndef RESTORE
@@ -432,6 +439,8 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 	opt->no_block_detail = 0;
 	opt->fresh = 2;
 	opt->logfile = "/var/log/partclone.log";
+	opt->json_path = NULL;
+	opt->json_fresh = 1;
 	opt->buffer_size = DEFAULT_BUFFER_SIZE;
 	opt->checksum_mode = CSM_CRC32;
 	opt->reseed_checksum = 1;
@@ -483,6 +492,13 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
                         case OPT_READ_DIRECT_IO:
                                 opt->read_direct_io = 1;
                                 break;
+			case OPT_JSON_STATUS:
+				opt->json_path = optarg ? optarg : "/var/log/partclone.json";
+				break;
+			case OPT_JSON_FRESH:
+				assert(optarg != NULL);
+				opt->json_fresh = atol(optarg);
+				break;
 			case 'n':
 				memcpy(opt->note, optarg, NOTE_SIZE);
 				break;
@@ -651,6 +667,9 @@ void parse_options(int argc, char **argv, cmd_opt* opt) {
 		fprintf(stderr, "Too small or bad offset of domain file. Use --help get more info.\n");
 		exit(1);
 	}
+
+	if (opt->json_fresh < 1)
+		opt->json_fresh = 1;
 
 	if (!opt->target)
 		opt->target = "-";
@@ -989,7 +1008,13 @@ void load_image_desc_v1(file_system_info* fs_info, image_options* img_opt,
 
 	unsigned long long calculated_size = fs_info->totalblock * fs_info->block_size;
 	if (calculated_size > fs_info->device_size) {
-		log_mesg(0, 1, 1, opt->debug, "Invalid image v1: calculated filesystem size is larger than device size.\n");
+		// Allow the last block to extend past the device end by less than
+		// one block (e.g. NTFS images holding the Boot Record copy located
+		// in the final sectors of the device), but never more.
+		unsigned long long overshoot = calculated_size - fs_info->device_size;
+		if (overshoot >= fs_info->block_size)
+			log_mesg(0, 1, 1, opt->debug, "Invalid image v1: calculated filesystem size is larger than device size.\n");
+		log_mesg(1, 0, 0, opt->debug, "INFO: filesystem size exceeds device size by %llu bytes (partial last block).\n", overshoot);
 	} else if (calculated_size < fs_info->device_size) {
 		log_mesg(1, 0, 0, opt->debug, "INFO: adjusted device size reported by the image [%llu -> %llu]\n", fs_info->device_size, calculated_size);
 		fs_info->device_size = calculated_size;
@@ -1038,7 +1063,13 @@ void load_image_desc_v2(file_system_info* fs_info, image_options* img_opt,
 
 	unsigned long long calculated_size = fs_info->totalblock * fs_info->block_size;
 	if (calculated_size > fs_info->device_size) {
-		log_mesg(0, 1, 1, opt->debug, "Invalid image: calculated filesystem size is larger than device size.\n");
+		// Allow the last block to extend past the device end by less than
+		// one block (e.g. NTFS images holding the Boot Record copy located
+		// in the final sectors of the device), but never more.
+		unsigned long long overshoot = calculated_size - fs_info->device_size;
+		if (overshoot >= fs_info->block_size)
+			log_mesg(0, 1, 1, opt->debug, "Invalid image: calculated filesystem size is larger than device size.\n");
+		log_mesg(1, 0, 0, opt->debug, "INFO: filesystem size exceeds device size by %llu bytes (partial last block).\n", overshoot);
 	}
 
 
@@ -1099,7 +1130,7 @@ void load_image_desc(int* ret, cmd_opt* opt, image_head_v2* img_head, file_syste
 
 		// Verify checksum
 		init_crc32(&crc);
-		crc = crc32(crc, &buf_v2, sizeof(buf_v2) - CRC32_SIZE);
+		crc = pc_crc32(crc, &buf_v2, sizeof(buf_v2) - CRC32_SIZE);
 		if (crc != buf_v2.crc)
 			log_mesg(0, 1, 1, debug, "Invalid header checksum [0x%08X != 0x%08X]\n", crc, buf_v2.crc);
 
@@ -1130,7 +1161,7 @@ void write_image_desc(int* ret, file_system_info fs_info, image_options img_opt,
 	memcpy(&buf_v2.options, &img_opt, sizeof(image_options));
 
 	init_crc32(&buf_v2.crc);
-	buf_v2.crc = crc32(buf_v2.crc, &buf_v2, sizeof(image_desc_v2) - CRC32_SIZE);
+	buf_v2.crc = pc_crc32(buf_v2.crc, &buf_v2, sizeof(image_desc_v2) - CRC32_SIZE);
 
 	if (write_all(ret, (char*)&buf_v2, sizeof(image_desc_v2), opt) != sizeof(image_desc_v2))
 		log_mesg(0, 1, 1, opt->debug, "error writing image header to image: %s\n", strerror(errno));
@@ -1198,7 +1229,7 @@ void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_op
 
 			init_crc32(&crc);
 
-			crc = crc32(crc, bitmap, pc_BITS_TO_BYTES(fs_info.totalblock));
+			crc = pc_crc32(crc, bitmap, pc_BITS_TO_BYTES(fs_info.totalblock));
 			if (write_all(ret, (char*)&crc, sizeof(crc), opt) != sizeof(crc))
 			    log_mesg(0, 1, 1, debug, "write bitmap to image error: %s\n", strerror(errno));
 			break;
@@ -1542,7 +1573,7 @@ void load_image_bitmap_bits(int* ret, cmd_opt opt, file_system_info fs_info, uns
 
 	init_crc32(&crc);
 
-	crc = crc32(crc, bitmap, bitmap_size);
+	crc = pc_crc32(crc, bitmap, bitmap_size);
 	if (crc != r_crc)
 		log_mesg(0, 1, 1, opt.debug, "read bitmap's crc error\n");
 }
