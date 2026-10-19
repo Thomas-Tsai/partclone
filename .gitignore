@@ -77,6 +77,8 @@ src/partclone.ufs
 src/partclone.vmfs
 src/partclone.vmfs5
 src/partclone.xfs
+src/partclone.zfs
+src/partclone.openzfs
 
 # Generated man pages
 docs/partclone.8
@@ -90,4 +92,7 @@ docs/partclone.restore.8
 # Manually added generated files
 /libtool
 po/insert-header.sed
+
+# Tool-generated knowledge graph artifacts
+.ua/
 

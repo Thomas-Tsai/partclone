@@ -52,6 +52,7 @@ typedef struct {
 #define jfs_MAGIC "JFS"
 #define btrfs_MAGIC "BTRFS"
 #define minix_MAGIC "MINIX"
+#define zfs_MAGIC "ZFS"
 #define f2fs_MAGIC "F2FS"
 #define nilfs_MAGIC "NILFS"
 #define apfs_MAGIC "APFS"

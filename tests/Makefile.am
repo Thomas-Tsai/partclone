@@ -16,6 +16,14 @@ TESTS += btrfs_multilevel.test
 TESTS += btrfs_uninitvalgrind.test
 endif
 
+if ENABLE_ZFS
+TESTS += zfs.test
+endif
+
+if ENABLE_OPENZFS
+TESTS += openzfs.test
+endif
+
 if ENABLE_FAT
 TESTS += fat.test
 endif

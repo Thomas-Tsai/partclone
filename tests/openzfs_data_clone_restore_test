@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# ==============================================================================
+# Partclone OpenZFS (CDDL-linked) advanced data clone/restore test
+#
+# Runs the exact same scenario as zfs_data_clone_restore_test, but against
+# partclone.openzfs (the --enable-openzfs binary).
+# ==============================================================================
+
+exec "$(dirname "$0")/zfs_data_clone_restore_test" openzfs "$@"

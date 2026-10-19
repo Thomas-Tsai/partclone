@@ -145,7 +145,7 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
   <refsect1 id="description">
     <title>DESCRIPTION</title>
     <para><command>&dhpackage;</command>.[fstype] is a part of <command>Partclone</command> project. Partclone provide utilities to backup used blocks and design for higher compatibility of the file system by using existing library, e.g. e2fslibs is used to read the used block of ext2 partition.</para>
-    <para><command>Partclone</command> supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs and jfs for LINUX. Also  support some non-linux operation system, ex: NTFS, FAT and EXFAT (for Windows), HFS plus (APPLE MAC OS), UFS2 (FreeBSD), VMFS (VMWare Vsphere) and MINIX (MINIX3).</para>
+     <para><command>Partclone</command> supported file system include btrfs, ext2, ext3, ext4, reiserfs, reiser4, xfs, jfs and zfs for LINUX. Also  support some non-linux operation system, ex: NTFS, FAT and EXFAT (for Windows), HFS plus (APPLE MAC OS), UFS2 (FreeBSD), VMFS (VMWare Vsphere) and MINIX (MINIX3).</para>
     <para>All partclone utils could be run like partclone.[fstype] is very similar to fsck or mkfs. For example, for backup/restore hfsplus, just run partclone.hfsp
     </para>
     <screen>
@@ -165,9 +165,10 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
        exfat                       partclone.exfat
        minix                       partclone.minix
        f2fs                        partclone.f2fs
-       nilfs2                      partclone.nilfs2
-       apfs                        partclone.apfs
-       others (Not Supported FS)   partclone.imager
+        nilfs2                      partclone.nilfs2
+        apfs                        partclone.apfs
+        zfs (stripe pool)           partclone.zfs
+        others (Not Supported FS)   partclone.imager
     </screen>
   </refsect1>
   <refsect1 id="options">
