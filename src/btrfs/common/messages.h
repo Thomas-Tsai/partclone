@@ -185,6 +185,10 @@ void pr_verbose(int level, const char *fmt, ...);
 __attribute__ ((format (printf, 2, 3)))
 void pr_stderr(int level, const char *fmt, ...);
 
+#define pr_default(...)	pr_verbose(LOG_DEFAULT, ##__VA_ARGS__)
+#define pr_info(...)	pr_verbose(LOG_INFO, ##__VA_ARGS__)
+#define pr_debug(...)	pr_verbose(LOG_DEBUG, ##__VA_ARGS__)
+
 /*
  * Commonly used errors
  */

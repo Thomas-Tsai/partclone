@@ -174,7 +174,7 @@ static int resolve_loop_device(const char* loop_dev, char* loop_file,
 		return -errno;
 	}
 
-	snprintf(fmt, 20, "%%%i[^\n]", max_len - 1);
+	snprintf(fmt, sizeof(fmt), "%%%i[^\n]", max_len - 1);
 	ret = fscanf(f, fmt, loop_file);
 	fclose(f);
 	if (ret == EOF)
@@ -430,7 +430,7 @@ int path_cat_out(char *out, const char *p1, const char *p2)
 		p1_len--;
 	if (p2_len && p2[p2_len - 1] == '/')
 		p2_len--;
-	sprintf(out, "%.*s/%.*s", p1_len, p1, p2_len, p2);
+	snprintf(out, PATH_MAX, "%.*s/%.*s", p1_len, p1, p2_len, p2);
 
 	return 0;
 }
@@ -450,22 +450,9 @@ int path_cat3_out(char *out, const char *p1, const char *p2, const char *p3)
 		p2_len--;
 	if (p3_len && p3[p3_len - 1] == '/')
 		p3_len--;
-	sprintf(out, "%.*s/%.*s/%.*s", p1_len, p1, p2_len, p2, p3_len, p3);
+	snprintf(out, PATH_MAX, "%.*s/%.*s/%.*s", p1_len, p1, p2_len, p2, p3_len, p3);
 
 	return 0;
-}
-
-/* Subvolume helper functions */
-/*
- * test if name is a correct subvolume name
- * this function return
- * 0-> name is not a correct subvolume name
- * 1-> name is a correct subvolume name
- */
-int test_issubvolname(const char *name)
-{
-	return name[0] != '\0' && !strchr(name, '/') &&
-		strcmp(name, ".") && strcmp(name, "..");
 }
 
 /*
@@ -494,4 +481,30 @@ char *path_basename(char *path)
 char *path_dirname(char *path)
 {
 	return dirname(path);
+}
+
+/*
+ * Read contents of symlink @src and store it to @dest (assuming PATH_MAX buffer).
+ * Makes sure it's a null terminated string.
+ *
+ * Return number of bytes written to @dest, or negative error.
+ */
+int path_readlink(char *dest, const char *src)
+{
+	int ret;
+
+	/* Readlink does not add the final null byte and can fill the whole buffer. */
+	ret = readlink(src, dest, PATH_MAX);
+	if (ret < 0)
+		return -errno;
+	/*
+	 * Extend the meaning of EINVAL which is either negative buffer size or
+	 * the named file is not a symbolic link. Zero-sized symlink cannot exist.
+	 */
+	if (ret == 0)
+		return -EINVAL;
+	if (ret >= PATH_MAX)
+		return -ENAMETOOLONG;
+	dest[ret] = 0;
+	return ret;
 }
