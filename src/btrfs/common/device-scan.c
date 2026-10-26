@@ -48,6 +48,7 @@
 #include "common/path-utils.h"
 #include "common/device-scan.h"
 #include "common/messages.h"
+#include "common/reproducible.h"
 #include "common/utils.h"
 #include "common/defs.h"
 #include "common/open-utils.h"
@@ -58,10 +59,11 @@ static int btrfs_scan_done = 0;
 
 /*
  * This function checks if the given input parameter is
- * an uuid or a path
- * return <0 : some error in the given input
+ * a UUID or a path:
+ *
+ * return <0:                   some error in the given input
  * return BTRFS_ARG_UNKNOWN:	unknown input
- * return BTRFS_ARG_UUID:	given input is uuid
+ * return BTRFS_ARG_UUID:	given input is UUID
  * return BTRFS_ARG_MNTPOINT:	given input is path
  * return BTRFS_ARG_REG:	given input is regular file
  * return BTRFS_ARG_BLKDEV:	given input is block device
@@ -85,12 +87,9 @@ int check_arg_type(const char *input)
 			return BTRFS_ARG_REG;
 
 		return BTRFS_ARG_UNKNOWN;
-	} else {
-		return -errno;
 	}
 
-	if (strlen(input) == (BTRFS_UUID_UNPARSED_SIZE - 1) &&
-		!uuid_parse(input, uuid))
+	if (strlen(input) == (BTRFS_UUID_UNPARSED_SIZE - 1) && uuid_parse(input, uuid) == 0)
 		return BTRFS_ARG_UUID;
 
 	return BTRFS_ARG_UNKNOWN;
@@ -157,7 +156,10 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 	disk_super = (struct btrfs_super_block *)buf;
 	dev_item = &disk_super->dev_item;
 
-	uuid_generate(device->uuid);
+	reproducible_uuid_generate(super->fsid,
+				   REPRODUCIBLE_UUID_ROLE_DEVICE,
+				   btrfs_super_num_devices(super) + 1,
+				   device->uuid);
 	device->fs_info = fs_info;
 	device->devid = 0;
 	device->type = 0;
@@ -220,6 +222,7 @@ int btrfs_add_to_fsid(struct btrfs_trans_handle *trans,
 
 out:
 	free(device->zone_info);
+	free(device->name);
 	free(device);
 	free(buf);
 	return ret;
@@ -249,8 +252,8 @@ int btrfs_register_one_device(const char *fname)
 }
 
 /*
- * Register all devices in the fs_uuid list created in the user
- * space. Ensure btrfs_scan_devices() is called before this func.
+ * Register all devices in the fs_uuid list created in the user space. Ensure
+ * btrfs_scan_devices() is called before this function is called.
  */
 int btrfs_register_all_devices(void)
 {

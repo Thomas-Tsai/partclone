@@ -276,10 +276,21 @@ int btrfs_reset_dev_zone(int fd, struct blk_zone *zone)
 {
 	struct blk_zone_range range;
 
-	/* Nothing to do if it is already empty */
-	if (zone->type == BLK_ZONE_TYPE_CONVENTIONAL ||
-	    zone->cond == BLK_ZONE_COND_EMPTY)
+	if (zone->type == BLK_ZONE_TYPE_CONVENTIONAL)
 		return 0;
+
+	if (zone->cond == BLK_ZONE_COND_EMPTY) {
+		char buf[sizeof(struct blk_zone_report) + sizeof(struct blk_zone)] = { 0 };
+		struct blk_zone_report *rep = (struct blk_zone_report *)buf;
+
+		rep->sector = zone->start;
+		rep->nr_zones = 1;
+		if (ioctl(fd, BLKREPORTZONE, rep) == 0 && rep->nr_zones == 1)
+			*zone = *(struct blk_zone *)(rep + 1);
+
+		if (zone->cond == BLK_ZONE_COND_EMPTY)
+			return 0;
+	}
 
 	range.sector = zone->start;
 	range.nr_sectors = zone->len;
@@ -1011,10 +1022,19 @@ static int btrfs_load_block_group_dup(struct btrfs_fs_info *fs_info,
 		return -EIO;
 	}
 
-	if (zone_info[0].alloc_offset == WP_CONVENTIONAL)
-		zone_info[0].alloc_offset = last_alloc;
-	if (zone_info[1].alloc_offset == WP_CONVENTIONAL)
-		zone_info[1].alloc_offset = last_alloc;
+	if (zone_info[0].alloc_offset == WP_CONVENTIONAL) {
+		if (last_alloc == 0 && zone_info[1].alloc_offset != WP_CONVENTIONAL)
+			zone_info[0].alloc_offset = zone_info[1].alloc_offset;
+		else
+			zone_info[0].alloc_offset = last_alloc;
+	}
+
+	if (zone_info[1].alloc_offset == WP_CONVENTIONAL) {
+		if (last_alloc == 0 && zone_info[0].alloc_offset != WP_CONVENTIONAL)
+			zone_info[1].alloc_offset = zone_info[0].alloc_offset;
+		else
+			zone_info[1].alloc_offset = last_alloc;
+	}
 
 	if (zone_info[0].alloc_offset != zone_info[1].alloc_offset) {
 		btrfs_err(fs_info,
@@ -1293,6 +1313,7 @@ out:
 	if (!ret)
 		cache->write_offset = cache->alloc_offset;
 
+	kfree(active);
 	kfree(zone_info);
 	return ret;
 }
@@ -1455,7 +1476,7 @@ int btrfs_get_zone_info(int fd, const char *file,
 	/* Get zone information */
 	ret = report_zones(fd, file, zinfo);
 	if (ret != 0) {
-		kfree(zinfo);
+		btrfs_free_zoned_device_info(zinfo);
 		return ret;
 	}
 	*zinfo_ret = zinfo;

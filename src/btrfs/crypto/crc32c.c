@@ -18,14 +18,10 @@ static uint32_t (*crc32c_impl)(uint32_t crc, unsigned char const *data, uint32_t
 
 #ifdef __x86_64__
 
-#ifdef __GLIBC__
-
 /* asmlinkage */ unsigned int crc_pcl(const unsigned char *buffer, unsigned int len, unsigned int crc_init);
 static unsigned int crc32c_pcl(uint32_t crc, unsigned char const *data, uint32_t len) {
 	return crc_pcl(data, len, crc);
 }
-
-#endif
 
 /*
  * Based on a posting to lkml by Austin Zhang <austin.zhang@intel.com>
@@ -89,16 +85,10 @@ static uint32_t crc32c_sse42(uint32_t crc, unsigned char const *data, uint32_t l
 
 void crc32c_init_accel(void)
 {
-	/*
-	 * Musl reports a problem with linkage, use the old implementation for
-	 * now.
-	 */
 	if (0) {
-#ifdef __GLIBC__
 	} else if (cpu_has_feature(CPU_FLAG_PCLMUL)) {
 		/* printf("CRC32C: pcl\n"); */
 		crc32c_impl = crc32c_pcl;
-#endif
 	} else if (cpu_has_feature(CPU_FLAG_SSE42)) {
 		/* printf("CRC32c: intel\n"); */
 		crc32c_impl = crc32c_sse42;

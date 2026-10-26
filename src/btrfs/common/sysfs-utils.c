@@ -17,6 +17,7 @@
 #include "kerncompat.h"
 #include <unistd.h>
 #include <fcntl.h>
+#include <ctype.h>
 #include <uuid/uuid.h>
 #include "common/sysfs-utils.h"
 #include "common/path-utils.h"
@@ -84,7 +85,7 @@ int sysfs_open_file_rw(const char *name)
 
 /*
  * Open a directory by name in fsid directory in sysfs and return the file
- * descriptor or error, filedescriptor suitable for fdreaddir. The @dirname
+ * descriptor or error, file descriptor suitable for fdreaddir. The @dirname
  * must be a directory name.
  */
 int sysfs_open_fsid_dir(int fd, const char *dirname)
@@ -167,12 +168,12 @@ int sysfs_write_file_u64(const char *name, u64 value)
 	return ret;
 }
 
-int sysfs_read_fsid_file_u64(int fd, const char *name, u64 *value)
+int sysfs_read_fsid_file_u64(int fs_fd, const char *name, u64 *value)
 {
-	int ret;
+	int ret, fd;
 	char str[32] = { 0 };
 
-	fd = sysfs_open_fsid_file(fd, name);
+	fd = sysfs_open_fsid_file(fs_fd, name);
 	if (fd < 0)
 		return fd;
 
@@ -188,17 +189,53 @@ out:
 	return ret;
 }
 
-int sysfs_write_fsid_file_u64(int fd, const char *name, u64 value)
+int sysfs_write_fsid_file_u64(int fs_fd, const char *name, u64 value)
 {
-	int ret;
+	int ret, fd;
 	char str[32] = { 0 };
 
-	fd = sysfs_open_fsid_file_rw(fd, name);
+	fd = sysfs_open_fsid_file_rw(fs_fd, name);
 	if (fd < 0)
 		return fd;
 
 	ret = snprintf(str, sizeof(str), "%llu", value);
 	ret = sysfs_write_file(fd, str, ret);
+	close(fd);
+	return ret;
+}
+
+int sysfs_read_fsid_file_clean_str(int fs_fd, const char *name, char *buf, size_t size)
+{
+	int ret, fd;
+	size_t end;
+
+	fd = sysfs_open_fsid_file(fs_fd, name);
+	if (fd < 0)
+		return fd;
+
+	ret = sysfs_read_file(fd, buf, size);
+	if (ret < 0)
+		goto out;
+
+	end = strlen(buf);
+	/* Remove trailing space (newlines). */
+	while (end >= 1) {
+		if (isspace(buf[end - 1])) {
+			end--;
+		} else {
+			buf[end] = 0;
+			break;
+		}
+	}
+
+	/* The whole string was whitespace. */
+	if (end == 0)
+		buf[0] = 0;
+
+	/* Remove prefix space (almost all lines have none). */
+	while (buf[0] != 0 && isspace(buf[0]))
+		memmove(buf, buf + 1, end);
+out:
 	close(fd);
 	return ret;
 }

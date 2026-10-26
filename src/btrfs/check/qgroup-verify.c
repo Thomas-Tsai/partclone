@@ -60,7 +60,6 @@ struct qgroup_count {
 	u64 qgroupid;
 	int subvol_exists;
 
-	struct btrfs_disk_key key;
 	struct qgroup_info diskinfo;
 
 	struct qgroup_info info;
@@ -487,7 +486,7 @@ static int account_one_extent(struct ulist *roots, u64 bytenr, u64 num_bytes)
 				count->info.exclusive_compressed += num_bytes;
 			}
 		}
-		pr_verbose(LOG_DEBUG, "account (%llu, %llu), qgroup %u/%llu, rfer %llu,"
+		pr_debug("account (%llu, %llu), qgroup %u/%llu, rfer %llu,"
 		       " excl %llu, refs %llu, roots %llu\n", bytenr, num_bytes,
 		       btrfs_qgroup_level(count->qgroupid),
 		       btrfs_qgroup_subvolid(count->qgroupid),
@@ -854,7 +853,7 @@ static struct qgroup_count *find_count(u64 qgroupid)
 	return NULL;
 }
 
-static struct qgroup_count *alloc_count(struct btrfs_disk_key *key,
+static struct qgroup_count *alloc_count(struct btrfs_key *key,
 					struct extent_buffer *leaf,
 					struct btrfs_qgroup_info_item *disk)
 {
@@ -862,8 +861,7 @@ static struct qgroup_count *alloc_count(struct btrfs_disk_key *key,
 	struct qgroup_info *item;
 
 	if (c) {
-		c->qgroupid = btrfs_disk_key_offset(key);
-		c->key = *key;
+		c->qgroupid = key->offset;
 
 		item = &c->diskinfo;
 		item->referenced = btrfs_qgroup_info_rfer(leaf, disk);
@@ -922,7 +920,7 @@ static void read_qgroup_status(struct btrfs_fs_info *info, struct extent_buffer 
 	if (ct->simple == 1)
 		ct->enable_gen = btrfs_qgroup_status_enable_gen(eb, status_item);
 	/*
-	 * Since qgroup_inconsist/rescan_running is just one bit,
+	 * Since qgroup_inconsistent/rescan_running is just one bit,
 	 * assign value directly won't work.
 	 */
 	ct->qgroup_inconsist = !!(flags & BTRFS_QGROUP_STATUS_FLAG_INCONSISTENT);
@@ -930,30 +928,80 @@ static void read_qgroup_status(struct btrfs_fs_info *info, struct extent_buffer 
 	ct->scan_progress = btrfs_qgroup_status_rescan(eb, status_item);
 }
 
+static int load_one_quota_leaf(struct extent_buffer *leaf)
+{
+	struct btrfs_fs_info *fs_info = leaf->fs_info;
+	const u32 nr_items = btrfs_header_nritems(leaf);
+
+	for (int i = 0; i < nr_items; i++) {
+		struct qgroup_count *qc;
+		struct btrfs_qgroup_info_item *qii;
+		struct btrfs_key key;
+		struct btrfs_key root_key;
+		struct btrfs_root *subv_root;
+		int ret;
+
+		btrfs_item_key_to_cpu(leaf, &key, i);
+
+		if (key.type == BTRFS_QGROUP_RELATION_KEY) {
+			ret = add_qgroup_relation(key.objectid,
+						  key.offset);
+			if (ret) {
+				errno = -ret;
+				error(
+	"failed to add qgroup relation, member=%llu parent=%llu: %m",
+				      key.objectid, key.offset);
+				return ret;
+			}
+			continue;
+		}
+
+		if (key.type == BTRFS_QGROUP_STATUS_KEY) {
+			read_qgroup_status(fs_info, leaf, i, &counts);
+			continue;
+		}
+
+		/*
+		 * At this point, we can ignore anything that
+		 * isn't a qgroup info.
+		 */
+		if (key.type != BTRFS_QGROUP_INFO_KEY)
+			continue;
+
+		qii = btrfs_item_ptr(leaf, i, struct btrfs_qgroup_info_item);
+
+		qc = alloc_count(&key, leaf, qii);
+		if (!qc) {
+			ret = ENOMEM;
+			error_mem(NULL);
+			return ret;
+		}
+
+		root_key.objectid = key.offset;
+		root_key.type = BTRFS_ROOT_ITEM_KEY;
+		root_key.offset = (u64)-1;
+		subv_root = btrfs_read_fs_root_no_cache(fs_info, &root_key);
+		if (!IS_ERR(subv_root)) {
+			qc->subvol_exists = 1;
+			btrfs_free_fs_root(subv_root);
+		}
+	}
+	return 0;
+}
+
 static int load_quota_info(struct btrfs_fs_info *info)
 {
 	int ret;
 	struct btrfs_root *root = info->quota_root;
-	struct btrfs_root *tmproot;
 	struct btrfs_path path = { 0 };
 	struct btrfs_key key;
-	struct btrfs_key root_key;
-	struct btrfs_disk_key disk_key;
 	struct extent_buffer *leaf;
-	struct btrfs_qgroup_info_item *item;
-	struct qgroup_count *count;
-	int i, nr;
-	int search_relations = 0;
 
 	if (btrfs_fs_incompat(info, SIMPLE_QUOTA))
 		counts.simple = 1;
-loop:
-	/*
-	 * Do 2 passes, the first allocates group counts and reads status
-	 * items. The 2nd pass picks up relation items and glues them to their
-	 * respective count structures.
-	 */
-	key.objectid = search_relations ? 0 : BTRFS_QGROUP_RELATION_KEY;
+
+	/* Go through all qgroup leaves, and load qgroups and relationship items. */
+	key.objectid = 0;
 	key.type = 0;
 	key.offset = 0;
 
@@ -966,72 +1014,19 @@ loop:
 	while (1) {
 		leaf = path.nodes[0];
 
-		nr = btrfs_header_nritems(leaf);
-		for(i = 0; i < nr; i++) {
-			btrfs_item_key(leaf, &disk_key, i);
-			btrfs_disk_key_to_cpu(&key, &disk_key);
-
-			if (search_relations) {
-				if (key.type == BTRFS_QGROUP_RELATION_KEY) {
-					ret = add_qgroup_relation(key.objectid,
-								  key.offset);
-					if (ret) {
-						errno = -ret;
-						error(
-		"failed to add qgroup relation, member=%llu parent=%llu: %m",
-						      key.objectid, key.offset);
-						goto out;
-					}
-				}
-				continue;
-			}
-
-			if (key.type == BTRFS_QGROUP_STATUS_KEY) {
-				read_qgroup_status(info, leaf, i, &counts);
-				continue;
-			}
-
-			/*
-			 * At this point, we can ignore anything that
-			 * isn't a qgroup info.
-			 */
-			if (key.type != BTRFS_QGROUP_INFO_KEY)
-				continue;
-
-			item = btrfs_item_ptr(leaf, i,
-					      struct btrfs_qgroup_info_item);
-
-			count = alloc_count(&disk_key, leaf, item);
-			if (!count) {
-				ret = ENOMEM;
-				error_mem(NULL);
-				goto out;
-			}
-
-			root_key.objectid = key.offset;
-			root_key.type = BTRFS_ROOT_ITEM_KEY;
-			root_key.offset = (u64)-1;
-			tmproot = btrfs_read_fs_root_no_cache(info, &root_key);
-			if (tmproot && !IS_ERR(tmproot)) {
-				count->subvol_exists = 1;
-				btrfs_free_fs_root(tmproot);
-			}
-		}
-
+		ret = load_one_quota_leaf(leaf);
+		if (ret < 0)
+			goto out;
 		ret = btrfs_next_leaf(root, &path);
-		if (ret != 0)
+		if (ret < 0)
+			goto out;
+		if (ret > 0) {
+			ret = 0;
 			break;
+		}
 	}
-
-	ret = 0;
-	btrfs_release_path(&path);
-
-	if (!search_relations) {
-		search_relations = 1;
-		goto loop;
-	}
-
 out:
+	btrfs_release_path(&path);
 	return ret;
 }
 
@@ -1397,7 +1392,7 @@ void report_qgroups(int all)
 	 */
 	if (counts.qgroup_inconsist && !counts.rescan_running)
 		printf(
-"Rescan hasn't been initialzied, a difference in qgroup accounting is expected\n");
+"Rescan hasn't been initialized, a difference in qgroup accounting is expected\n");
 	node = rb_first(&counts.root);
 	while (node) {
 		c = rb_entry(node, struct qgroup_count, rb_node);
@@ -1451,13 +1446,16 @@ static bool is_bad_qgroup(struct qgroup_count *count)
 }
 
 /*
- * Verify all qgroup numbers.
+ * Load qgroup items and optionally verify qgroup numbers.
+ *
+ * @check_accounting true: verify referenced/exclusive accounting.
+ * @check_accounting false: only load qgroup status/info/relation items.
  *
  * Return <0 for fatal errors (e.g. ENOMEM or failed to read quota tree)
- * Return 0 if all qgroup numbers are correct or no need to check (under rescan)
- * Return >0 if qgroup numbers are inconsistent.
+ * Return 0 if requested checks pass or accounting mismatches are ignored.
+ * Return >0 if qgroup numbers are inconsistent and not ignored.
  */
-int qgroup_verify_all(struct btrfs_fs_info *info)
+int qgroup_verify(struct btrfs_fs_info *info, bool check_accounting)
 {
 	struct rb_node *n;
 	int ret;
@@ -1485,6 +1483,9 @@ int qgroup_verify_all(struct btrfs_fs_info *info)
 	if (counts.qgroup_inconsist && !counts.rescan_running &&
 	    counts.rescan_running == 0)
 		skip_err = true;
+
+	if (!check_accounting)
+		goto out;
 
 	/*
 	 * Put all extent refs into our rbtree

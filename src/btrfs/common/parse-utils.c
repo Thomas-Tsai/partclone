@@ -52,6 +52,7 @@ int parse_u64(const char *str, u64 *result)
 	 */
 	if (str[0] == '-')
 		return -EINVAL;
+	errno = 0;
 	val = strtoull(str, &endptr, 10);
 	if (*endptr)
 		return -EINVAL;
@@ -74,9 +75,9 @@ int parse_u64(const char *str, u64 *result)
  */
 int parse_range_u64(const char *range, u64 *start, u64 *end)
 {
-	char *dots;
-	char *endptr;
+	const char *dots;
 	const char *rest;
+	char *endptr;
 	int skipped = 0;
 
 	dots = strstr(range, "..");
@@ -89,6 +90,7 @@ int parse_range_u64(const char *range, u64 *start, u64 *end)
 		*end = (u64)-1;
 		skipped++;
 	} else {
+		errno = 0;
 		*end = strtoull(rest, &endptr, 10);
 		if (*endptr)
 			return 1;
@@ -97,6 +99,7 @@ int parse_range_u64(const char *range, u64 *start, u64 *end)
 		*start = 0;
 		skipped++;
 	} else {
+		errno = 0;
 		*start = strtoull(range, &endptr, 10);
 		if (*endptr != 0 && *endptr != '.')
 			return 1;
@@ -321,6 +324,7 @@ int parse_qgroupid(const char *str, u64 *qgroupid)
 	u64 level;
 	u64 id;
 
+	errno = 0;
 	level = strtoull(str, &end, 10);
 	if (str == end)
 		return -EINVAL;
@@ -328,6 +332,7 @@ int parse_qgroupid(const char *str, u64 *qgroupid)
 		return -EINVAL;
 	str = end + 1;
 	end = NULL;
+	errno = 0;
 	id = strtoull(str, &end, 10);
 	if (str == end)
 		return -EINVAL;
@@ -427,6 +432,7 @@ static u64 tree_id_from_string(const char *str, const char **end)
 		{ "BLOCK-GROUP", BTRFS_BLOCK_GROUP_TREE_OBJECTID },
 		{ "RAID_STRIPE", BTRFS_RAID_STRIPE_TREE_OBJECTID },
 		{ "RAID-STRIPE", BTRFS_RAID_STRIPE_TREE_OBJECTID },
+		{ "REMAP", BTRFS_REMAP_TREE_OBJECTID },
 	};
 
 	if (strncasecmp("BTRFS_", str, strlen("BTRFS_")) == 0)

@@ -219,7 +219,7 @@ static const struct btrfs_feature mkfs_features[] = {
 		.sysfs_name	= "block_group_tree",
 		VERSION_TO_STRING2(compat, 6,1),
 		VERSION_TO_STRING2(safe, 6,6),
-		VERSION_NULL(default),
+		VERSION_TO_STRING2(default, 6,19),
 		.desc		= "block group tree, more efficient block group tracking to reduce mount time"
 	},
 #if EXPERIMENTAL
@@ -249,6 +249,17 @@ static const struct btrfs_feature mkfs_features[] = {
 		VERSION_NULL(default),
 		.desc		= "squota support (simple accounting qgroups)"
 	},
+#if EXPERIMENTAL
+	{
+		.name		= "remap-tree",
+		.incompat_flag	= BTRFS_FEATURE_INCOMPAT_REMAP_TREE,
+		.sysfs_name	= "remap_tree",
+		VERSION_TO_STRING2(compat, 6,20),
+		VERSION_NULL(safe),
+		VERSION_NULL(default),
+		.desc		= "remap tree (logical-to-logical block address mapping layer)"
+	},
+#endif
 	/* Keep this one last */
 	{
 		.name		= "list-all",
@@ -317,7 +328,7 @@ void btrfs_assert_feature_buf_size(void)
 		total_size += strlen(mkfs_features[i].name) + 2;
 
 	if (BTRFS_FEATURE_STRING_BUF_SIZE < total_size) {
-		internal_error("string buffer for freature list too small: want %d\n",
+		internal_error("string buffer for feature list too small: want %d\n",
 			       total_size);
 		abort();
 	}
@@ -326,7 +337,7 @@ void btrfs_assert_feature_buf_size(void)
 	for (i = 0; i < ARRAY_SIZE(runtime_features); i++)
 		total_size += strlen(runtime_features[i].name) + 2;
 	if (BTRFS_FEATURE_STRING_BUF_SIZE < total_size) {
-		internal_error("string buffer for freature list too small: want %d\n",
+		internal_error("string buffer for feature list too small: want %d\n",
 			       total_size);
 		abort();
 	}
@@ -572,7 +583,7 @@ u32 get_running_kernel_version(void)
 		return (u32)-1;
 	version |= atoi(tmp) << 8;
 	tmp = strtok_r(NULL, ".", &saveptr);
-	/* Relaxed format accepts eg. 1.2.3+ */
+	/* Relaxed format accepts e.g. 1.2.3+ */
 	if (tmp && string_is_numerical(tmp))
 		version |= atoi(tmp);
 
@@ -697,15 +708,11 @@ int btrfs_tree_search_ioctl(int fd, struct btrfs_tree_search_args *sa)
 {
 	/* On first use check the supported status and save it. */
 	if (!tree_search_v2_initialized) {
-#if 0
-		/*
-		 * Keep using v1 until v2 is fully tested, in some cases it
-		 * does not return properly formatted results in the buffer.
-		 */
+#ifdef EXPERIMENTAL
 		if (btrfs_tree_search2_ioctl_supported(fd) == 1)
 			tree_search_v2_supported = true;
-#endif
 		tree_search_v2_initialized = true;
+#endif
 	}
 	sa->use_v2 = tree_search_v2_supported;
 

@@ -137,7 +137,7 @@ static int zero_dev_clamped(int fd, struct btrfs_zoned_device_info *zinfo,
 	off_t end = max(start, start + len);
 
 #ifdef __sparc__
-	/* and don't overwrite the disk labels on sparc */
+	/* Don't overwrite the disk labels on SPARC. */
 	start = max(start, 1024);
 	end = max(end, 1024);
 #endif
@@ -302,12 +302,12 @@ int btrfs_prepare_device(int fd, const char *file, u64 *byte_count_ret,
 		goto err;
 	}
 
-	free(zinfo);
+	btrfs_free_zoned_device_info(zinfo);
 	*byte_count_ret = byte_count;
 	return 0;
 
 err:
-	free(zinfo);
+	btrfs_free_zoned_device_info(zinfo);
 	return 1;
 }
 

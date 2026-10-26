@@ -20,7 +20,9 @@
 #include <linux/kdev_t.h>
 #include <linux/loop.h>
 #include <linux/limits.h>
+#include <dirent.h>
 #include <fcntl.h>
+#include <ftw.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -174,7 +176,7 @@ static int resolve_loop_device(const char* loop_dev, char* loop_file,
 		return -errno;
 	}
 
-	snprintf(fmt, 20, "%%%i[^\n]", max_len - 1);
+	snprintf(fmt, sizeof(fmt), "%%%i[^\n]", max_len - 1);
 	ret = fscanf(f, fmt, loop_file);
 	fclose(f);
 	if (ret == EOF)
@@ -430,7 +432,7 @@ int path_cat_out(char *out, const char *p1, const char *p2)
 		p1_len--;
 	if (p2_len && p2[p2_len - 1] == '/')
 		p2_len--;
-	sprintf(out, "%.*s/%.*s", p1_len, p1, p2_len, p2);
+	snprintf(out, PATH_MAX, "%.*s/%.*s", p1_len, p1, p2_len, p2);
 
 	return 0;
 }
@@ -450,22 +452,9 @@ int path_cat3_out(char *out, const char *p1, const char *p2, const char *p3)
 		p2_len--;
 	if (p3_len && p3[p3_len - 1] == '/')
 		p3_len--;
-	sprintf(out, "%.*s/%.*s/%.*s", p1_len, p1, p2_len, p2, p3_len, p3);
+	snprintf(out, PATH_MAX, "%.*s/%.*s/%.*s", p1_len, p1, p2_len, p2, p3_len, p3);
 
 	return 0;
-}
-
-/* Subvolume helper functions */
-/*
- * test if name is a correct subvolume name
- * this function return
- * 0-> name is not a correct subvolume name
- * 1-> name is a correct subvolume name
- */
-int test_issubvolname(const char *name)
-{
-	return name[0] != '\0' && !strchr(name, '/') &&
-		strcmp(name, ".") && strcmp(name, "..");
 }
 
 /*
@@ -494,4 +483,168 @@ char *path_basename(char *path)
 char *path_dirname(char *path)
 {
 	return dirname(path);
+}
+
+/*
+ * Read contents of symlink @src and store it to @dest (assuming PATH_MAX buffer).
+ * Makes sure it's a null terminated string.
+ *
+ * Return number of bytes written to @dest, or negative error.
+ */
+int path_readlink(char *dest, const char *src)
+{
+	int ret;
+
+	/* Readlink does not add the final null byte and can fill the whole buffer. */
+	ret = readlink(src, dest, PATH_MAX);
+	if (ret < 0)
+		return -errno;
+	/*
+	 * Extend the meaning of EINVAL which is either negative buffer size or
+	 * the named file is not a symbolic link. Zero-sized symlink cannot exist.
+	 */
+	if (ret == 0)
+		return -EINVAL;
+	if (ret >= PATH_MAX)
+		return -ENAMETOOLONG;
+	dest[ret] = 0;
+	return ret;
+}
+
+struct path_walk_entry {
+	char *name;
+};
+
+static int path_walk_entry_cmp(const void *a, const void *b)
+{
+	const struct path_walk_entry *ea = a;
+	const struct path_walk_entry *eb = b;
+
+	return strcmp(ea->name, eb->name);
+}
+
+/*
+ * Emulate nftw()'s depth-first, preorder, FTW_PHYS walk, but visit each
+ * directory's entries in sorted name order. The struct FTW fields are filled
+ * the way nftw() reports them so existing nftw() callbacks work unchanged.
+ */
+static int path_sorted_walk_recursive(char *path, int level, path_walk_cb cb)
+{
+	struct stat st;
+	struct FTW ftwbuf;
+	struct path_walk_entry *entries = NULL;
+	size_t count = 0, cap = 0;
+	DIR *dir = NULL;
+	struct dirent *de;
+	const char *slash;
+	int ret;
+
+	slash = strrchr(path, '/');
+	ftwbuf.base = slash ? (int)(slash - path + 1) : 0;
+	ftwbuf.level = level;
+
+	if (lstat(path, &st) != 0)
+		return cb(path, NULL, FTW_NS, &ftwbuf);
+
+	if (!S_ISDIR(st.st_mode)) {
+		if (S_ISLNK(st.st_mode))
+			return cb(path, &st, FTW_SL, &ftwbuf);
+		return cb(path, &st, FTW_F, &ftwbuf);
+	}
+
+	/*
+	 * Open the directory before reporting it: one we can lstat() but not
+	 * open is reported once as FTW_DNR, not FTW_D then FTW_DNR.
+	 */
+	dir = opendir(path);
+	if (!dir)
+		return cb(path, &st, FTW_DNR, &ftwbuf);
+
+	ret = cb(path, &st, FTW_D, &ftwbuf);
+	if (ret)
+		goto cleanup;
+
+	/*
+	 * readdir() returns NULL at both end-of-stream and error; clear
+	 * errno before each call to tell them apart after the loop.
+	 */
+	while (1) {
+		errno = 0;
+		de = readdir(dir);
+		if (!de)
+			break;
+		if (strcmp(de->d_name, ".") == 0 ||
+		    strcmp(de->d_name, "..") == 0)
+			continue;
+		if (count == cap) {
+			struct path_walk_entry *new_entries;
+
+			cap = cap ? cap * 2 : 16;
+			new_entries = reallocarray(entries, cap,
+						   sizeof(*entries));
+			if (!new_entries) {
+				ret = -ENOMEM;
+				goto cleanup;
+			}
+			entries = new_entries;
+		}
+		entries[count].name = strndup(de->d_name, NAME_MAX);
+		if (!entries[count].name) {
+			ret = -ENOMEM;
+			goto cleanup;
+		}
+		count++;
+	}
+	if (errno != 0) {
+		ret = -errno;
+		goto cleanup;
+	}
+	closedir(dir);
+	dir = NULL;
+
+	if (count)
+		qsort(entries, count, sizeof(*entries), path_walk_entry_cmp);
+
+	for (size_t i = 0; i < count; i++) {
+		char *child = malloc(PATH_MAX);
+
+		if (!child) {
+			ret = -ENOMEM;
+			goto cleanup;
+		}
+		ret = path_cat_out(child, path, entries[i].name);
+		if (!ret)
+			ret = path_sorted_walk_recursive(child, level + 1, cb);
+		free(child);
+		if (ret)
+			goto cleanup;
+	}
+	ret = 0;
+
+cleanup:
+	if (dir)
+		closedir(dir);
+	for (size_t i = 0; i < count; i++)
+		free(entries[i].name);
+	free(entries);
+	return ret;
+}
+
+int path_sorted_walk(const char *root, path_walk_cb cb)
+{
+	char path[PATH_MAX];
+	size_t root_len = strlen(root);
+
+	/* glibc nftw() rejects an empty path with ENOENT and no callback. */
+	if (root_len == 0)
+		return -ENOENT;
+	if (root_len >= sizeof(path))
+		return -ENAMETOOLONG;
+	memcpy(path, root, root_len + 1);
+
+	/* Strip trailing slashes (but keep a lone "/"), matching nftw. */
+	while (root_len > 1 && path[root_len - 1] == '/')
+		path[--root_len] = '\0';
+
+	return path_sorted_walk_recursive(path, 0, cb);
 }
