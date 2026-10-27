@@ -138,6 +138,8 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-B</option></arg><arg choice="plain"><option>--no_block_detail</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--binary-prefix</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--prog-second</option></arg></group></arg>
+      <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--json-status</option></arg></group> <replaceable class="option">FILE</replaceable></arg>
+      <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--json-fresh</option></arg></group> <replaceable class="option">N</replaceable></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--write-direct-io</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--read-direct-io</option></arg></group></arg>
     </cmdsynopsis>
@@ -165,10 +167,11 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
        exfat                       partclone.exfat
        minix                       partclone.minix
        f2fs                        partclone.f2fs
-        nilfs2                      partclone.nilfs2
-        apfs                        partclone.apfs
-        zfs (stripe pool)           partclone.zfs
-        others (Not Supported FS)   partclone.imager
+       nilfs2                      partclone.nilfs2
+       apfs                        partclone.apfs
+       zfs (stripe pool)           partclone.zfs
+       openzfs (stripe pool)       partclone.openzfs
+       others (Not Supported FS)   partclone.imager
     </screen>
   </refsect1>
   <refsect1 id="options">
@@ -390,6 +393,18 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <listitem>
           <para>Show progress in seconds (default is minute)</para>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--json-status[=FILE]</option></term>
+        <listitem>
+          <para>Write progress status to FILE in JSON format, periodically refreshed, so external tools can poll the clone/restore status (default FILE: /var/log/partclone.json)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--json-fresh=N</option></term>
+        <listitem>
+          <para>JSON status update interval in seconds (default: 1, minimum: 1)</para>
+        </listitem>
       </varlistentry>      <varlistentry>
         <term><option>-E</option></term>
         <term><option>--offset=X</option></term>
@@ -442,6 +457,12 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><filename>/var/log/partclone.log</filename></term>
         <listitem>
           <para>The log file  of <application>&dhpackage;</application></para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><filename>/var/log/partclone.json</filename></term>
+        <listitem>
+          <para>The default JSON progress status file written when <option>--json-status</option> is given without FILE.</para>
         </listitem>
       </varlistentry>
     </variablelist>

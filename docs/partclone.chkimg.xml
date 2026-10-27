@@ -164,6 +164,18 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
 	</group>
 	<replaceable class="option">logfile</replaceable>
       </arg>
+      <arg choice="opt">
+	<group choice="opt">
+	    <arg choice="plain"><option>--json-status</option></arg>
+	</group>
+	<replaceable class="option">FILE</replaceable>
+      </arg>
+      <arg choice="opt">
+	<group choice="opt">
+	    <arg choice="plain"><option>--json-fresh</option></arg>
+	</group>
+	<replaceable class="option">N</replaceable>
+      </arg>
      
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -233,12 +245,24 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         </listitem>
       </varlistentry>
        <varlistentry>
-        <term><option>-f <replaceable>sec</replaceable></option></term>
-        <term><option>--UI-fresh <replaceable>sec</replaceable></option></term>
-        <listitem>
-          <para>put special second to different interval.</para>
-        </listitem>
-      </varlistentry>
+         <term><option>-f <replaceable>sec</replaceable></option></term>
+         <term><option>--UI-fresh <replaceable>sec</replaceable></option></term>
+         <listitem>
+           <para>put special second to different interval.</para>
+         </listitem>
+       </varlistentry>
+       <varlistentry>
+         <term><option>--json-status[=FILE]</option></term>
+         <listitem>
+           <para>Write progress status to FILE in JSON format, periodically refreshed, so external tools can poll the check status (default FILE: /var/log/partclone.json)</para>
+         </listitem>
+       </varlistentry>
+       <varlistentry>
+         <term><option>--json-fresh=N</option></term>
+         <listitem>
+           <para>JSON status update interval in seconds (default: 1, minimum: 1)</para>
+         </listitem>
+       </varlistentry>
       <varlistentry>
         <term><option>-d<replaceable>level</replaceable></option></term>
         <term><option>--debug <replaceable>level</replaceable></option></term>

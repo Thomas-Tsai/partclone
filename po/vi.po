@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: partclone-0.2.61\n"
 "Report-Msgid-Bugs-To: thomas@clonezilla.org\n"
-"POT-Creation-Date: 2026-09-12 14:27+0800\n"
+"POT-Creation-Date: 2026-10-27 10:21+0800\n"
 "PO-Revision-Date: 2013-06-13 09:03+0700\n"
 "Last-Translator: Trần Ngọc Quân <vnwildman@gmail.com>\n"
 "Language-Team: Vietnamese <translation-team-vi@lists.sourceforge.net>\n"
@@ -18,37 +18,37 @@ msgstr ""
 "X-Generator: Poedit 1.5.5\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-#: src/progress.c:239
+#: src/progress.c:246
 #, fuzzy, c-format
 msgid "Elapsed: %s, Remaining: %s, Completed: %6.2f%%"
 msgstr "Đã được: %s, Còn: %s, Đã hoàn tất: %6.2f%%"
 
-#: src/progress.c:242
+#: src/progress.c:249
 #, fuzzy, c-format
 msgid ", %6.2f%s/%s,"
 msgstr ", %6.2f%s/%s,"
 
-#: src/progress.c:245
+#: src/progress.c:252
 #, fuzzy, c-format
 msgid "Current block: %10Lu, Total block: %10Lu, Complete: %6.2f%%%s"
 msgstr "Khối hiện tại: %10Lu, Khối tổng: %10Lu, Hoàn thành: %6.2f%%%s"
 
-#: src/progress.c:254
+#: src/progress.c:261
 #, fuzzy, c-format
 msgid "Elapsed: %s, Remaining: %s, Completed: 100.00%%"
 msgstr "Đã được: %s, Còn: %s, Đã hoàn tất: 100.00%%"
 
-#: src/progress.c:256
+#: src/progress.c:263
 #, fuzzy, c-format
 msgid ", Rate: %6.2f%s/%s,"
 msgstr ", Tốc độ: %6.2f%s/%s, "
 
-#: src/progress.c:259
+#: src/progress.c:266
 #, fuzzy, c-format
 msgid "Current block: %10Lu, Total block: %10Lu, Complete: 100.00%%"
 msgstr "Khối hiện tại: %10Lu, Khối tổng: %10Lu, Hoàn thành: 100.00%%"
 
-#: src/progress.c:263
+#: src/progress.c:270
 #, c-format
 msgid ""
 "\n"
@@ -57,226 +57,226 @@ msgstr ""
 "\n"
 "Thời gian tổng cộng: %s, "
 
-#: src/progress.c:265
+#: src/progress.c:272
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s, "
 msgstr "Tốc độ tb: %6.1f%s/%s, "
 
-#: src/progress.c:266
+#: src/progress.c:273
 #, c-format
 msgid "%s"
 msgstr "%s"
 
-#: src/progress.c:295
+#: src/progress.c:302
 #, c-format
 msgid "Elapsed: %s Remaining: %s "
 msgstr "Đã được: %s Còn lại: %s "
 
-#: src/progress.c:297
+#: src/progress.c:304
 #, fuzzy, c-format
 msgid "Rate: %6.2f%s/%s"
 msgstr "Tốc độ: %6.2f%s/%s"
 
-#: src/progress.c:299
+#: src/progress.c:306
 #, c-format
 msgid "Current Block: %llu  Total Block: %llu "
 msgstr "Khối hiện tại: %llu  Khối tổng: %llu "
 
-#: src/progress.c:302 src/progress.c:335
+#: src/progress.c:309 src/progress.c:342
 msgid "Data Block Process:"
 msgstr ""
 
-#: src/progress.c:304 src/progress.c:337
+#: src/progress.c:311 src/progress.c:344
 msgid "Calculating Bitmap Process:"
 msgstr ""
 
-#: src/progress.c:308 src/progress.c:319
+#: src/progress.c:315 src/progress.c:326
 #, c-format
 msgid "ncurses update error\n"
 msgstr ""
 
-#: src/progress.c:315 src/progress.c:345
+#: src/progress.c:322 src/progress.c:352
 msgid "Total Block Process:"
 msgstr ""
 
-#: src/progress.c:330
+#: src/progress.c:337
 #, c-format
 msgid "Total Time: %s Remaining: %s "
 msgstr "Thời gian tổng cộng: %s Còn lại: %s "
 
-#: src/progress.c:332
+#: src/progress.c:339
 #, fuzzy, c-format
 msgid "Ave. Rate: %6.2f%s/%s"
 msgstr "Tốc độ tb: %6.2f%s/%s, "
 
-#: src/partclone.c:2129
+#: src/partclone.c:2160
 #, c-format
 msgid "Partclone v%s http://partclone.org\n"
 msgstr "Partclone phiên bản %s <http://partclone.org>\n"
 
-#: src/partclone.c:2131
+#: src/partclone.c:2162
 #, c-format
 msgid "Starting to check image (%s)\n"
 msgstr "Đang kiểm tra ảnh (%s)\n"
 
-#: src/partclone.c:2134
+#: src/partclone.c:2165
 #, fuzzy, c-format
 msgid "Starting to clone device (%s) to compressed image (%s)\n"
 msgstr "Bắt đầu nhân bản thiết bị (%s) thành ảnh (%s)\n"
 
-#: src/partclone.c:2136
+#: src/partclone.c:2167
 #, c-format
 msgid "Starting to clone device (%s) to image (%s)\n"
 msgstr "Bắt đầu nhân bản thiết bị (%s) thành ảnh (%s)\n"
 
-#: src/partclone.c:2139
+#: src/partclone.c:2170
 #, fuzzy, c-format
 msgid "Starting to restore image (%s) to block files (%s)\n"
 msgstr "Bắt đầu phục hồi ảnh (%s) vào thiết bị (%s)\n"
 
-#: src/partclone.c:2141
+#: src/partclone.c:2172
 #, c-format
 msgid "Starting to restore image (%s) to device (%s)\n"
 msgstr "Bắt đầu phục hồi ảnh (%s) vào thiết bị (%s)\n"
 
-#: src/partclone.c:2143
+#: src/partclone.c:2174
 #, c-format
 msgid "Starting to back up device (%s) to device (%s)\n"
 msgstr "Bắt đầu sao lưu dự phòng thiết bị (%s) vào thiết bị (%s)\n"
 
-#: src/partclone.c:2145
+#: src/partclone.c:2176
 #, c-format
 msgid "Starting to map device (%s) to domain log (%s)\n"
 msgstr "Bắt đầu ánh xạ thiết bị (%s) vào nhật ký tên miền (%s)\n"
 
-#: src/partclone.c:2148
+#: src/partclone.c:2179
 #, c-format
 msgid "Starting to dd image (%s) to block files (%s)\n"
 msgstr "Bắt đầu với hình ảnh dd (%s) để chặn tệp (%s)\n"
 
-#: src/partclone.c:2150
+#: src/partclone.c:2181
 #, c-format
 msgid "Starting to clone/restore (%s) to (%s) with dd mode\n"
 msgstr "Bắt đầu nhân bản thiết bị (%s) thành ảnh (%s)\n"
 
-#: src/partclone.c:2152
+#: src/partclone.c:2183
 #, c-format
 msgid "Showing info of image (%s)\n"
 msgstr "Hiển thị thông tin của hình ảnh (%s)\n"
 
-#: src/partclone.c:2154
+#: src/partclone.c:2185
 msgid "Unknown mode\n"
 msgstr ""
 
-#: src/partclone.c:2174
+#: src/partclone.c:2205
 #, c-format
 msgid "File system:  %s\n"
 msgstr "Hê thống tập tin:  %s\n"
 
-#: src/partclone.c:2177
+#: src/partclone.c:2208
 #, c-format
 msgid "Device size:  %s = %llu Blocks\n"
 msgstr "Kích thước thiết bị:  %s = %llu Khối\n"
 
-#: src/partclone.c:2180
+#: src/partclone.c:2211
 #, c-format
 msgid "Space in use: %s = %llu Blocks\n"
 msgstr "Dung lượng đã dùng: %s = %llu Khối\n"
 
-#: src/partclone.c:2183
+#: src/partclone.c:2214
 #, c-format
 msgid "Free Space:   %s = %llu Blocks\n"
 msgstr "Dung lượng còn trống: %s = %llu Khối\n"
 
-#: src/partclone.c:2185
+#: src/partclone.c:2216
 #, c-format
 msgid "Block size:   %i Byte\n"
 msgstr "Kích thước khối:   %i Byte\n"
 
-#: src/partclone.c:2186
+#: src/partclone.c:2217
 #, fuzzy, c-format
 msgid "Used Blocks in Super-Block:   %llu Blocks\n"
 msgstr "Dung lượng đã dùng(super block): %llu Khối\n"
 
-#: src/partclone.c:2199
+#: src/partclone.c:2230
 #, c-format
 msgid "image format:    %04d\n"
 msgstr "định dạng hình ảnh: %04d\n"
 
-#: src/partclone.c:2203 src/partclone.c:2210
+#: src/partclone.c:2234 src/partclone.c:2241
 #, c-format
 msgid "created on a:    %s\n"
 msgstr "được tạo vào:    %s\n"
 
-#: src/partclone.c:2205 src/partclone.c:2213
+#: src/partclone.c:2236 src/partclone.c:2244
 #, c-format
 msgid "with partclone:  %s\n"
 msgstr "với partclone:  %s\n"
 
-#: src/partclone.c:2209
+#: src/partclone.c:2240
 #, fuzzy, c-format
 msgid "%u bits platform"
 msgstr "nền tảng %d bit"
 
-#: src/partclone.c:2212
+#: src/partclone.c:2243
 #, c-format
 msgid "v%s"
 msgstr "v%s"
 
-#: src/partclone.c:2216
+#: src/partclone.c:2247
 #, c-format
 msgid "bitmap mode:     %s\n"
 msgstr "chế độ bản đồ bit: %s\n"
 
-#: src/partclone.c:2218
+#: src/partclone.c:2249
 #, c-format
 msgid "checksum algo:   %s\n"
 msgstr "thuật toán tổng kiểm tra: %s\n"
 
-#: src/partclone.c:2222 src/partclone.c:2231
+#: src/partclone.c:2253 src/partclone.c:2262
 #, c-format
 msgid "checksum size:   %s\n"
 msgstr "kích thước tổng kiểm tra: %s\n"
 
-#: src/partclone.c:2224 src/partclone.c:2234
+#: src/partclone.c:2255 src/partclone.c:2265
 #, c-format
 msgid "blocks/checksum: %s\n"
 msgstr "khối/tổng kiểm tra: %s\n"
 
-#: src/partclone.c:2226 src/partclone.c:2236
+#: src/partclone.c:2257 src/partclone.c:2267
 #, c-format
 msgid "reseed checksum: %s\n"
 msgstr "tổng kiểm tra đã gieo lại: %s\n"
 
-#: src/partclone.c:2236
+#: src/partclone.c:2267
 msgid "yes"
 msgstr ""
 
-#: src/partclone.c:2236
+#: src/partclone.c:2267
 msgid "no"
 msgstr ""
 
-#: src/partclone.c:2249
+#: src/partclone.c:2280
 #, c-format
 msgid "Partclone successfully checked the image (%s)\n"
 msgstr "Partclone đã kiểm tra ảnh (%s) thành công\n"
 
-#: src/partclone.c:2251
+#: src/partclone.c:2282
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the image (%s)\n"
 msgstr "Partclone đã nhân bản thành công thiết bị (%s) thành ảnh (%s)\n"
 
-#: src/partclone.c:2253
+#: src/partclone.c:2284
 #, c-format
 msgid "Partclone successfully restored the image (%s) to the device (%s)\n"
 msgstr "Partclone đã phục hồi thành công ảnh (%s) vào thiết bị (%s)\n"
 
-#: src/partclone.c:2255
+#: src/partclone.c:2286
 #, c-format
 msgid "Partclone successfully cloned the device (%s) to the device (%s)\n"
 msgstr "Partclone đã nhân bản thành công thiết bị (%s) vào thiết bị (%s)\n"
 
-#: src/partclone.c:2257
+#: src/partclone.c:2288
 #, c-format
 msgid "Partclone successfully mapped the device (%s) to the domain log (%s)\n"
 msgstr ""

@@ -1,3 +1,256 @@
+2026-10-26  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	chore(btrfs): sync with btrfs-progs v7.3
+
+2026-10-19  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #317 from Thomas-Tsai/zfsdev
+	feat: clean-room ZFS support (partclone.zfs + partclone.openzfs)
+
+	Merge branch 'master' into zfsdev
+	Bring in recent master changes:
+	- PR #316: ntfs backup bootsector fix
+	- PR #315: JSON status output for progress monitoring
+	- PR #314: exfat last-two-clusters fix
+	- stevenshiau's partclone-static packaging updates
+
+	Resolve conflict in .github/workflows/c-cpp.yml by keeping
+	ntfs-3g (from #316) alongside the new ZFS build deps
+	(liblz4-dev libzfslinux-dev libudev-dev libtirpc-dev) and
+	--enable-zfs / --enable-openzfs configure flags.
+
+2026-10-15  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	zfs: unify clean-room headers, add audit tooling and english process doc
+
+	docs(zfs): add clean-room implementation statement (english)
+
+	Merge pull request #316 from Thomas-Tsai/fix/ntfs-backup-bootsector
+	Fix/ntfs backup bootsector
+
+	update github action for ntfs test
+
+	ntfs: clone NTFS boot record copy after end of volume again
+	The alternate boot sector of an NTFS volume lives in the last sector(s)
+	of the hosting device, past the end of the NTFS cluster grid, so it is
+	not covered by the volume $Bitmap. Commit 957df07 (released in 0.3.32)
+	disabled cloning it, because the naive extra-block read crossed the end
+	of the device and aborted with "read error: Success". Since then,
+	restored NTFS volumes silently lose their backup boot sector and fail
+	validation (ntfsfix: "Checking the alternate boot sector... BAD").
+
+	Fix #310 by cloning the tail again, this time safely:
+
+	- Account for every block between the end of the NTFS cluster grid and
+	  the end of the device (ceil of the tail size over block_size), not
+	  just one, so 4K-native devices and partition slack are covered too.
+	- Clamp the clone-side read of the last (partial) block at the device
+	  boundary and zero-fill the remainder; the padded full block is stored
+	  in the image as usual, keeping the image format unchanged.
+	- Clamp the restore-side write of the last (partial) block at the
+	  source device boundary, so restoring to a same-size partition no
+	  longer writes past its end.
+	- Relax the v1/v2 image header validation to accept a final block that
+	  extends past the device end by less than one block (exactly the
+	  partial-tail case); strict rejection is kept for anything larger.
+	  This also makes 2014-era NTFS images readable again.
+
+	Add tests/ntfs_backup_bootsector.test (no root needed): mkntfs, clone,
+	restore, then compare the last sector and the whole-image sha256.
+
+	Fixes #310
+
+	Merge pull request #315 from Thomas-Tsai/feature/json-status
+	Add JSON status output for progress monitoring (#168)
+
+2026-10-13  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #314 from Thomas-Tsai/fix/exfat-last-clusters
+	exfat: clone the last two clusters of a volume
+
+	tests: add exfat last-two-clusters regression test
+	Formats an exFAT image, flips the last two bits of the allocation
+	bitmap so the last two clusters count as used, fills them with a
+	random pattern, then clones and restores, comparing the whole-image
+	SHA-256. Needs neither root nor a loop mount. Fails before and passes
+	after the fix for issue #313.
+
+	Refs: https://github.com/Thomas-Tsai/partclone/issues/313
+
+	exfat: clone the last two clusters of a volume
+	exFAT numbers clusters 2 .. ClusterCount + 1 (exFAT spec 3.1.9,
+	6.2.2), but find_used_clusters() used cluster_count as the highest
+	cluster number and cmap.size left no room for the last two allocation
+	bitmap bits. Clusters ClusterCount and ClusterCount + 1 were therefore
+	never copied; restored volumes kept whatever data the target already
+	had there, silently corrupting files.
+
+	- scan up to cluster_count + EXFAT_FIRST_DATA_CLUSTER and step a run
+	  that reaches the end back onto the last cluster
+	- size cmap as cluster_count, matching upstream relan/exfat
+
+	Reported-by: ProfitBrd <90542032+ProfitBrd@users.noreply.github.com>
+	Refs: https://github.com/Thomas-Tsai/partclone/issues/313
+
+	Add JSON status output for progress monitoring (#168)
+	New options --json-status[=FILE] (default /var/log/partclone.json) and
+	--json-fresh=N (default 1s) periodically write the clone/restore status
+	as a JSON document, so external tools (curl+jq, web dashboards) can poll
+	partclone's progress in a structured way.
+
+	- src/json_status.[ch]: render schema_version/timestamp/action/state,
+	  filesystem and block statistics, and progress counters; writes are
+	  atomic via <file>.tmp + rename(2) so concurrent readers never see a
+	  partially written document; gracefully disables itself (log only)
+	  when the path is not writable
+	- state transitions: bitmap (from update_pui with BITMAP flag),
+	  running (from the progress thread), done (after thread join)
+	- progress.c: export progress_calculate_stat() and extend prog_stat_t
+	  with raw elapsed/remaining seconds and rate bytes/sec for machine
+	  consumption
+	- tests/jsonprogress.test: validates JSON well-formedness and final
+	  state with jq (grep fallback), covers text/ncurses UIs and the
+	  default-path fallback; registered under make check
+
+2026-09-30  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	btrfs: weight bitmap progress by estimated tree size
+	Equal per-root weighting made the bar rush to ~77% within seconds on
+	real filesystems, then sit still for tens of seconds: tiny trees
+	(dev/uuid/quota) counted the same as the heavy extent/fs/csum trees,
+	and csum-tree items were never counted at all.
+
+	Estimate each tree's item count from its root node
+	(nritems x fanout^level) during the cheap root pre-scan and use it as
+	the phase-3 weight; count every leaf item type toward the per-root
+	creep; and fold any estimation overrun into the completed sum when a
+	root finishes. On a 4 GB image with 40k files the estimate lands
+	within ~15% of the walked item count and the bar tracks the walk far
+	more evenly.
+
+2026-09-29  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	btrfs: add staged bitmap progress report
+	read_bitmap() previously ignored the pui argument, so long bitmap
+	calculation on large btrfs looked like a hang. Report staged progress
+	instead: fixed floors for structural phases (1/5/10/15%) and phase 3
+	(ROOT_ITEM scan) driven by a cheap pre-scan of the root count plus a
+	per-root item creep, monotonic and refreshed by a background pthread
+	every 2s (same approach as xfsclone).
+
+2026-09-28  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #311 from stevenshiau/pkg-static-linking
+	packaging: support partclone-static conflicts and symlinks
+
+	Merge pull request #312 from stevenshiau/static-linking-fix
+	Fix static linking by renaming internal crc32 to pc_crc32
+
+2026-09-27  Steven Shiau  <steven@clonezilla.org>
+
+	Fix static linking by renaming internal crc32 to pc_crc32
+	Rename the internal crc32 function to pc_crc32 across src/checksum.h,
+	src/checksum.c, and src/partclone.c. This prevents an undefined reference
+	to pc_crc32 caused by macro expansion collisions and avoids any symbol
+	conflicts with zlib's crc32 during static linking.
+
+2026-09-26  Steven Shiau  <steven@clonezilla.org>
+
+	packaging: support partclone-static conflicts and symlinks
+	- In control: make partclone and partclone-static conflict and replace
+	  each other, and have partclone-static provide partclone.
+	- In rules: create symlinks from partclone.* to partclone-static.* for all
+	  binaries and man pages when building partclone-static.
+
+2026-09-19  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	test: add openzfs_data_clone_restore_test for real-partition data tests
+	zfs_data_clone_restore_test now takes an optional driver argument
+	("zfs" default, "openzfs" for the CDDL-linked partclone.openzfs)
+	and derives its pool/image/log names from the variant, keeping the
+	original names for the default case.  openzfs_data_clone_restore_test
+	is a thin wrapper passing "openzfs", wired as a second self-hosted
+	step in manual-on-host.yml.
+
+	Additionally harden the test against recycled target partitions: clear
+	ZFS signatures on the target first (wipefs + zpool labelclear) - stale
+	labels near the partition end otherwise win the uberblock race on
+	import (observed with a leftover high-txg label from prior runs).
+
+	Verified locally on /dev/vdc1 -> /dev/vdd1 (20G partitions), both
+	variants: device-to-device clone, image clone+restore, md5 verified,
+	including with a deliberately dirtied target partition.
+
+	test: add openzfs.test, sharing the ZFS clone/restore scenario
+	zfs.test is now parametrizable via the PTLZFS/POOL/POOL_CLONE env
+	variables; openzfs.test is a thin wrapper that points it at
+	partclone.openzfs, so the --enable-openzfs (CDDL) driver is exercised
+	by 'make check' exactly like the clean-room partclone.zfs, when both
+	--enable-fs-test and --enable-openzfs are configured.
+
+	Both variants pass locally (clone / chkimg / restore / direct -b) on a
+	256MB stripe file-vdev pool with zfsutils-linux 2.2.2.
+
+	gitignore: also ignore partclone.openzfs build artifact
+
+	zfs: clean-room parser is now the mainline --enable-zfs driver
+	partclone.zfs is built from a from-scratch ZFS on-disk parser located in
+	src/zfs/ (vdev label/XDR nvlist/uberblock/blkptr/dnode/ZAP/spacemap/
+	log-spacemap, plus an MOS subtree traversal safety net).  It links only
+	liblz4, zlib and partclone's own helpers - no OpenZFS (CDDL) libraries -
+	so partclone.zfs can be shipped in GPL rescue images.  All format
+	knowledge comes from the MIT-licensed independent spec
+	'ZFS On-Disk Format' (mminkus.github.io/zfs-ondiskformat) plus
+	empirical on-disk observation.
+
+	The former libzpool-based driver remains available as
+	--enable-openzfs (binary partclone.openzfs) for reference and for
+	topologies the clean-room reader does not cover yet; it is not linked
+	by the default zfs build.
+
+	Also stop AC_CHECK_LIB's empty action-if-found from appending -l<lib>
+	to the global LIBS (autoconf treats [] as omitted, which would silently
+	link -lzpool/-lzfs into the clean-room binary); pass [:] as a no-op
+	action instead.
+
+	Validated end-to-end on a stripe pool (20G): clone/restore roundtrips
+	in both directions, zpool import ONLINE, zpool scrub 0 errors, md5 of
+	all files identical, 3 snapshots intact; tests/zfs.test passes.
+
+	ci+packaging: add liblz4-dev for clean-room zfs; drop CDDL build-dep
+	The Debian package now builds partclone.zfs from the clean-room parser
+	(--enable-zfs, liblz4 + zlib only, static-safe), so libzfslinux-dev and
+	the contrib component are no longer required as build dependencies.  CI
+	and the Docker build environment additionally enable --enable-openzfs to
+	keep coverage of the CDDL-linked variant.
+
+2026-09-18  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #309 from Thomas-Tsai/update/btrfs-v6.17.1
+	chore(btrfs): sync with btrfs-progs v6.17.1
+
+	test(zfs): use -O in direct clone step (existing target file needs --overwrite)
+
+	ci: zfs follow-ups for debian snapshot, c-cpp matrix and docker image
+	- debian-build.yml: enable contrib component (libzfslinux-dev lives there)
+	- c-cpp.yml: enable zfs in dynamic_build_disable_xxhash job
+	- Dockerfile: build from checked-out commit (COPY) instead of cloning master
+	- add .dockerignore to keep host build artifacts and repo junk out of the image
+
+	update debiab package build
+
+	ci: add libtirpc-dev for zfs build on ubuntu runners
+
+	try to add partclone.zfs
+
+2026-09-16  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	chore(btrfs): sync with btrfs-progs v6.17.1
+
+2026-09-12  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Bump version to 0.3.50
+
 2026-09-11  Thomas Tsai  <tlinux.tsai@gmail.com>
 
 	fix(btrfs): skip file extent member reads for inline/truncated items

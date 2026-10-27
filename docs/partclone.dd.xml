@@ -126,8 +126,10 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-t</option></arg><arg choice="plain"><option>--btfiles_torrent</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-B</option></arg><arg choice="plain"><option>--no_block_detail</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--binary-prefix</option></arg></group></arg>
-      <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--prog-second</option></arg></group></arg>
-      <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--write-direct-io</option></arg></group></arg>
+       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--prog-second</option></arg></group></arg>
+       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--json-status</option></arg></group> <replaceable class="option">FILE</replaceable></arg>
+       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--json-fresh</option></arg></group> <replaceable class="option">N</replaceable></arg>
+       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--write-direct-io</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>--read-direct-io</option></arg></group></arg>
       <arg choice="opt"><group choice="opt"><arg choice="plain"><option>-S</option></arg><arg choice="plain"><option>--device-size</option></arg></group></arg>
     </cmdsynopsis>
@@ -300,6 +302,18 @@ man(1), man(7), http://www.tldp.org/HOWTO/Man-Page/
         <term><option>--prog-second</option></term>
         <listitem>
           <para>Show progress in seconds (default is minute)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--json-status[=FILE]</option></term>
+        <listitem>
+          <para>Write progress status to FILE in JSON format, periodically refreshed, so external tools can poll the clone/restore status (default FILE: /var/log/partclone.json)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--json-fresh=N</option></term>
+        <listitem>
+          <para>JSON status update interval in seconds (default: 1, minimum: 1)</para>
         </listitem>
       </varlistentry>      <varlistentry>
         <term><option>-E</option></term>
