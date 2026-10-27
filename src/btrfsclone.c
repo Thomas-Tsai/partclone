@@ -68,6 +68,65 @@ static double root_item_weight(struct extent_buffer *eb)
 
 void *thread_update_bitmap_pui(void *arg);
 
+/// Cache of logical extents already pushed through check_extent_bitmap().
+/// Snapshots re-enumerate the same shared extents once per snapshot, and the
+/// extent tree walk enumerates every extent again on top of the fs trees, so
+/// the same extent is mapped and marked many times over. Skipping fully
+/// visited extents turns that O(snapshots x extents) rework into O(1)
+/// lookups; marking is idempotent, so the final bitmap is unchanged.
+///
+/// The cache key is (type, bytenr, length): the "type" argument of
+/// check_extent_bitmap() selects whether the length expanded by
+/// btrfs_map_block() (to the rest of a single-profile chunk) is clamped
+/// back to the request, so two calls with identical (bytenr, length) but
+/// different type do NOT mark the same physical range. Keying only on
+/// (bytenr, length) was observed to drop those extra marks: on a
+/// single-device FS, a 16 MiB file extent visited first with type 1 then
+/// skipped with type 0 lost the remaining 48 MiB of chunk marking.
+static struct cache_tree visited_extents;
+
+static int extent_visited(u64 bytenr, u64 len, int type)
+{
+	struct cache_extent *e;
+
+	if (len == 0)
+		return 1;
+	/* lookup_cache_extent2() matches any overlap within the same objectid,
+	 * not just containment (see cache_tree_comp_range2()); a partial
+	 * overlap must NOT count as visited or the unvisited tail of the
+	 * extent would be dropped from the bitmap. Only skip when an existing
+	 * entry strictly contains the whole [bytenr, bytenr+len) range. */
+	e = lookup_cache_extent2(&visited_extents, (u64)type, bytenr, len);
+	if (!e)
+		return 0;
+	return e->start <= bytenr && bytenr + len <= e->start + e->size;
+}
+
+static void extent_mark_visited(u64 bytenr, u64 len, int type)
+{
+	struct cache_extent *pe;
+
+	if (len == 0)
+		return;
+	pe = malloc(sizeof(*pe));
+	if (!pe)
+		return;
+	pe->objectid = (u64)type;
+	pe->start = bytenr;
+	pe->size = len;
+	/* insert fails on overlap with an entry of the same objectid
+	 * (-EEXIST); the overlapping part was already marked, dropping the
+	 * insert only means the unique tail may be re-processed later, which
+	 * is safe. */
+	if (insert_cache_extent2(&visited_extents, pe))
+		free(pe);
+}
+
+static void visited_extents_free(struct cache_extent *pe)
+{
+	free(pe);
+}
+
 /// number of tree blocks that could not be read while building the bitmap;
 /// any non-zero value means the resulting image would silently miss data,
 /// so read_bitmap() aborts at the end instead of producing a corrupt image.
@@ -151,6 +210,11 @@ int check_extent_bitmap(unsigned long* bitmap, u64 bytenr, u64 *num_bytes, int t
     if (*num_bytes % root->fs_info->sectorsize)
 	return -EINVAL;
 
+    if (extent_visited(bytenr, *num_bytes, type)) {
+	log_mesg(3, 0, 0, fs_opt.debug, "%s: skip already-marked extent bytenr %llu size %llu\n", __FILE__, bytenr, *num_bytes);
+	return 0;
+    }
+
     if (type == 1){
 	maxlen = *num_bytes;
     }
@@ -176,6 +240,7 @@ int check_extent_bitmap(unsigned long* bitmap, u64 bytenr, u64 *num_bytes, int t
         free(multi);
         multi = NULL;
     }
+    extent_mark_visited(bytenr, *num_bytes, type);
     return 0;
 }
 
@@ -472,6 +537,7 @@ void read_bitmap(char* device, file_system_info fs_info, unsigned long* bitmap, 
     pthread_t prog_bitmap_thread;
 
     total_block = fs_info.totalblock;
+    cache_tree_init(&visited_extents);
 
     /// init progress; the tree walk total is unknown, so a background
     /// thread maps structural phases, pre-scanned root count and a
@@ -665,6 +731,7 @@ no_node:
     //csum_bitmap(bitmap, root);
     btrfs_release_path(&path);
     bitmap_done = 1;
+    cache_tree_free_extents(&visited_extents, visited_extents_free);
     update_pui(&prog, 1, 1, 1);
     log_mesg(1, 0, 0, fs_opt.debug, "%s: bitmap roots = %lu, est items = %.0f, walked items = %llu\n", __FILE__, roots_total, est_total, walk_items);
     if (unreadable_tree_blocks)
