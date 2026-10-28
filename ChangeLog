@@ -1,3 +1,83 @@
+2026-10-28  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #319 from Thomas-Tsai/fix/btrfs-bitmap-dedup
+	fix(btrfs): deduplicate extents scanned more than once when building the bitmap
+
+2026-10-27  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	test(btrfs): metadata preservation check (flags, xattrs, links, qgroups)
+	Builds a small image with rich metadata fixtures (modes, owners,
+	symlinks, hardlinks, xattrs incl. empty/1.2K values, read-only+rw
+	snapshots, quota qgroups), then verifies that clone -> restore yields a
+	device whose full metadata dump (per-path lstat/xattr records, subvolume
+	ro flags, qgroup state) is byte-identical to the source.
+
+	Two test-infra quirks are handled explicitly:
+
+	* fixture creation must 'sync; umount' before exit, otherwise every
+	  later mount replays the log tree and stamps wall-clock times into
+	  recovered metadata;
+	* nested snapshot roots (a subvolume under another subvolume) report
+	  mount-synthesized mtime/ctime per mount even though the on-disk bytes
+	  are stable (proven by image sha256 being unchanged across mounts), so
+	  those two fields are filtered for that path class only.
+
+	test(btrfs): file-level sha256 check across snapshots after restore
+	Mounts each device read-only via guestmount (no root) and compares the
+	full file tree, the sha256 of every file in the root subvolume and the
+	sha256 of every file in one complete snapshot against the reference
+	device. Catches failures that block-range comparison cannot: broken
+	paths, unreadable files, mangled directory trees.
+
+	test(btrfs): snapshot-heavy bitmap benchmark and ground-truth bitmap verifier
+	btrfs-bitmap-bench.sh builds a worst-case btrfs image (many snapshots
+	sharing the same extents, snapper-style) without root using libguestfs,
+	clones it with each given partclone.btrfs, compares clone times and
+	image hashes, and optionally gates on the verifier with a full
+	clone -> restore -> byte-compare cycle.
+
+	btrfs-bitmap-verify.py extracts every EXTENT_ITEM/METADATA_ITEM (the
+	filesystem's allocation truth), maps all mirrors through the chunk
+	tree, asserts each covered block is set in the image bitmap, and
+	optionally byte-compares a restored device against the source over all
+	mapped physical ranges.
+
+	fix(btrfs): deduplicate extents scanned more than once when building the bitmap
+	Snapshots re-enumerate every shared extent once per snapshot, and the
+	extent tree ROOT_ITEM walk re-enumerates all extents again on top of the
+	fs trees, so check_extent_bitmap() mapped and marked the same extent
+	many times over. On snapshot-heavy systems (e.g. snapper on openSUSE)
+	bitmap calculation burned tens of minutes of CPU for a few minutes of
+	real work, looking like a hang (Clonezilla live 3.3.3-37/3.3.4-10).
+
+	Keep an rbtree of fully-processed extents and skip exact repeats; the
+	mapping table is static for the duration of the scan, so a skipped
+	repeat would produce the identical set of marks.
+
+	Care was needed with the cache key and the lookup semantics:
+
+	* cache_tree_comp_range() matches on ANY overlap, not containment, so a
+	  partial overlap would wrongly count as visited and the unvisited tail
+	  of an extent would be dropped from the bitmap. Only a strict
+	  whole-range containment check may trigger the skip.
+
+	* The key must include the check_extent_bitmap() "type" argument.
+	  btrfs_map_block() expands the requested length to the rest of a
+	  single-profile chunk, and the type flag decides whether that
+	  expansion is clamped back to the request (type 1) or kept (type 0),
+	  so identical (bytenr, length) calls with different type do NOT mark
+	  the same physical range (observed: 16 MiB requested, 16 MiB vs 64 MiB
+	  marked).  insert_cache_extent2()/lookup_cache_extent2() let the rbtree
+	  order by (type, start, size) while still allowing overlapping ranges
+	  across types.
+
+	Verified on a snapshot-full btrfs image: the generated clone image is
+	bit-identical to the image produced by the unpatched code, while the
+	CPU time spent in bitmap calculation no longer scales with the number
+	of snapshots.
+
+	Bump version to 0.3.51
+
 2026-10-26  Thomas Tsai  <tlinux.tsai@gmail.com>
 
 	chore(btrfs): sync with btrfs-progs v7.3
