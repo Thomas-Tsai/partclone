@@ -144,7 +144,7 @@ fuse_version="${fuse_version_major}.${fuse_version_minor}"
 AC_MSG_RESULT([$fuse_version])
 fi
 
-AC_CHECK_LIB([pthread], [pthread_create], [:], AC_MSG_ERROR([*** pthread library (libpthread) not found]))
+AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([*** pthread library (libpthread) not found]))
 
 ##ext2/3##
 AC_ARG_ENABLE([extfs],
