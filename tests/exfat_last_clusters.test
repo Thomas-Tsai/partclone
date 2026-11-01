@@ -85,8 +85,8 @@ f.close()
 EOF
 
 echo -e "fill the last two clusters with a random pattern\n"
-ccount=$(od -An -j 0x5C -N 4 -t u4 "$raw")
-heap=$(od -An -j 0x58 -N 4 -t u4 "$raw")
+ccount=$(od --endian=little -An -j 0x5C -N 4 -t u4 "$raw")
+heap=$(od --endian=little -An -j 0x58 -N 4 -t u4 "$raw")
 bps=$((1 << $(od -An -j 0x6C -N 1 -t u1 "$raw")))
 spcs=$((1 << $(od -An -j 0x6D -N 1 -t u1 "$raw")))
 off=$(( heap*bps + (ccount-2)*bps*spcs ))
