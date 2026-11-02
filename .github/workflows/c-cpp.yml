@@ -59,6 +59,8 @@ jobs:
           sudo apt-get update
           sudo apt-get build-dep partclone
           sudo apt-get install ntfs-3g f2fs-tools hfsprogs exfatprogs gddrescue libxxhash-dev libisal-dev liburcu-dev btrfs-progs
+          # optional: Ubuntu 26.04 static libcrypto references jitterentropy symbols
+          sudo apt-get install libjitterentropy3-dev || echo "::warning::libjitterentropy3-dev not available, static build may fail"
     - name: automake
       run: ./autogen
     - name: configure
@@ -128,6 +130,8 @@ jobs:
           sudo apt-get update
           sudo apt-get build-dep partclone
           sudo apt-get install ntfs-3g f2fs-tools hfsprogs exfatprogs gddrescue libisal-dev liburcu-dev btrfs-progs
+          # optional: Ubuntu 26.04 static libcrypto references jitterentropy symbols
+          sudo apt-get install libjitterentropy3-dev || echo "::warning::libjitterentropy3-dev not available, static build may fail"
     - name: automake
       run: ./autogen
     - name: configure

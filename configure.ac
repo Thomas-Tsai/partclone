@@ -594,6 +594,12 @@ fi
 
 ##libcrypto##
 PKG_CHECK_MODULES([OPENSSL], [openssl],, [AC_MSG_ERROR([openssl not found])])
+dnl Static libcrypto from OpenSSL 3.5 (Ubuntu 26.04) references jitterentropy symbols
+if test "$enable_static_linking" = yes; then
+    AC_CHECK_LIB([jitterentropy], [jent_entropy_collector_alloc],
+        [OPENSSL_LIBS="$OPENSSL_LIBS -ljitterentropy"],
+        [AC_MSG_WARN([static build: libjitterentropy not found - install libjitterentropy3-dev if libcrypto.a needs it])])
+fi
 save_LIBS="$LIBS"
 LIBS="$LIBS $OPENSSL_LIBS"
 AC_CHECK_FUNCS([EVP_MD_CTX_new EVP_MD_CTX_create EVP_MD_CTX_reset])
