@@ -219,18 +219,23 @@ AC_ARG_ENABLE([reiser4],
         [--enable-reiser4],
         [enable Reiser4 file system])
 )
-AM_CONDITIONAL(ENABLE_REISER4, test "$enable_reiser4" = yes)
-
 if test "$enable_reiser4" = "yes"; then
 
 dnl Check for REISER4
 dnl Check uuid library which depended by REISER4
 AS_MESSAGE([checking  for Reiser4 Library and Header files ... ...])
-AC_CHECK_HEADERS([reiser4/libreiser4.h], ,
-  AC_MSG_ERROR([*** reiser4 header files (reiser4/libreiser4.h) not found])
+AC_CHECK_HEADERS([reiser4/libreiser4.h], [],
+  [AC_MSG_WARN([*** reiser4 header files (reiser4/libreiser4.h) not found, disabling reiser4 support])
+   enable_reiser4="no"]
 )
+if test "$enable_reiser4" = "yes"; then
 AC_CHECK_LIB([aal], [aal_device_open], [:],
-    AC_MSG_ERROR([*** Reiser4 depend library (libaal) not found]))
+    [AC_MSG_WARN([*** Reiser4 depend library (libaal) not found, disabling reiser4 support])
+     enable_reiser4="no"])
+fi
+fi
+AM_CONDITIONAL(ENABLE_REISER4, test "$enable_reiser4" = yes)
+if test "$enable_reiser4" = "yes"; then
 supported_fs=$supported_fs" reiser4"
 reiser4_version="unknown, suggest 1.0.6"
 fi
