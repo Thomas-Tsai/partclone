@@ -543,9 +543,14 @@ int main(int argc, char **argv) {
 						log_mesg(0, 1, 1, debug, "%s", bad_sectors_warning_msg);
 				} else
 					log_mesg(0, 1, 1, debug, "read error: %s\n", strerror(errno));
-			}
+		} else if (read_size < blocks_read * block_size) {
+			/* The last block was zero-filled past the device boundary;
+			 * account for the padding so the r_size/w_size check below
+			 * compares the whole block actually written to the image. */
+			r_size = blocks_read * block_size;
+		}
 
-			log_mesg(2, 0, 0, debug, "blocks_read = %i\n", blocks_read);
+		log_mesg(2, 0, 0, debug, "blocks_read = %i\n", blocks_read);
 
 			/// calculate checksum
 			if (opt.blockfile == 0) {

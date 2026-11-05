@@ -56,6 +56,7 @@ endif
 if ENABLE_NTFS
 TESTS += ntfs.test
 TESTS += ntfs_backup_bootsector.test
+TESTS += ntfs_partial_tail.test
 endif
 
 #if ENABLE_UFS

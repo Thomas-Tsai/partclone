@@ -1,0 +1,56 @@
+#!/bin/bash
+# Regression test for https://github.com/Thomas-Tsai/partclone/issues/321
+#
+# Since the fix for issue #310 (commit d39589a, 0.3.51) the clone loop
+# clamps the read of the last block at the device boundary and zero-fills
+# the padded remainder, but the end-of-loop consistency check compared the
+# clamped read length with the padded write length and aborted the clone:
+#   read(1536) and write(4096) different
+# whenever the source device size was not a multiple of the 4096-byte block
+# size.
+#
+# This test needs no root and no loop mount: it creates an NTFS image whose
+# size is not a multiple of 4096 (64 MiB + 1536), clones it (must exit 0;
+# note: no -F, otherwise log_mesg would not abort on error), restores it,
+# and compares the last sector and the whole-image sha256.
+
+set -e
+
+. "$(dirname "$0")"/_common
+
+[ -n "$(command -v mkntfs)" ] || { echo "mkntfs not found, skip"; exit 77; }
+
+ptlfs=$(_ptlname ntfs)
+
+img_size=$((64*1024*1024 + 1536))
+
+echo -e "create $img_size bytes raw file $raw and format as NTFS\n"
+rm -f "$raw" "$img" "$raw_restore"
+dd if=/dev/zero of="$raw" bs=$img_size count=1 status=none
+mkntfs -F -Q "$raw" >/dev/null
+
+sum_src=$(sha256sum "$raw" | cut -d' ' -f1)
+alt_src=$(tail -c 512 "$raw" | sha256sum | cut -d' ' -f1)
+
+echo -e "\nclone $raw to $img"
+"$ptlfs" -q -c -s "$raw" -O "$img" -L "$logfile"
+
+echo -e "restore $img to $raw_restore"
+dd if=/dev/zero of="$raw_restore" bs=$img_size count=1 status=none
+"$ptlrestore" -q -s "$img" -O "$raw_restore" -C -F -L "$logfile"
+
+sum_dst=$(sha256sum "$raw_restore" | cut -d' ' -f1)
+alt_dst=$(tail -c 512 "$raw_restore" | sha256sum | cut -d' ' -f1)
+
+rm -f "$img" "$raw" "$raw_restore" "$logfile"
+
+echo -e "\nsrc  $sum_src\nrest $sum_dst"
+if [ "$alt_src" != "$alt_dst" ]; then
+    echo "FAIL: the alternate boot sector was not cloned"
+    exit 1
+fi
+if [ "$sum_src" != "$sum_dst" ]; then
+    echo "FAIL: restored image differs from source"
+    exit 1
+fi
+echo "ntfs partial tail test ok"
