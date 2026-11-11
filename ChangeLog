@@ -1,4 +1,90 @@
+2026-11-05  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #324 from Thomas-Tsai/fix-321-rw-mismatch-partial-tail
+	clone: fix read/write mismatch on partial last block (NTFS tail)
+
+	clone: fix read/write mismatch on partial last block (NTFS tail)
+	Since the fix for #310 (d39589a, 0.3.51) the clone loop clamps the read
+	of the last block at the device boundary and zero-fills the padded
+	remainder, but r_size kept the clamped length while the full padded
+	block is written to the image. The end-of-loop consistency check then
+	aborted the clone with "read(1536) and write(4096) different" whenever
+	the source device size was not a multiple of the 4096-byte block size,
+	leaving the image without its trailing checksum.
+
+	Once the clamped read succeeds, account for the zero-filled padding by
+	reporting the whole block size in r_size. The rescue path already covers
+	the full padded buffer and is unchanged.
+
+	Add tests/ntfs_partial_tail.test (no root needed): mkntfs on an image
+	of 64 MiB + 1536 bytes, clone (without -F so log_mesg really aborts on
+	error), restore, then compare the last sector and whole-image sha256.
+
+	Fixes #321
+
+2026-11-02  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	build: link jitterentropy for static libcrypto on Ubuntu 26.04
+	Static builds on ubuntu-latest (now Ubuntu 26.04) fail to link
+	partclone.info: OpenSSL 3.5's libcrypto.a references jent_* symbols
+	from libjitterentropy, which pkg-config --libs openssl does not emit.
+
+	When --enable-static-linking is requested, probe for libjitterentropy
+	in configure and append -ljitterentropy to OPENSSL_LIBS if found, with
+	a warning otherwise (older distros neither have nor need the library).
+	Install libjitterentropy3-dev non-fatally in the CI static jobs; the
+	package exists in Ubuntu 26.04 universe and only Debian unstable/testing,
+	so the configure-side probe is the graceful fallback for other distros.
+
+	build: auto-detect reiser4, drop unavailable reiser4progs from CI
+	Debian/Ubuntu no longer ship the reiser4progs package, breaking CI at
+	apt-get install and breaking default configure on systems without the
+	reiser4 headers. Turn the hard configure error into a warning that
+	disables reiser4 support when headers or libaal are missing, and stop
+	installing reiser4progs in the GitHub workflows.
+
+	Merge pull request #323 from robert-scheck/s390x
+	tests: fix exFAT last-cluster test on big-endian architectures
+
+2026-11-02  Robert Scheck  <robert-scheck@users.noreply.github.com>
+
+	tests: fix exFAT last-cluster test on big-endian architectures
+	Explicitly specify `--endian=little` for `od -t u4` when reading the exFAT cluster
+	count and cluster heap offset. Otherwise, `od` uses the host's native byte order,
+	resulting in incorrect offset calculations on s390x and causing the test to hang.
+
+2026-10-31  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Merge pull request #322 from robert-scheck/pthread
+	Fix undefined reference to symbol 'pthread_join@@GLIBC_2.2.5' on RHEL 8
+
+2026-10-31  Robert Scheck  <robert-scheck@users.noreply.github.com>
+
+	Fix undefined reference to symbol 'pthread_join@@GLIBC_2.2.5' on RHEL 8
+	Commit b9f9a6e39b0c67fbe80aa2e1d524da24641a386e introduced a build-time failure on
+	CentOS/RHEL/Rocky Linux 8, because it ships glibc 2.28, where -lpthread is needed.
+	https://developers.redhat.com/articles/2021/12/17/why-glibc-234-removed-libpthread
+	provides more information in general.
+	
+	/usr/bin/ld: partclone_dd-main.o: undefined reference to symbol 'pthread_join@@GLIBC_2.2.5'
+	//usr/lib64/libpthread.so.0: error adding symbols: DSO missing from command line
+	collect2: error: ld returned 1 exit status
+	
+	/usr/bin/ld: partclone_chkimg-main.o: undefined reference to symbol 'pthread_join@@GLIBC_2.2.5'
+	//usr/lib64/libpthread.so.0: error adding symbols: DSO missing from command line
+	collect2: error: ld returned 1 exit status
+	
+	/usr/bin/ld: partclone_imager-main.o: undefined reference to symbol 'pthread_join@@GLIBC_2.2.5'
+	//usr/lib64/libpthread.so.0: error adding symbols: DSO missing from command line
+	collect2: error: ld returned 1 exit status
+	
+	/usr/bin/ld: partclone_hfsp-main.o: undefined reference to symbol 'pthread_join@@GLIBC_2.2.5'
+	//usr/lib64/libpthread.so.0: error adding symbols: DSO missing from command line
+	collect2: error: ld returned 1 exit status
+
 2026-10-28  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Bump version to 0.3.52
 
 	Merge pull request #319 from Thomas-Tsai/fix/btrfs-bitmap-dedup
 	fix(btrfs): deduplicate extents scanned more than once when building the bitmap
