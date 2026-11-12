@@ -24,8 +24,11 @@
  *   4. config (packed nvlist) -> vdev_tree -> top vdev ->
  *      "com.delphix:vdev_zap_top" -> "com.delphix:ms_unflushed_phys_txgs".
  *   5. Replay every metaslab's space map (alloc/free) into the bitmap.
- *   6. Replay log space maps with txg > per-metaslab unflushed txg
- *      (txg <= unflushed entries are already folded into step 5).
+ *   6. Replay log space map entries with txg >= per-metaslab unflushed
+ *      txg (entries OLDER than the unflushed txg are already folded into
+ *      step 5; entries whose txg equals the unflushed value are NOT yet
+ *      flushed and must be applied - the on-disk value marks the first
+ *      pending, i.e. un-replayed, txg).
  *      If the unflushed array is unavailable, apply alloc entries and
  *      skip frees (safe over-estimate).
  *   7. Mark the vdev label area (first 4 MiB; last 512 KiB) used.
@@ -163,7 +166,13 @@ static void apply_log(int is_alloc, uint64_t off, uint64_t run,
 	if (m >= ctx->ms_count)
 		return;
 	if (ctx->unflushed != NULL) {
-		if (ctx->txg <= ctx->unflushed[m]) {
+		/* ms_unflushed_phys_txgs[m] is the first txg whose entries
+		 * are still pending in the log and have NOT been folded
+		 * into the metaslab's own space map. Skip only entries
+		 * OLDER than that boundary; an entry at exactly the
+		 * boundary still needs to be applied (off-by-one here
+		 * silently drops allocations and corrupts restores). */
+		if (ctx->txg < ctx->unflushed[m]) {
 			ctx->skipped++;
 			return;			/* already flushed */
 		}

@@ -137,6 +137,32 @@ popd > /dev/null
 zpool export "$POOL"
 print_pass "source pool '$POOL' created and exported."
 
+# --- Step 1b: import/export churn to build log-spacemap boundary state ---
+#
+# Regression cover for the ms_unflushed_phys_txgs off-by-one: entries whose
+# txg equals a metaslab's unflushed txg are still pending in the log spacemap
+# and MUST be replayed. A few import -> rewrite -> export rounds leave the
+# pool with non-flushed log entries at the boundary, which used to result in
+# silently unmarked (unrestored) allocations.
+
+print_info "Step 1b: import/export churn rounds to stress log spacemap boundaries"
+
+for round in 1 2 3; do
+    zpool import -f -R "$SRC_ROOT" -d "$(dirname "$(readlink -f "$RAW_SRC")")" "$POOL" ||
+        print_fail "zpool import failed in churn round $round"
+    # full rewrite of one file (CoW churn), a fresh file, and a small one
+    dd if=/dev/urandom of="$SRC_ROOT/data/random_8m.bin" bs=1M count=8 conv=notrunc status=none
+    dd if=/dev/urandom of="$SRC_ROOT/data/churn_$round.bin" bs=1M count=3 status=none
+    echo "round $round $(date)" > "$SRC_ROOT/data/churn_small_$round.txt"
+    sync
+    # refresh the checksum manifest while the pool is still mounted
+    pushd "$SRC_ROOT/data" > /dev/null
+    find . -type f -exec md5sum '{}' \; > "$SCRIPT_DIR/$CH_FILE"
+    popd > /dev/null
+    zpool export "$POOL"
+done
+print_pass "churn done; final manifest regenerated."
+
 # helper: import $1 (file under test) as $POOL_CLONE under $DST_ROOT and md5 check
 function verify_clone() {
     local under_test="$1"
@@ -148,6 +174,14 @@ function verify_clone() {
     pushd "$DST_ROOT/data" > /dev/null
     md5sum --quiet -c "$SCRIPT_DIR/$CH_FILE" || { popd > /dev/null; return 1; }
     popd > /dev/null
+    # Full-surface check: a scrub must end with no errors.  Blocks silently
+    # dropped by the bitmap (the off-by-one bug class) show up here as
+    # permanent checksum errors even when the sampled files above are fine.
+    zpool scrub -w "$POOL_CLONE" || return 1
+    zpool status "$POOL_CLONE" | grep -q "errors: No known data errors" || {
+        zpool status "$POOL_CLONE"
+        return 1
+    }
     zpool export "$POOL_CLONE" || return 1
     rm -rf "$vdir" "$DST_ROOT/data"
     return 0
