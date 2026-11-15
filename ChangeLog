@@ -1,3 +1,31 @@
+2026-11-12  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	partclone.zfs: fix off-by-one in log spacemap unflushed-txg filter
+	read_bitmap() skipped log spacemap entries with txg <= the metaslab's
+	ms_unflushed_phys_txgs value, assuming they were already flushed into
+	the metaslab's own space map. The on-disk value actually marks the
+	first txg that is still pending in the log: ZFS ignores only entries
+	strictly older than the unflushed boundary, so entries with
+	txg == unflushed must still be applied.
+
+	When a pool is exported with pending log entries (normal import /
+	write / export churn, or forced exports), the boundary txg commonly
+	equals some metaslab's unflushed value. Allocations recorded only in
+	those entries were then missing from the image bitmap, left unwritten
+	at restore time and caused ZFS checksum errors / permanent data
+	corruption on the target. Verified against a production Clonezilla
+	image of a ZFS root pool: before the fix the fixed binary reproduces
+	the broken image bit-for-bit; after the fix all previously dropped
+	blocks are marked and restore byte-identically.
+
+	Only the comparison bound changes (< instead of <=), plus comments.
+	tests/zfs.test gains import/export churn rounds and a post-restore
+	zpool scrub assertion to cover this scenario.
+
+2026-11-11  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Bump version to 0.3.53
+
 2026-11-05  Thomas Tsai  <tlinux.tsai@gmail.com>
 
 	Merge pull request #324 from Thomas-Tsai/fix-321-rw-mismatch-partial-tail
