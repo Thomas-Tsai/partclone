@@ -39,9 +39,9 @@ pc_test_bit(unsigned long int nr, unsigned long *bitmap,
 	    printf("test block %lu out of boundary(%llu)\n", nr, total);
 		exit(1);
 	}
-	unsigned long offset = nr / PART_BITS_PER_LONG;
-	unsigned long bit = nr & (PART_BITS_PER_LONG - 1);
-	return (bitmap[offset] >> bit) & 1;
+	unsigned long offset = nr / PART_BITS_PER_BYTE;
+	unsigned long bit = nr & (PART_BITS_PER_BYTE - 1);
+	return (((unsigned char *)bitmap)[offset] >> bit) & 1;
 }
 
 static inline void
@@ -54,9 +54,9 @@ pc_set_bit(unsigned long int nr, unsigned long *bitmap,
 	    printf("set block %lu out of boundary(%llu)\n", nr, total);
 		exit(1);
 	}
-	unsigned long offset = nr / PART_BITS_PER_LONG;
-	unsigned long bit = nr & (PART_BITS_PER_LONG - 1);
-	bitmap[offset] |= 1UL << bit;
+	unsigned long offset = nr / PART_BITS_PER_BYTE;
+	unsigned long bit = nr & (PART_BITS_PER_BYTE - 1);
+	((unsigned char *)bitmap)[offset] |= 1U << bit;
 }
 
 static inline void
@@ -69,9 +69,9 @@ pc_clear_bit(unsigned long int nr, unsigned long *bitmap,
 	    printf("clear block %lu out of boundary(%llu)\n", nr, total);
 		exit(1);
 	}
-	unsigned long offset = nr / PART_BITS_PER_LONG;
-	unsigned long bit = nr & (PART_BITS_PER_LONG - 1);
-	bitmap[offset] &= ~(1UL << bit);
+	unsigned long offset = nr / PART_BITS_PER_BYTE;
+	unsigned long bit = nr & (PART_BITS_PER_BYTE - 1);
+	((unsigned char *)bitmap)[offset] &= ~(1U << bit);
 }
 
 static inline unsigned long* pc_alloc_bitmap(unsigned long bits)
