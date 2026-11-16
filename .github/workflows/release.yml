@@ -96,7 +96,7 @@ jobs:
           set -euo pipefail
           sudo apt-get install -y \
             build-essential autoconf automake autotools-dev libtool libtool-bin \
-            gettext intltool pkg-config uuid-dev libssl-dev zlib1g-dev libzstd-dev libmount-dev
+            gettext autopoint intltool pkg-config uuid-dev libssl-dev zlib1g-dev libzstd-dev libmount-dev
           ./autogen
           ./configure
           make -C po update-po
@@ -223,7 +223,7 @@ jobs:
           mkdir -p export
           git archive --format=tar.gz --prefix="partclone-${VER}/" \
             -o "export/partclone-${VER}.tar.gz" HEAD
-          tar tzf "export/partclone-${VER}.tar.gz" | head -3
+          tar tzf "export/partclone-${VER}.tar.gz" | sed -n '1,3p'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -429,7 +429,7 @@ jobs:
           sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
           sudo sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
           sudo apt-get update
-          sudo apt-get install -y build-essential autoconf automake autotools-dev libtool libtool-bin gettext intltool pkg-config
+          sudo apt-get install -y build-essential autoconf automake autotools-dev libtool libtool-bin gettext autopoint intltool pkg-config
           sudo apt-get install -y ntfs-3g f2fs-tools hfsprogs exfatprogs gddrescue libxxhash-dev libisal-dev liburcu-dev btrfs-progs
           sudo apt-get install -y libjitterentropy3-dev || echo "::warning::libjitterentropy3-dev not available, static build may fail"
 
