@@ -9,6 +9,10 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+# Ensure compatibility with GCC 15/16 (default -std=gnu23) for legacy jfs headers
+export DEB_CFLAGS_MAINT_APPEND = -std=gnu17
+export DEB_CPPFLAGS_MAINT_APPEND = -DHAVE_STDBOOL_H
+
 # Check if PARTCLONE_STATIC is set to 1 OR if "static" is in DEB_BUILD_OPTIONS
 ifneq (,$(filter static,$(DEB_BUILD_OPTIONS)))
     IS_STATIC = 1
@@ -50,26 +54,30 @@ CONFIG_OPTS = \
 	--enable-fat \
 	--enable-exfat \
 	--enable-ntfs \
-	--disable-ufs \
-	--disable-vmfs \
-	--disable-jfs \
 	--enable-btrfs \
 	--enable-minix \
 	--enable-f2fs \
 	$(ZFS_OPT) \
-	--disable-nilfs2 \
 	$(STATIC_OPT)
 
 # isal support architectures
 ISAL_ARCHES = amd64 arm64 ppc64el riscv64 s390x
 
+# ufs, vmfs, jfs, nilfs2 support architectures
+EXTRA_FS_ARCHES = amd64 arm64
+
 override_dh_auto_configure:
 	ARCH=$$(dpkg-architecture -qDEB_HOST_ARCH); \
+	EXTRA_OPTS=""; \
 	if echo "$(ISAL_ARCHES)" | grep -w $$ARCH >/dev/null; then \
-		dh_auto_configure -- $(CONFIG_OPTS) --enable-isal; \
+		EXTRA_OPTS="$$EXTRA_OPTS --enable-isal"; \
+	fi; \
+	if echo "$(EXTRA_FS_ARCHES)" | grep -w $$ARCH >/dev/null; then \
+		EXTRA_OPTS="$$EXTRA_OPTS --enable-ufs --enable-vmfs --enable-jfs --enable-nilfs2"; \
 	else \
-		dh_auto_configure -- $(CONFIG_OPTS); \
-	fi
+		EXTRA_OPTS="$$EXTRA_OPTS --disable-ufs --disable-vmfs --disable-jfs --disable-nilfs2"; \
+	fi; \
+	dh_auto_configure -- $(CONFIG_OPTS) $$EXTRA_OPTS
 
 override_dh_clean:
 	dh_clean
@@ -207,5 +215,17 @@ override_dh_installman:
 ifeq ($(PKG_NAME),partclone-static)
 	# Man pages are already installed and renamed in override_dh_auto_install
 else
-	dh_installman -p$(PKG_NAME)
+	ARCH=$$(dpkg-architecture -qDEB_HOST_ARCH); \
+	if echo "$(EXTRA_FS_ARCHES)" | grep -w $$ARCH >/dev/null; then \
+		dh_installman -p$(PKG_NAME) \
+			docs/partclone.fstype.8 \
+			docs/partclone.jfs.8 \
+			docs/partclone.nilfs2.8 \
+			docs/partclone.ufs.8 \
+			docs/partclone.vmfs.8 \
+			docs/partclone.vmfs3.8 \
+			docs/partclone.vmfs5.8; \
+	else \
+		dh_installman -p$(PKG_NAME); \
+	fi
 endif
