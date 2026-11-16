@@ -1,10 +1,20 @@
 name: Debian Snapshot Build
 
 on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref (tag/branch/sha) to build; defaults to caller ref'
+        required: false
+        type: string
+        default: ''
   workflow_dispatch:
-  push:
-    tags:
-      - '*'
+    inputs:
+      ref:
+        description: 'Git ref (tag/branch/sha) to build'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   build:
@@ -25,12 +35,33 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.ref || github.ref }}
           fetch-depth: 0
 
       - name: Setup Debian packaging directory
         run: |
           rm -rf debian
           cp -a README.Packages/debian.sid debian
+
+      - name: Add DRBL-core apt repository
+        run: |
+          curl -fsSL https://drbl.org/GPG-KEY-DRBL -o /etc/apt/trusted.gpg.d/drbl-gpg.asc
+          printf '%s\n' \
+            'Types: deb' \
+            'URIs: http://free.nchc.org.tw/drbl-core' \
+            'Suites: drbl' \
+            'Components: stable testing unstable dev' \
+            'Signed-By: /etc/apt/trusted.gpg.d/drbl-gpg.asc' \
+            > /etc/apt/sources.list.d/drbl.sources
+          printf '%s\n' \
+            'Package: *' \
+            'Pin: origin "free.nchc.org.tw"' \
+            'Pin-Priority: 100' \
+            '' \
+            'Package: libufs2 libufs2-dev libvmfs libvmfs0 libvmfs-dev libjfs-dev ufsutils vmfs-tools' \
+            'Pin: origin "free.nchc.org.tw"' \
+            'Pin-Priority: 600' \
+            > /etc/apt/preferences.d/drbl
 
       - name: Install build dependencies
         run: |
