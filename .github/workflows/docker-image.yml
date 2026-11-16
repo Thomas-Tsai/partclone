@@ -1,40 +1,83 @@
 name: Docker Image CI
 
 on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref (tag/branch/sha) to build; defaults to caller ref'
+        required: false
+        type: string
+        default: ''
+      version:
+        description: 'Version to tag on the image (empty = latest only)'
+        required: false
+        type: string
+        default: ''
+      push:
+        description: 'Push to Docker Hub (false = build only)'
+        required: false
+        type: boolean
+        default: true
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
   workflow_dispatch:
-  push:
-    tags:
-      - '*'
+    inputs:
+      ref:
+        description: 'Git ref (tag/branch/sha) to build'
+        required: false
+        type: string
+        default: ''
+      version:
+        description: 'Version to tag on the image (empty = latest only)'
+        required: false
+        type: string
+        default: ''
+      push:
+        description: 'Push to Docker Hub (false = build only)'
+        required: false
+        type: boolean
+        default: true
+
 jobs:
   docker:
     runs-on: ubuntu-latest
+    env:
+      DOCKER_CONFIGURED: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
-      -
-        name: Docker meta
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: tlinux/partclone
-      -
-        name: Set up QEMU
+          tags: |
+            type=raw,value=latest
+            type=raw,value=${{ inputs.version }},enable=${{ inputs.version != '' }}
+
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-      -
-        name: Set up Docker Buildx
+
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      -
-        name: Login to Docker Hub
+
+      - name: Login to Docker Hub
+        if: ${{ env.DOCKER_CONFIGURED == 'true' }}
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Build and push
+
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/amd64
-          push: true
+          push: ${{ inputs.push && env.DOCKER_CONFIGURED == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
