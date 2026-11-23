@@ -12,6 +12,11 @@ on:
         required: false
         type: boolean
         default: false
+      docker_push:
+        description: 'Push the built image to Docker Hub (set false for quiet rehearsals)'
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -389,7 +394,7 @@ jobs:
     with:
       ref: ${{ needs.preflight.outputs.ref }}
       version: ${{ needs.preflight.outputs.version }}
-      push: true
+      push: ${{ inputs.docker_push }}
     secrets: inherit
 
   summary:

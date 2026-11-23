@@ -118,6 +118,40 @@ Watch them on the Actions page. Everything green? Continue.
 * Docker Hub push needs `DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN`; without
   them the image is built but not pushed.
 
+## Quiet end-to-end rehearsal in a private staging repo
+
+Nothing in the flow is truly public except *Publish release* and *Docker Hub
+tags* — but if you want a zero-noise full rehearsal of a brand-new release
+procedure, mirror to a private staging repo:
+
+```bash
+gh repo create Thomas-Tsai/partclone-staging --private   # one-time
+git remote add staging git@github.com:Thomas-Tsai/partclone-staging.git
+git push staging master:master
+
+git checkout -b staging-rehearsal                        # keep local master clean
+sed -i 's/^AC_INIT(\[Partclone\],\[[^]]*\]/AC_INIT([Partclone],[0.3.55]/' configure.ac
+./toolbox --update-log && ./toolbox --update-contributors && ./toolbox --update-changelog
+git commit -am "Bump version to 0.3.55" && git tag -a 0.3.55 -m "Release 0.3.55"
+git push staging staging-rehearsal:master 0.3.55
+```
+
+Then in the **staging** repo (Actions tab):
+
+1. tag-check / cross-arch / debian-build run automatically on the tag.
+   `manual-on-host` stays pending forever (the self-hosted runner is only
+   registered on the main repo) — expected.
+2. Run **Release Package** with `skip_test_check=true` and
+   `docker_push=false`, verify the artifacts and the summary page.
+3. Run **Release Draft**, verify the draft release (auto-locates the
+   package run via its manifest). Re-run it to confirm the
+   delete-and-recreate-draft behavior.
+
+Clean up afterwards: delete the draft release, delete the staging tag
+(`git push staging :refs/tags/0.3.55`), and drop the local rehearsal branch.
+The bump commit lives only on the staging mirror — the real release in the
+main repo gets its own commit and tag later.
+
 ## ufs / vmfs / jfs and the DRBL-core repository
 
 On `amd64`/`arm64` the packaging additionally enables **ufs, vmfs, jfs and
