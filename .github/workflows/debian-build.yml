@@ -1,6 +1,9 @@
 name: Debian Snapshot Build
 
 on:
+  push:
+    tags:
+      - '*'
   workflow_call:
     inputs:
       ref:

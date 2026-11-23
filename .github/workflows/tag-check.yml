@@ -1,0 +1,36 @@
+name: Tag Check
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Validate tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Validate tag format and AC_INIT
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          if ! [[ "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::tag '$TAG' must match X.Y.Z (no v prefix)"
+            exit 1
+          fi
+          VER=$(sed -n 's/^AC_INIT(\[Partclone\],\[\([^]]*\)\].*/\1/p' configure.ac)
+          if [ "$VER" != "$TAG" ]; then
+            echo "::error::tag is '$TAG' but configure.ac AC_INIT declares '$VER'"
+            echo "::error::fix: delete the tag, bump configure.ac, re-tag"
+            exit 1
+          fi
+          echo "tag $TAG matches AC_INIT $VER"

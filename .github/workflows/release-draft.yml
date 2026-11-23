@@ -1,0 +1,166 @@
+name: Release Draft
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to draft a GitHub Release for, e.g. 0.3.55 (run Release Package first)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: release-draft-${{ github.event.inputs.version }}
+  cancel-in-progress: true
+
+jobs:
+  draft:
+    name: Create draft release
+    runs-on: ubuntu-latest
+    env:
+      VER: ${{ github.event.inputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version and tag
+        id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::version '$VER' must match X.Y.Z"
+            exit 1
+          fi
+          git fetch --tags origin
+          if ! SHA=$(git rev-list -n1 "$VER" 2>/dev/null) || [ -z "$SHA" ]; then
+            echo "::error::tag $VER does not exist"
+            exit 1
+          fi
+          TAGVER=$(git show "$VER:configure.ac" | sed -n 's/^AC_INIT(\[Partclone\],\[\([^]]*\)\].*/\1/p')
+          [ "$TAGVER" = "$VER" ] || { echo "::error::tag $VER declares AC_INIT $TAGVER"; exit 1; }
+          if gh release view "$VER" > /dev/null 2>&1; then
+            IS_DRAFT=$(gh release view "$VER" --json isDraft --jq .isDraft)
+            if [ "$IS_DRAFT" != "true" ]; then
+              echo "::error::a PUBLISHED release for $VER already exists - refusing to touch it"
+              exit 1
+            fi
+          fi
+          PREV_TAG=$(git tag --sort=-creatordate | grep -vFx "$VER" | head -1 || true)
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "prev_tag=$PREV_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Find matching package run
+        id: findrun
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          PKG_RUN_ID=""
+          RUNS=$(gh api "repos/${{ github.repository }}/actions/workflows/release-package.yml/runs?event=workflow_dispatch&status=success&per_page=15" \
+            --jq '.workflow_runs[].id')
+          for id in $RUNS; do
+            URL=$(gh api "repos/${{ github.repository }}/actions/runs/$id/artifacts" \
+              --jq '.artifacts[] | select(.name=="pkg-manifest") | .archive_download_url' || true)
+            [ -z "$URL" ] && continue
+            curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -o /tmp/manifest.zip "$URL" || continue
+            MV=$(unzip -p /tmp/manifest.zip manifest.txt | sed -n 's/^version=//p' || true)
+            if [ "$MV" = "$VER" ]; then
+              PKG_RUN_ID=$id
+              break
+            fi
+          done
+          if [ -z "$PKG_RUN_ID" ]; then
+            echo "::error::no successful 'Release Package' run with version=$VER in its manifest"
+            echo "::error::run the Release Package workflow for $VER first"
+            exit 1
+          fi
+          echo "pkg_run_id=$PKG_RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "using Release Package run: https://github.com/${{ github.repository }}/actions/runs/$PKG_RUN_ID"
+
+      - name: Checkout (for release notes)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.VER }}
+          fetch-depth: 0
+
+      - name: Download package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pkg-*
+          run-id: ${{ steps.findrun.outputs.pkg_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: dist
+
+      - name: Flatten files, checksums and notes
+        env:
+          PREV: ${{ steps.resolve.outputs.prev_tag }}
+        run: |
+          set -euo pipefail
+          rm -rf dist/pkg-manifest
+          mkdir -p flat
+          find dist -type f | while read -r f; do
+            base=$(basename "$f")
+            dest="flat/$base"
+            if [ -e "$dest" ]; then
+              if cmp -s "$f" "$dest"; then
+                continue
+              fi
+              flavor=$(basename "$(dirname "$f")" | sed 's/^pkg-//')
+              dest="flat/${flavor}--${base}"
+            fi
+            mv "$f" "$dest"
+          done
+          [ "$(find flat -type f | wc -l)" -gt 0 ]
+          cd flat
+          sha256sum * > SHA256SUMS
+          cd ..
+          {
+            echo "Partclone ${VER}"
+            echo
+            echo "> Note: the dynamically linked .deb (amd64) enables ufs/vmfs/jfs via libraries"
+            echo "> from the DRBL-core APT repo; use partclone-static or the static tarball without it."
+            echo "> See RELEASING.md for details."
+            echo
+            if [ -n "$PREV" ]; then
+              git log --no-merges --format='* %s (%h)' "${PREV}..${VER}" | head -100
+            else
+              git log --no-merges -20 --format='* %s (%h)'
+            fi
+          } > release_notes.md
+          ls -la flat/
+
+      - name: Replace existing draft if present
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh release view "$VER" > /dev/null 2>&1; then
+            echo "deleting existing draft release for $VER (tag is kept)"
+            gh release delete "$VER" --yes
+          fi
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VER }}
+          name: Partclone ${{ env.VER }}
+          body_path: release_notes.md
+          draft: true
+          files: flat/*
+          make_latest: false
+
+      - name: Show draft URL
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(gh release view "$VER" --json url --jq .url)
+          echo "::notice::Draft release ready: $URL"
+          echo "Draft release: $URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Review it on the web, then press Publish release."

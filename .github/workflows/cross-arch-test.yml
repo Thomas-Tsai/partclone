@@ -1,6 +1,9 @@
 name: Cross-Arch Image Test
 
 on:
+  push:
+    tags:
+      - '*'
   workflow_call:
     inputs:
       ref:

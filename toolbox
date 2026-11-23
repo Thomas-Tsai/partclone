@@ -22,6 +22,7 @@ recognized flags are:
   --update-po             update translation files
   --update-log            update Changelog files from git
   --update-contributors   update CONTRIBUTORS files from git
+  --update-changelog      update debian/rpm packaging changelog entries
   --update-btrfs          update source of btrfs
     eg:
     ./toolbox --update-btrfs /tmp/partclone /tmp/btrfs-progs v6.8
@@ -106,6 +107,9 @@ case "$1" in
   --update-log)
     action=changelog
     ;;
+  --update-changelog)
+    action=packaging-changelog
+    ;;
   --help)
     help
     ;;
@@ -173,4 +177,90 @@ then
     # get source code from Jim Meyering at 
     # http://git.mymadcat.com/index.php/p/tracker/source/tree/master/gitlog-to-changelog
     perl gitlog-to-changelog --since 1999-01-01 > ChangeLog
+fi
+
+##
+##  Update debian/rpm packaging changelog entries for a release
+##  (run before committing and tagging; idempotent)
+##
+if test "${action}" = "packaging-changelog"
+then
+    set -e
+    if ! command -v dpkg-parsechangelog > /dev/null; then
+        echo "dpkg-parsechangelog not found - install dpkg-dev" >&2
+        exit 1
+    fi
+    VER=$(sed -n 's/^AC_INIT(\[Partclone\],\[\([^]]*\)\].*/\1/p' configure.ac)
+    if test -z "$VER"; then
+        echo "cannot read version from configure.ac AC_INIT" >&2
+        exit 1
+    fi
+    echo "version from configure.ac: $VER"
+
+    PREV_TAG=$(git tag --sort=-creatordate | grep -vFx "$VER" | head -1 || true)
+    RANGE="${PREV_TAG:+$PREV_TAG..HEAD}"
+    echo "bullets from: ${RANGE:-<no previous tag, last 30 commits>}"
+
+    #
+    # debian changelog: preprend "VER-1~gh1" entry unless already on top
+    #
+    DEBVER="${VER}-1~gh1"
+    DEBCHLOG=README.Packages/debian.sid/changelog
+    TOP=$(dpkg-parsechangelog -l "$DEBCHLOG" -S Version)
+    if test "$TOP" = "$DEBVER"; then
+        echo "$DEBCHLOG already at $DEBVER"
+    else
+        NEW_ENTRY=$(mktemp)
+        CANDIDATE=$(mktemp)
+        {
+            echo "partclone (${DEBVER}) sid; urgency=medium"
+            echo
+            echo "  * Automated upstream release build ${VER}."
+            git log --no-merges --format='%s (%h)' $RANGE | head -30 | sed 's/^/  * /'
+            echo
+            echo " -- Thomas Tsai <tlinux.tsai@gmail.com>  $(LC_ALL=C date -R)"
+            echo
+        } > "$NEW_ENTRY"
+        cat "$NEW_ENTRY" "$DEBCHLOG" > "$CANDIDATE"
+        rm -f "$NEW_ENTRY"
+        if dpkg-parsechangelog -l "$CANDIDATE" -S Version | grep -qx "$DEBVER"; then
+            mv "$CANDIDATE" "$DEBCHLOG"
+            echo "updated $DEBCHLOG to $DEBVER"
+        else
+            echo "generated debian changelog entry is invalid; $DEBCHLOG left unchanged" >&2
+            rm -f "$CANDIDATE"
+            exit 1
+        fi
+    fi
+
+    #
+    # rpm spec: sync Version: and prepend a %changelog entry
+    #
+    SPEC=README.Packages/partclone.spec
+    TOPV=$(sed -n 's/^Version:[[:space:]]*//p' "$SPEC" | head -1)
+    if test "$TOPV" != "$VER"; then
+        sed -i.bak "s/^Version:.*/Version:      ${VER}/" "$SPEC"
+        rm -f "$SPEC.bak"
+        echo "updated $SPEC Version to $VER"
+    else
+        echo "$SPEC Version already at $VER"
+    fi
+    if grep -A3 '^%changelog' "$SPEC" | grep -qF -- "- ${VER}-"; then
+        echo "$SPEC %changelog already has an entry for $VER"
+    else
+        DATE=$(LC_ALL=C date '+%a %b %d %Y')
+        ENTRY=$(mktemp)
+        {
+            echo "* ${DATE} Thomas Tsai <tlinux.tsai@gmail.com> - ${VER}-1.gh1"
+            echo "- Automated upstream release build ${VER}."
+            echo
+        } > "$ENTRY"
+        sed -i "/^%changelog$/r $ENTRY" "$SPEC"
+        rm -f "$ENTRY"
+        echo "added %changelog entry for $VER to $SPEC"
+    fi
+
+    echo
+    echo "done. review with: git diff README.Packages/"
+    exit 0
 fi
