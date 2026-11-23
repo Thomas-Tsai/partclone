@@ -253,6 +253,7 @@ jobs:
         run: |
           mkdir -p export
           mv ../partclone_* export/
+          mv ../partclone-static_* export/ 2>/dev/null || true
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

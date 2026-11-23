@@ -94,6 +94,11 @@ Watch them on the Actions page. Everything green? Continue.
 * deb: `X.Y.Z-1~gh1`. The `~` sorts **before** the official Debian `-1`, so
   the archive package cleanly upgrades over these pre-built ones. `partclone`
   and `partclone-static` conflict with each other by design — install only one.
+* **GitHub Release page shows `-1.gh1` in asset *file names***: GitHub
+  sanitizes `~` to `.` in uploaded asset names (both debs and .dsc/.changes).
+  The package version *inside* the files is still `1~gh1`
+  (`dpkg-deb -I partclone_0.3.55-1.gh1_amd64.deb | grep Version`), and
+  dpkg/apt care about the content, not the file name.
 * rpm: `1%{?dist}.gh1`.
 * tags stay `X.Y.Z` (no `v` prefix).
 
