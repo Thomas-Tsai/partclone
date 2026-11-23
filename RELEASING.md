@@ -130,16 +130,27 @@ tags* — but if you want a zero-noise full rehearsal of a brand-new release
 procedure, mirror to a private staging repo:
 
 ```bash
-gh repo create Thomas-Tsai/partclone-staging --private   # one-time
-git remote add staging git@github.com:Thomas-Tsai/partclone-staging.git
-git push staging master:master
+# one-time: create the mirror FROM master so its default branch is master
+# (creating an empty repo and pushing master afterwards leaves the default
+# branch pointing at a non-existent 'main' and workflows never register)
+gh repo create Thomas-Tsai/partclone-e2e --private --source=. --remote e2e --push
 
 git checkout -b staging-rehearsal                        # keep local master clean
 sed -i 's/^AC_INIT(\[Partclone\],\[[^]]*\]/AC_INIT([Partclone],[0.3.55]/' configure.ac
 ./toolbox --update-log && ./toolbox --update-contributors && ./toolbox --update-changelog
 git commit -am "Bump version to 0.3.55" && git tag -a 0.3.55 -m "Release 0.3.55"
-git push staging staging-rehearsal:master 0.3.55
+git push e2e staging-rehearsal 0.3.55
 ```
+
+Operational notes learned from rehearsal:
+
+* New repos register workflows **lazily**: workflows with `push` triggers
+  wake up on their first matching event; dispatch-only workflows
+  (`release-package.yml`, `release-draft.yml`) may need one push that
+  touches their own file before `gh workflow run` can target them. A
+  one-line cosmetic commit on the rehearsal branch is enough.
+* If the mirror's default branch is not `master`, set it under
+  repo Settings (or `--default-branch`) before pushing anything else.
 
 Then in the **staging** repo (Actions tab):
 
@@ -153,7 +164,7 @@ Then in the **staging** repo (Actions tab):
    delete-and-recreate-draft behavior.
 
 Clean up afterwards: delete the draft release, delete the staging tag
-(`git push staging :refs/tags/0.3.55`), and drop the local rehearsal branch.
+(`git push e2e :refs/tags/0.3.55`), and drop the local rehearsal branch.
 The bump commit lives only on the staging mirror — the real release in the
 main repo gets its own commit and tag later.
 
