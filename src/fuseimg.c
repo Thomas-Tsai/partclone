@@ -240,7 +240,7 @@ static int open_block(const char *path, struct fuse_file_info *fi)
     //dfr = open(opt.source, O_RDONLY);
     //load_image_desc(&dfr, &opt, &img_head, &fs_info, &img_opt);
     //bitmap = pc_alloc_bitmap(fs_info.totalblock);
-    //load_image_bitmap(&dfr, opt, fs_info, img_opt, bitmap);
+    //load_image_bitmap(&dfr, opt, fs_info, img_opt, bitmap, &img_head);
     //baseseek = lseek(dfr, 0, SEEK_CUR);
     fi->fh = dfr;
     return 0;
@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
 //    log_mesg(0, 0, 0, opt.debug, "Initial image hdr: read bitmap table\n");
 
     /// read and check bitmap from image file
-    load_image_bitmap(&dfr, opt, fs_info, img_opt, bitmap);
+    load_image_bitmap(&dfr, opt, fs_info, img_opt, bitmap, &img_head);
 
 //    log_mesg(0, 0, 0, opt.debug, "check main bitmap pointer %p\n", bitmap);
 //    log_mesg(0, 0, 0, opt.debug, "print image information\n");

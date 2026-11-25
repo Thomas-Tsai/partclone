@@ -154,7 +154,7 @@ int main(int argc, char **argv){
     log_mesg(0, 0, 0, opt.debug, "Initial image hdr: read bitmap table\n");
 
     /// read and check bitmap from image file
-    load_image_bitmap(&dfr, opt, fs_info, img_opt, bitmap);
+    load_image_bitmap(&dfr, opt, fs_info, img_opt, bitmap, &img_head);
 
     log_mesg(0, 0, 0, opt.debug, "check main bitmap pointer %p\n", bitmap);
     log_mesg(0, 0, 0, opt.debug, "print image information\n");

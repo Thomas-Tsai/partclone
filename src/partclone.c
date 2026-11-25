@@ -1172,12 +1172,19 @@ void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_op
 	// DSR int i, debug = opt->debug;
 	int debug = opt->debug;
 	unsigned long long i;
+	char *bmp_seg1 = NULL, *bmp_seg2 = NULL;
+	unsigned long long bmp_seg1_len = 0, bmp_seg2_len = 0;
+	int bmp_nseg = 1;
 
 	switch(img_opt.bitmap_mode) {
 
 	case BM_BIT:
 	{
-		if (write_all(ret, (char*)bitmap, pc_BITS_TO_BYTES(fs_info.totalblock), opt) == -1)
+		bmp_nseg = pc_bitmap_image_segments(bitmap, fs_info.totalblock, 0,
+						    &bmp_seg1, &bmp_seg1_len,
+						    &bmp_seg2, &bmp_seg2_len);
+		if (write_all(ret, bmp_seg1, bmp_seg1_len, opt) == -1 ||
+		    (bmp_nseg == 2 && write_all(ret, bmp_seg2, bmp_seg2_len, opt) == -1))
 		    log_mesg(0, 1, 1, debug, "write bitmap to image error: %s\n", strerror(errno));
 		break;
 	}
@@ -1229,7 +1236,13 @@ void write_image_bitmap(int* ret, file_system_info fs_info, image_options img_op
 
 			init_crc32(&crc);
 
-			crc = pc_crc32(crc, bitmap, pc_BITS_TO_BYTES(fs_info.totalblock));
+			if (bmp_seg1 != NULL) {
+				crc = pc_crc32(crc, bmp_seg1, (long)bmp_seg1_len);
+				if (bmp_nseg == 2)
+					crc = pc_crc32(crc, bmp_seg2, (long)bmp_seg2_len);
+			} else {
+				crc = pc_crc32(crc, bitmap, pc_BITS_TO_BYTES(fs_info.totalblock));
+			}
 			if (write_all(ret, (char*)&crc, sizeof(crc), opt) != sizeof(crc))
 			    log_mesg(0, 1, 1, debug, "write bitmap to image error: %s\n", strerror(errno));
 			break;
@@ -1559,13 +1572,27 @@ void check_mem_size(file_system_info fs_info, image_options img_opt, cmd_opt opt
 	free(test_write);
 }
 
-void load_image_bitmap_bits(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap) {
+void load_image_bitmap_bits(int* ret, cmd_opt opt, file_system_info fs_info, unsigned long* bitmap, int be_legacy_layout) {
 
-	unsigned long long r_size, bitmap_size = pc_BITS_TO_BYTES(fs_info.totalblock);	uint32_t r_crc, crc;
+	unsigned long long r_size;
+	char *bmp_seg1 = NULL, *bmp_seg2 = NULL;
+	unsigned long long bmp_seg1_len = 0, bmp_seg2_len = 0;
+	int bmp_nseg;
+	uint32_t r_crc, crc;
 
-	r_size = read_all(ret, (char*)bitmap, bitmap_size, &opt);
-	if (r_size != bitmap_size)
+	bmp_nseg = pc_bitmap_image_segments(bitmap, fs_info.totalblock, be_legacy_layout,
+					    &bmp_seg1, &bmp_seg1_len,
+					    &bmp_seg2, &bmp_seg2_len);
+
+	r_size = read_all(ret, bmp_seg1, bmp_seg1_len, &opt);
+	if (r_size != bmp_seg1_len)
 		log_mesg(0, 1, 1, opt.debug, "unable to read bitmap.\n");
+
+	if (bmp_nseg == 2) {
+		r_size = read_all(ret, bmp_seg2, bmp_seg2_len, &opt);
+		if (r_size != bmp_seg2_len)
+			log_mesg(0, 1, 1, opt.debug, "unable to read bitmap.\n");
+	}
 
 	r_size = read_all(ret, (char*)&r_crc, sizeof(r_crc), &opt);
 	if (r_size != sizeof(r_crc))
@@ -1573,7 +1600,9 @@ void load_image_bitmap_bits(int* ret, cmd_opt opt, file_system_info fs_info, uns
 
 	init_crc32(&crc);
 
-	crc = pc_crc32(crc, bitmap, bitmap_size);
+	crc = pc_crc32(crc, bmp_seg1, (long)bmp_seg1_len);
+	if (bmp_nseg == 2)
+		crc = pc_crc32(crc, bmp_seg2, (long)bmp_seg2_len);
 	if (crc != r_crc)
 		log_mesg(0, 1, 1, opt.debug, "read bitmap's crc error\n");
 }
@@ -1627,9 +1656,10 @@ void load_image_bitmap_bytes(int* ret, cmd_opt opt, file_system_info fs_info, un
 }
 
 /// get bitmap from image file to restore data
-void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, image_options img_opt, unsigned long* bitmap) {
+void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, image_options img_opt, unsigned long* bitmap, const image_head* img_head) {
 
 	struct stat st;
+	int be_legacy_layout;
 	if (fstat(*ret, &st) == -1) {
 		log_mesg(0, 1, 1, opt.debug, "fstat failed: %s\n", strerror(errno));
 	}
@@ -1648,10 +1678,15 @@ void load_image_bitmap(int* ret, cmd_opt opt, file_system_info fs_info, image_op
 		}
 	}
 
+	be_legacy_layout = pc_be_bitmap_legacy(img_head ? img_head->ptc_version : NULL,
+						 (unsigned)img_opt.image_version);
+	if (be_legacy_layout)
+		log_mesg(1, 0, 0, opt.debug, "Image uses the pre-0.3.55 big-endian bitmap layout\n");
+
 	switch(img_opt.bitmap_mode) {
 
 	case BM_BIT:
-		load_image_bitmap_bits(ret, opt, fs_info, bitmap);
+		load_image_bitmap_bits(ret, opt, fs_info, bitmap, be_legacy_layout);
 		break;
 
 	case BM_BYTE:

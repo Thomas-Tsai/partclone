@@ -286,7 +286,7 @@ int main(int argc, char **argv) {
 
 		/// read and check bitmap from image file
 		log_mesg(0, 0, 1, debug, "Calculating bitmap... Please wait...\n");
-		load_image_bitmap(&dfr, opt, fs_info, img_opt, bitmap);
+		load_image_bitmap(&dfr, opt, fs_info, img_opt, bitmap, &img_head);
 
 #ifndef CHKIMG
 		/// check the dest partition size.
