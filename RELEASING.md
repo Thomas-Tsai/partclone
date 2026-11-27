@@ -94,8 +94,7 @@ Watch them on the Actions page. Everything green? Continue.
 * deb: `X.Y.Z-1~gh1`. The `~` sorts **before** the official Debian `-1`, so
   the archive package cleanly upgrades over these pre-built ones. `partclone`
   and `partclone-static` conflict with each other by design — install only one.
-* **GitHub Release page shows `-1.gh1` in asset *file names***: GitHub
-  sanitizes `~` to `.` in uploaded asset names (both debs and .dsc/.changes).
+* **GitHub Release page shows `-1.gh1` in asset *file names***: the `~` character is retained in the filenames; the package version inside the files remains `1~gh1`.
   The package version *inside* the files is still `1~gh1`
   (`dpkg-deb -I partclone_0.3.55-1.gh1_amd64.deb | grep Version`), and
   dpkg/apt care about the content, not the file name.
@@ -180,10 +179,7 @@ or Ubuntu archives**; they are only published by the DRBL-core APT repo
 * Both deb build jobs (`release-package.yml` and `debian-build.yml`) add the
   DRBL-core source before `mk-build-deps`, pinned so that **only** the ufs /
   vmfs / jfs packages may come from there (everything else stays on Debian).
-* The **dynamically linked** `partclone` deb on amd64 gets runtime
-  `Depends:` on those DRBL packages (`libufs2 8.2-3.drbl2`,
-  `libvmfs 0.2.5-1.drbl3`, …). Users without the DRBL repo should install
-  `partclone-static` or the static tarball instead.
+* The **dynamically linked** `partclone` deb on amd64 now includes those libraries (static linking), so it no longer has runtime `Depends:` on the DRBL packages. Users can install the ordinary deb without adding the DRBL repository.
 * Long-term plan: replace these with **clean-room built-in parsers** (same
   approach as the `reiserx-cleanroom` branch for reiserfs/reiser4), so the
   DRBL dependency disappears.
