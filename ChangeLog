@@ -1,4 +1,157 @@
+2026-11-25  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	bump version to 0.3.55
+	Required by the big-endian bitmap fix: image_head_v2.ptc_version is the
+	discriminator between the legacy and the fixed BE bitmap layout, with the
+	threshold at 0.3.55. Without this bump a build from this tree would stamp
+	its own new-format images "0.3.54" and read them back as legacy (verified
+	on s390x: ntfs_partial_tail.test fails without the bump, passes with it).
+
+	bitmap: fix big-endian tail-truncation without breaking old BE images
+	On big-endian hosts the used bits of a partially used trailing unsigned
+	long live in that long's highest-addressed bytes, but write_image_bitmap()
+	and load_image_bitmap_bits() only copy the first pc_BITS_TO_BYTES
+	(totalblock) bytes of the buffer. When totalblock is not a multiple of
+	BITS_PER_LONG, the used bits of the last blocks are cut off: e.g. with
+	totalblock 16385 (NTFS Boot Record copy since 0.3.51) the final block's
+	bit never reaches the image, which is what makes ntfs_partial_tail.test
+	fail on s390x since 0.3.53 (#326).
+
+	Instead of changing the in-memory bit addressing (as PR #327 proposes,
+	which reverses every multi-byte bitmap word of pre-existing big-endian
+	images and would silently corrupt them on restore), keep the layout and
+	fix only the I/O layer: on big-endian hosts the image now stores [all
+	complete longs] followed by [the used tail bytes of the final long].
+	The image size is unchanged, little-endian images stay bit-identical,
+	and only content that the old format actually contained is affected.
+
+	Read-side compat: images carry their creator's version in
+	image_head_v2.ptc_version. Pre-0.3.55 (and all v1) images are read with
+	the historic contiguous layout, exactly as previous releases read them;
+	0.3.55+ images use the new two-segment layout. Detection is compiled out
+	on little-endian hosts. load_image_bitmap() gains an img_head parameter
+	for this; all four call sites (main.c, info.c, fuseimg.c, readblock.c)
+	already have it in scope.
+
+	Verified: forced-big-endian harness covering round-trip writes/reads and
+	legacy-image reads for totalblock in 1/7/8/56/57/63/64/65/100/127/128/
+	8191/8192/8193/16384/16385/1000001 plus the version predicate passes;
+	x86_64 make check passes with byte-identical images.
+
+	NOTE: the release shipping this fix must be versioned >= 0.3.55 so that
+	pc_be_bitmap_legacy() classifies its own images correctly.
+
+2026-11-23  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	docs: fix staging rehearsal recipe (--source=., lazy workflow registration notes)
+
+	ci: ship partclone-static deb artifact; document '~'->'.' release-asset rename
+	The 'Prepare artifacts' glob '../partclone_*' did not match
+	'partclone-static_*', silently dropping the static deb from the
+	pkg-deb-static artifact (lintian checked ../*.deb in place so reviews
+	looked fine). Also document the GitHub release behaviour of renaming
+	'~' to '.' in asset file names; the package version inside stays 1~gh1.
+
+	ci: add docker_push input to release-package + staging rehearsal doc
+
+	ci: split release into maintainer-gated tag-check/package/draft flow
+	Replace the fully-automatic release.yml with a three-phase, human-gated
+	flow:
+
+	1. tag-check.yml (push: tags) validates the tag format and that the tag's
+	   configure.ac AC_INIT matches the tag name. cross-arch-test.yml and
+	   debian-build.yml get their push:tags triggers back so a tag push fans
+	   out the full test matrix (manual-on-host.yml already had one).
+
+	2. release-package.yml (workflow_dispatch, version + skip_test_check):
+	   preflight verifies the tag exists, AC_INIT matches, and softly gates on
+	   all check runs of the tag commit being green (overridable). Builds the
+	   five artifacts in parallel: source tarball, deb dynamic/static (sid,
+	   DRBL-pinned, idempotent -1~gh1 changelog), rpm, static tarball, and the
+	   Docker Hub image via docker-image.yml (now called from here, no more
+	   tag trigger). A pkg-manifest artifact (version/sha) marks the run so
+	   the draft step can find it later. AppImage is dropped.
+
+	3. release-draft.yml (workflow_dispatch, version): validates the tag,
+	   refuses if a published release exists, finds the latest successful
+	   Release Package run for this version via its manifest, gathers the
+	   pkg-* artifacts (deduping same-name files across flavors), adds
+	   SHA256SUMS and notes, deletes any previous draft for the tag, and
+	   creates a fresh DRAFT release. Publishing stays a manual web action.
+
+	toolbox gains --update-changelog: reads AC_INIT and idempotently prepends
+	the -1~gh1 debian changelog entry and the rpm spec Version/%changelog
+	entry (manual prepend, not dch -v, so the maintainer's UNRELEASED entry
+	below is preserved; verified with dpkg-parsechangelog). The same
+	idempotent fallbacks stay in the deb/rpm jobs for forgotten runs.
+
+	RELEASING.md rewritten for the new flow, incl. retry scenarios and the
+	fact that only release-draft needs contents:write.
+
+2026-11-16  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	ci: install build-deps of partclone in static-tarball job
+	configure --enable-extfs etc. needs the full dev stack (uuid-dev and co).
+	Mirror the proven c-cpp.yml recipe: apt-get build-dep partclone plus the
+	explicit essentials.
+
+	ci: fix release dry-run issues
+	- source-tarball: drop 'tar tzf | head' (SIGPIPE under pipefail) in favor
+	  of sed -n '1,3p'
+	- install autopoint explicitly: newer ubuntu-latest images no longer
+	  install it with gettext, breaking ./autogen in static-tarball and the
+	  optional po-sync step
+
+	Merge branch 'release-automation'
+	ci: manual release pipeline with tests-gated publishing
+
+	ci: add manual release pipeline with tests-gated publishing
+	Add a workflow_dispatch Release pipeline (release.yml). Given a version:
+
+	* full mode (no tag): bump configure.ac, regenerate ChangeLog/CONTRIBUTORS,
+	  optionally sync po, sync packaging before tagging (debian.sid changelog
+	  entry VERSION-1~gh1 with git-log bullets, rpm spec version), commit, push
+	  an annotated tag, then build and publish a GitHub Release.
+	* existing-tag mode: verify the tag matches the version and (re)publish the
+	  release for it, e.g. to backfill releases for hand-made tags.
+	* dry_run: build every artifact from the dispatch commit without bumping,
+	  tagging or publishing.
+
+	Tests gate publishing: the tag-triggered cross-arch-test and debian-build
+	workflows become reusable (workflow_call) and must pass before any artifact
+	is built. Docker Hub publishing moves into the same publish stage (build
+	only when secrets are absent or dry_run). manual-on-host.yml keeps its own
+	tag trigger as an independent observer. On failure the freshly pushed tag
+	can be deleted automatically so the same version can simply be re-run.
+
+	Artifacts: source tarball, dynamic and static debs (sid, version
+	VERSION-1~gh1 so official -1 packages cleanly upgrade over them), Fedora
+	rpm + src.rpm (rewritten spec for the 0.3.x series), static binary
+	tarball, AppImage, Docker image, SHA256SUMS.
+
+	Both deb build jobs now add the DRBL-core apt repository
+	(free.nchc.org.tw/drbl-core) with a pin so that only the ufs/vmfs/jfs
+	packages may come from it; since #328 those Build-Depends exist only there.
+
+	RELEASING.md documents the flow, the DRBL runtime-dependency caveat for
+	the amd64 dynamic deb, and the long-term clean-room plan for ufs/vmfs/jfs
+	(and the same situation for reiserfs/reiser4).
+
+	Merge pull request #328 from stevenshiau/master
+	Separate amd64/arm64/riscv64 with different file system support when
+	packaging, especially for legacy ones (ufs, vmfs, jfs, and nilfs).
+
+2026-11-16  Steven Shiau  <steven@stevenshiau.org>
+
+	Merge branch 'Thomas-Tsai:master' into master
+
+	Separate amd64/arm64/riscv64 with different support.
+	Separate amd64/arm64/riscv64 with different file system support. For
+	legacy ones (ufs, vmfs, jfs, and nilfs).
+
 2026-11-15  Thomas Tsai  <tlinux.tsai@gmail.com>
+
+	Bump version to 0.3.54
 
 	Merge pull request #325 from Thomas-Tsai/fix-zfs-spacemap-bitmap
 	partclone.zfs: fix off-by-one in log spacemap unflushed-txg filter

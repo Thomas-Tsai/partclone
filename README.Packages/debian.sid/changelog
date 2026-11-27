@@ -1,3 +1,19 @@
+partclone (0.3.55-1~gh1) sid; urgency=medium
+
+  * Automated upstream release build 0.3.55.
+  * bump version to 0.3.55 (44cec22)
+  * bitmap: fix big-endian tail-truncation without breaking old BE images (74d5e7a)
+  * docs: fix staging rehearsal recipe (--source=., lazy workflow registration notes) (e440d71)
+  * ci: ship partclone-static deb artifact; document '~'->'.' release-asset rename (5b28a03)
+  * ci: add docker_push input to release-package + staging rehearsal doc (43607e0)
+  * ci: split release into maintainer-gated tag-check/package/draft flow (c017e0a)
+  * ci: install build-deps of partclone in static-tarball job (401a71b)
+  * ci: fix release dry-run issues (08444ba)
+  * ci: add manual release pipeline with tests-gated publishing (a4ed0d9)
+  * Separate amd64/arm64/riscv64 with different support. (30cac90)
+
+ -- Thomas Tsai <tlinux.tsai@gmail.com>  Fri, 27 Nov 2026 13:23:14 +0800
+
 partclone (0.3.46-1) UNRELEASED; urgency=medium
 
   * New upstream version 0.3.46.

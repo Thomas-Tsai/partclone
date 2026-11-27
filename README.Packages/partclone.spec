@@ -4,7 +4,7 @@
 %endif
 
 Name:         partclone
-Version:      0.3.54
+Version:      0.3.55
 Release:      1%{?dist}.gh1
 License:      GPL-2.0-only
 URL:          http://partclone.org/
@@ -93,6 +93,9 @@ f2fs and zfs (clean-room parser).
 %{_datadir}/bash-completion/completions/partclone
 
 %changelog
+* Fri Nov 27 2026 Thomas Tsai <tlinux.tsai@gmail.com> - 0.3.55-1.gh1
+- Automated upstream release build 0.3.55.
+
 * Mon Nov 16 2026 Thomas Tsai <tlinux.tsai@gmail.com> - 0.3.54-1.gh1
 - Rewrite spec for the 0.3.x series: align configure flags with
   README.Packages/debian.sid/rules, refresh BuildRequires for current
